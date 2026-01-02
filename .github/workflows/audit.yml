@@ -1,12 +1,14 @@
 name: Vigilante Electoral Permanente
+
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '*/10 * * * *' # Corre cada 10 minutos
-  workflow_dispatch: # Permite correrlo manualmente
+    - cron: '0 3 * * *'  # 1 vez al día por ahora
 
 jobs:
   audit:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
@@ -14,18 +16,23 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: Instalar dependencias
+      - name: Instalar dependencias mínimas
         run: pip install requests
 
-      - name: Ejecutar Auditor
-        run: python auditor.py
+      - name: Ejecutar snapshot y hash
+        run: python scripts/download_and_hash.py
 
-      - name: Guardar cambios y subir al Repo
+      - name: Commit solo si hay cambios reales
         run: |
-          git config --global user.name "AuditHNIA-Bot"
-          git config --global user.email "bot@audithnia.org"
-          git add .
-          git commit -m "Audit: Actualización de datos detectada $(date)" || exit 0
-          git push
+          git config user.name "AuditHNIA-Bot"
+          git config user.email "bot@audithnia.org"
+
+          if [[ -n "$(git status --porcelain data hashes)" ]]; then
+            git add data hashes
+            git commit -m "Snapshot automático $(date -u)"
+            git push
+          else
+            echo "Sin cambios reales, no se commitea"
+          fi
