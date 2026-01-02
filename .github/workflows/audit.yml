@@ -45,6 +45,5 @@ jobs:
             echo "Sin cambios reales, no se commitea"
           fi
 
-      - name: Enviar actualización a Telegram
-        run: |
-          python scripts/post_to_telegram.py 'Actualización automática completada. Snapshot generado y hasheado. Ver repo: https://github.com/userf8a2c4/hnd-electoral-audit-2029'
+      - name: Prueba simple a Telegram (debug)
+        run: curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d "chat_id=$TELEGRAM_CHAT_ID&text=Prueba directa desde Actions: workflow OK"
