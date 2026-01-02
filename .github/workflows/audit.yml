@@ -1,0 +1,31 @@
+name: Vigilante Electoral Permanente
+on:
+  schedule:
+    - cron: '*/10 * * * *' # Corre cada 10 minutos
+  workflow_dispatch: # Permite correrlo manualmente
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Ejecutar Auditor
+        run: python auditor.py
+
+      - name: Guardar cambios y subir al Repo
+        run: |
+          git config --global user.name "AuditHNIA-Bot"
+          git config --global user.email "bot@audithnia.org"
+          git add .
+          git commit -m "Audit: Actualización de datos detectada $(date)" || exit 0
+          git push
