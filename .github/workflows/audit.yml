@@ -1,9 +1,9 @@
 name: Vigilante Electoral Permanente
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Permite ejecución manual
   schedule:
-    - cron: '0 3 * * *'  # 1 vez al día por ahora
+    - cron: '0 */3 * * *'  # Cada 3 horas (cambia a '*/30 * * * *' para pruebas cada 30 min)
 
 jobs:
   audit:
@@ -12,26 +12,34 @@ jobs:
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Para mantener historia git
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instalar dependencias mínimas
-        run: pip install requests
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pandas  # Agrega pandas si lo usas en diffs
 
       - name: Ejecutar snapshot y hash
-        run: python scripts/download_and_hash.py
+        run: python scripts/scripts/download_and_hash.py  # Ruta completa con doble scripts
+
+      - name: Ejecutar diffs si aplica
+        run: python scripts/scripts/calculate_diffs.py || echo "No hay suficientes snapshots para diffs"
 
       - name: Commit solo si hay cambios reales
         run: |
-          git config user.name "AuditHNIA-Bot"
-          git config user.email "bot@audithnia.org"
+          git config user.name "AuditHN Bot"
+          git config user.email "bot@audithn.org"  # Cambia si quieres anónimo
 
-          if [[ -n "$(git status --porcelain data hashes)" ]]; then
-            git add data hashes
-            git commit -m "Snapshot automático $(date -u)"
+          git add data/ hashes/ diffs/ reports/  # Carpetas a commitear
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Actualización automática: snapshot y diffs $(date +'%Y-%m-%d %H:%M')"
             git push
           else
             echo "Sin cambios reales, no se commitea"
