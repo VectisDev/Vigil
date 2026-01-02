@@ -44,3 +44,6 @@ jobs:
           else
             echo "Sin cambios reales, no se commitea"
           fi
+
+      - name: Enviar actualización a Telegram
+        run: python scripts/post_to_telegram.py "Actualización automática completada. Snapshot generado y hasheado. Ver repo: https://github.com/userf8a2c4/hnd-electoral-audit-2029"
