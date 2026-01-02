@@ -26,10 +26,10 @@ jobs:
           pip install requests pandas  # Agrega pandas si lo usas en diffs
 
       - name: Ejecutar snapshot y hash
-        run: python scripts/scripts/download_and_hash.py  # Ruta completa con doble scripts
+        run: python scripts/download_and_hash.py  # Ruta completa con doble scripts
 
       - name: Ejecutar diffs si aplica
-        run: python scripts/scripts/calculate_diffs.py || echo "No hay suficientes snapshots para diffs"
+        run: python scripts/calculate_diffs.py || echo "No hay suficientes snapshots para diffs"
 
       - name: Commit solo si hay cambios reales
         run: |
