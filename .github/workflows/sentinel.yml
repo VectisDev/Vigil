@@ -1,0 +1,31 @@
+name: Sentinel Pipeline
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install -r requirements.txt
+
+      - run: python scripts/download_and_hash.py
+      - run: python scripts/normalize.py
+      - run: python scripts/analyze_rules.py
+
+      - run: pytest tests/
+
+      - run: |
+          git config user.name "sentinel-bot"
+          git config user.email "sentinel@localhost"
+          git add .
+          git commit -m "Sentinel automated run $(date)" || exit 0
+          git push
