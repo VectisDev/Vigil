@@ -3,105 +3,101 @@ import os
 import glob
 import math
 import collections
+import sys
 
-# Protocolo HND-SENTINEL-2029: Auditoría Forense
-# Basado en datos históricos 2025 
+# PROTOCOLO HND-SENTINEL-2029 // AUDITORÍA RESILIENTE
+# Versión optimizada para datos históricos 2025 y futuros 2029
 
 def load_json(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"[!] ERROR_LOADING_FILE: {file_path} - {str(e)}")
+        print(f"[!] ERROR_CARGA: {file_path} - {str(e)}")
         return None
 
+def safe_int(value, default=0):
+    """Convierte a entero de forma segura, manejando strings y nulls."""
+    try:
+        if value is None: return default
+        return int(str(value).replace(',', '').split('.')[0])
+    except (ValueError, TypeError):
+        return default
+
 def apply_benford_law(votos_lista):
-    """
-    Analiza la distribución del primer dígito de los votos por candidato.
-    Detecta si los números parecen 'inventados' por humanos.
-    """
+    """Analiza la distribución del primer dígito (Ley de Benford)."""
+    # Solo procesamos si hay suficientes datos para evitar falsos positivos
+    if len(votos_lista) < 10: 
+        return None
+
     first_digits = []
     for c in votos_lista:
-        votos = str(c.get('votos', '')).strip()
-        if votos and votos != '0':
-            first_digits.append(int(votos[0]))
+        votos_str = str(c.get('votos', '')).strip()
+        if votos_str and votos_str not in ['0', 'None']:
+            first_digits.append(int(votos_str[0]))
     
-    if not first_digits:
-        return None
+    if not first_digits: return None
     
     counts = collections.Counter(first_digits)
     total = len(first_digits)
     
-    # Distribución ideal de Benford para dígitos 1-9
-    benford_ideal = {d: math.log10(1 + 1/d) * 100 for d in range(1, 10)}
-    actual_dist = {d: (counts[d] / total) * 100 for d in range(1, 10)}
+    # Análisis de anomalía: El '1' debe ser ~30%. Si es < 20%, sospecha de manipulación.
+    dist_1 = (counts[1] / total) * 100
+    is_anomaly = dist_1 < 20.0
     
-    # Si el dígito '1' es muy bajo (<20%) o los dígitos altos son muy frecuentes, hay anomalía
-    is_anomaly = actual_dist.get(1, 0) < 20.0 or actual_dist.get(8, 0) > 15.0
-    return {"is_anomaly": is_anomaly, "distribution": actual_dist}
+    return {"is_anomaly": is_anomaly, "prop_1": dist_1}
 
-def analyze_historical_stream(file_list):
-    """
-    Procesa el flujo de archivos (como los 63 raws de 2025).
-    Mantiene un registro de 'votos máximos' para detectar regresiones históricas.
-    """
-    # Diccionario para rastrear el pico más alto de votos detectado por ID de candidato
+def run_audit(target_directory='data/'):
     peak_votos = {} 
-    all_anomalies = []
+    anomalies_log = []
 
-    # Ordenar archivos por nombre (asumiendo que tienen el timestamp en el nombre)
-    sorted_files = sorted(file_list)
+    # Obtener archivos ordenados por nombre (cronología de timestamps)
+    file_list = sorted(glob.glob(os.path.join(target_directory, '*.json')))
+    
+    if not file_list:
+        print(f"[!] No se encontraron archivos en {target_directory}")
+        return
 
-    print(f"[*] INICIANDO AUDITORÍA SOBRE {len(sorted_files)} ARCHIVOS...")
+    print(f"[*] PROCESANDO {len(file_list)} SNAPSHOTS ELECTORALES...")
 
-    for i in range(len(sorted_files)):
-        current_file = sorted_files[i]
-        data = load_json(current_file)
+    for file_path in file_list:
+        data = load_json(file_path)
         if not data: continue
+        
+        file_name = os.path.basename(file_path)
+        # Soporta diferentes estructuras de JSON del CNE (votos o candidates)
+        votos_actuales = data.get('votos') or data.get('candidates') or []
 
-        votos_actuales = data.get('votos', [])
-        file_name = os.path.basename(current_file)
-
-        # 1. Regla de Monotonicidad (Regresión de Votos)
+        # 1. REGLA DE MONOTONICIDAD (PEAK-TRACKING)
         for c in votos_actuales:
-            c_id = c.get('id') or c.get('nombre') # Identificador dinámico
-            votos_val = int(c.get('votos', 0))
+            # Identificador robusto: ID o Nombre
+            c_id = str(c.get('id') or c.get('nombre') or 'unknown')
+            v_actual = safe_int(c.get('votos'))
 
             if c_id in peak_votos:
-                if votos_val < peak_votos[c_id]['votos']:
-                    anomaly = {
-                        'timestamp': file_name,
-                        'rule': 'NEGATIVE_VOTES',
-                        'candidate': c.get('nombre'),
-                        'loss': votos_val - peak_votos[c_id]['votos'],
-                        'current': votos_val,
-                        'peak': peak_votos[c_id]['votos']
-                    }
-                    all_anomalies.append(anomaly)
-                    print(f"[!] ALERTA_REGRESIÓN: {c.get('nombre')} perdió {anomaly['loss']} votos en {file_name}")
+                if v_actual < peak_votos[c_id]['valor']:
+                    diff = v_actual - peak_votos[c_id]['valor']
+                    print(f"[!] REGRESIÓN: {c_id} perdió {diff} votos en {file_name}")
+                    anomalies_log.append({
+                        "file": file_name,
+                        "type": "NEGATIVE_DELTA",
+                        "entity": c_id,
+                        "loss": diff
+                    })
             
-            # Actualizar pico máximo si el valor actual es mayor
-            if c_id not in peak_votos or votos_val > peak_votos[c_id]['votos']:
-                peak_votos[c_id] = {'votos': votos_val, 'file': file_name}
+            # Actualizar el pico histórico si el valor actual es mayor
+            if c_id not in peak_votos or v_actual > peak_votos[c_id]['valor']:
+                peak_votos[c_id] = {'valor': v_actual, 'file': file_name}
 
-        # 2. Análisis de Benford (cada 10 archivos o al final para tener muestra suficiente)
-        if i % 10 == 0 or i == len(sorted_files) - 1:
-            benford_report = apply_benford_law(votos_actuales)
-            if benford_report and benford_report['is_anomaly']:
-                print(f"[?] AVISO_ESTADÍSTICO: Distribución de votos inusual en {file_name} (Posible manipulación Benford)")
+        # 2. LEY DE BENFORD (MONITOREO ESTADÍSTICO)
+        benford = apply_benford_law(votos_actuales)
+        if benford and benford['is_anomaly']:
+            print(f"[?] SOSPECHA: Distribución Benford anómala en {file_name} (Dígito 1: {benford['prop_1']:.1f}%)")
 
-    return all_anomalies
+    # Guardar resultados para uso del Bot de Telegram o Visualizador
+    with open('anomalies_report.json', 'w') as f:
+        json.dump(anomalies_log, f, indent=4)
+    print(f"\n[*] AUDITORÍA FINALIZADA. Reporte guardado en anomalies_report.json")
 
 if __name__ == "__main__":
-    # Para probar con tus 63 archivos, asegúrate que estén en la carpeta 'data/'
-    target_files = glob.glob('data/*.json')
-    
-    if not target_files:
-        print("[!] No se encontraron archivos JSON en la carpeta 'data/'.")
-        sys.exit(1)
-
-    report = analyze_historical_stream(target_files)
-    
-    print("\n" + "="*50)
-    print(f"RESUMEN DE AUDITORÍA: {len(report)} ANOMALÍAS DETECTADAS")
-    print("="*50)
+    run_audit()
