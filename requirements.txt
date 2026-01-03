@@ -1,6 +1,8 @@
 requests==2.31.0  # Para peticiones HTTP: descarga snapshots del CNE y posting a Telegram API.
-pandas==2.0.3  # Para procesamiento de datos: diffs, deltas y análisis por departamento (DataFrames eficientes).
-scipy==1.11.1  # Para análisis avanzados: Ley de Benford, chi-squared y detección de outliers en votos presidenciales.
-python-telegram-bot==20.3  # Para alertas automáticas en Telegram: posting condicional de anomalías y resúmenes.
-tweepy==4.14.0  # Para posting en X (Twitter): resúmenes horarios/diarios y alertas (opcional, para cuando pagues verificado).
+pandas==2.0.3  # Para procesamiento de datos: diffs, deltas y análisis por departamento.
+scipy==1.11.1  # Para análisis avanzados: Ley de Benford y chi-squared.
+matplotlib==3.7.2  # Para visualización forense: generación de gráficas de Benford y tendencias.
+python-telegram-bot==20.3  # Para alertas automáticas en Telegram.
+tweepy==4.14.0  # Para posting en X (Twitter).
+python-dateutil==2.8.2  # Para manejo robusto de timestamps en los snapshots.
 # The Sentinel's arsenal for truth exposure. No libs extras para mantener ligereza.
