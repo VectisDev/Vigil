@@ -1,94 +1,77 @@
-# Electoral Audit HN
-### Vigilancia automatizada y transparente de datos electorales del CNE (Honduras)
-
-Proyecto open-source para monitorear, registrar y auditar **datos públicos** del Consejo Nacional Electoral (CNE) de Honduras.
-
-## Español / Spanish
-
-### Objetivo
-- Capturar snapshots periódicos de datos públicos (JSON).
-- Generar hashes criptográficos (SHA-256) para verificación de integridad.
-- Calcular diffs numéricos entre actualizaciones.
-- Detectar inconsistencias objetivas (ej. cambios negativos, outliers, saltos anómalos).
-- Publicar reportes neutrales y verificables.
-
-### Principios
-- **Solo números, solo hechos**.
-- Sin opiniones, sin acusaciones, sin interpretación política.
-- Todo es reproducible y auditable.
-- Código y datos 100% open-source.
-
-### Alcance
-Este proyecto **no declara fraude** ni beneficia a ningún actor político.  
-Su función es **documentar cambios en datos públicos**, de forma automática y transparente.
-
-### Estado
-- Fase de preparación.
-- Pruebas con datos históricos (elecciones 2025).
-- Preparado para activarse desde el minuto cero en elecciones futuras (ej. 2029).
-
-### Estructura
-- `data/` – Snapshots JSON crudos.
-- `hashes/` – Hashes SHA-256.
-- `diffs/` – Reportes de cambios.
-- `scripts/` – Automatización en Python.
-- `reports/` – Informes agregados.
-- `.github/workflows/` – GitHub Actions.
-
-### Cómo Contribuir
-- Forkea el repo y prueba los scripts.
-- Abre issues para sugerencias técnicas.
-- Verifica hashes y reportes para auditoría independiente.
-
-### Licencia
-MIT
-
-### Canales
-- X: https://x.com/AuditHN_IA  
-- Telegram: (próximamente)
+# [!] DEDSEC_HND_AUTOAUDIT_2029
+### > EVERYTHING IS CONNECTED. THE DATA IS THE TRUTH.
+### > TODO ESTÁ CONECTADO. LOS DATOS SON LA VERDAD.
 
 ---
 
-## English / Inglés
+## [EN] ENGLISH SECTION
 
-### Objective
-- Capture periodic snapshots of public data (JSON).
-- Generate cryptographic hashes (SHA-256) for integrity verification.
-- Calculate numerical diffs between updates.
-- Detect objective inconsistencies (e.g., negative changes, outliers, anomalous jumps).
-- Publish neutral and verifiable reports.
+### > TECHNICAL MANIFESTO
+**STATUS:** `OPERATIONAL`  
+**SYSTEM:** `INDEPENDENT_INTEGRITY_AUDIT`  
+**TARGET:** `CNE_PUBLIC_DATA_STREAM (HND)`
 
-### Principles
-- **Only numbers, only facts**.
-- No opinions, no accusations, no political interpretation.
-- Everything is reproducible and auditable.
-- Code and data 100% open-source.
+#### OBJECTIVE
+Autonomous monitoring and cryptographic verification of public electoral data.
+- **DATA_CAPTURE:** Periodic snapshots of JSON source streams.
+- **INTEGRITY:** SHA-256 cryptographic signatures for immutable record-keeping.
+- **FORENSICS:** Real-time detection of numerical anomalies, negative deltas, and outliers.
+- **TRANSPARENCY:** Automated reporting of verifiable facts.
 
-### Scope
-This project **does not declare fraud** nor benefit any political actor.  
-Its function is to **document changes in public data**, automatically and transparently.
+#### OPERATIONAL_PRINCIPLES
+1. **NULL_INTERPRETATION:** Only numbers. No opinions. No political bias.
+2. **IMMUTABILITY:** Once a hash is generated, the record is permanent.
+3. **AUTONOMY:** Automated execution via GitHub Actions.
+4. **ALGORITHMIC_NEUTRALITY:** The monitoring engine treats all Candidate_IDs as equal nodes. Thresholds are applied universally without human intervention.
 
-### Status
-- Preparation phase.
-- Testing with historical data (2025 elections).
-- Ready to activate from minute zero in future elections (e.g., 2029).
+#### SCOPE
+This system is not a political tool. It does not declare outcomes. It documents **data mutations** in public streams. The verdict belongs to the observers.
 
-### Structure
-- `data/` – Raw JSON snapshots.
-- `hashes/` – SHA-256 hashes.
-- `diffs/` – Change reports.
-- `scripts/` – Python automation.
-- `reports/` – Aggregated reports.
-- `.github/workflows/` – GitHub Actions.
+#### INDEPENDENT_VERIFICATION
+To verify the integrity of any snapshot manually, use the following command:
+`sha256sum data/snapshot_YYYYMMDD_HHMM.json`
+Compare the output with the corresponding file in `hashes/`. If the strings match, the data is authentic.
 
-### How to Contribute
-- Fork the repo and test the scripts.
-- Open issues for technical suggestions.
-- Verify hashes and reports for independent auditing.
+---
 
-### License
-MIT
+## [ES] SECCIÓN EN ESPAÑOL
 
-### Channels
-- X: https://x.com/AuditHN_IA  
-- Telegram: (coming soon)
+### > MANIFIESTO TÉCNICO
+**ESTADO:** `OPERATIVO`  
+**SISTEMA:** `AUDITORÍA_DE_INTEGRIDAD_INDEPENDIENTE`  
+**OBJETIVO:** `FLUJO_DE_DATOS_PÚBLICOS_CNE (HND)`
+
+#### OBJETIVO
+Monitoreo autónomo y verificación criptográfica de datos electorales públicos.
+- **CAPTURA_DATOS:** Snapshots periódicos de flujos JSON.
+- **INTEGRIDAD:** Firmas criptográficas SHA-256 para registros inmutables.
+- **FORENSE:** Detección en tiempo real de anomalías numéricas y deltas negativos.
+- **TRANSPARENCIA:** Publicación automatizada de hechos verificables.
+
+#### PRINCIPIOS_OPERATIVOS
+1. **INTERPRETACIÓN_NULA:** Solo números. Sin opiniones. Sin sesgo político.
+2. **INMUTABILIDAD:** Una vez generado el hash, el registro es permanente.
+3. **AUTONOMÍA:** Ejecución automatizada vía GitHub Actions.
+4. **NEUTRALIDAD_ALGORÍTMICA:** El motor trata todos los ID_Candidato como nodos iguales. Los umbrales se aplican universalmente sin intervención humana.
+
+#### ALCANCE
+Este sistema no es una herramienta política. No declara resultados. Documenta **mutaciones de datos** en flujos públicos. El veredicto pertenece a los observadores.
+
+#### VERIFICACIÓN_INDEPENDIENTE
+Para verificar la integridad de cualquier snapshot manualmente, use el siguiente comando:
+`sha256sum data/snapshot_YYYYMMDD_HHMM.json`
+Compare el resultado con el archivo correspondiente en `hashes/`. Si las cadenas coinciden, los datos son auténticos.
+
+---
+
+## [!] INFRASTRUCTURE & CHANNELS
+- **REPOSITORY_STRUCTURE:** `data/`, `hashes/`, `diffs/`, `scripts/`, `reports/`.
+- **X:** `[ENCRYPTED_CHANNEL_PENDING]`
+- **TELEGRAM:** `[ENCRYPTED_CHANNEL_PENDING]`
+
+
+**DEDSEC has given you the truth. Do what you will.**
+**DEDSEC te ha entregado la verdad. Haz lo que quieras.**
+
+---
+**LICENSE:** MIT | **AUDIT_MODE:** ACTIVE
