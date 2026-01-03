@@ -40,13 +40,12 @@ jobs:
 
           if ! git diff --cached --quiet; then
             git commit -m "Actualización automática: snapshot y diffs $(date +'%Y-%m-%d %H:%M')"
-            git push
+            git pull --rebase origin main  # Actualiza para resolver behind
+            git push origin main
           else
             echo "Sin cambios reales, no se commitea"
           fi
 
-      - name: Prueba simple a Telegram (debug)
+      - name: Enviar actualización a Telegram
         run: |
-          curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-            -d "chat_id=$TELEGRAM_CHAT_ID" \
-            -d "text=Prueba directa desde Actions: workflow OK"
+          python scripts/post_to_telegram.py "Actualización automática completada. Snapshot generado y hasheado. Ver repo: https://github.com/userf8a2c4/hnd-sentinel-2029"
