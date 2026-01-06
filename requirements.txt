@@ -5,4 +5,5 @@ matplotlib==3.7.2  # Para visualización forense: generación de gráficas de Be
 python-telegram-bot==20.3  # Para alertas automáticas en Telegram.
 tweepy==4.14.0  # Para posting en X (Twitter).
 python-dateutil==2.8.2  # Para manejo robusto de timestamps en los snapshots.
+PyYAML==6.0.2  # Para cargar configuración centralizada.
 # The Sentinel's arsenal for truth exposure. No libs extras para mantener ligereza.
