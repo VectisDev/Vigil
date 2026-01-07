@@ -16,6 +16,9 @@ from logging_utils import configure_logging, log_event
 
 logger = configure_logging("sentinel.analyze")
 
+RELATIVE_VOTE_CHANGE_PCT = float(os.getenv("RELATIVE_VOTE_CHANGE_PCT", "15"))
+SCRUTINIO_JUMP_PCT = float(os.getenv("SCRUTINIO_JUMP_PCT", "5"))
+
 def load_json(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -31,6 +34,151 @@ def safe_int(value, default=0):
         return int(str(value).replace(',', '').split('.')[0])
     except (ValueError, TypeError):
         return default
+
+def safe_int_or_none(value):
+    """Convierte a entero de forma segura, devolviendo None si no es válido."""
+    try:
+        if value is None:
+            return None
+        return int(str(value).replace(',', '').split('.')[0])
+    except (ValueError, TypeError):
+        return None
+
+def safe_float_or_none(value):
+    """Convierte a float de forma segura, devolviendo None si no es válido."""
+    try:
+        if value is None:
+            return None
+        return float(str(value).replace(',', '.'))
+    except (ValueError, TypeError):
+        return None
+
+def extract_porcentaje_escrutado(data):
+    porcentaje = (
+        data.get("porcentaje_escrutado")
+        or data.get("porcentaje")
+        or data.get("porcentaje_escrutinio")
+    )
+    if porcentaje is None:
+        meta = data.get("meta") or data.get("metadata") or {}
+        porcentaje = meta.get("porcentaje_escrutado") or meta.get("porcentaje")
+    return safe_float_or_none(porcentaje)
+
+def extract_vote_breakdown(data):
+    totals = data.get("totals") or {}
+    votos_totales = data.get("votos_totales") or {}
+    valid_votes = safe_int_or_none(
+        totals.get("valid_votes")
+        or totals.get("validos")
+        or votos_totales.get("validos")
+        or votos_totales.get("valid_votes")
+    )
+    blank_votes = safe_int_or_none(
+        totals.get("blank_votes")
+        or totals.get("blancos")
+        or votos_totales.get("blancos")
+        or votos_totales.get("blank_votes")
+    )
+    null_votes = safe_int_or_none(
+        totals.get("null_votes")
+        or totals.get("nulos")
+        or votos_totales.get("nulos")
+        or votos_totales.get("null_votes")
+    )
+    total_votes = safe_int_or_none(
+        totals.get("total_votes")
+        or totals.get("total")
+        or data.get("total_votos")
+        or data.get("total_votes")
+        or votos_totales.get("total")
+        or votos_totales.get("total_votes")
+    )
+    return {
+        "valid_votes": valid_votes,
+        "blank_votes": blank_votes,
+        "null_votes": null_votes,
+        "total_votes": total_votes,
+    }
+
+def extract_actas_mesas_counts(data):
+    actas = data.get("actas") or {}
+    mesas = data.get("mesas") or {}
+    return {
+        "actas_totales": safe_int_or_none(
+            actas.get("totales")
+            or actas.get("total")
+            or data.get("actas_totales")
+        ),
+        "actas_procesadas": safe_int_or_none(
+            actas.get("divulgadas")
+            or actas.get("procesadas")
+            or actas.get("correctas")
+            or data.get("actas_procesadas")
+        ),
+        "mesas_totales": safe_int_or_none(
+            mesas.get("totales")
+            or mesas.get("total")
+            or data.get("mesas_totales")
+            or data.get("mesas_total")
+        ),
+        "mesas_procesadas": safe_int_or_none(
+            mesas.get("procesadas")
+            or mesas.get("divulgadas")
+            or data.get("mesas_procesadas")
+        ),
+    }
+
+def extract_candidate_total(data):
+    if isinstance(data.get("resultados"), dict):
+        return sum(safe_int(v) for v in data.get("resultados", {}).values())
+    candidatos = data.get("candidates")
+    if isinstance(candidatos, list):
+        return sum(safe_int(c.get("votes") or c.get("votos")) for c in candidatos)
+    votos = data.get("votos")
+    if isinstance(votos, list):
+        return sum(safe_int(c.get("votos") or c.get("votes")) for c in votos)
+    if isinstance(votos, dict):
+        return sum(safe_int(v) for v in votos.values())
+    return None
+
+def check_vote_breakdown_consistency(data, file_name):
+    breakdown = extract_vote_breakdown(data)
+    candidate_total = extract_candidate_total(data)
+    actas_mesas = extract_actas_mesas_counts(data)
+
+    valid = breakdown["valid_votes"]
+    blank = breakdown["blank_votes"]
+    null = breakdown["null_votes"]
+    total = breakdown["total_votes"]
+
+    anomalies = []
+    components = [value for value in (valid, blank, null) if value is not None]
+    sum_components = sum(components) if components else None
+
+    if total is not None and sum_components is not None and total != sum_components:
+        anomalies.append({
+            "file": file_name,
+            "type": "VOTE_BREAKDOWN_MISMATCH",
+            "expected_total": total,
+            "observed_total": sum_components,
+            "valid_votes": valid,
+            "blank_votes": blank,
+            "null_votes": null,
+            **{k: v for k, v in actas_mesas.items() if v is not None},
+        })
+
+    if candidate_total is not None and valid is not None and candidate_total != valid:
+        anomalies.append({
+            "file": file_name,
+            "type": "VOTE_BREAKDOWN_MISMATCH",
+            "expected_valid": valid,
+            "observed_candidate_votes": candidate_total,
+            "blank_votes": blank,
+            "null_votes": null,
+            **{k: v for k, v in actas_mesas.items() if v is not None},
+        })
+
+    return anomalies
 
 def parse_timestamp(data, file_name):
     raw_ts = data.get('timestamp') or data.get('timestamp_utc') or data.get('fecha')
@@ -56,6 +204,7 @@ def extract_department_records(data, file_name):
 
     records = []
     meta = data.get("meta") or data.get("metadata") or {}
+    porcentaje_escrutado = extract_porcentaje_escrutado(data)
     if isinstance(data.get('resultados'), dict):
         departamento = (
             meta.get("department")
@@ -65,16 +214,25 @@ def extract_department_records(data, file_name):
         )
         total_votes = sum(safe_int(v) for v in data['resultados'].values())
         actas = data.get('actas', {})
+        votos_totales = data.get("votos_totales", {})
         actas_procesadas = safe_int(
             actas.get('correctas')
             or actas.get('divulgadas')
             or actas.get('totales')
         )
+        actas_totales = safe_int(actas.get("totales") or actas.get("total"))
+        porcentaje_escrutado = data.get("porcentaje_escrutado") or data.get("porcentaje")
+        porcentaje_escrutado = float(porcentaje_escrutado) if porcentaje_escrutado else None
         records.append({
             "timestamp": timestamp,
             "departamento": departamento,
             "total_votes": total_votes,
             "actas_procesadas": actas_procesadas,
+            "actas_totales": actas_totales or None,
+            "porcentaje_escrutado": porcentaje_escrutado,
+            "valid_votes": safe_int(votos_totales.get("validos")),
+            "null_votes": safe_int(votos_totales.get("nulos")),
+            "blank_votes": safe_int(votos_totales.get("blancos")),
         })
         return records
 
@@ -83,13 +241,24 @@ def extract_department_records(data, file_name):
     if isinstance(candidatos, list):
         departamento = meta.get("department") or "NACIONAL"
         total_votes = safe_int(totals.get("total_votes"))
+        valid_votes = safe_int(totals.get("valid_votes"))
+        null_votes = safe_int(totals.get("null_votes"))
+        blank_votes = safe_int(totals.get("blank_votes"))
         actas = totals.get("actas_procesadas") or totals.get("actas") or data.get("actas")
         actas_procesadas = safe_int(actas)
+        actas_totales = safe_int(totals.get("actas_totales") or totals.get("actas_total"))
+        porcentaje_escrutado = data.get("porcentaje_escrutado") or totals.get("porcentaje_escrutado")
+        porcentaje_escrutado = float(porcentaje_escrutado) if porcentaje_escrutado else None
         records.append({
             "timestamp": timestamp,
             "departamento": departamento,
             "total_votes": total_votes,
             "actas_procesadas": actas_procesadas,
+            "actas_totales": actas_totales or None,
+            "porcentaje_escrutado": porcentaje_escrutado,
+            "valid_votes": valid_votes,
+            "null_votes": null_votes,
+            "blank_votes": blank_votes,
         })
         return records
 
@@ -109,6 +278,11 @@ def extract_department_records(data, file_name):
                     or data.get('actas')
                     or 0
                 ),
+                "actas_totales": None,
+                "porcentaje_escrutado": None,
+                "valid_votes": None,
+                "null_votes": None,
+                "blank_votes": None,
             })
     return records
 
@@ -222,6 +396,8 @@ def run_audit(target_directory='data/normalized'):
     peak_votos = {}
     anomalies_log = []
     records = []
+    relative_threshold = float(os.getenv("RELATIVE_DELTA_THRESHOLD", "10.0"))
+    scrutiny_jump_threshold = float(os.getenv("SCRUTINY_JUMP_THRESHOLD", "5.0"))
 
     file_list = sorted(glob.glob(os.path.join(target_directory, '*.json')))
     if not file_list:
@@ -242,6 +418,10 @@ def run_audit(target_directory='data/normalized'):
         arithmetic_issue = check_arithmetic_consistency(data, file_name)
         if arithmetic_issue:
             anomalies_log.append(arithmetic_issue)
+
+        breakdown_issues = check_vote_breakdown_consistency(data, file_name)
+        if breakdown_issues:
+            anomalies_log.extend(breakdown_issues)
 
         for c in votos_actuales:
             c_id = str(c.get('id') or c.get('candidate_id') or c.get('nombre') or c.get("name") or 'unknown')
@@ -279,6 +459,17 @@ def run_audit(target_directory='data/normalized'):
     df = df.sort_values(["departamento", "timestamp"]).reset_index(drop=True)
     df["delta_votes"] = df.groupby("departamento")["total_votes"].diff()
     df["delta_actas"] = df.groupby("departamento")["actas_procesadas"].diff()
+    df["previous_total_votes"] = df.groupby("departamento")["total_votes"].shift()
+    df["relative_change_pct"] = (
+        df["delta_votes"] / df["previous_total_votes"] * 100
+    )
+    df.loc[df["previous_total_votes"].fillna(0) <= 0, "relative_change_pct"] = None
+    df["porcentaje_escrutado_calc"] = df["porcentaje_escrutado"]
+    mask_scrutinio = df["porcentaje_escrutado_calc"].isna() & df["actas_totales"].gt(0)
+    df.loc[mask_scrutinio, "porcentaje_escrutado_calc"] = (
+        df.loc[mask_scrutinio, "actas_procesadas"] / df.loc[mask_scrutinio, "actas_totales"] * 100
+    )
+    df["delta_escrutado"] = df.groupby("departamento")["porcentaje_escrutado_calc"].diff()
 
     anomalies = []
     metrics_by_dept = {}
@@ -328,6 +519,48 @@ def run_audit(target_directory='data/normalized'):
                     "delta_votes": row["delta_votes"],
                     "delta_actas": row["delta_actas"],
                 })
+            if row.get("relative_change_pct") is not None:
+                if abs(row["relative_change_pct"]) >= RELATIVE_VOTE_CHANGE_PCT:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "RELATIVE_CHANGE",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "delta_votes": row["delta_votes"],
+                        "relative_pct": row["relative_change_pct"],
+                        "threshold_pct": RELATIVE_VOTE_CHANGE_PCT,
+                    })
+            if row.get("delta_escrutado") is not None:
+                if row["delta_escrutado"] >= SCRUTINIO_JUMP_PCT:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "SCRUTINIO_SALTO",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "delta_escrutado": row["delta_escrutado"],
+                        "threshold_pct": SCRUTINIO_JUMP_PCT,
+                    })
+            valid_votes = row.get("valid_votes")
+            null_votes = row.get("null_votes")
+            blank_votes = row.get("blank_votes")
+            if all(v is not None for v in [valid_votes, null_votes, blank_votes]):
+                total_votes = row.get("total_votes") or 0
+                sum_votes = (valid_votes or 0) + (null_votes or 0) + (blank_votes or 0)
+                if total_votes and sum_votes and total_votes != sum_votes:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "VOTOS_TOTALES_MISMATCH",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "total_votes": total_votes,
+                        "sum_votes": sum_votes,
+                    })
+            if row.get("actas_totales"):
+                if row["actas_procesadas"] > row["actas_totales"]:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "ACTAS_OVERFLOW",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "actas_procesadas": row["actas_procesadas"],
+                        "actas_totales": row["actas_totales"],
+                    })
 
         trend_metrics = compute_trend_metrics(group)
         metrics_by_dept[departamento] = trend_metrics
@@ -433,6 +666,7 @@ def build_plain_summary(output, language="es"):
         lines.append("")
         lines.append("What this means:")
         lines.append("- The system checks for sudden changes, regressions, and arithmetic mismatches.")
+        lines.append("- It also flags large relative vote shifts, jumps in scrutiny percentage, and vote breakdown inconsistencies.")
         lines.append("- Events indicate unusual data behavior, not intent or responsibility.")
         lines.append("")
         lines.append("Department overview:")
@@ -447,6 +681,7 @@ def build_plain_summary(output, language="es"):
         lines.append("")
         lines.append("Qué significa:")
         lines.append("- El sistema revisa cambios abruptos, regresiones y desajustes aritméticos.")
+        lines.append("- También marca variaciones relativas grandes, saltos en % escrutado y inconsistencias en el desglose de votos.")
         lines.append("- Los eventos indican comportamientos inusuales en los datos, no intención ni responsabilidad.")
         lines.append("")
         lines.append("Resumen por departamento:")
