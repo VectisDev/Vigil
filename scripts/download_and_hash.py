@@ -11,6 +11,7 @@ import yaml
 
 from sentinel.core.hashchain import compute_hash
 from sentinel.core.normalyze import DEPARTMENT_CODES, normalize_snapshot, snapshot_to_canonical_json
+from logging_utils import configure_logging, log_event
 
 # Directorios
 data_dir = Path("data")
@@ -20,13 +21,7 @@ config_path = Path(__file__).resolve().parents[1] / "config.yaml"
 data_dir.mkdir(exist_ok=True)
 hash_dir.mkdir(exist_ok=True)
 
-logger = logging.getLogger("sentinel.download")
-logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-
-def log_event(level: int, event: str, **fields: Any) -> None:
-    payload = {"event": event, **fields}
-    logger.log(level, json.dumps(payload, ensure_ascii=False))
+logger = configure_logging("sentinel.download")
 
 
 def load_config() -> Dict[str, Any]:
@@ -126,6 +121,7 @@ def fetch_source_data(
                 raise ValueError("Respuesta JSON no es un objeto.")
 
             log_event(
+                logger,
                 logging.INFO,
                 "fetch_success",
                 source_id=source.get("source_id") or department_code or source.get("name"),
@@ -136,6 +132,7 @@ def fetch_source_data(
         except Exception as exc:  # noqa: BLE001 - queremos loggear y reintentar
             last_error = exc
             log_event(
+                logger,
                 logging.WARNING,
                 "fetch_retry",
                 source_id=source.get("source_id") or department_code or source.get("name"),
@@ -147,6 +144,7 @@ def fetch_source_data(
                 time.sleep(sleep_time)
 
     log_event(
+        logger,
         logging.ERROR,
         "fetch_failed",
         source_id=source.get("source_id") or department_code or source.get("name"),
@@ -189,6 +187,7 @@ def persist_snapshot(
         f.write(hash_value)
 
     log_event(
+        logger,
         logging.INFO,
         "snapshot_saved",
         source_id=source_id,
@@ -237,6 +236,7 @@ def main() -> None:
             source_id = source.get("source_id") or source.get("department_code") or source.get("name")
             failures.append((source_id, str(exc)))
             log_event(
+                logger,
                 logging.ERROR,
                 "snapshot_failed",
                 source_id=source_id,
