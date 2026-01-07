@@ -1,21 +1,55 @@
-# QUICKSTART
+# QUICKSTART (5 minutos)
 
-## Dashboard
-1. Instala dependencias: `pip install -r requirements.txt`
-2. Ejecuta el dashboard: `streamlit run dashboard.py`
-3. Abre la URL indicada por Streamlit.
+## Español
+1. Clona el repo y entra al directorio:
+   ```bash
+   git clone <repo>
+   cd sentinel
+   ```
+2. Instala dependencias:
+   ```bash
+   pip install -r requirements.txt
+   playwright install
+   ```
+3. Configura archivos base:
+   ```bash
+   cp config.example.yaml config.yaml
+   cp .env.example .env
+   ```
+4. Ajusta `config.yaml` (URL base, headers, fuentes).
+5. Ejecuta la descarga y el análisis:
+   ```bash
+   python scripts/download_and_hash.py
+   python scripts/analyze_rules.py
+   ```
+6. Lanza el dashboard:
+   ```bash
+   streamlit run dashboard.py
+   ```
 
-## Exportar CSV desde el dashboard
-- Usa los botones **Descargar snapshots (CSV)** y **Descargar alertas (CSV)** en la vista principal.
-
-## Generar y descargar PDF
-1. Genera primero los JSON de análisis:
-   - `python scripts/analyze_rules.py` (crea `analysis_results.json` y `anomalies_report.json`).
-2. Crea el PDF:
-   - `python scripts/export_report.py`
-3. Descarga desde el dashboard:
-   - En la barra lateral, haz clic en **Descargar reporte PDF** (usa `reports/latest_report.pdf`).
-
-## Ubicación de archivos
-- PDF: `reports/report_<timestamp>.pdf` y `reports/latest_report.pdf`
-- CSV: descargados desde el navegador en tu carpeta de descargas
+## English
+1. Clone the repo and enter the directory:
+   ```bash
+   git clone <repo>
+   cd sentinel
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   playwright install
+   ```
+3. Set up base files:
+   ```bash
+   cp config.example.yaml config.yaml
+   cp .env.example .env
+   ```
+4. Update `config.yaml` (base URL, headers, sources).
+5. Run download + analysis:
+   ```bash
+   python scripts/download_and_hash.py
+   python scripts/analyze_rules.py
+   ```
+6. Launch the dashboard:
+   ```bash
+   streamlit run dashboard.py
+   ```

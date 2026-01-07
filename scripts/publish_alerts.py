@@ -18,7 +18,10 @@ MIN_NEGATIVE_DELTA = int(os.getenv("MIN_NEGATIVE_DELTA", "1"))
 
 
 def critical_rules() -> set[str]:
-    raw = os.getenv("CRITICAL_ANOMALY_TYPES", "ARITHMETIC_MISMATCH,NEGATIVE_DELTA,CHANGE_POINT")
+    raw = os.getenv(
+        "CRITICAL_ANOMALY_TYPES",
+        "ARITHMETIC_MISMATCH,NEGATIVE_DELTA,CHANGE_POINT,RELATIVE_DELTA,SCRUTINY_JUMP,VOTE_BREAKDOWN_MISMATCH",
+    )
     return {rule.strip().upper() for rule in raw.split(",") if rule.strip()}
 
 
