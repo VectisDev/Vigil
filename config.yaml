@@ -1,4 +1,10 @@
+# URL base (compatibilidad). Si no se define `endpoints`, se usará este valor.
 base_url: "https://example.com/cne/results"
+# Lista ordenada de endpoints (principal -> fallback).
+# Puedes sobrescribirla por fuente con `sources[].endpoints`.
+endpoints:
+  - "https://example.com/cne/results"
+  - "https://backup.example.com/cne/results"
 timeout: 15
 retries: 3
 headers:
