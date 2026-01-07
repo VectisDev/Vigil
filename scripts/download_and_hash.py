@@ -10,17 +10,14 @@ import requests
 import yaml
 
 from sentinel.core.hashchain import compute_hash
-from sentinel.core.normalyze import DEPARTMENT_CODES
-
-from sentinel.core.hashchain import compute_hash
-from sentinel.core.normalyze import normalize_snapshot, snapshot_to_canonical_json
+from sentinel.core.normalyze import DEPARTMENT_CODES, normalize_snapshot, snapshot_to_canonical_json
 
 # Directorios
-canonical_dir = Path("data")
+data_dir = Path("data")
 hash_dir = Path("hashes")
 config_path = Path(__file__).resolve().parents[1] / "config.yaml"
 
-canonical_dir.mkdir(exist_ok=True)
+data_dir.mkdir(exist_ok=True)
 hash_dir.mkdir(exist_ok=True)
 
 logger = logging.getLogger("sentinel.download")
@@ -63,13 +60,16 @@ def load_config() -> Dict[str, Any]:
     }
 
 
-def get_previous_hash() -> str | None:
-    # Busca el archivo de hash más reciente en hashes/
-    hash_files = sorted(hash_dir.glob("*.sha256"), key=lambda p: p.stat().st_mtime, reverse=True)
+def get_previous_hash(department_code: str) -> str | None:
+    """
+    Busca el hash previo más reciente para el departamento.
+    """
+    pattern = f"snapshot_{department_code}_*.sha256"
+    hash_files = sorted(hash_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
     if hash_files:
-        with open(hash_files[0], "r", encoding="utf-8") as f:
-            return f.read().strip()
-    return None  # Si no hay previo, retorna None (primer run)
+        with open(hash_files[0], "r", encoding="utf-8") as handle:
+            return handle.read().strip()
+    return None
 
 
 def fetch_department_data(
@@ -144,16 +144,19 @@ def build_snapshot(payload: Dict[str, Any], department_name: str, department_cod
     }
 
 
-def persist_snapshot(snapshot: Dict[str, Any], department_code: str, timestamp: str) -> str:
+def persist_snapshot(
+    snapshot: Dict[str, Any],
+    canonical_json: str,
+    department_code: str,
+    timestamp: str,
+) -> str:
     json_path = data_dir / f"snapshot_{department_code}_{timestamp}.json"
     hash_path = hash_dir / f"snapshot_{department_code}_{timestamp}.sha256"
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
-    canonical_json = json.dumps(snapshot, sort_keys=True, separators=(",", ":"))
-
-    previous_hash = get_previous_hash()
+    previous_hash = get_previous_hash(department_code)
     hash_value = compute_hash(canonical_json, previous_hash)
 
     with open(hash_path, "w", encoding="utf-8") as f:
@@ -189,8 +192,15 @@ def main() -> None:
                 backoff_max=config["backoff_max"],
             )
             snapshot = build_snapshot(payload, department_name, department_code)
+            timestamp_utc = snapshot["metadata"]["timestamp_utc"]
+            canonical_snapshot = normalize_snapshot(
+                payload,
+                department_name=department_name,
+                timestamp_utc=timestamp_utc,
+            )
+            canonical_json = snapshot_to_canonical_json(canonical_snapshot)
             timestamp = snapshot["metadata"]["timestamp_utc"].replace(":", "-")
-            persist_snapshot(snapshot, department_code, timestamp)
+            persist_snapshot(snapshot, canonical_json, department_code, timestamp)
         except Exception as exc:  # noqa: BLE001
             failures.append((department_code, str(exc)))
             log_event(
