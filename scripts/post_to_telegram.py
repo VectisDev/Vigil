@@ -1,10 +1,13 @@
 import requests
 import os
 import sys
+import datetime
 
 # Protocolo de Identidad: HND-SENTINEL-2029
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+DEFAULT_TEMPLATE = os.getenv("TELEGRAM_TEMPLATE", "dedsec").strip().lower()
+
 
 def get_stored_hash(hash_path):
     """
@@ -19,6 +22,7 @@ def get_stored_hash(hash_path):
     except Exception as e:
         return f"HASH_READ_ERROR: {str(e)}"
 
+
 def format_as_sentinel(raw_data, stored_hash=None):
     """
     Formatea el reporte con estética DedSec bilingüe.
@@ -28,7 +32,7 @@ def format_as_sentinel(raw_data, stored_hash=None):
         "<code>[!] STATUS: ANOMALY_REPORT // PROTOCOL: biling_v1</code>\n"
         "--------------------------------------------------\n\n"
     )
-    
+
     hash_section = ""
     if stored_hash:
         hash_section = (
@@ -36,29 +40,65 @@ def format_as_sentinel(raw_data, stored_hash=None):
             f"<code>VERIFICATION_HASH (SHA-256):</code>\n"
             f"<code>{stored_hash}</code>"
         )
-    
+
     footer = (
         "\n--------------------------------------------------\n"
         "<b>DEDSEC has given you the truth. Do what you will.</b>\n"
         "<b>DEDSEC te ha entregado la verdad. Haz lo que quieras.</b>"
     )
-    
+
     return f"{header}{raw_data}{hash_section}{footer}"
 
-def send_message(text, stored_hash=None):
+
+def format_as_neutral(raw_data, stored_hash=None):
+    """
+    Formatea el reporte con estilo técnico neutro.
+    """
+    timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    header = (
+        "<b>HND-SENTINEL-2029 | AUTOMATED TECHNICAL NOTICE</b>\n"
+        f"<code>Timestamp (UTC): {timestamp}</code>\n"
+        "--------------------------------------------------\n\n"
+    )
+
+    hash_section = ""
+    if stored_hash:
+        hash_section = (
+            f"\n--------------------------------------------------\n"
+            f"<code>Verification hash (SHA-256):</code>\n"
+            f"<code>{stored_hash}</code>"
+        )
+
+    footer = (
+        "\n--------------------------------------------------\n"
+        "<b>Automated publication. Reproducible from published data.</b>"
+    )
+
+    return f"{header}{raw_data}{hash_section}{footer}"
+
+
+def resolve_template(template_name):
+    normalized = (template_name or DEFAULT_TEMPLATE).strip().lower()
+    if normalized == "neutral":
+        return format_as_neutral
+    return format_as_sentinel
+
+
+def send_message(text, stored_hash=None, template_name=None):
     if not TOKEN or not CHAT_ID:
         print("[!] ERROR: SYSTEM_CREDENTIALS_MISSING")
         sys.exit(1)
 
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    
+
+    formatter = resolve_template(template_name)
     payload = {
         "chat_id": CHAT_ID,
-        "text": format_as_sentinel(text, stored_hash),
+        "text": formatter(text, stored_hash),
         "parse_mode": "HTML",
         "disable_web_page_preview": True
     }
-    
+
     try:
         response = requests.post(url, json=payload, timeout=15)
         response.raise_for_status()
@@ -67,21 +107,23 @@ def send_message(text, stored_hash=None):
         print(f"[!] STATUS: TRANSMISSION_FAILED // ERR: {str(e)}")
         sys.exit(1)
 
+
 if __name__ == "__main__":
     # Uso esperado desde GitHub Actions:
-    # python scripts/post_to_telegram.py "Mensaje técnico" "hashes/snapshot_XXXX.json.sha256"
-    
+    # python scripts/post_to_telegram.py "Mensaje técnico" "hashes/snapshot_XXXX.json.sha256" neutral
+
     if len(sys.argv) > 2:
         msg = sys.argv[1]
         hash_file_path = sys.argv[2]
         file_hash = get_stored_hash(hash_file_path)
-        send_message(msg, file_hash)
+        template = sys.argv[3] if len(sys.argv) > 3 else None
+        send_message(msg, file_hash, template_name=template)
     elif len(sys.argv) == 2:
-        send_message(sys.argv[1])
+        send_message(sys.argv[1], template_name=DEFAULT_TEMPLATE)
     else:
         # Heartbeat bilingüe si se ejecuta sin argumentos
         heartbeat = (
             "<b>[EN] MONITOR_STATUS:</b> Operational. Systems synchronized.\n"
             "<b>[ES] ESTADO_MONITOR:</b> Operativo. Sistemas sincronizados."
         )
-        send_message(heartbeat)
+        send_message(heartbeat, template_name=DEFAULT_TEMPLATE)
