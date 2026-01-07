@@ -1,20 +1,20 @@
-import json
-import os
-import glob
-import math
 import collections
+import glob
+import json
 import logging
+import math
+import os
 import sqlite3
 from datetime import datetime
 
 import pandas as pd
 from dateutil import parser
 
-from logging_utils import configure_logging, log_event
+from scripts.logging_utils import configure_logging, log_event
 # PROTOCOLO HND-SENTINEL-2029 // AUDITORÍA RESILIENTE
 # Versión optimizada para datos históricos 2025 y futuros 2029
 
-logger = configure_logging("sentinel.analyze")
+logger = configure_logging("scripts.analyze_rules")
 
 def load_json(file_path):
     try:

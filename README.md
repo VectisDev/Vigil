@@ -32,7 +32,8 @@
 ### Configuración rápida
 1. Copia `config.example.yaml` a `config.yaml` en la raíz del repositorio.
 2. Edita `config.yaml` con la URL base, headers y fuentes reales de tu entorno.
-3. Ejecuta los scripts; el sistema continúa leyendo desde `config.yaml`.
+3. Copia `.env.example` a `.env` y define `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `LOG_LEVEL` y `LOG_FILE`.
+4. Ejecuta los scripts; el sistema continúa leyendo desde `config.yaml` y las variables desde `.env`.
 
 ### Estado del proyecto (actual)
 - Captura de datos: configurable vía `config.yaml` (fuentes, niveles y mapeo de campos).
@@ -84,7 +85,8 @@ Ejecuta el panel interactivo con Streamlit después de generar snapshots:
 ### Quick setup
 1. Copy `config.example.yaml` to `config.yaml` in the repository root.
 2. Edit `config.yaml` with the real base URL, headers, and sources for your environment.
-3. Run the scripts; the system still reads from `config.yaml`.
+3. Copy `.env.example` to `.env` and set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `LOG_LEVEL`, and `LOG_FILE`.
+4. Run the scripts; the system still reads from `config.yaml` and environment variables from `.env`.
 
 ### Project status (current)
 - Data capture: configurable via `config.yaml` (sources, levels, and field mapping).

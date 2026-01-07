@@ -9,6 +9,7 @@ from typing import Any, Dict
 import requests
 import yaml
 
+from scripts.logging_utils import configure_logging, log_event
 from sentinel.core.hashchain import compute_hash
 from sentinel.core.normalyze import DEPARTMENT_CODES, normalize_snapshot, snapshot_to_canonical_json
 from sentinel.core.scraping import fetch_payload_with_playwright
@@ -21,7 +22,7 @@ config_path = Path(__file__).resolve().parents[1] / "config.yaml"
 data_dir.mkdir(exist_ok=True)
 hash_dir.mkdir(exist_ok=True)
 
-logger = configure_logging("sentinel.download")
+logger = configure_logging("scripts.download_and_hash")
 
 
 def load_config() -> Dict[str, Any]:
@@ -147,6 +148,7 @@ def fetch_source_data(
                     raise ValueError("Respuesta JSON no es un objeto.")
 
                 log_event(
+                    logger,
                     logging.INFO,
                     "fetch_success",
                     source_id=source_id,
@@ -158,6 +160,7 @@ def fetch_source_data(
             except Exception as exc:  # noqa: BLE001 - queremos loggear y reintentar
                 last_error = exc
                 log_event(
+                    logger,
                     logging.WARNING,
                     "fetch_retry",
                     source_id=source_id,
@@ -170,6 +173,7 @@ def fetch_source_data(
                     time.sleep(sleep_time)
 
         log_event(
+            logger,
             logging.WARNING,
             "endpoint_failed",
             source_id=source_id,
@@ -179,6 +183,7 @@ def fetch_source_data(
 
     if use_playwright:
         log_event(
+            logger,
             logging.INFO,
             "fetch_fallback_playwright",
             source_id=source.get("source_id") or department_code or source.get("name"),
@@ -200,6 +205,7 @@ def fetch_source_data(
         except Exception as exc:  # noqa: BLE001
             last_error = exc
             log_event(
+                logger,
                 logging.ERROR,
                 "fetch_fallback_failed",
                 source_id=source.get("source_id") or department_code or source.get("name"),
