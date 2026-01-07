@@ -5,6 +5,13 @@
 
 ## [ES] Español
 
+### Primeros pasos (5 minutos)
+1. Instala dependencias: `pip install -r requirements.txt`
+2. Copia `config.example.yaml` a `config.yaml` y ajusta las fuentes principales.
+3. Genera un snapshot inicial: `python scripts/download_and_hash.py`
+4. Revisa los resultados en `data/` y los hashes en `hashes/`.
+5. (Opcional) Abre el dashboard: `streamlit run dashboard.py`
+
 ### ¿Qué es esto?
 **HND-SENTINEL-2029** es un sistema técnico independiente para observar y auditar datos electorales públicos en Honduras. Su función es registrar, normalizar, verificar y analizar cambios en los datos publicados, produciendo reportes técnicos reproducibles.
 
