@@ -11,7 +11,7 @@ Esta carpeta contiene los ejecutables principales del pipeline:
 
 Uso típico:
 1. Ejecutar `download_and_hash.py` para capturar datos.
-2. Ejecutar `analyze_rules.py` para generar reportes y resúmenes.
+2. Ejecutar `analyze_rules.py` para generar reportes.
 3. Ejecutar `post_to_telegram.py` para difundir resultados.
 
 ---
@@ -27,5 +27,5 @@ This folder contains the main pipeline executables:
 
 Typical usage:
 1. Run `download_and_hash.py` to capture data.
-2. Run `analyze_rules.py` to generate reports and summaries.
+2. Run `analyze_rules.py` to generate reports.
 3. Run `post_to_telegram.py` to publish results.
