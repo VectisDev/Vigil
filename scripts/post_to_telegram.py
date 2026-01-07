@@ -68,11 +68,11 @@ def send_message(text, stored_hash=None, template_name=None):
         print("[!] ERROR: SYSTEM_CREDENTIALS_MISSING")
         sys.exit(1)
 
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
 
-    formatter = resolve_template(template_name)
+    formatter = resolve_template(template_name or default_template)
     payload = {
-        "chat_id": CHAT_ID,
+        "chat_id": chat_id,
         "text": formatter(text, stored_hash),
         "parse_mode": "HTML",
         "disable_web_page_preview": True
@@ -83,9 +83,11 @@ def send_message(text, stored_hash=None, template_name=None):
         response.raise_for_status()
         log_event(logger, logging.INFO, "telegram_message_sent", status_code=response.status_code)
         print("[+] STATUS: TRANSMISSION_SUCCESSFUL")
+        log_event(logger, logging.INFO, "telegram_send_success", status_code=response.status_code)
     except Exception as e:
         log_event(logger, logging.ERROR, "telegram_message_failed", error=str(e))
         print(f"[!] STATUS: TRANSMISSION_FAILED // ERR: {str(e)}")
+        log_event(logger, logging.ERROR, "telegram_send_failed", error=str(e))
         sys.exit(1)
 
 
@@ -100,11 +102,11 @@ if __name__ == "__main__":
         template = sys.argv[3] if len(sys.argv) > 3 else None
         send_message(msg, file_hash, template_name=template)
     elif len(sys.argv) == 2:
-        send_message(sys.argv[1], template_name=DEFAULT_TEMPLATE)
+        send_message(sys.argv[1])
     else:
         # Heartbeat bilingüe si se ejecuta sin argumentos
         heartbeat = (
             "<b>[EN] SYSTEM_STATUS:</b> Operational. Data flow synchronized.\n"
             "<b>[ES] ESTADO_DEL_SISTEMA:</b> Operativo. Flujo de datos sincronizado."
         )
-        send_message(heartbeat, template_name=DEFAULT_TEMPLATE)
+        send_message(heartbeat)

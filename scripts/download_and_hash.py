@@ -10,6 +10,7 @@ import requests
 import yaml
 from dotenv import load_dotenv
 
+from scripts.logging_utils import configure_logging, log_event
 from sentinel.core.hashchain import compute_hash
 from sentinel.core.normalyze import DEPARTMENT_CODES, normalize_snapshot, snapshot_to_canonical_json
 from sentinel.core.scraping import fetch_payload_with_playwright
