@@ -3,6 +3,7 @@ from typing import Any, Dict, Mapping
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync
 
 
 def _build_url(base_url: str, params: Mapping[str, str]) -> str:
@@ -17,14 +18,31 @@ def fetch_payload_with_playwright(
     params: Mapping[str, str],
     timeout: float,
     headers: Mapping[str, str],
+    user_agent: str | None = None,
+    viewport: Dict[str, int] | None = None,
+    locale: str | None = None,
+    timezone: str | None = None,
+    stealth: bool = False,
 ) -> Dict[str, Any]:
     url = _build_url(base_url, params)
 
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
-        context = browser.new_context(extra_http_headers=dict(headers))
+        context_kwargs: Dict[str, Any] = {"extra_http_headers": dict(headers)}
+        if user_agent:
+            context_kwargs["user_agent"] = user_agent
+        if viewport:
+            context_kwargs["viewport"] = viewport
+        if locale:
+            context_kwargs["locale"] = locale
+        if timezone:
+            context_kwargs["timezone_id"] = timezone
+        context = browser.new_context(**context_kwargs)
+        context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
         try:
             page = context.new_page()
+            if stealth:
+                stealth_sync(page)
             response = page.goto(url, wait_until="networkidle", timeout=int(timeout * 1000))
             if response is None:
                 raise RuntimeError("Playwright no recibió respuesta al cargar la URL.")

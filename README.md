@@ -39,7 +39,7 @@
 - Integridad: snapshots crudos + JSON normalizados + hashes encadenados SHA-256.
 - Análisis: reglas de anomalías, tendencias y resúmenes en lenguaje común.
 - Publicación: plantillas técnicas neutrales para Telegram y X.
-- Fallback de scraping: habilitar `use_playwright: true` en `config.yaml` cuando falle `requests` (requiere `pip install playwright` y `playwright install`).
+- Fallback de scraping: habilitar `use_playwright: true` en `config.yaml` cuando falle `requests` (requiere `pip install playwright playwright-stealth` y `playwright install` para descargar browsers). Opciones adicionales: `playwright_stealth`, `playwright_user_agent`, `playwright_viewport`, `playwright_locale`, `playwright_timezone`.
 
 ### Visualizaciones rápidas
 - `scripts/visualize_benford.py` genera un gráfico de distribución de primeros dígitos.
@@ -91,7 +91,7 @@ Ejecuta el panel interactivo con Streamlit después de generar snapshots:
 - Integrity: raw snapshots + normalized JSON + chained SHA-256 hashes.
 - Analysis: anomaly rules, trends, and plain-language summaries.
 - Publishing: neutral technical templates for Telegram and X.
-- Scraping fallback: enable `use_playwright: true` in `config.yaml` when `requests` fails (requires `pip install playwright` and `playwright install`).
+- Scraping fallback: enable `use_playwright: true` in `config.yaml` when `requests` fails (requires `pip install playwright playwright-stealth` and `playwright install` to fetch browsers). Extra options: `playwright_stealth`, `playwright_user_agent`, `playwright_viewport`, `playwright_locale`, `playwright_timezone`.
 
 ### Quick visualizations
 - `scripts/visualize_benford.py` generates a first-digit distribution chart.
