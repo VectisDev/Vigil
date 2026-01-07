@@ -1,8 +1,12 @@
+import datetime
 import os
 import sys
-import datetime
+
 import requests
+from dotenv import load_dotenv
 from requests_oauthlib import OAuth1
+
+load_dotenv()
 
 API_KEY = os.getenv("X_API_KEY")
 API_SECRET = os.getenv("X_API_SECRET")
