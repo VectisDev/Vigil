@@ -10,6 +10,24 @@ retries: 5
 headers:
   Accept: "application/json"
   User-Agent: "HND-Sentinel/1.0 (config-example)"
+use_playwright: false
+playwright_stealth: true
+playwright_user_agent: "HND-Sentinel/1.0 (config-example)"
+playwright_viewport:
+  width: 1280
+  height: 720
+playwright_locale: "es-HN"
+playwright_timezone: "America/Tegucigalpa"
+
+# Fallback Playwright (anti-bloqueo básico).
+use_playwright: false
+playwright_stealth: true
+playwright_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+playwright_locale: "es-ES"
+playwright_timezone: "America/Tegucigalpa"
+playwright_viewport:
+  width: 1280
+  height: 720
 
 # Backoff exponencial para reintentos (segundos).
 backoff_base_seconds: 2
