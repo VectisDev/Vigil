@@ -20,7 +20,7 @@ def load_json(file_path):
         return None
 
 def safe_int(value, default=0):
-    """Convierte a entero de forma segura, manejando strings y nulls."""
+    """Convierte a entero de forma segura, manejando strings y nulos."""
     try:
         if value is None: return default
         return int(str(value).replace(',', '').split('.')[0])
@@ -101,7 +101,7 @@ def apply_benford_law(votos_lista):
     counts = collections.Counter(first_digits)
     total = len(first_digits)
     
-    # Análisis de anomalía: El '1' debe ser ~30%. Si es < 20%, sospecha de manipulación.
+    # Análisis de anomalía: el '1' debe ser ~30%. Si es < 20%, se marca como sospecha.
     dist_1 = (counts[1] / total) * 100
     is_anomaly = dist_1 < 20.0
     
