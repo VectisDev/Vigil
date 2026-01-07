@@ -43,6 +43,17 @@ Resultados guardados en `docs/examples/analysis_2025/`:
 
 Los textos de resumen son neutrales: describen eventos y métricas sin atribuir intención.
 
+### Demo interna: replay 2025 con diffs neutros
+Este flujo usa los snapshots 2025 de `tests/fixtures/snapshots_2025` y reutiliza `docs/examples/analysis_2025` como carpeta de salida para el análisis:
+```bash
+python scripts/replay_2025.py
+```
+Salida esperada:
+- `docs/examples/replay_2025/normalized/`: snapshots normalizados.
+- `docs/examples/analysis_2025/analysis_results.json` y `anomalies_report.json`.
+- `docs/examples/analysis_2025/reports/summary_es.txt` y `summary_en.txt`.
+- `reports/replay_2025_report.json`: diffs neutrales entre snapshots consecutivos (solo métricas y variaciones).
+
 ---
 
 ## [EN] English
@@ -87,3 +98,14 @@ Results stored in `docs/examples/analysis_2025/`:
 - `reports/sentinel.db` (binary, generated locally and not committed)
 
 The summaries are neutral: they report events and metrics without attributing intent.
+
+### Internal demo: replay 2025 with neutral diffs
+This flow uses the 2025 snapshots in `tests/fixtures/snapshots_2025` and reuses `docs/examples/analysis_2025` as the analysis output folder:
+```bash
+python scripts/replay_2025.py
+```
+Expected output:
+- `docs/examples/replay_2025/normalized/`: normalized snapshots.
+- `docs/examples/analysis_2025/analysis_results.json` and `anomalies_report.json`.
+- `docs/examples/analysis_2025/reports/summary_es.txt` and `summary_en.txt`.
+- `reports/replay_2025_report.json`: neutral diffs between consecutive snapshots (metrics and deltas only).
