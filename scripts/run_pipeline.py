@@ -79,7 +79,10 @@ def build_alerts(anomalies):
 
 
 def critical_rules():
-    raw = os.getenv("CRITICAL_ANOMALY_TYPES", "ARITHMETIC_MISMATCH,NEGATIVE_DELTA,CHANGE_POINT")
+    raw = os.getenv(
+        "CRITICAL_ANOMALY_TYPES",
+        "ARITHMETIC_MISMATCH,NEGATIVE_DELTA,CHANGE_POINT,RELATIVE_DELTA,SCRUTINY_JUMP,VOTE_BREAKDOWN_MISMATCH",
+    )
     return {rule.strip().upper() for rule in raw.split(",") if rule.strip()}
 
 

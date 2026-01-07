@@ -57,6 +57,7 @@ Salida:
 
 ### Dashboard local
 ```bash
+pip install -r requirements.txt
 streamlit run dashboard.py
 ```
 

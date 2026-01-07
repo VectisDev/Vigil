@@ -6,28 +6,15 @@ import sys
 import requests
 from dotenv import load_dotenv
 
-from scripts.logging_utils import configure_logging, log_event
+from logging_utils import configure_logging, log_event
 
-logger = configure_logging("scripts.post_to_telegram")
+load_dotenv()
 
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+DEFAULT_TEMPLATE = os.getenv("TELEGRAM_TEMPLATE", "neutral").strip().lower()
 
-def get_env_config():
-    load_dotenv()
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    template = os.getenv("TELEGRAM_TEMPLATE", "neutral").strip().lower()
-    missing = [name for name, value in {
-        "TELEGRAM_BOT_TOKEN": token,
-        "TELEGRAM_CHAT_ID": chat_id,
-    }.items() if not value]
-    if missing:
-        log_event(
-            logger,
-            logging.ERROR,
-            "telegram_env_missing",
-            missing=missing,
-        )
-    return token, chat_id, template, missing
+logger = configure_logging("sentinel.telegram")
 
 
 def get_stored_hash(hash_path):
@@ -76,10 +63,9 @@ def resolve_template(template_name):
 
 
 def send_message(text, stored_hash=None, template_name=None):
-    token, chat_id, default_template, missing = get_env_config()
-    if missing:
-        missing_list = ", ".join(missing)
-        print(f"[!] ERROR: SYSTEM_CREDENTIALS_MISSING ({missing_list})")
+    if not TOKEN or not CHAT_ID:
+        log_event(logger, logging.ERROR, "telegram_credentials_missing")
+        print("[!] ERROR: SYSTEM_CREDENTIALS_MISSING")
         sys.exit(1)
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -95,9 +81,11 @@ def send_message(text, stored_hash=None, template_name=None):
     try:
         response = requests.post(url, json=payload, timeout=15)
         response.raise_for_status()
+        log_event(logger, logging.INFO, "telegram_message_sent", status_code=response.status_code)
         print("[+] STATUS: TRANSMISSION_SUCCESSFUL")
         log_event(logger, logging.INFO, "telegram_send_success", status_code=response.status_code)
     except Exception as e:
+        log_event(logger, logging.ERROR, "telegram_message_failed", error=str(e))
         print(f"[!] STATUS: TRANSMISSION_FAILED // ERR: {str(e)}")
         log_event(logger, logging.ERROR, "telegram_send_failed", error=str(e))
         sys.exit(1)
