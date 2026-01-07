@@ -1,0 +1,67 @@
+# Ejemplo de configuración para HND-SENTINEL-2029.
+# Copia este archivo como config.yaml y ajusta los valores a tu entorno.
+
+# URL base del endpoint de resultados (placeholder).
+base_url: "https://results.example.org/api/v1/summary"
+
+# Parámetros de red.
+timeout: 20
+retries: 5
+headers:
+  Accept: "application/json"
+  User-Agent: "HND-Sentinel/1.0 (config-example)"
+use_playwright: false
+playwright_stealth: true
+playwright_user_agent: "HND-Sentinel/1.0 (config-example)"
+playwright_viewport:
+  width: 1280
+  height: 720
+playwright_locale: "es-HN"
+playwright_timezone: "America/Tegucigalpa"
+
+# Fallback Playwright (anti-bloqueo básico).
+use_playwright: false
+playwright_stealth: true
+playwright_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+playwright_locale: "es-ES"
+playwright_timezone: "America/Tegucigalpa"
+playwright_viewport:
+  width: 1280
+  height: 720
+
+# Backoff exponencial para reintentos (segundos).
+backoff_base_seconds: 2
+backoff_max_seconds: 60
+
+# Cantidad esperada de candidatos (referencial).
+candidate_count: 4
+
+# Llaves que deben existir en el payload (puede quedar vacío).
+required_keys:
+  - "estadisticas"
+  - "resultados"
+
+# Mapeo de campos de origen a nuestro esquema interno.
+field_map:
+  totals:
+    valid_votes:
+      - "estadisticas.distribucion_votos.validos"
+    null_votes:
+      - "estadisticas.distribucion_votos.nulos"
+    blank_votes:
+      - "estadisticas.distribucion_votos.blancos"
+    total_votes:
+      - "estadisticas.distribucion_votos.total"
+  candidate_roots:
+    - "resultados"
+
+# Fuentes configurables (nacional + departamentos).
+sources:
+  - name: "Nacional (demo)"
+    source_id: "NACIONAL"
+    level: "PRES"
+    scope: "NATIONAL"
+  - name: "Departamento Demo"
+    department_code: "99"
+    level: "PD"
+    scope: "DEPARTMENT"

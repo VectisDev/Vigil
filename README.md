@@ -21,6 +21,7 @@
 - `scripts/post_to_telegram.py`: publicación de alertas.
 
 ### Documentación
+- Inicio rápido: `QUICKSTART.md`
 - Manual de configuración y scraping: `docs/manual.md`
 - Fuentes configurables en `config.yaml` (incluye nacional y departamentos).
 - Arquitectura: `docs/architecture.md`
@@ -28,15 +29,60 @@
 - Metodología: `docs/methodology.md`
 - Reglas técnicas: `docs/rules.md`
 - Formato de datos: `docs/data_format.md`
+- Guía rápida (5 minutos): `QUICKSTART.md`
+
+### Configuración rápida
+1. Copia `config.example.yaml` a `config.yaml` en la raíz del repositorio.
+2. Edita `config.yaml` con la URL base, headers y fuentes reales de tu entorno.
+3. Ejecuta los scripts; el sistema continúa leyendo desde `config.yaml`.
+4. Copia `.env.example` a `.env` para configurar tokens y logging.
 
 ### Estado del proyecto (actual)
 - Captura de datos: configurable vía `config.yaml` (fuentes, niveles y mapeo de campos).
 - Integridad: snapshots crudos + JSON normalizados + hashes encadenados SHA-256.
 - Análisis: reglas de anomalías, tendencias y resúmenes en lenguaje común.
 - Publicación: plantillas técnicas neutrales para Telegram y X.
+- Fallback de scraping: habilitar `use_playwright: true` en `config.yaml` (incluye modo stealth básico y requiere `playwright install`).
 
 ### Visualizaciones rápidas
 - `scripts/visualize_benford.py` genera un gráfico de distribución de primeros dígitos.
+  - Ubicación: `plots/`.
+  - Convención: `benford_analysis_YYYYMMDD_HHMMSS.png` y `latest.png` apunta a la última ejecución.
+
+### Dashboard
+Ejecuta el panel interactivo con Streamlit después de generar snapshots:
+
+1. Instala dependencias (incluye Streamlit): `pip install -r requirements.txt`
+2. Ejecuta el dashboard: `streamlit run dashboard.py`
+3. Abre el navegador en la URL indicada por Streamlit.
+4. Usa el botón “Actualizar datos ahora” para refrescar snapshots.
+5. Descarga reportes en CSV desde la sección “Exportar reportes”.
+
+#### Cómo usar el dashboard
+- Copia `.env.example` a `.env` si publicarás alertas (Telegram).
+- Asegúrate de tener snapshots en `data/` y hashes en `hashes/`.
+- El modo debug permite inspeccionar el JSON del último snapshot.
+
+### Cómo usar dashboard
+1. Genera datos con `python scripts/download_and_hash.py` o deja que otro proceso actualice `data/`.
+2. Inicia el panel con `streamlit run dashboard.py`.
+3. Verifica la carpeta `data/` para snapshots `.json` y `hashes/` para `.sha256`.
+4. Revisa alertas en `data/alerts.json` (si existe) o `alerts.log`.
+
+**Troubleshooting**
+- Si no hay snapshots, el panel mostrará un aviso para ejecutar `download_and_hash.py`.
+- Si falta `alerts.json`/`alerts.log`, el panel seguirá funcionando y mostrará "No hay alertas recientes".
+- Usa el botón "Actualizar datos ahora" para disparar una recarga sin bloquear el panel.
+
+### Reportes y exportaciones
+- Exportar CSV desde el dashboard:
+  - Usa los botones **Descargar snapshots (CSV)** y **Descargar alertas (CSV)**.
+- Generar PDF:
+  1. Asegura que existan `analysis_results.json` y `anomalies_report.json`.
+  2. Ejecuta: `python scripts/export_report.py`
+  3. El PDF queda en `reports/report_<timestamp>.pdf` y se copia como `reports/latest_report.pdf`.
+- Descargar PDF desde el dashboard:
+  - En la barra lateral aparece **Descargar reporte PDF** cuando existe `reports/latest_report.pdf`.
 
 ---
 
@@ -65,15 +111,39 @@
 - Methodology: `docs/methodology.md`
 - Technical rules: `docs/rules.md`
 - Data format: `docs/data_format.md`
+- 5-minute quickstart guide: `QUICKSTART.md`
+
+### Quick setup
+1. Copy `config.example.yaml` to `config.yaml` in the repository root.
+2. Edit `config.yaml` with the real base URL, headers, and sources for your environment.
+3. Run the scripts; the system still reads from `config.yaml`.
+4. Copy `.env.example` to `.env` to configure tokens and logging.
 
 ### Project status (current)
 - Data capture: configurable via `config.yaml` (sources, levels, and field mapping).
 - Integrity: raw snapshots + normalized JSON + chained SHA-256 hashes.
 - Analysis: anomaly rules, trends, and plain-language summaries.
 - Publishing: neutral technical templates for Telegram and X.
+- Scraping fallback: enable `use_playwright: true` in `config.yaml` (includes basic stealth and requires `playwright install`).
 
 ### Quick visualizations
 - `scripts/visualize_benford.py` generates a first-digit distribution chart.
+  - Location: `plots/`.
+  - Naming: `benford_analysis_YYYYMMDD_HHMMSS.png` and `latest.png` points to the latest run.
+
+### Dashboard
+Run the interactive Streamlit panel after generating snapshots:
+
+1. Install dependencies: `pip install -r requirements.txt`
+2. Start the dashboard: `streamlit run dashboard.py`
+3. Open the URL shown by Streamlit in your browser.
+4. Use “Actualizar datos ahora” to refresh snapshots.
+5. Download CSV reports from “Exportar reportes”.
+
+#### How to use the dashboard
+- Copy `.env.example` to `.env` if you will publish alerts (Telegram).
+- Ensure snapshots exist in `data/` and hashes in `hashes/`.
+- Debug mode shows raw JSON for the latest snapshot.
 
 ---
 

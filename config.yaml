@@ -1,100 +1,111 @@
-base_url: "https://example.com/cne/results"
-timeout: 15
-retries: 3
-headers:
-  Accept: "application/json"
-  User-Agent: "HND-Sentinel/1.0"
-backoff_base_seconds: 1
-backoff_max_seconds: 30
-candidate_count: 10
-required_keys: []
-field_map:
-  totals:
-    valid_votes:
-      - "estadisticas.distribucion_votos.validos"
-    null_votes:
-      - "estadisticas.distribucion_votos.nulos"
-    blank_votes:
-      - "estadisticas.distribucion_votos.blancos"
-    total_votes:
-      - "estadisticas.distribucion_votos.total"
-  candidate_roots:
-    - "resultados"
+base_url: "https://api.example.com/cne/resultados" # URL base del API oficial.
+# Ejemplo de URL completa (NACIONAL): https://api.example.com/cne/resultados?ambito=NACIONAL&nivel=PRES
+# Ejemplo de URL completa (DEPARTAMENTO): https://api.example.com/cne/resultados?ambito=DEPARTMENT&nivel=PD&cod_departamento=01
+# Parámetros comunes: ambito (NATIONAL/DEPARTMENT), nivel (PRES/PD), cod_departamento (01-18).
+timeout: 15 # Segundos máximos por solicitud.
+retries: 3 # Reintentos totales antes de fallar.
+headers: # Encabezados HTTP enviados en cada solicitud.
+  Accept: "application/json" # Tipo de respuesta esperado.
+  User-Agent: "HND-Sentinel/1.0" # Identificador del cliente.
+use_playwright: false # Usa Playwright como fallback cuando falle la descarga HTTP.
+playwright_stealth: true # Activa el modo stealth (playwright-stealth) si está disponible.
+playwright_user_agent: "HND-Sentinel/1.0" # User-Agent para el contexto Playwright (por defecto usa headers.User-Agent).
+playwright_viewport: # Viewport para Playwright.
+  width: 1280
+  height: 720
+playwright_locale: "es-HN" # Locale del contexto Playwright.
+playwright_timezone: "America/Tegucigalpa" # Timezone del contexto Playwright.
+backoff_base_seconds: 1 # Espera inicial entre reintentos.
+backoff_max_seconds: 30 # Espera máxima entre reintentos.
+candidate_count: 10 # Número de candidatos esperados por fuente.
+required_keys: [] # Claves obligatorias adicionales, si aplica.
+field_map: # Mapeo de rutas JSON hacia campos normalizados.
+  totals: # Totales agregados por fuente.
+    valid_votes: # Votos válidos.
+      - "estadisticas.distribucion_votos.validos" # Ruta JSON para votos válidos.
+    null_votes: # Votos nulos.
+      - "estadisticas.distribucion_votos.nulos" # Ruta JSON para votos nulos.
+    blank_votes: # Votos en blanco.
+      - "estadisticas.distribucion_votos.blancos" # Ruta JSON para votos en blanco.
+    total_votes: # Total de votos.
+      - "estadisticas.distribucion_votos.total" # Ruta JSON para total de votos.
+  candidate_roots: # Raíces JSON donde vienen los candidatos.
+    - "resultados" # Ruta JSON principal de resultados por candidato.
 
-sources:
-  - name: "Nacional"
-    source_id: "NACIONAL"
-    level: "PRES"
-    scope: "NATIONAL"
-  - name: "Atlántida"
-    department_code: "01"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Choluteca"
-    department_code: "02"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Colón"
-    department_code: "03"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Comayagua"
-    department_code: "04"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Copán"
-    department_code: "05"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Cortés"
-    department_code: "06"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "El Paraíso"
-    department_code: "07"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Francisco Morazán"
-    department_code: "08"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Gracias a Dios"
-    department_code: "09"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Intibucá"
-    department_code: "10"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Islas de la Bahía"
-    department_code: "11"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "La Paz"
-    department_code: "12"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Lempira"
-    department_code: "13"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Ocotepeque"
-    department_code: "14"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Olancho"
-    department_code: "15"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Santa Bárbara"
-    department_code: "16"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Valle"
-    department_code: "17"
-    level: "PD"
-    scope: "DEPARTMENT"
-  - name: "Yoro"
-    department_code: "18"
-    level: "PD"
-    scope: "DEPARTMENT"
+sources: # Fuentes configuradas para consultas.
+  - name: "Nacional" # Etiqueta legible de la fuente.
+    source_id: "NACIONAL" # Identificador para ambito=NATIONAL.
+    level: "PRES" # Nivel electoral para esta fuente.
+    scope: "NATIONAL" # Alcance de la fuente.
+  - name: "Atlántida" # Etiqueta legible de la fuente.
+    department_code: "01" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Choluteca" # Etiqueta legible de la fuente.
+    department_code: "02" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Colón" # Etiqueta legible de la fuente.
+    department_code: "03" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Comayagua" # Etiqueta legible de la fuente.
+    department_code: "04" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Copán" # Etiqueta legible de la fuente.
+    department_code: "05" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Cortés" # Etiqueta legible de la fuente.
+    department_code: "06" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "El Paraíso" # Etiqueta legible de la fuente.
+    department_code: "07" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Francisco Morazán" # Etiqueta legible de la fuente.
+    department_code: "08" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Gracias a Dios" # Etiqueta legible de la fuente.
+    department_code: "09" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Intibucá" # Etiqueta legible de la fuente.
+    department_code: "10" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Islas de la Bahía" # Etiqueta legible de la fuente.
+    department_code: "11" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "La Paz" # Etiqueta legible de la fuente.
+    department_code: "12" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Lempira" # Etiqueta legible de la fuente.
+    department_code: "13" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Ocotepeque" # Etiqueta legible de la fuente.
+    department_code: "14" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Olancho" # Etiqueta legible de la fuente.
+    department_code: "15" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Santa Bárbara" # Etiqueta legible de la fuente.
+    department_code: "16" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Valle" # Etiqueta legible de la fuente.
+    department_code: "17" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.
+  - name: "Yoro" # Etiqueta legible de la fuente.
+    department_code: "18" # Código de departamento (01-18).
+    level: "PD" # Nivel electoral para esta fuente.
+    scope: "DEPARTMENT" # Alcance de la fuente.

@@ -8,9 +8,13 @@ from typing import Any, Dict
 
 import requests
 import yaml
+from dotenv import load_dotenv
 
+from scripts.logging_utils import configure_logging, log_event
 from sentinel.core.hashchain import compute_hash
 from sentinel.core.normalyze import DEPARTMENT_CODES, normalize_snapshot, snapshot_to_canonical_json
+from sentinel.core.scraping import fetch_payload_with_playwright
+from logging_utils import configure_logging, log_event
 
 # Directorios
 data_dir = Path("data")
@@ -20,13 +24,9 @@ config_path = Path(__file__).resolve().parents[1] / "config.yaml"
 data_dir.mkdir(exist_ok=True)
 hash_dir.mkdir(exist_ok=True)
 
-logger = logging.getLogger("sentinel.download")
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+load_dotenv()
 
-
-def log_event(level: int, event: str, **fields: Any) -> None:
-    payload = {"event": event, **fields}
-    logger.log(level, json.dumps(payload, ensure_ascii=False))
+logger = configure_logging("sentinel.download")
 
 
 def load_config() -> Dict[str, Any]:
@@ -36,8 +36,11 @@ def load_config() -> Dict[str, Any]:
             config = yaml.safe_load(handle) or {}
 
     base_url = os.getenv("BASE_URL") or config.get("base_url")
-    if not base_url:
-        raise ValueError("BASE_URL no está configurado (config.yaml o env var).")
+    endpoints = config.get("endpoints") or []
+    if base_url and not endpoints:
+        endpoints = [base_url]
+    if not endpoints:
+        raise ValueError("ENDPOINTS o BASE_URL no está configurado (config.yaml o env var).")
 
     timeout = float(os.getenv("TIMEOUT") or config.get("timeout", 15))
     retries = int(os.getenv("RETRIES") or config.get("retries", 3))
@@ -47,11 +50,21 @@ def load_config() -> Dict[str, Any]:
     if env_headers:
         headers = json.loads(env_headers)
 
+    env_use_playwright = os.getenv("USE_PLAYWRIGHT")
+    use_playwright = config.get("use_playwright", False)
+    if env_use_playwright is not None:
+        use_playwright = env_use_playwright.strip().lower() in {"1", "true", "yes", "on"}
+
     backoff_base = float(config.get("backoff_base_seconds", 1))
     backoff_max = float(config.get("backoff_max_seconds", 30))
     candidate_count = int(config.get("candidate_count", 10))
     required_keys = config.get("required_keys", [])
     field_map = config.get("field_map", {})
+    playwright_stealth = bool(config.get("playwright_stealth", False))
+    playwright_user_agent = config.get("playwright_user_agent")
+    playwright_locale = config.get("playwright_locale")
+    playwright_timezone = config.get("playwright_timezone")
+    playwright_viewport = config.get("playwright_viewport")
 
     sources = config.get("sources")
     if not sources:
@@ -65,17 +78,35 @@ def load_config() -> Dict[str, Any]:
             for department_name, department_code in DEPARTMENT_CODES.items()
         ]
 
+    resolved_sources = []
+    for source in sources:
+        resolved = {**source}
+        source_endpoints = resolved.get("endpoints") or endpoints
+        if not source_endpoints:
+            raise ValueError(
+                f"ENDPOINTS no está configurado para la fuente {resolved.get('name') or resolved.get('source_id')}."
+            )
+        resolved["endpoints"] = list(source_endpoints)
+        resolved_sources.append(resolved)
+
     return {
         "base_url": base_url,
+        "endpoints": endpoints,
         "timeout": timeout,
         "retries": retries,
         "headers": headers,
         "backoff_base": backoff_base,
         "backoff_max": backoff_max,
         "candidate_count": candidate_count,
-        "sources": sources,
+        "sources": resolved_sources,
         "required_keys": required_keys,
         "field_map": field_map,
+        "use_playwright": use_playwright,
+        "playwright_stealth": playwright_stealth,
+        "playwright_user_agent": playwright_user_agent,
+        "playwright_locale": playwright_locale,
+        "playwright_timezone": playwright_timezone,
+        "playwright_viewport": playwright_viewport,
     }
 
 
@@ -93,63 +124,194 @@ def get_previous_hash(department_code: str) -> str | None:
 
 def fetch_source_data(
     session: requests.Session,
-    base_url: str,
+    endpoints: list[str],
     source: Dict[str, Any],
+    base_url: str | None,
     timeout: float,
     headers: Dict[str, str],
     retries: int,
     backoff_base: float,
     backoff_max: float,
+    use_playwright: bool,
+    playwright_stealth: bool,
+    playwright_user_agent: str | None,
+    playwright_locale: str | None,
+    playwright_timezone: str | None,
+    playwright_viewport: Dict[str, int] | None,
 ) -> Dict[str, Any]:
+    if not endpoints:
+        raise ValueError("No hay endpoints configurados para la fuente.")
     params = {"level": source.get("level", "PD")}
     department_code = source.get("department_code")
     if department_code:
         params["dept"] = department_code
     if source.get("params"):
         params.update(source["params"])
+    source_id = source.get("source_id") or department_code or source.get("name")
     last_error: Exception | None = None
+    last_endpoint: str | None = None
 
-    for attempt in range(1, retries + 1):
-        try:
-            response = session.get(base_url, params=params, timeout=timeout, headers=headers)
-            if not response.ok:
-                raise requests.HTTPError(
-                    f"HTTP {response.status_code}",
-                    response=response,
-                )
+    def _looks_like_html_or_captcha(text: str) -> bool:
+        lowered = text.lower()
+        if "<html" in lowered or "<!doctype html" in lowered or "<body" in lowered:
+            return True
+        captcha_markers = (
+            "captcha",
+            "verify you are human",
+            "recaptcha",
+            "hcaptcha",
+            "cf-turnstile",
+            "cloudflare",
+        )
+        return any(marker in lowered for marker in captcha_markers)
+
+    def _fetch_with_playwright(endpoint: str) -> Dict[str, Any]:
+        return fetch_payload_with_playwright(
+            base_url=endpoint,
+            params=params,
+            timeout=timeout,
+            headers=headers,
+            user_agent=playwright_user_agent,
+            viewport=playwright_viewport,
+            locale=playwright_locale,
+            timezone=playwright_timezone,
+            stealth=playwright_stealth,
+        )
+
+    for endpoint in endpoints:
+        last_endpoint = endpoint
+        for attempt in range(1, retries + 1):
             try:
-                payload = response.json()
-            except ValueError as exc:
-                raise ValueError("Respuesta no es JSON válido.") from exc
+                response = session.get(endpoint, params=params, timeout=timeout, headers=headers)
+                if not response.ok:
+                    raise requests.HTTPError(
+                        f"HTTP {response.status_code}",
+                        response=response,
+                    )
+                try:
+                    payload = response.json()
+                except ValueError as exc:
+                    response_text = response.text
+                    if use_playwright and _looks_like_html_or_captcha(response_text):
+                        log_event(
+                            logger,
+                            logging.INFO,
+                            "fetch_fallback_playwright_html",
+                            source_id=source_id,
+                            endpoint=endpoint,
+                            status_code=response.status_code,
+                        )
+                        try:
+                            payload = _fetch_with_playwright(endpoint)
+                            log_event(
+                                logger,
+                                logging.INFO,
+                                "fetch_fallback_success",
+                                source_id=source_id,
+                                endpoint=endpoint,
+                            )
+                            return payload
+                        except Exception as fallback_exc:  # noqa: BLE001
+                            last_error = fallback_exc
+                            log_event(
+                                logger,
+                                logging.ERROR,
+                                "fetch_fallback_failed",
+                                source_id=source_id,
+                                endpoint=endpoint,
+                                error=str(fallback_exc),
+                            )
+                            break
+                    raise ValueError("Respuesta no es JSON válido.") from exc
 
-            if not isinstance(payload, dict):
-                raise ValueError("Respuesta JSON no es un objeto.")
+                if not isinstance(payload, dict):
+                    raise ValueError("Respuesta JSON no es un objeto.")
 
+                log_event(
+                    logger,
+                    logging.INFO,
+                    "fetch_success",
+                    source_id=source_id,
+                    endpoint=endpoint,
+                    status_code=response.status_code,
+                    attempt=attempt,
+                )
+                return payload
+            except Exception as exc:  # noqa: BLE001 - queremos loggear y reintentar
+                last_error = exc
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "fetch_retry",
+                    source_id=source_id,
+                    endpoint=endpoint,
+                    attempt=attempt,
+                    error=str(exc),
+                )
+                if attempt < retries:
+                    sleep_time = min(backoff_base * (2 ** (attempt - 1)), backoff_max)
+                    time.sleep(sleep_time)
+
+        log_event(
+            logger,
+            logging.WARNING,
+            "endpoint_failed",
+            source_id=source_id,
+            endpoint=endpoint,
+            error=str(last_error) if last_error else "Unknown error",
+        )
+
+    if use_playwright:
+        if not base_url:
             log_event(
-                logging.INFO,
-                "fetch_success",
+                logger,
+                logging.ERROR,
+                "fetch_fallback_missing_base_url",
                 source_id=source.get("source_id") or department_code or source.get("name"),
-                status_code=response.status_code,
-                attempt=attempt,
             )
-            return payload
-        except Exception as exc:  # noqa: BLE001 - queremos loggear y reintentar
+        else:
+            log_event(
+                logger,
+                logging.INFO,
+                "fetch_fallback_playwright",
+                source_id=source.get("source_id") or department_code or source.get("name"),
+            )
+        try:
+            if base_url:
+                payload = fetch_payload_with_playwright(
+                    base_url=base_url,
+                    params=params,
+                    timeout=timeout,
+                    headers=headers,
+                    user_agent=playwright_user_agent,
+                    locale=playwright_locale,
+                    timezone_id=playwright_timezone,
+                    viewport=playwright_viewport,
+                    stealth=playwright_stealth,
+                )
+                log_event(
+                    logger,
+                    logging.INFO,
+                    "fetch_fallback_success",
+                    source_id=source.get("source_id") or department_code or source.get("name"),
+                )
+                return payload
+        except Exception as exc:  # noqa: BLE001
             last_error = exc
             log_event(
-                logging.WARNING,
-                "fetch_retry",
+                logger,
+                logging.ERROR,
+                "fetch_fallback_failed",
                 source_id=source.get("source_id") or department_code or source.get("name"),
-                attempt=attempt,
                 error=str(exc),
             )
-            if attempt < retries:
-                sleep_time = min(backoff_base * (2 ** (attempt - 1)), backoff_max)
-                time.sleep(sleep_time)
 
     log_event(
+        logger,
         logging.ERROR,
         "fetch_failed",
-        source_id=source.get("source_id") or department_code or source.get("name"),
+        source_id=source_id,
+        endpoint=endpoints[-1] if endpoints else None,
         error=str(last_error) if last_error else "Unknown error",
         retries=retries,
     )
@@ -175,6 +337,7 @@ def persist_snapshot(
     canonical_json: str,
     department_code: str,
     timestamp: str,
+    source_id: str,
 ) -> str:
     json_path = data_dir / f"snapshot_{department_code}_{timestamp}.json"
     hash_path = hash_dir / f"snapshot_{department_code}_{timestamp}.sha256"
@@ -189,6 +352,7 @@ def persist_snapshot(
         f.write(hash_value)
 
     log_event(
+        logger,
         logging.INFO,
         "snapshot_saved",
         source_id=source_id,
@@ -213,30 +377,45 @@ def main() -> None:
 
     for source in config["sources"]:
         try:
+            department_name = source.get("name") or "Desconocido"
+            department_code = source.get("department_code") or source.get("source_id") or "NA"
+            source_id = source.get("source_id") or department_code or department_name
             payload = fetch_source_data(
                 session=session,
-                base_url=config["base_url"],
+                endpoints=source["endpoints"],
                 source=source,
+                base_url=config.get("base_url"),
                 timeout=config["timeout"],
                 headers=config["headers"],
                 retries=config["retries"],
                 backoff_base=config["backoff_base"],
                 backoff_max=config["backoff_max"],
+                use_playwright=config["use_playwright"],
+                playwright_stealth=config["playwright_stealth"],
+                playwright_user_agent=config["playwright_user_agent"],
+                playwright_locale=config["playwright_locale"],
+                playwright_timezone=config["playwright_timezone"],
+                playwright_viewport=config["playwright_viewport"],
             )
-            snapshot = build_snapshot(payload, department_name, department_code)
+            snapshot = build_snapshot(payload, source)
             timestamp_utc = snapshot["metadata"]["timestamp_utc"]
             canonical_snapshot = normalize_snapshot(
                 payload,
                 department_name=department_name,
                 timestamp_utc=timestamp_utc,
+                scope=source.get("scope", "DEPARTMENT"),
+                department_code=department_code if source.get("department_code") else None,
+                candidate_count=config["candidate_count"],
+                field_map=config["field_map"],
             )
             canonical_json = snapshot_to_canonical_json(canonical_snapshot)
             timestamp = snapshot["metadata"]["timestamp_utc"].replace(":", "-")
-            persist_snapshot(snapshot, canonical_json, department_code, timestamp)
+            persist_snapshot(snapshot, canonical_json, department_code, timestamp, source_id)
         except Exception as exc:  # noqa: BLE001
             source_id = source.get("source_id") or source.get("department_code") or source.get("name")
             failures.append((source_id, str(exc)))
             log_event(
+                logger,
                 logging.ERROR,
                 "snapshot_failed",
                 source_id=source_id,
