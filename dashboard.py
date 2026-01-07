@@ -24,6 +24,9 @@ ALERTS_JSON = DATA_DIR / "alerts.json"
 REPORTS_DIR = Path("reports")
 DEFAULT_PDF_REPORT = REPORTS_DIR / "latest_report.pdf"
 READ_ERROR_PREFIX = "No se pudo leer"
+NO_DATA_MESSAGE = (
+    "No hay datos disponibles aún. Ejecuta primero: python -m scripts.download_and_hash"
+)
 
 
 def parse_timestamp_from_name(filename: str) -> datetime | None:
@@ -50,18 +53,41 @@ def format_read_error(label: str, path: Path, detail: str) -> str:
     return f"{READ_ERROR_PREFIX} {label} en {path}: {detail}"
 
 
-def safe_read_json(path: Path, label: str = "JSON") -> tuple[dict, str | None]:
+def handle_read_exception(
+    label: str,
+    path: Path,
+    exc: Exception,
+    errors: list[str] | None = None,
+) -> str:
+    """Registra y muestra errores de lectura con severidad adecuada."""
+    message = format_read_error(label, path, str(exc))
+    if isinstance(exc, FileNotFoundError):
+        st.warning(message)
+        logger.warning(message)
+    else:
+        st.error(message)
+        logger.error(message)
+    if errors is not None:
+        errors.append(message)
+    return message
+
+
+def safe_read_json(
+    path: Path,
+    label: str = "JSON",
+    errors: list[str] | None = None,
+) -> tuple[dict, str | None]:
     """Carga JSON con manejo de errores y mensaje uniforme."""
     try:
         with path.open("r", encoding="utf-8") as handle:
             return json.load(handle), None
-    except FileNotFoundError:
-        return {}, format_read_error(label, path, "archivo no encontrado")
+    except FileNotFoundError as exc:
+        return {}, handle_read_exception(label, path, exc, errors)
     except (OSError, json.JSONDecodeError) as exc:
-        return {}, format_read_error(label, path, str(exc))
+        return {}, handle_read_exception(label, path, exc, errors)
 
 
-def read_hash_file(snapshot_path: Path) -> tuple[str, str | None]:
+def read_hash_file(snapshot_path: Path, errors: list[str] | None = None) -> tuple[str, str | None]:
     """Lee el hash SHA256 desde el archivo .sha256 si existe."""
     hash_path = HASH_DIR / f"{snapshot_path.name}.sha256"
     try:
@@ -69,9 +95,9 @@ def read_hash_file(snapshot_path: Path) -> tuple[str, str | None]:
             return hash_path.read_text(encoding="utf-8").strip(), None
         if snapshot_path.exists():
             return sha256(snapshot_path.read_bytes()).hexdigest(), None
-        return "", format_read_error("snapshot/hash", snapshot_path, "archivo no encontrado")
-    except OSError as exc:
-        return "", format_read_error("snapshot/hash", hash_path, str(exc))
+        raise FileNotFoundError("archivo no encontrado")
+    except (OSError, FileNotFoundError) as exc:
+        return "", handle_read_exception("snapshot/hash", hash_path, exc, errors)
 
 
 def load_snapshots_list() -> list[Path]:
@@ -79,7 +105,11 @@ def load_snapshots_list() -> list[Path]:
     # Ordena por fecha de modificación para priorizar el snapshot más reciente.
     if not DATA_DIR.exists():
         return []
-    snapshots = sorted(DATA_DIR.glob("*.json"), key=os.path.getmtime, reverse=True)
+    try:
+        snapshots = sorted(DATA_DIR.glob("*.json"), key=os.path.getmtime, reverse=True)
+    except OSError as exc:
+        handle_read_exception("listado de snapshots", DATA_DIR, exc)
+        return []
     return [snap for snap in snapshots if snap.is_file()]
 
 
@@ -109,9 +139,7 @@ def load_snapshot_data(snapshot_path: Path, errors: list[str]) -> dict:
 
     Los mensajes de error se agregan a la lista compartida para mostrar en UI.
     """
-    payload, error = safe_read_json(snapshot_path, label="snapshot")
-    if error:
-        errors.append(error)
+    payload, error = safe_read_json(snapshot_path, label="snapshot", errors=errors)
     timestamp = extract_timestamp(snapshot_path, payload)
     porcentaje = payload.get("porcentaje_escrutado")
     porcentaje_val = float(porcentaje) if isinstance(porcentaje, (int, float)) else None
@@ -133,6 +161,9 @@ def load_snapshot_data(snapshot_path: Path, errors: list[str]) -> dict:
 def compute_diffs(df: pd.DataFrame) -> pd.DataFrame:
     """Agrega columna de cambio porcentual vs snapshot anterior."""
     df = df.copy()
+    if "Porcentaje escrutado" not in df.columns:
+        df["Cambio %"] = None
+        return df
     df["Cambio %"] = df["Porcentaje escrutado"].diff(-1)
     return df
 
@@ -167,9 +198,7 @@ def display_footer() -> None:
 def get_alerts(errors: list[str]) -> list[dict]:
     """Carga alertas desde archivo JSON o log, registrando fallos."""
     if ALERTS_JSON.exists():
-        data, error = safe_read_json(ALERTS_JSON, label="alertas")
-        if error:
-            errors.append(error)
+        data, _ = safe_read_json(ALERTS_JSON, label="alertas", errors=errors)
         if isinstance(data, list):
             return data
     if ALERTS_LOG.exists():
@@ -177,7 +206,7 @@ def get_alerts(errors: list[str]) -> list[dict]:
             lines = ALERTS_LOG.read_text(encoding="utf-8").splitlines()
             return [{"timestamp": "", "descripcion": line} for line in lines if line.strip()]
         except OSError as exc:
-            errors.append(format_read_error("alertas/log", ALERTS_LOG, str(exc)))
+            handle_read_exception("alertas/log", ALERTS_LOG, exc, errors)
             return []
     return []
 
@@ -195,6 +224,56 @@ def alerts_to_dataframe(alerts: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def summarize_alerts(alerts: list[dict]) -> str:
+    """Resume alertas en un texto compacto para exportaciones."""
+    descriptions = []
+    for alert in alerts:
+        description = alert.get("descripcion") or alert.get("description") or ""
+        timestamp = alert.get("timestamp") or ""
+        if description and timestamp:
+            descriptions.append(f"{timestamp} - {description}")
+        elif description:
+            descriptions.append(description)
+        elif timestamp:
+            descriptions.append(timestamp)
+    return "; ".join(descriptions)
+
+
+def build_snapshot_export(df: pd.DataFrame, alerts: list[dict]) -> pd.DataFrame:
+    """Construye el CSV de snapshots con columnas útiles."""
+    export_columns = ["timestamp", "hash", "delta", "porcentaje", "alertas"]
+    alerts_summary = summarize_alerts(alerts)
+    if df.empty:
+        if alerts_summary:
+            return pd.DataFrame(
+                [
+                    {
+                        "timestamp": "",
+                        "hash": "",
+                        "delta": None,
+                        "porcentaje": None,
+                        "alertas": alerts_summary,
+                    }
+                ],
+                columns=export_columns,
+            )
+        return pd.DataFrame(columns=export_columns)
+    export_df = compute_diffs(df.copy())
+    export_df = export_df.rename(
+        columns={
+            "Fecha/Hora": "timestamp",
+            "Hash": "hash",
+            "Cambio %": "delta",
+            "Porcentaje escrutado": "porcentaje",
+        }
+    )
+    for column in ("timestamp", "hash", "delta", "porcentaje"):
+        if column not in export_df.columns:
+            export_df[column] = None
+    export_df["alertas"] = alerts_summary
+    return export_df[export_columns]
+
+
 def display_alerts(errors: list[str], alerts: list[dict] | None = None) -> None:
     """Renderiza alertas o un placeholder."""
     st.subheader("Alertas y anomalías")
@@ -209,7 +288,7 @@ def display_exports(df: pd.DataFrame, alerts: list[dict]) -> None:
     """Sección de exportación rápida para compartir reportes."""
     st.subheader("Exportar reportes")
     if df.empty and not alerts:
-        st.info("No hay datos para exportar.")
+        st.info(NO_DATA_MESSAGE)
         return
     if not df.empty:
         export_df = df.copy()
@@ -248,9 +327,7 @@ def build_dataframe(snapshot_data: list[dict], errors: list[str]) -> pd.DataFram
         hash_value = ""
         hash_error = None
         if item.get("path"):
-            hash_value, hash_error = read_hash_file(item["path"])
-        if hash_error:
-            errors.append(hash_error)
+            hash_value, hash_error = read_hash_file(item["path"], errors=errors)
         rows.append(
             {
                 "Fecha/Hora": timestamp.isoformat(sep=" ") if timestamp else "",
@@ -275,9 +352,7 @@ def display_estado_actual(latest: dict, errors: list[str]) -> None:
         snapshot_path = latest.get("path")
         hash_value = ""
         if snapshot_path:
-            hash_value, error = read_hash_file(snapshot_path)
-            if error:
-                errors.append(error)
+            hash_value, _ = read_hash_file(snapshot_path, errors=errors)
         st.write(f"**Hash SHA-256:** {hash_value or 'No disponible'}")
         st.write(
             f"**Porcentaje escrutado:** "
@@ -294,7 +369,7 @@ def display_table(df: pd.DataFrame) -> None:
     """Renderiza la tabla con los últimos snapshots."""
     st.subheader("Últimos snapshots")
     if df.empty:
-        st.info("Aún no hay snapshots. Corre download_and_hash.py primero.")
+        st.info(NO_DATA_MESSAGE)
         return
     # Presentación compacta del hash para facilitar la lectura.
     table_df = df[["Fecha/Hora", "Nombre archivo", "Hash", "Porcentaje escrutado"]].copy()
@@ -318,37 +393,30 @@ def display_table(df: pd.DataFrame) -> None:
 
 
 def display_chart(df: pd.DataFrame) -> None:
-    """Renderiza el gráfico de evolución del escrutinio y votos."""
+    """Renderiza el gráfico temporal del porcentaje escrutado."""
     st.subheader("Evolución del escrutinio")
     if df.empty:
-        st.info("No hay datos para graficar.")
+        st.info(NO_DATA_MESSAGE)
         return
     chart_df = df.copy()
     chart_df = chart_df.sort_values("Fecha/Hora")
     chart_df["timestamp"] = pd.to_datetime(chart_df["Fecha/Hora"], errors="coerce")
     chart_df = chart_df.dropna(subset=["timestamp"])
+    if chart_df.empty or "Porcentaje escrutado" not in chart_df.columns:
+        st.info(NO_DATA_MESSAGE)
+        return
     chart_data = chart_df.set_index("timestamp")[["Porcentaje escrutado"]]
-    votos_cols = {}
-    for _, row in df.iterrows():
-        votos = row.get("Votos") or {}
-        if isinstance(votos, dict):
-            for key, value in votos.items():
-                col_name = f"votos_{key}"
-                votos_cols.setdefault(col_name, []).append(value)
-        else:
-            for col in votos_cols:
-                votos_cols[col].append(None)
-    if votos_cols:
-        votos_df = pd.DataFrame(votos_cols)
-        votos_df.index = chart_df.index
-        chart_data = pd.concat([chart_data, votos_df], axis=1)
     st.line_chart(chart_data)
 
 
-def render_sidebar(snapshot_data: list[dict]) -> dict:
+def render_sidebar() -> dict:
     """Renderiza la barra lateral para filtros y acciones."""
     st.sidebar.header("Filtros y acciones")
-    if DEFAULT_PDF_REPORT.exists():
+    if DEFAULT_PDF_REPORT.exists() and not DEFAULT_PDF_REPORT.is_file():
+        error = format_read_error("reporte PDF", DEFAULT_PDF_REPORT, "no es un archivo")
+        errors.append(error)
+        st.sidebar.warning(error)
+    elif DEFAULT_PDF_REPORT.exists():
         try:
             report_bytes = DEFAULT_PDF_REPORT.read_bytes()
             st.sidebar.download_button(
@@ -357,17 +425,14 @@ def render_sidebar(snapshot_data: list[dict]) -> dict:
                 file_name=DEFAULT_PDF_REPORT.name,
                 mime="application/pdf",
             )
-        except OSError as exc:
+        except FileNotFoundError as exc:
             st.sidebar.warning("No se pudo cargar el PDF de reporte.")
-            logger.warning("No se pudo cargar PDF: %s", exc)
+            logger.warning("No se pudo cargar el PDF de reporte: %s", exc)
+        except OSError as exc:
+            st.sidebar.error("No se pudo cargar el PDF de reporte.")
+            logger.error("No se pudo cargar el PDF de reporte: %s", exc)
     else:
         st.sidebar.caption("Genera un reporte PDF para habilitar la descarga.")
-    departamentos = sorted(
-        {item.get("departamento") for item in snapshot_data if item.get("departamento")}
-    )
-    departamento = None
-    if departamentos:
-        departamento = st.sidebar.selectbox("Filtrar por departamento", ["Todos"] + departamentos)
     if st.sidebar.button("Actualizar datos ahora"):
         with st.spinner("Ejecutando descarga de snapshots..."):
             result = subprocess.run(
@@ -385,7 +450,7 @@ def render_sidebar(snapshot_data: list[dict]) -> dict:
         st.rerun()
     debug = st.sidebar.checkbox("Modo debug: mostrar JSON crudo del último snapshot")
     st.sidebar.markdown("[Ver repo en GitHub](https://github.com/userf8a2c4/sentinel)")
-    return {"departamento": departamento, "debug": debug}
+    return {"debug": debug}
 
 
 def display_read_errors(errors: list[str]) -> None:
@@ -396,6 +461,29 @@ def display_read_errors(errors: list[str]) -> None:
     st.warning("Se detectaron problemas al leer archivos:")
     for error in unique_errors:
         st.write(f"- {error}")
+
+
+def apply_departamento_filter(
+    df: pd.DataFrame, snapshot_data: list[dict], latest: dict
+) -> tuple[pd.DataFrame, list[dict], dict]:
+    """Aplica filtro por departamento si la columna está disponible."""
+    if "Departamento" not in df.columns or df.empty:
+        return df, snapshot_data, latest
+    departamentos = ["Todos"] + sorted(
+        df["Departamento"].dropna().unique().tolist()
+    )
+    selected = st.selectbox("Filtrar por departamento", departamentos)
+    if selected == "Todos":
+        return df, snapshot_data, latest
+    filtered_df = df[df["Departamento"] == selected]
+    filtered_snapshot_data = [
+        item for item in snapshot_data if item.get("departamento") == selected
+    ]
+    filtered_latest = filtered_snapshot_data[0] if filtered_snapshot_data else {}
+    if filtered_df.empty:
+        st.warning(NO_DATA_MESSAGE)
+        logger.warning("No data found for departamento: %s", selected)
+    return filtered_df, filtered_snapshot_data, filtered_latest
 
 
 def display_estado_general(df: pd.DataFrame, alerts: list[dict]) -> None:
@@ -443,11 +531,9 @@ def main() -> None:
     trigger_refresh(errors)
     try:
         snapshots = load_snapshots_list()
-    except FileNotFoundError:
-        st.warning(
-            "No hay snapshots ni hashes disponibles aún. "
-            "Ejecuta primero: python -m scripts.download_and_hash"
-        )
+    except FileNotFoundError as exc:
+        handle_read_exception("listado de snapshots", DATA_DIR, exc)
+        st.warning(NO_DATA_MESSAGE)
         logger.warning("No data found for dashboard")
         display_footer()
         return
@@ -458,10 +544,7 @@ def main() -> None:
         return
 
     if not snapshots:
-        st.warning(
-            "No hay snapshots ni hashes disponibles aún. "
-            "Ejecuta primero: python -m scripts.download_and_hash"
-        )
+        st.warning(NO_DATA_MESSAGE)
         logger.warning("No data found for dashboard")
         display_footer()
         return
@@ -470,14 +553,7 @@ def main() -> None:
     snapshot_data = [load_snapshot_data(path, errors) for path in snapshots]
     latest = snapshot_data[0] if snapshot_data else {}
 
-    filters = render_sidebar(snapshot_data)
-    departamento = filters.get("departamento")
-    if departamento and departamento != "Todos":
-        snapshot_data = [
-            item for item in snapshot_data if item.get("departamento") == departamento
-        ]
-        if snapshot_data:
-            latest = snapshot_data[0]
+    filters = render_sidebar()
 
     df = build_dataframe(snapshot_data, errors)
     try:
@@ -487,36 +563,11 @@ def main() -> None:
         logger.error("Dashboard data load error: %s", exc)
         alerts = []
 
-    if "Departamento" in df.columns and not df.empty:
-        deptos = ["Todos"] + sorted(df["Departamento"].dropna().unique().tolist())
-        selected = st.selectbox("Filtrar por departamento", deptos)
-        if selected != "Todos":
-            df = df[df["Departamento"] == selected]
-            snapshot_data = [
-                item for item in snapshot_data if item.get("departamento") == selected
-            ]
-            if snapshot_data:
-                latest = snapshot_data[0]
-            else:
-                st.warning(
-                    "No hay datos para el departamento seleccionado. "
-                    "Ejecuta primero: python -m scripts.download_and_hash"
-                )
-                logger.warning("No data found for dashboard")
+    df, snapshot_data, latest = apply_departamento_filter(df, snapshot_data, latest)
 
     display_read_errors(errors)
     display_estado_general(df, alerts)
     display_estado_actual(latest, errors)
-    if not df.empty:
-        try:
-            chart_df = df.copy()
-            chart_df["timestamp"] = pd.to_datetime(chart_df["Fecha/Hora"], errors="coerce")
-            if chart_df["timestamp"].notna().any():
-                st.subheader("Evolución del porcentaje escrutado")
-                st.line_chart(chart_df.set_index("timestamp")["Porcentaje escrutado"])
-        except Exception as exc:  # noqa: BLE001
-            st.error(f"Error al cargar datos: {str(exc)}")
-            logger.error("Dashboard data load error: %s", exc)
     display_table(df)
     display_chart(df)
     display_exports(df, alerts)

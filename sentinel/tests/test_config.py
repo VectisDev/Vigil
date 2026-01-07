@@ -1,6 +1,8 @@
 import json
 
-import yaml
+import pytest
+
+yaml = pytest.importorskip("yaml")
 
 from scripts import download_and_hash
 
