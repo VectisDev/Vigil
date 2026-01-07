@@ -22,7 +22,6 @@
 
 ### Documentación
 - Manual de configuración y scraping: `docs/manual.md`
-- Fuentes configurables en `config.yaml` (incluye nacional y departamentos).
 - Arquitectura: `docs/architecture.md`
 - Principios operativos: `docs/operating_principles.md`
 - Metodología: `docs/methodology.md`
@@ -50,7 +49,6 @@
 
 ### Documentation
 - Configuration and scraping manual: `docs/manual.md`
-- Sources configurable in `config.yaml` (includes national and departments).
 - Architecture: `docs/architecture.md`
 - Operating principles: `docs/operating_principles.md`
 - Methodology: `docs/methodology.md`

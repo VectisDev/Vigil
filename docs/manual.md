@@ -23,30 +23,6 @@ headers:
   User-Agent: "HND-SENTINEL-2029"
 backoff_base_seconds: 1
 backoff_max_seconds: 30
-candidate_count: 10
-required_keys: []
-field_map:
-  totals:
-    valid_votes:
-      - "estadisticas.distribucion_votos.validos"
-    null_votes:
-      - "estadisticas.distribucion_votos.nulos"
-    blank_votes:
-      - "estadisticas.distribucion_votos.blancos"
-    total_votes:
-      - "estadisticas.distribucion_votos.total"
-  candidate_roots:
-    - "resultados"
-
-sources:
-  - name: "Nacional"
-    source_id: "NACIONAL"
-    level: "PRES"
-    scope: "NATIONAL"
-  - name: "Atlántida"
-    department_code: "01"
-    level: "PD"
-    scope: "DEPARTMENT"
 ```
 
 También puedes usar variables de entorno:
@@ -55,11 +31,6 @@ También puedes usar variables de entorno:
 - `RETRIES`
 - `HEADERS` (JSON en string)
 
-Notas:
-- `candidate_count` define el número esperado de candidatos (se ajusta si el JSON trae más).
-- `required_keys` permite validar claves mínimas en la respuesta (si está vacío no se valida).
-- `field_map` permite declarar rutas alternativas para totales y candidatos si el JSON cambia.
-
 ### Descarga y hash de datos
 ```bash
 python scripts/download_and_hash.py
@@ -67,7 +38,6 @@ python scripts/download_and_hash.py
 Salida:
 - JSON crudos en `data/`
 - hashes en `hashes/`
-- JSON normalizados en `data/normalized/`
 
 ### Análisis de reglas y tendencias
 ```bash
@@ -77,8 +47,6 @@ Salida:
 - `analysis_results.json`
 - `analysis_results.parquet` (si hay soporte en el entorno)
 - `anomalies_report.json`
-- `reports/summary_es.txt` y `reports/summary_en.txt`
-- `reports/sentinel.db` (SQLite con métricas y anomalías)
 
 ### Publicación en Telegram
 Variables necesarias:
@@ -120,30 +88,6 @@ headers:
   User-Agent: "HND-SENTINEL-2029"
 backoff_base_seconds: 1
 backoff_max_seconds: 30
-candidate_count: 10
-required_keys: []
-field_map:
-  totals:
-    valid_votes:
-      - "estadisticas.distribucion_votos.validos"
-    null_votes:
-      - "estadisticas.distribucion_votos.nulos"
-    blank_votes:
-      - "estadisticas.distribucion_votos.blancos"
-    total_votes:
-      - "estadisticas.distribucion_votos.total"
-  candidate_roots:
-    - "resultados"
-
-sources:
-  - name: "Nacional"
-    source_id: "NACIONAL"
-    level: "PRES"
-    scope: "NATIONAL"
-  - name: "Atlántida"
-    department_code: "01"
-    level: "PD"
-    scope: "DEPARTMENT"
 ```
 
 You can also use environment variables:
@@ -152,11 +96,6 @@ You can also use environment variables:
 - `RETRIES`
 - `HEADERS` (JSON string)
 
-Notes:
-- `candidate_count` sets the expected candidate count (it adapts if JSON provides more).
-- `required_keys` validates minimum keys in the response (empty means no validation).
-- `field_map` lets you declare alternative paths for totals/candidates if JSON changes.
-
 ### Data download and hashing
 ```bash
 python scripts/download_and_hash.py
@@ -164,7 +103,6 @@ python scripts/download_and_hash.py
 Outputs:
 - Raw JSON in `data/`
 - Hashes in `hashes/`
-- Normalized JSON in `data/normalized/`
 
 ### Rules and trend analysis
 ```bash
@@ -174,8 +112,6 @@ Outputs:
 - `analysis_results.json`
 - `analysis_results.parquet` (if supported)
 - `anomalies_report.json`
-- `reports/summary_es.txt` and `reports/summary_en.txt`
-- `reports/sentinel.db` (SQLite with metrics and anomalies)
 
 ### Telegram publishing
 Required variables:

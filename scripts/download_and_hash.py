@@ -10,21 +10,14 @@ import requests
 import yaml
 
 from sentinel.core.hashchain import compute_hash
-from sentinel.core.normalyze import (
-    DEPARTMENT_CODES,
-    normalize_snapshot,
-    snapshot_to_canonical_json,
-    snapshot_to_dict,
-)
+from sentinel.core.normalyze import DEPARTMENT_CODES, normalize_snapshot, snapshot_to_canonical_json
 
 # Directorios
 data_dir = Path("data")
-normalized_dir = data_dir / "normalized"
 hash_dir = Path("hashes")
 config_path = Path(__file__).resolve().parents[1] / "config.yaml"
 
 data_dir.mkdir(exist_ok=True)
-normalized_dir.mkdir(parents=True, exist_ok=True)
 hash_dir.mkdir(exist_ok=True)
 
 logger = logging.getLogger("sentinel.download")
@@ -86,11 +79,11 @@ def load_config() -> Dict[str, Any]:
     }
 
 
-def get_previous_hash(source_id: str) -> str | None:
+def get_previous_hash(department_code: str) -> str | None:
     """
     Busca el hash previo más reciente para el departamento.
     """
-    pattern = f"snapshot_{source_id}_*.sha256"
+    pattern = f"snapshot_{department_code}_*.sha256"
     hash_files = sorted(hash_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
     if hash_files:
         with open(hash_files[0], "r", encoding="utf-8") as handle:
@@ -180,16 +173,16 @@ def build_snapshot(payload: Dict[str, Any], source: Dict[str, Any]) -> Dict[str,
 def persist_snapshot(
     snapshot: Dict[str, Any],
     canonical_json: str,
-    source_id: str,
+    department_code: str,
     timestamp: str,
 ) -> str:
-    json_path = data_dir / f"snapshot_{source_id}_{timestamp}.json"
-    hash_path = hash_dir / f"snapshot_{source_id}_{timestamp}.sha256"
+    json_path = data_dir / f"snapshot_{department_code}_{timestamp}.json"
+    hash_path = hash_dir / f"snapshot_{department_code}_{timestamp}.sha256"
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
-    previous_hash = get_previous_hash(source_id)
+    previous_hash = get_previous_hash(department_code)
     hash_value = compute_hash(canonical_json, previous_hash)
 
     with open(hash_path, "w", encoding="utf-8") as f:
@@ -230,26 +223,16 @@ def main() -> None:
                 backoff_base=config["backoff_base"],
                 backoff_max=config["backoff_max"],
             )
-            missing_keys = [key for key in config["required_keys"] if key not in payload]
-            if missing_keys:
-                raise ValueError(f"Faltan claves requeridas: {', '.join(missing_keys)}")
-            snapshot = build_snapshot(payload, source)
+            snapshot = build_snapshot(payload, department_name, department_code)
             timestamp_utc = snapshot["metadata"]["timestamp_utc"]
-            department_name = source.get("name") or "NACIONAL"
             canonical_snapshot = normalize_snapshot(
                 payload,
                 department_name=department_name,
                 timestamp_utc=timestamp_utc,
-                candidate_count=config["candidate_count"],
-                scope=source.get("scope", "DEPARTMENT"),
-                department_code=source.get("department_code"),
-                field_map=config.get("field_map"),
             )
             canonical_json = snapshot_to_canonical_json(canonical_snapshot)
             timestamp = snapshot["metadata"]["timestamp_utc"].replace(":", "-")
-            source_id = source.get("source_id") or source.get("department_code") or "NACIONAL"
-            persist_snapshot(snapshot, canonical_json, source_id, timestamp)
-            persist_normalized(snapshot_to_dict(canonical_snapshot), source_id, timestamp)
+            persist_snapshot(snapshot, canonical_json, department_code, timestamp)
         except Exception as exc:  # noqa: BLE001
             source_id = source.get("source_id") or source.get("department_code") or source.get("name")
             failures.append((source_id, str(exc)))
