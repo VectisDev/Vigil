@@ -53,6 +53,17 @@ Ejecuta el panel interactivo con Streamlit después de generar snapshots:
 2. Ejecuta el dashboard: `streamlit run dashboard.py`
 3. Abre el navegador en la URL indicada por Streamlit.
 
+### Cómo usar dashboard
+1. Genera datos con `python scripts/download_and_hash.py` o deja que otro proceso actualice `data/`.
+2. Inicia el panel con `streamlit run dashboard.py`.
+3. Verifica la carpeta `data/` para snapshots `.json` y `hashes/` para `.sha256`.
+4. Revisa alertas en `data/alerts.json` (si existe) o `alerts.log`.
+
+**Troubleshooting**
+- Si no hay snapshots, el panel mostrará un aviso para ejecutar `download_and_hash.py`.
+- Si falta `alerts.json`/`alerts.log`, el panel seguirá funcionando y mostrará "No hay alertas recientes".
+- Usa el botón "Actualizar datos ahora" para disparar una recarga sin bloquear el panel.
+
 ---
 
 ## [EN] English
