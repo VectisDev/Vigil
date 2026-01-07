@@ -148,8 +148,37 @@ def fetch_source_data(
         params.update(source["params"])
     source_id = source.get("source_id") or department_code or source.get("name")
     last_error: Exception | None = None
+    last_endpoint: str | None = None
+
+    def _looks_like_html_or_captcha(text: str) -> bool:
+        lowered = text.lower()
+        if "<html" in lowered or "<!doctype html" in lowered or "<body" in lowered:
+            return True
+        captcha_markers = (
+            "captcha",
+            "verify you are human",
+            "recaptcha",
+            "hcaptcha",
+            "cf-turnstile",
+            "cloudflare",
+        )
+        return any(marker in lowered for marker in captcha_markers)
+
+    def _fetch_with_playwright(endpoint: str) -> Dict[str, Any]:
+        return fetch_payload_with_playwright(
+            base_url=endpoint,
+            params=params,
+            timeout=timeout,
+            headers=headers,
+            user_agent=playwright_user_agent,
+            viewport=playwright_viewport,
+            locale=playwright_locale,
+            timezone=playwright_timezone,
+            stealth=playwright_stealth,
+        )
 
     for endpoint in endpoints:
+        last_endpoint = endpoint
         for attempt in range(1, retries + 1):
             try:
                 response = session.get(endpoint, params=params, timeout=timeout, headers=headers)
@@ -161,6 +190,37 @@ def fetch_source_data(
                 try:
                     payload = response.json()
                 except ValueError as exc:
+                    response_text = response.text
+                    if use_playwright and _looks_like_html_or_captcha(response_text):
+                        log_event(
+                            logger,
+                            logging.INFO,
+                            "fetch_fallback_playwright_html",
+                            source_id=source_id,
+                            endpoint=endpoint,
+                            status_code=response.status_code,
+                        )
+                        try:
+                            payload = _fetch_with_playwright(endpoint)
+                            log_event(
+                                logger,
+                                logging.INFO,
+                                "fetch_fallback_success",
+                                source_id=source_id,
+                                endpoint=endpoint,
+                            )
+                            return payload
+                        except Exception as fallback_exc:  # noqa: BLE001
+                            last_error = fallback_exc
+                            log_event(
+                                logger,
+                                logging.ERROR,
+                                "fetch_fallback_failed",
+                                source_id=source_id,
+                                endpoint=endpoint,
+                                error=str(fallback_exc),
+                            )
+                            break
                     raise ValueError("Respuesta no es JSON válido.") from exc
 
                 if not isinstance(payload, dict):

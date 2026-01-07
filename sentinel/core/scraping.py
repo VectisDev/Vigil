@@ -3,6 +3,7 @@ from typing import Any, Dict, Mapping
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync
 
 
 def _build_url(base_url: str, params: Mapping[str, str]) -> str:
