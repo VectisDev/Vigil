@@ -1,3 +1,5 @@
+"""Streamlit dashboard para monitoreo de snapshots electorales."""
+
 import json
 import os
 from datetime import datetime
@@ -12,11 +14,14 @@ DATA_DIR = Path("data")
 HASH_DIR = Path("hashes")
 ALERTS_LOG = Path("alerts.log")
 ALERTS_JSON = DATA_DIR / "alerts.json"
+READ_ERROR_PREFIX = "No se pudo leer"
 
 
 def parse_timestamp_from_name(filename: str) -> datetime | None:
-    """Extrae timestamp del nombre del archivo si es posible."""
-    # Espera algo tipo snapshot_2026-01-07_14-30-00.json
+    """Extrae timestamp del nombre del archivo si es posible.
+
+    Espera nombres de archivo tipo: snapshot_2026-01-07_14-30-00.json.
+    """
     stem = Path(filename).stem
     parts = stem.split("_")
     if len(parts) < 3:
@@ -31,30 +36,38 @@ def parse_timestamp_from_name(filename: str) -> datetime | None:
     return None
 
 
-def safe_read_json(path: Path) -> dict:
-    """Carga JSON con manejo de errores."""
+def format_read_error(label: str, path: Path, detail: str) -> str:
+    """Genera mensajes consistentes para errores de lectura."""
+    return f"{READ_ERROR_PREFIX} {label} en {path}: {detail}"
+
+
+def safe_read_json(path: Path, label: str = "JSON") -> tuple[dict, str | None]:
+    """Carga JSON con manejo de errores y mensaje uniforme."""
     try:
         with path.open("r", encoding="utf-8") as handle:
-            return json.load(handle)
-    except (OSError, json.JSONDecodeError):
-        return {}
+            return json.load(handle), None
+    except FileNotFoundError:
+        return {}, format_read_error(label, path, "archivo no encontrado")
+    except (OSError, json.JSONDecodeError) as exc:
+        return {}, format_read_error(label, path, str(exc))
 
 
-def read_hash_file(snapshot_path: Path) -> str:
+def read_hash_file(snapshot_path: Path) -> tuple[str, str | None]:
     """Lee el hash SHA256 desde el archivo .sha256 si existe."""
     hash_path = HASH_DIR / f"{snapshot_path.name}.sha256"
     try:
         if hash_path.exists():
-            return hash_path.read_text(encoding="utf-8").strip()
+            return hash_path.read_text(encoding="utf-8").strip(), None
         if snapshot_path.exists():
-            return sha256(snapshot_path.read_bytes()).hexdigest()
-    except OSError:
-        return ""
-    return ""
+            return sha256(snapshot_path.read_bytes()).hexdigest(), None
+        return "", format_read_error("snapshot/hash", snapshot_path, "archivo no encontrado")
+    except OSError as exc:
+        return "", format_read_error("snapshot/hash", hash_path, str(exc))
 
 
 def load_snapshots_list() -> list[Path]:
     """Lista snapshots disponibles ordenados por fecha descendente."""
+    # Ordena por fecha de modificación para priorizar el snapshot más reciente.
     if not DATA_DIR.exists():
         return []
     snapshots = sorted(DATA_DIR.glob("*.json"), key=os.path.getmtime, reverse=True)
@@ -82,9 +95,14 @@ def normalize_votos(payload: dict) -> dict:
     return {}
 
 
-def load_snapshot_data(snapshot_path: Path) -> dict:
-    """Carga y normaliza datos de un snapshot."""
-    payload = safe_read_json(snapshot_path)
+def load_snapshot_data(snapshot_path: Path, errors: list[str]) -> dict:
+    """Carga y normaliza datos de un snapshot.
+
+    Los mensajes de error se agregan a la lista compartida para mostrar en UI.
+    """
+    payload, error = safe_read_json(snapshot_path, label="snapshot")
+    if error:
+        errors.append(error)
     timestamp = extract_timestamp(snapshot_path, payload)
     porcentaje = payload.get("porcentaje_escrutado")
     porcentaje_val = float(porcentaje) if isinstance(porcentaje, (int, float)) else None
@@ -131,10 +149,12 @@ def display_footer() -> None:
     st.markdown("Versión: v0.1-dev (enero 2026)")
 
 
-def get_alerts() -> list[dict]:
+def get_alerts(errors: list[str]) -> list[dict]:
     """Carga alertas desde archivo si existe."""
     if ALERTS_JSON.exists():
-        data = safe_read_json(ALERTS_JSON)
+        data, error = safe_read_json(ALERTS_JSON, label="alertas")
+        if error:
+            errors.append(error)
         if isinstance(data, list):
             return data
     if ALERTS_LOG.exists():
@@ -146,10 +166,10 @@ def get_alerts() -> list[dict]:
     return []
 
 
-def display_alerts() -> None:
+def display_alerts(errors: list[str]) -> None:
     """Renderiza alertas o un placeholder."""
     st.subheader("Alertas y anomalías")
-    alerts = get_alerts()
+    alerts = get_alerts(errors)
     if not alerts:
         st.info("No hay alertas recientes.")
         return
@@ -164,16 +184,22 @@ def display_alerts() -> None:
     st.dataframe(pd.DataFrame(alert_rows), use_container_width=True)
 
 
-def build_dataframe(snapshot_data: list[dict]) -> pd.DataFrame:
+def build_dataframe(snapshot_data: list[dict], errors: list[str]) -> pd.DataFrame:
     """Construye DataFrame para tabla y gráficos."""
     rows = []
     for item in snapshot_data:
         timestamp = item["timestamp"]
+        hash_value = ""
+        hash_error = None
+        if item.get("path"):
+            hash_value, hash_error = read_hash_file(item["path"])
+        if hash_error:
+            errors.append(hash_error)
         rows.append(
             {
                 "Fecha/Hora": timestamp.isoformat(sep=" ") if timestamp else "",
                 "Nombre archivo": item["path"].name,
-                "Hash": read_hash_file(item["path"]),
+                "Hash": hash_value,
                 "Porcentaje escrutado": item["porcentaje_escrutado"],
                 "Total votos": item["total_votos"],
                 "Departamento": item.get("departamento") or "",
@@ -183,7 +209,7 @@ def build_dataframe(snapshot_data: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def display_estado_actual(latest: dict) -> None:
+def display_estado_actual(latest: dict, errors: list[str]) -> None:
     """Muestra la sección de estado actual."""
     with st.expander("Estado actual", expanded=True):
         timestamp = latest.get("timestamp")
@@ -191,7 +217,11 @@ def display_estado_actual(latest: dict) -> None:
             f"**Último snapshot:** {timestamp.isoformat(sep=' ') if timestamp else 'Sin fecha'}"
         )
         snapshot_path = latest.get("path")
-        hash_value = read_hash_file(snapshot_path) if snapshot_path else ""
+        hash_value = ""
+        if snapshot_path:
+            hash_value, error = read_hash_file(snapshot_path)
+            if error:
+                errors.append(error)
         st.write(f"**Hash SHA-256:** {hash_value or 'No disponible'}")
         st.write(
             f"**Porcentaje escrutado:** "
@@ -210,6 +240,7 @@ def display_table(df: pd.DataFrame) -> None:
     if df.empty:
         st.info("Aún no hay snapshots. Corre download_and_hash.py primero.")
         return
+    # Presentación compacta del hash para facilitar la lectura.
     table_df = df[["Fecha/Hora", "Nombre archivo", "Hash", "Porcentaje escrutado"]].copy()
     table_df = compute_diffs(table_df)
     table_df["Hash"] = table_df["Hash"].apply(
@@ -263,18 +294,30 @@ def render_sidebar(snapshot_data: list[dict]) -> dict:
     return {"departamento": departamento, "debug": debug}
 
 
+def display_read_errors(errors: list[str]) -> None:
+    """Renderiza errores de lectura de forma consistente."""
+    if not errors:
+        return
+    unique_errors = sorted(set(errors))
+    st.warning("Se detectaron problemas al leer archivos:")
+    for error in unique_errors:
+        st.write(f"- {error}")
+
+
 def main() -> None:
     """Función principal del dashboard."""
     st.set_page_config(page_title="HND-SENTINEL-2029", layout="wide")
     display_header()
 
+    errors: list[str] = []
     snapshots = load_snapshots_list()
     if not snapshots:
         st.info("Aún no hay snapshots. Corre download_and_hash.py primero.")
         display_footer()
         return
 
-    snapshot_data = [load_snapshot_data(path) for path in snapshots]
+    # Normaliza los snapshots disponibles y prepara la vista principal.
+    snapshot_data = [load_snapshot_data(path, errors) for path in snapshots]
     latest = snapshot_data[0] if snapshot_data else {}
 
     filters = render_sidebar(snapshot_data)
@@ -286,12 +329,13 @@ def main() -> None:
         if snapshot_data:
             latest = snapshot_data[0]
 
-    df = build_dataframe(snapshot_data)
+    df = build_dataframe(snapshot_data, errors)
 
-    display_estado_actual(latest)
+    display_read_errors(errors)
+    display_estado_actual(latest, errors)
     display_table(df)
     display_chart(df)
-    display_alerts()
+    display_alerts(errors)
 
     if filters.get("debug") and latest.get("payload"):
         st.subheader("JSON crudo del último snapshot")

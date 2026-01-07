@@ -36,8 +36,11 @@ def load_config() -> Dict[str, Any]:
             config = yaml.safe_load(handle) or {}
 
     base_url = os.getenv("BASE_URL") or config.get("base_url")
-    if not base_url:
-        raise ValueError("BASE_URL no está configurado (config.yaml o env var).")
+    endpoints = config.get("endpoints") or []
+    if base_url and not endpoints:
+        endpoints = [base_url]
+    if not endpoints:
+        raise ValueError("ENDPOINTS o BASE_URL no está configurado (config.yaml o env var).")
 
     timeout = float(os.getenv("TIMEOUT") or config.get("timeout", 15))
     retries = int(os.getenv("RETRIES") or config.get("retries", 3))
@@ -65,15 +68,27 @@ def load_config() -> Dict[str, Any]:
             for department_name, department_code in DEPARTMENT_CODES.items()
         ]
 
+    resolved_sources = []
+    for source in sources:
+        resolved = {**source}
+        source_endpoints = resolved.get("endpoints") or endpoints
+        if not source_endpoints:
+            raise ValueError(
+                f"ENDPOINTS no está configurado para la fuente {resolved.get('name') or resolved.get('source_id')}."
+            )
+        resolved["endpoints"] = list(source_endpoints)
+        resolved_sources.append(resolved)
+
     return {
         "base_url": base_url,
+        "endpoints": endpoints,
         "timeout": timeout,
         "retries": retries,
         "headers": headers,
         "backoff_base": backoff_base,
         "backoff_max": backoff_max,
         "candidate_count": candidate_count,
-        "sources": sources,
+        "sources": resolved_sources,
         "required_keys": required_keys,
         "field_map": field_map,
     }
@@ -93,7 +108,7 @@ def get_previous_hash(department_code: str) -> str | None:
 
 def fetch_source_data(
     session: requests.Session,
-    base_url: str,
+    endpoints: list[str],
     source: Dict[str, Any],
     timeout: float,
     headers: Dict[str, str],
@@ -101,55 +116,70 @@ def fetch_source_data(
     backoff_base: float,
     backoff_max: float,
 ) -> Dict[str, Any]:
+    if not endpoints:
+        raise ValueError("No hay endpoints configurados para la fuente.")
     params = {"level": source.get("level", "PD")}
     department_code = source.get("department_code")
     if department_code:
         params["dept"] = department_code
     if source.get("params"):
         params.update(source["params"])
+    source_id = source.get("source_id") or department_code or source.get("name")
     last_error: Exception | None = None
 
-    for attempt in range(1, retries + 1):
-        try:
-            response = session.get(base_url, params=params, timeout=timeout, headers=headers)
-            if not response.ok:
-                raise requests.HTTPError(
-                    f"HTTP {response.status_code}",
-                    response=response,
-                )
+    for endpoint in endpoints:
+        for attempt in range(1, retries + 1):
             try:
-                payload = response.json()
-            except ValueError as exc:
-                raise ValueError("Respuesta no es JSON válido.") from exc
+                response = session.get(endpoint, params=params, timeout=timeout, headers=headers)
+                if not response.ok:
+                    raise requests.HTTPError(
+                        f"HTTP {response.status_code}",
+                        response=response,
+                    )
+                try:
+                    payload = response.json()
+                except ValueError as exc:
+                    raise ValueError("Respuesta no es JSON válido.") from exc
 
-            if not isinstance(payload, dict):
-                raise ValueError("Respuesta JSON no es un objeto.")
+                if not isinstance(payload, dict):
+                    raise ValueError("Respuesta JSON no es un objeto.")
 
-            log_event(
-                logging.INFO,
-                "fetch_success",
-                source_id=source.get("source_id") or department_code or source.get("name"),
-                status_code=response.status_code,
-                attempt=attempt,
-            )
-            return payload
-        except Exception as exc:  # noqa: BLE001 - queremos loggear y reintentar
-            last_error = exc
-            log_event(
-                logging.WARNING,
-                "fetch_retry",
-                source_id=source.get("source_id") or department_code or source.get("name"),
-                attempt=attempt,
-                error=str(exc),
-            )
-            if attempt < retries:
-                sleep_time = min(backoff_base * (2 ** (attempt - 1)), backoff_max)
-                time.sleep(sleep_time)
+                log_event(
+                    logging.INFO,
+                    "fetch_success",
+                    source_id=source_id,
+                    endpoint=endpoint,
+                    status_code=response.status_code,
+                    attempt=attempt,
+                )
+                return payload
+            except Exception as exc:  # noqa: BLE001 - queremos loggear y reintentar
+                last_error = exc
+                log_event(
+                    logging.WARNING,
+                    "fetch_retry",
+                    source_id=source_id,
+                    endpoint=endpoint,
+                    attempt=attempt,
+                    error=str(exc),
+                )
+                if attempt < retries:
+                    sleep_time = min(backoff_base * (2 ** (attempt - 1)), backoff_max)
+                    time.sleep(sleep_time)
+
+        log_event(
+            logging.WARNING,
+            "endpoint_failed",
+            source_id=source_id,
+            endpoint=endpoint,
+            error=str(last_error) if last_error else "Unknown error",
+        )
 
     log_event(
         logging.ERROR,
         "fetch_failed",
-        source_id=source.get("source_id") or department_code or source.get("name"),
+        source_id=source_id,
+        endpoint=endpoints[-1] if endpoints else None,
         error=str(last_error) if last_error else "Unknown error",
         retries=retries,
     )
@@ -215,7 +245,7 @@ def main() -> None:
         try:
             payload = fetch_source_data(
                 session=session,
-                base_url=config["base_url"],
+                endpoints=source["endpoints"],
                 source=source,
                 timeout=config["timeout"],
                 headers=config["headers"],
