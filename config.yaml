@@ -1,6 +1,7 @@
 base_url: "https://example.com/cne/results"
 timeout: 15
 retries: 3
+use_playwright: false
 headers:
   Accept: "application/json"
   User-Agent: "HND-Sentinel/1.0"
