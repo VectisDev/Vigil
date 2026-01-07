@@ -29,6 +29,11 @@
 - Reglas técnicas: `docs/rules.md`
 - Formato de datos: `docs/data_format.md`
 
+### Configuración rápida
+1. Copia `config.example.yaml` a `config.yaml` en la raíz del repositorio.
+2. Edita `config.yaml` con la URL base, headers y fuentes reales de tu entorno.
+3. Ejecuta los scripts; el sistema continúa leyendo desde `config.yaml`.
+
 ### Estado del proyecto (actual)
 - Captura de datos: configurable vía `config.yaml` (fuentes, niveles y mapeo de campos).
 - Integridad: snapshots crudos + JSON normalizados + hashes encadenados SHA-256.
@@ -65,6 +70,11 @@
 - Methodology: `docs/methodology.md`
 - Technical rules: `docs/rules.md`
 - Data format: `docs/data_format.md`
+
+### Quick setup
+1. Copy `config.example.yaml` to `config.yaml` in the repository root.
+2. Edit `config.yaml` with the real base URL, headers, and sources for your environment.
+3. Run the scripts; the system still reads from `config.yaml`.
 
 ### Project status (current)
 - Data capture: configurable via `config.yaml` (sources, levels, and field mapping).
