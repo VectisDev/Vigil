@@ -1,15 +1,20 @@
 import datetime
+import logging
 import os
 import sys
 
 import requests
 from dotenv import load_dotenv
 
+from logging_utils import configure_logging, log_event
+
 load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 DEFAULT_TEMPLATE = os.getenv("TELEGRAM_TEMPLATE", "neutral").strip().lower()
+
+logger = configure_logging("sentinel.telegram")
 
 
 def get_stored_hash(hash_path):
@@ -59,6 +64,7 @@ def resolve_template(template_name):
 
 def send_message(text, stored_hash=None, template_name=None):
     if not TOKEN or not CHAT_ID:
+        log_event(logger, logging.ERROR, "telegram_credentials_missing")
         print("[!] ERROR: SYSTEM_CREDENTIALS_MISSING")
         sys.exit(1)
 
@@ -75,8 +81,10 @@ def send_message(text, stored_hash=None, template_name=None):
     try:
         response = requests.post(url, json=payload, timeout=15)
         response.raise_for_status()
+        log_event(logger, logging.INFO, "telegram_message_sent", status_code=response.status_code)
         print("[+] STATUS: TRANSMISSION_SUCCESSFUL")
     except Exception as e:
+        log_event(logger, logging.ERROR, "telegram_message_failed", error=str(e))
         print(f"[!] STATUS: TRANSMISSION_FAILED // ERR: {str(e)}")
         sys.exit(1)
 
