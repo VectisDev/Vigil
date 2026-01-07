@@ -6,7 +6,7 @@
    git clone <repo>
    cd sentinel
    ```
-2. Instala dependencias (incluye Streamlit):
+2. Instala dependencias:
    ```bash
    pip install -r requirements.txt
    playwright install
@@ -33,7 +33,7 @@
    git clone <repo>
    cd sentinel
    ```
-2. Install dependencies (includes Streamlit):
+2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    playwright install

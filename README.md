@@ -112,7 +112,7 @@ Ejecuta el panel interactivo con Streamlit después de generar snapshots:
 ### Dashboard
 Run the interactive Streamlit panel after generating snapshots:
 
-1. Install dependencies (includes Streamlit): `pip install -r requirements.txt`
+1. Install dependencies: `pip install -r requirements.txt`
 2. Start the dashboard: `streamlit run dashboard.py`
 3. Open the URL shown by Streamlit in your browser.
 4. Use “Actualizar datos ahora” to refresh snapshots.
