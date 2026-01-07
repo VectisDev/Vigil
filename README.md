@@ -29,14 +29,27 @@
 - Reglas técnicas: `docs/rules.md`
 - Formato de datos: `docs/data_format.md`
 
+### Configuración rápida
+1. Copia `config.example.yaml` a `config.yaml` en la raíz del repositorio.
+2. Edita `config.yaml` con la URL base, headers y fuentes reales de tu entorno.
+3. Ejecuta los scripts; el sistema continúa leyendo desde `config.yaml`.
+
 ### Estado del proyecto (actual)
 - Captura de datos: configurable vía `config.yaml` (fuentes, niveles y mapeo de campos).
 - Integridad: snapshots crudos + JSON normalizados + hashes encadenados SHA-256.
 - Análisis: reglas de anomalías, tendencias y resúmenes en lenguaje común.
 - Publicación: plantillas técnicas neutrales para Telegram y X.
+- Fallback de scraping: habilitar `use_playwright: true` en `config.yaml` cuando falle `requests` (requiere `pip install playwright` y `playwright install`).
 
 ### Visualizaciones rápidas
 - `scripts/visualize_benford.py` genera un gráfico de distribución de primeros dígitos.
+
+### Dashboard
+Ejecuta el panel interactivo con Streamlit después de generar snapshots:
+
+1. Instala dependencias: `pip install -r requirements.txt`
+2. Ejecuta el dashboard: `streamlit run dashboard.py`
+3. Abre el navegador en la URL indicada por Streamlit.
 
 ---
 
@@ -66,11 +79,17 @@
 - Technical rules: `docs/rules.md`
 - Data format: `docs/data_format.md`
 
+### Quick setup
+1. Copy `config.example.yaml` to `config.yaml` in the repository root.
+2. Edit `config.yaml` with the real base URL, headers, and sources for your environment.
+3. Run the scripts; the system still reads from `config.yaml`.
+
 ### Project status (current)
 - Data capture: configurable via `config.yaml` (sources, levels, and field mapping).
 - Integrity: raw snapshots + normalized JSON + chained SHA-256 hashes.
 - Analysis: anomaly rules, trends, and plain-language summaries.
 - Publishing: neutral technical templates for Telegram and X.
+- Scraping fallback: enable `use_playwright: true` in `config.yaml` when `requests` fails (requires `pip install playwright` and `playwright install`).
 
 ### Quick visualizations
 - `scripts/visualize_benford.py` generates a first-digit distribution chart.

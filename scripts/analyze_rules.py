@@ -340,15 +340,20 @@ def run_audit(target_directory='data/normalized'):
         df.loc[group.index, "outlier_iqr"] = group["outlier_iqr"].values
         df.loc[group.index, "change_point"] = group["change_point"].values
 
+    series_payload = {}
+    for dept, group in df.groupby("departamento"):
+        payload = group.drop(
+            columns=["zscore_delta", "outlier_zscore", "outlier_iqr", "change_point"]
+        ).copy()
+        payload["timestamp"] = payload["timestamp"].astype(str)
+        series_payload[dept] = payload.to_dict(orient="records")
+
     output = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "departments": metrics_by_dept,
         "predictions": predictions,
         "anomalies": anomalies_log + anomalies,
-        "series": {
-            dept: group.drop(columns=["zscore_delta", "outlier_zscore", "outlier_iqr", "change_point"]).to_dict(orient="records")
-            for dept, group in df.groupby("departamento")
-        },
+        "series": series_payload,
     }
 
     with open('analysis_results.json', 'w', encoding='utf-8') as f:
