@@ -9,6 +9,9 @@ from pathlib import Path
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DATA_DIR = Path("data")
 HASH_DIR = Path("hashes")
