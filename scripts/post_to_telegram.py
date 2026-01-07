@@ -1,7 +1,11 @@
-import requests
+import datetime
 import os
 import sys
-import datetime
+
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
