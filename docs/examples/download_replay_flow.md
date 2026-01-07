@@ -43,6 +43,12 @@ Resultados guardados en `docs/examples/analysis_2025/`:
 
 Los textos de resumen son neutrales: describen eventos y métricas sin atribuir intención.
 
+### Reporte neutral de diffs (demo interna)
+Genera un reporte de diferencias entre snapshots consecutivos:
+```bash
+python scripts/replay_2025_demo.py --source-dir docs/examples/replay_2025/normalized --output reports/replay_2025_report.json
+```
+
 ---
 
 ## [EN] English
@@ -87,3 +93,9 @@ Results stored in `docs/examples/analysis_2025/`:
 - `reports/sentinel.db` (binary, generated locally and not committed)
 
 The summaries are neutral: they report events and metrics without attributing intent.
+
+### Neutral diff report (internal demo)
+Generate a diff report between consecutive snapshots:
+```bash
+python scripts/replay_2025_demo.py --source-dir docs/examples/replay_2025/normalized --output reports/replay_2025_report.json
+```

@@ -8,6 +8,7 @@ from typing import Any, Dict
 
 import requests
 import yaml
+from dotenv import load_dotenv
 
 from sentinel.core.hashchain import compute_hash
 from sentinel.core.normalyze import DEPARTMENT_CODES, normalize_snapshot, snapshot_to_canonical_json
@@ -21,6 +22,8 @@ config_path = Path(__file__).resolve().parents[1] / "config.yaml"
 
 data_dir.mkdir(exist_ok=True)
 hash_dir.mkdir(exist_ok=True)
+
+load_dotenv()
 
 logger = configure_logging("sentinel.download")
 
@@ -57,10 +60,10 @@ def load_config() -> Dict[str, Any]:
     required_keys = config.get("required_keys", [])
     field_map = config.get("field_map", {})
     playwright_stealth = bool(config.get("playwright_stealth", False))
-    playwright_user_agent = config.get("playwright_user_agent") or headers.get("User-Agent")
-    playwright_viewport = config.get("playwright_viewport") or {"width": 1280, "height": 720}
-    playwright_locale = config.get("playwright_locale", "es-HN")
-    playwright_timezone = config.get("playwright_timezone", "America/Tegucigalpa")
+    playwright_user_agent = config.get("playwright_user_agent")
+    playwright_locale = config.get("playwright_locale")
+    playwright_timezone = config.get("playwright_timezone")
+    playwright_viewport = config.get("playwright_viewport")
 
     sources = config.get("sources")
     if not sources:
@@ -100,9 +103,9 @@ def load_config() -> Dict[str, Any]:
         "use_playwright": use_playwright,
         "playwright_stealth": playwright_stealth,
         "playwright_user_agent": playwright_user_agent,
-        "playwright_viewport": playwright_viewport,
         "playwright_locale": playwright_locale,
         "playwright_timezone": playwright_timezone,
+        "playwright_viewport": playwright_viewport,
     }
 
 
@@ -122,6 +125,7 @@ def fetch_source_data(
     session: requests.Session,
     endpoints: list[str],
     source: Dict[str, Any],
+    base_url: str | None,
     timeout: float,
     headers: Dict[str, str],
     retries: int,
@@ -130,9 +134,9 @@ def fetch_source_data(
     use_playwright: bool,
     playwright_stealth: bool,
     playwright_user_agent: str | None,
-    playwright_viewport: Dict[str, int] | None,
     playwright_locale: str | None,
     playwright_timezone: str | None,
+    playwright_viewport: Dict[str, int] | None,
 ) -> Dict[str, Any]:
     if not endpoints:
         raise ValueError("No hay endpoints configurados para la fuente.")
@@ -257,23 +261,40 @@ def fetch_source_data(
         )
 
     if use_playwright:
-        log_event(
-            logger,
-            logging.INFO,
-            "fetch_fallback_playwright",
-            source_id=source.get("source_id") or department_code or source.get("name"),
-        )
-        try:
-            if not last_endpoint:
-                raise RuntimeError("No hay endpoints disponibles para Playwright.")
-            payload = _fetch_with_playwright(last_endpoint)
+        if not base_url:
+            log_event(
+                logger,
+                logging.ERROR,
+                "fetch_fallback_missing_base_url",
+                source_id=source.get("source_id") or department_code or source.get("name"),
+            )
+        else:
             log_event(
                 logger,
                 logging.INFO,
-                "fetch_fallback_success",
+                "fetch_fallback_playwright",
                 source_id=source.get("source_id") or department_code or source.get("name"),
             )
-            return payload
+        try:
+            if base_url:
+                payload = fetch_payload_with_playwright(
+                    base_url=base_url,
+                    params=params,
+                    timeout=timeout,
+                    headers=headers,
+                    user_agent=playwright_user_agent,
+                    locale=playwright_locale,
+                    timezone_id=playwright_timezone,
+                    viewport=playwright_viewport,
+                    stealth=playwright_stealth,
+                )
+                log_event(
+                    logger,
+                    logging.INFO,
+                    "fetch_fallback_success",
+                    source_id=source.get("source_id") or department_code or source.get("name"),
+                )
+                return payload
         except Exception as exc:  # noqa: BLE001
             last_error = exc
             log_event(
@@ -362,6 +383,7 @@ def main() -> None:
                 session=session,
                 endpoints=source["endpoints"],
                 source=source,
+                base_url=config.get("base_url"),
                 timeout=config["timeout"],
                 headers=config["headers"],
                 retries=config["retries"],
@@ -370,9 +392,9 @@ def main() -> None:
                 use_playwright=config["use_playwright"],
                 playwright_stealth=config["playwright_stealth"],
                 playwright_user_agent=config["playwright_user_agent"],
-                playwright_viewport=config["playwright_viewport"],
                 playwright_locale=config["playwright_locale"],
                 playwright_timezone=config["playwright_timezone"],
+                playwright_viewport=config["playwright_viewport"],
             )
             snapshot = build_snapshot(payload, source)
             timestamp_utc = snapshot["metadata"]["timestamp_utc"]

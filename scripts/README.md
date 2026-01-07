@@ -8,6 +8,7 @@ Esta carpeta contiene los ejecutables principales del pipeline:
 - `analyze_rules.py`: analiza series temporales y genera reportes de anomalías.
 - `post_to_telegram.py`: publica alertas técnicas en Telegram.
 - `summarize_findings.py`: genera resúmenes diarios (si aplica).
+- `replay_2025_demo.py`: genera un reporte neutral de diffs para el replay 2025.
 
 Uso típico:
 1. Ejecutar `download_and_hash.py` para capturar datos.
@@ -24,6 +25,7 @@ This folder contains the main pipeline executables:
 - `analyze_rules.py`: analyzes time series and generates anomaly reports.
 - `post_to_telegram.py`: publishes technical alerts to Telegram.
 - `summarize_findings.py`: generates daily summaries (if applicable).
+- `replay_2025_demo.py`: generates a neutral diff report for the 2025 replay.
 
 Typical usage:
 1. Run `download_and_hash.py` to capture data.
