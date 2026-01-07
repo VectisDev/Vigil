@@ -161,6 +161,9 @@ def load_snapshot_data(snapshot_path: Path, errors: list[str]) -> dict:
 def compute_diffs(df: pd.DataFrame) -> pd.DataFrame:
     """Agrega columna de cambio porcentual vs snapshot anterior."""
     df = df.copy()
+    if "Porcentaje escrutado" not in df.columns:
+        df["Cambio %"] = None
+        return df
     df["Cambio %"] = df["Porcentaje escrutado"].diff(-1)
     return df
 
@@ -219,6 +222,56 @@ def alerts_to_dataframe(alerts: list[dict]) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+def summarize_alerts(alerts: list[dict]) -> str:
+    """Resume alertas en un texto compacto para exportaciones."""
+    descriptions = []
+    for alert in alerts:
+        description = alert.get("descripcion") or alert.get("description") or ""
+        timestamp = alert.get("timestamp") or ""
+        if description and timestamp:
+            descriptions.append(f"{timestamp} - {description}")
+        elif description:
+            descriptions.append(description)
+        elif timestamp:
+            descriptions.append(timestamp)
+    return "; ".join(descriptions)
+
+
+def build_snapshot_export(df: pd.DataFrame, alerts: list[dict]) -> pd.DataFrame:
+    """Construye el CSV de snapshots con columnas útiles."""
+    export_columns = ["timestamp", "hash", "delta", "porcentaje", "alertas"]
+    alerts_summary = summarize_alerts(alerts)
+    if df.empty:
+        if alerts_summary:
+            return pd.DataFrame(
+                [
+                    {
+                        "timestamp": "",
+                        "hash": "",
+                        "delta": None,
+                        "porcentaje": None,
+                        "alertas": alerts_summary,
+                    }
+                ],
+                columns=export_columns,
+            )
+        return pd.DataFrame(columns=export_columns)
+    export_df = compute_diffs(df.copy())
+    export_df = export_df.rename(
+        columns={
+            "Fecha/Hora": "timestamp",
+            "Hash": "hash",
+            "Cambio %": "delta",
+            "Porcentaje escrutado": "porcentaje",
+        }
+    )
+    for column in ("timestamp", "hash", "delta", "porcentaje"):
+        if column not in export_df.columns:
+            export_df[column] = None
+    export_df["alertas"] = alerts_summary
+    return export_df[export_columns]
 
 
 def display_alerts(errors: list[str], alerts: list[dict] | None = None) -> None:
@@ -359,7 +412,11 @@ def display_chart(df: pd.DataFrame) -> None:
 def render_sidebar() -> dict:
     """Renderiza la barra lateral para filtros y acciones."""
     st.sidebar.header("Filtros y acciones")
-    if DEFAULT_PDF_REPORT.exists():
+    if DEFAULT_PDF_REPORT.exists() and not DEFAULT_PDF_REPORT.is_file():
+        error = format_read_error("reporte PDF", DEFAULT_PDF_REPORT, "no es un archivo")
+        errors.append(error)
+        st.sidebar.warning(error)
+    elif DEFAULT_PDF_REPORT.exists():
         try:
             report_bytes = DEFAULT_PDF_REPORT.read_bytes()
             st.sidebar.download_button(
