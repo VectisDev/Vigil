@@ -15,6 +15,7 @@ def generate_benford_plot():
     report_path = 'anomalies_report.json'
     output_path = 'plots/benford_analysis.png'
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     # 2. Datos ideales de Benford (Ley Matemática)
     digits = list(range(1, 10))
