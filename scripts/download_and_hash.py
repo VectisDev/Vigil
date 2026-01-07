@@ -12,12 +12,15 @@ import yaml
 from sentinel.core.hashchain import compute_hash
 from sentinel.core.normalyze import DEPARTMENT_CODES
 
+from sentinel.core.hashchain import compute_hash
+from sentinel.core.normalyze import normalize_snapshot, snapshot_to_canonical_json
+
 # Directorios
-data_dir = Path("data")
+canonical_dir = Path("data")
 hash_dir = Path("hashes")
 config_path = Path(__file__).resolve().parents[1] / "config.yaml"
 
-data_dir.mkdir(exist_ok=True)
+canonical_dir.mkdir(exist_ok=True)
 hash_dir.mkdir(exist_ok=True)
 
 logger = logging.getLogger("sentinel.download")
