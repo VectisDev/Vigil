@@ -2,6 +2,8 @@
 
 import json
 import os
+import subprocess
+import sys
 from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
@@ -166,22 +168,50 @@ def get_alerts(errors: list[str]) -> list[dict]:
     return []
 
 
-def display_alerts(errors: list[str]) -> None:
-    """Renderiza alertas o un placeholder."""
-    st.subheader("Alertas y anomalías")
-    alerts = get_alerts(errors)
-    if not alerts:
-        st.info("No hay alertas recientes.")
-        return
-    alert_rows = []
+def alerts_to_dataframe(alerts: list[dict]) -> pd.DataFrame:
+    """Convierte alertas a DataFrame para exportación."""
+    rows = []
     for alert in alerts:
-        alert_rows.append(
+        rows.append(
             {
                 "Timestamp": alert.get("timestamp", ""),
                 "Descripción": alert.get("descripcion", alert.get("description", "")),
             }
         )
-    st.dataframe(pd.DataFrame(alert_rows), use_container_width=True)
+    return pd.DataFrame(rows)
+
+
+def display_alerts(errors: list[str], alerts: list[dict] | None = None) -> None:
+    """Renderiza alertas o un placeholder."""
+    st.subheader("Alertas y anomalías")
+    alerts = alerts if alerts is not None else get_alerts(errors)
+    if not alerts:
+        st.info("No hay alertas recientes.")
+        return
+    st.dataframe(alerts_to_dataframe(alerts), use_container_width=True)
+
+
+def display_exports(df: pd.DataFrame, alerts: list[dict]) -> None:
+    """Sección de exportación rápida para compartir reportes."""
+    st.subheader("Exportar reportes")
+    if df.empty and not alerts:
+        st.info("No hay datos para exportar.")
+        return
+    if not df.empty:
+        st.download_button(
+            "Descargar snapshots (CSV)",
+            df.drop(columns=["Votos"], errors="ignore").to_csv(index=False).encode("utf-8"),
+            file_name="snapshots.csv",
+            mime="text/csv",
+        )
+    if alerts:
+        alerts_df = alerts_to_dataframe(alerts)
+        st.download_button(
+            "Descargar alertas (CSV)",
+            alerts_df.to_csv(index=False).encode("utf-8"),
+            file_name="alertas.csv",
+            mime="text/csv",
+        )
 
 
 def build_dataframe(snapshot_data: list[dict], errors: list[str]) -> pd.DataFrame:
@@ -287,7 +317,19 @@ def render_sidebar(snapshot_data: list[dict]) -> dict:
     if departamentos:
         departamento = st.sidebar.selectbox("Filtrar por departamento", ["Todos"] + departamentos)
     if st.sidebar.button("Actualizar datos ahora"):
-        st.sidebar.info("Ejecutando downloader... (simulado)")
+        with st.spinner("Ejecutando descarga de snapshots..."):
+            result = subprocess.run(
+                [sys.executable, "scripts/download_and_hash.py"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        if result.returncode == 0:
+            st.sidebar.success("Descarga completada.")
+        else:
+            st.sidebar.error("Falló la descarga. Revisa logs.")
+            if result.stderr:
+                st.sidebar.caption(result.stderr.strip())
         st.rerun()
     debug = st.sidebar.checkbox("Modo debug: mostrar JSON crudo del último snapshot")
     st.sidebar.markdown("[Ver repo en GitHub](https://github.com/userf8a2c4/sentinel)")
@@ -330,12 +372,14 @@ def main() -> None:
             latest = snapshot_data[0]
 
     df = build_dataframe(snapshot_data, errors)
+    alerts = get_alerts(errors)
 
     display_read_errors(errors)
     display_estado_actual(latest, errors)
     display_table(df)
     display_chart(df)
-    display_alerts(errors)
+    display_exports(df, alerts)
+    display_alerts(errors, alerts)
 
     if filters.get("debug") and latest.get("payload"):
         st.subheader("JSON crudo del último snapshot")

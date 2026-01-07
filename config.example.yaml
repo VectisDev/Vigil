@@ -11,6 +11,16 @@ headers:
   Accept: "application/json"
   User-Agent: "HND-Sentinel/1.0 (config-example)"
 
+# Fallback Playwright (anti-bloqueo básico).
+use_playwright: false
+playwright_stealth: true
+playwright_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+playwright_locale: "es-ES"
+playwright_timezone: "America/Tegucigalpa"
+playwright_viewport:
+  width: 1280
+  height: 720
+
 # Backoff exponencial para reintentos (segundos).
 backoff_base_seconds: 2
 backoff_max_seconds: 60
