@@ -38,6 +38,13 @@
 ### Visualizaciones rápidas
 - `scripts/visualize_benford.py` genera un gráfico de distribución de primeros dígitos.
 
+### Dashboard
+Ejecuta el panel interactivo con Streamlit después de generar snapshots:
+
+1. Instala dependencias: `pip install -r requirements.txt`
+2. Ejecuta el dashboard: `streamlit run dashboard.py`
+3. Abre el navegador en la URL indicada por Streamlit.
+
 ---
 
 ## [EN] English
