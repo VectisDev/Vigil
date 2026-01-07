@@ -16,6 +16,9 @@ from logging_utils import configure_logging, log_event
 
 logger = configure_logging("sentinel.analyze")
 
+RELATIVE_VOTE_CHANGE_PCT = float(os.getenv("RELATIVE_VOTE_CHANGE_PCT", "15"))
+SCRUTINIO_JUMP_PCT = float(os.getenv("SCRUTINIO_JUMP_PCT", "5"))
+
 def load_json(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -65,16 +68,25 @@ def extract_department_records(data, file_name):
         )
         total_votes = sum(safe_int(v) for v in data['resultados'].values())
         actas = data.get('actas', {})
+        votos_totales = data.get("votos_totales", {})
         actas_procesadas = safe_int(
             actas.get('correctas')
             or actas.get('divulgadas')
             or actas.get('totales')
         )
+        actas_totales = safe_int(actas.get("totales") or actas.get("total"))
+        porcentaje_escrutado = data.get("porcentaje_escrutado") or data.get("porcentaje")
+        porcentaje_escrutado = float(porcentaje_escrutado) if porcentaje_escrutado else None
         records.append({
             "timestamp": timestamp,
             "departamento": departamento,
             "total_votes": total_votes,
             "actas_procesadas": actas_procesadas,
+            "actas_totales": actas_totales or None,
+            "porcentaje_escrutado": porcentaje_escrutado,
+            "valid_votes": safe_int(votos_totales.get("validos")),
+            "null_votes": safe_int(votos_totales.get("nulos")),
+            "blank_votes": safe_int(votos_totales.get("blancos")),
         })
         return records
 
@@ -83,13 +95,24 @@ def extract_department_records(data, file_name):
     if isinstance(candidatos, list):
         departamento = meta.get("department") or "NACIONAL"
         total_votes = safe_int(totals.get("total_votes"))
+        valid_votes = safe_int(totals.get("valid_votes"))
+        null_votes = safe_int(totals.get("null_votes"))
+        blank_votes = safe_int(totals.get("blank_votes"))
         actas = totals.get("actas_procesadas") or totals.get("actas") or data.get("actas")
         actas_procesadas = safe_int(actas)
+        actas_totales = safe_int(totals.get("actas_totales") or totals.get("actas_total"))
+        porcentaje_escrutado = data.get("porcentaje_escrutado") or totals.get("porcentaje_escrutado")
+        porcentaje_escrutado = float(porcentaje_escrutado) if porcentaje_escrutado else None
         records.append({
             "timestamp": timestamp,
             "departamento": departamento,
             "total_votes": total_votes,
             "actas_procesadas": actas_procesadas,
+            "actas_totales": actas_totales or None,
+            "porcentaje_escrutado": porcentaje_escrutado,
+            "valid_votes": valid_votes,
+            "null_votes": null_votes,
+            "blank_votes": blank_votes,
         })
         return records
 
@@ -109,6 +132,11 @@ def extract_department_records(data, file_name):
                     or data.get('actas')
                     or 0
                 ),
+                "actas_totales": None,
+                "porcentaje_escrutado": None,
+                "valid_votes": None,
+                "null_votes": None,
+                "blank_votes": None,
             })
     return records
 
@@ -279,6 +307,17 @@ def run_audit(target_directory='data/normalized'):
     df = df.sort_values(["departamento", "timestamp"]).reset_index(drop=True)
     df["delta_votes"] = df.groupby("departamento")["total_votes"].diff()
     df["delta_actas"] = df.groupby("departamento")["actas_procesadas"].diff()
+    df["previous_total_votes"] = df.groupby("departamento")["total_votes"].shift()
+    df["relative_change_pct"] = (
+        df["delta_votes"] / df["previous_total_votes"] * 100
+    )
+    df.loc[df["previous_total_votes"].fillna(0) <= 0, "relative_change_pct"] = None
+    df["porcentaje_escrutado_calc"] = df["porcentaje_escrutado"]
+    mask_scrutinio = df["porcentaje_escrutado_calc"].isna() & df["actas_totales"].gt(0)
+    df.loc[mask_scrutinio, "porcentaje_escrutado_calc"] = (
+        df.loc[mask_scrutinio, "actas_procesadas"] / df.loc[mask_scrutinio, "actas_totales"] * 100
+    )
+    df["delta_escrutado"] = df.groupby("departamento")["porcentaje_escrutado_calc"].diff()
 
     anomalies = []
     metrics_by_dept = {}
@@ -328,6 +367,48 @@ def run_audit(target_directory='data/normalized'):
                     "delta_votes": row["delta_votes"],
                     "delta_actas": row["delta_actas"],
                 })
+            if row.get("relative_change_pct") is not None:
+                if abs(row["relative_change_pct"]) >= RELATIVE_VOTE_CHANGE_PCT:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "RELATIVE_CHANGE",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "delta_votes": row["delta_votes"],
+                        "relative_pct": row["relative_change_pct"],
+                        "threshold_pct": RELATIVE_VOTE_CHANGE_PCT,
+                    })
+            if row.get("delta_escrutado") is not None:
+                if row["delta_escrutado"] >= SCRUTINIO_JUMP_PCT:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "SCRUTINIO_SALTO",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "delta_escrutado": row["delta_escrutado"],
+                        "threshold_pct": SCRUTINIO_JUMP_PCT,
+                    })
+            valid_votes = row.get("valid_votes")
+            null_votes = row.get("null_votes")
+            blank_votes = row.get("blank_votes")
+            if all(v is not None for v in [valid_votes, null_votes, blank_votes]):
+                total_votes = row.get("total_votes") or 0
+                sum_votes = (valid_votes or 0) + (null_votes or 0) + (blank_votes or 0)
+                if total_votes and sum_votes and total_votes != sum_votes:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "VOTOS_TOTALES_MISMATCH",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "total_votes": total_votes,
+                        "sum_votes": sum_votes,
+                    })
+            if row.get("actas_totales"):
+                if row["actas_procesadas"] > row["actas_totales"]:
+                    anomalies.append({
+                        "departamento": departamento,
+                        "type": "ACTAS_OVERFLOW",
+                        "timestamp": row["timestamp"].isoformat(),
+                        "actas_procesadas": row["actas_procesadas"],
+                        "actas_totales": row["actas_totales"],
+                    })
 
         trend_metrics = compute_trend_metrics(group)
         metrics_by_dept[departamento] = trend_metrics
