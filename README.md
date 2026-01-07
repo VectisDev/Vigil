@@ -1,4 +1,4 @@
-# HND-SENTINEL-2029
+# SENTINEL
 ## Sistema Autónomo de Integridad de Datos Electorales | Automated Electoral Data Integrity System
 
 ---
