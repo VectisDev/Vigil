@@ -17,14 +17,17 @@ Incrementos abruptos fuera de desviación histórica se registran como eventos.
 ### R-05 Reescritura Implícita
 Cambio de valores sin aumento de actas se registra.
 
-### R-06 Variación Relativa de Votos
-Cambios porcentuales entre snapshots que superen un umbral configurable se registran como anomalías.
+### R-06 Variación Relativa Excesiva
+Cambios porcentuales de votos mayores a un umbral configurado se registran.
 
-### R-07 Saltos en % Escrutado
-Incrementos o decrementos abruptos en el porcentaje escrutado se registran como eventos.
+### R-07 Saltos de Escrutinio
+Saltos abruptos en el porcentaje escrutado se registran como eventos.
 
-### R-08 Discrepancias Mesas/Votos/Blancos/Nulos
-Cuando el esquema lo permite, se detectan inconsistencias entre actas/mesas y el desglose de votos, blancos y nulos.
+### R-08 Discrepancias Totales
+Desajustes entre votos totales, blancos y nulos se registran.
+
+### R-09 Actas Fuera de Rango
+Actas procesadas por encima del total esperado se registran.
 
 ---
 
@@ -45,11 +48,14 @@ Abrupt increases outside historical deviation are logged as events.
 ### R-05 Implicit Rewrite
 Value changes without act increase are logged.
 
-### R-06 Relative Vote Variation
-Percentage changes between snapshots above a configurable threshold are logged as anomalies.
+### R-06 Excess Relative Variation
+Vote percentage changes above a configurable threshold are logged.
 
-### R-07 Scrutiny Percentage Jumps
-Abrupt increases or decreases in scrutiny percentage are logged as events.
+### R-07 Scrutiny Jumps
+Abrupt jumps in scrutiny percentage are logged as events.
 
-### R-08 Tables/Votes/Blank/Null Discrepancies
-When the schema allows, inconsistencies between tables/actas and the vote breakdown (valid, blank, null) are detected.
+### R-08 Totals Discrepancies
+Mismatches between total, blank, and null votes are logged.
+
+### R-09 Actas Out of Range
+Processed actas above the expected total are logged.
