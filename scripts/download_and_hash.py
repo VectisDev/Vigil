@@ -27,7 +27,7 @@ import yaml
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Configuración de logging (se inicializa temprano)
+# Configuración de logging global (inicializado temprano)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -165,23 +165,32 @@ def main():
     if args.mock:
         logger.info("MODO MOCK ACTIVADO (CI) - No se intentará descargar del CNE real / MOCK MODE ACTIVATED (CI) - No real CNE fetch will be attempted")
         create_mock_snapshot()
-        # Continúa con hash y análisis del mock (o salta si no es necesario)
+        # En modo mock, saltamos todo el fetch real y continuamos con hash/análisis del mock
+        # (puedes extender aquí si necesitas más lógica para mock)
+        logger.info("Modo mock completado - pipeline continúa con datos dummy / Mock mode completed - pipeline continues with dummy data")
     else:
         logger.info("Modo real activado - procediendo con fetch al CNE / Real mode activated - proceeding with CNE fetch")
-        # Aquí va tu código original de fetch real (no tocar esta parte)
         sources = config.get('sources', [])
-        previous_hash = "0" * 64  # hash inicial
+        if not sources:
+            logger.error("No se encontraron fuentes en config.yaml / No sources found in config.yaml")
+            raise ValueError("No sources defined in config.yaml")
+
+        previous_hash = "0" * 64  # hash inicial / initial hash
 
         for source in sources:
-            endpoint = source['endpoint']
+            endpoint = source.get('endpoint')
+            if not endpoint:
+                logger.error(f"Fuente sin endpoint definido: {source} / Source without endpoint: {source}")
+                continue
+
             try:
                 response = fetch_with_retry(endpoint)
                 data = response.content
                 current_hash = compute_hash(data)
                 chained_hash = chain_hash(previous_hash, data)
-                # Guarda data y hashes...
+                # Guarda data y hashes... (tu código original aquí)
                 previous_hash = chained_hash
-                logger.info(f"Snapshot descargado y hasheado para {source['id']} / Snapshot downloaded and hashed for {source['id']}")
+                logger.info(f"Snapshot descargado y hasheado para {source.get('id', 'unknown')} / Snapshot downloaded and hashed for {source.get('id', 'unknown')}")
             except Exception as e:
                 logger.error(f"Fallo al descargar {endpoint}: {e} / Failed to download {endpoint}: {e}")
 
