@@ -1,5 +1,10 @@
+# [ES] Pipeline de Sentinel para ejecutar descarga, normalización, análisis y publicación automática.
+# [EN] Sentinel pipeline to run download, normalization, analysis, and automated publication.
+
 name: Sentinel Pipeline
 
+# [ES] Disparadores: ejecución programada cada hora y ejecución manual.
+# [EN] Triggers: hourly schedule and manual run.
 on:
   schedule:
     - cron: '0 * * * *'
@@ -7,25 +12,47 @@ on:
 
 jobs:
   run:
+    # [ES] Runner base para ejecutar el flujo de trabajo.
+    # [EN] Base runner for executing the workflow.
     runs-on: ubuntu-latest
     env:
+      # [ES] Asegura que Python encuentre el paquete del repo.
+      # [EN] Ensures Python can find the repo package.
       PYTHONPATH: ${{ github.workspace }}
     steps:
+      # [ES] Clona el repositorio para acceder al código.
+      # [EN] Checks out the repository to access the code.
       - uses: actions/checkout@v4
 
+      # [ES] Instala la versión de Python requerida.
+      # [EN] Installs the required Python version.
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # [ES] Instala dependencias del proyecto.
+      # [EN] Installs project dependencies.
       - run: pip install -r requirements.txt
 
+      # [ES] Descarga datos y genera hashes de snapshots.
+      # [EN] Downloads data and generates snapshot hashes.
       - name: Run download and hash
         run: python -m scripts.download_and_hash
+
+      # [ES] Normaliza los snapshots descargados.
+      # [EN] Normalizes the downloaded snapshots.
       - run: python scripts/normalize.py
+
+      # [ES] Analiza reglas y detecta anomalías.
+      # [EN] Analyzes rules and detects anomalies.
       - run: python scripts/analyze_rules.py
 
+      # [ES] Ejecuta pruebas del paquete Sentinel.
+      # [EN] Runs Sentinel package tests.
       - run: pytest sentinel/tests
 
+      # [ES] Commit y push automático de resultados si hay cambios.
+      # [EN] Auto-commit and push results if there are changes.
       - run: |
           git config user.name "sentinel-bot"
           git config user.email "sentinel@localhost"
