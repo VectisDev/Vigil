@@ -36,8 +36,14 @@ jobs:
 
       # [ES] Descarga datos y genera hashes de snapshots.
       # [EN] Downloads data and generates snapshot hashes.
-      - name: Run download and hash
-        run: python -m scripts.download_and_hash
+      - name: Run download and hash (mock mode in CI)
+        run: |
+          if [[ "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "CI detected - activating mock mode (no real CNE fetch)"
+            python -m scripts.download_and_hash --mock
+          else
+            python -m scripts.download_and_hash
+          fi
 
       # [ES] Normaliza los snapshots descargados.
       # [EN] Normalizes the downloaded snapshots.
