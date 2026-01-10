@@ -168,7 +168,9 @@ def safe_read_json(
         return {}, handle_read_exception(label, path, exc, errors)
 
 
-def read_hash_file(snapshot_path: Path, errors: list[str] | None = None) -> tuple[str, str | None]:
+def read_hash_file(
+    snapshot_path: Path, errors: list[str] | None = None
+) -> tuple[str, str | None]:
     """Lee el hash SHA256 desde el archivo .sha256 si existe.
 
     Args:
@@ -294,7 +296,9 @@ def normalize_votos(payload: dict) -> dict:
     """
     votos = payload.get("votos") or {}
     if isinstance(votos, dict):
-        return {str(k): float(v) for k, v in votos.items() if isinstance(v, (int, float))}
+        return {
+            str(k): float(v) for k, v in votos.items() if isinstance(v, (int, float))
+        }
     return {}
 
 
@@ -433,7 +437,9 @@ def get_alerts(errors: list[str]) -> list[dict]:
     if ALERTS_LOG.exists():
         try:
             lines = ALERTS_LOG.read_text(encoding="utf-8").splitlines()
-            return [{"timestamp": "", "descripcion": line} for line in lines if line.strip()]
+            return [
+                {"timestamp": "", "descripcion": line} for line in lines if line.strip()
+            ]
         except OSError as exc:
             handle_read_exception("alertas/log", ALERTS_LOG, exc, errors)
             return []
@@ -680,9 +686,7 @@ def display_estado_actual(latest: dict, errors: list[str]) -> None:
     with st.expander("Estado actual", expanded=True):
         timestamp = latest.get("timestamp")
         timestamp_text = format_timestamp(timestamp)
-        st.write(
-            f"**Último snapshot:** {timestamp_text or 'Sin fecha'}"
-        )
+        st.write(f"**Último snapshot:** {timestamp_text or 'Sin fecha'}")
         snapshot_path = latest.get("path")
         hash_value = ""
         if snapshot_path:
@@ -693,7 +697,9 @@ def display_estado_actual(latest: dict, errors: list[str]) -> None:
             f"{latest.get('porcentaje_escrutado') if latest.get('porcentaje_escrutado') is not None else 'N/A'}"
         )
         total_votos = latest.get("total_votos")
-        st.write(f"**Total votos acumulados:** {total_votos if total_votos is not None else 'N/A'}")
+        st.write(
+            f"**Total votos acumulados:** {total_votos if total_votos is not None else 'N/A'}"
+        )
         st.write(f"**Última actualización:** {timestamp_text or 'N/A'}")
 
 
@@ -714,7 +720,9 @@ def display_table(df: pd.DataFrame) -> None:
         st.info(NO_DATA_MESSAGE)
         return
     # Presentación compacta del hash para facilitar la lectura.
-    table_df = df[["Fecha/Hora", "Nombre archivo", "Hash", "Porcentaje escrutado"]].copy()
+    table_df = df[
+        ["Fecha/Hora", "Nombre archivo", "Hash", "Porcentaje escrutado"]
+    ].copy()
     table_df = compute_diffs(table_df)
     table_df["Hash"] = table_df["Hash"].apply(
         lambda value: f"{value[:12]}..." if isinstance(value, str) and value else ""
@@ -723,7 +731,9 @@ def display_table(df: pd.DataFrame) -> None:
     export_df = df.copy()
     if "Votos" in export_df.columns:
         export_df["Votos"] = export_df["Votos"].apply(
-            lambda value: json.dumps(value, ensure_ascii=False) if isinstance(value, dict) else ""
+            lambda value: (
+                json.dumps(value, ensure_ascii=False) if isinstance(value, dict) else ""
+            )
         )
     csv_data = export_df.to_csv(index=False).encode("utf-8")
     st.download_button(
@@ -846,9 +856,7 @@ def apply_departamento_filter(
     """
     if "Departamento" not in df.columns or df.empty:
         return df, snapshot_data, latest
-    departamentos = ["Todos"] + sorted(
-        df["Departamento"].dropna().unique().tolist()
-    )
+    departamentos = ["Todos"] + sorted(df["Departamento"].dropna().unique().tolist())
     selected = st.selectbox("Filtrar por departamento", departamentos)
     if selected == "Todos":
         return df, snapshot_data, latest
