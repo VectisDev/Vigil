@@ -3,10 +3,6 @@ pandas==2.0.3  # Para procesamiento de datos: diffs, deltas y análisis por depa
 scipy==1.11.1  # Para análisis avanzados: Ley de Benford y chi-squared.
 matplotlib==3.7.2  # Para visualización forense: generación de gráficas de Benford y tendencias.
 plotly==5.24.1  # Para visualizaciones avanzadas en el dashboard (Benford, outliers, mapa).
-web3==6.20.2  # Para publicar hashes en la blockchain (Polygon testnet).
-fastapi==0.115.6  # API pública para snapshots, alertas y verificación.
-uvicorn==0.30.6  # Servidor ASGI para FastAPI.
-ipfshttpclient==0.8.0a2  # Cliente IPFS para publicar snapshots distribuidos.
 python-telegram-bot==20.7  # Para alertas automáticas en Telegram.
 tweepy==4.14.0  # Para posting en X (Twitter).
 python-dateutil==2.8.2  # Para manejo robusto de timestamps en los snapshots.

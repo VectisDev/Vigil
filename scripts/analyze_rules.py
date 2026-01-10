@@ -588,9 +588,7 @@ def benford_analysis(data):
     for candidate, votes in votes_by_candidate.items():
         if len(votes) < BENFORD_MIN_SAMPLES:
             continue
-        first_digits = [
-            int(str(vote)[0]) for vote in votes if vote and str(vote)[0].isdigit()
-        ]
+        first_digits = [int(str(vote)[0]) for vote in votes if vote and str(vote)[0].isdigit()]
         if len(first_digits) < BENFORD_MIN_SAMPLES:
             continue
         counts = collections.Counter(first_digits)

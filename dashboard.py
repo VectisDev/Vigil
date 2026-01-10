@@ -654,7 +654,9 @@ def display_advanced_analysis(analysis: dict) -> None:
         st.info("No hay resultados avanzados disponibles.")
         return
 
-    tab_benford, tab_outliers, tab_map = st.tabs(["Benford", "Outliers", "Mapa"])
+    tab_benford, tab_outliers, tab_map = st.tabs(
+        ["Benford", "Outliers", "Mapa"]
+    )
 
     with tab_benford:
         benford_rows = []

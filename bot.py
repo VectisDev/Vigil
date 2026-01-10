@@ -819,7 +819,6 @@ def get_alerts() -> list[dict]:
     Returns:
         list[dict]: Available alerts.
     """
-
     def normalize_alerts(alerts: list[dict]) -> list[dict]:
         """Normaliza alertas para el bot.
 
