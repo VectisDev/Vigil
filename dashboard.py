@@ -21,14 +21,35 @@ from sentinel.utils.logging_config import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path("data")
-HASH_DIR = Path("hashes")
-ALERTS_LOG = Path("alerts.log")
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+HASH_DIR = BASE_DIR / "hashes"
+ALERTS_LOG = BASE_DIR / "alerts.log"
 ALERTS_JSON = DATA_DIR / "alerts.json"
 READ_ERROR_PREFIX = "No se pudo leer"
 NO_DATA_MESSAGE = (
     "No hay datos disponibles aún. Ejecuta primero: python -m scripts.download_and_hash"
 )
+REQUIRED_PASSWORD = os.getenv("PASSWORD") or st.secrets.get("PASSWORD")
+
+
+def enforce_basic_access() -> None:
+    """Solicita un password si está configurado.
+
+    English:
+        Prompts for a password when configured.
+    """
+    if not REQUIRED_PASSWORD:
+        return
+
+    st.sidebar.markdown("### Acceso / Access")
+    provided = st.sidebar.text_input("Password", type="password")
+    if not provided:
+        st.info("Ingresa el password para continuar. / Enter the password to continue.")
+        st.stop()
+    if provided != REQUIRED_PASSWORD:
+        st.error("Password incorrecto. / Incorrect password.")
+        st.stop()
 
 
 def parse_timestamp_from_name(filename: str) -> datetime | None:
@@ -915,7 +936,7 @@ def trigger_refresh(errors: list[str]) -> None:
     if not st.session_state.get("refresh_requested"):
         return
     st.session_state["refresh_requested"] = False
-    script_path = Path("scripts") / "download_and_hash.py"
+    script_path = BASE_DIR / "scripts" / "download_and_hash.py"
     if not script_path.exists():
         errors.append(format_read_error("refresh", script_path, "script no encontrado"))
         return
@@ -936,6 +957,7 @@ def main() -> None:
         Main entry point for the dashboard.
     """
     st.set_page_config(page_title="Proyecto C.E.N.T.I.N.E.L.", layout="wide")
+    enforce_basic_access()
     display_header()
 
     errors: list[str] = []
