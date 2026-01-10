@@ -6,13 +6,18 @@ English:
 
 import csv
 import json
+import logging
 import sqlite3
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+from sentinel.core.blockchain import publish_cid_to_chain, publish_hash_to_chain
 from sentinel.core.hashchain import compute_hash
+from sentinel.core.ipfs import upload_snapshot_to_ipfs
 from sentinel.core.models import Snapshot
 from sentinel.core.normalyze import snapshot_to_canonical_json
+
+logger = logging.getLogger(__name__)
 
 
 class LocalSnapshotStore:
@@ -71,6 +76,22 @@ class LocalSnapshotStore:
         """
         canonical_json = snapshot_to_canonical_json(snapshot)
         snapshot_hash = compute_hash(canonical_json, previous_hash=previous_hash)
+        tx_hash = None
+        ipfs_cid = None
+        ipfs_tx_hash = None
+        try:
+            tx_hash = publish_hash_to_chain(snapshot_hash) or None
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("blockchain_publish_failed error=%s", exc)
+        try:
+            ipfs_cid = upload_snapshot_to_ipfs(json.loads(canonical_json)) or None
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("ipfs_upload_failed error=%s", exc)
+        if ipfs_cid:
+            try:
+                ipfs_tx_hash = publish_cid_to_chain(ipfs_cid) or None
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("ipfs_blockchain_publish_failed error=%s", exc)
         department_code = snapshot.meta.department_code
         table_name = self._department_table_name(department_code)
         self._ensure_department_table(table_name)
@@ -95,9 +116,12 @@ class LocalSnapshotStore:
                     valid_votes,
                     null_votes,
                     blank_votes,
-                    candidates_json
+                    candidates_json,
+                    tx_hash,
+                    ipfs_cid,
+                    ipfs_tx_hash
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     snapshot.meta.timestamp_utc,
@@ -110,6 +134,9 @@ class LocalSnapshotStore:
                     totals.null_votes,
                     totals.blank_votes,
                     candidates_json,
+                    tx_hash,
+                    ipfs_cid,
+                    ipfs_tx_hash,
                 ),
             )
             self._connection.execute(
@@ -119,9 +146,12 @@ class LocalSnapshotStore:
                     timestamp_utc,
                     table_name,
                     hash,
-                    previous_hash
+                    previous_hash,
+                    tx_hash,
+                    ipfs_cid,
+                    ipfs_tx_hash
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     department_code,
@@ -129,6 +159,9 @@ class LocalSnapshotStore:
                     table_name,
                     snapshot_hash,
                     previous_hash,
+                    tx_hash,
+                    ipfs_cid,
+                    ipfs_tx_hash,
                 ),
             )
 
@@ -157,7 +190,7 @@ class LocalSnapshotStore:
         if department_code:
             rows = self._connection.execute(
                 """
-                SELECT department_code, timestamp_utc, table_name, hash, previous_hash
+                SELECT department_code, timestamp_utc, table_name, hash, previous_hash, tx_hash, ipfs_cid, ipfs_tx_hash
                 FROM snapshot_index
                 WHERE department_code = ?
                 ORDER BY timestamp_utc
@@ -167,7 +200,7 @@ class LocalSnapshotStore:
         else:
             rows = self._connection.execute(
                 """
-                SELECT department_code, timestamp_utc, table_name, hash, previous_hash
+                SELECT department_code, timestamp_utc, table_name, hash, previous_hash, tx_hash, ipfs_cid, ipfs_tx_hash
                 FROM snapshot_index
                 ORDER BY department_code, timestamp_utc
                 """
@@ -196,6 +229,9 @@ class LocalSnapshotStore:
                 "hash": row["hash"],
                 "previous_hash": row["previous_hash"],
                 "snapshot": json.loads(row["canonical_json"]),
+                "tx_hash": row["tx_hash"],
+                "ipfs_cid": row["ipfs_cid"],
+                "ipfs_tx_hash": row["ipfs_tx_hash"],
             }
             for row in rows
         ]
@@ -227,6 +263,9 @@ class LocalSnapshotStore:
             "blank_votes",
             "candidates_json",
             "canonical_json",
+            "tx_hash",
+            "ipfs_cid",
+            "ipfs_tx_hash",
         ]
         with Path(output_path).open("w", newline="", encoding="utf-8") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -249,7 +288,10 @@ class LocalSnapshotStore:
                 valid_votes,
                 null_votes,
                 blank_votes,
-                candidates_json
+                candidates_json,
+                tx_hash,
+                ipfs_cid,
+                ipfs_tx_hash
             FROM {table_name}
             ORDER BY timestamp_utc
             """
@@ -264,10 +306,16 @@ class LocalSnapshotStore:
                 table_name TEXT NOT NULL,
                 hash TEXT NOT NULL,
                 previous_hash TEXT,
+                tx_hash TEXT,
+                ipfs_cid TEXT,
+                ipfs_tx_hash TEXT,
                 PRIMARY KEY (department_code, timestamp_utc)
             )
             """
         )
+        self._ensure_column("snapshot_index", "tx_hash", "TEXT")
+        self._ensure_column("snapshot_index", "ipfs_cid", "TEXT")
+        self._ensure_column("snapshot_index", "ipfs_tx_hash", "TEXT")
 
     def _ensure_department_table(self, table_name: str) -> None:
         self._connection.execute(
@@ -282,15 +330,32 @@ class LocalSnapshotStore:
                 valid_votes INTEGER NOT NULL,
                 null_votes INTEGER NOT NULL,
                 blank_votes INTEGER NOT NULL,
-                candidates_json TEXT NOT NULL
+                candidates_json TEXT NOT NULL,
+                tx_hash TEXT,
+                ipfs_cid TEXT,
+                ipfs_tx_hash TEXT
             )
             """
         )
         self._connection.execute(
             f"CREATE INDEX IF NOT EXISTS idx_{table_name}_timestamp ON {table_name}(timestamp_utc)"
         )
+        self._ensure_column(table_name, "tx_hash", "TEXT")
+        self._ensure_column(table_name, "ipfs_cid", "TEXT")
+        self._ensure_column(table_name, "ipfs_tx_hash", "TEXT")
 
     @staticmethod
     def _department_table_name(department_code: str) -> str:
         sanitized = "".join(char for char in department_code if char.isalnum())
         return f"dept_{sanitized}_snapshots"
+
+    def _ensure_column(
+        self, table_name: str, column_name: str, column_type: str
+    ) -> None:
+        cursor = self._connection.execute(f"PRAGMA table_info({table_name})")
+        columns = {row[1] for row in cursor.fetchall()}
+        if column_name in columns:
+            return
+        self._connection.execute(
+            f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
+        )

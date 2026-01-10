@@ -40,6 +40,7 @@ DATA_DIR = Path("data")
 HASH_DIR = Path("hashes")
 ALERTS_LOG = Path("alerts.log")
 ALERTS_JSON = DATA_DIR / "alerts.json"
+SUBSCRIPTIONS_PATH = DATA_DIR / "subscriptions.json"
 
 MODE_CIUDADANO = "ciudadano"
 MODE_AUDITOR = "auditor"
@@ -51,6 +52,26 @@ DISCLAIMER = (
 
 RATE_LIMIT_SECONDS = 60
 MODE_TTL_MINUTES = 120
+DEPARTMENT_CODES = {
+    "01": "Atlántida",
+    "02": "Choluteca",
+    "03": "Colón",
+    "04": "Comayagua",
+    "05": "Copán",
+    "06": "Cortés",
+    "07": "El Paraíso",
+    "08": "Francisco Morazán",
+    "09": "Gracias a Dios",
+    "10": "Intibucá",
+    "11": "Islas de la Bahía",
+    "12": "La Paz",
+    "13": "Lempira",
+    "14": "Ocotepeque",
+    "15": "Olancho",
+    "16": "Santa Bárbara",
+    "17": "Valle",
+    "18": "Yoro",
+}
 
 
 @dataclass
@@ -195,6 +216,104 @@ def update_last_seen(chat_id: int) -> None:
     entry = MODE_STORE.get(chat_id)
     if entry:
         entry["last_seen"] = datetime.utcnow()
+
+
+def load_subscriptions() -> dict[str, str]:
+    """Carga suscripciones por chat desde disco.
+
+    Returns:
+        dict[str, str]: Mapeo chat_id -> código de departamento.
+
+    English:
+        Loads chat subscriptions from disk.
+
+    Returns:
+        dict[str, str]: Mapping chat_id -> department code.
+    """
+    if not SUBSCRIPTIONS_PATH.exists():
+        return {}
+    try:
+        data = json.loads(SUBSCRIPTIONS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_subscriptions(subscriptions: dict[str, str]) -> None:
+    """Guarda suscripciones por chat en disco.
+
+    Args:
+        subscriptions (dict[str, str]): Mapeo chat_id -> código.
+
+    English:
+        Saves chat subscriptions to disk.
+
+    Args:
+        subscriptions (dict[str, str]): Mapping chat_id -> department code.
+    """
+    SUBSCRIPTIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SUBSCRIPTIONS_PATH.write_text(
+        json.dumps(subscriptions, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+
+def resolve_department_code(raw_input: str) -> str | None:
+    """Resuelve el código de departamento desde entrada del usuario.
+
+    Args:
+        raw_input (str): Texto del usuario (código o nombre).
+
+    Returns:
+        str | None: Código de departamento de 2 dígitos si existe.
+
+    English:
+        Resolves the department code from user input.
+
+    Args:
+        raw_input (str): User input (code or name).
+
+    Returns:
+        str | None: Two-digit department code if found.
+    """
+    cleaned = raw_input.strip().lower()
+    if not cleaned:
+        return None
+    if cleaned.isdigit():
+        code = cleaned.zfill(2)
+        return code if code in DEPARTMENT_CODES else None
+    for code, name in DEPARTMENT_CODES.items():
+        if cleaned == name.lower():
+            return code
+    return None
+
+
+def filter_alerts_by_department(alerts: list[dict], department_code: str) -> list[dict]:
+    """Filtra alertas según departamento suscrito.
+
+    Args:
+        alerts (list[dict]): Alertas disponibles.
+        department_code (str): Código del departamento.
+
+    Returns:
+        list[dict]: Alertas filtradas.
+
+    English:
+        Filters alerts by subscribed department.
+
+    Args:
+        alerts (list[dict]): Available alerts.
+        department_code (str): Department code.
+
+    Returns:
+        list[dict]: Filtered alerts.
+    """
+    department_name = DEPARTMENT_CODES.get(department_code, "").lower()
+    filtered = []
+    for alert in alerts:
+        description = (alert.get("descripcion") or alert.get("detail") or "").lower()
+        if department_code in description or department_name in description:
+            filtered.append(alert)
+    return filtered
 
 
 def is_rate_limited(chat_id: int, now: datetime) -> bool:
@@ -700,11 +819,50 @@ def get_alerts() -> list[dict]:
     Returns:
         list[dict]: Available alerts.
     """
+
+    def normalize_alerts(alerts: list[dict]) -> list[dict]:
+        """Normaliza alertas para el bot.
+
+        Args:
+            alerts (list[dict]): Alertas crudas desde JSON.
+
+        Returns:
+            list[dict]: Alertas con descripción y timestamp uniformes.
+
+        English:
+            Normalizes alerts for the bot.
+
+        Args:
+            alerts (list[dict]): Raw alerts loaded from JSON.
+
+        Returns:
+            list[dict]: Alerts with uniform description and timestamp.
+        """
+        normalized = []
+        for entry in alerts:
+            if isinstance(entry, dict) and "alerts" in entry:
+                for alert in entry.get("alerts", []):
+                    if not isinstance(alert, dict):
+                        continue
+                    description = alert.get("description") or alert.get("descripcion")
+                    rule = alert.get("rule")
+                    if not description and rule:
+                        description = f"Regla activada: {rule}"
+                    normalized.append(
+                        {
+                            "timestamp": entry.get("to") or entry.get("timestamp", ""),
+                            "descripcion": description or "",
+                        }
+                    )
+            else:
+                normalized.append(entry)
+        return normalized
+
     if ALERTS_JSON.exists():
         try:
             data = json.loads(ALERTS_JSON.read_text(encoding="utf-8"))
             if isinstance(data, list):
-                return data
+                return normalize_alerts(data)
         except (OSError, json.JSONDecodeError) as exc:
             logger.error("alerts_json_failed error=%s", exc)
     if ALERTS_LOG.exists():
@@ -1061,6 +1219,19 @@ async def alertas(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             build_disclaimer("No hay alertas registradas por ahora.")
         )
         return
+    subscriptions = load_subscriptions()
+    chat_id = str(update.effective_chat.id)
+    subscribed_code = subscriptions.get(chat_id)
+    if subscribed_code:
+        alerts = filter_alerts_by_department(alerts, subscribed_code)
+        if not alerts:
+            dept_name = DEPARTMENT_CODES.get(subscribed_code, subscribed_code)
+            await update.message.reply_text(
+                build_disclaimer(
+                    f"No hay alertas recientes para {dept_name} ({subscribed_code})."
+                ),
+            )
+            return
     lines = []
     for item in alerts[:5]:
         descripcion = item.get("descripcion") or item.get("detail") or "Alerta"
@@ -1072,6 +1243,85 @@ async def alertas(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = "Alertas recientes:\n" + "\n".join(f"- {line}" for line in lines)
     logger.info("cmd_alertas chat_id=%s", update.effective_chat.id)
     await update.message.reply_text(build_disclaimer(message))
+
+
+async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Suscribe un chat a un departamento específico.
+
+    Args:
+        update (Update): Evento recibido.
+        context (ContextTypes.DEFAULT_TYPE): Contexto del bot.
+
+    English:
+        Subscribes a chat to a department.
+
+    Args:
+        update (Update): Incoming update.
+        context (ContextTypes.DEFAULT_TYPE): Bot context.
+    """
+    if (
+        not update.message
+        or not await enforce_access(update)
+        or not await preflight(update)
+    ):
+        return
+    raw_input = " ".join(context.args).strip()
+    if not raw_input:
+        await update.message.reply_text(
+            build_disclaimer(
+                "Indica un código de departamento, por ejemplo: /subscribe 06."
+            )
+        )
+        return
+    code = resolve_department_code(raw_input)
+    if not code:
+        await update.message.reply_text(
+            build_disclaimer("Departamento no reconocido. Usa un código entre 01 y 18.")
+        )
+        return
+    subscriptions = load_subscriptions()
+    subscriptions[str(update.effective_chat.id)] = code
+    save_subscriptions(subscriptions)
+    dept_name = DEPARTMENT_CODES.get(code, code)
+    logger.info("cmd_subscribe chat_id=%s dept=%s", update.effective_chat.id, code)
+    await update.message.reply_text(
+        build_disclaimer(f"Suscripción activada para {dept_name} ({code}).")
+    )
+
+
+async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Cancela la suscripción a alertas por departamento.
+
+    Args:
+        update (Update): Evento recibido.
+        context (ContextTypes.DEFAULT_TYPE): Contexto del bot.
+
+    English:
+        Cancels the department alert subscription.
+
+    Args:
+        update (Update): Incoming update.
+        context (ContextTypes.DEFAULT_TYPE): Bot context.
+    """
+    if (
+        not update.message
+        or not await enforce_access(update)
+        or not await preflight(update)
+    ):
+        return
+    subscriptions = load_subscriptions()
+    chat_id = str(update.effective_chat.id)
+    if chat_id in subscriptions:
+        subscriptions.pop(chat_id, None)
+        save_subscriptions(subscriptions)
+        logger.info("cmd_unsubscribe chat_id=%s", update.effective_chat.id)
+        await update.message.reply_text(
+            build_disclaimer("Suscripción eliminada. Volverás a ver todas las alertas.")
+        )
+        return
+    await update.message.reply_text(
+        build_disclaimer("No había una suscripción activa para este chat.")
+    )
 
 
 def build_benford_chart(votes: list[int], title: str) -> BytesIO:
@@ -1553,6 +1803,8 @@ def build_application(token: str):
     application.add_handler(CommandHandler("ultimo", ultimo))
     application.add_handler(CommandHandler("cambios", cambios))
     application.add_handler(CommandHandler("alertas", alertas))
+    application.add_handler(CommandHandler("subscribe", subscribe))
+    application.add_handler(CommandHandler("unsubscribe", unsubscribe))
     application.add_handler(CommandHandler("grafico", grafico))
     application.add_handler(CommandHandler("tendencia", tendencia))
     application.add_handler(CommandHandler("info", info))

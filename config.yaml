@@ -141,3 +141,8 @@ sources: # Fuentes configuradas para consultas.
 logging:
   level: INFO # Opciones: DEBUG, INFO, WARNING, ERROR
   file: centinel.log # Ruta relativa al root
+
+blockchain:
+  enabled: false
+  network: polygon-mumbai
+  private_key: ${PRIVATE_KEY} # usar env var
