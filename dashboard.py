@@ -32,7 +32,6 @@ st.markdown(
 )
 
 
-
 def load_master_switch():
     try:
         config = load_config()
@@ -40,6 +39,7 @@ def load_master_switch():
         st.warning(f"No se pudo leer config.yaml: {exc}")
         return "UNKNOWN"
     return normalize_master_switch(config.get("master_switch"))
+
 
 @st.cache_data(ttl=300)
 def load_data():
