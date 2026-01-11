@@ -51,7 +51,7 @@ def _payload_has_signal(payload: dict[str, Any]) -> bool:
         "votos_nulos",
         "votos_blancos",
         "inscritos",
-        "Total de votos",
+        "total_votes",
         "valid_votes",
         "null_votes",
         "blank_votes",
