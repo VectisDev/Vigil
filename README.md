@@ -1,4 +1,4 @@
-# C.E.N.T.I.N.E.L.
+# Proyecto C.E.N.T.I.N.E.L.
 **Centinela Electrónico Neutral Transparente Íntegro Nacional Electoral Libre**
 
 **Automated Electoral Data Integrity System**
@@ -15,8 +15,7 @@ La integridad electoral requiere evidencia verificable. Sentinel aporta transpar
 
 ### Estado actual
 - **AUDIT ACTIVE**
-- **Dashboard:** https://centinel.streamlit.app/
-- **Licencia:** MIT (`LICENSE`)
+- **Dashboard:** [Streamlit](https://centinel.streamlit.app/)
 
 ### Primeros pasos (5 minutos)
 1. Instala dependencias: `pip install -r requirements.txt`.
@@ -25,12 +24,12 @@ La integridad electoral requiere evidencia verificable. Sentinel aporta transpar
 4. Abre el dashboard: `streamlit run dashboard.py`.
 
 ### Enlaces destacados
-- Guía rápida: `QUICKSTART.md`
-- Contribución: `CONTRIBUTING.md`
-- Roadmap: `ROADMAP.md`
-- Diario de desarrollo: `DEV_DIARY.md`
-- Seguridad: `Security.md`
-- Licencia: `LICENSE`
+- [Guía rápida](QUICKSTART.md)
+- [Contribución](CONTRIBUTING.md) 
+- [Roadmap](ROADMAP.md)
+- [Diario de desarrollo](https://github.com/userf8a2c4/sentinel/tree/dev-v3/Dev%20Diary)
+- [Seguridad](Security.md)
+- [Licencia: MIT](Security.md)
 
 ### Agradecimientos
 Gracias a la comunidad cívica, periodistas de datos y personas voluntarias que promueven transparencia electoral con evidencia verificable.
@@ -47,8 +46,7 @@ Electoral integrity needs verifiable evidence. Sentinel provides technical trans
 
 ### Current status
 - **AUDIT ACTIVE**
-- **Dashboard:** https://centinel.streamlit.app/
-- **License:** MIT (`LICENSE`)
+- **Dashboard:** [Streamlit](https://centinel.streamlit.app/)
 
 ### Quick start (5 minutes)
 1. Install dependencies: `pip install -r requirements.txt`.
@@ -57,12 +55,12 @@ Electoral integrity needs verifiable evidence. Sentinel provides technical trans
 4. Run the dashboard: `streamlit run dashboard.py`.
 
 ### Key links
-- Quickstart guide: `QUICKSTART.md`
-- Contributing: `CONTRIBUTING.md`
-- Roadmap: `ROADMAP.md`
-- Dev diary: `DEV_DIARY.md`
-- Security: `Security.md`
-- License: `LICENSE`
+- [Quickstart guide](QUICKSTART.md) 
+- [Contributing](CONTRIBUTING.md) 
+- [Roadmap](ROADMAP.md)
+- [Dev diary](https://github.com/userf8a2c4/sentinel/tree/dev-v3/Dev%20Diary) 
+- [Security](Security.md)
+- [License](Security.md)
 
 ### Thanks
 Thanks to civic community members, data journalists, and volunteers advancing electoral transparency through verifiable evidence.
