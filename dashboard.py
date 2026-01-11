@@ -219,6 +219,7 @@ def build_snapshot_frame(snapshots: list[dict[str, Any]]) -> pd.DataFrame:
     normalized = [normalize_snapshot(item) for item in snapshots]
     df = pd.DataFrame(normalized)
     if not df.empty:
+        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce", utc=True)
         df = df.dropna(subset=["timestamp"]).sort_values("timestamp")
     return df
 
@@ -357,6 +358,14 @@ def render_simple_mode(
     hashes: list[dict[str, str]],
     master_status: tuple[str, str],
 ) -> None:
+    if df.empty:
+        st.markdown(
+            "<div class='hero-title'>📡 C.E.N.T.I.N.E.L.</div>", unsafe_allow_html=True
+        )
+        st.info(
+            "Aún no hay snapshots disponibles. Verifica la carpeta data/ o ejecuta el pipeline."
+        )
+        return
     status_label, badge_class = master_status
     st.markdown(
         "<div class='hero-title'>📡 C.E.N.T.I.N.E.L.</div>", unsafe_allow_html=True
@@ -490,6 +499,7 @@ def render_advanced_mode(
             file_name="alertas.csv",
             mime="text/csv",
         )
+        render_timeline(df)
 
     st.subheader("JSON crudo")
     st.json(last_snapshot["raw"], expanded=False)
