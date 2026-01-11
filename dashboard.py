@@ -11,11 +11,11 @@ import re
 # Configuración de página
 st.set_page_config(
     page_title="Centinel - Auditoría Electoral Honduras 2025",
-    page_icon="",
+    page_icon="📡",
     layout="wide"
 )
 
-# Tema oscuro básico
+# Tema oscuro
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #fafafa; }
@@ -24,25 +24,31 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# CARGAR TODOS LOS SNAPSHOTS REALES
+# CARGAR SNAPSHOTS
 # ──────────────────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=300)
 def load_snapshots():
+    # Diagnóstico visible
     patterns = [
         "data/snapshots_2025/*.json",
         "tests/fixtures/snapshots_2025/*.json",
-        "*.json"  # fallback
+        "*.json"
     ]
     
     snapshot_files = []
     for pattern in patterns:
         snapshot_files.extend(glob.glob(pattern))
     
-    snapshot_files = sorted(snapshot_files, reverse=True)  # más reciente primero
+    snapshot_files = sorted(snapshot_files, reverse=True)
     
-    if not snapshot_files:
-        st.error("No se encontraron archivos JSON en las carpetas esperadas.")
-        return pd.DataFrame(), {}, pd.DataFrame()
+    # Mostrar diagnóstico
+    st.write("**Diagnóstico de carga:**")
+    st.write(f"Rutas buscadas: {patterns}")
+    st.write(f"Archivos JSON encontrados: {len(snapshot_files)}")
+    if snapshot_files:
+        st.write("Nombres:", [os.path.basename(f) for f in snapshot_files[:5]])
+    else:
+        st.error("¡Ningún archivo .json encontrado! Verifica el repositorio en GitHub y las carpetas.")
     
     snapshots = []
     for file_path in snapshot_files:
@@ -52,124 +58,133 @@ def load_snapshots():
                 data['source_path'] = os.path.basename(file_path)
                 snapshots.append(data)
         except Exception as e:
-            st.warning(f"Error cargando {file_path}: {e}")
+            st.warning(f"Error cargando {os.path.basename(file_path)}: {e}")
+    
+    st.write(f"Snapshots cargados correctamente: {len(snapshots)}")
     
     if not snapshots:
         return pd.DataFrame(), {}, pd.DataFrame()
     
-    # Crear DataFrame resumen
-    df_summary = pd.DataFrame([{
-        "source_path": s.get("source_path", ""),
-        "actas_divulgadas": s.get("estadisticas", {})
-                               .get("totalizacion_actas", {})
-                               .get("actas_divulgadas", "N/A"),
-        "validos": int(s.get("estadisticas", {})
-                          .get("distribucion_votos", {})
-                          .get("validos", "0").replace(",", "")),
-        "nulos": int(s.get("estadisticas", {})
-                        .get("distribucion_votos", {})
-                        .get("nulos", "0").replace(",", "")),
-        "blancos": int(s.get("estadisticas", {})
-                          .get("distribucion_votos", {})
-                          .get("blancos", "0").replace(",", ""))
-    } for s in snapshots if "estadisticas" in s])
+    # Crear resumen seguro
+    summary_data = []
+    for s in snapshots:
+        if "estadisticas" not in s:
+            continue
+        distrib = s["estadisticas"].get("distribucion_votos", {})
+        totaliz = s["estadisticas"].get("totalizacion_actas", {})
+        
+        try:
+            validos = int(distrib.get("validos", "0").replace(",", ""))
+            nulos = int(distrib.get("nulos", "0").replace(",", ""))
+            blancos = int(distrib.get("blancos", "0").replace(",", ""))
+        except:
+            validos = nulos = blancos = 0
+        
+        summary_data.append({
+            "source_path": s.get("source_path", "unknown"),
+            "actas_divulgadas": totaliz.get("actas_divulgadas", "N/A"),
+            "validos": validos,
+            "nulos": nulos,
+            "blancos": blancos
+        })
     
-    # ── OPCIÓN A: Extracción robusta de timestamp desde el nombre del archivo ──
-    def extract_timestamp_from_filename(filename):
-        # Busca patrones como: 2025-12-03 21_00_11, 2025-12-03_21-00-11, etc.
-        pattern = r'(\d{4}-\d{2}-\d{2})[\s_-]*(\d{2})[_:-]?(\d{2})[_:-]?(\d{2})'
+    df_summary = pd.DataFrame(summary_data)
+    
+    # Extracción de timestamp robusta
+    def extract_ts(filename):
+        pattern = r'(\d{4}-\d{2}-\d{2})[\s_-]*(\d{2})[_\-\:]*(\d{2})[_\-\:]*(\d{2})'
         match = re.search(pattern, filename)
         if match:
-            year_month_day, hour, minute, second = match.groups()
-            time_str = f"{hour}:{minute}:{second}"
-            full_datetime_str = f"{year_month_day} {time_str}"
+            ymd, h, m, s = match.groups()
             try:
-                return pd.to_datetime(full_datetime_str)
+                return pd.to_datetime(f"{ymd} {h}:{m}:{s}")
             except:
                 return pd.NaT
         return pd.NaT
     
-    df_summary['timestamp'] = df_summary['source_path'].apply(extract_timestamp_from_filename)
+    if not df_summary.empty:
+        df_summary['timestamp'] = df_summary['source_path'].apply(extract_ts)
+        
+        # Fallback si no se pudo extraer ninguno
+        if df_summary['timestamp'].isna().all():
+            df_summary['timestamp'] = pd.date_range(
+                end=datetime.now(), periods=len(df_summary), freq='-15min'
+            )[::-1]
+        
+        df_summary = df_summary.sort_values('timestamp', ascending=False, na_position='last')
+    else:
+        df_summary['timestamp'] = pd.NaT
     
-    # Si no se pudo extraer ninguno, usar placeholder
-    if df_summary['timestamp'].isna().all():
-        df_summary['timestamp'] = pd.date_range(
-            end=datetime.now(), periods=len(df_summary), freq='-15min'
-        )[::-1]  # orden descendente
-    
-    # Ordenar por timestamp (maneja NaT al final)
-    df_summary = df_summary.sort_values('timestamp', ascending=False, na_position='last')
-    
-    # Último snapshot (el más reciente)
-    last_snapshot = snapshots[0]
-    
-    # Candidatos dinámicos
+    # Último snapshot y candidatos
+    last_snapshot = snapshots[0] if snapshots else {}
     resultados = last_snapshot.get("resultados", [])
     df_candidates = pd.DataFrame(resultados)
     if not df_candidates.empty:
-        df_candidates['votos_num'] = df_candidates['votos'].str.replace(",", "").astype(int)
-        df_candidates = df_candidates.sort_values('votos_num', ascending=False)
+        try:
+            df_candidates['votos_num'] = df_candidates['votos'].str.replace(",", "").astype(int)
+            df_candidates = df_candidates.sort_values('votos_num', ascending=False)
+        except:
+            pass  # Si falla la conversión, mantener como string
     
     return df_summary, last_snapshot, df_candidates
 
-# Carga de datos
+# Cargar datos
 df_snapshots, last_snapshot, df_candidates = load_snapshots()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# INTERFAZ DEL DASHBOARD
+# INTERFAZ
 # ──────────────────────────────────────────────────────────────────────────────
 st.title("📡 Centinel - Auditoría Electoral 2025")
-st.markdown("Monitoreo neutral y automático • Datos públicos del CNE • Elecciones 30N 2025")
+st.markdown("Monitoreo neutral • Datos públicos CNE • Elecciones Honduras 30N 2025")
 
 if last_snapshot:
-    st.success(f"✓ Snapshot cargado • Actualización: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    st.caption(f"Archivo: {last_snapshot.get('source_path', '—')}")
+    st.success(f"✓ Datos cargados • Actualización: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 else:
-    st.error("No hay datos válidos disponibles.")
+    st.warning("No hay snapshots válidos. Revisa el diagnóstico arriba.")
 
-# KPIs
+# Panorama General
 st.subheader("Panorama General")
 if not df_snapshots.empty:
-    current_stats = last_snapshot.get("estadisticas", {})
-    distrib = current_stats.get("distribucion_votos", {})
-    totalizacion = current_stats.get("totalizacion_actas", {})
+    current = last_snapshot.get("estadisticas", {})
+    distrib = current.get("distribucion_votos", {})
+    totaliz = current.get("totalizacion_actas", {})
     
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Actas Divulgadas", totalizacion.get("actas_divulgadas", "N/A"))
-    col2.metric("Votos Válidos", f"{distrib.get('validos', '0'):,}")
-    col3.metric("Votos Nulos", f"{distrib.get('nulos', '0'):,}")
-    col4.metric("Votos Blancos", f"{distrib.get('blancos', '0'):,}")
+    cols = st.columns(4)
+    cols[0].metric("Actas Divulgadas", totaliz.get("actas_divulgadas", "N/A"))
+    cols[1].metric("Votos Válidos", f"{distrib.get('validos', '0'):,}")
+    cols[2].metric("Votos Nulos", f"{distrib.get('nulos', '0'):,}")
+    cols[3].metric("Votos Blancos", f"{distrib.get('blancos', '0'):,}")
     
-    actas_total = int(totalizacion.get("actas_totales", 1))
-    actas_div = int(totalizacion.get("actas_divulgadas", 0))
-    porc = (actas_div / actas_total) * 100 if actas_total > 0 else 0
+    actas_t = int(totaliz.get("actas_totales", 1))
+    actas_d = int(totaliz.get("actas_divulgadas", 0))
+    porc = (actas_d / actas_t) * 100 if actas_t > 0 else 0
     st.progress(porc / 100)
-    st.caption(f"Progreso de totalización: **{porc:.1f}%**")
+    st.caption(f"Progreso: **{porc:.1f}%** ({actas_d:,} de {actas_t:,} actas)")
 
-# Pie Chart
+# Distribución
 st.subheader("Distribución de Votos Válidos")
 if not df_candidates.empty:
     fig = px.pie(
         df_candidates,
-        values="votos_num",
+        values="votos_num" if "votos_num" in df_candidates else "votos",
         names="candidato",
         hover_data=["partido", "porcentaje"],
         hole=0.35
     )
     fig.update_layout(template="plotly_dark", height=550)
     st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info("No hay datos de candidatos en el último snapshot.")
 
-# Tabla de candidatos
+# Tabla candidatos
 if not df_candidates.empty:
     st.subheader("Resultados por Candidato")
-    st.dataframe(
-        df_candidates[["candidato", "partido", "votos", "porcentaje"]],
-        use_container_width=True
-    )
+    cols_show = [c for c in ["candidato", "partido", "votos", "porcentaje"] if c in df_candidates.columns]
+    st.dataframe(df_candidates[cols_show], use_container_width=True)
 
-# JSON raw
-with st.expander("Ver JSON completo del último snapshot"):
+# JSON
+with st.expander("JSON completo del último snapshot"):
     st.json(last_snapshot)
 
 st.markdown("---")
-st.caption("Sentinel Project • 🇭🇳 • Open Source • Actualización automática")
+st.caption("Sentinel Project • Open Source • 🇭🇳")
