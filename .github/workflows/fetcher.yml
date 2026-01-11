@@ -2,8 +2,8 @@ name: SENTINEL Engine
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # Se ejecuta cada 15 min
-  workflow_dispatch:      # Habilita el botón manual
+    - cron: '*/15 * * * *' # Se ejecuta automático cada 15 min
+  workflow_dispatch:      # Este activa el botón manual que ocupamos
 
 jobs:
   build:
@@ -20,17 +20,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install playwright  # Asegura que Playwright esté para el scraping
-          playwright install chromium
 
       - name: Run collector
+        env:
+          PYTHONPATH: .
         run: python scripts/download_and_hash.py
 
-      - name: Commit and Push
+      - name: Commit and Push changes
         run: |
           git config --global user.name 'Sentinel-Bot'
           git config --global user.email 'bot@sentinel.ai'
-          git add data/*.json
-          git add hashes/*.sha256
-          git commit -m "Auto-update: New electoral snapshot" || exit 0
+          git add data/ hashes/
+          git commit -m "Auto-update: Snapshot C.E.N.T.I.N.E.L." || exit 0
           git push
