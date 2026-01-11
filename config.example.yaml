@@ -65,3 +65,32 @@ sources:
     department_code: "99"
     level: "PD"
     scope: "DEPARTMENT"
+
+rules:
+  global_enabled: true
+  trend_shift:
+    enabled: true
+    threshold_percent: 10
+    max_hours: 3
+  processing_speed:
+    enabled: true
+    max_actas_per_15min: 500
+  irreversibility:
+    enabled: true
+    historical_participation_rate: 0.60
+    sqlite_path: "reports/irreversibility_state.db"
+  benford_law:
+    enabled: true
+    chi_square_threshold: 0.05
+    deviation_pct: 15
+    min_samples: 10
+  ml_outliers:
+    enabled: true
+    contamination: 0.1
+    min_samples: 5
+  basic_diff:
+    enabled: true
+    relative_vote_change_pct: 15
+  participation_anomaly:
+    enabled: true
+    scrutiny_jump_pct: 5
