@@ -48,13 +48,14 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    .stApp { background-color: #f7f9fc; color: #111827; }
+    .stApp { background-color: #0f172a; color: #e2e8f0; }
+    section[data-testid="stSidebar"] { background-color: #0b1220; }
     .centinel-card {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
+        background: #111827;
+        border: 1px solid #1f2937;
         border-radius: 16px;
         padding: 1rem 1.25rem;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.35);
     }
     .badge {
         display: inline-flex;
@@ -66,12 +67,12 @@ st.markdown(
         font-weight: 700;
         letter-spacing: 0.04em;
     }
-    .badge-success { background: #dcfce7; color: #166534; }
-    .badge-danger { background: #fee2e2; color: #991b1b; }
-    .badge-warn { background: #ffedd5; color: #9a3412; }
-    .muted { color: #6b7280; }
-    .title-subtle { font-size: 1.05rem; font-weight: 600; color: #1f2937; }
-    .hero-title { font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .badge-success { background: #14532d; color: #dcfce7; }
+    .badge-danger { background: #7f1d1d; color: #fee2e2; }
+    .badge-warn { background: #7c2d12; color: #ffedd5; }
+    .muted { color: #94a3b8; }
+    .title-subtle { font-size: 1.05rem; font-weight: 600; color: #e2e8f0; }
+    .hero-title { font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem; color: #f8fafc; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -236,7 +237,8 @@ def get_master_switch_status(config: dict[str, Any]) -> tuple[str, str]:
 def compute_changes(df: pd.DataFrame, days: int) -> int:
     if df.empty:
         return 0
-    cutoff = datetime.now() - timedelta(days=days)
+    now = pd.Timestamp.utcnow()
+    cutoff = now - pd.Timedelta(days=days)
     recent = df[df["timestamp"] >= cutoff]
     if len(recent) < 2:
         return 0
@@ -499,7 +501,6 @@ def render_advanced_mode(
             file_name="alertas.csv",
             mime="text/csv",
         )
-        render_timeline(df)
 
     st.subheader("JSON crudo")
     st.json(last_snapshot["raw"], expanded=False)
@@ -632,7 +633,9 @@ if not filtered_df.empty:
 
 master_status = get_master_switch_status(config)
 
-st.caption(f"Última actualización del dashboard: {datetime.now():%Y-%m-%d %H:%M}")
+st.caption(
+    f"Última actualización del dashboard: {datetime.now():%Y-%m-%d %H:%M} (hora local)"
+)
 
 alert_badge = ""
 if len(alerts_df) > state.alerts_seen:
