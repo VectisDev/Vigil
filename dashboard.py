@@ -484,6 +484,7 @@ def render_advanced_mode(
             file_name="alertas.csv",
             mime="text/csv",
         )
+        render_timeline(df)
 
     st.subheader("JSON crudo")
     st.json(last_snapshot["raw"], expanded=False)
