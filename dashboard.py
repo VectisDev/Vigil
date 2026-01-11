@@ -20,6 +20,30 @@ import streamlit as st
 
 from sentinel.utils.logging_config import setup_logging
 
+import streamlit as st
+import pandas as pd
+import os
+from pathlib import Path
+
+""" Configuración de rutas"""
+DATA_DIR = Path("data")
+
+def load_latest_data():
+   """ Busca el último archivo JSON generado por download_and_hash.py """
+    files = list(DATA_DIR.glob("snapshot_*.json"))
+    if not files:
+        st.warning("⚠️ No se encontraron snapshots en /data. Ejecuta el recolector.")
+        return None
+    
+    """ Ordenar por fecha de creación para tener el más reciente"""
+    latest_file = max(files, key=os.path.getctime)
+    return pd.read_json(latest_file)
+
+data = load_latest_data()
+if data is not None:
+    st.write(f"✅ Visualizando snapshot: {data['timestamp'].iloc[0]}")
+
+
 setup_logging()
 logger = logging.getLogger(__name__)
 
