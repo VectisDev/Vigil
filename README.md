@@ -61,7 +61,7 @@ Ejecuta el panel interactivo con Streamlit después de generar snapshots:
 3. Abre el navegador en la URL indicada por Streamlit.
 4. Usa el botón “Actualizar datos ahora” para refrescar snapshots.
 5. Descarga reportes en CSV desde la sección “Exportar reportes”.
-6. El panel muestra el estado del **MASTER SWITCH** (ON/OFF); si falta `master_switch` en `config.yaml` se verá como "SIN CONFIG".
+6. El panel muestra el estado del **MASTER SWITCH** (ON/OFF) para confirmar si los procesos automáticos están activos.
 
 #### Cómo usar el dashboard
 - Copia `.env.example` a `.env` si publicarás alertas (Telegram).
@@ -145,7 +145,7 @@ Run the interactive Streamlit panel after generating snapshots:
 3. Open the URL shown by Streamlit in your browser.
 4. Use “Actualizar datos ahora” to refresh snapshots.
 5. Download CSV reports from “Exportar reportes”.
-6. The panel shows the **MASTER SWITCH** (ON/OFF) status; if `master_switch` is missing from `config.yaml`, it appears as "SIN CONFIG".
+6. The panel shows the **MASTER SWITCH** (ON/OFF) status to confirm whether automatic processes are active.
 
 #### How to use the dashboard
 - Copy `.env.example` to `.env` if you will publish alerts (Telegram).
