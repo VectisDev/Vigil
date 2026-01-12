@@ -9,7 +9,7 @@ import glob
 
 st.set_page_config(page_title="Centinel", layout="wide")
 
-# Tema minimalista oscuro
+# Tema minimalista oscuro y elegante
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e6e6e6; }
@@ -42,7 +42,7 @@ def load_data():
             pass
 
     if not snapshots:
-        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible", []
+        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible"
 
     df_summary = pd.DataFrame([{
         "source_path": s['source_path'],
@@ -129,28 +129,43 @@ if not simple_mode:
     st.subheader("Modo pro – Detalles técnicos completos")
 
     # Evolución temporal completa
-    if len(df_summary) > 1:
-        with st.expander("Evolución temporal completa"):
+    with st.expander("Evolución temporal completa"):
+        if len(df_summary) > 1:
             fig_line = go.Figure()
             fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["total"], name="Total"))
             fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["valid"], name="Válidos"))
             fig_line.update_layout(template="plotly_dark", height=500)
             st.plotly_chart(fig_line, use_container_width=True)
+        else:
+            st.info("Se necesitan más snapshots para mostrar evolución.")
 
     # Tabla detallada de candidatos
-    if not df_candidates.empty:
-        with st.expander("Tabla detallada de candidatos"):
+    with st.expander("Tabla detallada de candidatos"):
+        if not df_candidates.empty:
             st.dataframe(df_candidates.style.format({"votes": "{:,}"}), use_container_width=True)
+        else:
+            st.info("No hay datos de candidatos.")
 
-    # Últimos snapshots históricos
-    if not df_summary.empty:
-        with st.expander("Snapshots históricos (resumen)"):
+    # Snapshots históricos
+    with st.expander("Snapshots históricos (resumen)"):
+        if not df_summary.empty:
             st.dataframe(df_summary[["source_path", "total", "valid"]], use_container_width=True)
+        else:
+            st.info("No hay snapshots históricos disponibles.")
 
-    # Cadena de hashes y análisis avanzado
+    # Integridad: hashes y cadena
     with st.expander("Integridad: Último hash y cadena"):
         st.markdown(f"**Último hash verificado**: {last_hash}")
-        st.markdown("**Análisis avanzado (Benford, predicciones, reglas aplicadas)**: Disponible en desarrollo. Próximamente se mostrarán aquí resultados detallados.")
+        # Placeholder para cadena completa (puedes expandir con lógica real)
+        st.info("Cadena completa de hashes y verificación histórica disponible en desarrollo.")
+
+    # Benford
+    with st.expander("Análisis Benford"):
+        st.info("Análisis completo de Ley de Benford (distribución de dígitos, desviaciones por candidato y departamento) disponible en desarrollo. Próximamente gráficos y resultados detallados.")
+
+    # Predicciones
+    with st.expander("Predicciones y tendencias"):
+        st.info("Módulo de predicciones (tendencias, extrapolaciones, estimados por candidato) disponible en desarrollo. Próximamente resultados detallados.")
 
     # JSON crudo
     with st.expander("JSON completo del último snapshot"):
