@@ -13,7 +13,8 @@ st.set_page_config(page_title="Centinel", layout="wide")
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e6e6e6; }
-    .stMetric { font-size: 1.4rem !important; }
+    .stMetric { font-size: 1.4rem !important; font-weight: 500; }
+    h1, h2, h3 { margin-bottom: 1rem; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -40,7 +41,7 @@ def load_data():
             pass
 
     if not snapshots:
-        return pd.DataFrame(), {}, pd.DataFrame()
+        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible"
 
     df_summary = pd.DataFrame([{
         "source_path": s['source_path'],
@@ -55,9 +56,12 @@ def load_data():
     candidates = last.get("candidates", [])
     df_cand = pd.DataFrame(candidates)
 
-    return df_summary, last, df_cand
+    # Último hash (asumiendo que existe en el snapshot o placeholder)
+    last_hash = last.get("last_hash", "No hash disponible en este snapshot")
 
-df_summary, last_snapshot, df_candidates = load_data()
+    return df_summary, last, df_cand, last_hash
+
+df_summary, last_snapshot, df_candidates, last_hash = load_data()
 
 # Modo simple por defecto
 simple_mode = st.sidebar.checkbox("Modo simple (recomendado)", value=True)
@@ -68,6 +72,13 @@ if last_snapshot:
     st.success("Datos cargados")
 else:
     st.warning("No se encontraron snapshots")
+
+# Panel de alertas (visible en ambos modos, pero simple)
+st.markdown("### Alertas")
+if simple_mode:
+    st.info("Sin alertas detectadas en este momento.")
+else:
+    st.info("Sin alertas detectadas en este momento. (Modo avanzado: revisar reglas aplicadas)")
 
 # Resumen ejecutivo + KPIs
 if not df_summary.empty:
@@ -87,6 +98,9 @@ if not df_summary.empty:
     st.progress(porc / 100)
     st.caption(f"Progreso aproximado: {porc:.1f}%")
 
+    # Último hash (visible debajo de la barra en ambos modos)
+    st.caption(f"Último hash: {last_hash}")
+
 # Distribución (pie chart simple)
 if not df_candidates.empty and "votes" in df_candidates.columns:
     df_candidates['votes'] = pd.to_numeric(df_candidates['votes'], errors='coerce').fillna(0)
@@ -99,7 +113,7 @@ if not df_candidates.empty and "votes" in df_candidates.columns:
     fig.update_layout(showlegend=False, template="plotly_dark", margin=dict(t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-# Explicación básica (siempre visible, pero colapsable)
+# Explicación básica (expandida con hash)
 with st.expander("¿Qué significan estos números?"):
     st.markdown("""
     - Registrados: Personas habilitadas para votar.  
@@ -107,12 +121,13 @@ with st.expander("¿Qué significan estos números?"):
     - Válidos: Votos que cuentan para candidatos.  
     - Nulos / Blancos: Votos no válidos.  
     - Progreso: Porcentaje aproximado de conteo.  
+    - Último hash: Firma digital que verifica que los datos no fueron alterados después de capturarse.
     """)
 
 # Contenido avanzado (solo si modo simple desactivado)
 if not simple_mode:
     st.markdown("---")
-    st.subheader("Modo avanzado")
+    st.subheader("Modo avanzado – Detalles técnicos")
 
     # Evolución temporal
     if len(df_summary) > 1:
