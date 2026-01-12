@@ -1,31 +1,29 @@
 # dashboard/components/pdf_generator.py
-# Generación de PDF - con fix para buffer y mime
-# Español / English: Generación de PDF corregida / Fixed PDF generation
-
 from fpdf import FPDF
 from io import BytesIO
 from datetime import datetime
 
 def create_pdf(df, deptos_sel, date_range, partidos_sel):
-    """Genera PDF con resumen del análisis.
+    """
+    Genera un PDF con el resumen del análisis.
     
     Args:
-        df: DataFrame filtrado
-        deptos_sel: Lista de departamentos seleccionados
-        date_range: Tupla de fechas
-        partidos_sel: Lista de partidos seleccionados
+        df (pd.DataFrame): DataFrame filtrado
+        deptos_sel (list): Departamentos seleccionados
+        date_range (tuple): Rango de fechas
+        partidos_sel (list): Partidos seleccionados
     
     Returns:
-        bytes: Contenido del PDF listo para download
+        bytes: Contenido del PDF listo para st.download_button
     
     ---
     Generates PDF with analysis summary.
     
     Args:
-        df: Filtered DataFrame
-        deptos_sel: Selected departments list
-        date_range: Date range tuple
-        partidos_sel: Selected parties list
+        df (pd.DataFrame): Filtered DataFrame
+        deptos_sel (list): Selected departments
+        date_range (tuple): Date range
+        partidos_sel (list): Selected parties
     
     Returns:
         bytes: PDF content ready for download
@@ -59,6 +57,9 @@ def create_pdf(df, deptos_sel, date_range, partidos_sel):
                          "Código: https://github.com/userf8a2c4/sentinel")
     
     buffer = BytesIO()
-    pdf.output(buffer)
-    buffer.seek(0)  # ¡Clave! Resetear posición al inicio
-    return buffer.getvalue()  # Retornar bytes directamente
+    pdf.output(buffer)          # Escribe los bytes
+    buffer.seek(0)              # ¡CLAVE! Resetear al inicio
+    pdf_bytes = buffer.read()   # Leer como bytes puros
+    buffer.close()              # Liberar memoria
+    
+    return pdf_bytes            # Retornar bytes directamente
