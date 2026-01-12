@@ -1,82 +1,174 @@
-# dashboard/main.py
-# Entry point del dashboard modular
-# Español / English: Punto de entrada principal del dashboard / Main dashboard entry point
+"""English docstring: Main entry point for the Sentinel dashboard.
+
+---
+Docstring en español: Punto de entrada principal para el dashboard Sentinel.
+"""
+
+from __future__ import annotations
 
 import streamlit as st
+
+from dashboard.components.department_tab import render_department_tab
+from dashboard.components.integrity_tab import render_integrity_tab
+from dashboard.components.overview import render_overview
+from dashboard.components.pdf_generator import create_pdf
+from dashboard.components.temporal_tab import render_temporal_tab
 from dashboard.data_loader import load_data
 from dashboard.filters import filtrar_df
-from dashboard.components.overview import render_overview
-from dashboard.components.department_tab import render_department_tab
-from dashboard.components.temporal_tab import render_temporal_tab
-from dashboard.components.integrity_tab import render_integridad_tab
-from dashboard.components.pdf_generator import create_pdf
+from datetime import date
 
-def run_dashboard():
-    """Función principal que ejecuta el dashboard.
+from dashboard.utils.constants import PARTIES, DEPARTMENTS
+
+
+def _normalize_date_range(date_range: tuple | list | None) -> tuple[date, date]:
+    """English docstring: Normalize date inputs to a safe (start, end) tuple.
+
+    Args:
+        date_range: Raw date input from Streamlit.
+
+    Returns:
+        Tuple with start and end dates (fallback to today).
     ---
-    Main function that runs the dashboard.
+    Docstring en español: Normaliza entradas de fecha a una tupla segura (inicio, fin).
+
+    Args:
+        date_range: Entrada de fecha cruda desde Streamlit.
+
+    Returns:
+        Tupla con fechas de inicio y fin (fallback a hoy).
     """
-    st.set_page_config(
-        page_title="Sentinel - Verificación Independiente CNE",
-        page_icon="🇭🇳",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
 
-    # Carga datos
-    df_raw = load_data()
+    today = date.today()
+    if not date_range:
+        return today, today
+    if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
+        return date_range[0], date_range[1]
+    if isinstance(date_range, (list, tuple)) and len(date_range) == 1:
+        return date_range[0], date_range[0]
+    if isinstance(date_range, tuple):
+        return date_range
+    return today, today
 
-    # Sidebar
+
+def _render_sidebar(df) -> tuple[bool, list[str], list[str], tuple[date, date]]:
+    """English docstring: Render sidebar controls and return selections.
+
+    Args:
+        df: Raw dataframe with snapshots.
+
+    Returns:
+        Tuple with (simple_mode, departments, parties, date_range).
+    ---
+    Docstring en español: Renderiza controles del sidebar y retorna selecciones.
+
+    Args:
+        df: Dataframe crudo con snapshots.
+
+    Returns:
+        Tupla con (modo_simple, departamentos, partidos, rango_fechas).
+    """
+
     with st.sidebar:
         st.title("Sentinel 🇭🇳")
         st.markdown("**Monitoreo neutral de datos públicos del CNE**")
         st.caption("Solo hechos objetivos • Open-source")
 
-        modo_simple = st.toggle("Modo Simple (solo resumen básico)", value=False)
+        simple_mode = st.toggle("Modo Simple (solo resumen básico)", value=False)
 
-        deptos_opts = ['Todos'] + sorted(df_raw['departamento'].unique())
-        deptos_sel = st.multiselect("Departamentos", deptos_opts, default=['Todos'])
+        st.subheader("Filtros")
+        depto_options = ["Todos"] + sorted(df["departamento"].unique()) if not df.empty else ["Todos"] + DEPARTMENTS
+        selected_departments = st.multiselect("Departamentos", depto_options, default=["Todos"])
 
-        partidos_opts = df_raw.columns.drop(['timestamp', 'departamento', 'total_votos', 'hash']).tolist()
-        partidos_sel = st.multiselect("Partidos/Candidatos", partidos_opts, default=partidos_opts[:3])
+        party_options = [p for p in PARTIES if p in df.columns] if not df.empty else PARTIES
+        default_parties = party_options[:]
+        selected_parties = st.multiselect("Partidos/Candidatos", party_options, default=default_parties)
 
-        min_date = df_raw['timestamp'].min().date()
-        max_date = df_raw['timestamp'].max().date()
-        date_range = st.date_input("Rango de fechas", (min_date, max_date), min_value=min_date, max_value=max_date)
+        if df.empty:
+            date_range = st.date_input("Rango de fechas", [])
+        else:
+            min_date = df["timestamp"].min().date()
+            max_date = df["timestamp"].max().date()
+            date_range = st.date_input(
+                "Rango de fechas",
+                (min_date, max_date),
+                min_value=min_date,
+                max_value=max_date,
+            )
 
-    # Filtrado
-    df = filtrar_df(df_raw, deptos_sel, partidos_sel, date_range)
+    return simple_mode, selected_departments, selected_parties, _normalize_date_range(date_range)
 
-    if df.empty:
-        st.warning("No hay datos en el rango seleccionado. Ajusta los filtros.")
+
+def run_dashboard() -> None:
+    """English docstring: Run the Sentinel Streamlit dashboard.
+
+    ---
+    Docstring en español: Ejecuta el dashboard de Streamlit de Sentinel.
+    """
+
+    st.set_page_config(
+        page_title="Sentinel - Verificación Independiente CNE",
+        page_icon="🇭🇳",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+
+    df_raw = load_data()
+    simple_mode, deptos, partidos, date_range = _render_sidebar(df_raw)
+
+    df_filtered = filtrar_df(df_raw, deptos, partidos, date_range)
+
+    # Overview always visible. / Resumen siempre visible.
+    render_overview(df_filtered, partidos)
+
+    if df_filtered.empty:
+        st.warning("No hay datos en el rango seleccionado. Ajusta filtros.")
+        st.markdown(
+            """
+---
+¿Quieres revisar el código y la metodología? Visita nuestro repositorio:
+[https://github.com/userf8a2c4/sentinel](https://github.com/userf8a2c4/sentinel)
+"""
+        )
         return
 
-    # Siempre visible: Resumen básico
-    render_overview(df, partidos_sel)
+    # PDF download button. / Botón de descarga PDF.
+    pdf_bytes = create_pdf(df_filtered, deptos, partidos, date_range)
+    st.download_button(
+        "Descargar análisis como PDF",
+        data=pdf_bytes,
+        file_name="sentinel_analisis.pdf",
+        mime="application/pdf",
+    )
 
-    if not modo_simple:
-        tab1, tab2, tab3 = st.tabs(["📍 Por Departamento", "⏳ Evolución", "🔐 Integridad y Benford"])
-
-        with tab1:
-            render_department_tab(df, partidos_sel)
-
-        with tab2:
-            render_temporal_tab(df, partidos_sel)
-
-        with tab3:
-            render_integridad_tab(df)
-
-    # Botón PDF (fix: mime explícito + seek(0) doble chequeo)
-    if st.button("📄 Descargar análisis como PDF"):
-        pdf_bytes = create_pdf(df, deptos_sel, date_range, partidos_sel)
-        st.download_button(
-            label="Descargar PDF ahora",
-            data=pdf_bytes,
-            file_name=f"sentinel_analisis_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-            mime="application/pdf"  # Forzado para evitar inferencia fallida
+    if simple_mode:
+        st.markdown(
+            """
+---
+¿Quieres revisar el código y la metodología? Visita nuestro repositorio:
+[https://github.com/userf8a2c4/sentinel](https://github.com/userf8a2c4/sentinel)
+"""
         )
+        return
 
-    # Footer
     st.markdown("---")
-    st.markdown("**Sentinel** • Proyecto independiente • Open-source • [GitHub](https://github.com/userf8a2c4/sentinel)")
-    st.caption("Datos públicos del CNE • Sin interpretación política • Monitoreo continuo")
+    tab_dept, tab_time, tab_integrity = st.tabs(
+        ["📍 Por Departamento", "⏳ Evolución Temporal", "🔐 Integridad y Benford"]
+    )
+
+    with tab_dept:
+        render_department_tab(df_filtered, partidos)
+
+    with tab_time:
+        render_temporal_tab(df_filtered, partidos)
+
+    with tab_integrity:
+        render_integrity_tab(df_filtered)
+
+    # Footer invitation. / Invitación en el footer.
+    st.markdown(
+        """
+---
+¿Quieres revisar el código y la metodología? Visita nuestro repositorio:
+[https://github.com/userf8a2c4/sentinel](https://github.com/userf8a2c4/sentinel)
+"""
+    )
