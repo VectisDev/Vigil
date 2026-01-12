@@ -15,6 +15,7 @@ st.markdown("""
     .stApp { background-color: #0e1117; color: #e6e6e6; }
     .stMetric { font-size: 1.4rem !important; font-weight: 500; }
     h1, h2, h3 { margin-bottom: 1rem; }
+    .stExpander { margin-bottom: 1rem; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -56,7 +57,6 @@ def load_data():
     candidates = last.get("candidates", [])
     df_cand = pd.DataFrame(candidates)
 
-    # Último hash (asumiendo que existe en el snapshot o placeholder)
     last_hash = last.get("last_hash", "No hash disponible en este snapshot")
 
     return df_summary, last, df_cand, last_hash
@@ -73,14 +73,14 @@ if last_snapshot:
 else:
     st.warning("No se encontraron snapshots")
 
-# Panel de alertas (visible en ambos modos, pero simple)
+# Panel de alertas (simple en ambos modos)
 st.markdown("### Alertas")
 if simple_mode:
     st.info("Sin alertas detectadas en este momento.")
 else:
     st.info("Sin alertas detectadas en este momento. (Modo avanzado: revisar reglas aplicadas)")
 
-# Resumen ejecutivo + KPIs
+# Resumen ejecutivo + KPIs (siempre visible)
 if not df_summary.empty:
     current = last_snapshot
     prev = df_summary.iloc[1] if len(df_summary) > 1 else current
@@ -98,10 +98,10 @@ if not df_summary.empty:
     st.progress(porc / 100)
     st.caption(f"Progreso aproximado: {porc:.1f}%")
 
-    # Último hash (visible debajo de la barra en ambos modos)
+    # Último hash (siempre visible, debajo de la barra)
     st.caption(f"Último hash: {last_hash}")
 
-# Distribución (pie chart simple)
+# Distribución (pie chart siempre visible)
 if not df_candidates.empty and "votes" in df_candidates.columns:
     df_candidates['votes'] = pd.to_numeric(df_candidates['votes'], errors='coerce').fillna(0)
     fig = px.pie(
@@ -113,7 +113,7 @@ if not df_candidates.empty and "votes" in df_candidates.columns:
     fig.update_layout(showlegend=False, template="plotly_dark", margin=dict(t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-# Explicación básica (expandida con hash)
+# Explicación básica (siempre visible, colapsable)
 with st.expander("¿Qué significan estos números?"):
     st.markdown("""
     - Registrados: Personas habilitadas para votar.  
@@ -127,22 +127,33 @@ with st.expander("¿Qué significan estos números?"):
 # Contenido avanzado (solo si modo simple desactivado)
 if not simple_mode:
     st.markdown("---")
-    st.subheader("Modo avanzado – Detalles técnicos")
+    st.subheader("Modo avanzado – Selecciona qué ver")
 
-    # Evolución temporal
-    if len(df_summary) > 1:
-        fig_line = go.Figure()
-        fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["total"], name="Total"))
-        fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["valid"], name="Válidos"))
-        fig_line.update_layout(template="plotly_dark", height=400)
-        st.plotly_chart(fig_line, use_container_width=True)
+    # Selector simple para elegir sección
+    section = st.radio(
+        "Elegir sección técnica",
+        options=["Evolución temporal", "Tabla completa de candidatos", "JSON del último snapshot"],
+        index=0
+    )
 
-    # Tabla candidatos
-    if not df_candidates.empty:
-        st.dataframe(df_candidates, use_container_width=True)
+    if section == "Evolución temporal":
+        if len(df_summary) > 1:
+            fig_line = go.Figure()
+            fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["total"], name="Total"))
+            fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["valid"], name="Válidos"))
+            fig_line.update_layout(template="plotly_dark", height=400)
+            st.plotly_chart(fig_line, use_container_width=True)
+        else:
+            st.info("Necesitamos más snapshots para mostrar evolución.")
 
-    # JSON raw
-    with st.expander("JSON del último snapshot"):
-        st.json(last_snapshot)
+    elif section == "Tabla completa de candidatos":
+        if not df_candidates.empty:
+            st.dataframe(df_candidates, use_container_width=True)
+        else:
+            st.info("No hay datos de candidatos disponibles.")
+
+    elif section == "JSON del último snapshot":
+        with st.expander("Ver JSON completo"):
+            st.json(last_snapshot)
 
 st.caption("Datos públicos del CNE · Actualización automática")
