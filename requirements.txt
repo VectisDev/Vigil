@@ -1,16 +1,39 @@
-requests>=2.31.0 # Para peticiones HTTP: descarga snapshots del CNE y posting a Telegram API.
-pandas>=2.1.0 # Para procesamiento de datos: diffs, deltas y análisis por departamento.
-scipy>=1.11.4 # Para análisis avanzados: Ley de Benford y chi-squared.
-matplotlib>=3.7.2 # Para visualización forense: generación de gráficas de Benford y tendencias.
-plotly>=5.24.1 # Para visualizaciones avanzadas en el dashboard (Benford, outliers, mapa).
-python-telegram-bot>=20.7  # Para alertas automáticas en Telegram.
-tweepy>=4.14.0 # Para posting en X (Twitter).
-python-dateutil>=2.8.2 # Para manejo robusto de timestamps en los snapshots.
-PyYAML>=6.0.2 # Para cargar configuración centralizada.
-python-dotenv>=1.0.1 # Para cargar variables sensibles desde .env.
-playwright>=1.49.0 # Fallback de scraping con navegador headless.
-playwright-stealth>=1.0.6 # Para modo stealth en Playwright.
-pytest==8.3.3  # Para ejecutar la suite de pruebas en CI.
-streamlit>=1.30.0 # Dashboard público en Streamlit.
-scikit-learn>=1.5.0 # Para detección de outliers con Isolation Forest.
-rich
+# requirements.txt - Sentinel (versión completa enero 2026)
+# Dependencias para scraping, análisis, dashboard, alertas y visualizaciones
+
+# Core y scraping
+requests>=2.31.0               # Peticiones HTTP: snapshots CNE, Telegram API
+playwright>=1.49.0             # Fallback scraping con navegador headless
+playwright-stealth>=1.0.6      # Modo stealth para evitar detección anti-bot
+
+# Procesamiento y análisis de datos
+pandas>=2.1.0                  # Procesamiento principal: diffs, tablas por depto
+numpy>=1.24.0                  # Cálculos numéricos (Benford, arrays)
+scipy>=1.11.4                  # Estadística avanzada: Benford, chi-squared, tests
+scikit-learn>=1.5.0            # Detección de outliers (Isolation Forest)
+
+# Visualizaciones
+matplotlib>=3.7.2              # Gráficos estáticos (Benford forense, backups)
+plotly>=5.24.1                 # Gráficos interactivos en dashboard
+
+# Dashboard
+streamlit>=1.31.0              # Versión reciente con toggles, tabs, session_state mejorado
+
+# Exportación PDF (dashboard)
+fpdf2>=2.7.0                   # Generación de PDFs completos con tablas y texto
+kaleido>=0.2.1                 # Exportar gráficos Plotly a imagen para PDF
+
+# Alertas y redes sociales
+python-telegram-bot>=20.7      # Alertas automáticas en Telegram
+tweepy>=4.14.0                 # Publicación en X (Twitter)
+
+# Utilidades generales
+python-dateutil>=2.8.2         # Manejo robusto de timestamps y fechas
+PyYAML>=6.0.2                  # Configuración en YAML
+python-dotenv>=1.0.1           # Variables sensibles en .env
+
+# Testing y desarrollo
+pytest==8.3.3                  # Suite de pruebas unitarias e integración
+
+# Extras útiles (opcionales pero recomendados)
+rich>=13.7.0                   # Logging bonito en consola durante desarrollo
