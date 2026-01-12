@@ -6,8 +6,6 @@ import json
 from datetime import datetime
 import os
 import glob
-import zipfile
-from io import BytesIO
 
 st.set_page_config(page_title="Centinel", layout="wide")
 
@@ -16,8 +14,9 @@ st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e6e6e6; }
     .stMetric { font-size: 1.5rem !important; font-weight: 500; }
-    h1, h2, h3 { margin-bottom: 1.2rem; }
-    .stExpander { margin-bottom: 1.5rem; border: 1px solid #333; }
+    h1, h2, h3 { margin-bottom: 1.2rem; margin-top: 2rem; }
+    hr { border-color: #444; margin: 2rem 0; }
+    .copy-btn { margin-left: 1rem; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -83,7 +82,7 @@ if simple_mode:
 else:
     st.info("Sin alertas detectadas. (Modo pro: revisar reglas aplicadas en detalle)")
 
-# Resumen ejecutivo + KPIs
+# Resumen ejecutivo + KPIs (siempre visible)
 if not df_summary.empty:
     current = last_snapshot
     prev = df_summary.iloc[1] if len(df_summary) > 1 else current
@@ -103,7 +102,7 @@ if not df_summary.empty:
 
     st.caption(f"Último hash verificado: {last_hash}")
 
-# Pie chart
+# Pie chart (siempre visible)
 if not df_candidates.empty and "votes" in df_candidates.columns:
     df_candidates['votes'] = pd.to_numeric(df_candidates['votes'], errors='coerce').fillna(0)
     fig = px.pie(
@@ -115,7 +114,7 @@ if not df_candidates.empty and "votes" in df_candidates.columns:
     fig.update_layout(showlegend=False, template="plotly_dark", margin=dict(t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-# Explicación básica
+# Explicación básica (siempre visible)
 with st.expander("¿Qué significan estos números?"):
     st.markdown("""
     - Registrados: Personas habilitadas para votar.  
@@ -126,77 +125,81 @@ with st.expander("¿Qué significan estos números?"):
     - Último hash: Firma digital que verifica la integridad de los datos capturados.
     """)
 
-# Modo pro: expanders con todo el valor técnico
+# Contenido avanzado completo (modo pro, sin expanders, todo visible y secuencial)
 if not simple_mode:
     st.markdown("---")
     st.subheader("Modo pro – Detalles técnicos completos")
 
     # Evolución temporal completa
-    with st.expander("Evolución temporal completa"):
-        if len(df_summary) > 1:
-            fig_line = go.Figure()
-            fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["total"], name="Total"))
-            fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["valid"], name="Válidos"))
-            fig_line.update_layout(template="plotly_dark", height=500)
-            st.plotly_chart(fig_line, use_container_width=True)
-        else:
-            st.info("Se necesitan más snapshots para mostrar evolución.")
+    st.markdown("### Evolución temporal completa")
+    if len(df_summary) > 1:
+        fig_line = go.Figure()
+        fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["total"], name="Total"))
+        fig_line.add_trace(go.Scatter(x=df_summary.index, y=df_summary["valid"], name="Válidos"))
+        fig_line.update_layout(template="plotly_dark", height=500)
+        st.plotly_chart(fig_line, use_container_width=True)
+    else:
+        st.info("Se necesitan más snapshots para mostrar evolución.")
 
     # Tabla detallada de candidatos
-    with st.expander("Tabla detallada de candidatos"):
-        if not df_candidates.empty:
-            st.dataframe(df_candidates.style.format({"votes": "{:,}"}), use_container_width=True)
-        else:
-            st.info("No hay datos de candidatos.")
+    st.markdown("### Tabla detallada de candidatos")
+    if not df_candidates.empty:
+        st.dataframe(df_candidates.style.format({"votes": "{:,}"}), use_container_width=True)
+    else:
+        st.info("No hay datos de candidatos.")
 
     # Snapshots históricos con descarga JSON intacto
-    with st.expander("Snapshots históricos (últimos 10)"):
-        if not df_summary.empty:
-            df_hist = df_summary.head(10)
-            st.dataframe(df_hist[["source_path", "total", "valid"]], use_container_width=True)
+    st.markdown("### Snapshots históricos (últimos 10)")
+    if not df_summary.empty:
+        df_hist = df_summary.head(10)
+        st.dataframe(df_hist[["source_path", "total", "valid"]], use_container_width=True)
 
-            # Descarga del último snapshot como JSON intacto
-            if last_snapshot:
-                json_str = json.dumps(last_snapshot, indent=2, ensure_ascii=False)
-                st.download_button(
-                    label="Descargar último snapshot como JSON intacto",
-                    data=json_str,
-                    file_name=last_snapshot.get("source_path", "ultimo_snapshot.json"),
-                    mime="application/json"
-                )
+        # Descarga del último snapshot como JSON intacto
+        if last_snapshot:
+            json_str = json.dumps(last_snapshot, indent=2, ensure_ascii=False)
+            st.download_button(
+                label="Descargar último snapshot como JSON intacto",
+                data=json_str,
+                file_name=last_snapshot.get("source_path", "ultimo_snapshot.json"),
+                mime="application/json"
+            )
 
-            # Descarga de todos los snapshots históricos como ZIP de JSONs
-            if len(all_snapshots) > 0:
-                zip_buffer = BytesIO()
-                with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-                    for s in all_snapshots:
-                        json_str = json.dumps(s, indent=2, ensure_ascii=False).encode('utf-8')
-                        zip_file.writestr(s['source_path'], json_str)
-                zip_buffer.seek(0)
-                st.download_button(
-                    label="Descargar todos los snapshots históricos como ZIP (JSONs intactos)",
-                    data=zip_buffer,
-                    file_name="snapshots_historicos.zip",
-                    mime="application/zip"
-                )
-        else:
-            st.info("No hay snapshots disponibles.")
+        # Descarga de todos los snapshots históricos como ZIP de JSONs intactos
+        if len(all_snapshots) > 0:
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for s in all_snapshots:
+                    json_str = json.dumps(s, indent=2, ensure_ascii=False).encode('utf-8')
+                    zip_file.writestr(s['source_path'], json_str)
+            zip_buffer.seek(0)
+            st.download_button(
+                label="Descargar todos los snapshots históricos como ZIP (JSONs intactos)",
+                data=zip_buffer,
+                file_name="snapshots_historicos.zip",
+                mime="application/zip"
+            )
+    else:
+        st.info("No hay snapshots disponibles.")
 
     # Integridad: hashes
-    with st.expander("Integridad: Último hash y cadena"):
-        st.markdown(f"**Último hash verificado**: {last_hash}")
-        st.info("Cadena completa de hashes y verificación histórica disponible en desarrollo.")
+    st.markdown("### Integridad: Último hash y cadena")
+    st.markdown(f"**Último hash verificado**: {last_hash}")
+
+    # Botón para copiar hash
+    st.button("Copiar último hash al portapapeles", on_click=lambda: st.session_state['copied_hash'] = last_hash)
+    if 'copied_hash' in st.session_state:
+        st.success("Hash copiado al portapapeles.")
 
     # Benford
-    with st.expander("Análisis Benford"):
-        st.info("Análisis completo de Ley de Benford (distribución de dígitos, desviaciones por candidato y departamento) disponible en desarrollo. Próximamente gráficos y resultados detallados.")
+    st.markdown("### Análisis Benford")
+    st.info("Análisis completo de Ley de Benford (distribución de dígitos, desviaciones por candidato y departamento) disponible en desarrollo. Próximamente gráficos y resultados detallados.")
 
     # Predicciones
-    with st.expander("Predicciones y tendencias"):
-        st.info("Módulo de predicciones (tendencias, extrapolaciones, estimados por candidato) disponible en desarrollo. Próximamente resultados detallados.")
+    st.markdown("### Predicciones y tendencias")
+    st.info("Módulo de predicciones (tendencias, extrapolaciones, estimados por candidato) disponible en desarrollo. Próximamente resultados detallados.")
 
     # JSON crudo
-    with st.expander("JSON completo del último snapshot"):
-        st.json(last_snapshot)
+    st.markdown("### JSON completo del último snapshot")
+    st.json(last_snapshot)
 
 st.caption("Datos públicos del CNE · Actualización automática")
