@@ -17,7 +17,7 @@ st.markdown("""
     .stApp { background-color: #0e1117; color: #e6e6e6; }
     .stMetric { font-size: 1.5rem !important; font-weight: 500; }
     h1, h2, h3 { margin-bottom: 1.2rem; margin-top: 2rem; }
-    hr { border-color: #444; margin: 2rem 0; }
+    hr { border-color: #444; margin: 2.5rem 0; }
     .copy-btn { margin-left: 1rem; }
     </style>
 """, unsafe_allow_html=True)
@@ -83,7 +83,7 @@ if simple_mode:
 else:
     st.info("Sin alertas detectadas. (Modo pro: revisar reglas aplicadas en detalle)")
 
-# Resumen ejecutivo + KPIs
+# Resumen ejecutivo + KPIs (siempre visible)
 if not df_summary.empty:
     current = last_snapshot
     prev = df_summary.iloc[1] if len(df_summary) > 1 else current
@@ -103,7 +103,7 @@ if not df_summary.empty:
 
     st.caption(f"Último hash verificado: {last_hash}")
 
-# Pie chart
+# Pie chart (siempre visible)
 if not df_candidates.empty and "votes" in df_candidates.columns:
     df_candidates['votes'] = pd.to_numeric(df_candidates['votes'], errors='coerce').fillna(0)
     fig = px.pie(
