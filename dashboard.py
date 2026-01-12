@@ -6,7 +6,8 @@ import json
 from datetime import datetime
 import os
 import glob
-import io
+import zipfile
+from io import BytesIO
 
 st.set_page_config(page_title="Centinel", layout="wide")
 
@@ -43,7 +44,7 @@ def load_data():
             pass
 
     if not snapshots:
-        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible", pd.DataFrame()
+        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible", snapshots
 
     df_summary = pd.DataFrame([{
         "timestamp": datetime.now().isoformat(),  # placeholder, usa real si existe
@@ -61,11 +62,11 @@ def load_data():
 
     last_hash = last.get("last_hash", "No hash disponible")
 
-    return df_summary, last, df_cand, last_hash
+    return df_summary, last, df_cand, last_hash, snapshots
 
-df_summary, last_snapshot, df_candidates, last_hash = load_data()
+df_summary, last_snapshot, df_candidates, last_hash, all_snapshots = load_data()
 
-# Modo simple por default
+# Modo simple por defecto
 simple_mode = st.sidebar.checkbox("Modo simple (recomendado)", value=True)
 
 st.title("Centinel")
@@ -82,7 +83,7 @@ if simple_mode:
 else:
     st.info("Sin alertas detectadas. (Modo pro: revisar reglas aplicadas en detalle)")
 
-# KPIs + barra + hash
+# Resumen ejecutivo + KPIs
 if not df_summary.empty:
     current = last_snapshot
     prev = df_summary.iloc[1] if len(df_summary) > 1 else current
@@ -125,12 +126,12 @@ with st.expander("¿Qué significan estos números?"):
     - Último hash: Firma digital que verifica la integridad de los datos capturados.
     """)
 
-# Modo pro: todo integrado en expanders
+# Modo pro: expanders con todo el valor técnico
 if not simple_mode:
     st.markdown("---")
     st.subheader("Modo pro – Detalles técnicos completos")
 
-    # Evolución temporal
+    # Evolución temporal completa
     with st.expander("Evolución temporal completa"):
         if len(df_summary) > 1:
             fig_line = go.Figure()
@@ -141,27 +142,43 @@ if not simple_mode:
         else:
             st.info("Se necesitan más snapshots para mostrar evolución.")
 
-    # Tabla detallada candidatos
+    # Tabla detallada de candidatos
     with st.expander("Tabla detallada de candidatos"):
         if not df_candidates.empty:
             st.dataframe(df_candidates.style.format({"votes": "{:,}"}), use_container_width=True)
         else:
             st.info("No hay datos de candidatos.")
 
-    # Snapshots históricos con descarga
+    # Snapshots históricos con descarga JSON intacto
     with st.expander("Snapshots históricos (últimos 10)"):
         if not df_summary.empty:
             df_hist = df_summary.head(10)
-            st.dataframe(df_hist, use_container_width=True)
+            st.dataframe(df_hist[["source_path", "total", "valid"]], use_container_width=True)
 
-            # Descarga CSV
-            csv = df_hist.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Descargar snapshots como CSV",
-                data=csv,
-                file_name="snapshots_historicos.csv",
-                mime="text/csv"
-            )
+            # Descarga del último snapshot como JSON intacto
+            if last_snapshot:
+                json_str = json.dumps(last_snapshot, indent=2, ensure_ascii=False)
+                st.download_button(
+                    label="Descargar último snapshot como JSON intacto",
+                    data=json_str,
+                    file_name=last_snapshot.get("source_path", "ultimo_snapshot.json"),
+                    mime="application/json"
+                )
+
+            # Descarga de todos los snapshots históricos como ZIP de JSONs
+            if len(all_snapshots) > 0:
+                zip_buffer = BytesIO()
+                with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                    for s in all_snapshots:
+                        json_str = json.dumps(s, indent=2, ensure_ascii=False).encode('utf-8')
+                        zip_file.writestr(s['source_path'], json_str)
+                zip_buffer.seek(0)
+                st.download_button(
+                    label="Descargar todos los snapshots históricos como ZIP (JSONs intactos)",
+                    data=zip_buffer,
+                    file_name="snapshots_historicos.zip",
+                    mime="application/zip"
+                )
         else:
             st.info("No hay snapshots disponibles.")
 
