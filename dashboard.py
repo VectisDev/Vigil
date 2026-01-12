@@ -11,18 +11,19 @@ from io import BytesIO
 
 st.set_page_config(page_title="Centinel", layout="wide")
 
-# Tema minimalista oscuro y elegante
+# Tema minimalista oscuro
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e6e6e6; }
     .stMetric { font-size: 1.5rem !important; font-weight: 500; }
     h1, h2, h3 { margin-bottom: 1.2rem; margin-top: 2rem; }
     hr { border-color: #444; margin: 2.5rem 0; }
-    .copy-btn { margin-left: 1rem; }
+    .alert-red { background-color: #440000; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+    .alert-yellow { background-color: #443300; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=600)  # Cache más largo para rendimiento
 def load_data():
     patterns = [
         "data/snapshots_2025/*.json",
@@ -45,7 +46,7 @@ def load_data():
             st.warning(f"Error cargando {os.path.basename(f)}: {e}")
 
     if not snapshots:
-        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible", snapshots
+        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible", snapshots, []
 
     df_summary = pd.DataFrame([{
         "source_path": s['source_path'],
@@ -60,11 +61,22 @@ def load_data():
     candidates = last.get("candidates", [])
     df_cand = pd.DataFrame(candidates)
 
-    last_hash = last.get("last_hash", "No hash disponible en este snapshot")
+    last_hash = last.get("last_hash", "No hash disponible")
 
-    return df_summary, last, df_cand, last_hash, snapshots
+    # Verificación de cadena de hashes (si existe 'previous_hash' en cada snapshot)
+    hash_status = "Cadena intacta"
+    broken_at = None
+    for i in range(1, len(snapshots)):
+        current = snapshots[i]
+        prev = snapshots[i-1]
+        if current.get("previous_hash") != prev.get("last_hash"):
+            hash_status = "¡Cadena rota!"
+            broken_at = f"Ruptura entre {prev['source_path']} y {current['source_path']}"
+            break
 
-df_summary, last_snapshot, df_candidates, last_hash, all_snapshots = load_data()
+    return df_summary, last, df_cand, last_hash, snapshots, [hash_status, broken_at]
+
+df_summary, last_snapshot, df_candidates, last_hash, all_snapshots, hash_verification = load_data()
 
 # Modo simple por defecto
 simple_mode = st.sidebar.checkbox("Modo simple (recomendado)", value=True)
@@ -76,14 +88,29 @@ if last_snapshot:
 else:
     st.warning("No se encontraron snapshots")
 
-# Panel de alertas
+# Panel de alertas (con lógica básica de anomalías)
 st.markdown("### Alertas")
-if simple_mode:
-    st.info("Sin alertas detectadas en este momento.")
-else:
-    st.info("Sin alertas detectadas. (Modo pro: revisar reglas aplicadas en detalle)")
 
-# Resumen ejecutivo + KPIs (siempre visible)
+alerts = []
+if not df_summary.empty:
+    if len(df_summary) > 1:
+        delta_pct = ((df_summary["total"].iloc[-1] - df_summary["total"].iloc[-2]) / df_summary["total"].iloc[-2]) * 100
+        if abs(delta_pct) > 30:
+            alerts.append(("Cambio brusco en votos emitidos", f"{delta_pct:.1f}% en el último snapshot", "red"))
+
+    if last_snapshot.get("null_votes", 0) / last_snapshot.get("total_votes", 1) > 0.05:
+        alerts.append(("Porcentaje de nulos alto", f"{last_snapshot['null_votes'] / last_snapshot['total_votes'] * 100:.1f}%", "yellow"))
+
+if alerts:
+    for title, desc, level in alerts:
+        if level == "red":
+            st.markdown(f'<div class="alert-red"><strong>{title}</strong><br>{desc}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="alert-yellow"><strong>{title}</strong><br>{desc}</div>', unsafe_allow_html=True)
+else:
+    st.info("Sin alertas detectadas en este momento.")
+
+# Resumen ejecutivo + KPIs
 if not df_summary.empty:
     current = last_snapshot
     prev = df_summary.iloc[1] if len(df_summary) > 1 else current
@@ -103,7 +130,7 @@ if not df_summary.empty:
 
     st.caption(f"Último hash verificado: {last_hash}")
 
-# Pie chart (siempre visible)
+# Pie chart
 if not df_candidates.empty and "votes" in df_candidates.columns:
     df_candidates['votes'] = pd.to_numeric(df_candidates['votes'], errors='coerce').fillna(0)
     fig = px.pie(
@@ -126,10 +153,26 @@ with st.expander("¿Qué significan estos números?"):
     - Último hash: Firma digital que verifica la integridad de los datos capturados.
     """)
 
-# Modo pro: todo visible secuencialmente (sin expanders ni menús desplegables)
+# Modo pro: todo visible secuencialmente
 if not simple_mode:
     st.markdown("---")
     st.subheader("Modo pro – Detalles técnicos completos")
+
+    # Verificación de cadena de hashes
+    st.markdown("### Verificación de cadena de hashes")
+    status, broken = hash_verification
+    if status == "Cadena intacta":
+        st.success("Cadena de hashes intacta – Todos los snapshots verificados")
+    else:
+        st.error(status)
+        if broken:
+            st.warning(broken)
+
+    st.code(last_hash, language="text")
+
+    if st.button("Copiar último hash al portapapeles"):
+        st.session_state['copied_hash'] = last_hash
+        st.success("Hash copiado!")
 
     # Evolución temporal completa
     st.markdown("### Evolución temporal completa")
@@ -181,14 +224,6 @@ if not simple_mode:
             )
     else:
         st.info("No hay snapshots disponibles.")
-
-    # Hashes con botón para copiar
-    st.markdown("### Integridad: Último hash")
-    st.code(last_hash, language="text")
-
-    if st.button("Copiar último hash al portapapeles"):
-        st.session_state['copied_hash'] = last_hash
-        st.success("Hash copiado al portapapeles!")
 
     # JSON crudo del último snapshot
     st.markdown("### JSON completo del último snapshot")
