@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 import os
 import glob
+import io
 
 st.set_page_config(page_title="Centinel", layout="wide")
 
@@ -42,9 +43,10 @@ def load_data():
             pass
 
     if not snapshots:
-        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible"
+        return pd.DataFrame(), {}, pd.DataFrame(), "No hash disponible", pd.DataFrame()
 
     df_summary = pd.DataFrame([{
+        "timestamp": datetime.now().isoformat(),  # placeholder, usa real si existe
         "source_path": s['source_path'],
         "registered": s.get("registered_voters", 0),
         "total": s.get("total_votes", 0),
@@ -57,13 +59,13 @@ def load_data():
     candidates = last.get("candidates", [])
     df_cand = pd.DataFrame(candidates)
 
-    last_hash = last.get("last_hash", "No hash disponible en este snapshot")
+    last_hash = last.get("last_hash", "No hash disponible")
 
     return df_summary, last, df_cand, last_hash
 
 df_summary, last_snapshot, df_candidates, last_hash = load_data()
 
-# Modo simple por defecto
+# Modo simple por default
 simple_mode = st.sidebar.checkbox("Modo simple (recomendado)", value=True)
 
 st.title("Centinel")
@@ -73,14 +75,14 @@ if last_snapshot:
 else:
     st.warning("No se encontraron snapshots")
 
-# Panel de alertas (siempre visible)
+# Panel de alertas
 st.markdown("### Alertas")
 if simple_mode:
     st.info("Sin alertas detectadas en este momento.")
 else:
     st.info("Sin alertas detectadas. (Modo pro: revisar reglas aplicadas en detalle)")
 
-# Resumen ejecutivo + KPIs (siempre visible)
+# KPIs + barra + hash
 if not df_summary.empty:
     current = last_snapshot
     prev = df_summary.iloc[1] if len(df_summary) > 1 else current
@@ -100,7 +102,7 @@ if not df_summary.empty:
 
     st.caption(f"Último hash verificado: {last_hash}")
 
-# Distribución (pie chart siempre visible)
+# Pie chart
 if not df_candidates.empty and "votes" in df_candidates.columns:
     df_candidates['votes'] = pd.to_numeric(df_candidates['votes'], errors='coerce').fillna(0)
     fig = px.pie(
@@ -112,7 +114,7 @@ if not df_candidates.empty and "votes" in df_candidates.columns:
     fig.update_layout(showlegend=False, template="plotly_dark", margin=dict(t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-# Explicación básica (siempre visible)
+# Explicación básica
 with st.expander("¿Qué significan estos números?"):
     st.markdown("""
     - Registrados: Personas habilitadas para votar.  
@@ -123,12 +125,12 @@ with st.expander("¿Qué significan estos números?"):
     - Último hash: Firma digital que verifica la integridad de los datos capturados.
     """)
 
-# Contenido avanzado completo (modo pro)
+# Modo pro: todo integrado en expanders
 if not simple_mode:
     st.markdown("---")
     st.subheader("Modo pro – Detalles técnicos completos")
 
-    # Evolución temporal completa
+    # Evolución temporal
     with st.expander("Evolución temporal completa"):
         if len(df_summary) > 1:
             fig_line = go.Figure()
@@ -139,24 +141,33 @@ if not simple_mode:
         else:
             st.info("Se necesitan más snapshots para mostrar evolución.")
 
-    # Tabla detallada de candidatos
+    # Tabla detallada candidatos
     with st.expander("Tabla detallada de candidatos"):
         if not df_candidates.empty:
             st.dataframe(df_candidates.style.format({"votes": "{:,}"}), use_container_width=True)
         else:
             st.info("No hay datos de candidatos.")
 
-    # Snapshots históricos
-    with st.expander("Snapshots históricos (resumen)"):
+    # Snapshots históricos con descarga
+    with st.expander("Snapshots históricos (últimos 10)"):
         if not df_summary.empty:
-            st.dataframe(df_summary[["source_path", "total", "valid"]], use_container_width=True)
-        else:
-            st.info("No hay snapshots históricos disponibles.")
+            df_hist = df_summary.head(10)
+            st.dataframe(df_hist, use_container_width=True)
 
-    # Integridad: hashes y cadena
+            # Descarga CSV
+            csv = df_hist.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Descargar snapshots como CSV",
+                data=csv,
+                file_name="snapshots_historicos.csv",
+                mime="text/csv"
+            )
+        else:
+            st.info("No hay snapshots disponibles.")
+
+    # Integridad: hashes
     with st.expander("Integridad: Último hash y cadena"):
         st.markdown(f"**Último hash verificado**: {last_hash}")
-        # Placeholder para cadena completa (puedes expandir con lógica real)
         st.info("Cadena completa de hashes y verificación histórica disponible en desarrollo.")
 
     # Benford
