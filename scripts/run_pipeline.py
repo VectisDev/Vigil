@@ -11,6 +11,12 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
 
+from scripts.download_and_hash import (
+    is_master_switch_on,
+    load_config,
+    normalize_master_switch,
+)
+
 load_dotenv()
 
 DATA_DIR = Path("data")
@@ -45,7 +51,9 @@ def run_command(command, description):
 
 
 def latest_file(directory, pattern):
-    files = sorted(directory.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
+    files = sorted(
+        directory.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
+    )
     return files[0] if files else None
 
 
@@ -67,13 +75,20 @@ def build_alerts(anomalies):
     files = [a.get("file") for a in anomalies if a.get("file")]
     from_file = min(files) if files else "unknown"
     to_file = max(files) if files else "unknown"
-    rules = sorted({a.get("type", "ANOMALY") for a in anomalies})
+    alerts = []
+    for anomaly in anomalies:
+        rule = anomaly.get("type", "ANOMALY")
+        description = anomaly.get("description") or anomaly.get("descripcion")
+        alert = {"rule": rule}
+        if description:
+            alert["description"] = description
+        alerts.append(alert)
 
     return [
         {
             "from": from_file,
             "to": to_file,
-            "alerts": [{"rule": rule} for rule in rules],
+            "alerts": alerts,
         }
     ]
 
@@ -90,7 +105,9 @@ def filter_critical_anomalies(anomalies):
     rules = critical_rules()
     if not rules:
         return anomalies
-    return [anomaly for anomaly in anomalies if anomaly.get("type", "").upper() in rules]
+    return [
+        anomaly for anomaly in anomalies if anomaly.get("type", "").upper() in rules
+    ]
 
 
 def should_generate_report(state, now):
@@ -145,7 +162,12 @@ def send_alert_if_configured(state, summary_path, critical_count):
         return
 
     run_command(
-        [sys.executable, "scripts/post_to_telegram.py", summary_text, str(latest_hash_file)],
+        [
+            sys.executable,
+            "scripts/post_to_telegram.py",
+            summary_text,
+            str(latest_hash_file),
+        ],
         "alertas",
     )
     state["last_alert_hash"] = alert_fingerprint
@@ -173,7 +195,9 @@ def run_pipeline():
     state["last_snapshot"] = latest_snapshot.name
 
     if should_normalize(latest_snapshot):
-        run_command([sys.executable, "scripts/normalize_presidential.py"], "normalización")
+        run_command(
+            [sys.executable, "scripts/normalize_presidential.py"], "normalización"
+        )
     else:
         print("[i] Normalización omitida: estructura no compatible")
 
@@ -186,12 +210,16 @@ def run_pipeline():
 
     critical_anomalies = filter_critical_anomalies(anomalies)
     alerts = build_alerts(critical_anomalies)
-    (ANALYSIS_DIR / "alerts.json").write_text(json.dumps(alerts, indent=2), encoding="utf-8")
+    (ANALYSIS_DIR / "alerts.json").write_text(
+        json.dumps(alerts, indent=2), encoding="utf-8"
+    )
 
     if should_generate_report(state, now):
         run_command([sys.executable, "scripts/summarize_findings.py"], "reportes")
         state["last_report_at"] = now.isoformat()
-        send_alert_if_configured(state, REPORTS_DIR / "summary.txt", len(critical_anomalies))
+        send_alert_if_configured(
+            state, REPORTS_DIR / "summary.txt", len(critical_anomalies)
+        )
     else:
         print("[i] Reporte omitido por cadencia")
 
@@ -201,10 +229,24 @@ def run_pipeline():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Pipeline Proyecto C.E.N.T.I.N.E.L.: descarga → normaliza → hash → análisis → reportes → alertas")
-    parser.add_argument("--once", action="store_true", help="Ejecuta una sola vez y sale")
-    parser.add_argument("--run-now", action="store_true", help="Ejecuta inmediatamente antes del scheduler")
+    parser = argparse.ArgumentParser(
+        description="Pipeline Proyecto C.E.N.T.I.N.E.L.: descarga → normaliza → hash → análisis → reportes → alertas"
+    )
+    parser.add_argument(
+        "--once", action="store_true", help="Ejecuta una sola vez y sale"
+    )
+    parser.add_argument(
+        "--run-now",
+        action="store_true",
+        help="Ejecuta inmediatamente antes del scheduler",
+    )
     args = parser.parse_args()
+    config = load_config()
+    master_status = normalize_master_switch(config.get("master_switch"))
+    print(f"[i] MASTER SWITCH: {master_status}")
+    if not is_master_switch_on(config):
+        print("[!] Ejecución detenida por switch maestro (OFF)")
+        return
 
     if args.once:
         run_pipeline()
