@@ -1,3 +1,9 @@
+/**
+ * Configuración centralizada de Centinel Engine.
+ *
+ * Central configuration for Centinel Engine.
+ */
+
 import dotenv from "dotenv";
 
 dotenv.config();

@@ -17,11 +17,14 @@ class ScrapingSchedule:
     Controls the scraping timing/interval.
     """
 
-    # Intervalo en segundos entre ejecuciones del scraping. / Interval in seconds between scraping runs.
+    # Intervalo en segundos entre ejecuciones del scraping.
+    # Interval in seconds between scraping runs.
     interval_seconds: int = 900
-    # Fuente de datos o job al que aplica el intervalo. / Data source or job the interval applies to.
+    # Fuente de datos o job al que aplica el intervalo.
+    # Data source or job the interval applies to.
     target: str = "cne_actas"
-    # Nota: cambia estos valores aquí para modificar el tiempo de scraping. / Note: change these values here to modify the scraping interval.
+    # Nota: cambia estos valores aquí para modificar el tiempo de scraping.
+    # Note: change these values here to modify the scraping interval.
 
 
 @dataclass

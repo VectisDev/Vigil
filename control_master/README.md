@@ -1,10 +1,10 @@
-# Control Maestro / Master Control
+# Control Maestro
 
-## Español (principal)
+## Español
 
-Esta carpeta es el **único lugar** que debes editar para configurar Sentinel sin tocar el resto del código.
+Esta carpeta es el **único lugar** que debes editar para configurar Sentinel en v5 sin tocar el resto del código.
 
-**Edita solo estos archivos:**
+Archivos editables:
 
 1. `config.yaml` → configuración principal de scraping, reglas y fuentes.
 2. `.env` → credenciales sensibles (claves, tokens).
@@ -24,15 +24,15 @@ Esta carpeta es el **único lugar** que debes editar para configurar Sentinel si
 
 ### Reglas
 - **No modifiques** otros archivos fuera de esta carpeta.
-- Esta carpeta es la “fuente de verdad” para configuración.
+- Esta carpeta es la fuente de verdad para configuración operativa.
 
 ---
 
 ## English
 
-This folder is the **only place** you should edit to configure Sentinel without touching the rest of the code.
+This folder is the **only place** you should edit to configure Sentinel v5 without touching the rest of the codebase.
 
-**Edit only these files:**
+Editable files:
 
 1. `config.yaml` → main scraping configuration, rules, and sources.
 2. `.env` → sensitive credentials (keys, tokens).
@@ -52,4 +52,4 @@ This folder is the **only place** you should edit to configure Sentinel without 
 
 ### Rules
 - **Do not modify** files outside this folder.
-- This folder is the single source of truth for configuration.
+- This folder is the source of truth for operational configuration.
