@@ -28,6 +28,11 @@ Archivos editables:
    poetry run python scripts/analyze_rules.py
    ```
 
+### Estructura del centro de comando
+- `config.yaml` y `.env`: configuración operativa única de v5.
+- `settings.py`, `master_switch.py`, `rules_config.py`: primitives del panel de control.
+- `endpoints.py` y `rules/`: catálogo de endpoints y reglas activas.
+
 ### Reglas
 - **No modifiques** archivos fuera de esta carpeta para la configuración operativa.
 - Este directorio es la fuente de verdad para v5.
@@ -61,6 +66,11 @@ Editable files:
    poetry run python scripts/download_and_hash.py
    poetry run python scripts/analyze_rules.py
    ```
+
+### Command center structure
+- `config.yaml` and `.env`: single operational configuration for v5.
+- `settings.py`, `master_switch.py`, `rules_config.py`: control panel primitives.
+- `endpoints.py` and `rules/`: endpoint catalog and active rules.
 
 ### Rules
 - **Do not modify** files outside this folder for operational configuration.
