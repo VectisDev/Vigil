@@ -4,7 +4,7 @@ Gracias por tu interés en mejorar Sentinel. Este documento describe cómo propo
 
 ## Cómo proponer cambios
 1. Abre un issue con el contexto y evidencia (capturas, datos, enlaces).
-2. Crea una rama desde `dev-v4`.
+2. Crea una rama desde `main`.
 3. Realiza cambios pequeños y revisables.
 4. Documenta la motivación en el PR.
 
@@ -43,7 +43,7 @@ Thanks for your interest in improving Sentinel. This document explains how to pr
 
 ## How to propose changes
 1. Open an issue with context and evidence (screenshots, data, links).
-2. Create a branch from `dev-v4`.
+2. Create a branch from `main`.
 3. Make small, reviewable changes.
 4. Document motivation in the PR.
 
