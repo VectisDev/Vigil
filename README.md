@@ -50,7 +50,7 @@ Todo lo modificable vive en `control_master/` para evitar tocar el resto del có
 ### Producción con Docker
 - Construye la imagen:
   ```bash
-  docker build -t centinel-engine .
+  docker build -t centinel_engine .
   ```
 - Levanta servicios (cron):
   ```bash
@@ -118,7 +118,7 @@ Everything configurable lives under `control_master/` to avoid touching the rest
 ### Production with Docker
 - Build the image:
   ```bash
-  docker build -t centinel-engine .
+  docker build -t centinel_engine .
   ```
 - Start services (cron):
   ```bash
