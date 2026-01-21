@@ -1,11 +1,9 @@
 # Proyecto C.E.N.T.I.N.E.L.
 **Centinela Electrónico Neutral Transparente Íntegro Nacional Electoral Libre**
 
-**Automated Electoral Data Integrity System**
-
 ---
 
-## Español (principal)
+## Español
 
 ### ¿Qué es Sentinel?
 Sentinel es un sistema técnico independiente para observar y auditar datos electorales públicos en Honduras. Registra, normaliza y verifica cambios en datos publicados para producir reportes técnicos reproducibles y trazables.
@@ -13,20 +11,33 @@ Sentinel es un sistema técnico independiente para observar y auditar datos elec
 ### ¿Por qué importa?
 La integridad electoral requiere evidencia verificable. Sentinel aporta transparencia técnica mediante snapshots, hashes encadenados y análisis de anomalías con enfoque ciudadano y neutral.
 
-### Fundamento legal (Honduras)
-Este proyecto se basa en la **Ley de Transparencia y Acceso a la Información Pública** (Decreto 170-2006, reformado por Decreto 60-2022):
-- **Art. 3 y 4:** Derecho ciudadano al acceso a la información pública.
-- **Art. 5:** Obligación de facilitar acceso por medios electrónicos.
+### Marco legal y límites de operación (Honduras)
+Este proyecto se sustenta en el derecho de acceso a la información pública y en la obligación de publicar información por medios electrónicos.
 
-Sentinel opera con un enfoque defensivo, respetando límites y registrando evidencia para auditorías reproducibles.
+Referencias normativas principales:
+- **Ley de Transparencia y Acceso a la Información Pública** (Decreto 170-2006, reformas Decreto 60-2022).
+- **Art. 3 y 4:** Reconocen el derecho ciudadano a acceder a información pública.
+- **Art. 5:** Establece la obligación de facilitar el acceso por medios electrónicos.
+
+Alcance operativo:
+- Sentinel opera con finalidad de auditoría técnica y evidencia reproducible.
+- No interfiere con sistemas oficiales ni sustituye a autoridades electorales.
+- No procesa datos personales; solo usa fuentes públicas.
+- Aplica scraping defensivo y respetuoso para evitar sobrecargas.
 
 ### Estado actual
 - **AUDIT ACTIVE**
 
-### Control maestro (todo configurable en un solo lugar)
-Todo lo modificable vive en `control_master/` para evitar tocar el resto del código.
-- Edita `control_master/config.yaml` y `control_master/.env`.
-- Consulta `control_master/README.md` para pasos detallados.
+### Control centralizado (v5)
+En v5, el único punto de control editable es **`control_master/`**.
+
+- `control_master/` es la fuente de verdad de configuración operativa.
+- `command_center/` es legado de dev-v4 y no define el control real de v5. Sus archivos se mantienen como referencia histórica y para reglas heredadas, pero no son el panel activo.
+
+### Componentes del repositorio
+- **control_master/**: configuración operativa centralizada (v5).
+- **command_center/**: legado de dev-v4 para reglas y prototipos de panel, no es el control real de v5.
+- **centinel_engine/**: motor separado en Node.js para anclaje de hashes y pruebas de publicación en blockchain.
 
 ### Primeros pasos (5 minutos)
 1. Instala dependencias con Poetry:
@@ -81,20 +92,33 @@ Sentinel is an independent technical system to observe and audit public electora
 ### Why does it matter?
 Electoral integrity needs verifiable evidence. Sentinel provides technical transparency through snapshots, chained hashes, and anomaly analysis with a neutral, civic-first focus.
 
-### Legal basis (Honduras)
-This project is grounded in the **Law on Transparency and Access to Public Information** (Decree 170-2006, amended by Decree 60-2022):
-- **Art. 3 & 4:** Citizen right to access public information.
-- **Art. 5:** Obligation to facilitate access through electronic means.
+### Legal basis and operating boundaries (Honduras)
+This project is grounded in the right to access public information and the obligation to publish information through electronic means.
 
-Sentinel operates defensively, respecting limits and recording evidence for reproducible audits.
+Primary legal references:
+- **Law on Transparency and Access to Public Information** (Decree 170-2006, amended by Decree 60-2022).
+- **Arts. 3 & 4:** Recognize the citizen right to access public information.
+- **Art. 5:** Establishes the obligation to facilitate access through electronic means.
+
+Operational scope:
+- Sentinel operates for technical auditing and reproducible evidence.
+- It does not interfere with official systems or replace electoral authorities.
+- It does not process personal data; it only uses public sources.
+- It applies defensive, respectful scraping to avoid overload.
 
 ### Current status
 - **AUDIT ACTIVE**
 
-### Master control (single place to edit)
-Everything configurable lives under `control_master/` to avoid touching the rest of the code.
-- Edit `control_master/config.yaml` and `control_master/.env`.
-- See `control_master/README.md` for detailed steps.
+### Centralized control (v5)
+In v5, the only editable control point is **`control_master/`**.
+
+- `control_master/` is the source of truth for operational configuration.
+- `command_center/` is a dev-v4 legacy artifact and does not define the real v5 control. Its files remain as historical reference and for inherited rules, but it is not the active control panel.
+
+### Repository components
+- **control_master/**: centralized operational configuration (v5).
+- **command_center/**: dev-v4 legacy rules and control-panel prototypes, not the real v5 control.
+- **centinel_engine/**: separate Node.js engine for hash anchoring and blockchain publishing experiments.
 
 ### Quick start (5 minutes)
 1. Install dependencies with Poetry:
