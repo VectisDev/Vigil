@@ -41,7 +41,21 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 DEFAULT_CONFIG_PATH = "config.yaml"
+CONTROL_MASTER_PATH = Path("control_master") / "config.yaml"
 config_path = DEFAULT_CONFIG_PATH
+
+
+def resolve_config_path(config_path_override: str | None = None) -> str:
+    """Resuelve la ruta de configuración priorizando control_master.
+
+    English:
+        Resolve configuration path prioritizing control_master.
+    """
+    if config_path_override:
+        return config_path_override
+    if CONTROL_MASTER_PATH.exists():
+        return str(CONTROL_MASTER_PATH)
+    return config_path
 
 
 def apply_env_overrides(config: dict[str, Any]) -> dict[str, Any]:
@@ -103,7 +117,11 @@ def apply_env_overrides(config: dict[str, Any]) -> dict[str, Any]:
 
 
 def normalize_master_switch(value: Any) -> str:
-    """Normaliza el switch maestro a 'ON' o 'OFF'."""
+    """Normaliza el switch maestro a 'ON' o 'OFF'.
+
+    English:
+        Normalize master switch to 'ON' or 'OFF'.
+    """
     if value is None:
         return "ON"
     if isinstance(value, bool):
@@ -118,7 +136,11 @@ def normalize_master_switch(value: Any) -> str:
 
 
 def is_master_switch_on(config: dict[str, Any]) -> bool:
-    """Indica si el switch maestro permite procesos automáticos."""
+    """Indica si el switch maestro permite procesos automáticos.
+
+    English:
+        Indicates whether the master switch allows automatic processes.
+    """
     return normalize_master_switch(config.get("master_switch")) == "ON"
 
 
@@ -149,7 +171,7 @@ def load_config(config_path_override: str | None = None) -> dict[str, Any]:
         yaml.YAMLError: If YAML syntax errors are found.
     """
     try:
-        resolved_path = config_path_override or config_path
+        resolved_path = resolve_config_path(config_path_override)
         with open(resolved_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
         logger.info(
