@@ -197,7 +197,7 @@ def render_honduras_map() -> None:
         )
         st.plotly_chart(map_fig, use_container_width=True)
         st.button("Ver detalle por departamento", use_container_width=True)
-    except Exception:
+    except Exception as exc:
         st.warning(
             "No se pudo cargar el mapa de Honduras. "
             "Colocá un GeoJSON local en `dashboard/data/honduras_departments.geojson`, "
@@ -551,14 +551,6 @@ with col_report2:
         data=snapshots_df.to_json(orient="records"),
         file_name="centinel_reporte.json",
         mime="application/json",
-        use_container_width=True,
-    )
-with col_report3:
-    st.download_button(
-        "Descargar CSV",
-        data=report_csv,
-        file_name="centinel_reporte.csv",
-        mime="text/csv",
         use_container_width=True,
     )
 with col_report3:
