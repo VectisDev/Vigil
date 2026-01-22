@@ -380,10 +380,13 @@ st.markdown("### Mapa de calor electoral · Honduras")
 try:
     local_geojson_path = Path(__file__).parent / "data" / "honduras_departments.geojson"
     gadm_geojson_path = Path(__file__).parent / "data" / "gadm41_HND_1.json"
+    alt_geojson_path = Path(__file__).parent / "data" / "GeoJSON_HN.geojson"
     if local_geojson_path.exists():
         honduras_geojson = json.loads(local_geojson_path.read_text(encoding="utf-8"))
     elif gadm_geojson_path.exists():
         honduras_geojson = json.loads(gadm_geojson_path.read_text(encoding="utf-8"))
+    elif alt_geojson_path.exists():
+        honduras_geojson = json.loads(alt_geojson_path.read_text(encoding="utf-8"))
     else:
         geojson_url = "https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/honduras-departments.geojson"
         with urlopen(geojson_url) as response:
@@ -518,8 +521,8 @@ except Exception:
     else:
         st.warning(
             "No se pudo cargar el mapa de Honduras. "
-            "Colocá un GeoJSON local en `dashboard/data/honduras_departments.geojson` "
-            "o `dashboard/data/gadm41_HND_1.json`, "
+            "Colocá un GeoJSON local en `dashboard/data/honduras_departments.geojson`, "
+            "`dashboard/data/gadm41_HND_1.json` o `dashboard/data/GeoJSON_HN.geojson`, "
             "o un archivo de ciudades en `dashboard/data/hn_cities.json`."
         )
 
