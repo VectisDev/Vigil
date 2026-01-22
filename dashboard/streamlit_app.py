@@ -1,5 +1,7 @@
 import datetime as dt
+import json
 from dataclasses import dataclass
+from urllib.request import urlopen
 
 import pandas as pd
 import plotly.express as px
@@ -227,8 +229,8 @@ anchor = BlockchainAnchor(
     anchored_at="2026-01-12 18:40 UTC",
 )
 
-st.sidebar.markdown("## Centinel")
-st.sidebar.caption("Transparencia electoral verificable")
+st.sidebar.markdown("## C.E.N.T.I.N.E.L.")
+st.sidebar.caption("Centinela Electrónico Neutral Transparente Íntegro Nacional Electoral Libre")
 
 st.sidebar.markdown("### Navegación")
 st.sidebar.write("• Overview")
@@ -255,8 +257,9 @@ st.sidebar.write("Último snapshot: hace 4 min")
 st.markdown(
     """
 <div class="hero">
-  <h1>Auditoría Electoral Independiente con Inmutabilidad Blockchain</h1>
-  <p>Centinel convierte datos públicos en evidencia inmutable, reproducible y verificable por cualquier ciudadano.</p>
+  <h1>C.E.N.T.I.N.E.L.</h1>
+  <p><strong>Centinela Electrónico Neutral Transparente Íntegro Nacional Electoral Libre</strong></p>
+  <p>Auditoría electoral independiente con inmutabilidad blockchain para que cualquier ciudadano pueda verificar.</p>
   <div class="pillars">
     <div class="pillar">🔒 Inmutabilidad L2</div>
     <div class="pillar">📊 Detección automática con IA</div>
@@ -306,14 +309,19 @@ with header_col3:
 with header_col4:
     st.link_button("Verificar en Blockchain", anchor.tx_url, use_container_width=True)
 
-st.markdown("### Overview")
+st.markdown("### Overview ciudadano")
 st.markdown("<div class='kpi-grid'>" 
-    "<div class='kpi-card'><h3>Snapshots 24h</h3><p>174</p><span>+12 vs ayer</span></div>"
-    "<div class='kpi-card'><h3>Cambios detectados</h3><p>68</p><span>▼ 14%</span></div>"
-    "<div class='kpi-card'><h3>Anomalías críticas</h3><p>0</p><span>Sin incidentes</span></div>"
-    "<div class='kpi-card'><h3>Reglas activas</h3><p>12</p><span>2 nuevas</span></div>"
-    "<div class='kpi-card'><h3>Verificaciones</h3><p>2.4K</p><span>+8%</span></div>"
+    "<div class='kpi-card'><h3>Snapshots 24h</h3><p>174</p><span>Cadencia: 1 cada 10 min (objetivo 144)</span></div>"
+    "<div class='kpi-card'><h3>Cambios detectados</h3><p>68</p><span>14% menos que ayer · 0.39 por snapshot</span></div>"
+    "<div class='kpi-card'><h3>Anomalías críticas</h3><p>0</p><span>Umbral crítico &gt; 3 por día</span></div>"
+    "<div class='kpi-card'><h3>Reglas activas</h3><p>12</p><span>3 IA · 6 umbral · 3 regex</span></div>"
+    "<div class='kpi-card'><h3>Verificaciones</h3><p>2.4K</p><span>+8% · 61% desde móviles</span></div>"
     "</div>", unsafe_allow_html=True)
+st.info(
+    "🧭 **Cómo leer estos indicadores:** cada snapshot es una foto inmutable de los datos públicos. "
+    "Los cambios detectados son diferencias verificables entre snapshots. "
+    "Las anomalías críticas solo aparecen cuando el sistema supera umbrales definidos por reglas públicas."
+)
 
 snapshots_df = build_snapshot_data()
 
@@ -362,6 +370,88 @@ heat_fig = px.bar(heatmap_df, x="hora", y="actividad", color="actividad", color_
 heat_fig.update_layout(height=260, margin=dict(l=10, r=10, t=10, b=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#e2e8f0", coloraxis_showscale=False)
 st.plotly_chart(heat_fig, use_container_width=True)
 st.markdown("</div>", unsafe_allow_html=True)
+st.info(
+    "📌 **Contexto ciudadano:** el heatmap muestra en qué horarios se concentran cambios. "
+    "Valores más altos indican más actividad y requieren revisión adicional."
+)
+
+st.markdown("### Mapa de calor electoral · Honduras")
+try:
+    geojson_url = "https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/honduras-departments.geojson"
+    with urlopen(geojson_url) as response:
+        honduras_geojson = json.load(response)
+
+    alert_by_department = pd.DataFrame(
+        {
+            "departamento": [
+                "Atlántida",
+                "Choluteca",
+                "Colón",
+                "Comayagua",
+                "Copán",
+                "Cortés",
+                "El Paraíso",
+                "Francisco Morazán",
+                "Gracias a Dios",
+                "Intibucá",
+                "Islas de la Bahía",
+                "La Paz",
+                "Lempira",
+                "Ocotepeque",
+                "Olancho",
+                "Santa Bárbara",
+                "Valle",
+                "Yoro",
+            ],
+            "alertas": [1, 4, 2, 1, 3, 5, 2, 6, 0, 1, 0, 2, 3, 1, 4, 2, 1, 3],
+            "mensaje": [
+                "Cambios menores en actas",
+                "Picos de actividad en mesas",
+                "Revisión de registros de padrón",
+                "Actualizaciones rutinarias",
+                "Anomalías moderadas detectadas",
+                "Alertas críticas en centros clave",
+                "Inconsistencias temporales",
+                "Mayor concentración de alertas",
+                "Sin alertas activas",
+                "Cambios menores en verificación",
+                "Sin alertas activas",
+                "Anomalías leves en tiempos",
+                "Revisión de datos provinciales",
+                "Cambios menores registrados",
+                "Alertas medias en conteos",
+                "Actividad fuera de patrón",
+                "Alertas leves",
+                "Alertas moderadas",
+            ],
+        }
+    )
+
+    map_fig = px.choropleth(
+        alert_by_department,
+        geojson=honduras_geojson,
+        locations="departamento",
+        featureidkey="properties.name",
+        color="alertas",
+        hover_name="departamento",
+        hover_data={"alertas": True, "mensaje": True},
+        color_continuous_scale=["#0b0f1a", "#00d4ff", "#f87171"],
+    )
+    map_fig.update_geos(fitbounds="locations", visible=False)
+    map_fig.update_layout(
+        height=420,
+        margin=dict(l=0, r=0, t=0, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        font_color="#e2e8f0",
+        coloraxis_showscale=True,
+    )
+    st.plotly_chart(map_fig, use_container_width=True)
+    st.info(
+        "🗺️ **Interpretación:** los departamentos con color más intenso registran más alertas. "
+        "Al pasar el cursor podés ver el tipo de alerta detectada."
+    )
+except Exception:
+    st.warning("No se pudo cargar el mapa de Honduras. Verificá la conectividad o el acceso al recurso GeoJSON.")
 
 st.markdown("### Snapshots recientes")
 st.dataframe(
