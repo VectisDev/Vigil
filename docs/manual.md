@@ -13,6 +13,12 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Inicialización rápida
+```bash
+python scripts/bootstrap.py
+```
+Esto crea `command_center/config.yaml` y `command_center/.env` si no existen.
+
 ### Configuración de scraping (CNE)
 Crea o edita `config/config.yaml` en la carpeta `config/`:
 ```yaml
@@ -28,8 +34,14 @@ backoff_max_seconds: 30
 #### Fallback con Playwright si los endpoints fallan
 - Activa `use_playwright: true` en `config/config.yaml` y revisa `endpoints`/`fallback_nacional`.
 - Instala los navegadores necesarios: `python -m playwright install --with-deps chromium`.
-- Asegúrate de ajustar `playwright_user_agent` y `playwright_locale` si el sitio requiere contexto local.
+- Ajusta `playwright_user_agent` y `playwright_locale` si el sitio requiere contexto local.
 - Si el endpoint nacional cambia, actualiza `endpoints.nacional` y conserva el fallback.
+
+### Flujo operativo recomendado
+1. **Descarga + hash** para capturar evidencia.
+2. **Análisis de reglas** para detectar cambios o eventos atípicos.
+3. **Resumen** para comunicación rápida del estado.
+4. **(Alternativa)** Ejecuta todo con `scripts/run_pipeline.py --once`.
 
 ### Descarga y hash de datos
 ```bash
@@ -37,7 +49,7 @@ python scripts/download_and_hash.py
 ```
 Salida:
 - JSON crudos en `data/`
-- hashes en `hashes/`
+- hashes encadenados en `hashes/`
 
 ### Análisis de reglas y tendencias
 ```bash
@@ -52,11 +64,18 @@ Salida:
 ```bash
 python scripts/summarize_findings.py
 ```
+Salida:
+- `reports/summary.txt`
 
 ### Frecuencia sugerida
 - Descarga: cada 1 hora
 - Reportes: cada 1–3 horas
 - Resumen diario: 1 vez al día
+
+### Beneficios operativos
+- **Evidencia verificable** con hashes encadenados.
+- **Comparación histórica** de cambios sin intervención humana.
+- **Auditoría externa** gracias a resultados reproducibles.
 
 ---
 
@@ -72,6 +91,12 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+### Quick initialization
+```bash
+python scripts/bootstrap.py
+```
+This creates `command_center/config.yaml` and `command_center/.env` if missing.
 
 ### Scraping configuration (CNE)
 Create or edit `config/config.yaml` inside the `config/` folder:
@@ -91,13 +116,19 @@ backoff_max_seconds: 30
 - Adjust `playwright_user_agent` and `playwright_locale` if the site requires local context.
 - If the national endpoint changes, update `endpoints.nacional` and keep the fallback.
 
+### Recommended operational flow
+1. **Download + hash** to capture evidence.
+2. **Rule analysis** to detect changes or anomalies.
+3. **Summary** for quick status communication.
+4. **(Alternative)** Run everything with `scripts/run_pipeline.py --once`.
+
 ### Data download and hashing
 ```bash
 python scripts/download_and_hash.py
 ```
 Outputs:
 - Raw JSON in `data/`
-- Hashes in `hashes/`
+- Chained hashes in `hashes/`
 
 ### Rules and trend analysis
 ```bash
@@ -112,8 +143,15 @@ Outputs:
 ```bash
 python scripts/summarize_findings.py
 ```
+Outputs:
+- `reports/summary.txt`
 
 ### Suggested cadence
 - Download: every 1 hour
 - Reports: every 1–3 hours
 - Daily summary: once per day
+
+### Operational benefits
+- **Verifiable evidence** with chained hashes.
+- **Historical comparison** of changes without human intervention.
+- **External auditability** thanks to reproducible outputs.
