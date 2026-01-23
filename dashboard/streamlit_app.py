@@ -6,13 +6,29 @@ from dataclasses import dataclass
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import qrcode
 import streamlit as st
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import LETTER
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+try:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    REPORTLAB_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency for PDF rendering
+    REPORTLAB_AVAILABLE = False
+    colors = None
+    LETTER = None
+    ParagraphStyle = None
+    getSampleStyleSheet = None
+    inch = None
+    Image = None
+    Paragraph = None
+    SimpleDocTemplate = None
+    Spacer = None
+    Table = None
+    TableStyle = None
 
 try:
     import qrcode
@@ -124,7 +140,7 @@ def build_vote_evolution() -> pd.DataFrame:
     return pd.DataFrame(series)
 
 
-def styled_status(df: pd.DataFrame) -> pd.io.formats.style.Styler:
+def styled_status(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
     def highlight_status(value: str) -> str:
         color_map = {
             "OK": "background-color: rgba(16, 185, 129, 0.18); color: #e5e7eb;",
@@ -141,6 +157,9 @@ def compute_report_hash(payload: str) -> str:
 
 
 def build_pdf_report(data: dict, language: str) -> bytes:
+    if not REPORTLAB_AVAILABLE:
+        raise RuntimeError("reportlab is required to build the PDF report.")
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -192,14 +211,18 @@ def build_pdf_report(data: dict, language: str) -> bytes:
     elements.append(Paragraph(f"{data['tx_label']} {data['tx_url']}", styles["Body"]))
     elements.append(Paragraph(data["anchored_label"], styles["Body"]))
 
-    qr = qrcode.make(data["root_hash"])
-    qr_buffer = io.BytesIO()
-    qr.save(qr_buffer, format="PNG")
-    qr_buffer.seek(0)
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph(data["qr_label"], styles["Body"]))
-    elements.append(Image(qr_buffer, width=1.5 * inch, height=1.5 * inch))
-    elements.append(Spacer(1, 12))
+    if qrcode is None:
+        elements.append(Paragraph(f"{data['qr_label']}: QR no disponible", styles["Body"]))
+        elements.append(Spacer(1, 12))
+    else:
+        qr = qrcode.make(data["root_hash"])
+        qr_buffer = io.BytesIO()
+        qr.save(qr_buffer, format="PNG")
+        qr_buffer.seek(0)
+        elements.append(Paragraph(data["qr_label"], styles["Body"]))
+        elements.append(Image(qr_buffer, width=1.5 * inch, height=1.5 * inch))
+        elements.append(Spacer(1, 12))
 
     elements.append(Paragraph(data["snapshots_title"], styles["HeadingSecondary"]))
     snapshot_table = Table(data["snapshots_rows"], colWidths=[1.3 * inch, 0.9 * inch, 3.2 * inch, 1 * inch])
@@ -341,8 +364,7 @@ st.sidebar.button("📥 Snapshot Ahora", use_container_width=True)
 
 section = st.sidebar.radio(copy["nav_title"], copy["nav_sections"])
 
-st.markdown(
-    """
+css = """
 <style>
     :root {
         color-scheme: dark;
@@ -369,14 +391,14 @@ st.markdown(
     .note { background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 14px; color: var(--muted); }
 </style>
 """
-st.markdown(css.format(**theme), unsafe_allow_html=True)
+st.markdown(css, unsafe_allow_html=True)
 
 anchor = BlockchainAnchor(
     root_hash="0x9f3fa7c2d1b4a7e1f02d5e1c34aa9b21b",
     network="Arbitrum L2",
     tx_url="https://arbiscan.io/tx/0x9f3b0c0d1d2e3f4a5b6c7d8e9f000111222333444555666777888999aaa",
     anchored_at="2026-01-12 18:40 UTC",
-))
+)
 
 snapshots_df = build_snapshot_data()
 rules_df = build_rules_data()
@@ -511,7 +533,10 @@ elif section == copy["nav_sections"][3]:
         else:
             st.error(copy["verify_fail"])
     st.markdown("### QR")
-    st.image(qrcode.make(anchor.root_hash))
+    if qrcode is None:
+        st.warning("QR no disponible: falta instalar la dependencia 'qrcode'.")
+    else:
+        st.image(qrcode.make(anchor.root_hash))
 
 else:
     st.markdown(f"### {copy['export_title']}")
@@ -601,14 +626,19 @@ else:
         ],
     }
 
-    pdf_es = build_pdf_report(data_es, "es")
-    pdf_en = build_pdf_report(data_en, "en")
+    if REPORTLAB_AVAILABLE:
+        pdf_es = build_pdf_report(data_es, "es")
+        pdf_en = build_pdf_report(data_en, "en")
+    else:
+        st.warning("Exportación PDF no disponible: falta instalar la dependencia 'reportlab'.")
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.download_button(copy["export_pdf_es"], data=pdf_es, file_name="centinel_reporte_es.pdf")
+        if REPORTLAB_AVAILABLE:
+            st.download_button(copy["export_pdf_es"], data=pdf_es, file_name="centinel_reporte_es.pdf")
     with col2:
-        st.download_button(copy["export_pdf_en"], data=pdf_en, file_name="centinel_report_en.pdf")
+        if REPORTLAB_AVAILABLE:
+            st.download_button(copy["export_pdf_en"], data=pdf_en, file_name="centinel_report_en.pdf")
     with col3:
         st.download_button(copy["export_json"], data=snapshots_df.to_json(orient="records"), file_name="centinel.json")
 
