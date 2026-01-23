@@ -376,7 +376,7 @@ anchor = BlockchainAnchor(
     network="Arbitrum L2",
     tx_url="https://arbiscan.io/tx/0x9f3b0c0d1d2e3f4a5b6c7d8e9f000111222333444555666777888999aaa",
     anchored_at="2026-01-12 18:40 UTC",
-)
+))
 
 snapshots_df = build_snapshot_data()
 rules_df = build_rules_data()
