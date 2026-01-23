@@ -189,17 +189,17 @@ language_label = st.sidebar.selectbox("Idioma / Language", list(LANG_OPTIONS.key
 language = LANG_OPTIONS[language_label]
 
 theme = {
-    "color_scheme": "light",
-    "bg": "#f4f6f9",
-    "panel": "#ffffff",
-    "panel_soft": "#eef2f7",
-    "text": "#0f172a",
-    "muted": "#475569",
-    "border": "#d8dee8",
-    "accent": "#1e3a8a",
-    "accent_soft": "#64748b",
-    "chart_primary": "#1e3a8a",
-    "chart_secondary": "#64748b",
+    "color_scheme": "dark",
+    "bg": "#0b1220",
+    "panel": "#111827",
+    "panel_soft": "#1f2937",
+    "text": "#e5e7eb",
+    "muted": "#94a3b8",
+    "border": "#2b3648",
+    "accent": "#60a5fa",
+    "accent_soft": "#7c8aa4",
+    "chart_primary": "#93c5fd",
+    "chart_secondary": "#94a3b8",
 }
 
 translations = {
