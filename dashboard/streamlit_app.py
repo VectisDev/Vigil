@@ -188,64 +188,40 @@ LANG_OPTIONS = {"Español": "es", "English": "en"}
 language_label = st.sidebar.selectbox("Idioma / Language", list(LANG_OPTIONS.keys()), index=0)
 language = LANG_OPTIONS[language_label]
 
-theme_labels = {"es": {"dark": "Noche", "light": "Día"}, "en": {"dark": "Night", "light": "Day"}}
-theme_choice = st.sidebar.radio(
-    "Tema" if language == "es" else "Theme",
-    [theme_labels[language]["dark"], theme_labels[language]["light"]],
-    horizontal=True,
-)
-theme_mode = "dark" if theme_choice == theme_labels[language]["dark"] else "light"
-
-THEMES = {
-    "dark": {
-        "color_scheme": "dark",
-        "bg": "#0b0b0b",
-        "panel": "#131313",
-        "panel_soft": "#161616",
-        "text": "#f5f5f5",
-        "muted": "#a3a3a3",
-        "border": "#2a2a2a",
-        "accent": "#e5e5e5",
-        "accent_soft": "#8a8a8a",
-        "chart_primary": "#f5f5f5",
-        "chart_secondary": "#8f8f8f",
-    },
-    "light": {
-        "color_scheme": "light",
-        "bg": "#ffffff",
-        "panel": "#f7f7f7",
-        "panel_soft": "#f2f2f2",
-        "text": "#111111",
-        "muted": "#4b5563",
-        "border": "#e5e7eb",
-        "accent": "#111111",
-        "accent_soft": "#6b7280",
-        "chart_primary": "#111111",
-        "chart_secondary": "#6b7280",
-    },
+theme = {
+    "color_scheme": "light",
+    "bg": "#f8f9fb",
+    "panel": "#ffffff",
+    "panel_soft": "#f1f3f5",
+    "text": "#111111",
+    "muted": "#4b5563",
+    "border": "#e5e7eb",
+    "accent": "#111111",
+    "accent_soft": "#6b7280",
+    "chart_primary": "#111111",
+    "chart_secondary": "#6b7280",
 }
-theme = THEMES[theme_mode]
 
 translations = {
     "es": {
-        "title": "C.E.N.T.I.N.E.L. – Vigilancia Ciudadana de las Elecciones en Honduras",
-        "subtitle": "Datos públicos, inmutables y verificables por cualquiera. Sin adornos, solo evidencia.",
+        "title": "C.E.N.T.I.N.E.L. – Integridad y Transparencia Electoral",
+        "subtitle": "Indicadores verificables y trazabilidad pública para auditoría institucional.",
         "pillars": [
-            "Inmutabilidad verificable",
-            "Detección automática",
-            "Reglas claras",
-            "Verificación ciudadana",
+            "Trazabilidad verificable",
+            "Detección de anomalías",
+            "Reglas de auditoría",
+            "Validación independiente",
         ],
         "status_now": "Estado actual",
         "status_note": "Todo OK · sin anomalías críticas",
         "status_body": "El sistema no detectó señales de fraude en las últimas 24h.",
         "last_snapshot": "Último snapshot",
-        "citizen_checks": "Verificaciones ciudadanas",
-        "citizen_body": "Más ciudadanos verificando = más confianza pública.",
-        "cta_verify": "Verificar ahora",
-        "cta_blockchain": "Ver en blockchain",
+        "citizen_checks": "Verificaciones independientes",
+        "citizen_body": "Más verificaciones externas = mayor confianza institucional.",
+        "cta_verify": "Validar evidencia",
+        "cta_blockchain": "Registro público",
         "kpi_title": "Indicadores clave",
-        "kpi_helper": "Cada tarjeta incluye una breve explicación.",
+        "kpi_helper": "Cada métrica incluye contexto metodológico.",
         "kpi_snapshots": "Snapshots 24h",
         "kpi_changes": "Cambios detectados",
         "kpi_alerts": "Anomalías críticas",
@@ -256,46 +232,52 @@ translations = {
             "Alertas que superan umbrales.",
             "Ciudadanos validando resultados.",
         ],
+        "kpi_descriptions": [
+            "Cada 10 minutos tomamos una foto inmutable.",
+            "Actualizaciones normales de actas, revisadas automáticamente.",
+            "Sin señales que superen los umbrales acordados.",
+            "Validaciones independientes confirman consistencia.",
+        ],
         "stats_title": "Indicadores de rareza estadística",
-        "stats_subtitle": "Pruebas para detectar patrones inusuales.",
+        "stats_subtitle": "Pruebas estadísticas para identificar patrones atípicos.",
         "benford_title": "Ley de Benford (primer dígito)",
         "last_digit_title": "Último dígito de votos",
         "votes_title": "Evolución de votos acumulados",
-        "benford_note": "Distribución normal ✓ (confianza 92%).",
-        "last_digit_note": "Si un dígito domina mucho, podría ser sospechoso.",
-        "votes_note": "El crecimiento debe ser gradual. Saltos repentinos indican revisión adicional.",
+        "benford_note": "Distribución consistente ✓ (confianza 92%).",
+        "last_digit_note": "Una concentración anómala puede indicar revisión.",
+        "votes_note": "Crecimientos abruptos requieren revisión adicional.",
         "updates_title": "¿A qué horas se actualizan más los datos?",
-        "updates_note": "Actividad muy alta de madrugada requiere revisión. Horarios normales: mañana y tarde.",
+        "updates_note": "Actividad fuera de horario requiere revisión adicional.",
         "snapshots_title": "Snapshots recientes",
-        "rules_title": "Reglas que usamos para proteger la transparencia",
-        "reports_title": "Reportes y verificación ciudadana",
+        "rules_title": "Reglas de auditoría",
+        "reports_title": "Reportes y verificación externa",
         "download_pdf": "Descargar reporte (PDF)",
         "download_json": "Descargar datos completos (JSON + hashes)",
         "download_csv": "Descargar CSV",
-        "rules_card": "Reglas personalizadas",
-        "ai_card": "Detección automática con IA",
-        "repro_title": "Reportes reproducibles",
-        "verify_title": "Verificar yo mismo",
+        "rules_card": "Reglas de control",
+        "ai_card": "Detección automática",
+        "repro_title": "Reportes reproducibles y trazables",
+        "verify_title": "Verificación propia",
     },
     "en": {
-        "title": "C.E.N.T.I.N.E.L. – Citizen Election Monitoring in Honduras",
-        "subtitle": "Public, immutable, and verifiable data. No noise, just evidence.",
+        "title": "C.E.N.T.I.N.E.L. – Electoral Integrity & Transparency",
+        "subtitle": "Verifiable indicators and public traceability for institutional audits.",
         "pillars": [
-            "Verifiable immutability",
-            "Automated detection",
-            "Clear rules",
-            "Citizen verification",
+            "Verifiable traceability",
+            "Anomaly detection",
+            "Audit rules",
+            "Independent validation",
         ],
         "status_now": "Current status",
         "status_note": "All clear · no critical anomalies",
         "status_body": "The system detected no fraud signals in the last 24h.",
         "last_snapshot": "Latest snapshot",
-        "citizen_checks": "Citizen checks",
-        "citizen_body": "More people verifying = higher public confidence.",
-        "cta_verify": "Verify now",
-        "cta_blockchain": "View on blockchain",
+        "citizen_checks": "Independent checks",
+        "citizen_body": "More external checks = higher institutional confidence.",
+        "cta_verify": "Validate evidence",
+        "cta_blockchain": "Public registry",
         "kpi_title": "Key indicators",
-        "kpi_helper": "Each card includes a short explanation.",
+        "kpi_helper": "Each metric includes methodological context.",
         "kpi_snapshots": "Snapshots 24h",
         "kpi_changes": "Changes detected",
         "kpi_alerts": "Critical anomalies",
@@ -306,26 +288,32 @@ translations = {
             "Alerts exceeding thresholds.",
             "Citizens validating results.",
         ],
+        "kpi_descriptions": [
+            "Immutable snapshot captured every 10 minutes.",
+            "Normal updates reviewed automatically.",
+            "No signals beyond agreed thresholds.",
+            "Independent validations confirm consistency.",
+        ],
         "stats_title": "Statistical rarity indicators",
-        "stats_subtitle": "Tests to flag unusual patterns.",
+        "stats_subtitle": "Statistical tests to flag outliers and anomalies.",
         "benford_title": "Benford's law (first digit)",
         "last_digit_title": "Last digit of votes",
         "votes_title": "Cumulative vote evolution",
-        "benford_note": "Normal distribution ✓ (92% confidence).",
-        "last_digit_note": "If one digit dominates, it could be suspicious.",
-        "votes_note": "Growth should be gradual. Sudden jumps need review.",
+        "benford_note": "Consistent distribution ✓ (92% confidence).",
+        "last_digit_note": "A concentrated digit may require review.",
+        "votes_note": "Abrupt growth requires additional review.",
         "updates_title": "When do updates happen most?",
-        "updates_note": "Very high late-night activity needs review. Normal hours: morning and afternoon.",
+        "updates_note": "Out-of-hours activity requires additional review.",
         "snapshots_title": "Recent snapshots",
-        "rules_title": "Rules we use to protect transparency",
-        "reports_title": "Reports and citizen verification",
+        "rules_title": "Audit rules",
+        "reports_title": "Reports and external verification",
         "download_pdf": "Download report (PDF)",
         "download_json": "Download full data (JSON + hashes)",
         "download_csv": "Download CSV",
-        "rules_card": "Custom rules",
-        "ai_card": "AI detection",
-        "repro_title": "Reproducible reports",
-        "verify_title": "Verify myself",
+        "rules_card": "Control rules",
+        "ai_card": "Automated detection",
+        "repro_title": "Reproducible, traceable reports",
+        "verify_title": "Self-verification",
     },
 }
 copy = translations[language]
@@ -541,22 +529,22 @@ st.markdown(
   <div class='bento-card bento-metric'>
     <h3>{copy['kpi_snapshots']} <span class='hint' title='{copy['kpi_tooltips'][0]}'>ⓘ</span></h3>
     <p>174</p>
-    <span>Cada 10 minutos tomamos una foto inmutable.</span>
+    <span>{copy['kpi_descriptions'][0]}</span>
   </div>
   <div class='bento-card bento-metric'>
     <h3>{copy['kpi_changes']} <span class='hint' title='{copy['kpi_tooltips'][1]}'>ⓘ</span></h3>
     <p>68</p>
-    <span>Actualizaciones normales de actas, revisadas automáticamente.</span>
+    <span>{copy['kpi_descriptions'][1]}</span>
   </div>
   <div class='bento-card bento-metric'>
     <h3>{copy['kpi_alerts']} <span class='hint' title='{copy['kpi_tooltips'][2]}'>ⓘ</span></h3>
     <p>0</p>
-    <span>No hay señales que superen los umbrales acordados.</span>
+    <span>{copy['kpi_descriptions'][2]}</span>
   </div>
   <div class='bento-card bento-metric'>
     <h3>{copy['kpi_checks']} <span class='hint' title='{copy['kpi_tooltips'][3]}'>ⓘ</span></h3>
     <p>2.4K</p>
-    <span>Personas como tú ya confirmaron los datos.</span>
+    <span>{copy['kpi_descriptions'][3]}</span>
   </div>
 </div>
     """,
