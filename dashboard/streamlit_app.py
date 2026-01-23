@@ -6,6 +6,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
+try:
+    import qrcode
+except ImportError:  # pragma: no cover - optional dependency for QR rendering
+    qrcode = None
+
 
 @dataclass(frozen=True)
 class BlockchainAnchor:
@@ -22,14 +27,14 @@ def build_snapshot_data() -> pd.DataFrame:
             "timestamp": (now - dt.timedelta(minutes=40)).strftime("%Y-%m-%d %H:%M UTC"),
             "hash": "0x88fa...e901",
             "changes": 2,
-            "detail": "Actas actualizadas en 3 mesas",
+            "detail": "JSON actualizado en 3 mesas",
             "status": "REVISAR",
         },
         {
             "timestamp": (now - dt.timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M UTC"),
             "hash": "0xe41b...93f0",
             "changes": 1,
-            "detail": "Corrección menor en padrón",
+            "detail": "Corrección menor en JSON",
             "status": "REVISAR",
         },
         {
@@ -64,7 +69,7 @@ def build_rules_data() -> pd.DataFrame:
                 "accion": "Alertamos a observadores",
             },
             {
-                "regla": "Patrones repetidos en actas",
+                "regla": "Patrones repetidos en JSON",
                 "estado": "OFF",
                 "accion": "Registrar y revisar",
             },
@@ -122,11 +127,19 @@ def build_pdf_report(anchor: BlockchainAnchor, snapshots_df: pd.DataFrame, rules
         subtitle = f"Anchored on {anchor.network} · {anchor.anchored_at}"
         snapshot_title = "Recent snapshots"
         rules_title = "Active rules"
+        qr_label = "Verification hash (QR)"
+        qr_fallback = "QR unavailable in this environment."
+        hash_label = "Root hash"
+        tx_label = "Public transaction"
     else:
         title = "C.E.N.T.I.N.E.L. Reporte ciudadano"
         subtitle = f"Anclado en {anchor.network} · {anchor.anchored_at}"
         snapshot_title = "Snapshots recientes"
         rules_title = "Reglas activas"
+        qr_label = "Hash de verificación (QR)"
+        qr_fallback = "QR no disponible en este entorno."
+        hash_label = "Hash raíz"
+        tx_label = "Transacción pública"
 
     lines = [
         title,
@@ -140,6 +153,9 @@ def build_pdf_report(anchor: BlockchainAnchor, snapshots_df: pd.DataFrame, rules
     lines.append(rules_title)
     for _, row in rules_df.iterrows():
         lines.append(f"- {row['regla']} ({row['estado']})")
+    lines.append("")
+    lines.append(f"{hash_label}: {anchor.root_hash}")
+    lines.append(f"{tx_label}: {anchor.tx_url}")
 
     content_lines = []
     y = 760
@@ -147,8 +163,29 @@ def build_pdf_report(anchor: BlockchainAnchor, snapshots_df: pd.DataFrame, rules
         safe_line = _escape_pdf_text(str(line))
         content_lines.append(f"BT /F1 12 Tf 72 {y} Td ({safe_line}) Tj ET")
         y -= 16
-        if y < 72:
+        if y < 220:
             break
+    qr_label_line = _escape_pdf_text(qr_label)
+    content_lines.append(f"BT /F1 10 Tf 72 200 Td ({qr_label_line}) Tj ET")
+    if qrcode is None:
+        fallback_line = _escape_pdf_text(qr_fallback)
+        content_lines.append(f"BT /F1 10 Tf 72 184 Td ({fallback_line}) Tj ET")
+    else:
+        qr = qrcode.QRCode(border=1, box_size=1)
+        qr.add_data(anchor.root_hash)
+        qr.make(fit=True)
+        qr_matrix = qr.get_matrix()
+        qr_module = 4
+        qr_origin_x = 72
+        qr_origin_y = 90
+        content_lines.append("0 0 0 rg")
+        for row_index, row in enumerate(qr_matrix):
+            for col_index, cell in enumerate(row):
+                if not cell:
+                    continue
+                x = qr_origin_x + (col_index * qr_module)
+                y = qr_origin_y + ((len(qr_matrix) - row_index - 1) * qr_module)
+                content_lines.append(f"{x} {y} {qr_module} {qr_module} re f")
     content = "\n".join(content_lines)
     content_bytes = content.encode("latin-1")
 
@@ -652,7 +689,11 @@ st.dataframe(
     hide_index=True,
 )
 if st.button("Ver qué cambió exactamente" if language == "es" else "See what changed"):
-    st.write("✅ +3 actas agregadas · ❌ 1 acta corregida" if language == "es" else "✅ +3 records added · ❌ 1 record corrected")
+    st.write(
+        "✅ +3 registros JSON agregados · ❌ 1 registro JSON corregido"
+        if language == "es"
+        else "✅ +3 JSON records added · ❌ 1 JSON record corrected"
+    )
 
 st.markdown(f"### {copy['rules_title']}")
 rules_df = build_rules_data()
@@ -726,9 +767,9 @@ with col_ai:
         else "• Anomalous pattern in precinct 12 · High"
     )
     st.write(
-        "• Cambio irregular en acta 2024-09 · Media"
+        "• Cambio irregular en JSON 2024-09 · Media"
         if language == "es"
-        else "• Irregular change in record 2024-09 · Medium"
+        else "• Irregular JSON change 2024-09 · Medium"
     )
     st.write(
         "• Pico inusual en consultas ciudadanas · Baja"
