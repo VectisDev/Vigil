@@ -14,6 +14,11 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+try:
+    import qrcode
+except ImportError:  # pragma: no cover - optional dependency for QR rendering
+    qrcode = None
+
 
 @dataclass(frozen=True)
 class BlockchainAnchor:
@@ -363,9 +368,8 @@ st.markdown(
     .kpi span { font-size: 0.9rem; color: var(--muted); }
     .note { background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 14px; color: var(--muted); }
 </style>
-    """,
-    unsafe_allow_html=True,
-)
+"""
+st.markdown(css.format(**theme), unsafe_allow_html=True)
 
 anchor = BlockchainAnchor(
     root_hash="0x9f3fa7c2d1b4a7e1f02d5e1c34aa9b21b",
