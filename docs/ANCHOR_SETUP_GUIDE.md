@@ -3,7 +3,7 @@
 ## [ES] Español
 
 ### Objetivo
-Esta guía explica cómo preparar una wallet, desplegar el contrato `CentinelAnchor` y configurar `config/config.yaml` para anclar hashes en Arbitrum One.
+Esta guía explica cómo preparar una wallet, desplegar el contrato de anclaje de C.E.N.T.I.N.E.L. y configurar `config/config.yaml` para anclar hashes en Arbitrum One.
 
 ### Pasos
 1. **Crear una wallet dedicada en MetaMask.**
@@ -45,7 +45,7 @@ Esta guía explica cómo preparar una wallet, desplegar el contrato `CentinelAnc
 ## [EN] English
 
 ### Goal
-This guide explains how to prepare a wallet, deploy the `CentinelAnchor` contract, and configure `config/config.yaml` to anchor hashes on Arbitrum One.
+This guide explains how to prepare a wallet, deploy the C.E.N.T.I.N.E.L. anchoring contract, and configure `config/config.yaml` to anchor hashes on Arbitrum One.
 
 ### Steps
 1. **Create a dedicated wallet in MetaMask.**

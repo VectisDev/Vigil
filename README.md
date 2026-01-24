@@ -5,11 +5,14 @@
 
 ## Español (prioridad)
 
-### ¿Qué es Centinel?
-Centinel es un sistema técnico independiente para observar y auditar datos electorales públicos en Honduras. Registra, normaliza y verifica cambios en datos publicados para producir reportes técnicos reproducibles y trazables.
+### ¿Qué es C.E.N.T.I.N.E.L.?
+C.E.N.T.I.N.E.L. es un sistema técnico independiente para observar y auditar datos electorales públicos en Honduras. Registra, normaliza y verifica cambios en datos publicados para producir reportes técnicos reproducibles y trazables.
 
-### ¿Por qué importa?
-La integridad electoral requiere evidencia verificable. Centinel aporta transparencia técnica mediante snapshots, hashes encadenados y análisis de anomalías con enfoque ciudadano y neutral.
+### Propósito y valor
+- **Evidencia verificable:** snapshots con hashes encadenados para confirmar integridad.
+- **Transparencia técnica:** registros auditables, sin interpretación partidaria.
+- **Trazabilidad histórica:** comparación de versiones para detectar cambios relevantes.
+- **Neutralidad y respeto:** operación cívica, defensiva y no intrusiva.
 
 ### Marco legal y límites de operación (Honduras)
 Este proyecto se sustenta en el derecho de acceso a la información pública y en la obligación de publicar información por medios electrónicos.
@@ -20,29 +23,18 @@ Referencias normativas principales:
 - **Art. 5:** Establece la obligación de facilitar el acceso por medios electrónicos.
 
 Alcance operativo:
-- Centinel opera con finalidad de auditoría técnica y evidencia reproducible.
+- C.E.N.T.I.N.E.L. opera con finalidad de auditoría técnica y evidencia reproducible.
 - No interfiere con sistemas oficiales ni sustituye a autoridades electorales.
 - No procesa datos personales; solo usa fuentes públicas.
 - Aplica scraping defensivo y respetuoso para evitar sobrecargas.
 
-### ¿Qué problema resuelve?
-- **Evidencia verificable:** conserva snapshots con hashes encadenados para que cualquier tercero pueda confirmar integridad.
-- **Transparencia técnica:** transforma datos públicos en registros auditables sin interpretación partidaria.
-- **Trazabilidad histórica:** permite comparar versiones a lo largo del tiempo y detectar cambios relevantes.
-
-### ¿Cómo funciona el flujo operativo?
+### Flujo operativo resumido
 1. **Captura de datos públicos** desde fuentes oficiales publicadas.
 2. **Hash criptográfico y encadenamiento** para garantizar integridad.
 3. **Normalización** para comparar estructuras en el tiempo.
 4. **Reglas de análisis** para identificar eventos atípicos o inconsistencias.
 5. **Registro histórico** con metadatos reproducibles.
 6. **Reportes técnicos** listos para auditoría externa.
-
-### Beneficios clave
-- **Neutralidad técnica:** no acusa ni interpreta, solo registra y compara.
-- **Reproducibilidad total:** cada resultado puede replicarse con las mismas fuentes y reglas.
-- **Escalabilidad operativa:** diseñado para operación periódica o intensiva en elecciones activas.
-- **Seguridad de evidencia:** hashes y metadatos evitan alteraciones silenciosas.
 
 ### Estado actual
 - **AUDIT ACTIVE**
@@ -56,9 +48,9 @@ El único punto de control editable es **`command_center/`**.
 ### Componentes del repositorio
 - **command_center/**: configuración operativa centralizada y panel de control.
 - **centinel_engine/**: motor separado en Node.js para anclaje de hashes y publicación en L2.
-- **scripts/**: automatizaciones para descarga, hash, análisis y reportes.
+- **scripts/**: automatizaciones para descarga, hashing, análisis y reportes.
 - **docs/**: documentación técnica y guías de operación.
-- **Nota de operación:** la interacción es por scripts/CLI; no hay UI de Streamlit incluida.
+- **dashboard/** y **centinel_dashboard/**: interfaces de demostración.
 
 ### Primeros pasos (5 minutos)
 1. Instala dependencias con Poetry:
@@ -131,11 +123,14 @@ Gracias a la comunidad cívica, periodistas de datos y personas voluntarias que 
 
 ## English
 
-### What is Centinel?
-Centinel is an independent technical system to observe and audit public electoral data in Honduras. It records, normalizes, and verifies changes in published data to produce reproducible, traceable technical reports.
+### What is C.E.N.T.I.N.E.L.?
+C.E.N.T.I.N.E.L. is an independent technical system to observe and audit public electoral data in Honduras. It records, normalizes, and verifies changes in published data to produce reproducible, traceable technical reports.
 
-### Why does it matter?
-Electoral integrity needs verifiable evidence. Centinel provides technical transparency through snapshots, chained hashes, and anomaly analysis with a neutral, civic-first focus.
+### Purpose and value
+- **Verifiable evidence:** snapshots with chained hashes to confirm integrity.
+- **Technical transparency:** auditable records without partisan interpretation.
+- **Historical traceability:** version comparisons to detect meaningful changes.
+- **Neutral and respectful:** civic, defensive, non-intrusive operation.
 
 ### Legal basis and operating boundaries (Honduras)
 This project is grounded in the right to access public information and the obligation to publish information through electronic means.
@@ -146,29 +141,18 @@ Primary legal references:
 - **Art. 5:** Establishes the obligation to facilitate access through electronic means.
 
 Operational scope:
-- Centinel operates for technical auditing and reproducible evidence.
+- C.E.N.T.I.N.E.L. operates for technical auditing and reproducible evidence.
 - It does not interfere with official systems or replace electoral authorities.
 - It does not process personal data; it only uses public sources.
 - It applies defensive, respectful scraping to avoid overload.
 
-### What problem does it solve?
-- **Verifiable evidence:** preserves snapshots with chained hashes so any third party can confirm integrity.
-- **Technical transparency:** turns public data into auditable records without partisan interpretation.
-- **Historical traceability:** enables comparisons across versions over time to spot meaningful changes.
-
-### How does the operational flow work?
+### High-level operational flow
 1. **Capture public data** from official published sources.
 2. **Cryptographic hash chaining** to guarantee integrity.
 3. **Normalization** to compare structures over time.
 4. **Rule-based analysis** to flag anomalies or inconsistencies.
 5. **Historical logging** with reproducible metadata.
 6. **Technical reports** ready for external auditing.
-
-### Key benefits
-- **Technical neutrality:** no accusations, no interpretation—only recording and comparison.
-- **Full reproducibility:** every result can be replicated with the same sources and rules.
-- **Operational scalability:** designed for periodic or high-frequency monitoring during elections.
-- **Evidence security:** hashes and metadata prevent silent tampering.
 
 ### Current status
 - **AUDIT ACTIVE**
@@ -184,7 +168,7 @@ The only editable control point is **`command_center/`**.
 - **centinel_engine/**: separate Node.js engine for hash anchoring and L2 publishing.
 - **scripts/**: automations for downloads, hashing, analysis, and reporting.
 - **docs/**: technical documentation and operating guides.
-- **Operational note:** interaction is via scripts/CLI; there is no bundled Streamlit UI.
+- **dashboard/** and **centinel_dashboard/**: demo interfaces.
 
 ### Quick start (5 minutes)
 1. Install dependencies with Poetry:
@@ -204,11 +188,11 @@ The only editable control point is **`command_center/`**.
    ```bash
    poetry run python scripts/download_and_hash.py
    ```
-5. Run the analysis:
+5. Run analysis:
    ```bash
    poetry run python scripts/analyze_rules.py
    ```
-6. (Optional) Build a summary:
+6. (Optional) Generate a summary:
    ```bash
    poetry run python scripts/summarize_findings.py
    ```
@@ -222,9 +206,9 @@ The only editable control point is **`command_center/`**.
    ```
 
 ### Recommended operating cadence
-- **Maintenance/development mode:** scraping and L2 anchoring **once per month**.
-- **Normal monitoring mode:** between **24 and 72 hours**.
-- **Active election mode:** between **5 and 15 minutes**.
+- **Maintenance/development:** scraping + L2 anchoring **once per month**.
+- **Normal monitoring:** every **24–72 hours**.
+- **Active election:** every **5–15 minutes**.
 
 ### Production with Docker
 - Build the image:
@@ -237,18 +221,18 @@ The only editable control point is **`command_center/`**.
   ```
 
 ### Key links
-- [Quickstart guide](QUICKSTART.md)
+- [Quick start](QUICKSTART.md)
 - [Operations manual](docs/manual.md)
 - [Architecture](docs/architecture.md)
 - [Methodology](docs/methodology.md)
 - [Contributing](CONTRIBUTING.md)
 - [Roadmap](ROADMAP.md)
-- [Dev diary](Dev%20Diary/)
+- [Development diary](Dev%20Diary/)
 - [Security](Security.md)
 - [License: MIT](LICENSE)
 
-## Secrets management and backup
-See the secure backup guide at [docs/SECRETS_BACKUP.md](docs/SECRETS_BACKUP.md).
+## Secrets and backups
+See secure backup instructions in [docs/SECRETS_BACKUP.md](docs/SECRETS_BACKUP.md).
 
-### Thanks
-Thanks to civic community members, data journalists, and volunteers advancing electoral transparency through verifiable evidence.
+### Acknowledgements
+Thanks to civic communities, data journalists, and volunteers who promote electoral transparency through verifiable evidence.

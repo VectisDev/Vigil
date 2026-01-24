@@ -1,4 +1,4 @@
-# Centinel Dashboard (Next.js)
+# C.E.N.T.I.N.E.L. Dashboard (Next.js)
 
 Dashboard futurista para auditoría electoral con blockchain L2, detección automática con IA y reportes verificables.
 

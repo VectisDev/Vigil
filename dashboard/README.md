@@ -1,6 +1,6 @@
-# Dashboard Streamlit de Centinel
+# Dashboard Streamlit de C.E.N.T.I.N.E.L.
 
-Este dashboard demuestra los 5 pilares clave de Centinel para comunicar transparencia electoral con evidencia verificable.
+Este dashboard demuestra los 5 pilares clave de C.E.N.T.I.N.E.L. para comunicar transparencia electoral con evidencia verificable.
 
 ## Ejecutar localmente
 
