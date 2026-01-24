@@ -1,14 +1,21 @@
 [tool.poetry]
 name = "centinel-engine"
-version = "0.4.0"
-description = "Sistema open-source de auditoría continua de datos electorales del CNE Honduras"
-authors = ["CarZel <tu@email.com>"]
+version = "0.1.0"
+description = "C.E.N.T.I.N.E.L.: sistema técnico para auditoría continua de datos electorales públicos en Honduras"
+authors = ["userf8a2c4 <contact@centinel.app>"]
 license = "MIT"
 readme = "README.md"
+homepage = "https://github.com/userf8a2c4/centinel-engine"
+repository = "https://github.com/userf8a2c4/centinel-engine"
+documentation = "https://github.com/userf8a2c4/centinel-engine#readme"
+keywords = ["auditoria-electoral", "transparencia", "hashchain", "open-data", "civic-tech"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent"
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Topic :: Security",
+  "Topic :: Scientific/Engineering :: Information Analysis"
 ]
 packages = [{ include = "centinel", from = "src" }]
 
