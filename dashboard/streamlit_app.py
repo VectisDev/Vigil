@@ -698,17 +698,100 @@ with tabs[0]:
                 height=220,
             )
     with summary_cols[1]:
-        activity_chart = (
-            alt.Chart(filtered_snapshots)
-            .mark_bar(color="#1F77B4")
-            .encode(
-                x=alt.X("hour:N", title="Hora"),
-                y=alt.Y("changes:Q", title="Cambios"),
-                tooltip=["hour", "changes", "department"],
+        if not filtered_snapshots.empty:
+            activity_chart = (
+                alt.Chart(filtered_snapshots)
+                .mark_bar(color="#1F77B4")
+                .encode(
+                    x=alt.X("hour:N", title="Hora"),
+                    y=alt.Y("changes:Q", title="Cambios"),
+                    tooltip=["hour", "changes", "department"],
+                )
+                .properties(height=260, title="Actividad diurna")
             )
-            .properties(height=260, title="Actividad diurna")
+            st.altair_chart(activity_chart, use_container_width=True)
+        else:
+            st.info("Sin datos para actividad diurna en el rango seleccionado.")
+
+    st.markdown("#### Timeline interactivo")
+    if filtered_snapshots.empty:
+        st.info("No hay snapshots disponibles para el timeline.")
+        timeline_view = filtered_snapshots
+    else:
+        timeline_df = filtered_snapshots.copy()
+        timeline_df["timestamp_dt"] = pd.to_datetime(
+            timeline_df["timestamp"], errors="coerce", utc=True
         )
-        st.altair_chart(activity_chart, use_container_width=True)
+        timeline_df = timeline_df.sort_values("timestamp_dt")
+        timeline_labels = timeline_df["timestamp_dt"].fillna(
+            pd.to_datetime(timeline_df["timestamp"], errors="coerce")
+        )
+        timeline_labels = timeline_labels.dt.strftime("%Y-%m-%d %H:%M")
+        timeline_labels = timeline_labels.fillna(timeline_df["timestamp"].astype(str))
+        timeline_df["timeline_label"] = timeline_labels
+
+        range_indices = st.slider(
+            "Rango de tiempo",
+            min_value=0,
+            max_value=max(len(timeline_df) - 1, 0),
+            value=(0, max(len(timeline_df) - 1, 0)),
+            step=1,
+        )
+        speed_label = st.select_slider(
+            "Velocidad de avance",
+            options=["Lento", "Medio", "Rápido"],
+            value="Medio",
+        )
+        speed_step = {"Lento": 1, "Medio": 2, "Rápido": 4}[speed_label]
+
+        if "timeline_index" not in st.session_state:
+            st.session_state.timeline_index = range_indices[0]
+
+        st.session_state.timeline_index = max(
+            range_indices[0],
+            min(st.session_state.timeline_index, range_indices[1]),
+        )
+
+        play_cols = st.columns([0.12, 0.12, 0.2, 0.56])
+        with play_cols[0]:
+            if st.button("◀️"):
+                st.session_state.timeline_index = max(
+                    range_indices[0],
+                    st.session_state.timeline_index - speed_step,
+                )
+        with play_cols[1]:
+            if st.button("▶️"):
+                st.session_state.timeline_index = min(
+                    range_indices[1],
+                    st.session_state.timeline_index + speed_step,
+                )
+        with play_cols[2]:
+            if st.button("⏩ Play"):
+                st.session_state.timeline_index = min(
+                    range_indices[1],
+                    st.session_state.timeline_index + speed_step,
+                )
+                st.experimental_rerun()
+        with play_cols[3]:
+            st.markdown(
+                f"**Tiempo actual:** {timeline_df.iloc[st.session_state.timeline_index]['timeline_label']}"
+            )
+
+        timeline_view = timeline_df.iloc[
+            range_indices[0] : range_indices[1] + 1
+        ]
+
+        timeline_chart = (
+            alt.Chart(timeline_view)
+            .mark_bar(color="#2CA02C")
+            .encode(
+                x=alt.X("timeline_label:N", title="Tiempo"),
+                y=alt.Y("votes:Q", title="Votos"),
+                tooltip=["timeline_label", "votes", "delta", "department"],
+            )
+            .properties(height=240, title="Timeline de votos")
+        )
+        st.altair_chart(timeline_chart, use_container_width=True)
 
     chart_cols = st.columns(2)
     with chart_cols[0]:
