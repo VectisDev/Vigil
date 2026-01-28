@@ -326,6 +326,93 @@ def build_heatmap(anomalies: pd.DataFrame) -> pd.DataFrame:
     return heatmap
 
 
+def compute_topology_integrity(
+    snapshots_df: pd.DataFrame, departments: list[str]
+) -> dict[str, int | bool]:
+    if snapshots_df.empty:
+        return {"department_total": 0, "national_total": 0, "delta": 0, "is_match": True}
+    df = snapshots_df.copy()
+    if "timestamp_dt" not in df.columns:
+        df["timestamp_dt"] = pd.to_datetime(df["timestamp"], errors="coerce", utc=True)
+    df = df.sort_values("timestamp_dt")
+    dept_df = df[df["department"].isin(departments)]
+    latest_per_dept = (
+        dept_df.sort_values("timestamp_dt").groupby("department", as_index=False).tail(1)
+    )
+    department_total = int(latest_per_dept["votes"].sum())
+    national_df = df[~df["department"].isin(departments)]
+    if not national_df.empty:
+        national_total = int(national_df.iloc[-1]["votes"])
+    else:
+        national_total = int(df.iloc[-1]["votes"])
+    delta = department_total - national_total
+    return {
+        "department_total": department_total,
+        "national_total": national_total,
+        "delta": delta,
+        "is_match": delta == 0,
+    }
+
+
+def build_latency_matrix(
+    snapshots_df: pd.DataFrame, departments: list[str], report_time: dt.datetime
+) -> tuple[list[list[str]], list[dict[str, int | bool]]]:
+    if report_time.tzinfo is None:
+        report_time = report_time.replace(tzinfo=dt.timezone.utc)
+    df = snapshots_df.copy()
+    if "timestamp_dt" not in df.columns:
+        df["timestamp_dt"] = pd.to_datetime(df["timestamp"], errors="coerce", utc=True)
+    cells = []
+    for dept in departments:
+        dept_rows = df[df["department"] == dept]
+        last_dt = None
+        if not dept_rows.empty:
+            last_dt = dept_rows["timestamp_dt"].max()
+        last_label = "Sin datos"
+        stale = True
+        if isinstance(last_dt, pd.Timestamp) and not pd.isna(last_dt):
+            last_dt = last_dt.to_pydatetime()
+        if isinstance(last_dt, dt.datetime):
+            last_label = last_dt.strftime("%H:%M")
+            stale = (report_time - last_dt).total_seconds() > 3600
+        cells.append({"department": dept, "last_update": last_label, "stale": stale})
+    per_row = 6
+    rows = []
+    cell_styles = []
+    for idx, cell in enumerate(cells):
+        row_idx = idx // per_row
+        col_idx = idx % per_row
+        cell_styles.append({"row": row_idx, "col": col_idx, "stale": cell["stale"]})
+    for row_start in range(0, len(cells), per_row):
+        row_cells = cells[row_start : row_start + per_row]
+        rows.append(
+            [
+                f"{cell['department']}\n{cell['last_update']}"
+                for cell in row_cells
+            ]
+        )
+    return rows, cell_styles
+
+
+def compute_ingestion_velocity(snapshots_df: pd.DataFrame) -> float:
+    if snapshots_df.empty:
+        return 0.0
+    df = snapshots_df.copy()
+    if "timestamp_dt" not in df.columns:
+        df["timestamp_dt"] = pd.to_datetime(df["timestamp"], errors="coerce", utc=True)
+    df = df.dropna(subset=["timestamp_dt"]).sort_values("timestamp_dt")
+    if df.empty:
+        return 0.0
+    first_votes = float(df.iloc[0]["votes"])
+    last_votes = float(df.iloc[-1]["votes"])
+    delta_votes = max(last_votes - first_votes, 0.0)
+    minutes = max(
+        (df.iloc[-1]["timestamp_dt"] - df.iloc[0]["timestamp_dt"]).total_seconds() / 60,
+        1.0,
+    )
+    return delta_votes / minutes
+
+
 @st.cache_data(show_spinner=False)
 def build_benford_data() -> pd.DataFrame:
     expected = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
@@ -600,6 +687,15 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             textColor=colors.white,
         )
     )
+    styles.add(
+        ParagraphStyle(
+            name="AlertText",
+            fontName=bold_font,
+            fontSize=10,
+            leading=13,
+            textColor=colors.HexColor("#B91C1C"),
+        )
+    )
 
     def as_paragraph(value: object, style: ParagraphStyle) -> Paragraph:
         return Paragraph(str(value), style)
@@ -625,13 +721,14 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
     elements: list = []
     elements.append(Paragraph("🔒 C.E.N.T.I.N.E.L. · Informe Ejecutivo", styles["HeadingPrimary"]))
     elements.append(Paragraph(data["subtitle"], styles["Body"]))
+    elements.append(Paragraph(data["input_source"], styles["Body"]))
     elements.append(Paragraph(data["generated"], styles["Body"]))
     elements.append(Paragraph(data["global_status"], styles["HeadingSecondary"]))
     elements.append(Spacer(1, 6))
 
     elements.append(Paragraph("Sección 1 · Estatus Global", styles["HeadingSecondary"]))
     elements.append(Paragraph(data["executive_summary"], styles["Body"]))
-    kpi_widths = [doc.width * 0.2] * 5
+    kpi_widths = [doc.width * 0.166] * 6
     kpi_table = build_table(data["kpi_rows"], kpi_widths)
     kpi_table.setStyle(
         TableStyle(
@@ -642,6 +739,60 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
         )
     )
     elements.append(kpi_table)
+    elements.append(Spacer(1, 8))
+
+    elements.append(
+        Paragraph("Sección 1.1 · Integridad de Topología (Cross-Check)", styles["HeadingSecondary"])
+    )
+    topology_style = "Body" if data["topology"]["is_match"] else "AlertText"
+    elements.append(Paragraph(data["topology_summary"], styles[topology_style]))
+    topology_table = build_table(data["topology_rows"], [doc.width * 0.3] * 3)
+    elements.append(topology_table)
+    elements.append(Spacer(1, 8))
+
+    elements.append(
+        Paragraph("Sección 1.2 · Latencia de Nodos (Último Update)", styles["HeadingSecondary"])
+    )
+    latency_rows = data.get("latency_rows", [])
+    if latency_rows:
+        per_row = len(latency_rows[0])
+        latency_table = Table(latency_rows, colWidths=[doc.width / per_row] * per_row)
+        latency_style = TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d0d4db")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("LEADING", (0, 0), (-1, -1), 10),
+            ]
+        )
+        for cell in data.get("latency_alert_cells", []):
+            row_idx = cell["row"]
+            col_idx = cell["col"]
+            if cell["stale"]:
+                latency_style.add(
+                    "BACKGROUND",
+                    (col_idx, row_idx),
+                    (col_idx, row_idx),
+                    colors.HexColor("#fee2e2"),
+                )
+                latency_style.add(
+                    "TEXTCOLOR",
+                    (col_idx, row_idx),
+                    (col_idx, row_idx),
+                    colors.HexColor("#b91c1c"),
+                )
+            else:
+                latency_style.add(
+                    "BACKGROUND",
+                    (col_idx, row_idx),
+                    (col_idx, row_idx),
+                    colors.HexColor("#ecfdf3"),
+                )
+        latency_table.setStyle(latency_style)
+        elements.append(latency_table)
+    else:
+        elements.append(Paragraph("Sin datos de latencia disponibles.", styles["Body"]))
     elements.append(Spacer(1, 8))
 
     elements.append(Paragraph("Sección 2 · Anomalías Detectadas", styles["HeadingSecondary"]))
@@ -665,7 +816,12 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             delta_pct_val = float(delta_pct)
         except ValueError:
             delta_pct_val = 0.0
-        if delta_pct_val <= -1.0:
+        if "ROLLBACK / ELIMINACIÓN DE DATOS" in str(row[6]):
+            table_style.append(
+                ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor("#B91C1C"))
+            )
+            table_style.append(("TEXTCOLOR", (0, row_idx), (-1, row_idx), colors.white))
+        elif delta_pct_val <= -1.0:
             table_style.append(
                 ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor("#fdecea"))
             )
@@ -1113,7 +1269,8 @@ with tabs[3]:
 
 with tabs[4]:
     st.markdown("### Reportes y Exportación")
-    report_time = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M")
+    report_time_dt = dt.datetime.now(dt.timezone.utc)
+    report_time = report_time_dt.strftime("%Y-%m-%d %H:%M")
     report_payload = f"{anchor.root_hash}|{anchor.tx_url}|{report_time}"
     report_hash = compute_report_hash(report_payload)
 
@@ -1147,10 +1304,28 @@ with tabs[4]:
             f"{row.get('delta_pct', 0):.2f}%",
             row.get("hour") or "",
             row.get("hash") or "",
-            row.get("type"),
+            "ROLLBACK / ELIMINACIÓN DE DATOS"
+            if row.get("type") == "Delta negativo"
+            else row.get("type"),
         ]
         for _, row in anomalies_sorted.head(12).iterrows()
     ]
+
+    topology = compute_topology_integrity(snapshots_df, departments)
+    latency_rows, latency_alert_cells = build_latency_matrix(
+        snapshots_df, departments, report_time_dt
+    )
+    velocity_vpm = compute_ingestion_velocity(snapshots_df)
+    db_inconsistencies = int(
+        (filtered_anomalies["type"] == "Delta negativo").sum()
+        if not filtered_anomalies.empty
+        else 0
+    )
+    stat_deviations = int(
+        (filtered_anomalies["type"] != "Delta negativo").sum()
+        if not filtered_anomalies.empty
+        else 0
+    )
 
     rules_list = (
         rules_df.assign(summary=rules_df["rule"] + " (" + rules_df["thresholds"].fillna("-") + ")")
@@ -1171,19 +1346,62 @@ with tabs[4]:
     if qr_bytes is not None:
         qr_buffer = io.BytesIO(qr_bytes)
 
+    topology_rows = [
+        ["Suma 18 deptos", "Total nacional", "Delta"],
+        [
+            f"{topology['department_total']:,}",
+            f"{topology['national_total']:,}",
+            f"{topology['delta']:+,}",
+        ],
+    ]
+    if topology["is_match"]:
+        topology_summary = (
+            "Consistencia confirmada: la suma de departamentos coincide con el total nacional."
+        )
+    else:
+        topology_summary = (
+            "DISCREPANCIA DE AGREGACIÓN: La suma de departamentos difiere "
+            f"del nacional en {topology['delta']:+,} votos."
+        )
+
     pdf_data = {
         "title": "Informe de Auditoría C.E.N.T.I.N.E.L.",
         "subtitle": f"Estatus verificable · Alcance {selected_department}",
+        "input_source": "Input Source: 19 JSON Streams (Direct Endpoint)",
         "generated": f"Fecha/hora: {report_time} UTC",
         "global_status": "ESTATUS GLOBAL: VERIFICABLE · SIN ANOMALÍAS CRÍTICAS",
-        "executive_summary": "Auditoría digital con deltas por departamento, controles Benford y trazabilidad blockchain.",
+        "executive_summary": (
+            "CENTINEL ha auditado "
+            f"{len(snapshot_files)} snapshots de 19 flujos de datos JSON. "
+            f"Se detectaron {db_inconsistencies} inconsistencias de base de datos "
+            f"y {stat_deviations} desviaciones estadísticas."
+        ),
         "kpi_rows": [
-            ["Auditorías", "Correctivas", "Snapshots", "Reglas", "Hashes"],
-            ["8", "2", str(len(snapshot_files)), str(len(rules_df)), anchor.root_hash[:10]],
+            [
+                "Auditorías",
+                "Correctivas",
+                "Snapshots",
+                "Reglas",
+                "Hashes",
+                "Velocidad Ingesta",
+            ],
+            [
+                "8",
+                "2",
+                str(len(snapshot_files)),
+                str(len(rules_df)),
+                anchor.root_hash[:10],
+                f"{velocity_vpm:,.1f} votos/min",
+            ],
         ],
         "anomaly_rows": anomaly_rows,
         "snapshot_rows": snapshot_rows,
         "rules_list": rules_list,
+        "topology": topology,
+        "topology_rows": topology_rows,
+        "topology_summary": topology_summary,
+        "latency_rows": latency_rows,
+        "latency_alert_cells": latency_alert_cells,
         "crypto_text": f"Hash raíz: {anchor.root_hash}\nQR para escaneo y validación pública.",
         "risk_text": "Mapa de riesgos: deltas negativos, irregularidades temporales y dispersión geográfica.",
         "governance_text": "Gobernanza: trazabilidad, inmutabilidad y publicación auditada del JSON CNE.",
