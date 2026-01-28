@@ -11,6 +11,7 @@ Esta carpeta contiene los ejecutables principales del pipeline:
 - `run_pipeline.py`: orquesta el pipeline completo en orden y puede correr una vez.
 - `cli.py`: utilidades CLI para normalización, hashing y auditorías locales.
 - `replay_2025_demo.py`: genera un reporte neutral de diffs para el replay 2025.
+- `validate_hashes.py`: valida la cadena de hashes y el anclaje (o simulación).
 
 Uso típico:
 1. Ejecutar `bootstrap.py` para crear configuración inicial.
@@ -32,6 +33,7 @@ This folder contains the main pipeline executables:
 - `run_pipeline.py`: orchestrates the full pipeline in order and can run once.
 - `cli.py`: CLI utilities for normalization, hashing, and local audits.
 - `replay_2025_demo.py`: generates a neutral diff report for the 2025 replay.
+- `validate_hashes.py`: validates the hash chain and anchor (or simulation).
 
 Typical usage:
 1. Run `bootstrap.py` to create initial configuration.
