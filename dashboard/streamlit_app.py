@@ -138,9 +138,9 @@ def load_configs() -> dict[str, dict]:
 
 
 @st.cache_data(show_spinner=False)
-def load_snapshot_files() -> list[dict[str, Any]]:
+def load_snapshot_files(base_dir: Path) -> list[dict[str, Any]]:
     snapshots = []
-    for path in sorted(Path("data").glob("snapshot_*.json")):
+    for path in sorted(base_dir.glob("snapshot_*.json")):
         content = path.read_text(encoding="utf-8")
         payload = json.loads(content)
         timestamp = payload.get("timestamp")
@@ -515,7 +515,13 @@ command_center_cfg = configs.get("command_center", {})
 
 anchor = load_blockchain_anchor()
 
-snapshot_files = load_snapshot_files()
+snapshot_source = st.sidebar.selectbox(
+    "Fuente de snapshots",
+    ["data", "data/2025"],
+    index=0,
+)
+snapshot_base_dir = Path(snapshot_source)
+snapshot_files = load_snapshot_files(snapshot_base_dir)
 progress = st.progress(0, text="Cargando snapshots inmutables…")
 for step in range(1, 5):
     progress.progress(step * 25, text=f"Sincronizando evidencia {step}/4")
@@ -530,7 +536,10 @@ rules_df = build_rules_table(command_center_cfg)
 rules_engine_output = run_rules_engine(snapshots_df, command_center_cfg)
 
 if snapshots_df.empty:
-    st.warning("No se encontraron snapshots en data/. El panel está en modo demo.")
+    st.warning(
+        f"No se encontraron snapshots en {snapshot_base_dir.as_posix()}/. "
+        "El panel está en modo demo."
+    )
 
 css = """
 <style>
