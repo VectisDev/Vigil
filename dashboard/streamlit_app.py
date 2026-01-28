@@ -516,7 +516,7 @@ class NumberedCanvas(reportlab_canvas.Canvas):
 
     def showPage(self) -> None:
         self._saved_page_states.append(dict(self.__dict__))
-        super().showPage()
+        self._startPage()
 
     def save(self) -> None:
         total_pages = len(self._saved_page_states)
