@@ -517,13 +517,13 @@ def create_pdf_charts(
         benford_df["digit"],
         observed * 100,
         label="Observado",
-        color="#0B1F3B",
+        color="#002147",
         alpha=0.9,
     )
     ax.plot(
         benford_df["digit"],
         expected * 100,
-        color="#94A3B8",
+        color="#708090",
         linewidth=2,
         label="Benford Teórico",
     )
@@ -617,7 +617,7 @@ def create_pdf_charts(
         fig, ax = plt.subplots(figsize=(6.8, 2.8))
         labels = ["Nacional"] + dept_labels + ["Flotante"]
         values = [national_total] + dept_values + [floating]
-        colors_list = ["#1F77B4"] + ["#0B1F3B"] * len(dept_values) + ["#B22222"]
+        colors_list = ["#1F77B4"] + ["#002147"] * len(dept_values) + ["#B22222"]
         for idx, (label, value, color) in enumerate(zip(labels, values, colors_list)):
             ax.bar(idx, value, color=color, alpha=0.85)
         ax.axhline(national_total, color="#94A3B8", linestyle="--", linewidth=1)
@@ -739,12 +739,12 @@ class NumberedCanvas(reportlab_canvas.Canvas):
             current_hash = hashlib.sha256(
                 f"{prev_hash}|{page}".encode("utf-8")
             ).hexdigest()[:12]
-            self.draw_page_number(total_pages, prev_hash, current_hash)
+            self.draw_page_number(total_pages, current_hash)
             prev_hash = current_hash
             super().showPage()
         super().save()
 
-    def draw_page_number(self, total_pages: int, prev_hash: str, current_hash: str) -> None:
+    def draw_page_number(self, total_pages: int, current_hash: str) -> None:
         self.setFont("Helvetica", 8)
         self.setFillColor(colors.grey)
         page = self.getPageNumber()
@@ -757,7 +757,7 @@ class NumberedCanvas(reportlab_canvas.Canvas):
         self.drawString(
             1.5 * cm,
             0.3 * cm,
-            f"Pag {page} | Previo: {prev_hash} | Hash Actual: {current_hash}",
+            f"Pag {page} | Page Hash: {current_hash}",
         )
         self.setFont("Helvetica", 7)
         self.drawRightString(
@@ -777,10 +777,10 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
     doc = SimpleDocTemplate(
         buffer,
         pagesize=page_size,
-        leftMargin=1.5 * cm,
-        rightMargin=1.5 * cm,
-        topMargin=1.5 * cm,
-        bottomMargin=1.5 * cm,
+        leftMargin=2.5 * cm,
+        rightMargin=2.5 * cm,
+        topMargin=2.5 * cm,
+        bottomMargin=2.5 * cm,
     )
 
     styles = getSampleStyleSheet()
@@ -1010,9 +1010,13 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             delta_pct_val = 0.0
         if "ROLLBACK / ELIMINACIÓN DE DATOS" in str(row[6]):
             table_style.append(
-                ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor("#B91C1C"))
+                ("BACKGROUND", (6, row_idx), (6, row_idx), colors.HexColor("#FEE2E2"))
             )
-            table_style.append(("TEXTCOLOR", (0, row_idx), (-1, row_idx), colors.white))
+            table_style.append(("TEXTCOLOR", (6, row_idx), (6, row_idx), colors.HexColor("#B91C1C")))
+        elif "OUTLIER" in str(row[6]).upper():
+            table_style.append(
+                ("BACKGROUND", (6, row_idx), (6, row_idx), colors.HexColor("#FEF3C7"))
+            )
         elif delta_pct_val <= -1.0:
             table_style.append(
                 ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor("#fdecea"))
@@ -1020,6 +1024,9 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             table_style.append(
                 ("TEXTCOLOR", (2, row_idx), (3, row_idx), colors.HexColor("#D62728"))
             )
+    table_style.append(("FONTNAME", (5, 1), (5, -1), "Courier"))
+    table_style.append(("FONTSIZE", (5, 1), (5, -1), 8))
+    table_style.append(("LEADING", (5, 1), (5, -1), 9))
     anomaly_table.setStyle(TableStyle(table_style))
     elements.append(anomaly_table)
     elements.append(Spacer(1, 8))
@@ -1505,9 +1512,11 @@ with tabs[4]:
         chain_hash = ""
         if current_hash:
             chain_hash = hashlib.sha256(f"{prev_hash}|{current_hash}".encode("utf-8")).hexdigest()
-        hash_cell = current_hash
+        hash_cell = current_hash[:6] if current_hash else ""
         if current_hash:
-            hash_cell = f"{current_hash}\n{prev_hash[:8]}→{chain_hash[:8]}"
+            prev_short = prev_hash[:6] if prev_hash else "------"
+            curr_short = current_hash[:6]
+            hash_cell = f"{prev_short}→{curr_short}"
         anomaly_rows.append(
             [
                 row.get("department"),
@@ -1580,7 +1589,7 @@ with tabs[4]:
         )
     if topology["delta"]:
         topology_alert = (
-            "ALERTA: Se detectó una inyección de "
+            "ALERTA CRÍTICA: Se detectó una inyección/pérdida de "
             f"{abs(topology['delta']):,} votos que no poseen origen geográfico trazable."
         )
     else:
@@ -1588,11 +1597,11 @@ with tabs[4]:
 
     benford_deviation = (benford_df["observed"] - benford_df["expected"]).abs().max()
     if not topology["is_match"] or benford_deviation > 5:
-        status_badge = {"label": "INTEGRIDAD COMPROMETIDA", "color": "#B22222"}
+        status_badge = {"label": "ESTATUS: COMPROMETIDO", "color": "#B22222"}
     elif critical_count > 0:
         status_badge = {"label": "BAJO REVISIÓN", "color": "#DAA520"}
     else:
-        status_badge = {"label": "INTEGRIDAD VERIFICADA", "color": "#008000"}
+        status_badge = {"label": "ESTATUS: VERIFICADO", "color": "#008000"}
 
     integrity_pct = 100.0
     if len(filtered_snapshots) > 0:
