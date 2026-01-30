@@ -486,6 +486,8 @@ def create_pdf_charts(
     votes_df: pd.DataFrame,
     heatmap_df: pd.DataFrame,
     anomalies_df: pd.DataFrame,
+    topology: dict,
+    snapshots_df: pd.DataFrame,
 ) -> dict:
     if plt is None:
         return {}
@@ -494,9 +496,12 @@ def create_pdf_charts(
 
     fig, ax = plt.subplots(figsize=(6.8, 2.8))
     deviation = (benford_df["observed"] - benford_df["expected"]).abs()
-    observed_colors = [
-        "#D62728" if dev > 5 else "#2CA02C" for dev in deviation
-    ]
+    observed_colors = ["#D62728" if dev > 5 else "#2CA02C" for dev in deviation]
+    sample_size = max(len(votes_df), 1)
+    expected = benford_df["expected"] / 100.0
+    ci = 1.96 * (expected * (1 - expected) / sample_size) ** 0.5
+    upper = (expected + ci) * 100
+    lower = (expected - ci) * 100
     ax.bar(
         benford_df["digit"],
         benford_df["expected"],
@@ -504,13 +509,27 @@ def create_pdf_charts(
         color="#1F77B4",
         alpha=0.75,
     )
-    ax.bar(
+    bars = ax.bar(
         benford_df["digit"],
         benford_df["observed"],
         label="Observado",
         color=observed_colors,
         alpha=0.9,
     )
+    ax.fill_between(
+        benford_df["digit"],
+        lower,
+        upper,
+        color="#94A3B8",
+        alpha=0.3,
+        label="95% CI",
+    )
+    for idx, bar in enumerate(bars):
+        if (
+            benford_df["observed"].iloc[idx] < lower.iloc[idx]
+            or benford_df["observed"].iloc[idx] > upper.iloc[idx]
+        ):
+            bar.set_color("#D62728")
     ax.set_title("Distribución Benford (observado vs esperado)")
     ax.set_xlabel("Dígito")
     ax.set_ylabel("%")
@@ -572,6 +591,50 @@ def create_pdf_charts(
         plt.close(fig)
         buf.seek(0)
         chart_buffers["heatmap"] = buf
+
+    if topology and not topology.get("is_match", True):
+        dept_total = float(topology.get("department_total", 0))
+        national_total = float(topology.get("national_total", 0))
+        delta = national_total - dept_total
+        fig, ax = plt.subplots(figsize=(6.8, 2.6))
+        ax.bar([0], [dept_total], color="#1F77B4")
+        ax.bar([1], [delta], bottom=[dept_total], color="#D62728")
+        ax.bar([2], [national_total], color="#2CA02C")
+        ax.set_xticks([0, 1, 2], ["Departamentos", "Δ", "Nacional"])
+        ax.set_ylabel("Votos")
+        ax.set_title("Waterfall de discrepancia")
+        ax.grid(axis="y", alpha=0.2)
+        buf = io.BytesIO()
+        fig.tight_layout()
+        fig.savefig(buf, format="png", dpi=300)
+        plt.close(fig)
+        buf.seek(0)
+        chart_buffers["waterfall"] = buf
+
+    if not snapshots_df.empty and "hash" in snapshots_df.columns:
+        recent_hashes = snapshots_df["hash"].head(5).tolist()
+        fig, ax = plt.subplots(figsize=(6.8, 2.0))
+        ax.axis("off")
+        for idx, value in enumerate(recent_hashes):
+            label = str(value)[:8]
+            x = idx * 1.4
+            ax.add_patch(plt.Rectangle((x, 0.4), 1.1, 0.6, color="#1F2937", alpha=0.9))
+            ax.text(x + 0.55, 0.7, label, color="white", ha="center", va="center", fontsize=8)
+            if idx < len(recent_hashes) - 1:
+                ax.annotate(
+                    "",
+                    xy=(x + 1.2, 0.7),
+                    xytext=(x + 1.35, 0.7),
+                    arrowprops=dict(arrowstyle="->", color="#10B981"),
+                )
+        ax.set_xlim(-0.2, len(recent_hashes) * 1.4)
+        ax.set_ylim(0, 1.5)
+        fig.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=300, transparent=True)
+        plt.close(fig)
+        buf.seek(0)
+        chart_buffers["chain"] = buf
 
     return chart_buffers
 
@@ -756,6 +819,9 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
     elements.append(Paragraph(data["topology_summary"], styles[topology_style]))
     topology_table = build_table(data["topology_rows"], [doc.width * 0.3] * 3)
     elements.append(topology_table)
+    if "waterfall" in chart_buffers:
+        elements.append(Spacer(1, 4))
+        elements.append(Image(chart_buffers["waterfall"], width=doc.width * 0.6, height=4.2 * cm))
     elements.append(Spacer(1, 8))
 
     elements.append(
@@ -847,6 +913,11 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             elements.append(Image(buf, width=doc.width, height=5.5 * cm))
             elements.append(Paragraph(caption, styles["Body"]))
             elements.append(Spacer(1, 4))
+    chain_buf = chart_buffers.get("chain")
+    if chain_buf:
+        elements.append(Image(chain_buf, width=doc.width * 0.7, height=3.5 * cm))
+        elements.append(Paragraph("Cadena de snapshots recientes.", styles["Body"]))
+        elements.append(Spacer(1, 4))
 
     elements.append(Paragraph("Sección 4 · Snapshots Recientes", styles["HeadingSecondary"]))
     snapshot_rows = data["snapshot_rows"]
@@ -1347,6 +1418,8 @@ with tabs[4]:
         filtered_snapshots,
         heatmap_df,
         filtered_anomalies,
+        topology,
+        snapshots_real,
     )
 
     qr_buffer = None
