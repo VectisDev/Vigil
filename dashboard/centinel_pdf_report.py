@@ -9,6 +9,7 @@ import pandas as pd
 import qrcode
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas as reportlab_canvas
@@ -92,6 +93,8 @@ class CentinelPDFReport:
         )
 
         elements.append(Spacer(1, 8))
+        elements.extend(self._build_executive_section(styles, data))
+
         elements.append(Paragraph("Integridad Topológica", styles["Heading"]))
         topology = data.get("topology_check", {})
         elements.append(self._build_topology_section(styles, topology))
@@ -124,6 +127,18 @@ class CentinelPDFReport:
         chain = self._render_chain(data.get("snapshots", []))
         if chain is not None:
             elements.append(Image(chain, width=doc.width, height=4.8 * cm))
+
+        elements.append(Spacer(1, 12))
+        elements.extend(self._build_snapshot_section(styles, data))
+
+        elements.append(Spacer(1, 12))
+        elements.extend(self._build_rules_section(styles, data))
+
+        elements.append(Spacer(1, 12))
+        elements.extend(self._build_crypto_section(styles, data))
+
+        elements.append(Spacer(1, 12))
+        elements.extend(self._build_governance_section(styles, data))
 
         elements.append(Spacer(1, 12))
         elements.append(Paragraph("Verificación QR", styles["Heading"]))
@@ -178,6 +193,24 @@ class CentinelPDFReport:
                 fontSize=9.5,
                 leading=12,
                 textColor=self.palette["alert"],
+            )
+        )
+        styles.add(
+            ParagraphStyle(
+                name="TableHeader",
+                fontName="Helvetica-Bold",
+                fontSize=8.5,
+                leading=10,
+                alignment=TA_CENTER,
+                textColor=colors.white,
+            )
+        )
+        styles.add(
+            ParagraphStyle(
+                name="TableCell",
+                fontName="Helvetica",
+                fontSize=8.5,
+                leading=10,
             )
         )
         return styles
@@ -258,6 +291,105 @@ class CentinelPDFReport:
                 items.append(Spacer(1, 6))
                 items.append(Image(waterfall, width=12 * cm, height=5.5 * cm))
         return Table([[item] for item in items], colWidths=[16.5 * cm])
+
+    def _build_executive_section(
+        self, styles: dict[str, ParagraphStyle], data: dict[str, Any]
+    ) -> list[Any]:
+        elements: list[Any] = []
+        subtitle = data.get("subtitle")
+        if subtitle:
+            elements.append(Paragraph(str(subtitle), styles["Body"]))
+        executive_summary = data.get("executive_summary")
+        if executive_summary:
+            elements.append(Paragraph("Resumen Ejecutivo", styles["Heading"]))
+            elements.append(Paragraph(str(executive_summary), styles["Body"]))
+        kpi_rows = data.get("kpi_rows")
+        if kpi_rows:
+            elements.append(Spacer(1, 6))
+            elements.append(Paragraph("Indicadores Clave", styles["Heading"]))
+            elements.append(self._build_table(styles, kpi_rows, row_background="#F1F5F9"))
+        anomaly_rows = data.get("anomaly_rows")
+        if anomaly_rows:
+            elements.append(Spacer(1, 8))
+            elements.append(Paragraph("Anomalías Detectadas", styles["Heading"]))
+            elements.append(self._build_table(styles, anomaly_rows, row_background="#FEF2F2"))
+        return elements
+
+    def _build_snapshot_section(
+        self, styles: dict[str, ParagraphStyle], data: dict[str, Any]
+    ) -> list[Any]:
+        snapshot_rows = data.get("snapshot_rows")
+        if not snapshot_rows:
+            return []
+        return [
+            Paragraph("Snapshots Recientes", styles["Heading"]),
+            self._build_table(styles, snapshot_rows, row_background="#F8FAFC"),
+        ]
+
+    def _build_rules_section(
+        self, styles: dict[str, ParagraphStyle], data: dict[str, Any]
+    ) -> list[Any]:
+        rules = data.get("rules_list") or []
+        if not rules:
+            return []
+        elements = [Paragraph("Reglas Activas", styles["Heading"])]
+        for rule in rules:
+            elements.append(Paragraph(f"• {rule}", styles["Body"]))
+        return elements
+
+    def _build_crypto_section(
+        self, styles: dict[str, ParagraphStyle], data: dict[str, Any]
+    ) -> list[Any]:
+        crypto_text = data.get("crypto_text")
+        if not crypto_text:
+            return []
+        return [
+            Paragraph("Verificación Criptográfica", styles["Heading"]),
+            Paragraph(str(crypto_text), styles["Body"]),
+        ]
+
+    def _build_governance_section(
+        self, styles: dict[str, ParagraphStyle], data: dict[str, Any]
+    ) -> list[Any]:
+        risk_text = data.get("risk_text")
+        governance_text = data.get("governance_text")
+        if not risk_text and not governance_text:
+            return []
+        elements = [Paragraph("Riesgos y Gobernanza", styles["Heading"])]
+        if risk_text:
+            elements.append(Paragraph(str(risk_text), styles["Body"]))
+        if governance_text:
+            elements.append(Paragraph(str(governance_text), styles["Body"]))
+        return elements
+
+    def _build_table(
+        self,
+        styles: dict[str, ParagraphStyle],
+        rows: list[list[Any]],
+        row_background: str,
+    ) -> Table:
+        header = [Paragraph(str(cell), styles["TableHeader"]) for cell in rows[0]]
+        body = [
+            [Paragraph(str(cell), styles["TableCell"]) for cell in row]
+            for row in rows[1:]
+        ]
+        table = Table([header] + body, repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), self.palette["navy"]),
+                    ("GRID", (0, 0), (-1, -1), 0.25, self.palette["muted"]),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor(row_background)],
+                    ),
+                ]
+            )
+        )
+        return table
 
     def _render_waterfall(self, dept_total: float, national_total: float) -> io.BytesIO | None:
         delta = national_total - dept_total

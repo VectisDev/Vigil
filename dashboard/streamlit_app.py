@@ -1430,12 +1430,13 @@ with tabs[4]:
             from centinel_pdf_report import CentinelPDFReport
 
             report_data = {
+                **pdf_data,
                 "timestamp_utc": report_time_dt,
                 "root_hash": anchor.root_hash,
                 "status": "COMPROMETIDO"
                 if (not topology["is_match"] or critical_count > 0)
                 else "INTEGRAL",
-                "source": "Endpoint JSON CNE",
+                "source": pdf_data.get("input_source", "Endpoint JSON CNE"),
                 "topology_check": {
                     "total_national": topology["national_total"],
                     "department_total": topology["department_total"],
