@@ -585,22 +585,13 @@ def create_pdf_charts(
 
     if not heatmap_df.empty:
         heatmap_pivot = heatmap_df.pivot(index="department", columns="hour", values="anomaly_count").fillna(0)
-        fig, ax = plt.subplots(figsize=(8.4, 3.2))
+        fig, ax = plt.subplots(figsize=(11.0, 3.4))
         ax.imshow(heatmap_pivot.values, aspect="auto", cmap="Reds")
         ax.set_title("Mapa de anomalías por departamento/hora")
         ax.set_yticks(range(len(heatmap_pivot.index)))
         ax.set_yticklabels(heatmap_pivot.index, fontsize=6)
         ax.set_xticks(range(len(heatmap_pivot.columns)))
-        ax.set_xticklabels([str(x) for x in heatmap_pivot.columns], fontsize=6)
-        if "Colón" in heatmap_pivot.index:
-            col_index = list(heatmap_pivot.index).index("Colón")
-            ax.scatter(
-                [0],
-                [col_index],
-                color="#D62728",
-                s=20,
-                marker="s",
-            )
+        ax.set_xticklabels([str(x) for x in heatmap_pivot.columns], fontsize=6, rotation=45)
         buf = io.BytesIO()
         fig.tight_layout()
         fig.savefig(buf, format="png", dpi=300)
