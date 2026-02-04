@@ -1,0 +1,48 @@
+name: Lint
+
+on:
+  push:
+    branches: ["main", "dev-v6"]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout / Revisar código
+      - name: Checkout repository / Clonar repositorio
+        uses: actions/checkout@v4
+
+      # Setup Python / Preparar Python
+      - name: Set up Python / Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Install Poetry / Instalar Poetry
+      - name: Install Poetry / Instalar Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      # Cache Poetry + venv / Cache de Poetry + entorno virtual
+      - name: Cache Poetry and virtualenv / Cache de Poetry y virtualenv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            .venv
+          key: ${{ runner.os }}-poetry-3.11-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-3.11-
+
+      - name: Install dependencies / Instalar dependencias
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --no-root --with dev
+
+      # Lint / Revisar estilo
+      - name: Lint (flake8 + black) / Lint (flake8 + black)
+        run: |
+          poetry run flake8 .
+          poetry run black --check .
