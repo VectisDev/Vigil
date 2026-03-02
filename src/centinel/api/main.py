@@ -86,6 +86,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -520,6 +521,106 @@ def api_health(request: Request) -> dict:
 def api_summaries(request: Request) -> dict:
     """/** Endpoint de summaries protegido por rate limiting. / Summaries endpoint protected by rate limiting. **/"""
     return load_summaries_payload()
+
+
+DASHBOARD_HTML = """<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C.E.N.T.I.N.E.L. Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#0A1428;color:#E0E6ED;min-height:100vh}
+.header{background:linear-gradient(135deg,#0D1B2A 0%,#1B2838 100%);border-bottom:2px solid #00A3E0;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:1.4rem;letter-spacing:2px;color:#00A3E0}
+.header .badge{background:#00C853;color:#0A1428;padding:.25rem .75rem;border-radius:4px;font-size:.75rem;font-weight:700}
+.container{max-width:1200px;margin:0 auto;padding:2rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;margin-bottom:2rem}
+.card{background:#111D2E;border:1px solid #1E3048;border-radius:8px;padding:1.25rem}
+.card h3{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#7A8BA3;margin-bottom:.5rem}
+.card .value{font-size:1.5rem;font-weight:700;color:#00A3E0}
+.card .value.ok{color:#00C853}
+.card .value.warn{color:#FF9800}
+.card .value.err{color:#FF5252}
+.section{background:#111D2E;border:1px solid #1E3048;border-radius:8px;padding:1.5rem;margin-bottom:1.25rem}
+.section h2{font-size:1rem;color:#00A3E0;margin-bottom:1rem;border-bottom:1px solid #1E3048;padding-bottom:.5rem}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;color:#7A8BA3;padding:.5rem;border-bottom:1px solid #1E3048;font-weight:600}
+td{padding:.5rem;border-bottom:1px solid #1E304833}
+.mono{font-family:'SF Mono',monospace;font-size:.8rem;color:#8FAABE}
+.alert-item{padding:.75rem;border-left:3px solid #FF9800;margin-bottom:.5rem;background:#1a1a2e}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #1E3048;border-top-color:#00A3E0;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.status-dot.green{background:#00C853}
+.status-dot.red{background:#FF5252}
+.footer{text-align:center;padding:2rem;color:#4A5568;font-size:.75rem}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>C.E.N.T.I.N.E.L.</h1>
+  <span class="badge">OBSERVADOR NEUTRAL</span>
+</div>
+<div class="container">
+  <div class="cards">
+    <div class="card"><h3>Estado API</h3><div id="api-status" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Ultimo Snapshot</h3><div id="snapshot-ts" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Departamento</h3><div id="snapshot-dept" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Alertas Activas</h3><div id="alert-count" class="value"><span class="spinner"></span></div></div>
+  </div>
+  <div class="section">
+    <h2>Snapshot Mas Reciente</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+      <tbody id="snapshot-table"><tr><td colspan="2"><span class="spinner"></span> Cargando...</td></tr></tbody>
+    </table>
+  </div>
+  <div class="section">
+    <h2>Alertas</h2>
+    <div id="alerts-list"><span class="spinner"></span> Cargando...</div>
+  </div>
+  <div class="section">
+    <h2>Resumen</h2>
+    <div id="summary-content"><span class="spinner"></span> Cargando...</div>
+  </div>
+</div>
+<div class="footer">C.E.N.T.I.N.E.L. Engine &mdash; Auditoria Electoral Transparente</div>
+<script>
+async function f(url){try{const r=await fetch(url);if(!r.ok)throw r.status;return await r.json()}catch(e){return null}}
+async function load(){
+  const [health,snap,alerts,summaries]=await Promise.all([
+    f('/api/health'),f('/snapshots/latest'),f('/alerts'),f('/api/summaries')
+  ]);
+  const $=id=>document.getElementById(id);
+  if(health&&health.status==='ok'){$('api-status').className='value ok';$('api-status').innerHTML='<span class="status-dot green"></span>Operativo'}
+  else{$('api-status').className='value err';$('api-status').innerHTML='<span class="status-dot red"></span>Error'}
+  if(snap){
+    $('snapshot-ts').textContent=snap.timestamp_utc||'—';
+    $('snapshot-dept').textContent=snap.department_code||'—';
+    let rows='';
+    const fields=[['Hash',snap.snapshot_id],['Departamento',snap.department_code],['Timestamp UTC',snap.timestamp_utc],['Hash Previo',snap.previous_hash],['TX Hash',snap.tx_hash],['IPFS CID',snap.ipfs_cid]];
+    fields.forEach(([k,v])=>{rows+=`<tr><td>${k}</td><td class="mono">${v||'—'}</td></tr>`});
+    $('snapshot-table').innerHTML=rows;
+  }else{$('snapshot-ts').textContent='—';$('snapshot-dept').textContent='—';$('snapshot-table').innerHTML='<tr><td colspan="2">Sin snapshots disponibles</td></tr>'}
+  if(alerts&&alerts.length>0){
+    $('alert-count').className='value warn';$('alert-count').textContent=alerts.length;
+    $('alerts-list').innerHTML=alerts.slice(0,20).map(a=>`<div class="alert-item">${a.descripcion||a.description||JSON.stringify(a)}</div>`).join('');
+  }else{$('alert-count').className='value ok';$('alert-count').textContent='0';$('alerts-list').innerHTML='Sin alertas activas.'}
+  if(summaries&&summaries.summary&&summaries.summary.length>0){
+    $('summary-content').innerHTML=summaries.summary.map(l=>`<p style="margin-bottom:.5rem">${l}</p>`).join('');
+  }else{$('summary-content').textContent='Sin resumen disponible.'}
+}
+load();setInterval(load,30000);
+</script>
+</body>
+</html>"""
+
+
+@app.get("/", response_class=HTMLResponse)
+def dashboard() -> str:
+    return DASHBOARD_HTML
 
 
 register_healthchecks(app)
