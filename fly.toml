@@ -43,7 +43,7 @@ primary_region = "lhr"
       grace_period = "60s"
       interval = "30s"
       method = "GET"
-      path = "/healthz"
+      path = "/health"
       timeout = "10s"
 
 [checks]
