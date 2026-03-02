@@ -19,11 +19,6 @@ COPY . /app
 
 FROM base AS runtime
 
-# Install nginx for reverse proxy (dashboard + API behind single port).
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx \
-    && rm -rf /var/lib/apt/lists/*
-
 # Security: create non-root user to run the application.
 # Seguridad: crear usuario no-root para ejecutar la aplicación.
 RUN groupadd -r centinel && useradd -r -g centinel -d /app -s /sbin/nologin centinel
@@ -33,9 +28,8 @@ COPY --from=builder /app /app
 
 # Ensure the app user owns necessary writable directories.
 RUN mkdir -p /app/logs /app/data /app/hashes && \
-    chown -R centinel:centinel /app/logs /app/data /app/hashes && \
-    chmod +x /app/start.sh
+    chown -R centinel:centinel /app/logs /app/data /app/hashes
 
 USER centinel
 
-CMD ["/app/start.sh"]
+CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
