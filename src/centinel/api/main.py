@@ -86,7 +86,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -610,16 +611,27 @@ def departments_status(request: Request) -> list[dict]:
         connection.close()
 
 
-DASHBOARD_HTML_PATH = BASE_DIR / "templates" / "dashboard.html"
+DASHBOARD_BUILD_DIR = BASE_DIR / "static" / "dashboard"
+DASHBOARD_HTML_PATH_LEGACY = BASE_DIR / "templates" / "dashboard.html"
 
 
 @app.get("/", response_class=HTMLResponse)
-def dashboard() -> str:
-    """Sirve el dashboard principal con pestañas Ciudadano/Auditor/ETHOS."""
+def dashboard():
+    """Sirve el dashboard React (o el legacy HTML como fallback)."""
+    react_index = DASHBOARD_BUILD_DIR / "index.html"
+    if react_index.exists():
+        return FileResponse(react_index, media_type="text/html")
+    # Fallback al dashboard estático legacy.
     try:
-        return DASHBOARD_HTML_PATH.read_text(encoding="utf-8")
+        return DASHBOARD_HTML_PATH_LEGACY.read_text(encoding="utf-8")
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail="Dashboard template not found.")
+
+
+# Mount React build assets (JS/CSS bundles) under /assets.
+# Must be registered after explicit routes to avoid shadowing API endpoints.
+if DASHBOARD_BUILD_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=DASHBOARD_BUILD_DIR / "assets"), name="dashboard-assets")
 
 
 register_healthchecks(app)
