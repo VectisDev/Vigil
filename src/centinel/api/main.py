@@ -523,149 +523,103 @@ def api_summaries(request: Request) -> dict:
     return load_summaries_payload()
 
 
-DASHBOARD_HTML = """<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C.E.N.T.I.N.E.L. Dashboard</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#0A1428;color:#E0E6ED;min-height:100vh;display:flex;flex-direction:column}
-.header{background:linear-gradient(135deg,#0D1B2A 0%,#1B2838 100%);border-bottom:2px solid #00A3E0;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
-.header h1{font-size:1.4rem;letter-spacing:2px;color:#00A3E0}
-.header-right{display:flex;align-items:center;gap:.75rem}
-.badge{background:#00C853;color:#0A1428;padding:.25rem .75rem;border-radius:4px;font-size:.75rem;font-weight:700}
-#conn-indicator{font-size:.7rem;color:#7A8BA3;display:flex;align-items:center;gap:4px}
-#conn-dot{width:6px;height:6px;border-radius:50%;background:#00C853;transition:background .3s}
-#conn-dot.off{background:#FF5252}
-.container{max-width:1200px;margin:0 auto;padding:1.5rem;width:100%;flex:1}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem}
-.card{background:#111D2E;border:1px solid #1E3048;border-radius:8px;padding:1.25rem;transition:border-color .2s}
-.card:hover{border-color:#00A3E055}
-.card h3{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#7A8BA3;margin-bottom:.5rem}
-.card .value{font-size:1.4rem;font-weight:700;color:#00A3E0;word-break:break-word}
-.card .value.ok{color:#00C853}
-.card .value.warn{color:#FF9800}
-.card .value.err{color:#FF5252}
-.section{background:#111D2E;border:1px solid #1E3048;border-radius:8px;padding:1.25rem;margin-bottom:1rem}
-.section h2{font-size:.95rem;color:#00A3E0;margin-bottom:.75rem;border-bottom:1px solid #1E3048;padding-bottom:.5rem;display:flex;align-items:center;justify-content:space-between}
-.section h2 .updated{font-size:.65rem;color:#4A5568;font-weight:400}
-table{width:100%;border-collapse:collapse;font-size:.85rem}
-th{text-align:left;color:#7A8BA3;padding:.5rem;border-bottom:1px solid #1E3048;font-weight:600}
-td{padding:.5rem;border-bottom:1px solid #1E304833;word-break:break-all}
-.mono{font-family:'SF Mono','Cascadia Code',monospace;font-size:.78rem;color:#8FAABE}
-.alert-item{padding:.75rem;border-left:3px solid #FF9800;margin-bottom:.5rem;background:#1a1a2e;border-radius:0 4px 4px 0;font-size:.85rem}
-.alert-item.critical{border-left-color:#FF5252}
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid #1E3048;border-top-color:#00A3E0;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-.status-dot.green{background:#00C853}
-.status-dot.red{background:#FF5252}
-.footer{text-align:center;padding:1.5rem;color:#4A5568;font-size:.7rem;border-top:1px solid #1E3048}
-.empty{color:#4A5568;font-style:italic;font-size:.85rem}
-@media(max-width:600px){
-  .header{padding:.75rem 1rem}
-  .header h1{font-size:1.1rem}
-  .container{padding:1rem}
-  .cards{grid-template-columns:1fr 1fr}
-  .card .value{font-size:1.1rem}
-  td,th{padding:.35rem;font-size:.78rem}
-}
-@media(max-width:400px){
-  .cards{grid-template-columns:1fr}
-}
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>C.E.N.T.I.N.E.L.</h1>
-  <div class="header-right">
-    <span id="conn-indicator"><span id="conn-dot"></span><span id="conn-text">Conectado</span></span>
-    <span class="badge">OBSERVADOR NEUTRAL</span>
-  </div>
-</div>
-<div class="container">
-  <div class="cards">
-    <div class="card"><h3>Estado API</h3><div id="api-status" class="value"><span class="spinner"></span></div></div>
-    <div class="card"><h3>&Uacute;ltimo Snapshot</h3><div id="snapshot-ts" class="value"><span class="spinner"></span></div></div>
-    <div class="card"><h3>Departamento</h3><div id="snapshot-dept" class="value"><span class="spinner"></span></div></div>
-    <div class="card"><h3>Alertas Activas</h3><div id="alert-count" class="value"><span class="spinner"></span></div></div>
-  </div>
-  <div class="section">
-    <h2>Snapshot M&aacute;s Reciente <span class="updated" id="last-update"></span></h2>
-    <table>
-      <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
-      <tbody id="snapshot-table"><tr><td colspan="2"><span class="spinner"></span> Cargando...</td></tr></tbody>
-    </table>
-  </div>
-  <div class="section">
-    <h2>Alertas</h2>
-    <div id="alerts-list"><span class="spinner"></span> Cargando...</div>
-  </div>
-  <div class="section">
-    <h2>Resumen</h2>
-    <div id="summary-content"><span class="spinner"></span> Cargando...</div>
-  </div>
-</div>
-<div class="footer">C.E.N.T.I.N.E.L. Engine &mdash; Auditor&iacute;a Electoral Transparente &mdash; <a href="/docs" style="color:#00A3E0;text-decoration:none">API Docs</a></div>
-<script>
-function esc(s){if(!s)return'\\u2014';const d=document.createElement('div');d.textContent=String(s);return d.innerHTML}
-const MAX_RETRIES=3,BASE_DELAY=1000;
-async function f(url,attempt){
-  attempt=attempt||0;
-  try{const r=await fetch(url,{signal:AbortSignal.timeout(15000)});if(!r.ok)throw new Error(r.status);return await r.json()}
-  catch(e){if(attempt<MAX_RETRIES){await new Promise(res=>setTimeout(res,BASE_DELAY*Math.pow(2,attempt)+Math.random()*500));return f(url,attempt+1)}return null}
-}
-let ok=true,consecutiveFails=0,pollInterval=15000,pollTimer=null;
-async function load(){
-  const [health,snap,alerts,summaries]=await Promise.all([
-    f('/api/health'),f('/snapshots/latest'),f('/alerts'),f('/api/summaries')
-  ]);
-  const $=id=>document.getElementById(id);
-  const now=new Date().toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  ok=!!(health&&health.status==='ok');
-  if(ok){consecutiveFails=0;pollInterval=15000}else{consecutiveFails++;pollInterval=Math.min(15000*Math.pow(2,consecutiveFails),120000)}
-  $('conn-dot').className=ok?'':'off';
-  $('conn-text').textContent=ok?'Conectado':'Reconectando\\u2026';
-  $('last-update').textContent=ok?'Actualizado: '+now:'Reintentando en '+Math.round(pollInterval/1000)+'s';
-  if(ok){$('api-status').className='value ok';$('api-status').innerHTML='<span class="status-dot green"></span>Operativo'}
-  else{$('api-status').className='value err';$('api-status').innerHTML='<span class="status-dot red"></span>Reconectando'}
-  if(snap){
-    $('snapshot-ts').textContent=snap.timestamp_utc||'\\u2014';
-    $('snapshot-dept').textContent=snap.department_code||'\\u2014';
-    let rows='';
-    const fields=[['Hash',snap.snapshot_id],['Departamento',snap.department_code],['Timestamp UTC',snap.timestamp_utc],['Hash Previo',snap.previous_hash],['TX Hash',snap.tx_hash],['IPFS CID',snap.ipfs_cid]];
-    fields.forEach(([k,v])=>{rows+='<tr><td>'+esc(k)+'</td><td class="mono">'+esc(v)+'</td></tr>'});
-    $('snapshot-table').innerHTML=rows;
-  }else{
-    $('snapshot-ts').textContent='\\u2014';$('snapshot-dept').textContent='\\u2014';
-    $('snapshot-table').innerHTML='<tr><td colspan="2" class="empty">Sin snapshots disponibles</td></tr>';
-  }
-  if(alerts&&alerts.length>0){
-    $('alert-count').className='value warn';$('alert-count').textContent=alerts.length;
-    $('alerts-list').innerHTML=alerts.slice(0,20).map(a=>{
-      const txt=esc(a.descripcion||a.description||JSON.stringify(a));
-      const cls=(a.severity==='critical'||a.nivel==='critico')?'alert-item critical':'alert-item';
-      return '<div class="'+cls+'">'+txt+'</div>';
-    }).join('');
-  }else{$('alert-count').className='value ok';$('alert-count').textContent='0';$('alerts-list').innerHTML='<span class="empty">Sin alertas activas.</span>'}
-  if(summaries&&summaries.summary&&summaries.summary.length>0){
-    $('summary-content').innerHTML=summaries.summary.map(l=>'<p style="margin-bottom:.5rem">'+esc(l)+'</p>').join('');
-  }else{$('summary-content').innerHTML='<span class="empty">Sin resumen disponible.</span>'}
-  clearTimeout(pollTimer);pollTimer=setTimeout(load,pollInterval);
-}
-load();
-document.addEventListener('visibilitychange',function(){if(!document.hidden){clearTimeout(pollTimer);load()}});
-</script>
-</body>
-</html>"""
+DEPARTMENTS = [
+    "atlantida", "choluteca", "colon", "comayagua", "copan", "cortes",
+    "el_paraiso", "francisco_morazan", "gracias_a_dios", "intibuca",
+    "islas_de_la_bahia", "la_paz", "lempira", "ocotepeque", "olancho",
+    "santa_barbara", "valle", "yoro",
+]
+
+
+def _department_status(connection: sqlite3.Connection) -> list[dict]:
+    """Calcula el estado de cada departamento basado en alertas y hashes.
+
+    Retorna una lista con el estado de cada departamento:
+    - 'ok': sin alertas (blanco hueso)
+    - 'rule_broken': alguna regla del sistema se rompió (amarillo)
+    - 'hash_broken': un hash se ha roto (rojo)
+    """
+    alerts = load_alerts_payload()
+    alert_depts: dict[str, set[str]] = {}
+    for alert in alerts:
+        dept = (
+            alert.get("department_code")
+            or alert.get("departamento")
+            or ""
+        ).strip().lower().replace(" ", "_")
+        severity = (
+            alert.get("severity")
+            or alert.get("nivel")
+            or "warning"
+        ).lower()
+        alert_depts.setdefault(dept, set()).add(severity)
+
+    results = []
+    for dept in DEPARTMENTS:
+        # Check hash integrity for latest snapshot of this department
+        hash_ok = True
+        row = connection.execute(
+            """
+            SELECT table_name, hash, previous_hash
+            FROM snapshot_index
+            WHERE department_code = ?
+            ORDER BY timestamp_utc DESC
+            LIMIT 1
+            """,
+            (dept,),
+        ).fetchone()
+        if row:
+            try:
+                table_name = _validate_table_name(row["table_name"])
+                snap = connection.execute(
+                    f"SELECT canonical_json FROM {table_name} WHERE hash = ?",  # nosec B608
+                    (row["hash"],),
+                ).fetchone()
+                if snap:
+                    computed = compute_hash(snap["canonical_json"], row["previous_hash"])
+                    if computed != row["hash"]:
+                        hash_ok = False
+            except (ValueError, sqlite3.OperationalError):
+                pass
+
+        severities = alert_depts.get(dept, set())
+        if not hash_ok:
+            status = "hash_broken"
+        elif severities:
+            status = "rule_broken"
+        else:
+            status = "ok"
+
+        results.append({
+            "department": dept,
+            "status": status,
+            "has_data": row is not None,
+            "alert_count": len(alert_depts.get(dept, set())),
+        })
+    return results
+
+
+@app.get("/api/departments/status")
+@limiter.limit(f"{rate_limit_per_minute}/minute")
+def departments_status(request: Request) -> list[dict]:
+    """Estado de los 18 departamentos para el mapa de calor ciudadano."""
+    connection = get_connection()
+    try:
+        return _department_status(connection)
+    finally:
+        connection.close()
+
+
+DASHBOARD_HTML_PATH = BASE_DIR / "templates" / "dashboard.html"
 
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard() -> str:
-    return DASHBOARD_HTML
+    """Sirve el dashboard principal con pestañas Ciudadano/Auditor/ETHOS."""
+    try:
+        return DASHBOARD_HTML_PATH.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Dashboard template not found.")
 
 
 register_healthchecks(app)
