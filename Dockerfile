@@ -11,7 +11,16 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-# --- Builder stage: install Python deps in isolation ---
+# --- Frontend builder stage: build React app with Node.js ---
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --ignore-scripts
+COPY frontend/ ./
+RUN npm run build
+
+# --- Python builder stage: install Python deps in isolation ---
 FROM base AS builder
 
 RUN apt-get update \
@@ -32,6 +41,9 @@ COPY --from=builder /install /usr/local
 
 # Copy application source.
 COPY . /app
+
+# Copy React build output into static directory served by FastAPI.
+COPY --from=frontend-builder /frontend/dist /app/static/dashboard
 
 # Writable directories for runtime data.
 RUN mkdir -p /app/logs /app/data /app/hashes && \
