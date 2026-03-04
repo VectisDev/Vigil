@@ -14,6 +14,10 @@ import {
 import type { TabId, AccessibilityMode, Language } from '../types/election';
 import { t } from '../data/i18n';
 
+// EN: Build version injected by Vite at compile time — changes each deploy.
+// ES: Versión de build inyectada por Vite en compilación — cambia cada deploy.
+declare const __BUILD_VERSION__: string;
+
 interface HeaderProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
@@ -71,6 +75,10 @@ export default function Header({
           <Shield className="w-6 h-6 text-brand" aria-hidden="true" />
           <span className="text-lg font-bold tracking-wider text-brand select-none">
             CENTINEL
+          </span>
+          {/* EN: Build version tag — visible proof of fresh deploy. / ES: Tag de versión — prueba visible de deploy fresco. */}
+          <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono select-none" title={__BUILD_VERSION__}>
+            v2
           </span>
         </div>
 
