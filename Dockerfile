@@ -14,10 +14,18 @@ RUN apt-get update \
 # --- Frontend builder stage: build React app with Node.js ---
 FROM node:20-slim AS frontend-builder
 
+# EN: Cache-bust ARG — changes every deploy so npm build always re-runs.
+# ES: ARG para romper cache — cambia cada deploy para que npm build siempre re-ejecute.
+ARG CACHE_BUST=0
+
 WORKDIR /frontend
 COPY dashboard/frontend/package.json dashboard/frontend/package-lock.json* ./
 RUN npm ci --ignore-scripts
 COPY dashboard/frontend/ ./
+
+# EN: Inject build version at build time for traceability.
+# ES: Inyectar versión de build en tiempo de construcción para trazabilidad.
+ENV VITE_BUILD_VERSION=${CACHE_BUST}
 RUN npm run build
 
 # --- Python builder stage: install Python deps in isolation ---
@@ -39,8 +47,16 @@ RUN groupadd -r centinel && useradd -r -g centinel -d /app -s /sbin/nologin cent
 # Copy installed Python packages from builder.
 COPY --from=builder /install /usr/local
 
+# EN: Cache-bust ARG in runtime stage to force layer invalidation.
+# ES: ARG para romper cache en stage runtime y forzar invalidación de capas.
+ARG CACHE_BUST=0
+
 # Copy application source.
 COPY . /app
+
+# EN: Write build marker for runtime verification via /live or SSH.
+# ES: Escribir marcador de build para verificación en runtime vía /live o SSH.
+RUN echo "build=${CACHE_BUST}" > /app/BUILD_INFO
 
 # Copy React build output into static directory served by FastAPI.
 COPY --from=frontend-builder /frontend/dist /app/static/dashboard

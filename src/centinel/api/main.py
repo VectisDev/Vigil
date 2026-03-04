@@ -82,6 +82,7 @@ import logging
 import os
 import re
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -838,6 +839,27 @@ def dashboard():
 # Must be registered after explicit routes to avoid shadowing API endpoints.
 if DASHBOARD_BUILD_DIR.exists():
     app.mount("/assets", StaticFiles(directory=DASHBOARD_BUILD_DIR / "assets"), name="dashboard-assets")
+
+
+# EN: Log build info at startup for deploy verification.
+# ES: Registrar info de build al iniciar para verificar deploys.
+_build_info_path = BASE_DIR / "BUILD_INFO"
+_build_stamp = _build_info_path.read_text().strip() if _build_info_path.exists() else "dev"
+
+
+@app.on_event("startup")
+async def _log_build_version() -> None:
+    logger.warning(
+        "CENTINEL_STARTUP build=%s time=%s",
+        _build_stamp,
+        datetime.now(timezone.utc).isoformat(),
+    )
+
+
+@app.get("/live")
+async def _live_check():
+    """EN: Returns build info — use to verify deploy version. / ES: Retorna info de build — usar para verificar versión desplegada."""
+    return {"status": "ok", "build": _build_stamp, "started": datetime.now(timezone.utc).isoformat()}
 
 
 register_healthchecks(app)
