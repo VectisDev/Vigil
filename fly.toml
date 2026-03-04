@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for centinel-engine on 2026-03-02T22:59:42Z
+# fly.toml app configuration file generated for centinel-engine on 2026-03-04T01:12:36Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -7,23 +7,17 @@ app = 'centinel-engine'
 primary_region = 'ams'
 
 [build]
-  [build.args]
-    # EN: Override at deploy time with --build-arg CACHE_BUST=$(date +%s) to force full rebuild.
-    # ES: Sobrescribir en deploy con --build-arg CACHE_BUST=$(date +%s) para forzar rebuild completo.
-    CACHE_BUST = "0"
-
-[deploy]
-  strategy = "immediate"
 
 [http_service]
   internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 1
+  min_machines_running = 0
   processes = ['app']
 
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 256
