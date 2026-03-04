@@ -7,6 +7,13 @@ app = 'centinel-engine'
 primary_region = 'ams'
 
 [build]
+  [build.args]
+    # EN: Override at deploy time with --build-arg CACHE_BUST=$(date +%s) to force full rebuild.
+    # ES: Sobrescribir en deploy con --build-arg CACHE_BUST=$(date +%s) para forzar rebuild completo.
+    CACHE_BUST = "0"
+
+[deploy]
+  strategy = "immediate"
 
 [http_service]
   internal_port = 8080
