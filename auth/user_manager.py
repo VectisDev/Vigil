@@ -78,7 +78,8 @@ def _get_connection(db_path: Path | None = None) -> sqlite3.Connection:
 
 def ensure_admin_exists(
     username: str = "admin",
-    password: str = os.getenv("CENTINEL_ADMIN_PASSWORD", "centinel2026"),
+    password: str | None = os.getenv("CENTINEL_ADMIN_PASSWORD"),
+
     db_path: Path | None = None,
 ) -> None:
     """EN: Create the default admin user if the users table is empty.
