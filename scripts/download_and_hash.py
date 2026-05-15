@@ -669,12 +669,37 @@ def _persist_snapshot_payload(
     write_atomic(snapshot_file, snapshot_bytes)
     hash_record = {"hash": current_hash, "chained_hash": chained_hash}
 
-    # FASE 2: Firma Ed25519 del operador si hay clave disponible
+    # FASE 2: Firma Ed25519 del operador.
+    #
+    # En modo elección/producción estricta (CENTINEL_REQUIRE_SIGNATURE=true)
+    # la firma es OBLIGATORIA: un fallo detiene el snapshot de forma ruidosa
+    # en lugar de persistir evidencia sin custodio criptográfico. Sin este
+    # control, un atacante que comprometa el disco antes de configurar la
+    # clave produce una cadena entera sin firma y nadie lo detecta.
+    require_signature = os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
     try:
         sign_hash_record(hash_record)
-    except FileNotFoundError:
-        pass  # Sin clave configurada — no firmar
+    except FileNotFoundError as exc:
+        if require_signature:
+            raise RuntimeError(
+                "signature_required_but_no_key — CENTINEL_REQUIRE_SIGNATURE is on "
+                "but no operator key is configured. Refusing to persist unsigned "
+                f"evidence for {hash_file.name}."
+            ) from exc
+        logger.warning(
+            "operator_sign_skipped file=%s reason=no_key (signature NOT required)",
+            hash_file.name,
+        )
     except Exception as exc:  # noqa: BLE001
+        if require_signature:
+            raise RuntimeError(
+                f"signature_required_but_failed file={hash_file.name} error={exc}"
+            ) from exc
         logger.warning("operator_sign_failed file=%s error=%s", hash_file.name, exc)
 
     write_atomic(

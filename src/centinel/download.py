@@ -67,6 +67,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import random
 import ssl
 import string
@@ -195,15 +196,31 @@ async def fetch_content(
 
 
 def write_atomic(path: Path, content: bytes) -> None:
-    """Escritura atómica usando archivo temporal.
+    """Escritura atómica y DURABLE usando archivo temporal.
 
-    English: Atomic write using a temporary file.
+    English: Atomic AND durable write using a temporary file.
+
+    Durability contract (critical for election-night evidence):
+    the temp file is fsync'd before rename, and the parent directory
+    is fsync'd after rename. Without the directory fsync a power loss
+    or kernel crash immediately after rename can lose the snapshot
+    even though rename() itself is atomic. An adversary with VM/host
+    access could otherwise induce a crash at that exact window and
+    erase evidence with no visible error.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(delete=False, dir=str(path.parent)) as tmp_file:
         tmp_file.write(content)
+        tmp_file.flush()
+        os.fsync(tmp_file.fileno())
         temp_name = tmp_file.name
     shutil.move(temp_name, path)
+    # fsync the parent directory so the rename itself is durable.
+    dir_fd = os.open(str(path.parent), os.O_DIRECTORY)
+    try:
+        os.fsync(dir_fd)
+    finally:
+        os.close(dir_fd)
 
 
 def chained_hash(
