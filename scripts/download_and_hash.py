@@ -413,16 +413,37 @@ def _payload_has_cne_source(payload: Any) -> bool:
 
 
 def _is_cne_endpoint(endpoint: str, config: dict[str, Any]) -> bool:
-    """/** Verifica si endpoint pertenece a CNE. / Check whether endpoint belongs to CNE. **"""
+    """Verify the endpoint belongs to CNE via hostname allowlist + optional
+    public-IP resolution check (mitigates DNS rebinding and substring spoofing).
+
+    Substring matching alone (the previous implementation) accepted obvious
+    forgeries such as 'https://cne.hn.attacker.example.com/'. We now parse the
+    URL, compare the hostname against the configured allowlist (suffix match
+    on dot boundary), and — when enforce_public_ip_resolution is true — also
+    require the host to resolve to a public, non-private IP address.
+
+    Verifica que el endpoint pertenezca al CNE mediante allowlist de hostname
+    y, opcionalmente, validacion de resolucion a IP publica (mitigando DNS
+    rebinding y spoofing por substring).
+    """
+    from core.security_utils import is_safe_outbound_url
+
     domains = config.get("cne_domains") or ["cne.hn"]
-    endpoint_lower = endpoint.lower()
-    return any(domain.lower() in endpoint_lower for domain in domains)
+    enforce_public_ip = bool(config.get("enforce_public_ip_resolution", True))
+    require_https = bool(config.get("require_https", True))
+
+    return is_safe_outbound_url(
+        endpoint,
+        allowed_domains={domain.lower() for domain in domains},
+        require_https=require_https,
+        enforce_public_ip_resolution=enforce_public_ip,
+    )
 
 
 def _validate_real_payload(payload: Any, endpoint: str, config: dict[str, Any]) -> bool:
     """/** Valida payload real del CNE. / Validate real CNE payload. **"""
     if not _is_cne_endpoint(endpoint, config):
-        logger.error("Endpoint fuera de CNE: %s", endpoint)
+        logger.error("Endpoint rechazado (no allowlist / no IP publica): %s", endpoint)
         return False
 
     timestamp = _extract_payload_timestamp(payload)
