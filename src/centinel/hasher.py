@@ -183,8 +183,91 @@ def _load_snapshot_entry(snapshot_dir: Path) -> SnapshotEntry:
     )
 
 
+@dataclass(frozen=True)
+class SnapshotMeta:
+    """Lightweight snapshot view WITHOUT the raw payload.
+
+    A hostile count in Honduras can run for over a month. In election
+    mode (5-min cadence) that is thousands of snapshots. Every public
+    audit read (timeline / snapshots-by-day / proof / Merkle root) only
+    needs metadata + hash + timestamp — never the payload bytes — yet
+    loading full SnapshotEntry objects pulled every payload into RAM at
+    once. Under sustained observer polling during the contested count
+    that is exactly when the process would fall over.
+
+    SnapshotMeta duck-types the attributes those read paths use
+    (snapshot_dir, expected_hash, previous_hash, timestamp, metadata)
+    so callers and serializers are unchanged — only `content` is absent,
+    by design. Hashing logic and integrity guarantees are untouched.
+    """
+
+    snapshot_dir: Path
+    metadata: Dict[str, Any]
+    expected_hash: str
+    timestamp: datetime
+    previous_hash: Optional[str]
+
+
+def _load_snapshot_meta(snapshot_dir: Path) -> SnapshotMeta:
+    """Load only metadata + hash for a snapshot (no payload read)."""
+    metadata_path = snapshot_dir / "snapshot.metadata.json"
+    hash_path = snapshot_dir / "hash.txt"
+
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    timestamp_iso = metadata.get("timestamp_utc")
+    if not timestamp_iso:
+        raise ValueError(f"metadata_missing_timestamp_utc path={metadata_path}")
+
+    expected_hash = hash_path.read_text(encoding="utf-8").strip()
+    _validate_hash_format(expected_hash, "expected_hash")
+
+    previous_hash = metadata.get("previous_hash")
+    if previous_hash is not None:
+        _validate_hash_format(previous_hash, "metadata.previous_hash")
+
+    return SnapshotMeta(
+        snapshot_dir=snapshot_dir,
+        metadata=metadata,
+        expected_hash=expected_hash,
+        timestamp=_parse_timestamp(timestamp_iso),
+        previous_hash=previous_hash,
+    )
+
+
+def _ordered_snapshot_dirs(snapshot_root: Path) -> List[Path]:
+    """Return snapshot dirs ordered by capture timestamp (cheap scan).
+
+    Reads only the small metadata file per snapshot to establish order,
+    never the payload — so ordering a month of snapshots costs kilobytes
+    of RAM, not the full evidence corpus.
+    """
+    metas: List[SnapshotMeta] = []
+    for meta_path in snapshot_root.rglob("snapshot.metadata.json"):
+        metas.append(_load_snapshot_meta(meta_path.parent))
+    metas.sort(key=lambda m: m.timestamp)
+    return [m.snapshot_dir for m in metas]
+
+
+def collect_snapshot_metadata(snapshot_root: Path) -> List[SnapshotMeta]:
+    """Collect snapshot metadata ordered by timestamp (no payloads).
+
+    Use this for any read path that does not recompute hashes. Peak
+    memory is proportional to metadata size, not to the total captured
+    payload volume — the difference between surviving a month-long
+    hostile count and falling over under observer load.
+    """
+    metas: List[SnapshotMeta] = []
+    for meta_path in snapshot_root.rglob("snapshot.metadata.json"):
+        metas.append(_load_snapshot_meta(meta_path.parent))
+    return sorted(metas, key=lambda m: m.timestamp)
+
+
 def collect_snapshot_entries(snapshot_root: Path) -> List[SnapshotEntry]:
-    """Collect snapshots ordered by timestamp. (Recolecta snapshots ordenados por timestamp.)"""
+    """Collect snapshots ordered by timestamp. (Recolecta snapshots ordenados por timestamp.)
+
+    Loads full payloads; reserved for hash recomputation. Read-only
+    endpoints must use collect_snapshot_metadata instead.
+    """
     entries = []
     for raw_path in snapshot_root.rglob("snapshot.raw"):
         entries.append(_load_snapshot_entry(raw_path.parent))
@@ -215,7 +298,19 @@ def verify_hashchain_from_snapshots(snapshot_root: Path) -> Dict[str, Any]:
     matematicamente irrecuperable, asi que continuar produce salidas engañosas
     para auditores externos.
     """
-    entries = collect_snapshot_entries(snapshot_root)
+    # Stream verification: order payload-bearing dirs by timestamp using
+    # only their small metadata files, then load ONE full payload at a
+    # time inside the loop and let it be reclaimed. Peak memory is a
+    # single snapshot, not the whole month's corpus — so a month-long
+    # hostile count under observer polling does not exhaust RAM. The set
+    # of verified entries and their order are identical to the previous
+    # behavior (payload-present dirs, timestamp-ordered): pure endurance
+    # optimization, integrity semantics unchanged.
+    raw_dirs = [p.parent for p in snapshot_root.rglob("snapshot.raw")]
+    ordered_dirs = sorted(
+        raw_dirs, key=lambda d: _load_snapshot_meta(d).timestamp
+    )
+    total_count = len(ordered_dirs)
     errors: List[str] = []
     previous_hash: Optional[str] = None
     last_valid_hash: Optional[str] = None
@@ -234,7 +329,8 @@ def verify_hashchain_from_snapshots(snapshot_root: Path) -> Dict[str, Any]:
     timestamp_anomalies: List[Dict[str, Any]] = []
     previous_timestamp: Optional[datetime] = None
 
-    for idx, entry in enumerate(entries):
+    for idx, snapshot_dir in enumerate(ordered_dirs):
+        entry = _load_snapshot_entry(snapshot_dir)
         entry_ts = entry.timestamp
         if entry_ts.tzinfo is None:
             entry_ts = entry_ts.replace(tzinfo=timezone.utc)
@@ -298,7 +394,7 @@ def verify_hashchain_from_snapshots(snapshot_root: Path) -> Dict[str, Any]:
 
     return {
         "valid": not errors,
-        "count": len(entries),
+        "count": total_count,
         "verified_count": verified_count,
         "last_valid_hash": last_valid_hash,
         "last_hash": last_valid_hash,  # backward-compat alias

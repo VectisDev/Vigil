@@ -35,7 +35,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ..hasher import collect_snapshot_entries
+from ..hasher import collect_snapshot_metadata
 
 _LOGGER = logging.getLogger("centinel.transparency")
 
@@ -79,7 +79,7 @@ def build_transparency_checkpoint(snapshot_root: Path) -> Dict[str, Any]:
     The checkpoint is deterministic: same chain state produces the same
     merkle_root, so independent mirrors can be compared for divergence.
     """
-    entries = collect_snapshot_entries(snapshot_root)
+    entries = collect_snapshot_metadata(snapshot_root)
     leaf_hashes = [e.expected_hash for e in entries]
     merkle_root = compute_merkle_root(leaf_hashes)
     return {

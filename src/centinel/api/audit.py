@@ -38,7 +38,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from ..hasher import (
     _SHA256_HEX_RE,
-    collect_snapshot_entries,
+    collect_snapshot_metadata,
     verify_hashchain_from_snapshots,
 )
 from ..core.transparency import compute_merkle_root, read_transparency_log
@@ -194,7 +194,7 @@ def audit_transparency(
         entries = _cached(
             "transparency_entries",
             _CACHE_TTL_SECONDS,
-            lambda: collect_snapshot_entries(snapshot_root),
+            lambda: collect_snapshot_metadata(snapshot_root),
         )
         leaf_hashes = [e.expected_hash for e in entries]
         live_root = compute_merkle_root(leaf_hashes)
@@ -237,7 +237,7 @@ def audit_timeline(
             "limit": limit,
             "entries": [],
         }
-    entries = collect_snapshot_entries(snapshot_root)
+    entries = collect_snapshot_metadata(snapshot_root)
     total = len(entries)
     window = entries[offset : offset + limit]
     return {
@@ -267,7 +267,7 @@ def audit_snapshots_by_day(day: str) -> Dict[str, Any]:
     if not snapshot_root.exists():
         return {"date_utc": day, "count": 0, "entries": []}
 
-    entries = collect_snapshot_entries(snapshot_root)
+    entries = collect_snapshot_metadata(snapshot_root)
     matching = [
         entry
         for entry in entries
@@ -299,7 +299,7 @@ def audit_proof_for_hash(snapshot_hash: str) -> Dict[str, Any]:
     if not snapshot_root.exists():
         raise HTTPException(status_code=404, detail="snapshot_root_missing")
 
-    entries = collect_snapshot_entries(snapshot_root)
+    entries = collect_snapshot_metadata(snapshot_root)
     target_idx: Optional[int] = None
     for idx, entry in enumerate(entries):
         if entry.expected_hash == snapshot_hash:
