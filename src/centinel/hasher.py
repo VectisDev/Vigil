@@ -73,6 +73,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .download import chained_hash
+from .core.custody import verify_hash_record_signature
 
 
 _SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -396,7 +397,6 @@ def verify_hashchain_from_snapshots(snapshot_root: Path) -> Dict[str, Any]:
                 metadata_content = metadata_file.read_text(encoding="utf-8")
                 metadata_obj = json.loads(metadata_content)
                 if "operator_signature" in metadata_obj:
-                    from .core.custody import verify_hash_record_signature
                     if not verify_hash_record_signature(metadata_obj):
                         signature_failures.append(
                             f"invalid_signature index={idx} path={entry.snapshot_dir.name}"
