@@ -43,3 +43,8 @@ config/secrets/*
 !config/secrets/.gitkeep
 
 !config/secrets/.env.example
+
+# Internal, creator-only strategic documents. Never enter version
+# control: the project's own threat model warns against creator
+# exposure and operational-metadata leakage. Keep these local only.
+docs/whitepaper/INTERNAL-*
