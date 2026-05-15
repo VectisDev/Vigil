@@ -110,6 +110,12 @@ SUMMARY_PATH = BASE_DIR / "reports" / "summary.txt"
 app = FastAPI(title="C.E.N.T.I.N.E.L. Public API", version="0.1.0")
 logger = logging.getLogger(__name__)
 
+# Mount /audit/* router for independent third-party verification.
+# Read-only, no-auth endpoints intentional: see docs/architecture.md.
+from .audit import router as audit_router  # noqa: E402
+
+app.include_router(audit_router)
+
 # Security: default to no CORS origins instead of wildcard.
 # Seguridad: por defecto sin orígenes CORS en lugar de wildcard.
 origins_raw = os.getenv("CORS_ORIGINS", "")
