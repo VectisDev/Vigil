@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centinela — Banco de Pruebas (Validadores)</title>
+<style>
+  :root{
+    --bg:#0d1117;--panel:#161b22;--border:#30363d;--fg:#e6edf3;
+    --muted:#8b949e;--accent:#58a6ff;--ok:#3fb950;--bad:#f85149;
+    --warn:#d29922;--purple:#bc8cff;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    line-height:1.5;font-size:15px}
+  header{padding:22px 20px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,#1a1430,#0d1117)}
+  header h1{margin:0 0 4px;font-size:21px}
+  header p{margin:0;color:var(--muted);font-size:13px;max-width:820px}
+  main{max-width:1080px;margin:0 auto;padding:20px}
+  .panel{background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:18px;margin-bottom:16px}
+  .panel h2{margin:0 0 12px;font-size:16px}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input[type=text],textarea{width:100%;padding:9px 11px;background:#0d1117;
+    border:1px solid var(--border);border-radius:6px;color:var(--fg);
+    font-family:var(--mono);font-size:13px}
+  textarea{min-height:64px;resize:vertical}
+  button{background:var(--accent);color:#0d1117;border:0;border-radius:6px;
+    padding:9px 16px;font-weight:600;cursor:pointer;font-size:14px}
+  button:hover{filter:brightness(1.1)}
+  button.sec{background:transparent;color:var(--accent);
+    border:1px solid var(--border)}
+  button.danger{background:var(--bad);color:#0d1117}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;
+    font-size:12px;font-weight:700;font-family:var(--mono)}
+  .b-ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid var(--ok)}
+  .b-bad{background:rgba(248,81,73,.15);color:var(--bad);border:1px solid var(--bad)}
+  .b-warn{background:rgba(210,153,34,.15);color:var(--warn);border:1px solid var(--warn)}
+  .b-na{background:rgba(139,148,158,.15);color:var(--muted);border:1px solid var(--muted)}
+  .b-pur{background:rgba(188,140,255,.15);color:var(--purple);border:1px solid var(--purple)}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);position:sticky;top:0;background:var(--panel)}
+  td{font-family:var(--mono);word-break:break-all}
+  tr.brk td{background:rgba(248,81,73,.12)}
+  td input{width:100%;background:#0d1117;border:1px solid var(--border);
+    color:var(--fg);font-family:var(--mono);font-size:11px;padding:3px 5px;
+    border-radius:4px}
+  .tbl-wrap{max-height:380px;overflow:auto;border:1px solid var(--border);
+    border-radius:6px;margin-top:8px}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .warnbox{border:1px solid var(--warn);background:rgba(210,153,34,.07);
+    border-radius:6px;padding:12px;font-size:13px;margin-top:10px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .tab{padding:10px 18px;cursor:pointer;color:var(--muted);font-weight:600;
+    border-bottom:2px solid transparent}
+  .tab.on{color:var(--fg);border-bottom-color:var(--accent)}
+  .mode{display:none}.mode.on{display:block}
+  code{font-family:var(--mono);background:#0d1117;padding:1px 5px;
+    border-radius:4px;font-size:12px}
+  .kv{display:grid;grid-template-columns:220px 1fr;gap:6px 14px;font-size:13px}
+  .kv .k{color:var(--muted)}.kv .v{font-family:var(--mono);word-break:break-all}
+  .slider{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .slider input[type=range]{flex:1}
+  .slider .val{font-family:var(--mono);min-width:60px;text-align:right}
+  .acc{float:right;font-size:12px;color:var(--muted)}
+  .acc b{color:var(--purple)}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:22px}
+</style>
+</head>
+<body>
+<header>
+  <span class="acc" id="accChip">sin sesión</span>
+  <h1>Centinela — Banco de Pruebas para Validadores</h1>
+  <p>Entorno <b>aislado y client-side</b>. Manipula una copia de trabajo cuanto
+  necesites: nada de esto altera los datos reales ni lo que ve el público.
+  Cuenta local (vive solo en tu navegador) para firmar tu reporte. Diseñado
+  para que UPNFM ataque las pruebas y afine reglas con disciplina anti-sobreajuste.</p>
+</header>
+<main>
+
+  <div class="panel">
+    <h2>Sesión del validador (local, sin servidor)</h2>
+    <div class="row">
+      <input id="vName" type="text" placeholder="Nombre" style="flex:1;min-width:160px">
+      <input id="vAff" type="text" placeholder="Afiliación (ej. UPNFM — Matemática)" style="flex:2;min-width:200px">
+      <button onclick="saveAcc()">Guardar sesión</button>
+      <button class="sec" onclick="clearAcc()">Cerrar</button>
+    </div>
+    <p class="hint">Tu identidad se guarda en <code>localStorage</code> de este
+      navegador únicamente. No la almacenamos ni la recibimos. Solo sirve para
+      estampar autoría en el reporte que exportes y publiques firmado.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Cargar datos reales (solo lectura) → copia de trabajo</h2>
+    <div class="row">
+      <input id="baseUrl" type="text" placeholder="https://testigo... (URL base del testigo)" style="flex:1">
+      <button onclick="loadReal()">Cargar copia de trabajo</button>
+      <span id="loadStat"></span>
+    </div>
+    <p class="hint">Se descarga vía <code>/audit/timeline</code> (público, sin auth)
+      y se clona a una copia aislada. El original nunca se muta. "Reset" vuelve aquí.</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-m="attack" onclick="tab('attack')">Modo: Atacar el núcleo (T1 / T3)</div>
+    <div class="tab" data-m="tune" onclick="tab('tune')">Modo: Afinar anomalías</div>
+  </div>
+
+  <!-- ATTACK -->
+  <div class="mode on" id="m-attack">
+    <div class="panel">
+      <h2>Veredicto en vivo sobre la copia de trabajo</h2>
+      <div class="kv" id="atkVerdict"><div class="k">estado</div><div class="v">carga datos primero</div></div>
+      <div class="row">
+        <button class="sec" onclick="addRow()">+ insertar acta</button>
+        <button class="sec" onclick="delRow()">− borrar última</button>
+        <button class="sec" onclick="swapRows()">↕ reordenar 2 primeras</button>
+        <button class="danger" onclick="resetWork()">⟲ reset a datos reales</button>
+      </div>
+      <p class="hint">Edita cualquier <code>expected_hash</code> o
+        <code>previous_hash</code> en la tabla y observa: el enlace se rompe en el
+        índice exacto (T1) y la raíz Merkle diverge del ancla (T3). Esto es la
+        demostración con tus manos de por qué una reescritura silenciosa es detectable.</p>
+      <div class="tbl-wrap" id="atkTbl"></div>
+    </div>
+    <div class="panel">
+      <h2>Exportar atestación firmable (pública)</h2>
+      <label>Veredicto del validador (qué probaste, qué concluyes)</label>
+      <textarea id="atkNote" placeholder="Ej. 'Modifiqué el hash en índice 12: el enlace se rompe exactamente en 12 y el Merkle diverge. T1/T3 se sostienen sobre este conjunto.'"></textarea>
+      <div class="row"><button onclick="exportReport('attack')">⬇ Reporte JSON (para firmar y publicar)</button></div>
+      <p class="hint">El reporte sale con tu autoría local + estado de la copia +
+        veredicto. Lo firmas con tu llave y lo publicas como issue/PR — atribuible
+        e inatacable por un perito hostil. Sin canal privado hacia nosotros.</p>
+    </div>
+  </div>
+
+  <!-- TUNE -->
+  <div class="mode" id="m-tune">
+    <div class="panel">
+      <div class="warnbox">
+        <b>Disciplina anti-sobreajuste (obligatoria).</b> Afinar reglas contra los
+        datos de una elección ya conocida produce reglas curva-ajustadas que un
+        experto hostil destruye ("diseñaron la prueba sabiendo la respuesta").
+        Por eso: (1) declara la hipótesis ANTES de ver resultados, (2) valida en
+        datos sintéticos / out-of-sample, no en el caso que motivó la regla.
+      </div>
+      <label>Pre-registro: hipótesis y justificación estadística (antes de tocar deslizadores)</label>
+      <textarea id="preReg" placeholder="Ej. 'Hipótesis: la distribución del primer dígito en actas legítimas sigue Benford; desviación > X sugiere concentración atípica de carga. Justificación: ...'"></textarea>
+      <div class="row">
+        <button id="preBtn" onclick="lockPre()">Bloquear pre-registro y habilitar pruebas</button>
+        <span id="preStat"></span>
+      </div>
+    </div>
+    <div class="panel" id="tunePanel" style="opacity:.4;pointer-events:none">
+      <h2>Conjunto de prueba</h2>
+      <div class="row">
+        <button class="sec" onclick="genSynthetic('clean')">Generar sintético limpio (Benford)</button>
+        <button class="sec" onclick="genSynthetic('tampered')">Generar sintético manipulado</button>
+        <button class="sec" onclick="document.getElementById('csvIn').click()">Subir CSV (out-of-sample)</button>
+        <input id="csvIn" type="file" accept=".csv" style="display:none" onchange="loadCsv(event)">
+        <span id="dataStat"></span>
+      </div>
+      <p class="hint">Columna numérica esperada (conteos por acta). El sandbox NO
+        recibe los conteos reales vía los endpoints de custodia (solo exponen
+        hashes) — esto fuerza por diseño que afines sobre datos sintéticos o que
+        tú traes, nunca sobre el caso conocido.</p>
+
+      <h2 style="margin-top:18px">Reglas (deslizadores)</h2>
+      <div class="slider">
+        <span style="min-width:230px">Umbral desviación Benford (χ²)</span>
+        <input type="range" id="rBenford" min="0" max="60" value="15" step="0.5" oninput="recompute()">
+        <span class="val" id="vBenford">15.0</span>
+      </div>
+      <div class="slider">
+        <span style="min-width:230px">Z-score concentración de carga</span>
+        <input type="range" id="rZ" min="1" max="8" value="3" step="0.1" oninput="recompute()">
+        <span class="val" id="vZ">3.0</span>
+      </div>
+      <div class="slider">
+        <span style="min-width:230px">Ventana temporal (min) para ráfagas</span>
+        <input type="range" id="rWin" min="1" max="120" value="30" step="1" oninput="recompute()">
+        <span class="val" id="vWin">30</span>
+      </div>
+      <div class="kv" id="tuneOut" style="margin-top:14px"></div>
+    </div>
+    <div class="panel">
+      <h2>Exportar hallazgos firmables (públicos)</h2>
+      <label>Conclusión del validador (qué regla propones y por qué generaliza)</label>
+      <textarea id="tuneNote" placeholder="Ej. 'Con χ²>{x} y z>{y} la regla separa sintético-limpio de sintético-manipulado con FP<5% y se sostiene en el CSV out-of-sample 2021. Propongo estos valores como punto de partida, conservadores.'"></textarea>
+      <div class="row"><button onclick="exportReport('tune')">⬇ Reporte JSON (pre-registro + parámetros + resultados)</button></div>
+    </div>
+  </div>
+
+</main>
+<footer>Centinela · banco de pruebas aislado · AGPL-3.0 — nada aquí altera datos reales ni el verificador público.</footer>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+
+/* ---------- crypto core (réplica byte-idéntica a transparency.py) ---------- */
+function hexToBytes(h){const a=new Uint8Array(h.length/2);
+  for(let i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16);return a;}
+function bytesToHex(b){return [...new Uint8Array(b)]
+  .map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function sha256(b){return new Uint8Array(await crypto.subtle.digest('SHA-256',b));}
+function concat(a,b){const c=new Uint8Array(a.length+b.length);
+  c.set(a,0);c.set(b,a.length);return c;}
+async function merkleRoot(hexes){
+  if(!hexes.length) return null;
+  let lv=hexes.map(hexToBytes);
+  if(lv.length===1) return bytesToHex(lv[0]);
+  while(lv.length>1){
+    if(lv.length%2===1) lv.push(lv[lv.length-1]);
+    const nx=[];for(let i=0;i<lv.length;i+=2) nx.push(await sha256(concat(lv[i],lv[i+1])));
+    lv=nx;
+  }
+  return bytesToHex(lv[0]);
+}
+
+/* ---------- local account ---------- */
+function loadAcc(){
+  const a=JSON.parse(localStorage.getItem('centinela_validator')||'null');
+  if(a){$('vName').value=a.name;$('vAff').value=a.aff;
+    $('accChip').innerHTML='sesión: <b>'+a.name+'</b>';}
+  return a;
+}
+function saveAcc(){
+  const a={name:$('vName').value.trim(),aff:$('vAff').value.trim()};
+  if(!a.name){alert('Ingresa al menos un nombre.');return;}
+  localStorage.setItem('centinela_validator',JSON.stringify(a));
+  $('accChip').innerHTML='sesión: <b>'+a.name+'</b>';
+}
+function clearAcc(){localStorage.removeItem('centinela_validator');
+  $('accChip').textContent='sin sesión';$('vName').value='';$('vAff').value='';}
+
+/* ---------- real data → working copy ---------- */
+let REAL=[],WORK=[],SERVER_ROOT=null,BASE='';
+function clean(u){return (u||'').trim().replace(/\/+$/,'')}
+async function jget(b,p){const r=await fetch(b+p,{mode:'cors',cache:'no-store'});
+  if(!r.ok)throw new Error('HTTP '+r.status+' '+p);return r.json();}
+async function loadReal(){
+  BASE=clean($('baseUrl').value);
+  if(!BASE){alert('Ingresa la URL del testigo.');return;}
+  $('loadStat').textContent='cargando…';
+  try{
+    let out=[],off=0;
+    for(;;){const j=await jget(BASE,`/audit/timeline?limit=1000&offset=${off}`);
+      const e=j.entries||[];out=out.concat(e);
+      if(e.length<1000||out.length>=(j.total||0))break;off+=1000;}
+    out.sort((a,b)=>(a.index||0)-(b.index||0));
+    try{const t=await jget(BASE,'/audit/transparency');SERVER_ROOT=t.live_merkle_root||null;}
+    catch(e){SERVER_ROOT=null;}
+    REAL=JSON.parse(JSON.stringify(out));
+    resetWork();
+    $('loadStat').innerHTML='<span class="badge b-ok">'+out.length+' actas (copia aislada)</span>';
+  }catch(e){
+    $('loadStat').innerHTML='<span class="badge b-bad">error: '+e.message+'</span>';
+  }
+}
+function resetWork(){WORK=JSON.parse(JSON.stringify(REAL));renderAtk();}
+
+/* ---------- attack mode ---------- */
+function tab(m){document.querySelectorAll('.tab').forEach(t=>
+  t.classList.toggle('on',t.dataset.m===m));
+  document.querySelectorAll('.mode').forEach(x=>
+  x.classList.toggle('on',x.id==='m-'+m));}
+
+function firstBreak(){
+  for(let i=1;i<WORK.length;i++)
+    if((WORK[i].previous_hash||'')!==(WORK[i-1].expected_hash||'')) return i;
+  return -1;
+}
+async function renderAtk(){
+  if(!WORK.length){return;}
+  const brk=firstBreak();
+  const root=await merkleRoot(WORK.map(e=>e.expected_hash||''));
+  const linkOk=brk===-1;
+  const mkOk=SERVER_ROOT? root===SERVER_ROOT : null;
+  $('atkVerdict').innerHTML=
+    `<div class="k">T1 — enlace de cadena</div><div class="v">`+
+      (linkOk?'<span class="badge b-ok">ÍNTEGRO ✓</span>':
+       '<span class="badge b-bad">ROTO en índice '+brk+' ✗</span>')+`</div>`+
+    `<div class="k">T3 — raíz Merkle vs ancla</div><div class="v">`+
+      (mkOk===null?'<span class="badge b-na">sin ancla servidor</span>':
+       mkOk?'<span class="badge b-ok">COINCIDE ✓</span>':
+       '<span class="badge b-bad">DIVERGE — reescritura detectable ✗</span>')+`</div>`+
+    `<div class="k">raíz recomputada (local)</div><div class="v">${root||'—'}</div>`+
+    `<div class="k">raíz ancla (servidor)</div><div class="v">${SERVER_ROOT||'—'}</div>`+
+    `<div class="k">actas en copia</div><div class="v">${WORK.length}</div>`;
+  let h='<table><tr><th>idx</th><th>previous_hash (editable)</th>'+
+    '<th>expected_hash (editable)</th><th>timestamp</th></tr>';
+  WORK.forEach((e,i)=>{
+    const bad=brk!==-1&&i===brk;
+    h+=`<tr class="${bad?'brk':''}"><td>${i}</td>`+
+      `<td><input value="${e.previous_hash||''}" onchange="editCell(${i},'previous_hash',this.value)"></td>`+
+      `<td><input value="${e.expected_hash||''}" onchange="editCell(${i},'expected_hash',this.value)"></td>`+
+      `<td>${e.timestamp_utc||'—'}</td></tr>`;
+  });
+  $('atkTbl').innerHTML=h+'</table>';
+}
+function editCell(i,k,v){WORK[i][k]=v;renderAtk();}
+function addRow(){const last=WORK[WORK.length-1]||{expected_hash:'',index:-1};
+  WORK.push({index:WORK.length,previous_hash:last.expected_hash||'',
+    expected_hash:'00'.repeat(32),timestamp_utc:new Date().toISOString(),
+    source_url:'(insertada en sandbox)'});renderAtk();}
+function delRow(){WORK.pop();renderAtk();}
+function swapRows(){if(WORK.length>1){const t=WORK[0];WORK[0]=WORK[1];WORK[1]=t;}renderAtk();}
+
+/* ---------- tune mode ---------- */
+let DATASET=[],DATASET_KIND='',PRE_LOCKED=false;
+function lockPre(){
+  if(!$('preReg').value.trim()){alert('Escribe el pre-registro primero.');return;}
+  PRE_LOCKED=true;$('preReg').setAttribute('readonly','');
+  $('preBtn').disabled=true;
+  $('preStat').innerHTML='<span class="badge b-ok">pre-registro bloqueado</span>';
+  $('tunePanel').style.opacity=1;$('tunePanel').style.pointerEvents='auto';
+}
+function rng(seed){let s=seed;return()=>{s=(s*1664525+1013904223)%4294967296;return s/4294967296;};}
+function benfordLeading(u){ // inverse-CDF: P(d)=log10(1+1/d)
+  let acc=0;for(let d=1;d<=9;d++){acc+=Math.log10(1+1/d);if(u<acc)return d;}
+  return 9;
+}
+function genSynthetic(kind){
+  const r=rng(kind==='clean'?7:99);const n=800;DATASET=[];
+  for(let i=0;i<n;i++){
+    if(kind==='clean'){ // true Benford: leading digit per law + random tail
+      const lead=benfordLeading(r());
+      const digits=1+Math.floor(r()*3); // 1..3 trailing digits
+      let tail=0;for(let k=0;k<digits;k++)tail=tail*10+Math.floor(r()*10);
+      DATASET.push(+(String(lead)+(digits?String(tail).padStart(digits,'0'):'')));
+    }else{ // 30% round-number ballot-stuffing concentration over Benford base
+      if(r()<0.30){DATASET.push(500*(1+Math.floor(r()*6)));}
+      else{const lead=benfordLeading(r());
+        let tail=0;for(let k=0;k<3;k++)tail=tail*10+Math.floor(r()*10);
+        DATASET.push(+(String(lead)+String(tail).padStart(3,'0')));}
+    }
+  }
+  DATASET_KIND='sintético-'+kind;
+  $('dataStat').innerHTML='<span class="badge b-pur">'+DATASET_KIND+' · n='+n+'</span>';
+  recompute();
+}
+function loadCsv(ev){
+  const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{const nums=(rd.result.match(/-?\d+(\.\d+)?/g)||[]).map(Number)
+    .filter(x=>x>0);DATASET=nums;DATASET_KIND='CSV out-of-sample';
+    $('dataStat').innerHTML='<span class="badge b-pur">CSV · n='+nums.length+'</span>';
+    recompute();};
+  rd.readAsText(f);
+}
+function benfordChi2(data){
+  const exp=[.301,.176,.125,.097,.079,.067,.058,.051,.046];
+  const obs=new Array(9).fill(0);
+  data.forEach(v=>{const d=String(Math.abs(Math.trunc(v)))[0];
+    const di=+d;if(di>=1&&di<=9)obs[di-1]++;});
+  const N=obs.reduce((a,b)=>a+b,0)||1;
+  let chi=0;for(let i=0;i<9;i++){const e=exp[i]*N;chi+=Math.pow(obs[i]-e,2)/e;}
+  return {chi:chi,N:N};
+}
+function zStats(data){
+  const m=data.reduce((a,b)=>a+b,0)/(data.length||1);
+  const sd=Math.sqrt(data.reduce((a,b)=>a+(b-m)**2,0)/(data.length||1))||1;
+  const maxZ=Math.max(...data.map(v=>Math.abs((v-m)/sd)),0);
+  return {mean:m,sd:sd,maxZ:maxZ};
+}
+function recompute(){
+  $('vBenford').textContent=(+$('rBenford').value).toFixed(1);
+  $('vZ').textContent=(+$('rZ').value).toFixed(1);
+  $('vWin').textContent=$('rWin').value;
+  if(!DATASET.length){$('tuneOut').innerHTML=
+    '<div class="k">datos</div><div class="v">genera o sube un conjunto</div>';return;}
+  const b=benfordChi2(DATASET),z=zStats(DATASET);
+  const tB=+$('rBenford').value,tZ=+$('rZ').value;
+  const flagB=b.chi>tB,flagZ=z.maxZ>tZ;
+  const anomalous=flagB||flagZ;
+  $('tuneOut').innerHTML=
+    `<div class="k">conjunto</div><div class="v">${DATASET_KIND} · n=${b.N}</div>`+
+    `<div class="k">Benford χ² observado</div><div class="v">${b.chi.toFixed(2)} `+
+      (flagB?'<span class="badge b-bad">> umbral</span>':'<span class="badge b-ok">ok</span>')+`</div>`+
+    `<div class="k">z-score máx</div><div class="v">${z.maxZ.toFixed(2)} `+
+      (flagZ?'<span class="badge b-bad">> umbral</span>':'<span class="badge b-ok">ok</span>')+`</div>`+
+    `<div class="k">veredicto regla</div><div class="v">`+
+      (anomalous?'<span class="badge b-bad">ANÓMALO bajo estos parámetros</span>':
+       '<span class="badge b-ok">dentro de lo esperado</span>')+`</div>`+
+    `<div class="k">recordatorio</div><div class="v">valida el MISMO umbral en `+
+      `sintético-limpio Y manipulado Y out-of-sample antes de proponerlo</div>`;
+}
+
+/* ---------- signed-report export ---------- */
+function exportReport(mode){
+  const acc=JSON.parse(localStorage.getItem('centinela_validator')||'null');
+  if(!acc){alert('Guarda tu sesión de validador primero (para autoría).');return;}
+  let payload;
+  if(mode==='attack'){
+    payload={
+      report_type:'centinela-attestation-attack',
+      validator:acc, base_url:BASE,
+      real_count:REAL.length, working_count:WORK.length,
+      first_break_index:firstBreak(),
+      server_anchor_root:SERVER_ROOT,
+      verdict_note:$('atkNote').value,
+    };
+  }else{
+    if(!PRE_LOCKED){alert('Bloquea el pre-registro primero.');return;}
+    payload={
+      report_type:'centinela-rule-tuning',
+      validator:acc,
+      pre_registration:$('preReg').value,
+      dataset_kind:DATASET_KIND, dataset_n:DATASET.length,
+      params:{benford_chi2:+$('rBenford').value, zscore:+$('rZ').value,
+        window_min:+$('rWin').value},
+      results:$('tuneOut').innerText,
+      conclusion:$('tuneNote').value,
+    };
+  }
+  payload.generated_at=new Date().toISOString();
+  payload.note='Reporte client-side. Fírmalo con tu llave y publícalo '+
+    '(issue/PR). No se envió a ningún servidor.';
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='centinela_'+mode+'_report.json';a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+loadAcc();
+</script>
+</body>
+</html>
