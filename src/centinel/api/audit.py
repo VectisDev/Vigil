@@ -27,10 +27,12 @@ Bilingual / Bilingüe:
 from __future__ import annotations
 
 import json
+import threading
+import time
 from datetime import date as date_cls
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -39,6 +41,7 @@ from ..hasher import (
     collect_snapshot_entries,
     verify_hashchain_from_snapshots,
 )
+from ..core.transparency import compute_merkle_root, read_transparency_log
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
@@ -49,6 +52,31 @@ _DEFAULT_SNAPSHOT_ROOT = Path("data") / "snapshots"
 def _resolve_snapshot_root() -> Path:
     """Return the canonical snapshot directory for audit operations."""
     return _DEFAULT_SNAPSHOT_ROOT
+
+
+# --- Anti-DoS TTL cache (C3) -------------------------------------------------
+# /audit/chain/verify rescans every snapshot and recomputes the whole chain.
+# Unbounded, a flood of requests turns the integrity endpoint itself into a
+# DoS vector. The result only changes when new snapshots are written, so we
+# memoize it for a short TTL. Under a flood, callers get the last computed
+# result instead of hammering the filesystem. Stdlib-only, zero dependency.
+
+_CACHE_TTL_SECONDS = 15.0
+_cache_lock = threading.Lock()
+_cache_store: Dict[str, tuple[float, Any]] = {}
+
+
+def _cached(key: str, ttl: float, producer: Callable[[], Any]) -> Any:
+    """Return a cached value for `key` or compute+store it under lock."""
+    now = time.monotonic()
+    with _cache_lock:
+        hit = _cache_store.get(key)
+        if hit is not None and (now - hit[0]) < ttl:
+            return hit[1]
+    value = producer()
+    with _cache_lock:
+        _cache_store[key] = (time.monotonic(), value)
+    return value
 
 
 def _serialize_entry(entry: Any) -> Dict[str, Any]:
@@ -83,6 +111,7 @@ def audit_health() -> Dict[str, Any]:
         "endpoints": [
             "/audit/health",
             "/audit/chain/verify",
+            "/audit/transparency",
             "/audit/timeline",
             "/audit/snapshots/{date}",
             "/audit/proof/{hash}",
@@ -115,12 +144,63 @@ def audit_chain_verify() -> Dict[str, Any]:
             "errors": [],
             "note": "snapshot_root_missing — no data captured yet",
         }
-    result = verify_hashchain_from_snapshots(snapshot_root)
+    result = _cached(
+        "chain_verify",
+        _CACHE_TTL_SECONDS,
+        lambda: verify_hashchain_from_snapshots(snapshot_root),
+    )
+    result = dict(result)
     result["snapshot_root"] = str(snapshot_root)
     result["verified_at_utc"] = datetime.now(timezone.utc).isoformat(
         timespec="microseconds"
     )
+    result["cache_ttl_seconds"] = _CACHE_TTL_SECONDS
     return result
+
+
+@router.get("/transparency")
+def audit_transparency(
+    limit: int = Query(50, ge=1, le=500, description="Max checkpoints to return"),
+) -> Dict[str, Any]:
+    """External transparency anchor — Merkle root + append-only log.
+
+    Returns the current Merkle root over the full chain plus the most
+    recent signed/timestamped checkpoints from the append-only
+    transparency log. An auditor compares the live Merkle root against
+    what mirrors and the public log report: any silent rewrite of past
+    snapshots changes the root and is exposed here.
+
+    Bilingüe: ancla de transparencia externa. La raíz de Merkle en vivo
+    contra el log público append-only detecta reescrituras silenciosas.
+    """
+    snapshot_root = _resolve_snapshot_root()
+    if snapshot_root.exists():
+        entries = _cached(
+            "transparency_entries",
+            _CACHE_TTL_SECONDS,
+            lambda: collect_snapshot_entries(snapshot_root),
+        )
+        leaf_hashes = [e.expected_hash for e in entries]
+        live_root = compute_merkle_root(leaf_hashes)
+        chain_length = len(leaf_hashes)
+    else:
+        live_root = None
+        chain_length = 0
+
+    log = read_transparency_log()
+    window = log[-limit:] if log else []
+    return {
+        "live_merkle_root": live_root,
+        "merkle_algorithm": "sha256",
+        "chain_length": chain_length,
+        "checkpoint_count": len(log),
+        "checkpoints": window,
+        "verified_at_utc": datetime.now(timezone.utc).isoformat(timespec="microseconds"),
+        "note": (
+            "Compare live_merkle_root against independent mirrors and the "
+            "external timestamps (Git history / OpenTimestamps) in the log."
+        ),
+    }
 
 
 @router.get("/timeline")
