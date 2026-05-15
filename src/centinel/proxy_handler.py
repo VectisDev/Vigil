@@ -62,6 +62,7 @@ from __future__ import annotations
 import logging
 import os
 import secrets
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -186,6 +187,10 @@ class ProxyRotator:
         self._current_index = 0
         self._requests_since_rotation = 0
         self._current_proxy: Optional[ProxyInfo] = None
+        # RLock protects mutable rotation state (_current_proxy, _current_index,
+        # _requests_since_rotation, mode, _proxies) from concurrent access by
+        # snapshot threads. Reentrant so internal helpers can call locked methods.
+        self._lock = threading.RLock()
 
     @property
     def active_proxies(self) -> List[ProxyInfo]:
@@ -193,126 +198,134 @@ class ProxyRotator:
 
         English: Function active_proxies defined in src/centinel/proxy_handler.py.
         """
-        return [proxy for proxy in self._proxies if not proxy.dead]
+        with self._lock:
+            return [proxy for proxy in self._proxies if not proxy.dead]
 
     def _fallback_to_direct(self) -> None:
         """Español: Función _fallback_to_direct del módulo src/centinel/proxy_handler.py.
 
         English: Function _fallback_to_direct defined in src/centinel/proxy_handler.py.
         """
-        if self.mode != "direct":
-            self.logger.warning("proxy_fallback_direct", reason="no_active_proxies")
-        self.mode = "direct"
-        self._current_proxy = None
+        with self._lock:
+            if self.mode != "direct":
+                self.logger.warning("proxy_fallback_direct", reason="no_active_proxies")
+            self.mode = "direct"
+            self._current_proxy = None
 
     def refresh_proxies(self, validator: ProxyValidator) -> bool:
         """Revalida proxies cuando el pool está agotado."""
         if not self._proxy_urls:
             return False
         validated = validator.validate(self._proxy_urls)
-        self._proxies = validated
-        self._current_index = 0
-        self._requests_since_rotation = 0
-        self._current_proxy = None
-        if validated:
-            self.mode = "rotate"
-            self.logger.info("proxy_pool_refreshed", count=len(validated))
-            return True
-        return False
+        with self._lock:
+            self._proxies = validated
+            self._current_index = 0
+            self._requests_since_rotation = 0
+            self._current_proxy = None
+            if validated:
+                self.mode = "rotate"
+                self.logger.info("proxy_pool_refreshed", count=len(validated))
+                return True
+            return False
 
     def _select_next_proxy(self) -> Optional[ProxyInfo]:
         """Español: Función _select_next_proxy del módulo src/centinel/proxy_handler.py.
 
         English: Function _select_next_proxy defined in src/centinel/proxy_handler.py.
         """
-        active = self.active_proxies
-        if not active:
-            self._fallback_to_direct()
-            return None
-        if self.rotation_strategy == "random":
-            return secrets.choice(active)
-        if self._current_index >= len(active):
-            self._current_index = 0
-        proxy = active[self._current_index]
-        self._current_index = (self._current_index + 1) % len(active)
-        return proxy
+        with self._lock:
+            active = self.active_proxies
+            if not active:
+                self._fallback_to_direct()
+                return None
+            if self.rotation_strategy == "random":
+                return secrets.choice(active)
+            if self._current_index >= len(active):
+                self._current_index = 0
+            proxy = active[self._current_index]
+            self._current_index = (self._current_index + 1) % len(active)
+            return proxy
 
     def get_proxy_for_request(self) -> Optional[str]:
         """Obtiene el proxy para esta solicitud según la configuración."""
-        if self.mode == "direct":
-            return None
-        active = self.active_proxies
-        if not active:
-            self._fallback_to_direct()
-            return None
-        if self.mode == "proxy_list":
-            self._current_proxy = active[0]
-            self.logger.debug(
-                "proxy_selected",
-                mode=self.mode,
-                strategy=self.rotation_strategy,
-                proxy=self._current_proxy.url,
-            )
-            return self._current_proxy.url
-        self._requests_since_rotation += 1
-        if self._current_proxy is None or self._requests_since_rotation >= self.rotation_every_n:
-            self._current_proxy = self._select_next_proxy()
-            self._requests_since_rotation = 0
-            if self._current_proxy:
+        with self._lock:
+            if self.mode == "direct":
+                return None
+            active = self.active_proxies
+            if not active:
+                self._fallback_to_direct()
+                return None
+            if self.mode == "proxy_list":
+                self._current_proxy = active[0]
                 self.logger.debug(
-                    "proxy_rotated",
+                    "proxy_selected",
                     mode=self.mode,
                     strategy=self.rotation_strategy,
                     proxy=self._current_proxy.url,
                 )
-        return self._current_proxy.url if self._current_proxy else None
+                return self._current_proxy.url
+            self._requests_since_rotation += 1
+            if self._current_proxy is None or self._requests_since_rotation >= self.rotation_every_n:
+                self._current_proxy = self._select_next_proxy()
+                self._requests_since_rotation = 0
+                if self._current_proxy:
+                    self.logger.debug(
+                        "proxy_rotated",
+                        mode=self.mode,
+                        strategy=self.rotation_strategy,
+                        proxy=self._current_proxy.url,
+                    )
+            return self._current_proxy.url if self._current_proxy else None
 
     def mark_success(self, proxy_url: str) -> None:
         """Español: Función mark_success del módulo src/centinel/proxy_handler.py.
 
         English: Function mark_success defined in src/centinel/proxy_handler.py.
         """
-        proxy = self._find_proxy(proxy_url)
-        if proxy:
-            proxy.mark_success()
-            self.logger.info(
-                "proxy_marked_success",
-                proxy=proxy.url,
-            )
+        with self._lock:
+            proxy = self._find_proxy(proxy_url)
+            if proxy:
+                proxy.mark_success()
+                self.logger.info(
+                    "proxy_marked_success",
+                    proxy=proxy.url,
+                )
 
     def mark_failure(self, proxy_url: str, reason: str) -> None:
         """Español: Función mark_failure del módulo src/centinel/proxy_handler.py.
 
         English: Function mark_failure defined in src/centinel/proxy_handler.py.
         """
-        proxy = self._find_proxy(proxy_url)
-        if not proxy:
-            return
-        proxy.mark_failure(reason)
-        self.logger.warning(
-            "proxy_marked_failure",
-            proxy=proxy.url,
-            reason=reason,
-            consecutive_failures=proxy.consecutive_failures,
-        )
-        if proxy.dead:
+        with self._lock:
+            proxy = self._find_proxy(proxy_url)
+            if not proxy:
+                return
+            proxy.mark_failure(reason)
             self.logger.warning(
-                "proxy_marked_dead",
+                "proxy_marked_failure",
                 proxy=proxy.url,
-                reason=proxy.last_error or "failure_threshold",
+                reason=reason,
+                consecutive_failures=proxy.consecutive_failures,
             )
-        if not self.active_proxies:
-            self._fallback_to_direct()
+            if proxy.dead:
+                self.logger.warning(
+                    "proxy_marked_dead",
+                    proxy=proxy.url,
+                    reason=proxy.last_error or "failure_threshold",
+                )
+            if not self.active_proxies:
+                self._fallback_to_direct()
 
     def _find_proxy(self, proxy_url: str) -> Optional[ProxyInfo]:
         """Español: Función _find_proxy del módulo src/centinel/proxy_handler.py.
 
         English: Function _find_proxy defined in src/centinel/proxy_handler.py.
         """
-        for proxy in self._proxies:
-            if proxy.url == proxy_url:
-                return proxy
-        return None
+        with self._lock:
+            for proxy in self._proxies:
+                if proxy.url == proxy_url:
+                    return proxy
+            return None
 
 
 def load_proxy_config(config_path: Optional[Path] = None) -> dict:
@@ -350,42 +363,48 @@ def load_proxy_config(config_path: Optional[Path] = None) -> dict:
 
 
 _ROTATOR: Optional[ProxyRotator] = None
+_ROTATOR_INIT_LOCK = threading.Lock()
 
 
 def get_proxy_rotator(logger: Optional[logging.Logger] = None) -> ProxyRotator:
-    """Inicializa y devuelve el rotador de proxies."""
-    global _ROTATOR
-    if _ROTATOR is not None:
-        if _ROTATOR.mode != "direct" and not _ROTATOR.active_proxies:
-            config = load_proxy_config()
-            validator = ProxyValidator(
-                test_url=config["test_url"],
-                timeout_seconds=10.0,
-                logger=logger or logging.getLogger(__name__),
-            )
-            refreshed = _ROTATOR.refresh_proxies(validator)
-            if not refreshed:
-                _ROTATOR._fallback_to_direct()
-        return _ROTATOR
+    """Inicializa y devuelve el rotador de proxies.
 
-    logger = logger or logging.getLogger(__name__)
-    config = load_proxy_config()
-    validator = ProxyValidator(
-        test_url=config["test_url"],
-        timeout_seconds=config["proxy_timeout_seconds"],
-        logger=logger,
-    )
-    validated = validator.validate(config["proxies"])
-    _ROTATOR = ProxyRotator(
-        mode=config["mode"],
-        proxies=validated,
-        proxy_urls=config["proxies"],
-        rotation_strategy=config["rotation_strategy"],
-        rotation_every_n=config["rotation_every_n"],
-        proxy_timeout_seconds=config["proxy_timeout_seconds"],
-        logger=logger,
-    )
-    if config["mode"] != "direct" and not validated:
-        logger.warning("proxy_startup_no_valid_proxies", fallback="direct")
-        _ROTATOR.mode = "direct"
-    return _ROTATOR
+    Thread-safe singleton: the init lock prevents two threads from
+    constructing parallel ProxyRotator instances on first call.
+    """
+    global _ROTATOR
+    with _ROTATOR_INIT_LOCK:
+        if _ROTATOR is not None:
+            if _ROTATOR.mode != "direct" and not _ROTATOR.active_proxies:
+                config = load_proxy_config()
+                validator = ProxyValidator(
+                    test_url=config["test_url"],
+                    timeout_seconds=10.0,
+                    logger=logger or logging.getLogger(__name__),
+                )
+                refreshed = _ROTATOR.refresh_proxies(validator)
+                if not refreshed:
+                    _ROTATOR._fallback_to_direct()
+            return _ROTATOR
+
+        logger = logger or logging.getLogger(__name__)
+        config = load_proxy_config()
+        validator = ProxyValidator(
+            test_url=config["test_url"],
+            timeout_seconds=config["proxy_timeout_seconds"],
+            logger=logger,
+        )
+        validated = validator.validate(config["proxies"])
+        _ROTATOR = ProxyRotator(
+            mode=config["mode"],
+            proxies=validated,
+            proxy_urls=config["proxies"],
+            rotation_strategy=config["rotation_strategy"],
+            rotation_every_n=config["rotation_every_n"],
+            proxy_timeout_seconds=config["proxy_timeout_seconds"],
+            logger=logger,
+        )
+        if config["mode"] != "direct" and not validated:
+            logger.warning("proxy_startup_no_valid_proxies", fallback="direct")
+            _ROTATOR.mode = "direct"
+        return _ROTATOR
