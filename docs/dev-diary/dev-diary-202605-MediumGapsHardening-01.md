@@ -49,7 +49,7 @@ Four separately-exploitable MEDIUM weaknesses:
 - **M1:** redact at the API boundary (`_redact_path` → leaf name only). Auditors cross-reference by hash via `/audit/proof`, so nothing is lost; response schema preserved (no contract regression).
 - **M2:** persist via the same fsync-durable `write_atomic` from TIER 4. Lazy load, `max()` so it never moves backwards, missing/corrupt degrades to legacy (improvement, never regression). Write failure logged, never raised.
 - **M3:** **additive** `timestamp_anomalies` field. Non-fatal: never flips `valid`. Detects `future_timestamp` (300s tolerance) and `non_monotonic_vs_chain_predecessor`. Legacy fields untouched.
-- **M4:** bounded queue with `put_nowait` (drop+count under flood, never blocks the honeypot thread — blocking would be a thread-exhaustion DoS). Bounded per-IP cardinality with LRU eviction across all three structures. `cap<=0` preserves legacy unbounded behavior (explicit opt-out). Shutdown robust even if the sentinel is dropped.
+- **M4:** bounded queue with `put_nowait` (drop+count under flood, never blocks the honeypot thread — blocking would be a thread-exhaustion DoS). Bounded per-IP cardinality with LRU eviction across all three structures. `cap<=0` preserves legacy unbounded behavior (explicit opt-out). Shutdown robust even if the shutdown signal is dropped.
 
 ### 3) Operational impact
 The public surface no longer draws the server map; forensic fallback order survives restarts and clock tampering; a rewound timeline is visible to auditors without breaking verification; a honeypot flood degrades gracefully instead of taking down election capture. Every fix is a simple switch or graceful degradation, at zero cost.

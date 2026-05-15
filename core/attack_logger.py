@@ -307,7 +307,7 @@ class AttackForensicsLogbook:
                 payload = self._events.get(timeout=1.0)
             except queue.Empty:
                 # Re-check the stop flag so shutdown is honored even if the
-                # bounded queue was full and the sentinel was dropped.
+                # bounded queue was full and the shutdown signal was dropped.
                 continue
             try:
                 if payload is None:
