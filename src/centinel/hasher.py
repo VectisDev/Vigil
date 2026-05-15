@@ -164,38 +164,81 @@ def collect_snapshot_entries(snapshot_root: Path) -> List[SnapshotEntry]:
 
 
 def verify_hashchain_from_snapshots(snapshot_root: Path) -> Dict[str, Any]:
-    """Verify chained hashes from a snapshot directory. (Verifica hashes encadenados desde un directorio.)"""
+    """Verify chained hashes from a snapshot directory.
+
+    Strict semantics: stops at the first integrity violation and reports the
+    exact break point. A broken chain is mathematically unrecoverable, so
+    continuing past a mismatch produces misleading output for third-party
+    auditors.
+
+    Returns:
+        valid: bool — True only if the entire chain verified without errors.
+        count: int — total snapshots inspected (including the broken one).
+        verified_count: int — snapshots successfully verified before the break.
+        last_valid_hash: str|None — the last good chained hash; useful as a
+            recovery anchor (the chain was canonical up to this point).
+        broken_at: int|None — zero-based index of the first failing snapshot,
+            or None if the chain is fully valid.
+        broken_at_path: str|None — filesystem path of the first failing snapshot.
+        errors: list[str] — at most one error describing the break point.
+
+    Semantica estricta: detiene la verificacion ante la primera violacion de
+    integridad y reporta el punto exacto de ruptura. Una cadena rota es
+    matematicamente irrecuperable, asi que continuar produce salidas engañosas
+    para auditores externos.
+    """
     entries = collect_snapshot_entries(snapshot_root)
     errors: List[str] = []
     previous_hash: Optional[str] = None
+    last_valid_hash: Optional[str] = None
+    verified_count = 0
+    broken_at: Optional[int] = None
+    broken_at_path: Optional[str] = None
 
-    for entry in entries:
+    for idx, entry in enumerate(entries):
         expected_previous = entry.previous_hash
+
         if expected_previous and previous_hash and expected_previous != previous_hash:
+            broken_at = idx
+            broken_at_path = str(entry.snapshot_dir)
             errors.append(
-                f"previous_hash_mismatch path={entry.snapshot_dir} expected={expected_previous} actual={previous_hash}"
+                f"previous_hash_mismatch path={entry.snapshot_dir} "
+                f"expected={expected_previous} actual={previous_hash}"
             )
-        previous_to_use = expected_previous if expected_previous is not None else previous_hash
+            break
+
         try:
             computed_hash = compute_snapshot_hash(
                 entry.content,
                 entry.metadata,
-                previous_to_use,
+                previous_hash,
             )
         except ValueError as exc:
+            broken_at = idx
+            broken_at_path = str(entry.snapshot_dir)
             errors.append(f"hash_compute_error path={entry.snapshot_dir} error={exc}")
-            previous_hash = entry.expected_hash
-            continue
+            break
 
         if computed_hash != entry.expected_hash:
+            broken_at = idx
+            broken_at_path = str(entry.snapshot_dir)
             errors.append(
-                f"hash_mismatch path={entry.snapshot_dir} expected={entry.expected_hash} computed={computed_hash}"
+                f"hash_mismatch path={entry.snapshot_dir} "
+                f"expected={entry.expected_hash} computed={computed_hash}"
             )
+            break
+
         previous_hash = computed_hash
+        last_valid_hash = computed_hash
+        verified_count += 1
 
     return {
         "valid": not errors,
         "count": len(entries),
-        "last_hash": previous_hash,
+        "verified_count": verified_count,
+        "last_valid_hash": last_valid_hash,
+        "last_hash": last_valid_hash,  # backward-compat alias
+        "broken_at": broken_at,
+        "broken_at_path": broken_at_path,
         "errors": errors,
     }
