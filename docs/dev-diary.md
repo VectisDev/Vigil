@@ -25,3 +25,4 @@ Notas de versiones, decisiones técnicas y cambios relevantes del proyecto.
 - [202602 - DevV7StabilizationAndAudit - 01 (dev-v7)](dev-diary/dev-diary-202602-DevV7StabilizationAndAudit-01.md)
 - [202602 - ReadmeAllGreen - 01 (dev-v7)](dev-diary/dev-diary-202602-ReadmeAllGreen-01.md)
 - [202602 - SecurityCiHardening - 01 (dev-v9)](dev-diary/dev-diary-202602-SecurityCiHardening-01.md)
+- [202605 - HostileEnvHardening - 01 (dev-v9)](dev-diary/dev-diary-202605-HostileEnvHardening-01.md)
