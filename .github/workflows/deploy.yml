@@ -1,11 +1,15 @@
 name: Deploy to Fly.io
 
+# Auto-trigger disabled pending Fly.io infrastructure setup.
+# Reactivate by uncommenting the 'push' block once FLY_API_TOKEN
+# is configured in repository secrets and the centinel-engine app
+# is provisioned on Fly.io.
 on:
-  push:
-    branches:
-      - main
-      - dev-v9
   workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  #     - dev-v9
 
 permissions:
   contents: read
