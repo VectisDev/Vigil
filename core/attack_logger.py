@@ -68,7 +68,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
-from collections import defaultdict, deque
+from collections import OrderedDict, defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -142,6 +142,12 @@ class AttackLogConfig:
     monitor_unexpected_connections: bool = True
     flood_log_sample_ratio: int = 10
     geoip_city_db_path: str = ""
+    # Anti-DoS bounds: the logbook is defensive bookkeeping, so a flood must
+    # degrade it gracefully instead of exhausting memory and killing the
+    # whole election-night pipeline. Both have generous defaults; 0 disables
+    # the bound (legacy unbounded behavior — explicit opt-out, no surprise).
+    max_event_queue: int = 50_000
+    max_tracked_ips: int = 100_000
 
     @classmethod
     def from_yaml(cls, path: Path) -> "AttackLogConfig":
@@ -188,6 +194,8 @@ class AttackLogConfig:
             monitor_unexpected_connections=bool(raw.get("monitor_unexpected_connections", True)),
             flood_log_sample_ratio=max(1, int(raw.get("flood_log_sample_ratio", 10))),
             geoip_city_db_path=str(raw.get("geoip_city_db_path", "")),
+            max_event_queue=max(0, int(raw.get("max_event_queue", 50_000))),
+            max_tracked_ips=max(0, int(raw.get("max_tracked_ips", 100_000))),
         )
 
 
@@ -201,7 +209,12 @@ class AttackForensicsLogbook:
         self.config = config
         self.path = Path(config.log_path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._events: "queue.Queue[dict[str, Any] | None]" = queue.Queue()
+        self._events: "queue.Queue[dict[str, Any] | None]" = queue.Queue(
+            maxsize=config.max_event_queue if config.max_event_queue > 0 else 0
+        )
+        self._dropped_events = 0
+        self._drop_lock = threading.Lock()
+        self._ip_lru: "OrderedDict[str, None]" = OrderedDict()
         self._writer_stop = threading.Event()
         self._writer_thread: threading.Thread | None = None
         self._last_rotation = time.time()
@@ -242,8 +255,11 @@ class AttackForensicsLogbook:
         Detiene el thread de escritura de forma segura.
         """
         if self._writer_thread and self._writer_thread.is_alive():
-            self._events.put(None)
             self._writer_stop.set()
+            try:
+                self._events.put_nowait(None)
+            except queue.Full:
+                pass
             self._writer_thread.join(timeout=3)
         if self._handler:
             self._handler.close()
@@ -287,7 +303,12 @@ class AttackForensicsLogbook:
 
     def _writer_loop(self) -> None:
         while not self._writer_stop.is_set():
-            payload = self._events.get()
+            try:
+                payload = self._events.get(timeout=1.0)
+            except queue.Empty:
+                # Re-check the stop flag so shutdown is honored even if the
+                # bounded queue was full and the sentinel was dropped.
+                continue
             try:
                 if payload is None:
                     return
@@ -383,6 +404,7 @@ class AttackForensicsLogbook:
 
     def _event_frequency(self, ip: str) -> int:
         now = time.time()
+        self._note_ip(ip)
         hits = self._per_ip_hits[ip]
         hits.append(now)
         while hits and now - hits[0] > self.config.frequency_window_seconds:
@@ -464,6 +486,50 @@ class AttackForensicsLogbook:
         except OSError:
             return False
 
+    def _enqueue(self, event: dict[str, Any]) -> None:
+        """Non-blocking enqueue that drops (and counts) under flood.
+
+        A bounded queue must never block the honeypot request path — that
+        would convert backpressure into a thread-exhaustion DoS. When the
+        queue is full the event is dropped and counted; the drop itself is
+        surfaced (sampled) so auditors know capture degraded rather than
+        believing the flood stopped.
+        """
+        try:
+            self._events.put_nowait(event)
+        except queue.Full:
+            with self._drop_lock:
+                self._dropped_events += 1
+                dropped = self._dropped_events
+            if dropped == 1 or dropped % 1000 == 0:
+                LOGGER.warning(
+                    "attack_log_queue_full dropped_total=%s — logbook "
+                    "shedding load under flood (defensive, not data loss "
+                    "in the hash chain)",
+                    dropped,
+                )
+
+    def _note_ip(self, ip: str) -> None:
+        """Track IP recency and evict the oldest when over the cap.
+
+        The per-IP dicts are defensive bookkeeping. An attacker rotating
+        source IPs (botnet / spoofed X-Forwarded-For) would otherwise grow
+        them without bound. Eviction is LRU across all per-IP structures
+        together so the honeypot's own memory cannot be turned into the
+        attack. cap<=0 keeps the legacy unbounded behavior (explicit
+        opt-out, no surprise regression).
+        """
+        cap = self.config.max_tracked_ips
+        self._ip_lru[ip] = None
+        self._ip_lru.move_to_end(ip)
+        if cap <= 0:
+            return
+        while len(self._ip_lru) > cap:
+            old_ip, _ = self._ip_lru.popitem(last=False)
+            self._per_ip_hits.pop(old_ip, None)
+            self._per_ip_routes.pop(old_ip, None)
+            self._per_ip_flood_counter.pop(old_ip, None)
+
     def _should_enqueue(self, event: dict[str, Any]) -> bool:
         """Sample flood events to prevent sustained log inflation.
 
@@ -484,7 +550,7 @@ class AttackForensicsLogbook:
         """
         event = self._build_event(ip=ip, method=method, route=route, headers=headers, content_length=content_length)
         if self._should_enqueue(event):
-            self._events.put(event)
+            self._enqueue(event)
         self._maybe_send_summary(event)
         if self._event_callback:
             self._event_callback(event)
@@ -515,9 +581,9 @@ class AttackForensicsLogbook:
                     "unexpected_listen_ports": sorted(set(unexpected)),
                     "evidence": "unexpected listening ports detected",
                 }
-                self._events.put(event)
+                self._enqueue(event)
         except Exception as exc:  # noqa: BLE001
-            self._events.put(
+            self._enqueue(
                 {
                     "timestamp_utc": datetime.utcnow().isoformat(),
                     "classification": "suspicious",

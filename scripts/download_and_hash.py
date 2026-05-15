@@ -804,6 +804,61 @@ def _use_fallback_snapshot(
 
 _FALLBACK_SEQUENCE_COUNTERS: dict[str, int] = {}
 _FALLBACK_SEQUENCE_LOCK = __import__("threading").Lock()
+_FALLBACK_SEQUENCE_STATE_PATH = TEMP_DIR / "fallback_sequence_state.json"
+_FALLBACK_SEQUENCE_LOADED = False
+
+
+def _load_fallback_sequence_state() -> None:
+    """Load persisted per-source counters once (caller holds the lock).
+
+    Without persistence the counter resets to 0 on every process restart,
+    so after an election-night restart fallback sequences would repeat
+    (1,2,3,...,1,2,3). Auditors rely on (timestamp, sequence) as a TOTAL
+    order; in a hostile environment the attacker may also push the system
+    clock backwards, at which point the in-process counter was the only
+    remaining tiebreaker. Persisting it keeps the order monotonic across
+    restarts. Missing/corrupt state degrades to empty (== legacy
+    behavior): improvement only, never a regression.
+    """
+    global _FALLBACK_SEQUENCE_LOADED
+    if _FALLBACK_SEQUENCE_LOADED:
+        return
+    _FALLBACK_SEQUENCE_LOADED = True
+    try:
+        raw = _FALLBACK_SEQUENCE_STATE_PATH.read_text(encoding="utf-8")
+        persisted = json.loads(raw)
+    except (FileNotFoundError, ValueError, OSError):
+        return
+    if not isinstance(persisted, dict):
+        return
+    for source_id, value in persisted.items():
+        try:
+            seq = int(value)
+        except (TypeError, ValueError):
+            continue
+        # Never move a counter backwards: take the max of any in-memory
+        # value and the persisted one.
+        _FALLBACK_SEQUENCE_COUNTERS[source_id] = max(
+            _FALLBACK_SEQUENCE_COUNTERS.get(source_id, 0), seq
+        )
+
+
+def _persist_fallback_sequence_state() -> None:
+    """Durably persist counters (caller holds the lock). Best-effort.
+
+    Uses the same fsync-durable atomic writer as snapshots so a crash
+    cannot leave a torn counter file. Failure is logged, never raised:
+    in-process ordering still holds; only cross-restart durability
+    degrades, which is no worse than the legacy behavior.
+    """
+    try:
+        _FALLBACK_SEQUENCE_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        payload = json.dumps(
+            _FALLBACK_SEQUENCE_COUNTERS, ensure_ascii=False, sort_keys=True
+        ).encode("utf-8")
+        write_atomic(_FALLBACK_SEQUENCE_STATE_PATH, payload)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("fallback_sequence_state_persist_failed error=%s", exc)
 
 
 def _persist_breaker_state(breaker: CircuitBreaker) -> None:
@@ -835,8 +890,10 @@ def _next_fallback_sequence(source_id: str) -> int:
     microsegundo (apagon catastrofico de la fuente).
     """
     with _FALLBACK_SEQUENCE_LOCK:
+        _load_fallback_sequence_state()
         current = _FALLBACK_SEQUENCE_COUNTERS.get(source_id, 0) + 1
         _FALLBACK_SEQUENCE_COUNTERS[source_id] = current
+        _persist_fallback_sequence_state()
         return current
 
 
