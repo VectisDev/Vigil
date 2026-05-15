@@ -51,6 +51,8 @@ Notes:
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import logging
 import os
@@ -64,6 +66,43 @@ from typing import Any, Deque, Optional
 
 
 _LOGGER = logging.getLogger("centinel.circuit_breaker")
+
+_STATE_SECRET_FILENAME = ".circuit_breaker_secret"
+
+
+def _resolve_state_hmac_key(state_path: Path) -> bytes:
+    """Resolve the HMAC key protecting persisted breaker state.
+
+    Priority: CENTINEL_STATE_HMAC_KEY env var (>=16 chars) else a
+    local random secret file (0600) created next to the state file.
+    The secret protects against an attacker who edits or truncates the
+    state JSON to silently reset the breaker to CLOSED and re-open the
+    DoS window. Tampering invalidates the MAC, so a forged state is
+    rejected instead of trusted.
+    """
+    env_key = os.getenv("CENTINEL_STATE_HMAC_KEY", "").strip()
+    if len(env_key) >= 16:
+        return env_key.encode("utf-8")
+    secret_path = state_path.parent / _STATE_SECRET_FILENAME
+    try:
+        existing = secret_path.read_text(encoding="utf-8").strip()
+        if existing:
+            return existing.encode("utf-8")
+    except OSError:
+        pass
+    generated = hashlib.sha256(os.urandom(32)).hexdigest()
+    try:
+        secret_path.parent.mkdir(parents=True, exist_ok=True)
+        secret_path.write_text(generated, encoding="utf-8")
+        os.chmod(secret_path, 0o600)
+    except OSError:
+        pass
+    return generated.encode("utf-8")
+
+
+def _compute_state_mac(payload: bytes, key: bytes) -> str:
+    """Return the hex HMAC-SHA256 of a serialized state payload."""
+    return hmac.new(key, payload, hashlib.sha256).hexdigest()
 
 
 def _parse_iso(value: Optional[str]) -> Optional[datetime]:
@@ -285,13 +324,24 @@ class CircuitBreaker:
         return breaker
 
     def save_state(self, path: Path) -> None:
-        """Atomically persist breaker state to disk.
+        """Atomically persist MAC-protected breaker state to disk.
 
-        Uses tempfile + fsync + rename to guarantee no partial writes are
-        visible to a concurrent reader or persisted on crash.
+        The state dict is wrapped in an envelope carrying an HMAC-SHA256
+        over its canonical serialization. Atomic via tempfile + fsync +
+        rename so no partial write is visible or persisted on crash.
         """
         path.parent.mkdir(parents=True, exist_ok=True)
-        payload = json.dumps(self.to_dict(), ensure_ascii=False, indent=2).encode("utf-8")
+        state_dict = self.to_dict()
+        canonical = json.dumps(
+            state_dict, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8")
+        key = _resolve_state_hmac_key(path)
+        envelope = {
+            "mac_algorithm": "HMAC-SHA256",
+            "mac": _compute_state_mac(canonical, key),
+            "state": state_dict,
+        }
+        payload = json.dumps(envelope, ensure_ascii=False, indent=2).encode("utf-8")
         fd, tmp_name = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".", suffix=".tmp")
         try:
             with os.fdopen(fd, "wb") as tmp_file:
@@ -308,20 +358,56 @@ class CircuitBreaker:
 
     @classmethod
     def load_state(cls, path: Path) -> Optional["CircuitBreaker"]:
-        """Load previously saved state, or return None if missing/corrupt.
+        """Load MAC-verified breaker state.
 
-        Returning None signals callers to construct a fresh breaker. This is
-        intentionally tolerant: a corrupt state file should not prevent the
-        pipeline from starting, only force a clean breaker initialization.
+        Security behavior:
+          - Missing file -> None (caller builds a fresh breaker).
+          - Unreadable / not JSON -> None (tolerant: corrupt file must
+            not brick pipeline startup).
+          - Valid MAC -> trusted state restored.
+          - INVALID MAC (active tampering: someone edited the file to
+            reset the breaker to CLOSED and re-open the DoS window) ->
+            CRITICAL alert + breaker forced OPEN so the tamper attempt
+            fails closed instead of granting the attacker their goal.
+          - Legacy un-enveloped state -> accepted once with a warning
+            (one-time migration; next save_state writes a MAC).
         """
         if not path.exists():
             return None
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-            if not isinstance(payload, dict):
-                _LOGGER.warning("circuit_breaker_state_invalid path=%s reason=not_dict", path)
-                return None
-            return cls.from_dict(payload)
+            raw = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             _LOGGER.warning("circuit_breaker_state_unreadable path=%s error=%s", path, exc)
             return None
+        if not isinstance(raw, dict):
+            _LOGGER.warning("circuit_breaker_state_invalid path=%s reason=not_dict", path)
+            return None
+
+        # Legacy format (no envelope): accept once, will be re-MAC'd on save.
+        if "mac" not in raw or "state" not in raw:
+            _LOGGER.warning(
+                "circuit_breaker_state_legacy_unauthenticated path=%s "
+                "(accepting once; will be MAC-protected on next save)",
+                path,
+            )
+            return cls.from_dict(raw)
+
+        state_dict = raw.get("state")
+        if not isinstance(state_dict, dict):
+            _LOGGER.warning("circuit_breaker_state_invalid path=%s reason=envelope_state", path)
+            return None
+        canonical = json.dumps(
+            state_dict, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8")
+        key = _resolve_state_hmac_key(path)
+        expected = _compute_state_mac(canonical, key)
+        if not hmac.compare_digest(expected, str(raw.get("mac", ""))):
+            _LOGGER.critical(
+                "circuit_breaker_state_TAMPERED path=%s — MAC mismatch. "
+                "Forcing breaker OPEN (fail-closed) to deny the tamper attempt.",
+                path,
+            )
+            breaker = cls.from_dict(state_dict)
+            breaker._open(breaker._now())
+            return breaker
+        return cls.from_dict(state_dict)
