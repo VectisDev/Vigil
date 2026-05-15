@@ -51,6 +51,9 @@ Notes:
 
 
 
+import json
+from typing import Optional
+
 import typer
 
 app = typer.Typer(help="Centinel Engine CLI")
@@ -62,6 +65,69 @@ def main() -> None:
 
     English: Centinel command line interface.
     """
+
+
+@app.command()
+def doctor(
+    mode: Optional[str] = typer.Option(
+        None,
+        "--mode",
+        help="Override CENTINEL_MODE for this check (maintenance|monitoring|election).",
+    ),
+    as_json: bool = typer.Option(
+        False, "--json", help="Emit machine-readable JSON instead of text."
+    ),
+) -> None:
+    """Preflight self-audit. Exits non-zero if the active mode is BLOCKED.
+
+    English: Verify the security posture the active CENTINEL_MODE
+    promises is actually satisfied before running an election.
+    """
+    from .core.doctor import BLOCKED, format_report, run_doctor
+
+    report = run_doctor(mode)
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "profile": report.profile.as_dict(),
+                    "overall": report.overall,
+                    "election_ready": report.election_ready,
+                    "checks": [
+                        {
+                            "name": c.name,
+                            "status": c.status,
+                            "detail": c.detail,
+                            "remedy": c.remedy,
+                        }
+                        for c in report.checks
+                    ],
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+    else:
+        typer.echo(format_report(report))
+    if report.overall == BLOCKED:
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def profile(
+    mode: Optional[str] = typer.Option(
+        None, "--mode", help="Override CENTINEL_MODE for this resolution."
+    ),
+) -> None:
+    """Show the security posture derived from the active CENTINEL_MODE.
+
+    English: Print which security switches the current mode implies,
+    without mutating anything.
+    """
+    from .core.profiles import resolve_profile
+
+    resolved = resolve_profile(mode)
+    typer.echo(json.dumps(resolved.as_dict(), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
