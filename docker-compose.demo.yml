@@ -1,0 +1,50 @@
+# Demo deployment for Centinel Engine — minimum viable for auditor verification.
+#
+# This compose file launches ONLY the FastAPI server with public /audit/* endpoints.
+# No secrets, no external storage, no proxy chain required. Designed to let an
+# independent auditor verify the system end-to-end in under 5 minutes:
+#
+#   1) docker compose -f docker-compose.demo.yml up -d
+#   2) ./scripts/verify_deployment.sh
+#   3) open http://localhost:8000/docs
+#
+# Bilingüe: despliegue demo para que un auditor independiente verifique el sistema
+# de extremo a extremo en menos de 5 minutos sin necesitar secretos ni infraestructura.
+
+services:
+  centinel-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: centinel-engine:demo
+    container_name: centinel-demo
+    restart: unless-stopped
+    command:
+      - gunicorn
+      - api.main:app
+      - --worker-class
+      - uvicorn.workers.UvicornWorker
+      - --bind
+      - 0.0.0.0:8000
+      - --workers
+      - "2"
+      - --timeout
+      - "60"
+      - --access-logfile
+      - "-"
+    environment:
+      APP_ENV: "demo"
+      LOG_LEVEL: "info"
+      PORT: "8000"
+      TZ: "UTC"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/audit/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
