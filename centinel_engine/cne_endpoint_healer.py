@@ -7,6 +7,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import re
 import unicodedata
 from dataclasses import dataclass, replace
@@ -17,6 +18,26 @@ from urllib.parse import urljoin
 
 import requests
 import yaml
+from requests.adapters import HTTPAdapter
+
+
+class _CertPinningAdapter(HTTPAdapter):
+    """requests adapter enforcing a SHA-256 certificate pin.
+
+    Uses urllib3's native ``assert_fingerprint`` so the TLS handshake
+    itself fails if the peer certificate does not match the expected
+    SHA-256. This defeats a state-level MITM that holds a certificate
+    from a compromised or coerced CA: a valid-but-wrong cert is
+    rejected, not trusted.
+    """
+
+    def __init__(self, fingerprint_sha256: str, *args: Any, **kwargs: Any) -> None:
+        self._fingerprint = fingerprint_sha256.lower().replace(":", "").strip()
+        super().__init__(*args, **kwargs)
+
+    def init_poolmanager(self, *args: Any, **kwargs: Any) -> None:
+        kwargs["assert_fingerprint"] = self._fingerprint
+        super().init_poolmanager(*args, **kwargs)
 
 EXPECTED_DEPARTMENTS = [
     "ATLANTIDA",
@@ -117,6 +138,24 @@ class CNEEndpointHealer:
         self.session = requests.Session()
         self.session.headers.update(DEFAULT_HEADERS)
         self.logger = logging.getLogger(f"cne_endpoint_healer.{self.env_name}")
+
+        # Certificate pinning for CNE endpoints. A single env var keeps the
+        # control intuitive: set CENTINEL_CNE_CERT_SHA256 to the expected
+        # peer-cert SHA-256 to harden against state-level MITM. Unset =
+        # standard TLS (demo/dev); the inactive state is logged so an
+        # operator preparing for an election cannot miss it.
+        cert_pin = os.getenv("CENTINEL_CNE_CERT_SHA256", "").strip()
+        if cert_pin:
+            adapter = _CertPinningAdapter(cert_pin)
+            self.session.mount("https://", adapter)
+            self.logger.info(
+                "cne_cert_pinning_active fingerprint_prefix=%s", cert_pin[:12]
+            )
+        else:
+            self.logger.warning(
+                "cne_cert_pinning_INACTIVE — set CENTINEL_CNE_CERT_SHA256 "
+                "before an election to defend against state-level MITM"
+            )
 
     def heal(self) -> dict[str, Any]:
         """English: Alias to keep backward compatibility with healer naming used by schedulers.
