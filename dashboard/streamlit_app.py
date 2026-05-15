@@ -197,27 +197,13 @@ except ImportError:  # pragma: no cover - optional dependency for PDF rendering
     WeasyHTML = None
     WEASYPRINT_AVAILABLE = False
 
-# EN: Import user manager for authentication and role-based access.
-# ES: Importar user manager para autenticacion y acceso basado en roles.
-AUTH_ROOT = REPO_ROOT / "auth"
-if str(AUTH_ROOT.parent) not in sys.path:
-    sys.path.insert(0, str(AUTH_ROOT.parent))
-try:
-    from auth.user_manager import (
-        authenticate,
-        change_password,
-        create_user,
-        delete_user,
-        ensure_admin_exists,
-        list_users,
-        load_sandbox,
-        save_sandbox,
-        VALID_ROLES,
-    )
-
-    AUTH_AVAILABLE = True
-except ImportError:  # pragma: no cover
-    AUTH_AVAILABLE = False
+# EN: Auth system removed by design (citizen-public read-only model).
+#     Dashboard exposes public auditable data without authentication.
+#     Access restriction (if needed per deployment) belongs to reverse proxy.
+# ES: Sistema de auth eliminado por diseño (modelo ciudadano-público read-only).
+#     Dashboard expone datos auditables públicos sin autenticación.
+#     Restricción de acceso (si se necesita por deployment) corresponde a reverse proxy.
+AUTH_AVAILABLE = False
 
 
 @dataclass(frozen=True)
@@ -2360,8 +2346,8 @@ if _is_authenticated:
 else:
     st.sidebar.markdown("**Modo publico / Public mode**")
     st.sidebar.caption(
-        "EN: Log in to access Sandbox, Historical Data, and Admin features.  \n"
-        "ES: Inicia sesion para acceder a Sandbox, Datos Historicos y funciones Admin."
+        "EN: Read-only public dashboard. All data is publicly auditable by design.  \n"
+        "ES: Dashboard publico de solo lectura. Todos los datos son auditables publicamente por diseno."
     )
     if AUTH_AVAILABLE:
         with st.sidebar.form("sidebar_login", clear_on_submit=False):
