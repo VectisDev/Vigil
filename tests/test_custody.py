@@ -64,6 +64,24 @@ from centinel.core.custody import (
 # ---------------------------------------------------------------------------
 
 
+def _write_chain_record(hash_root, index, record, *, source="cne"):
+    """Write a hash record using the canonical production layout.
+
+    The real pipeline (and iter_all_hashes / verify_chain) consume
+    ``<hash_root>/<source>/snapshot_<NNN>.sha256``. Tests must exercise
+    that exact on-disk contract so a green result actually means the
+    chain was discovered and verified — not vacuously empty.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+
+    source_dir = _Path(hash_root) / source
+    source_dir.mkdir(parents=True, exist_ok=True)
+    path = source_dir / f"snapshot_{index:03d}.sha256"
+    path.write_text(_json.dumps(record, sort_keys=True), encoding="utf-8")
+    return path
+
+
 class TestVerifyChain:
     """Pruebas de verify_chain."""
 
@@ -81,8 +99,7 @@ class TestVerifyChain:
         expected = _compute_expected_hash(None, data_bytes)
 
         record = {**data_payload, "chained_hash": expected}
-        hash_file = tmp_path / "link_001.sha256"
-        hash_file.write_text(json.dumps(record), encoding="utf-8")
+        _write_chain_record(tmp_path, 1, record)
 
         result = verify_chain(tmp_path)
         assert result.valid is True
@@ -103,8 +120,7 @@ class TestVerifyChain:
             if previous:
                 record["previous_hash"] = previous
 
-            hash_file = tmp_path / f"link_{i:03d}.sha256"
-            hash_file.write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
+            _write_chain_record(tmp_path, i, record)
             previous = chained
 
         result = verify_chain(tmp_path)
@@ -132,8 +148,7 @@ class TestVerifyChain:
             if previous:
                 record["previous_hash"] = previous
 
-            hash_file = tmp_path / f"link_{i:03d}.sha256"
-            hash_file.write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
+            _write_chain_record(tmp_path, i, record)
             # Ensure distinct mtime ordering
             _time.sleep(0.05)
             previous = chained
@@ -144,11 +159,13 @@ class TestVerifyChain:
 
     def test_corrupted_json(self, tmp_path):
         """Archivo JSON corrupto se reporta como error."""
-        hash_file = tmp_path / "link_000.sha256"
-        hash_file.write_text("{corrupted", encoding="utf-8")
+        source_dir = tmp_path / "cne"
+        source_dir.mkdir(parents=True)
+        (source_dir / "snapshot_000.sha256").write_text("{corrupted", encoding="utf-8")
 
         result = verify_chain(tmp_path)
         assert len(result.errors) > 0
+        assert any("read_error" in e for e in result.errors)
 
 
 class TestVerifyChainFromEntries:
@@ -462,7 +479,7 @@ class TestStartupVerification:
             record = {**data_payload, "chained_hash": chained}
             if previous:
                 record["previous_hash"] = previous
-            (hash_dir / f"link_{i:03d}.sha256").write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
+            _write_chain_record(hash_dir, i, record)
             previous = chained
 
         report = run_startup_verification(
@@ -501,7 +518,7 @@ class TestStartupVerification:
             key_path=key_dir / "operator_private.pem",
             operator_id="startup-op",
         )
-        (hash_dir / "link_000.sha256").write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
+        _write_chain_record(hash_dir, 0, record)
 
         report = run_startup_verification(
             hash_dir=hash_dir,
@@ -509,4 +526,5 @@ class TestStartupVerification:
             verify_signatures=True,
         )
         assert report.overall_valid is True
+        assert report.chain_result.verified_links == 1
         assert len(report.signature_failures) == 0
