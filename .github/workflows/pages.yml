@@ -1,12 +1,12 @@
 name: Deploy web verifier to GitHub Pages
 
-# Manual trigger only. GitHub Pages must be enabled ONCE by a repo admin
-# (Settings -> Pages -> Source: "GitHub Actions"). A CI token cannot
-# enable Pages itself, so an auto-push trigger only produces a failing
-# red check until that one-time human action is done. After enabling
-# Pages, run this workflow from the Actions tab ("Run workflow") and it
-# will publish web/ at https://<owner>.github.io/centinel-engine/.
+# Pages must be enabled ONCE by an admin (Settings -> Pages -> Source:
+# "GitHub Actions"). Once enabled, every push to dev-v9 that touches
+# web/ auto-publishes to https://<owner>.github.io/centinel-engine/.
 on:
+  push:
+    branches: [dev-v9]
+    paths: ["web/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
