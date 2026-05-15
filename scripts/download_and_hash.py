@@ -563,6 +563,25 @@ def process_sources(
                 )
             except Exception as e:
                 logger.error("Fallo al descargar %s: %s", endpoint, e)
+                # Distinguish "the authority is down" from "someone is
+                # cutting us": diagnose the failure mode and record a
+                # signed, append-only degradation event. Best-effort and
+                # bounded — it must never raise into or stall the capture
+                # loop that has to run for a month.
+                try:
+                    from centinel.core.connectivity import diagnose_and_record
+
+                    diagnose_and_record(
+                        endpoint,
+                        source_id=source_id,
+                        reason="request_failed",
+                        exception_text=str(e),
+                        exception_type=type(e).__name__,
+                    )
+                except Exception as diag_exc:  # noqa: BLE001
+                    logger.warning(
+                        "connectivity_diagnosis_skipped error=%s", diag_exc
+                    )
                 breaker.record_failure(now)
                 _persist_breaker_state(breaker)
                 if breaker.consume_open_alert():
