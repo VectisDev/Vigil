@@ -126,6 +126,7 @@ def audit_health() -> Dict[str, Any]:
             "/audit/health",
             "/audit/chain/verify",
             "/audit/transparency",
+            "/audit/degradation",
             "/audit/timeline",
             "/audit/snapshots/{date}",
             "/audit/proof/{hash}",
@@ -215,6 +216,59 @@ def audit_transparency(
         "note": (
             "Compare live_merkle_root against independent mirrors and the "
             "external timestamps (Git history / OpenTimestamps) in the log."
+        ),
+    }
+
+
+@router.get("/degradation")
+def audit_degradation(
+    limit: int = Query(100, ge=1, le=1000, description="Max events to return"),
+    interference_only: bool = Query(
+        False, description="Return only targeted-interference signals"
+    ),
+) -> Dict[str, Any]:
+    """Induced-outage / interference signals (append-only, signed).
+
+    Exposes the degradation log: every time a fetch failed, the system
+    recorded WHY — the authority's own inoperancy vs. a targeted cut
+    (DNS redirection, TLS MITM, reset injection, route blackhole). An
+    external observer can see, in an immutable timeline, whether the
+    witness was blinded during the contested count.
+
+    Bilingüe: señales de corte inducido. Distingue inoperancia de la
+    autoridad de un corte dirigido, en un registro inmutable y firmado.
+    """
+    from ..core.connectivity import read_degradation_log
+
+    log = _cached(
+        "degradation_log",
+        _CACHE_TTL_SECONDS,
+        lambda: read_degradation_log(),
+    )
+    if interference_only:
+        log = [
+            e
+            for e in log
+            if e.get("verdict", {}).get("is_interference_signal") is True
+        ]
+    interference_count = sum(
+        1
+        for e in log
+        if e.get("verdict", {}).get("is_interference_signal") is True
+    )
+    window = log[-limit:] if log else []
+    return {
+        "event_count": len(log),
+        "interference_signal_count": interference_count,
+        "events": window,
+        "verified_at_utc": datetime.now(timezone.utc).isoformat(
+            timespec="microseconds"
+        ),
+        "cache_ttl_seconds": _CACHE_TTL_SECONDS,
+        "note": (
+            "is_interference_signal=true means the failure looked like a "
+            "targeted cut, not the authority being down. Cross-check the "
+            "signed events against independent mirrors."
         ),
     }
 
