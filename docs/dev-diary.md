@@ -28,3 +28,4 @@ Notas de versiones, decisiones técnicas y cambios relevantes del proyecto.
 - [202605 - HostileEnvHardening - 01 (dev-v9)](dev-diary/dev-diary-202605-HostileEnvHardening-01.md)
 - [202605 - CryptographicAnchoring - 01 (dev-v9)](dev-diary/dev-diary-202605-CryptographicAnchoring-01.md)
 - [202605 - OperatorUxOneDial - 01 (dev-v9)](dev-diary/dev-diary-202605-OperatorUxOneDial-01.md)
+- [202605 - MediumGapsHardening - 01 (dev-v9)](dev-diary/dev-diary-202605-MediumGapsHardening-01.md)

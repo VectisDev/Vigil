@@ -79,10 +79,24 @@ def _cached(key: str, ttl: float, producer: Callable[[], Any]) -> Any:
     return value
 
 
+def _redact_path(value: Any) -> Optional[str]:
+    """Reduce a filesystem path to its leaf name for public responses.
+
+    These endpoints are unauthenticated and public. The absolute (or
+    relative) server layout is not needed by auditors — they cross-
+    reference snapshots by hash via /audit/proof — so exposing it only
+    helps an attacker map the deployment. The directory leaf still
+    uniquely identifies the snapshot without disclosing structure.
+    """
+    if value is None:
+        return None
+    return Path(str(value)).name
+
+
 def _serialize_entry(entry: Any) -> Dict[str, Any]:
     """Convert a SnapshotEntry into a JSON-serializable summary."""
     return {
-        "path": str(entry.snapshot_dir),
+        "path": _redact_path(entry.snapshot_dir),
         "expected_hash": entry.expected_hash,
         "previous_hash": entry.previous_hash,
         "timestamp_utc": entry.timestamp.astimezone(timezone.utc).isoformat(
@@ -106,7 +120,7 @@ def audit_health() -> Dict[str, Any]:
         "status": "ok",
         "subsystem": "audit",
         "server_time_utc": datetime.now(timezone.utc).isoformat(timespec="microseconds"),
-        "snapshot_root": str(snapshot_root),
+        "snapshot_root": _redact_path(snapshot_root),
         "snapshot_root_exists": snapshot_root.exists(),
         "endpoints": [
             "/audit/health",
@@ -150,7 +164,9 @@ def audit_chain_verify() -> Dict[str, Any]:
         lambda: verify_hashchain_from_snapshots(snapshot_root),
     )
     result = dict(result)
-    result["snapshot_root"] = str(snapshot_root)
+    result["snapshot_root"] = _redact_path(snapshot_root)
+    if result.get("broken_at_path") is not None:
+        result["broken_at_path"] = _redact_path(result["broken_at_path"])
     result["verified_at_utc"] = datetime.now(timezone.utc).isoformat(
         timespec="microseconds"
     )

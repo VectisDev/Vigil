@@ -223,7 +223,43 @@ def verify_hashchain_from_snapshots(snapshot_root: Path) -> Dict[str, Any]:
     broken_at: Optional[int] = None
     broken_at_path: Optional[str] = None
 
+    # Forensic timestamp sanity (non-fatal, additive). The hash covers
+    # content + metadata + previous_hash but NOT wall-clock ordering, so a
+    # backdated or future-dated snapshot can still hash-verify. In a hostile
+    # environment an attacker may also manipulate the system clock. These
+    # anomalies never flip `valid` (a clock issue is not a chain break) but
+    # they give auditors a signal that the timeline was tampered with.
+    _FUTURE_TOLERANCE_SECONDS = 300
+    now_utc = datetime.now(timezone.utc)
+    timestamp_anomalies: List[Dict[str, Any]] = []
+    previous_timestamp: Optional[datetime] = None
+
     for idx, entry in enumerate(entries):
+        entry_ts = entry.timestamp
+        if entry_ts.tzinfo is None:
+            entry_ts = entry_ts.replace(tzinfo=timezone.utc)
+        if (entry_ts - now_utc).total_seconds() > _FUTURE_TOLERANCE_SECONDS:
+            timestamp_anomalies.append(
+                {
+                    "index": idx,
+                    "snapshot": entry.snapshot_dir.name,
+                    "kind": "future_timestamp",
+                    "detail": f"timestamp {entry_ts.isoformat()} is ahead of "
+                    f"verification time {now_utc.isoformat()}",
+                }
+            )
+        if previous_timestamp is not None and entry_ts < previous_timestamp:
+            timestamp_anomalies.append(
+                {
+                    "index": idx,
+                    "snapshot": entry.snapshot_dir.name,
+                    "kind": "non_monotonic_vs_chain_predecessor",
+                    "detail": f"timestamp {entry_ts.isoformat()} precedes "
+                    f"chain predecessor {previous_timestamp.isoformat()}",
+                }
+            )
+        previous_timestamp = entry_ts
+
         expected_previous = entry.previous_hash
 
         if expected_previous and previous_hash and expected_previous != previous_hash:
@@ -269,4 +305,5 @@ def verify_hashchain_from_snapshots(snapshot_root: Path) -> Dict[str, Any]:
         "broken_at": broken_at,
         "broken_at_path": broken_at_path,
         "errors": errors,
+        "timestamp_anomalies": timestamp_anomalies,
     }
