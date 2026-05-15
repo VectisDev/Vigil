@@ -51,10 +51,32 @@ Notes:
 
 from __future__ import annotations
 
+import json
+import logging
+import os
+import shutil
+import tempfile
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Deque
+from pathlib import Path
+from typing import Any, Deque, Optional
+
+
+_LOGGER = logging.getLogger("centinel.circuit_breaker")
+
+
+def _parse_iso(value: Optional[str]) -> Optional[datetime]:
+    """Parse an optional ISO-8601 timestamp into an aware UTC datetime."""
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except (TypeError, ValueError):
+        return None
 
 
 @dataclass
@@ -210,3 +232,96 @@ class CircuitBreaker:
             return False
         self._alert_sent = True
         return True
+
+    # ------------------------------------------------------------------
+    # Persistence
+    # ------------------------------------------------------------------
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize breaker state for durable persistence.
+
+        Captures both static config and dynamic runtime state so the breaker
+        can be reconstructed exactly after a process restart, preventing the
+        'attacker forces restart -> circuit re-opens -> DoS loop' scenario.
+        """
+        return {
+            "version": 1,
+            "config": {
+                "failure_threshold": self.failure_threshold,
+                "failure_window_seconds": self.failure_window_seconds,
+                "open_timeout_seconds": self.open_timeout_seconds,
+                "half_open_after_seconds": self.half_open_after_seconds,
+                "success_threshold": self.success_threshold,
+                "open_log_interval_seconds": self.open_log_interval_seconds,
+            },
+            "state": self.state,
+            "failures": [ts.isoformat() for ts in self._failures],
+            "opened_at": self._opened_at.isoformat() if self._opened_at else None,
+            "next_log_at": self._next_log_at.isoformat() if self._next_log_at else None,
+            "half_open_successes": self._half_open_successes,
+            "alert_sent": self._alert_sent,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "CircuitBreaker":
+        """Reconstruct breaker from a previously saved state dict."""
+        config = payload.get("config", {}) or {}
+        breaker = cls(
+            failure_threshold=int(config.get("failure_threshold", 5)),
+            failure_window_seconds=int(config.get("failure_window_seconds", 600)),
+            open_timeout_seconds=int(config.get("open_timeout_seconds", 1800)),
+            half_open_after_seconds=int(config.get("half_open_after_seconds", 600)),
+            success_threshold=int(config.get("success_threshold", 2)),
+            open_log_interval_seconds=int(config.get("open_log_interval_seconds", 300)),
+        )
+        breaker.state = payload.get("state", "CLOSED")
+        breaker._failures = deque(
+            ts for ts in (_parse_iso(v) for v in payload.get("failures", [])) if ts is not None
+        )
+        breaker._opened_at = _parse_iso(payload.get("opened_at"))
+        breaker._next_log_at = _parse_iso(payload.get("next_log_at"))
+        breaker._half_open_successes = int(payload.get("half_open_successes", 0))
+        breaker._alert_sent = bool(payload.get("alert_sent", False))
+        return breaker
+
+    def save_state(self, path: Path) -> None:
+        """Atomically persist breaker state to disk.
+
+        Uses tempfile + fsync + rename to guarantee no partial writes are
+        visible to a concurrent reader or persisted on crash.
+        """
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = json.dumps(self.to_dict(), ensure_ascii=False, indent=2).encode("utf-8")
+        fd, tmp_name = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "wb") as tmp_file:
+                tmp_file.write(payload)
+                tmp_file.flush()
+                os.fsync(tmp_file.fileno())
+            shutil.move(tmp_name, path)
+        except Exception:
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+            raise
+
+    @classmethod
+    def load_state(cls, path: Path) -> Optional["CircuitBreaker"]:
+        """Load previously saved state, or return None if missing/corrupt.
+
+        Returning None signals callers to construct a fresh breaker. This is
+        intentionally tolerant: a corrupt state file should not prevent the
+        pipeline from starting, only force a clean breaker initialization.
+        """
+        if not path.exists():
+            return None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(payload, dict):
+                _LOGGER.warning("circuit_breaker_state_invalid path=%s reason=not_dict", path)
+                return None
+            return cls.from_dict(payload)
+        except (OSError, json.JSONDecodeError) as exc:
+            _LOGGER.warning("circuit_breaker_state_unreadable path=%s error=%s", path, exc)
+            return None

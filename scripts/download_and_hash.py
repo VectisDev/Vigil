@@ -127,6 +127,7 @@ COMMAND_CENTER_PATH = Path("command_center") / "config.yaml"
 config_path = DEFAULT_CONFIG_PATH
 TEMP_DIR = Path("data") / "temp"
 CHECKPOINT_PATH = TEMP_DIR / "download_checkpoint.json"
+BREAKER_STATE_PATH = TEMP_DIR / "circuit_breaker_state.json"
 DEFAULT_RETRY_CONFIG_PATH = "config/prod/retry_config.yaml"
 
 
@@ -478,7 +479,7 @@ def process_sources(
     structured_logger = StructuredLogger("centinel.download")
     alert_hook = build_alert_hook(structured_logger)
     breaker_settings = config.get("download_circuit_breaker", {}) or {}
-    breaker = CircuitBreaker(
+    breaker = CircuitBreaker.load_state(BREAKER_STATE_PATH) or CircuitBreaker(
         failure_threshold=int(breaker_settings.get("failure_threshold", 3)),
         failure_window_seconds=int(breaker_settings.get("failure_window_seconds", 300)),
         open_timeout_seconds=int(breaker_settings.get("open_timeout_seconds", 900)),
@@ -542,6 +543,7 @@ def process_sources(
             except Exception as e:
                 logger.error("Fallo al descargar %s: %s", endpoint, e)
                 breaker.record_failure(now)
+                _persist_breaker_state(breaker)
                 if breaker.consume_open_alert():
                     log_event(
                         logger,
@@ -569,6 +571,7 @@ def process_sources(
             if not _validate_real_payload(payload, response.url, config):
                 logger.error("Payload inválido (no CNE/fecha real) en %s", endpoint)
                 breaker.record_failure(now)
+                _persist_breaker_state(breaker)
                 fallback_hash = _use_fallback_snapshot(
                     data_dir,
                     hash_dir,
@@ -608,6 +611,7 @@ def process_sources(
             logger.info("Snapshot descargado y hasheado para %s", source_label)
             health_state.record_success()
             breaker.record_success(now)
+            _persist_breaker_state(breaker)
             processed_sources.add(source_label)
             _save_checkpoint(previous_hash, processed_sources)
             logger.debug(
@@ -754,6 +758,22 @@ def _use_fallback_snapshot(
 
 _FALLBACK_SEQUENCE_COUNTERS: dict[str, int] = {}
 _FALLBACK_SEQUENCE_LOCK = __import__("threading").Lock()
+
+
+def _persist_breaker_state(breaker: CircuitBreaker) -> None:
+    """Best-effort save of circuit breaker state to BREAKER_STATE_PATH.
+
+    Persists state after every state transition so a process restart cannot
+    silently reset the breaker (which would defeat the throttling purpose
+    under sustained adversarial load).
+
+    Save failures are logged but never raise — breaker logic must keep
+    working even if the disk is temporarily unavailable.
+    """
+    try:
+        breaker.save_state(BREAKER_STATE_PATH)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("circuit_breaker_state_persist_failed error=%s", exc)
 
 
 def _next_fallback_sequence(source_id: str) -> int:
