@@ -37,6 +37,8 @@ from typing import Any
 
 import yaml
 
+from centinel_engine.config_schemas import validate_known_config
+
 logger = logging.getLogger(__name__)
 
 def _is_safe_env_name(env: str) -> bool:
@@ -82,4 +84,6 @@ def load_config(file_name: str, env: str = "prod") -> dict[str, Any]:
         return {}
     if not isinstance(payload, dict):
         raise ValueError(f"Invalid config format in {config_path}: expected mapping/dict")
-    return payload
+    # Validate against registered Pydantic schemas when available; unknown
+    # files pass through unchanged to preserve backward compatibility.
+    return validate_known_config(file_name, payload)
