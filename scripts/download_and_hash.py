@@ -697,13 +697,43 @@ def _use_fallback_snapshot(
     """English: Use the latest valid snapshot as fallback.
 
     Español: Usa el último snapshot válido como fallback.
+
+    Forensic semantics: a fallback emits the OLD captured data with TWO
+    timestamps so third-party auditors can distinguish data freshness from
+    capture time:
+
+      - original_timestamp:        when the source was originally captured
+      - fallback_recovered_at:     when this fallback decision was taken (UTC,
+                                   microseconds + sequence for total ordering)
+      - timestamp (legacy field):  aliases fallback_recovered_at for backward
+                                   compatibility with downstream consumers
+
+    Without this separation, a cascade of fallbacks in the same second produces
+    snapshots indistinguishable from one another and from real captures.
     """
     snapshot_path, payload = _find_latest_snapshot_for_source(data_dir, source_id)
     if not payload:
         logger.warning("fallback_snapshot_missing source=%s", source_id)
         return None
+
+    now_utc = datetime.now(timezone.utc)
+    recovered_at_iso = now_utc.isoformat(timespec="microseconds")
+    sequence = _next_fallback_sequence(source_id)
+
+    original_timestamp = payload.get("timestamp") or payload.get("timestamp_utc")
+    if original_timestamp is None and snapshot_path is not None:
+        try:
+            original_timestamp = datetime.fromtimestamp(
+                snapshot_path.stat().st_mtime, tz=timezone.utc
+            ).isoformat(timespec="microseconds")
+        except OSError:
+            original_timestamp = None
+
     fallback_payload = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": recovered_at_iso,
+        "fallback_recovered_at": recovered_at_iso,
+        "fallback_sequence": sequence,
+        "original_timestamp": original_timestamp,
         "source": source_id,
         "source_url": payload.get("source_url") or endpoint,
         "data": payload.get("data", []),
@@ -720,6 +750,28 @@ def _use_fallback_snapshot(
     )
     logger.warning("fallback_snapshot_used source=%s reason=%s", source_id, reason)
     return chained_hash
+
+
+_FALLBACK_SEQUENCE_COUNTERS: dict[str, int] = {}
+_FALLBACK_SEQUENCE_LOCK = __import__("threading").Lock()
+
+
+def _next_fallback_sequence(source_id: str) -> int:
+    """Monotonic per-source counter for fallback ordering within a process.
+
+    Combined with microsecond UTC timestamps, this gives third-party auditors
+    a total order over fallback events even when many are emitted in the same
+    microsecond (catastrophic upstream outage).
+
+    Contador monotonico por fuente para ordenar fallbacks dentro del proceso.
+    Combinado con timestamps UTC con microsegundos, da a auditores externos un
+    orden total sobre eventos de fallback incluso si varios ocurren en el mismo
+    microsegundo (apagon catastrofico de la fuente).
+    """
+    with _FALLBACK_SEQUENCE_LOCK:
+        current = _FALLBACK_SEQUENCE_COUNTERS.get(source_id, 0) + 1
+        _FALLBACK_SEQUENCE_COUNTERS[source_id] = current
+        return current
 
 
 @contextlib.contextmanager
