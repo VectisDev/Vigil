@@ -78,7 +78,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 from __future__ import annotations
 
 from typing import Dict, Iterable, List, Optional
@@ -351,3 +350,38 @@ def extract_numeric_list(values: Iterable[object]) -> List[int]:
             continue
         numbers.append(number)
     return numbers
+
+
+def collect_all_mesas(data: dict) -> List[dict]:
+    """Recolecta TODAS las mesas: raíz y anidadas en departamentos.
+
+    `extract_mesas` solo mira la raíz del JSON. El payload real del CNE
+    anida las mesas dentro de `departamentos[].mesas[]`, por lo que las
+    reglas que usan solo `extract_mesas` son ciegas a ese detalle. Esta
+    función recorre ambos niveles y anota el departamento de origen en
+    `_departamento` (sin mutar la mesa original) para trazabilidad
+    forense por acta/mesa.
+
+    English:
+        Collect ALL polling tables: root-level and nested under
+        departments. Annotates the source department in `_departamento`
+        without mutating the original dict. Degrades gracefully to an
+        empty list when the payload only carries aggregates.
+    """
+    collected: List[dict] = []
+    seen: set[int] = set()
+
+    for mesa in extract_mesas(data):
+        if id(mesa) not in seen:
+            seen.add(id(mesa))
+            collected.append(mesa)
+
+    for dept in extract_department_entries(data):
+        dept_name = str(dept.get("department") or dept.get("departamento") or dept.get("nombre") or "")
+        for mesa in extract_mesas(dept):
+            if id(mesa) in seen:
+                continue
+            seen.add(id(mesa))
+            collected.append({**mesa, "_departamento": dept_name} if dept_name else mesa)
+
+    return collected
