@@ -12,7 +12,9 @@ backoff recovery. The Badger is relentless and fierce.
 import asyncio
 import json
 import logging
+import os
 import random
+import tempfile
 import time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -99,13 +101,31 @@ class KillSwitch:
 
     def _save_recovery_state(self) -> None:
         """
-        Guarda estado de recuperación en disco.
-        (Save recovery state to disk.)
+        Guarda estado de recuperación en disco (escritura atómica).
+        (Save recovery state to disk with atomic write.)
+
+        Escribe a archivo temporal + fsync + os.replace para garantizar
+        ACID: si el proceso muere a mitad de escritura, el archivo original
+        permanece intacto (rename es atómico en POSIX).
+
+        Atomic write: temp file + fsync + os.replace. If process dies
+        mid-write, original file stays intact (POSIX rename is atomic).
         """
         state_file = self.storage_path / "recovery_state.json"
         try:
-            with open(state_file, "w") as f:
-                json.dump(asdict(self.recovery_state), f, indent=2)
+            fd, tmp_path = tempfile.mkstemp(
+                dir=str(self.storage_path), prefix=".recovery_", suffix=".tmp"
+            )
+            try:
+                with os.fdopen(fd, "w") as f:
+                    json.dump(asdict(self.recovery_state), f, indent=2)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_path, state_file)
+            except Exception:
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+                raise
         except Exception as e:
             logger.error(f"Failed to save recovery state: {e}")
 

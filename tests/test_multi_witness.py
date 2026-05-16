@@ -368,3 +368,122 @@ class TestFederationCoordinator:
         assert record["event_type"] == "federation_consensus_check"
         assert "witnesses_queried" in record
         assert "attestations" in record
+
+
+class TestSignatureVerification:
+    """D13.2: Verificación de firma Ed25519 en atestaciones."""
+
+    def _make_keypair(self):
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+            Ed25519PrivateKey,
+        )
+        from cryptography.hazmat.primitives import serialization
+
+        priv = Ed25519PrivateKey.generate()
+        pub = priv.public_key()
+        pub_bytes = pub.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        return priv, pub_bytes
+
+    def test_no_key_configured_is_non_fatal(self):
+        """Sin clave configurada, firma es opcional (non-fatal)."""
+        fed = FederationCoordinator(
+            witness_urls=["https://w1.example.com", "https://w2.example.com"]
+        )
+        att = WitnessAttestation(
+            witness_id="W1",
+            witness_url="https://w1.example.com",
+            timestamp=time.time(),
+            merkle_root="a" * 64,
+            checkpoint_hash="b" * 64,
+        )
+        assert fed._verify_signature(att) is True
+
+    def test_valid_signature_accepted(self):
+        """Firma válida es aceptada."""
+        priv, pub_bytes = self._make_keypair()
+        ts = time.time()
+        merkle = "a" * 64
+        message = f"{merkle}:{ts}".encode()
+        signature = priv.sign(message).hex()
+
+        fed = FederationCoordinator(
+            witness_urls=["https://w1.example.com", "https://w2.example.com"],
+            operator_public_keys={"W1": pub_bytes},
+        )
+        att = WitnessAttestation(
+            witness_id="W1",
+            witness_url="https://w1.example.com",
+            timestamp=ts,
+            merkle_root=merkle,
+            checkpoint_hash="b" * 64,
+            operator_signature=signature,
+        )
+        assert fed._verify_signature(att) is True
+
+    def test_invalid_signature_rejected(self):
+        """Firma inválida es rechazada."""
+        priv, pub_bytes = self._make_keypair()
+        fed = FederationCoordinator(
+            witness_urls=["https://w1.example.com", "https://w2.example.com"],
+            operator_public_keys={"W1": pub_bytes},
+        )
+        att = WitnessAttestation(
+            witness_id="W1",
+            witness_url="https://w1.example.com",
+            timestamp=time.time(),
+            merkle_root="a" * 64,
+            checkpoint_hash="b" * 64,
+            operator_signature="deadbeef" * 16,  # firma falsa
+        )
+        assert fed._verify_signature(att) is False
+
+    def test_missing_signature_when_key_configured_rejected(self):
+        """Falta firma pero hay clave configurada: rechazado."""
+        priv, pub_bytes = self._make_keypair()
+        fed = FederationCoordinator(
+            witness_urls=["https://w1.example.com", "https://w2.example.com"],
+            operator_public_keys={"W1": pub_bytes},
+        )
+        att = WitnessAttestation(
+            witness_id="W1",
+            witness_url="https://w1.example.com",
+            timestamp=time.time(),
+            merkle_root="a" * 64,
+            checkpoint_hash="b" * 64,
+            operator_signature=None,
+        )
+        assert fed._verify_signature(att) is False
+
+
+class TestConsensusThreshold:
+    """D13.3: Umbral de consenso configurable."""
+
+    def test_default_threshold_is_majority(self):
+        """Default threshold = mayoría (n//2 + 1), min 2."""
+        fed = FederationCoordinator(
+            witness_urls=["w1", "w2", "w3"]
+        )
+        assert fed.consensus_threshold == 2  # 3//2 + 1 = 2
+
+    def test_default_threshold_four_witnesses(self):
+        """4 testigos: threshold = 3."""
+        fed = FederationCoordinator(
+            witness_urls=["w1", "w2", "w3", "w4"]
+        )
+        assert fed.consensus_threshold == 3  # 4//2 + 1 = 3
+
+    def test_custom_threshold(self):
+        """Threshold configurable explícito."""
+        fed = FederationCoordinator(
+            witness_urls=["w1", "w2", "w3", "w4"],
+            consensus_threshold=4,
+        )
+        assert fed.consensus_threshold == 4
+
+    def test_minimum_threshold_is_two(self):
+        """Threshold mínimo es 2 incluso con 1 testigo."""
+        fed = FederationCoordinator(witness_urls=["w1"])
+        assert fed.consensus_threshold == 2

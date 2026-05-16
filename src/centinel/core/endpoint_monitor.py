@@ -21,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, asdict
 from typing import Any, Optional
@@ -81,10 +82,23 @@ class EndpointMonitor:
         """Initialize monitor.
 
         Args:
-            timeout: HTTP request timeout (seconds)
+            timeout: HTTP request timeout (seconds). Overridable via env
+                     var CENTINEL_ENDPOINT_TIMEOUT (D11.1) — useful for
+                     high-latency election nights where 10s is too tight.
             schema_hash_tolerance: Allow N hash mismatches before flagging
                                   (0 = strict, any change flagged)
         """
+        env_timeout = os.environ.get("CENTINEL_ENDPOINT_TIMEOUT")
+        if env_timeout:
+            try:
+                timeout = float(env_timeout)
+                logger.info("endpoint_timeout_from_env value=%.1f", timeout)
+            except ValueError:
+                logger.warning(
+                    "endpoint_timeout_env_invalid value=%s using_default=%.1f",
+                    env_timeout,
+                    timeout,
+                )
         self.timeout = timeout
         self.schema_hash_tolerance = schema_hash_tolerance
         self.baselines: dict[str, EndpointSchema] = {}
@@ -113,6 +127,19 @@ class EndpointMonitor:
             with httpx.Client(timeout=self.timeout) as client:
                 resp = client.get(url, follow_redirects=True)
                 status = resp.status_code
+
+                # D11.3: track redirect chain. A malicious authority could
+                # install a redirect to a fake endpoint; >1 hop is suspicious.
+                if len(resp.history) > 1:
+                    chain = " → ".join(
+                        f"{r.status_code} {r.url}" for r in resp.history
+                    )
+                    logger.warning(
+                        "endpoint_multiple_redirects url=%s hops=%d chain=%s",
+                        url,
+                        len(resp.history),
+                        chain,
+                    )
 
                 # Determine content type
                 content_type = resp.headers.get("content-type", "").split(";")[0]

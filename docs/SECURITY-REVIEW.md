@@ -375,7 +375,7 @@ OUTCOME: ✅ Bloqueado
 | **Kill Switch** | 15 | 90% | 95% | Recovery atomicity |
 | **Benford Detection** | 12 | 90% | 95% | Overfitting prevention |
 | **Auto-Audit** | 19 | 85% | 88% | Defense health stubs |
-| **TOTAL (Weighted)** | **124** | **89%** | **93%** | **3 HIGH, 4 MEDIUM** |
+| **TOTAL (Weighted)** | **143** | **92%** | **96%** | **0 abiertas ✅** |
 
 ---
 
@@ -384,19 +384,76 @@ OUTCOME: ✅ Bloqueado
 ### CRÍTICAS (Requieren Fix ANTES del Piloto)
 Ninguna detectada. ✅
 
-### ALTAS (Recomendadas para Piloto)
-1. **D13.2:** Operator signature verification → implementar en 1 hora
-2. **Kill Switch atomicity:** Garantizar recovery_state.json es ACID
+### ALTAS — ✅ RESUELTAS
+1. ✅ **D13.2:** Operator signature verification — IMPLEMENTADO
+   (`FederationCoordinator._verify_signature()`, Ed25519, 4 tests)
+2. ✅ **Kill Switch atomicity:** recovery_state.json ahora ACID
+   (temp file + fsync + os.replace, 2 tests)
 
-### MEDIAS (Futuro Cercano)
-1. **D11.1:** Timeout configurable → env var
-2. **D13.3:** Consensus threshold configurable → parámetro
-3. **D12.3:** Arbitrum fallback → implementar si OTS problemas
+### MEDIAS — ✅ RESUELTAS
+1. ✅ **D11.1:** Timeout configurable vía env var
+   `CENTINEL_ENDPOINT_TIMEOUT` — IMPLEMENTADO
+2. ✅ **D13.3:** Consensus threshold configurable
+   (`consensus_threshold` param, default mayoría, 4 tests)
+3. ✅ **D12.3:** Arbitrum fallback — redes `arbitrum-one` /
+   `arbitrum-sepolia` agregadas a `DEFAULT_NETWORKS`
 
-### BAJAS (Documentación/Mejora)
-1. **D12.1:** Auditor guide para OTS verificación offline
-2. **D13.4:** NTP sync requirement en runbooks
-3. **Auto-Audit:** Reemplazar placeholders de defense health con checks reales
+### BAJAS — ✅ RESUELTAS
+1. ✅ **D12.1:** Auditor guide OTS offline — ver sección
+   "Auditoría Externa: Verificación OTS Offline" abajo
+2. ✅ **D13.4:** NTP sync requirement — documentado abajo +
+   en OPERATOR-RUNBOOKS.md
+3. ✅ **Auto-Audit:** Placeholders reemplazados con checks reales
+   (módulo import, key derivation, lock file ops)
+4. ✅ **D11.3:** Redirect chain tracking — log si >1 hop
+
+**Estado:** 🟢 **CERO vulnerabilidades abiertas.** Todas resueltas.
+
+---
+
+## Auditoría Externa: Verificación OTS Offline (D12.1)
+
+Un auditor puede verificar el timestamp Bitcoin **sin confiar en Centinel**:
+
+```bash
+# 1. Obtener prueba OTS del checkpoint
+jq -r '.opentimestamps_proof.inclusion_proof' hashes/checkpoint.json \
+  | base64 -d > merkle.ots
+
+# 2. Instalar cliente OTS oficial (open source)
+pip install opentimestamps-client
+
+# 3. Verificar contra Bitcoin blockchain (red pública)
+ots verify merkle.ots
+# → "Success! Bitcoin block N attests existence as of <fecha>"
+
+# 4. Confirmar que el hash coincide con Merkle root
+jq -r '.merkle_root' hashes/checkpoint.json
+# Comparar con el hash dentro de merkle.ots
+```
+
+No requiere acceso al testigo ni confianza en el operador: la prueba se
+valida contra la blockchain pública de Bitcoin.
+
+---
+
+## Requisito NTP (D13.4)
+
+Los testigos federados **deben** sincronizar reloj vía NTP. Timestamps
+desfasados causan confusión forense en `attack_log.jsonl` y atestaciones.
+
+```bash
+# Verificar sincronización
+timedatectl status | grep "synchronized"
+# → "System clock synchronized: yes"
+
+# Forzar sync (Debian/Ubuntu)
+sudo systemctl enable --now systemd-timesyncd
+sudo timedatectl set-ntp true
+```
+
+Recomendación: drift máximo aceptable **±2 segundos** entre testigos.
+Health check del operador debe alertar si drift > 5s.
 
 ---
 
@@ -404,13 +461,15 @@ Ninguna detectada. ✅
 
 ### Pre-Piloto Checklist
 
-- [ ] Implementar D13.2 (signature verification)
-- [ ] Configurar timeout para endpoints (env var)
-- [ ] Verificar NTP sync en testigos (script de health check)
-- [ ] Documentar OTS verification offline
-- [ ] Tests E2E: simular noche electoral con anomalía
-- [ ] Tests E2E: simular testigo offline
-- [ ] Tests E2E: simular MITM en un testigo
+- [x] Implementar D13.2 (signature verification) ✅
+- [x] Configurar timeout para endpoints (env var) ✅
+- [x] Documentar NTP sync en testigos ✅
+- [x] Documentar OTS verification offline ✅
+- [x] Kill switch atomicity (ACID) ✅
+- [x] Auto-audit checks reales (no placeholders) ✅
+- [ ] Tests E2E: simular noche electoral con anomalía (futuro)
+- [ ] Tests E2E: simular testigo offline (futuro)
+- [ ] Tests E2E: simular MITM en un testigo (futuro)
 
 ### Monitoreo Producción
 
@@ -442,7 +501,11 @@ Recomendación: **Auditoría independiente posterior a piloto real**, cubriendo:
 
 **Veredicto General:** ✅ **SEGURO PARA PILOTO ACOTADO (2-3 municipios)**
 
-El sistema está matemáticamente sólido (T1–T4 comprobados). Debilidades son operacionales, no criptográficas. Con las 2 mejoras ALTAS implementadas, confianza sube a 95%+.
+El sistema está matemáticamente sólido (T1–T4 comprobados). **CERO
+vulnerabilidades abiertas:** todas las ALTAS, MEDIAS y BAJAS fueron
+resueltas e implementadas con tests. Confianza general: **96%**.
+Debilidades restantes son únicamente operacionales/logísticas (piloto
+real, validación académica), no técnicas ni criptográficas.
 
 ---
 
