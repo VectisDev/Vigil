@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HealthCheckResult:
     """Resultado de health check individual."""
+
     name: str
     passed: bool
     timestamp: float
@@ -35,6 +36,7 @@ class HealthCheckResult:
 @dataclass
 class AuditReport:
     """Reporte completo de auto-audit."""
+
     timestamp: str
     health_score: float  # 0.0–1.0
     binary_integrity: Dict[str, bool] = field(default_factory=dict)
@@ -66,11 +68,11 @@ class AutoAudit:
         self.core_path = Path(core_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
 
-        # Binary integrity baseline (MD5 de archivos core)
+        # Binary integrity baseline (SHA-256 de archivos core)
         self.binary_baseline = self._compute_binary_baseline()
 
     def _compute_binary_baseline(self) -> Dict[str, str]:
-        """Calcula baseline MD5 de archivos core."""
+        """Calcula baseline SHA-256 de archivos core."""
         baseline = {}
 
         core_files = [
@@ -88,7 +90,7 @@ class AutoAudit:
                 try:
                     with open(filepath, "rb") as f:
                         content = f.read()
-                        baseline[filename] = hashlib.md5(content).hexdigest()
+                        baseline[filename] = hashlib.sha256(content).hexdigest()
                 except Exception as e:
                     logger.warning(f"Failed to compute baseline for {filename}: {e}")
 
@@ -115,8 +117,8 @@ class AutoAudit:
             try:
                 with open(filepath, "rb") as f:
                     content = f.read()
-                    actual_hash = hashlib.md5(content).hexdigest()
-                    results[filename] = (actual_hash == expected_hash)
+                    actual_hash = hashlib.sha256(content).hexdigest()
+                    results[filename] = actual_hash == expected_hash
 
                     if actual_hash != expected_hash:
                         logger.warning(
@@ -157,9 +159,7 @@ class AutoAudit:
                             entry = json.loads(line)
                             ts = entry.get("timestamp")
                             if ts and ts < prev_ts:
-                                issues.append(
-                                    f"Attack log out of order at line {line_count}: {ts} < {prev_ts}"
-                                )
+                                issues.append(f"Attack log out of order at line {line_count}: {ts} < {prev_ts}")
                             prev_ts = ts or 0
                         except json.JSONDecodeError:
                             issues.append(f"Malformed JSON at line {line_count}")
