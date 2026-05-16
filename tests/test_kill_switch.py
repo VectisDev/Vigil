@@ -214,6 +214,37 @@ class TestRecoveryState:
         kill_switch2 = KillSwitch(storage_path=str(kill_switch.storage_path))
         assert kill_switch2.recovery_state.attempt_count == 5
 
+    def test_atomic_save_no_temp_files_left(self, kill_switch):
+        """Escritura atómica no deja archivos temporales."""
+        kill_switch.recovery_state.attempt_count = 3
+        kill_switch._save_recovery_state()
+
+        # No deben quedar archivos .tmp en storage
+        temp_files = list(kill_switch.storage_path.glob(".recovery_*.tmp"))
+        assert len(temp_files) == 0
+
+        # El archivo final existe y es JSON válido
+        import json as _json
+
+        state_file = kill_switch.storage_path / "recovery_state.json"
+        assert state_file.exists()
+        data = _json.loads(state_file.read_text())
+        assert data["attempt_count"] == 3
+
+    def test_atomic_save_overwrites_cleanly(self, kill_switch):
+        """Múltiples escrituras sobrescriben sin corromper."""
+        for i in range(1, 6):
+            kill_switch.recovery_state.attempt_count = i
+            kill_switch._save_recovery_state()
+
+        import json as _json
+
+        state_file = kill_switch.storage_path / "recovery_state.json"
+        data = _json.loads(state_file.read_text())
+        assert data["attempt_count"] == 5
+        # Sin archivos temporales residuales
+        assert len(list(kill_switch.storage_path.glob(".recovery_*.tmp"))) == 0
+
 
 class TestAutoRecover:
     """Tests para recuperación automática."""

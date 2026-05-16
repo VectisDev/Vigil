@@ -33,6 +33,14 @@ from typing import Any, Optional
 
 import httpx
 
+try:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    from cryptography.exceptions import InvalidSignature
+
+    _CRYPTO_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _CRYPTO_AVAILABLE = False
+
 logger = logging.getLogger("centinel.federation.multi_witness")
 
 
@@ -104,6 +112,8 @@ class FederationCoordinator:
         witness_urls: list[str],
         timeout: float = 30.0,
         enable_logging: bool = True,
+        consensus_threshold: Optional[int] = None,
+        operator_public_keys: Optional[dict[str, bytes]] = None,
     ) -> None:
         """Initialize federation coordinator.
 
@@ -111,12 +121,70 @@ class FederationCoordinator:
             witness_urls: List of witness base URLs
             timeout: HTTP request timeout (seconds)
             enable_logging: Enable forensic logging
+            consensus_threshold: Min witnesses that must agree (default:
+                majority = n//2 + 1). Allows 2/3, 3/4, etc.
+            operator_public_keys: dict witness_id → Ed25519 public key bytes
+                (32 raw bytes). If provided, attestation signatures are
+                verified before counting toward consensus.
         """
         self.witness_urls = witness_urls
         self.timeout = timeout
         self.enable_logging = enable_logging
         self.attestations: dict[str, WitnessAttestation] = {}
         self.comparisons: list[MerkleComparison] = []
+        # D13.3: configurable threshold (default majority, min 2)
+        if consensus_threshold is not None:
+            self.consensus_threshold = consensus_threshold
+        else:
+            self.consensus_threshold = max(2, len(witness_urls) // 2 + 1)
+        # D13.2: operator public keys for signature verification
+        self.operator_public_keys = operator_public_keys or {}
+        logger.info(
+            "federation_init witnesses=%d threshold=%d sig_verify=%s",
+            len(witness_urls),
+            self.consensus_threshold,
+            bool(self.operator_public_keys),
+        )
+
+    def _verify_signature(self, attestation: WitnessAttestation) -> bool:
+        """Verify Ed25519 operator signature on an attestation (D13.2).
+
+        ES: Verifica firma Ed25519 del operador sobre la atestación.
+
+        Message signed: "{merkle_root}:{timestamp}". Returns True if no
+        public key is configured for the witness (signature optional,
+        non-fatal) OR if the signature is valid. Returns False only if a
+        key IS configured and the signature is missing/invalid.
+        """
+        pubkey_bytes = self.operator_public_keys.get(attestation.witness_id)
+        if pubkey_bytes is None:
+            # No key configured → signature optional (non-fatal)
+            return True
+
+        if not _CRYPTO_AVAILABLE:
+            logger.warning("signature_verify_skipped reason=cryptography_unavailable")
+            return True
+
+        if not attestation.operator_signature:
+            logger.error(
+                "signature_missing witness=%s (key configured but no signature)",
+                attestation.witness_id,
+            )
+            return False
+
+        try:
+            pubkey = Ed25519PublicKey.from_public_bytes(pubkey_bytes)
+            message = f"{attestation.merkle_root}:{attestation.timestamp}".encode()
+            signature = bytes.fromhex(attestation.operator_signature)
+            pubkey.verify(signature, message)
+            return True
+        except (InvalidSignature, ValueError) as e:
+            logger.error(
+                "signature_invalid witness=%s error=%s",
+                attestation.witness_id,
+                str(e),
+            )
+            return False
 
     def fetch_attestations(self) -> dict[str, WitnessAttestation]:
         """Fetch latest checkpoint attestations from all witnesses.
@@ -177,6 +245,19 @@ class FederationCoordinator:
         """
         # Fetch fresh attestations
         self.fetch_attestations()
+
+        # D13.2: filter out attestations with invalid signatures
+        if self.operator_public_keys:
+            verified = {}
+            for wid, att in self.attestations.items():
+                if self._verify_signature(att):
+                    verified[wid] = att
+                else:
+                    logger.error(
+                        "attestation_rejected witness=%s reason=invalid_signature",
+                        wid,
+                    )
+            self.attestations = verified
 
         if len(self.attestations) < 2:
             logger.warning(
@@ -250,8 +331,8 @@ class FederationCoordinator:
                 consensus_count = count
                 consensus_merkle = merkle
 
-        # Require ≥2 agreement
-        consensus_reached = consensus_count >= 2
+        # D13.3: require configurable threshold agreement (default majority)
+        consensus_reached = consensus_count >= self.consensus_threshold
 
         report = ConsensusReport(
             timestamp=time.time(),
