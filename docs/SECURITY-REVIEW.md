@@ -467,9 +467,15 @@ Health check del operador debe alertar si drift > 5s.
 - [x] Documentar OTS verification offline ✅
 - [x] Kill switch atomicity (ACID) ✅
 - [x] Auto-audit checks reales (no placeholders) ✅
-- [ ] Tests E2E: simular noche electoral con anomalía (futuro)
-- [ ] Tests E2E: simular testigo offline (futuro)
-- [ ] Tests E2E: simular MITM en un testigo (futuro)
+- [x] Tests E2E: noche electoral con anomalía ✅
+  (`tests/test_e2e_election_night.py::TestE2EElectionNightAnomaly`)
+- [x] Tests E2E: testigo offline ✅
+  (`TestE2EWitnessOffline` — consenso degrada sin falsa alarma)
+- [x] Tests E2E: MITM en un testigo ✅
+  (`TestE2EMitmSingleWitness` — divergencia detectada; riesgo
+  residual de mayoría comprometida documentado)
+
+**Pre-piloto checklist: 9/9 completado ✅** — cero pendientes técnicos.
 
 ### Monitoreo Producción
 
