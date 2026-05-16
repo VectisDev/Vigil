@@ -50,7 +50,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 from __future__ import annotations
 
 import hashlib
@@ -73,6 +72,9 @@ from centinel.core.rules import (  # noqa: F401
     irreversibility_rule,
     large_numbers_rule,
     last_digit_uniformity_rule,
+    late_mesa_rule,
+    mesa_impossibility_rule,
+    mesa_reconciliation_rule,
     mesas_diff_rule,
     ml_outliers_rule,
     null_blank_rule,
