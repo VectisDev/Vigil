@@ -1,14 +1,18 @@
 # Centinel
 
-[![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Tests](https://img.shields.io/badge/tests-499%20passing-success)
+[![CI](https://github.com/userf8a2c4/centinel-engine/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/userf8a2c4/centinel-engine/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-2b6cb0.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-2b6cb0.svg)](pyproject.toml)
+[![Tests](https://img.shields.io/badge/tests-499%20passing-2f855a.svg)](#estado-de-validación)
+[![Security](https://img.shields.io/badge/dependencies-audited-2f855a.svg)](docs/SECURITY-REVIEW.md)
 
 **Infraestructura de auditoría electoral verificable, sin confianza institucional.**
 
-Centinel permite que cualquier ciudadano verifique de forma independiente la
-integridad de los datos electorales publicados por una autoridad, sin necesidad
-de confiar en esa autoridad, sin infraestructura dedicada y sin coste operativo.
+Centinel permite que cualquier ciudadano verifique, de forma independiente y
+reproducible, la integridad de los datos electorales publicados por una
+autoridad — sin confiar en esa autoridad, sin infraestructura dedicada y sin
+coste operativo. Un solo operador puede auditar una elección nacional desde una
+computadora portátil.
 
 > *Independent, trustless election-integrity verification. A single operator can
 > audit a national election from a laptop — no institutional dependency, no
@@ -31,6 +35,19 @@ su publicación.
 | **Resiliencia** | Federación P2P; ningún punto único de fallo o captura |
 | **Inmutabilidad temporal** | Anclaje en Bitcoin vía OpenTimestamps, sin coste |
 | **Neutralidad** | Reporta hechos verificables. No interpreta intención política |
+
+---
+
+## Principios de diseño
+
+Tres decisiones de diseño son innegociables, porque determinan si la herramienta
+sigue siendo útil bajo presión:
+
+- **Coste cero.** Cualquier persona —estudiante, periodista, organización
+  civil— puede operarlo sin presupuesto ni autorización.
+- **Resiliencia.** Sin punto central que confiscar, bloquear o sobornar.
+- **Supervivencia.** El protocolo persiste y se replica aunque su autor
+  desaparezca; la licencia y la documentación lo garantizan.
 
 ---
 
