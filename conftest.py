@@ -90,3 +90,35 @@ def block_network(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(socket.socket, "connect", guarded_connect, raising=True)
     monkeypatch.setattr(socket, "create_connection", guarded_create_connection, raising=True)
+
+
+@pytest.fixture(autouse=True)
+def _reset_global_singletons():
+    """Reset module-level singletons between tests.
+
+    The proxy rotator and healthcheck state are process-global
+    singletons; without resetting them a test that initializes one
+    leaks state into later tests (e.g. test_full_cycle initializing
+    the rotator made test_process_sources_handles_connection_error
+    fail). Reset both before and after each test.
+
+    English: Prevents cross-test pollution from global singletons.
+    """
+
+    def _reset() -> None:
+        try:
+            import centinel.proxy_handler as _ph
+
+            _ph._ROTATOR = None
+        except Exception:
+            pass
+        try:
+            from monitoring.health import reset_health_state
+
+            reset_health_state()
+        except Exception:
+            pass
+
+    _reset()
+    yield
+    _reset()
