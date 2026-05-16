@@ -25,7 +25,7 @@ from .animal_defenses import AnimalDefense, DefenseStatus
 
 logger = logging.getLogger(__name__)
 
-LOCK_FILE = Path("/tmp/centinel.lock")
+LOCK_FILE = Path(tempfile.gettempdir()) / "centinel.lock"
 FROZEN_CHECKPOINT_PATH = Path("hashes/checkpoint_frozen.json")
 
 
@@ -61,11 +61,11 @@ class KillSwitch:
 
     # Backoff exponencial: (min_seconds, max_seconds) con jitter ±30%
     BACKOFF_SCHEDULE = [
-        (2, 0.3),     # Intento 1: 2s ± 30%  =  1.4s–2.6s
-        (5, 0.3),     # Intento 2: 5s ± 30%  =  3.5s–6.5s
-        (10, 0.3),    # Intento 3: 10s ± 30% =  7s–13s
-        (20, 0.3),    # Intento 4: 20s ± 30% = 14s–26s
-        (30, 0.3),    # Intento 5+: 30s ± 30% = 21s–39s
+        (2, 0.3),  # Intento 1: 2s ± 30%  =  1.4s–2.6s
+        (5, 0.3),  # Intento 2: 5s ± 30%  =  3.5s–6.5s
+        (10, 0.3),  # Intento 3: 10s ± 30% =  7s–13s
+        (20, 0.3),  # Intento 4: 20s ± 30% = 14s–26s
+        (30, 0.3),  # Intento 5+: 30s ± 30% = 21s–39s
     ]
 
     def __init__(self, storage_path: str = "hashes"):
@@ -91,9 +91,7 @@ class KillSwitch:
                     self.recovery_state = RecoveryState(
                         attempt_count=data.get("attempt_count", 0),
                         last_freeze_timestamp=data.get("last_freeze_timestamp", time.time()),
-                        last_recovery_attempt_timestamp=data.get(
-                            "last_recovery_attempt_timestamp", 0.0
-                        ),
+                        last_recovery_attempt_timestamp=data.get("last_recovery_attempt_timestamp", 0.0),
                         is_frozen=data.get("is_frozen", False),
                     )
             except Exception as e:
@@ -113,9 +111,7 @@ class KillSwitch:
         """
         state_file = self.storage_path / "recovery_state.json"
         try:
-            fd, tmp_path = tempfile.mkstemp(
-                dir=str(self.storage_path), prefix=".recovery_", suffix=".tmp"
-            )
+            fd, tmp_path = tempfile.mkstemp(dir=str(self.storage_path), prefix=".recovery_", suffix=".tmp")
             try:
                 with os.fdopen(fd, "w") as f:
                     json.dump(asdict(self.recovery_state), f, indent=2)
@@ -258,9 +254,7 @@ class KillSwitch:
 
         while self.recovery_state.attempt_count < max_attempts:
             self.recovery_state.attempt_count += 1
-            min_delay, max_delay = self._calculate_exponential_backoff(
-                self.recovery_state.attempt_count
-            )
+            min_delay, max_delay = self._calculate_exponential_backoff(self.recovery_state.attempt_count)
             sleep_time = random.uniform(min_delay, max_delay)
 
             logger.info(
@@ -281,10 +275,7 @@ class KillSwitch:
                 self._save_recovery_state()
                 return True
 
-        logger.critical(
-            "Tejón: Fallo permanente "
-            "(Kill Switch: Permanent failure)"
-        )
+        logger.critical("Tejón: Fallo permanente " "(Kill Switch: Permanent failure)")
         await self._log_attack_event(
             event="kill_switch_permanent_failure",
             details={"attempts": self.recovery_state.attempt_count},
