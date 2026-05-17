@@ -67,6 +67,17 @@ ALTER TABLE alerts_public    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE upnfm_rules      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE upnfm_members    ENABLE ROW LEVEL SECURITY;
 
+-- Eliminar policies si ya existen (idempotente)
+DROP POLICY IF EXISTS "public_read_snapshots"    ON snapshots_public;
+DROP POLICY IF EXISTS "public_read_alerts"       ON alerts_public;
+DROP POLICY IF EXISTS "service_insert_snapshots" ON snapshots_public;
+DROP POLICY IF EXISTS "service_insert_alerts"    ON alerts_public;
+DROP POLICY IF EXISTS "service_update_snapshots" ON snapshots_public;
+DROP POLICY IF EXISTS "upnfm_read_rules"         ON upnfm_rules;
+DROP POLICY IF EXISTS "upnfm_insert_rules"       ON upnfm_rules;
+DROP POLICY IF EXISTS "upnfm_update_own_rules"   ON upnfm_rules;
+DROP POLICY IF EXISTS "upnfm_read_members"       ON upnfm_members;
+
 -- Lectura pública sin auth
 CREATE POLICY "public_read_snapshots"
   ON snapshots_public FOR SELECT USING (true);
