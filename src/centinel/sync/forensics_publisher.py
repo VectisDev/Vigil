@@ -144,6 +144,31 @@ def build_forensics_block(tracker: InconsistentActsTracker) -> dict[str, Any]:
     ]
     blackout_block = {"detected": bool(gaps), "gaps": gaps}
 
+    # Inconsistent-acts time series — the core manipulation signal.
+    snaps = tracker.snapshots
+    if snaps:
+        latest_snap = snaps[-1]
+        first_snap = snaps[0]
+        delta = latest_snap.inconsistent_count - first_snap.inconsistent_count
+        trend = "rising" if delta > 0 else "falling" if delta < 0 else "stable"
+        history = [
+            {"count": s.inconsistent_count, "ts": s.timestamp.isoformat()}
+            for s in snaps[-30:]
+        ]
+        inconsistent_block = {
+            "current_count": latest_snap.inconsistent_count,
+            "delta_from_first": delta,
+            "trend": trend,
+            "history": history,
+        }
+    else:
+        inconsistent_block = {
+            "current_count": 0,
+            "delta_from_first": 0,
+            "trend": "unknown",
+            "history": [],
+        }
+
     return {
         "progressive_injection": progressive_block,
         "velocity_anomaly": velocity_block,
@@ -152,6 +177,7 @@ def build_forensics_block(tracker: InconsistentActsTracker) -> dict[str, Any]:
         "benford": benford_block,
         "zscore": zscore_block,
         "blackout": blackout_block,
+        "inconsistent_acts": inconsistent_block,
     }
 
 
