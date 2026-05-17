@@ -141,6 +141,29 @@ footer a{color:var(--accent);text-decoration:none}
   </div>
 </div>
 
+<!-- ── REGISTROS INCONSISTENTES BAJO MICROSCOPIO ── -->
+<div class="card" id="incons-card">
+  <h2 id="incons-title">Registros inconsistentes — bajo vigilancia permanente</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:18px;align-items:end">
+    <div>
+      <div class="kpi-val" id="v-incons" style="font-size:42px">—</div>
+      <div class="kpi-label">registros inconsistentes</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-incons-pct" style="font-size:42px">—</div>
+      <div class="kpi-label">del total divulgado</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-incons-trend" style="font-size:28px;font-weight:700">—</div>
+      <div class="kpi-label">tendencia desde el inicio</div>
+    </div>
+  </div>
+  <canvas id="chart-incons" height="70"></canvas>
+  <div class="forensic-note" id="incons-note" style="margin-top:14px">
+    El motor comenzará a registrar en el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.
+  </div>
+</div>
+
 <!-- ── CANDIDATOS + MAPA ── -->
 <div class="grid2">
   <div class="card">
@@ -282,6 +305,7 @@ const DEMO = {
       ]},
       zscore:{detected:false,outliers:[]},
       blackout:{detected:false,gaps:[]},
+      inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]},
     },
     coverage:{monitoring_since:'2026-05-17T08:00:00Z',last_capture:'2026-05-17T10:00:00Z',target_cadence_minutes:5,coverage_pct:100,open_gap_minutes:0,gaps_count:0,gaps:[]},
     chain_records:[
@@ -580,6 +604,69 @@ function renderForensics(forensics){
   });
 }
 
+// ── REGISTROS INCONSISTENTES ──
+function renderInconsistentActs(forensics, national){
+  const ia=(forensics&&forensics.inconsistent_acts)||{};
+  const count=ia.current_count||0;
+  const trend=ia.trend||'unknown';
+  const delta=ia.delta_from_first||0;
+  const history=ia.history||[];
+  const divulged=Math.max(national&&national.actasEscrutadas||0,1);
+  const pct=count>0?count/divulged*100:0;
+
+  document.getElementById('v-incons').textContent=count>0?fmt(count):'—';
+  document.getElementById('v-incons-pct').textContent=count>0?pct.toFixed(1)+'%':'—';
+
+  const trendEl=document.getElementById('v-incons-trend');
+  if(trend==='rising'){
+    trendEl.textContent='↑ CRECIENDO';trendEl.style.color='var(--bad)';
+  } else if(trend==='falling'){
+    trendEl.textContent='↓ Bajando';trendEl.style.color='var(--ok)';
+  } else if(trend==='stable'){
+    trendEl.textContent='→ Estable';trendEl.style.color='var(--warn)';
+  } else {
+    trendEl.textContent='Aguardando datos';trendEl.style.color='var(--muted)';
+  }
+
+  const card=document.getElementById('incons-card');
+  if(pct>10||trend==='rising')card.className='card alert-card';
+  else if(pct>5)card.className='card warn-card';
+  else card.className='card';
+
+  const note=document.getElementById('incons-note');
+  if(count===0){
+    note.textContent='Aguardando el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.';
+  } else if(trend==='rising'){
+    note.textContent=`ALERTA: los registros inconsistentes crecieron ${delta>0?'+':''}${fmt(delta)} desde el inicio del monitoreo (${pct.toFixed(1)}% del total divulgado). Un crecimiento sostenido indica manipulación activa del conteo oficial.`;
+  } else if(trend==='falling'){
+    note.textContent=`Los registros inconsistentes están siendo resueltos (${pct.toFixed(1)}% del total divulgado). Se continúa vigilando.`;
+  } else {
+    note.textContent=`${fmt(count)} registros inconsistentes (${pct.toFixed(1)}% del total divulgado). Sin variación desde el inicio del monitoreo.`;
+  }
+
+  if(history.length>1&&document.getElementById('chart-incons')){
+    const labels=history.map(h=>h.ts?new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}):'');
+    const vals=history.map(h=>h.count);
+    const lineColor=trend==='rising'?'#df6b86':trend==='falling'?'#57c08d':'#8b929c';
+    if(charts.incons)charts.incons.destroy();
+    charts.incons=new Chart(document.getElementById('chart-incons'),{
+      type:'line',
+      data:{
+        labels,
+        datasets:[{data:vals,borderColor:lineColor,backgroundColor:lineColor+'28',fill:true,tension:0.3,pointRadius:history.length<10?3:0,borderWidth:2}]
+      },
+      options:{
+        responsive:true,animation:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${fmt(ctx.parsed.y)} inconsistentes`}}},
+        scales:{
+          x:{display:false},
+          y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10}},beginAtZero:false}
+        }
+      }
+    });
+  }
+}
+
 // ── CADENA CRIPTOGRÁFICA ──
 function renderChain(records){
   const body=document.getElementById('chain-body');
@@ -611,7 +698,7 @@ async function loadData(){
       const snaps=snap.data||[];
       const latest=snaps[0]||{};
       const meta=latest.raw_meta||{};
-      const EMPTY_FORENSICS={progressive_injection:{detected:false},velocity_anomaly:{detected:false,max_rate:0,threshold:10},asymmetric_benefit:{detected:false},hold_and_release:{detected:false},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]}};
+      const EMPTY_FORENSICS={progressive_injection:{detected:false},velocity_anomaly:{detected:false,max_rate:0,threshold:10},asymmetric_benefit:{detected:false},hold_and_release:{detected:false},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]},inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]}};
       data={
         alertState:latest.alert_state||'normal',
         national:{actasTotal:0,actasEscrutadas:snaps.length,totalVotes:0,integrityPercent:100,turnoutPercent:0,candidates:[]},
@@ -636,6 +723,7 @@ async function loadData(){
   if(data.departments) renderMap(data.departments);
   if(data._snapshots) renderTimeline(data._snapshots.slice().reverse());
   if(data.forensics){
+    renderInconsistentActs(data.forensics, data.national);
     renderBenford(data.forensics.benford);
     renderForensics(data.forensics);
   }

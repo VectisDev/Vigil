@@ -93,10 +93,16 @@ def test_build_forensics_block_shape() -> None:
         "benford",
         "zscore",
         "blackout",
+        "inconsistent_acts",
     ):
         assert key in block
     assert "pvalue" in block["benford"]
     assert isinstance(block["blackout"]["gaps"], list)
+    ia = block["inconsistent_acts"]
+    assert ia["current_count"] == 2773
+    assert ia["trend"] == "rising"
+    assert ia["delta_from_first"] == 584
+    assert isinstance(ia["history"], list) and len(ia["history"]) == 2
 
 
 def test_run_and_publish_emits_coverage_alerts(monkeypatch, tmp_path: Path) -> None:
