@@ -1309,6 +1309,7 @@ def _publish_forensics(config: dict[str, Any], now: datetime) -> None:
             merkle_root=merkle_root,
             chain_length=len(leaf_hashes),
             target_cadence_minutes=cadence_minutes,
+            endpoints_yaml_path=Path("config/prod/endpoints.yaml"),
         )
     except Exception as exc:  # noqa: BLE001 - publishing must never break pipeline
         log_event(logger, logging.WARNING, "forensics_publish_failed", error=str(exc))
