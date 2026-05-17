@@ -1,0 +1,38 @@
+name: Emergency Publish
+
+# Triggered by the pipeline server when HIGH/CRITICAL anomalies are detected.
+# Only runs export_static_snapshot.py + git push — no scraping, no audit.
+# Latency target: panel updated within ~60 seconds of anomaly detection.
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Trigger reason (anomaly type or blackout)'
+        required: false
+        default: 'anomaly_detected'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+      - name: Export static snapshot
+        run: python scripts/export_static_snapshot.py
+      - name: Commit and push
+        run: |
+          git config user.name  "centinel-bot"
+          git config user.email "bot@centinel.hn"
+          git add web/data/snapshot.json
+          git diff --cached --quiet || \
+            git commit -m "data: emergency snapshot [skip ci] reason=${{ inputs.reason }}"
+          git push
