@@ -79,6 +79,7 @@ Notes:
 
 
 import argparse
+import fcntl
 import hashlib
 import json
 import logging
@@ -827,6 +828,20 @@ def run_pipeline(config: dict[str, Any]) -> None:
                 )
                 health_ok = status_code < 400
                 consecutive_failures = 0 if health_ok else consecutive_failures + 1
+                # Persist CNE reachability for export_static_snapshot.py
+                _now_iso = utcnow().isoformat()
+                state["cne_last_attempt_at"] = _now_iso
+                state["cne_last_status_code"] = status_code
+                if health_ok:
+                    state["cne_last_successful_scrape_at"] = _now_iso
+                    state.pop("cne_first_unreachable_at", None)
+                    state["cne_consecutive_failures"] = 0
+                else:
+                    is_new_blackout = not state.get("cne_first_unreachable_at")
+                    if is_new_blackout:
+                        state["cne_first_unreachable_at"] = _now_iso
+                        _trigger_emergency_publish(reason="cne_blackout_start")
+                    state["cne_consecutive_failures"] = consecutive_failures
             except (
                 requests.exceptions.HTTPError,
                 requests.exceptions.ConnectionError,
@@ -999,6 +1014,8 @@ def run_pipeline(config: dict[str, Any]) -> None:
         alerts = build_alerts(critical_anomalies, severity="CRITICAL")
         (ANALYSIS_DIR / "alerts.json").write_text(json.dumps(alerts, indent=2), encoding="utf-8")
         emit_critical_alerts(critical_anomalies, config, run_id=run_id)
+        if critical_anomalies:
+            _trigger_emergency_publish(reason="critical_anomaly")
 
         if should_run_stage("report", start_stage):
             save_pipeline_checkpoint({"run_id": run_id, "stage": "report", "at": utcnow().isoformat()})
@@ -1091,6 +1108,14 @@ def run_pipeline(config: dict[str, Any]) -> None:
 
 def safe_run_pipeline(config: dict[str, Any], security_manager: DefensiveSecurityManager | None = None) -> bool:
     """/** Ejecuta pipeline con protección contra fallas de red. / Run pipeline with protection against network failures. **"""
+    # Prevent concurrent runs (e.g. GitHub Actions schedule + workflow_dispatch overlap)
+    _lock_fd = open("/tmp/centinel_pipeline.lock", "w")  # noqa: SIM115
+    try:
+        fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        log_event(logger, logging.WARNING, "pipeline_already_running_skipping")
+        return False
+
     resilience_settings = load_resilience_settings(config)
     auto_resume = build_auto_resume_settings(resilience_settings)
     attempt = 0
@@ -1302,6 +1327,40 @@ def _generate_and_upload_pdf(output_filename: str = "centinel_informe.pdf") -> s
     except Exception as exc:
         logger.warning("generate_report_error error=%s", exc)
     return None
+
+
+def _trigger_emergency_publish(reason: str = "anomaly_detected") -> None:
+    """Call GitHub workflow_dispatch to push snapshot.json immediately on HIGH/CRITICAL anomaly.
+
+    Requires GITHUB_TOKEN and GITHUB_REPOSITORY env vars.
+    Fails silently — local chain and Supabase alerts are the primary record.
+    """
+    import urllib.request as _urllib_req
+
+    token = os.environ.get("GITHUB_TOKEN", "")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    branch = os.environ.get("GITHUB_REF_NAME", "main")
+    if not token or not repo:
+        log_event(logger, logging.DEBUG, "emergency_publish_skipped_no_token")
+        return
+
+    payload = json.dumps({"ref": branch, "inputs": {"reason": reason}}).encode()
+    req = _urllib_req.Request(
+        f"https://api.github.com/repos/{repo}/actions/workflows/emergency-publish.yml/dispatches",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        },
+        method="POST",
+    )
+    try:
+        with _urllib_req.urlopen(req, timeout=10) as resp:
+            log_event(logger, logging.INFO, "emergency_publish_triggered", status=resp.status, reason=reason)
+    except Exception as exc:
+        log_event(logger, logging.WARNING, "emergency_publish_failed", error=str(exc))
 
 
 def _publish_forensics(config: dict[str, Any], now: datetime, extra_meta: dict | None = None) -> None:
