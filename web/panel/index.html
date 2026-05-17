@@ -64,8 +64,13 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px;display:grid;gap:20px}
 .back-btn{display:inline-flex;align-items:center;gap:6px;margin-bottom:18px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer}
 .back-btn:hover{background:#2e3238}
 .dept-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
-.dept-cell{background:var(--border);border-radius:6px;padding:6px 4px;text-align:center;font-size:10px;font-weight:600;cursor:pointer;transition:.15s}
+.dept-cell{background:var(--border);border-radius:6px;padding:6px 4px;text-align:center;font-size:10px;font-weight:600;cursor:pointer;transition:.15s;position:relative}
 .dept-cell:hover{opacity:.8}
+.dept-ep-dot{position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;pointer-events:none}
+/* ── INFO TIPS ── */
+.info-tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:rgba(139,146,156,.12);color:var(--muted);font-size:9px;font-weight:700;cursor:help;margin-left:7px;position:relative;vertical-align:middle;flex-shrink:0;user-select:none}
+.info-tip::after{content:attr(data-tooltip);position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);background:#1e2027;border:1px solid var(--border);color:var(--fg);font-size:11px;font-weight:400;line-height:1.55;border-radius:6px;padding:9px 12px;width:240px;white-space:normal;z-index:999;pointer-events:none;display:none;text-transform:none;letter-spacing:normal}
+.info-tip:hover::after,.info-tip.open::after{display:block}
 
 /* ── CANDIDATE ── */
 .cand-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -110,6 +115,7 @@ footer a{color:var(--accent);text-decoration:none}
   <span id="chain-badge" class="badge badge-ok"><span class="dot dot-ok"></span>CADENA ÍNTEGRA</span>
   <span id="ots-badge" class="badge badge-warn"><span class="dot dot-warn"></span>OTS VERIFICANDO</span>
   <span id="mirror-badge" class="badge badge-ok"><span class="dot dot-ok"></span>ESPEJOS —</span>
+  <span id="ep-national-badge" class="badge badge-ok" hidden><span class="dot dot-ok"></span>CNE —</span>
   <span id="last-update">Actualizando…</span>
 </div>
 <div id="coverage-banner" hidden></div>
@@ -162,17 +168,6 @@ footer a{color:var(--accent);text-decoration:none}
   <div class="forensic-note" id="incons-note" style="margin-top:14px">
     El motor comenzará a registrar en el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.
   </div>
-</div>
-
-<!-- ── ENDPOINTS CNE — SALUD EN VIVO ── -->
-<div class="card" id="endpoint-health-card" hidden>
-  <h2>Endpoints CNE — salud en vivo</h2>
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap">
-    <span id="ep-summary" style="font-size:13px;color:var(--muted)">Aguardando datos del escáner…</span>
-    <span id="ep-mode-badge" class="badge badge-ok" style="font-size:11px;letter-spacing:.06em" hidden></span>
-  </div>
-  <div id="ep-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px"></div>
-  <div id="ep-last-check" style="margin-top:12px;font-size:11px;color:var(--muted)"></div>
 </div>
 
 <!-- ── CANDIDATOS + MAPA ── -->
@@ -434,6 +429,15 @@ const DEPT_NAMES={
   'HN-LE':'Lempira','HN-FM':'Fco. Morazán','HN-VA':'Valle','HN-CH':'Choluteca',
   'HN-EP':'El Paraíso','HN-CR':'Cortés'
 };
+const DEPT_CODE_FROM_NAME={
+  'ATLANTIDA':'HN-AT','COLON':'HN-CL','GRACIAS A DIOS':'HN-GD','YORO':'HN-YO',
+  'ISLAS DE LA BAHIA':'HN-IB','ISLAS BAHIA':'HN-IB','OLANCHO':'HN-OL',
+  'COPAN':'HN-CP','SANTA BARBARA':'HN-SB','COMAYAGUA':'HN-CM',
+  'INTIBUCA':'HN-IN','LA PAZ':'HN-LP','OCOTEPEQUE':'HN-OC',
+  'LEMPIRA':'HN-LE','FRANCISCO MORAZAN':'HN-FM','VALLE':'HN-VA',
+  'CHOLUTECA':'HN-CH','EL PARAISO':'HN-EP','CORTES':'HN-CR',
+};
+let _epByCode={},_epNational=null;
 
 function deptColor(dept){
   if(!dept) return '#24272e';
@@ -469,6 +473,7 @@ function renderMap(departments){
     // cuadrícula compacta
     const cell=document.createElement('div');
     cell.className='dept-cell';
+    cell.dataset.hnCode=code;
     cell.style.background=deptColor(dept);
     cell.style.color='#0f1115';
     cell.title=DEPT_NAMES[code]||code;
@@ -476,6 +481,7 @@ function renderMap(departments){
     cell.onclick=()=>openDeptPanel(code,departments[code]);
     grid.appendChild(cell);
   });
+  updateDeptCellEpDots();
 }
 
 function openDeptPanel(code,dept){
@@ -483,7 +489,22 @@ function openDeptPanel(code,dept){
   const name=DEPT_NAMES[code]||code;
   document.getElementById('side-title').textContent=name;
   const content=document.getElementById('side-content');
-  if(!dept){content.innerHTML='<p style="color:var(--muted)">Sin datos disponibles para este departamento.</p>';side.classList.add('open');return;}
+  const ep=_epByCode[code]||null;
+  const epHtml=ep?`
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Endpoint CNE</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px">
+        <span class="dot ${ep.status==='ok'?'dot-ok':ep.status==='degraded'?'dot-warn':'dot-bad'}"></span>
+        <span>${ep.status==='ok'?'Activo':ep.status==='degraded'?'Degradado':'Offline'}</span>
+        ${ep.auto_replaced?'<span style="color:var(--warn);font-size:11px">⟳ reemplazado</span>':''}
+      </div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);word-break:break-all;margin-bottom:4px">${ep.url||'—'}</div>
+      ${ep.last_validated?`<div style="font-size:10px;color:var(--muted)">Validado: ${new Date(ep.last_validated).toLocaleString('es-HN')}</div>`:''}
+    </div>`:'';
+  if(!dept){
+    content.innerHTML=`<p style="color:var(--muted)">Sin datos electorales para este departamento.</p>${epHtml}`;
+    side.classList.add('open');return;
+  }
   const estado=dept.hashValid?(dept.rulesBroken?'⚠️ Regla estadística rota':'✓ Sin anomalías'):'❌ Ruptura de cadena criptográfica';
   const pct=dept.actasTotal?Math.round(dept.actasEscrutadas/dept.actasTotal*100):0;
   content.innerHTML=`
@@ -494,6 +515,7 @@ function openDeptPanel(code,dept){
     </div>
     <div style="font-size:13px;margin-bottom:12px">${estado}</div>
     ${dept.totalVotes?`<div style="color:var(--muted);font-size:12px">Votos: ${fmt(dept.totalVotes)}</div>`:''}
+    ${epHtml}
   `;
   side.classList.add('open');
 }
@@ -588,39 +610,35 @@ const FORENSIC_DEFS=[
 
 // ── ENDPOINTS CNE ──
 function renderEndpointHealth(eh){
-  const card=document.getElementById('endpoint-health-card');
-  if(!eh){card.hidden=true;return;}
-  card.hidden=false;
-  const total=eh.total||0,online=eh.online||0,degraded=eh.degraded||0,offline=eh.offline||0;
-  card.className=(offline>0)?'card alert-card':(degraded>0)?'card warn-card':'card';
-  const summaryEl=document.getElementById('ep-summary');
-  if(total===0){
-    summaryEl.textContent='Escáner activo — en espera del primer ciclo de sanación de endpoints';
-  } else {
-    summaryEl.textContent=`${online}/${total} activos · ${degraded} degradados · ${offline} offline`;
-    summaryEl.style.color=(offline>0)?'var(--bad)':(degraded>0)?'var(--warn)':'var(--ok)';
-  }
-  const modeEl=document.getElementById('ep-mode-badge');
-  const mode=(eh.animal_mode||'unknown').toUpperCase();
-  modeEl.hidden=false;
-  modeEl.textContent=`ESCÁNER ${mode}`;
-  modeEl.className=(eh.safe_mode_active||eh.consecutive_failures>3)?'badge badge-warn':'badge badge-ok';
-  const grid=document.getElementById('ep-grid');
-  grid.innerHTML='';
+  _epByCode={};_epNational=null;
+  const nb=document.getElementById('ep-national-badge');
+  if(!eh){nb.hidden=true;return;}
   (eh.endpoints||[]).forEach(ep=>{
-    const dotCls=ep.status==='ok'?'dot-ok':ep.status==='degraded'?'dot-warn':'dot-bad';
-    const item=document.createElement('div');
-    item.style.cssText='display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;cursor:default';
-    const replacedBadge=ep.auto_replaced?'<span style="color:var(--warn);font-size:10px;margin-left:2px" title="Reemplazado automáticamente">⟳</span>':'';
-    item.title=`${ep.url}\nNivel: ${ep.level||'?'}\nÚltima validación: ${ep.last_validated||'—'}${ep.auto_replaced?'\nReemplazado automáticamente':''}`;
-    item.innerHTML=`<span class="dot ${dotCls}"></span><span style="font-family:var(--mono)">${ep.dept||'?'}</span>${replacedBadge}`;
-    grid.appendChild(item);
+    const dept=(ep.dept||'').toUpperCase().trim();
+    if(dept==='NACIONAL'){_epNational=ep;}
+    else{const code=DEPT_CODE_FROM_NAME[dept];if(code)_epByCode[code]=ep;}
   });
-  const lastEl=document.getElementById('ep-last-check');
-  if(eh.checked_at){
-    const d=new Date(eh.checked_at);
-    lastEl.textContent=`Última revisión del escáner: ${d.toLocaleString('es-HN')}`;
-  }
+  // Badge nacional en status bar
+  const ep=_epNational||null;
+  const epOk=ep?ep.status==='ok':(eh.offline===0&&eh.total>0);
+  const epWarn=ep?ep.status==='degraded':(eh.degraded>0);
+  const dotCls=epOk?'dot-ok':epWarn?'dot-warn':'dot-bad';
+  const badgeCls=epOk?'badge-ok':epWarn?'badge-warn':'badge-bad';
+  const mode=(eh.animal_mode||'?').toUpperCase();
+  nb.className=`badge ${badgeCls}`;
+  nb.innerHTML=`<span class="dot ${dotCls}"></span>CNE ${mode}`;
+  nb.hidden=false;
+  updateDeptCellEpDots();
+}
+function updateDeptCellEpDots(){
+  document.querySelectorAll('#dept-grid .dept-cell[data-hn-code]').forEach(cell=>{
+    const ep=_epByCode[cell.dataset.hnCode];
+    let dot=cell.querySelector('.dept-ep-dot');
+    if(!ep){if(dot)dot.remove();return;}
+    if(!dot){dot=document.createElement('span');dot.className='dept-ep-dot';cell.appendChild(dot);}
+    dot.style.background=ep.status==='ok'?'var(--ok)':ep.status==='degraded'?'var(--warn)':'var(--bad)';
+    dot.title=`Endpoint: ${ep.status}${ep.auto_replaced?' · reemplazado auto.':''}`;
+  });
 }
 
 function renderForensics(forensics){
@@ -788,6 +806,43 @@ async function loadData(){
 
 loadData();
 setInterval(loadData, 30000); // refresh cada 30s
+
+// ── INFO TIPS ──
+const H2_TIPS={
+  'Registros divulgados (JSON CNE)':'Cuántos registros JSON ha publicado el CNE vs. el total esperado. Un porcentaje bajo puede indicar conteo incompleto o retención de datos. Si sube de golpe, revisa si hubo un apagón previo.',
+  'Total votos':'Suma de votos válidos contabilizados según el JSON del CNE. El motor verifica que no suba más rápido de lo que permite la velocidad física de procesamiento de actas.',
+  'Participación':'Porcentaje del padrón electoral que votó. Valores inusualmente altos (>85%) o saltos bruscos entre capturas pueden indicar anomalía.',
+  'Integridad':'Porcentaje de snapshots con cadena de hashes SHA-256 íntegra. 100% = ningún dato fue alterado. Cualquier valor menor es una señal crítica de manipulación.',
+  'Registros inconsistentes — bajo vigilancia permanente':'Registros que el propio CNE etiqueta como "inconsistentes". Su crecimiento sostenido indica re-asignación activa de votos. Son el indicador más directo de manipulación del conteo oficial.',
+  'Distribución de candidatos':'Porcentaje de votos por candidato según el JSON del CNE en tiempo real. El motor verifica que los porcentajes no salten de forma abrupta entre capturas consecutivas.',
+  'Estado por departamento':'Estado criptográfico de cada departamento. Verde = íntegro, amarillo = anomalía estadística detectada, rojo = ruptura de cadena. El punto pequeño en la esquina de cada celda indica si el endpoint CNE de ese departamento está activo.',
+  'Progreso de registros en el tiempo':'Serie temporal de snapshots capturados. Los gaps en la línea son períodos sin datos — toda interrupción mayor a la cadencia objetivo se marca como sospechosa por defecto.',
+  'Vigilancia forense':'Detectores estadísticos avanzados que buscan patrones de fraude: inyección progresiva de votos, velocidad anómala de resolución de actas, beneficio asimétrico a un candidato, retención y liberación masiva, y análisis de Benford.',
+  'Benford — distribución primer dígito':'La Ley de Benford predice la frecuencia natural del primer dígito en datos electorales grandes. Desviaciones significativas (chi² alto, p<0.05) sugieren que los datos fueron fabricados o alterados artificialmente.',
+  'Alertas registradas':'Eventos de anomalía generados por el motor. CRÍTICO = ruptura de integridad o patrón de fraude confirmado. ALTO = brecha de cobertura o patrón estadístico sospechoso. MEDIO/BAJO = señales tempranas a vigilar.',
+  'Cadena de custodia criptográfica':'Cada snapshot está enlazado al anterior con un hash SHA-256, formando una cadena inmutable. Si cualquier dato histórico es alterado, el hash no coincide y el motor lo detecta de inmediato.',
+};
+function initInfoTips(){
+  document.querySelectorAll('.card h2, #statusbar + * h2').forEach(h2=>{
+    const key=h2.childNodes[0]?.textContent?.trim()||h2.textContent.trim();
+    const tip=H2_TIPS[key];
+    if(!tip||h2.querySelector('.info-tip'))return;
+    const s=document.createElement('span');
+    s.className='info-tip';s.textContent='ℹ';s.dataset.tooltip=tip;
+    h2.appendChild(s);
+  });
+}
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('info-tip')){
+    const wasOpen=e.target.classList.contains('open');
+    document.querySelectorAll('.info-tip.open').forEach(t=>t.classList.remove('open'));
+    if(!wasOpen)e.target.classList.add('open');
+    e.stopPropagation();
+  } else {
+    document.querySelectorAll('.info-tip.open').forEach(t=>t.classList.remove('open'));
+  }
+});
+initInfoTips();
 </script>
 </body>
 </html>
