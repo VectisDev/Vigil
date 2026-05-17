@@ -296,10 +296,21 @@ def build_observer_pack(
     if pdf_en:
         files["report_en.pdf"] = pdf_en
 
-    # Check for OTS file
-    ots_candidates = list(source_dir.glob("*.ots"))
-    if ots_candidates:
-        files["checkpoint.ots"] = ots_candidates[0].read_bytes()
+    # Check for OTS proof — pipeline saves to logs/anchors/ots/
+    # Fall back to source_dir for backwards compatibility
+    ots_search_dirs = [
+        Path("logs") / "anchors" / "ots",
+        source_dir,
+        Path("data"),
+    ]
+    ots_found: bytes | None = None
+    for ots_dir in ots_search_dirs:
+        candidates = sorted(ots_dir.glob("*.ots")) if ots_dir.exists() else []
+        if candidates:
+            ots_found = candidates[-1].read_bytes()  # most recent
+            break
+    if ots_found is not None:
+        files["checkpoint.ots"] = ots_found
 
     # Build manifest
     manifest_lines = [

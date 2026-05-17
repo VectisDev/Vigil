@@ -105,6 +105,7 @@ from scripts.download_and_hash import is_master_switch_on, normalize_master_swit
 from scripts.logging_utils import configure_logging, log_event
 from scripts.security.encrypt_secrets import decrypt_secrets
 from centinel.core.anchoring_payload import build_diff_summary, compute_anchor_root
+from anchor.opentimestamps import submit_to_opentimestamps
 from centinel.core.transparency import compute_merkle_root
 from centinel.core.custody import run_startup_verification
 from centinel.utils.config_loader import load_config as load_pipeline_config
@@ -1351,6 +1352,26 @@ def _anchor_snapshot(
 
     anchor_hashes = compute_anchor_root(current_payload, diff_summary, rules_payload)
     root_hash = anchor_hashes["root_hash"]
+
+    # Submit Merkle root to Bitcoin via OpenTimestamps (T3 external anchor)
+    ots_proof = submit_to_opentimestamps(root_hash)
+    if ots_proof is not None:
+        ots_dir = ANCHOR_LOG_DIR / "ots"
+        ots_dir.mkdir(parents=True, exist_ok=True)
+        ts_slug = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        ots_path = ots_dir / f"{ts_slug}_{root_hash[:12]}.ots"
+        ots_path.write_bytes(ots_proof.raw_proof)
+        proof_meta = ots_dir / f"{ts_slug}_{root_hash[:12]}.json"
+        proof_meta.write_text(
+            json.dumps(ots_proof.to_dict(), indent=2), encoding="utf-8"
+        )
+        logger.info(
+            "ots_proof_saved path=%s server=%s",
+            ots_path,
+            ots_proof.timestamp_server,
+        )
+    else:
+        logger.warning("ots_proof_unavailable root_hash=%s", root_hash[:16])
 
     logger.info("anchor_snapshot_skipped_arbitrum_removed")
     return

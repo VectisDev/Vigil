@@ -560,7 +560,63 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
         )
         return table
 
+    def _exec_summary_page(sx: dict) -> list:
+        """Build one non-technical executive summary page from a strings dict."""
+        page: list = []
+        page.append(Paragraph(sx["exec_summary_title"], styles["HeadingPrimary"]))
+        page.append(Spacer(1, 10))
+        page.append(Paragraph(sx["exec_what_is"], styles["HeadingSecondary"]))
+        page.append(Paragraph(sx["exec_what_is_body"], styles["Body"]))
+        page.append(Spacer(1, 8))
+        page.append(Paragraph(sx["exec_what_means"], styles["HeadingSecondary"]))
+        page.append(Paragraph(sx["exec_what_means_body"], styles["Body"]))
+        page.append(Spacer(1, 8))
+        status_table = Table(
+            [[sx["exec_status_label"], data.get("global_status_text", "")]],
+            colWidths=[doc.width * 0.35, doc.width * 0.65],
+        )
+        status_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#1F77B4")),
+            ("TEXTCOLOR", (0, 0), (0, 0), colors.white),
+            ("FONTNAME", (0, 0), (0, 0), bold_font),
+            ("FONTNAME", (1, 0), (1, 0), bold_font),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d0d4db")),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ]))
+        page.append(status_table)
+        page.append(Spacer(1, 8))
+        page.append(Paragraph(sx["exec_how_verify"], styles["HeadingSecondary"]))
+        page.append(Paragraph(sx["exec_how_verify_body"], styles["Body"]))
+        page.append(Spacer(1, 10))
+        note_table = Table(
+            [[sx["exec_agnostic"]]],
+            colWidths=[doc.width],
+        )
+        note_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF3CD")),
+            ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#856404")),
+            ("FONTNAME", (0, 0), (-1, -1), bold_font),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("TOPPADDING", (0, 0), (-1, -1), 8),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ]))
+        page.append(note_table)
+        return page
+
     elements: list = []
+
+    # Page 1: Executive summary in Spanish
+    elements.extend(_exec_summary_page(data.get("exec_es", {})))
+    elements.append(PageBreak())
+
+    # Page 2: Executive summary in English
+    elements.extend(_exec_summary_page(data.get("exec_en", {})))
+    elements.append(PageBreak())
+
     elements.append(Paragraph("🔒 C.E.N.T.I.N.E.L. · Informe Ejecutivo", styles["HeadingPrimary"]))
     elements.append(Paragraph(data["subtitle"], styles["Body"]))
     elements.append(Paragraph(data["generated"], styles["Body"]))
@@ -695,6 +751,36 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
 
 _STRINGS: dict[str, dict[str, str]] = {
     "es": {
+        "exec_summary_title": "Resumen Ejecutivo — C.E.N.T.I.N.E.L.",
+        "exec_what_is": "¿Qué es Centinel Engine?",
+        "exec_what_is_body": (
+            "Centinel Engine es un sistema de vigilancia electoral criptográfica de código abierto. "
+            "Descarga los datos oficiales del CNE cada pocos minutos durante todo el proceso de "
+            "cómputo y los encadena con hashes SHA-256, anclandolos en el blockchain de Bitcoin. "
+            "Cualquier modificación de los datos queda registrada en la cadena — y es imposible "
+            "de borrar sin dejar huella."
+        ),
+        "exec_what_means": "¿Qué significa este informe?",
+        "exec_what_means_body": (
+            "Este informe resume las capturas realizadas durante el proceso electoral. "
+            "Cada fila de la tabla de snapshots representa un momento del conteo que fue "
+            "registrado criptográficamente. El análisis de Benford y los indicadores KPI "
+            "muestran si los datos siguen patrones estadísticos normales."
+        ),
+        "exec_status_label": "Estado global de la auditoría:",
+        "exec_how_verify": "¿Cómo verificar este informe?",
+        "exec_how_verify_body": (
+            "1. Descargue el verificador offline desde el panel público.\n"
+            "2. Abra el archivo HTML en cualquier navegador, sin conexión a internet.\n"
+            "3. Ingrese el hash raíz del informe — el verificador confirma si los datos "
+            "son auténticos comparando contra la cadena Bitcoin.\n"
+            "El archivo de verificación es independiente del CNE, del gobierno y del equipo "
+            "técnico — cualquier ciudadano puede confirmar los datos desde cero."
+        ),
+        "exec_agnostic": (
+            "NOTA: Este sistema es 100% agnóstico a candidatos y partidos. "
+            "No tiene opinión sobre resultados — solo verifica la integridad de los datos."
+        ),
         "title": "Informe de Auditoría C.E.N.T.I.N.E.L.",
         "subtitle_tpl": "Estatus verificable · Alcance {dept}",
         "generated_tpl": "Fecha/hora: {ts} UTC",
@@ -718,6 +804,36 @@ _STRINGS: dict[str, dict[str, str]] = {
         ),
     },
     "en": {
+        "exec_summary_title": "Executive Summary — C.E.N.T.I.N.E.L.",
+        "exec_what_is": "What is Centinel Engine?",
+        "exec_what_is_body": (
+            "Centinel Engine is an open-source cryptographic electoral surveillance system. "
+            "It downloads official CNE data every few minutes throughout the vote-counting "
+            "process and chains each snapshot with SHA-256 hashes, anchoring them to the "
+            "Bitcoin blockchain. Any modification of the data is recorded in the chain — "
+            "and is impossible to erase without leaving a trace."
+        ),
+        "exec_what_means": "What does this report mean?",
+        "exec_what_means_body": (
+            "This report summarizes the captures made during the electoral process. "
+            "Each row in the snapshots table represents a moment in the count that was "
+            "cryptographically recorded. The Benford analysis and KPI indicators show "
+            "whether the data follows normal statistical patterns."
+        ),
+        "exec_status_label": "Overall audit status:",
+        "exec_how_verify": "How to verify this report?",
+        "exec_how_verify_body": (
+            "1. Download the offline verifier from the public panel.\n"
+            "2. Open the HTML file in any browser, without an internet connection.\n"
+            "3. Enter the root hash of the report — the verifier confirms whether the data "
+            "is authentic by comparing against the Bitcoin chain.\n"
+            "The verification file is independent of the CNE, the government, and the "
+            "technical team — any citizen can confirm the data from scratch."
+        ),
+        "exec_agnostic": (
+            "NOTE: This system is 100% agnostic to candidates and parties. "
+            "It has no opinion on results — it only verifies data integrity."
+        ),
         "title": "C.E.N.T.I.N.E.L. Audit Report",
         "subtitle_tpl": "Verifiable status · Scope: {dept}",
         "generated_tpl": "Generated: {ts} UTC",
@@ -809,6 +925,9 @@ def main() -> None:
     ].head(10).values.tolist()
 
     s = _STRINGS.get(args.lang, _STRINGS["es"])
+    # For bilingual executive summary, always include both languages
+    s_es = _STRINGS["es"]
+    s_en = _STRINGS["en"]
     ts_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
     root_hash = "0x9f3fa7c2d1b4a7e1"
 
@@ -840,6 +959,10 @@ def main() -> None:
         "footer_left": f"Hash: {root_hash}…",
         "footer_right": "Hash reporte: 0xabc123…",
         "footer_disclaimer": s["footer_disclaimer"],
+        # Executive summary strings (always bilingual ES+EN)
+        "exec_es": {k: s_es[k] for k in s_es if k.startswith("exec_")},
+        "exec_en": {k: s_en[k] for k in s_en if k.startswith("exec_")},
+        "global_status_text": s["global_status"],
     }
 
     chart_buffers = create_pdf_charts(benford_df, snapshot_df, heatmap_df, anomalies_df)
