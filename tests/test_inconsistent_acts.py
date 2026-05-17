@@ -12,9 +12,7 @@ from pathlib import Path
 from auditor.inconsistent_acts import InconsistentActsTracker
 
 
-def _build_payload(
-    *, inconsistent_count: int, votes: dict[str, int], source: str = "synthetic_test"
-) -> dict:
+def _build_payload(*, inconsistent_count: int, votes: dict[str, int], source: str = "synthetic_test") -> dict:
     """Build a generic election payload for rule-based tests.
 
     Construye un payload electoral genérico para pruebas basadas en reglas.
@@ -22,9 +20,7 @@ def _build_payload(
     return {
         "meta": {"source": source},
         "totals": {"actasInconsistentes": inconsistent_count, "total_votes": sum(votes.values())},
-        "candidates": [
-            {"candidate_id": candidate, "votes": value} for candidate, value in votes.items()
-        ],
+        "candidates": [{"candidate_id": candidate, "votes": value} for candidate, value in votes.items()],
     }
 
 
@@ -34,9 +30,7 @@ def test_detects_inconsistent_key_and_persists(tmp_path: Path) -> None:
     El tracker debe detectar y persistir la clave de inconsistentes.
     """
     tracker = InconsistentActsTracker(config_path=tmp_path / "inconsistent_key.json")
-    payload = _build_payload(
-        inconsistent_count=2773, votes={"cand_1": 510000, "cand_2": 430000, "cand_3": 260000}
-    )
+    payload = _build_payload(inconsistent_count=2773, votes={"cand_1": 510000, "cand_2": 430000, "cand_3": 260000})
 
     tracker.load_snapshot(payload, datetime(2025, 11, 30, 23, 0, tzinfo=timezone.utc))
 
@@ -51,15 +45,9 @@ def test_separates_normal_and_special_scrutiny_votes(tmp_path: Path) -> None:
     Los votos deben separarse en capas normal y especial.
     """
     tracker = InconsistentActsTracker(config_path=tmp_path / "inconsistent_key.json")
-    start = _build_payload(
-        inconsistent_count=2773, votes={"cand_1": 510000, "cand_2": 430000, "cand_3": 260000}
-    )
-    plateau = _build_payload(
-        inconsistent_count=2773, votes={"cand_1": 517500, "cand_2": 435100, "cand_3": 262400}
-    )
-    final = _build_payload(
-        inconsistent_count=1920, votes={"cand_1": 556500, "cand_2": 470100, "cand_3": 278400}
-    )
+    start = _build_payload(inconsistent_count=2773, votes={"cand_1": 510000, "cand_2": 430000, "cand_3": 260000})
+    plateau = _build_payload(inconsistent_count=2773, votes={"cand_1": 517500, "cand_2": 435100, "cand_3": 262400})
+    final = _build_payload(inconsistent_count=1920, votes={"cand_1": 556500, "cand_2": 470100, "cand_3": 278400})
 
     tracker.load_snapshot(start, datetime(2025, 11, 30, 23, 0, tzinfo=timezone.utc))
     tracker.load_snapshot(plateau, datetime(2025, 11, 30, 23, 5, tzinfo=timezone.utc))
@@ -78,15 +66,9 @@ def test_statistical_suite_and_report(tmp_path: Path) -> None:
     """
     tracker = InconsistentActsTracker(config_path=tmp_path / "inconsistent_key.json")
     payloads = [
-        _build_payload(
-            inconsistent_count=2773, votes={"cand_1": 510000, "cand_2": 430000, "cand_3": 260000}
-        ),
-        _build_payload(
-            inconsistent_count=2773, votes={"cand_1": 517500, "cand_2": 435100, "cand_3": 262400}
-        ),
-        _build_payload(
-            inconsistent_count=1920, votes={"cand_1": 556500, "cand_2": 470100, "cand_3": 278400}
-        ),
+        _build_payload(inconsistent_count=2773, votes={"cand_1": 510000, "cand_2": 430000, "cand_3": 260000}),
+        _build_payload(inconsistent_count=2773, votes={"cand_1": 517500, "cand_2": 435100, "cand_3": 262400}),
+        _build_payload(inconsistent_count=1920, votes={"cand_1": 556500, "cand_2": 470100, "cand_3": 278400}),
     ]
 
     for index, payload in enumerate(payloads):
@@ -298,9 +280,7 @@ def test_detects_hold_and_release_pattern(tmp_path: Path) -> None:
     # 6 ciclos de estancamiento (AI no cambia).
     for i in range(1, 7):
         tracker.load_snapshot(
-            _build_payload(
-                inconsistent_count=2000, votes={"X": 500000 + i * 100, "Y": 450000 + i * 100}
-            ),
+            _build_payload(inconsistent_count=2000, votes={"X": 500000 + i * 100, "Y": 450000 + i * 100}),
             base_time + timedelta(minutes=i * 5),
         )
 
@@ -542,9 +522,7 @@ def test_forensic_report_contains_all_sections(tmp_path: Path) -> None:
     assert "Hashes de fuente SHA-256" in report
 
 
-def _build_cne_payload(
-    *, inconsistentes: str, votos: dict[str, str]
-) -> dict:
+def _build_cne_payload(*, inconsistentes: str, votos: dict[str, str]) -> dict:
     """Build a payload mirroring the real CNE 2025 JSON schema.
 
     Construye un payload con el esquema real del JSON del CNE 2025.
@@ -573,13 +551,9 @@ def test_real_cne_schema_with_thousands_separators(tmp_path: Path) -> None:
     config_path = tmp_path / "inconsistent_key.json"
     # Simulate the stale persisted key shipped in the repo so the robust
     # fallback (re-detect + re-persist) is exercised on real CNE data.
-    config_path.write_text(
-        json.dumps({"inconsistent_key": "totals.actasInconsistentes"}), encoding="utf-8"
-    )
+    config_path.write_text(json.dumps({"inconsistent_key": "totals.actasInconsistentes"}), encoding="utf-8")
 
-    tracker = InconsistentActsTracker(
-        config_path=config_path, runtime_config_path=tmp_path / "config.json"
-    )
+    tracker = InconsistentActsTracker(config_path=config_path, runtime_config_path=tmp_path / "config.json")
 
     tracker.load_snapshot(
         _build_cne_payload(
@@ -596,14 +570,9 @@ def test_real_cne_schema_with_thousands_separators(tmp_path: Path) -> None:
         datetime(2025, 12, 4, 11, 6, tzinfo=timezone.utc),
     )
 
-    assert (
-        tracker.detected_inconsistent_key
-        == "estadisticas.estado_actas_divulgadas.actas_inconsistentes"
-    )
+    assert tracker.detected_inconsistent_key == "estadisticas.estado_actas_divulgadas.actas_inconsistentes"
     persisted = json.loads(config_path.read_text(encoding="utf-8"))
-    assert persisted["inconsistent_key"] == (
-        "estadisticas.estado_actas_divulgadas.actas_inconsistentes"
-    )
+    assert persisted["inconsistent_key"] == ("estadisticas.estado_actas_divulgadas.actas_inconsistentes")
     assert tracker.snapshots[0].inconsistent_count == 2189
     assert tracker.snapshots[1].inconsistent_count == 2773
     assert tracker.snapshots[0].candidate_votes["CANDIDATO_A"] == 1027090

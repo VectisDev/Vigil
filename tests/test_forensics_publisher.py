@@ -14,10 +14,7 @@ from centinel.sync import forensics_publisher as fp
 
 def _cne_snapshot(inconsistentes: str, votos: dict[str, str]) -> dict:
     return {
-        "resultados": [
-            {"partido": f"P{n}", "candidato": n, "votos": v, "porcentaje": "0.0"}
-            for n, v in votos.items()
-        ],
+        "resultados": [{"partido": f"P{n}", "candidato": n, "votos": v, "porcentaje": "0.0"} for n, v in votos.items()],
         "estadisticas": {
             "estado_actas_divulgadas": {"actas_inconsistentes": inconsistentes},
         },
@@ -47,9 +44,7 @@ def test_build_coverage_flags_gap() -> None:
         base + timedelta(hours=13),  # 13h blackout
         base + timedelta(hours=13, minutes=5),
     ]
-    cov = fp.build_coverage(
-        timestamps, target_cadence_minutes=5.0, now=base + timedelta(hours=13, minutes=6)
-    )
+    cov = fp.build_coverage(timestamps, target_cadence_minutes=5.0, now=base + timedelta(hours=13, minutes=6))
     assert cov["gaps_count"] == 1
     assert cov["coverage_pct"] < 100.0
     assert cov["monitoring_since"] == timestamps[0].isoformat()
@@ -77,9 +72,7 @@ def test_build_forensics_block_shape() -> None:
     """
     tracker = fp.InconsistentActsTracker()
     base = datetime(2025, 12, 3, 22, 0, tzinfo=timezone.utc)
-    tracker.load_snapshot(
-        _cne_snapshot("2,189", {"CANDIDATO_A": "1,027,090", "CANDIDATO_B": "1,013,050"}), base
-    )
+    tracker.load_snapshot(_cne_snapshot("2,189", {"CANDIDATO_A": "1,027,090", "CANDIDATO_B": "1,013,050"}), base)
     tracker.load_snapshot(
         _cne_snapshot("2,773", {"CANDIDATO_A": "1,256,428", "CANDIDATO_B": "1,298,835"}),
         base + timedelta(hours=13),
