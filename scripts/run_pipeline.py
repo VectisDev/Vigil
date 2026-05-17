@@ -79,6 +79,7 @@ Notes:
 
 
 import argparse
+import fcntl
 import hashlib
 import json
 import logging
@@ -827,6 +828,18 @@ def run_pipeline(config: dict[str, Any]) -> None:
                 )
                 health_ok = status_code < 400
                 consecutive_failures = 0 if health_ok else consecutive_failures + 1
+                # Persist CNE reachability for export_static_snapshot.py
+                _now_iso = utcnow().isoformat()
+                state["cne_last_attempt_at"] = _now_iso
+                state["cne_last_status_code"] = status_code
+                if health_ok:
+                    state["cne_last_successful_scrape_at"] = _now_iso
+                    state.pop("cne_first_unreachable_at", None)
+                    state["cne_consecutive_failures"] = 0
+                else:
+                    if not state.get("cne_first_unreachable_at"):
+                        state["cne_first_unreachable_at"] = _now_iso
+                    state["cne_consecutive_failures"] = consecutive_failures
             except (
                 requests.exceptions.HTTPError,
                 requests.exceptions.ConnectionError,
@@ -1091,6 +1104,14 @@ def run_pipeline(config: dict[str, Any]) -> None:
 
 def safe_run_pipeline(config: dict[str, Any], security_manager: DefensiveSecurityManager | None = None) -> bool:
     """/** Ejecuta pipeline con protección contra fallas de red. / Run pipeline with protection against network failures. **"""
+    # Prevent concurrent runs (e.g. GitHub Actions schedule + workflow_dispatch overlap)
+    _lock_fd = open("/tmp/centinel_pipeline.lock", "w")  # noqa: SIM115
+    try:
+        fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        log_event(logger, logging.WARNING, "pipeline_already_running_skipping")
+        return False
+
     resilience_settings = load_resilience_settings(config)
     auto_resume = build_auto_resume_settings(resilience_settings)
     attempt = 0

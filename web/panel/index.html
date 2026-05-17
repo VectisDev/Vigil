@@ -6,7 +6,8 @@
 <title>Centinela — Panel Electoral Honduras</title>
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- supabase-js: auth fallback only — public traffic served from static snapshot.json -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <style>
 :root{
   --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
@@ -142,6 +143,16 @@ footer a{color:var(--accent);text-decoration:none}
   <div id="drawer-items"></div>
 </div>
 <div id="coverage-banner" hidden></div>
+
+<div id="cne-blackout-banner" hidden
+     style="background:rgba(223,107,134,.12);border-bottom:2px solid var(--bad);
+            padding:10px 24px;font-size:13px;font-weight:600;color:var(--bad);
+            position:sticky;top:52px;z-index:99;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+  <span>⚠ CNE SIN RESPUESTA</span>
+  <span>Duración: <span id="blackout-duration">0</span> min</span>
+  <span>Último dato: <span id="blackout-last-ts">—</span></span>
+  <span>Hash evidencia: <span id="blackout-hash-display" style="font-family:monospace;font-size:10px;word-break:break-all">—</span></span>
+</div>
 
 <main>
 
@@ -796,7 +807,112 @@ function renderChain(records){
 }
 
 // ── MAIN LOAD ──
+// ── CNE BLACKOUT BANNER ──
+let _blackoutTimer=null;
+function _showBlackoutBanner(cne){
+  const banner=document.getElementById('cne-blackout-banner');
+  if(!banner)return;
+  banner.hidden=false;
+  document.getElementById('blackout-last-ts').textContent=
+    cne.last_successful_fetch ? new Date(cne.last_successful_fetch).toLocaleTimeString() : '—';
+  document.getElementById('blackout-hash-display').textContent=cne.blackout_hash||'—';
+  // Escalate color if > 15 min
+  const critical=cne.blackout_minutes>15;
+  banner.style.background=critical?'rgba(223,107,134,.28)':'rgba(223,107,134,.12)';
+  // Live counter
+  if(_blackoutTimer)clearInterval(_blackoutTimer);
+  let elapsed=cne.blackout_minutes||0;
+  document.getElementById('blackout-duration').textContent=elapsed;
+  _blackoutTimer=setInterval(()=>{
+    elapsed++;
+    document.getElementById('blackout-duration').textContent=elapsed;
+    const el=document.getElementById('cne-blackout-banner');
+    if(el)el.style.background=elapsed>15?'rgba(223,107,134,.28)':'rgba(223,107,134,.12)';
+  },60000);
+}
+function _hideBlackoutBanner(){
+  const banner=document.getElementById('cne-blackout-banner');
+  if(banner)banner.hidden=true;
+  if(_blackoutTimer){clearInterval(_blackoutTimer);_blackoutTimer=null;}
+}
+
+// ── APPLY STATIC SNAPSHOT ──
+function _applySnapshot(snap){
+  const EMPTY_FORENSICS={progressive_injection:{detected:false},velocity_anomaly:{detected:false,max_rate:0,threshold:10},asymmetric_benefit:{detected:false},hold_and_release:{detected:false},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]},inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]}};
+  const nat=snap.national||{};
+  const data={
+    alertState: (snap.cne_status?.reachable===false) ? 'anomaly' : 'normal',
+    national:{
+      actasTotal:nat.actas_total||0,
+      actasEscrutadas:nat.actas_escrutadas||0,
+      totalVotes:nat.total_votos||0,
+      integrityPercent:100,
+      turnoutPercent:0,
+      candidates:Object.entries(nat.candidatos||{}).map(([n,v])=>({name:n,votes:v})),
+    },
+    departments:snap.departments||{},
+    forensics:snap.forensics||EMPTY_FORENSICS,
+    coverage:snap.coverage||null,
+    endpoint_health:null,
+    chain_records:[{
+      hash:snap.chain?.latest_hash||'',
+      merkle_root:snap.chain?.merkle_root||'',
+      chain_length:snap.chain?.chain_length||0,
+      ots:snap.chain?.ots_status||'pending',
+      captured_at:snap.generated_at,
+    }],
+    _snapshots:[{
+      captured_at:snap.generated_at,
+      merkle_root:snap.chain?.merkle_root||'',
+      chain_hash:snap.chain?.latest_hash||'',
+      alert_state:snap.cne_status?.reachable===false?'anomaly':'normal',
+      raw_meta:{report_pdf_url:snap.report_pdf_url,forensics:snap.forensics,coverage:snap.coverage},
+    }],
+    _alerts:snap.alerts||[],
+  };
+  globalData=data;
+  _renderAll(data,snap);
+  // CNE blackout indicator
+  const cne=snap.cne_status||{};
+  if(cne.reachable===false)_showBlackoutBanner(cne);
+  else _hideBlackoutBanner();
+}
+
+function _renderAll(data,snap){
+  updateStatusBar(data);
+  renderCoverage(data.coverage);
+  if(data.national)renderKPIs(data.national);
+  if(data.national?.candidates)renderCandidates(data.national.candidates);
+  if(data.departments)renderMap(data.departments);
+  if(data._snapshots)renderTimeline(data._snapshots.slice().reverse());
+  renderEndpointHealth(data.endpoint_health);
+  if(data.forensics){
+    renderInconsistentActs(data.forensics,data.national);
+    renderBenford(data.forensics.benford);
+    renderForensics(data.forensics);
+  }
+  if(data._alerts)renderAlerts(data._alerts);
+  if(data.chain_records)renderChain(data.chain_records);
+  const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
+  document.getElementById('footer-merkle').textContent=mr;
+  const pdfUrl=snap?.report_pdf_url||(data._snapshots?.[0]?.raw_meta||{}).report_pdf_url;
+  const pdfLink=document.getElementById('pdf-link');
+  if(pdfUrl&&pdfLink){pdfLink.href=pdfUrl;pdfLink.hidden=false;}
+  if(data.forensics)renderLastDigit(data.forensics);
+  renderZScore(data.departments);
+  renderParticipation(data.departments);
+  renderNullBlank(data.departments);
+  applySectionPrefs();
+}
+
 async function loadData(){
+  // 1. Static JSON — CDN edge, cero Supabase, zero dependency
+  try{
+    const r=await fetch('../data/snapshot.json',{cache:'no-store'});
+    if(r.ok){const snap=await r.json();_applySnapshot(snap);return;}
+  }catch(_){}
+
+  // 2. Supabase fallback (authenticated/rich history)
   let data;
   if(isDemo){
     data=DEMO.dashboard;
@@ -808,7 +924,6 @@ async function loadData(){
         sb.from('snapshots_public').select('*').order('captured_at',{ascending:false}).limit(50),
         sb.from('alerts_public').select('*').order('created_at',{ascending:false}).limit(20),
       ]);
-      // Construir dashboard desde snapshots_public
       const snaps=snap.data||[];
       const latest=snaps[0]||{};
       const meta=latest.raw_meta||{};
@@ -830,39 +945,7 @@ async function loadData(){
     }
   }
   globalData=data;
-
-  updateStatusBar(data);
-  renderCoverage(data.coverage);
-  if(data.national) renderKPIs(data.national);
-  if(data.national?.candidates) renderCandidates(data.national.candidates);
-  if(data.departments) renderMap(data.departments);
-  if(data._snapshots) renderTimeline(data._snapshots.slice().reverse());
-  renderEndpointHealth(data.endpoint_health);
-  if(data.forensics){
-    renderInconsistentActs(data.forensics, data.national);
-    renderBenford(data.forensics.benford);
-    renderForensics(data.forensics);
-  }
-  if(data._alerts) renderAlerts(data._alerts);
-  if(data.chain_records) renderChain(data.chain_records);
-
-  // footer merkle
-  const latest=data._snapshots?.[0]||{};
-  const mr=latest.merkle_root||'—';
-  document.getElementById('footer-merkle').textContent=mr;
-
-  // PDF download link
-  const pdfUrl=(latest.raw_meta||{}).report_pdf_url;
-  const pdfLink=document.getElementById('pdf-link');
-  if(pdfUrl&&pdfLink){pdfLink.href=pdfUrl;pdfLink.hidden=false;}
-
-  // new charts
-  if(data.forensics) renderLastDigit(data.forensics);
-  renderZScore(data.departments);
-  renderParticipation(data.departments);
-  renderNullBlank(data.departments);
-
-  applySectionPrefs();
+  _renderAll(data,null);
 }
 
 loadData();
@@ -1065,6 +1148,11 @@ document.addEventListener('click',e=>{
   }
 });
 initInfoTips();
+</script>
+<script>
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('../sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
