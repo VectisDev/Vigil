@@ -106,6 +106,7 @@ from scripts.download_and_hash import is_master_switch_on, normalize_master_swit
 from scripts.logging_utils import configure_logging, log_event
 from scripts.security.encrypt_secrets import decrypt_secrets
 from centinel.core.anchoring_payload import build_diff_summary, compute_anchor_root
+from centinel.core.transparency import compute_merkle_root
 from centinel.core.custody import run_startup_verification
 from centinel.utils.config_loader import load_config as load_pipeline_config
 from centinel_engine.config_loader import load_config as load_engine_config
@@ -1024,6 +1025,8 @@ def run_pipeline(config: dict[str, Any]) -> None:
             _anchor_snapshot(config, state, now, latest_snapshot)
             _anchor_if_due(config, state, now)
 
+        _publish_forensics(config, now)
+
         scrape_status = vital_signs.update_status_after_scrape(
             scrape_status,
             success=True,
@@ -1286,6 +1289,41 @@ def _anchor_if_due(config: dict[str, Any], state: dict[str, Any], now: datetime)
     anchor_path = ANCHOR_LOG_DIR / f"anchor_{anchor_record['batch_id']}.json"
     anchor_path.write_text(json.dumps(anchor_record, indent=2, ensure_ascii=False), encoding="utf-8")
     state["last_anchor_at"] = result.get("timestamp")
+
+
+def _publish_forensics(config: dict[str, Any], now: datetime) -> None:
+    """/** Publica forenses + cobertura a Supabase. / Publish forensics + coverage to Supabase. **
+
+    Always non-fatal: local SQLite + hash chain remain the source of truth.
+    Siempre no fatal: SQLite local + cadena de hashes son la fuente de verdad.
+    """
+    try:
+        from centinel.sync import forensics_publisher
+
+        snapshots = iter_all_snapshots(data_root=DATA_DIR)
+        if not snapshots:
+            return
+
+        hash_files = iter_all_hashes(hash_root=HASH_DIR)
+        leaf_hashes = [
+            p.read_text(encoding="utf-8").strip() for p in hash_files if p.exists()
+        ]
+        leaf_hashes = [h for h in leaf_hashes if h]
+        chain_hash = leaf_hashes[-1] if leaf_hashes else ""
+        merkle_root = compute_merkle_root(leaf_hashes) or chain_hash or ""
+
+        cadence_minutes = max(resolve_poll_interval_seconds(config) / 60.0, 1.0)
+
+        forensics_publisher.run_and_publish(
+            snapshots,
+            captured_at=now.isoformat(),
+            chain_hash=chain_hash,
+            merkle_root=merkle_root,
+            chain_length=len(leaf_hashes),
+            target_cadence_minutes=cadence_minutes,
+        )
+    except Exception as exc:  # noqa: BLE001 - publishing must never break pipeline
+        log_event(logger, logging.WARNING, "forensics_publish_failed", error=str(exc))
 
 
 def _anchor_snapshot(

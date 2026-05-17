@@ -26,6 +26,9 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
 #last-update{margin-left:auto;color:var(--muted);font-size:12px}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
 .dot-ok{background:var(--ok)}.dot-warn{background:var(--warn)}.dot-bad{background:var(--bad)}
+#coverage-banner{padding:10px 24px;font-size:13px;font-weight:600;text-align:center;border-bottom:1px solid var(--border)}
+#coverage-banner.cov-ok{background:rgba(87,192,141,.12);color:var(--ok)}
+#coverage-banner.cov-bad{background:rgba(223,107,134,.15);color:var(--bad)}
 
 /* ── LAYOUT ── */
 main{max-width:1100px;margin:0 auto;padding:28px 20px;display:grid;gap:20px}
@@ -58,6 +61,8 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px;display:grid;gap:20px}
 #map-side{position:fixed;right:0;top:0;bottom:0;width:320px;background:#1a1d24;border-left:1px solid var(--border);padding:24px 20px;overflow-y:auto;transform:translateX(100%);transition:.3s;z-index:200}
 #map-side.open{transform:translateX(0)}
 #map-side-close{position:absolute;top:14px;right:16px;cursor:pointer;color:var(--muted);font-size:20px;background:none;border:none;color:var(--fg)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;margin-bottom:18px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer}
+.back-btn:hover{background:#2e3238}
 .dept-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
 .dept-cell{background:var(--border);border-radius:6px;padding:6px 4px;text-align:center;font-size:10px;font-weight:600;cursor:pointer;transition:.15s}
 .dept-cell:hover{opacity:.8}
@@ -102,20 +107,21 @@ footer a{color:var(--accent);text-decoration:none}
 <!-- ── STATUS BAR ── -->
 <div id="statusbar">
   <span id="alert-badge" class="badge badge-ok"><span class="dot dot-ok"></span>SISTEMA NORMAL</span>
-  <span id="chain-badge" class="badge badge-ok">🔗 Cadena: ÍNTEGRA</span>
-  <span id="ots-badge" class="badge badge-warn">⏰ OTS: VERIFICANDO</span>
-  <span id="mirror-badge" class="badge badge-ok">🔍 Espejos: —</span>
+  <span id="chain-badge" class="badge badge-ok"><span class="dot dot-ok"></span>CADENA ÍNTEGRA</span>
+  <span id="ots-badge" class="badge badge-warn"><span class="dot dot-warn"></span>OTS VERIFICANDO</span>
+  <span id="mirror-badge" class="badge badge-ok"><span class="dot dot-ok"></span>ESPEJOS —</span>
   <span id="last-update">Actualizando…</span>
 </div>
+<div id="coverage-banner" hidden></div>
 
 <main>
 
 <!-- ── KPIs ── -->
 <div class="grid4">
   <div class="card" id="kpi-actas">
-    <h2>Actas escrutadas</h2>
+    <h2>Registros divulgados (JSON CNE)</h2>
     <div class="kpi-val" id="v-actas">—</div>
-    <div class="kpi-label" id="l-actas">de — actas totales</div>
+    <div class="kpi-label" id="l-actas">de — registros totales</div>
     <div class="progress-bar"><div class="progress-fill" id="prog-actas" style="width:0%"></div></div>
   </div>
   <div class="card">
@@ -173,13 +179,14 @@ footer a{color:var(--accent);text-decoration:none}
 <!-- ── PANEL LATERAL DEPARTAMENTO ── -->
 <div id="map-side">
   <button id="map-side-close">✕</button>
+  <button id="map-side-back" class="back-btn">← Volver</button>
   <h2 id="side-title" style="font-size:18px;font-weight:700;margin-bottom:16px">—</h2>
   <div id="side-content"></div>
 </div>
 
 <!-- ── SERIE TEMPORAL ── -->
 <div class="card">
-  <h2>Progreso de actas en el tiempo</h2>
+  <h2>Progreso de registros en el tiempo</h2>
   <canvas id="chart-timeline" height="120"></canvas>
 </div>
 
@@ -276,6 +283,7 @@ const DEMO = {
       zscore:{detected:false,outliers:[]},
       blackout:{detected:false,gaps:[]},
     },
+    coverage:{monitoring_since:'2026-05-17T08:00:00Z',last_capture:'2026-05-17T10:00:00Z',target_cadence_minutes:5,coverage_pct:100,open_gap_minutes:0,gaps_count:0,gaps:[]},
     chain_records:[
       {idx:1,hash:'a1b2c3d4e5f6789012345678abcdef01',captured_at:'2026-05-17T10:00:00Z',dept_code:null,ots:'pendiente'},
     ]
@@ -312,9 +320,26 @@ function updateStatusBar(data){
   const ip=data.national?.integrityPercent??100;
   const cb=document.getElementById('chain-badge');
   cb.className=ip>=100?'badge badge-ok':'badge badge-bad';
-  cb.textContent=ip>=100?'🔗 Cadena: ÍNTEGRA':'🔗 Cadena: RUPTURA';
+  cb.innerHTML=ip>=100?'<span class="dot dot-ok"></span>CADENA ÍNTEGRA':'<span class="dot dot-bad"></span>CADENA ROTA';
 
   document.getElementById('last-update').textContent='Actualizado '+ago(new Date().toISOString());
+}
+
+// ── COBERTURA DE CAPTURA (vigilancia continua) ──
+function renderCoverage(cov){
+  const el=document.getElementById('coverage-banner');
+  if(!cov){el.hidden=true;return}
+  el.hidden=false;
+  const pct=(cov.coverage_pct??100);
+  const openGap=(cov.open_gap_minutes??0);
+  const since=cov.monitoring_since?new Date(cov.monitoring_since).toLocaleString('es-HN'):'—';
+  const breached=pct<100||openGap>0;
+  el.className=breached?'cov-bad':'cov-ok';
+  let msg=`Monitoreo activo desde ${since} · Cobertura ${pct.toFixed(1)}%`;
+  if(cov.gaps_count>0) msg+=` · ${cov.gaps_count} ventana(s) sin captura`;
+  if(openGap>0) msg+=` · ⚠ CAPTURA INTERRUMPIDA HACE ${Math.round(openGap)} MIN — EL CANAL PUEDE ESTAR CORTADO`;
+  else if(breached) msg+=' · toda ventana sin datos es sospechosa por defecto';
+  el.textContent=msg;
 }
 
 // ── KPIs ──
@@ -322,7 +347,7 @@ function renderKPIs(nat){
   const ae=nat.actasEscrutadas||0,at=nat.actasTotal||1;
   const pct=Math.round(ae/at*100);
   document.getElementById('v-actas').textContent=fmt(ae);
-  document.getElementById('l-actas').textContent='de '+fmt(at)+' actas totales ('+pct+'%)';
+  document.getElementById('l-actas').textContent='de '+fmt(at)+' registros totales ('+pct+'%)';
   document.getElementById('prog-actas').style.width=pct+'%';
   document.getElementById('v-votos').textContent=fmt(nat.totalVotes);
   document.getElementById('v-part').textContent=(nat.turnoutPercent??0).toFixed(1)+'%';
@@ -398,7 +423,7 @@ function renderMap(departments){
       const pname=DEPT_NAMES[code]||code;
       const actas=dept?`${dept.actasEscrutadas}/${dept.actasTotal}`:'sin datos';
       const estado=dept?(dept.hashValid?(dept.rulesBroken?'⚠️ Regla rota':'✓ OK'):'❌ Cadena rota'):'—';
-      tt.innerHTML=`<div class="tt-name">${pname}</div><div class="tt-row">Actas: ${actas}</div><div class="tt-row">${estado}</div>`;
+      tt.innerHTML=`<div class="tt-name">${pname}</div><div class="tt-row">Registros: ${actas}</div><div class="tt-row">${estado}</div>`;
       tt.style.left=(e.clientX-r.left+10)+'px';
       tt.style.top=(e.clientY-r.top-10)+'px';
       tt.style.display='block';
@@ -429,7 +454,7 @@ function openDeptPanel(code,dept){
   content.innerHTML=`
     <div class="card" style="margin-bottom:12px">
       <div class="kpi-val" style="font-size:26px">${pct}%</div>
-      <div class="kpi-label">Actas: ${fmt(dept.actasEscrutadas)} / ${fmt(dept.actasTotal)}</div>
+      <div class="kpi-label">Registros: ${fmt(dept.actasEscrutadas)} / ${fmt(dept.actasTotal)}</div>
       <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:${pct}%"></div></div>
     </div>
     <div style="font-size:13px;margin-bottom:12px">${estado}</div>
@@ -438,9 +463,12 @@ function openDeptPanel(code,dept){
   side.classList.add('open');
 }
 
-document.getElementById('map-side-close').onclick=()=>{
+function closeDeptPanel(){
   document.getElementById('map-side').classList.remove('open');
-};
+}
+document.getElementById('map-side-close').onclick=closeDeptPanel;
+document.getElementById('map-side-back').onclick=closeDeptPanel;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDeptPanel();});
 
 // ── SERIE TEMPORAL ──
 function renderTimeline(records){
@@ -582,11 +610,14 @@ async function loadData(){
       // Construir dashboard desde snapshots_public
       const snaps=snap.data||[];
       const latest=snaps[0]||{};
+      const meta=latest.raw_meta||{};
+      const EMPTY_FORENSICS={progressive_injection:{detected:false},velocity_anomaly:{detected:false,max_rate:0,threshold:10},asymmetric_benefit:{detected:false},hold_and_release:{detected:false},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]}};
       data={
         alertState:latest.alert_state||'normal',
         national:{actasTotal:0,actasEscrutadas:snaps.length,totalVotes:0,integrityPercent:100,turnoutPercent:0,candidates:[]},
         departments:{},
-        forensics:{progressive_injection:{detected:false},velocity_anomaly:{detected:false,max_rate:0,threshold:10},asymmetric_benefit:{detected:false},hold_and_release:{detected:false},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]}},
+        forensics:meta.forensics||EMPTY_FORENSICS,
+        coverage:meta.coverage||null,
         chain_records:snaps.slice(0,20).map(s=>({...s,hash:s.chain_hash,ots:s.ots_proof?'confirmado':'pendiente'})),
         _snapshots:snaps,
         _alerts:alert.data||[],
@@ -599,6 +630,7 @@ async function loadData(){
   globalData=data;
 
   updateStatusBar(data);
+  renderCoverage(data.coverage);
   if(data.national) renderKPIs(data.national);
   if(data.national?.candidates) renderCandidates(data.national.candidates);
   if(data.departments) renderMap(data.departments);
