@@ -837,8 +837,10 @@ def run_pipeline(config: dict[str, Any]) -> None:
                     state.pop("cne_first_unreachable_at", None)
                     state["cne_consecutive_failures"] = 0
                 else:
-                    if not state.get("cne_first_unreachable_at"):
+                    is_new_blackout = not state.get("cne_first_unreachable_at")
+                    if is_new_blackout:
                         state["cne_first_unreachable_at"] = _now_iso
+                        _trigger_emergency_publish(reason="cne_blackout_start")
                     state["cne_consecutive_failures"] = consecutive_failures
             except (
                 requests.exceptions.HTTPError,
@@ -1012,6 +1014,8 @@ def run_pipeline(config: dict[str, Any]) -> None:
         alerts = build_alerts(critical_anomalies, severity="CRITICAL")
         (ANALYSIS_DIR / "alerts.json").write_text(json.dumps(alerts, indent=2), encoding="utf-8")
         emit_critical_alerts(critical_anomalies, config, run_id=run_id)
+        if critical_anomalies:
+            _trigger_emergency_publish(reason="critical_anomaly")
 
         if should_run_stage("report", start_stage):
             save_pipeline_checkpoint({"run_id": run_id, "stage": "report", "at": utcnow().isoformat()})
@@ -1323,6 +1327,40 @@ def _generate_and_upload_pdf(output_filename: str = "centinel_informe.pdf") -> s
     except Exception as exc:
         logger.warning("generate_report_error error=%s", exc)
     return None
+
+
+def _trigger_emergency_publish(reason: str = "anomaly_detected") -> None:
+    """Call GitHub workflow_dispatch to push snapshot.json immediately on HIGH/CRITICAL anomaly.
+
+    Requires GITHUB_TOKEN and GITHUB_REPOSITORY env vars.
+    Fails silently — local chain and Supabase alerts are the primary record.
+    """
+    import urllib.request as _urllib_req
+
+    token = os.environ.get("GITHUB_TOKEN", "")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    branch = os.environ.get("GITHUB_REF_NAME", "main")
+    if not token or not repo:
+        log_event(logger, logging.DEBUG, "emergency_publish_skipped_no_token")
+        return
+
+    payload = json.dumps({"ref": branch, "inputs": {"reason": reason}}).encode()
+    req = _urllib_req.Request(
+        f"https://api.github.com/repos/{repo}/actions/workflows/emergency-publish.yml/dispatches",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        },
+        method="POST",
+    )
+    try:
+        with _urllib_req.urlopen(req, timeout=10) as resp:
+            log_event(logger, logging.INFO, "emergency_publish_triggered", status=resp.status, reason=reason)
+    except Exception as exc:
+        log_event(logger, logging.WARNING, "emergency_publish_failed", error=str(exc))
 
 
 def _publish_forensics(config: dict[str, Any], now: datetime, extra_meta: dict | None = None) -> None:
