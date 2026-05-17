@@ -164,6 +164,17 @@ footer a{color:var(--accent);text-decoration:none}
   </div>
 </div>
 
+<!-- ── ENDPOINTS CNE — SALUD EN VIVO ── -->
+<div class="card" id="endpoint-health-card" hidden>
+  <h2>Endpoints CNE — salud en vivo</h2>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap">
+    <span id="ep-summary" style="font-size:13px;color:var(--muted)">Aguardando datos del escáner…</span>
+    <span id="ep-mode-badge" class="badge badge-ok" style="font-size:11px;letter-spacing:.06em" hidden></span>
+  </div>
+  <div id="ep-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px"></div>
+  <div id="ep-last-check" style="margin-top:12px;font-size:11px;color:var(--muted)"></div>
+</div>
+
 <!-- ── CANDIDATOS + MAPA ── -->
 <div class="grid2">
   <div class="card">
@@ -575,6 +586,43 @@ const FORENSIC_DEFS=[
    render:f=>{const fbl=f.blackout||{};return`<div style="font-size:12px;color:var(--muted)">Gaps detectados: ${(fbl.gaps||[]).length} &nbsp;|&nbsp; Señales de interferencia: ${(fbl.gaps||[]).filter(g=>g.interference_signal).length}</div>`;}},
 ];
 
+// ── ENDPOINTS CNE ──
+function renderEndpointHealth(eh){
+  const card=document.getElementById('endpoint-health-card');
+  if(!eh){card.hidden=true;return;}
+  card.hidden=false;
+  const total=eh.total||0,online=eh.online||0,degraded=eh.degraded||0,offline=eh.offline||0;
+  card.className=(offline>0)?'card alert-card':(degraded>0)?'card warn-card':'card';
+  const summaryEl=document.getElementById('ep-summary');
+  if(total===0){
+    summaryEl.textContent='Escáner activo — en espera del primer ciclo de sanación de endpoints';
+  } else {
+    summaryEl.textContent=`${online}/${total} activos · ${degraded} degradados · ${offline} offline`;
+    summaryEl.style.color=(offline>0)?'var(--bad)':(degraded>0)?'var(--warn)':'var(--ok)';
+  }
+  const modeEl=document.getElementById('ep-mode-badge');
+  const mode=(eh.animal_mode||'unknown').toUpperCase();
+  modeEl.hidden=false;
+  modeEl.textContent=`ESCÁNER ${mode}`;
+  modeEl.className=(eh.safe_mode_active||eh.consecutive_failures>3)?'badge badge-warn':'badge badge-ok';
+  const grid=document.getElementById('ep-grid');
+  grid.innerHTML='';
+  (eh.endpoints||[]).forEach(ep=>{
+    const dotCls=ep.status==='ok'?'dot-ok':ep.status==='degraded'?'dot-warn':'dot-bad';
+    const item=document.createElement('div');
+    item.style.cssText='display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;cursor:default';
+    const replacedBadge=ep.auto_replaced?'<span style="color:var(--warn);font-size:10px;margin-left:2px" title="Reemplazado automáticamente">⟳</span>':'';
+    item.title=`${ep.url}\nNivel: ${ep.level||'?'}\nÚltima validación: ${ep.last_validated||'—'}${ep.auto_replaced?'\nReemplazado automáticamente':''}`;
+    item.innerHTML=`<span class="dot ${dotCls}"></span><span style="font-family:var(--mono)">${ep.dept||'?'}</span>${replacedBadge}`;
+    grid.appendChild(item);
+  });
+  const lastEl=document.getElementById('ep-last-check');
+  if(eh.checked_at){
+    const d=new Date(eh.checked_at);
+    lastEl.textContent=`Última revisión del escáner: ${d.toLocaleString('es-HN')}`;
+  }
+}
+
 function renderForensics(forensics){
   const container=document.getElementById('forensic-list');
   container.innerHTML='';
@@ -705,6 +753,7 @@ async function loadData(){
         departments:{},
         forensics:meta.forensics||EMPTY_FORENSICS,
         coverage:meta.coverage||null,
+        endpoint_health:meta.endpoint_health||null,
         chain_records:snaps.slice(0,20).map(s=>({...s,hash:s.chain_hash,ots:s.ots_proof?'confirmado':'pendiente'})),
         _snapshots:snaps,
         _alerts:alert.data||[],
@@ -722,6 +771,7 @@ async function loadData(){
   if(data.national?.candidates) renderCandidates(data.national.candidates);
   if(data.departments) renderMap(data.departments);
   if(data._snapshots) renderTimeline(data._snapshots.slice().reverse());
+  renderEndpointHealth(data.endpoint_health);
   if(data.forensics){
     renderInconsistentActs(data.forensics, data.national);
     renderBenford(data.forensics.benford);

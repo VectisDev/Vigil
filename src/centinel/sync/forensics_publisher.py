@@ -23,6 +23,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+import yaml
+
 from auditor.inconsistent_acts import Anomaly, InconsistentActsTracker
 
 from . import supabase_sync
@@ -238,6 +240,70 @@ def build_coverage(
     }
 
 
+def build_endpoint_health_block(endpoints_yaml_path: Optional[Path] = None) -> dict[str, Any]:
+    """Read the endpoints YAML and build the health block for raw_meta.
+
+    Lee el YAML de endpoints y construye el bloque de salud para raw_meta.
+    """
+    path = endpoints_yaml_path or Path("config/prod/endpoints.yaml")
+    try:
+        raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("endpoint_health_yaml_unreadable path=%s error=%s", path, exc)
+        return {
+            "total": 0,
+            "online": 0,
+            "degraded": 0,
+            "offline": 0,
+            "endpoints": [],
+            "available": False,
+        }
+
+    cne = raw.get("cne", {}) if isinstance(raw, dict) else {}
+    healing = raw.get("healing", {}) if isinstance(raw, dict) else {}
+    endpoints_raw = cne.get("presidential_endpoints") or []
+
+    endpoints: list[dict[str, Any]] = []
+    online = degraded = offline = 0
+    for ep in endpoints_raw:
+        if not isinstance(ep, dict):
+            continue
+        vs = ep.get("validation_status", "unknown")
+        if vs == "ok":
+            status = "ok"
+            online += 1
+        elif vs == "degraded":
+            status = "degraded"
+            degraded += 1
+        else:
+            status = "offline"
+            offline += 1
+        endpoints.append(
+            {
+                "url": ep.get("url", ""),
+                "dept": ep.get("department", "?"),
+                "level": ep.get("level", "?"),
+                "status": status,
+                "last_validated": ep.get("last_validated"),
+                "auto_replaced": ep.get("source", "") == "auto_replaced",
+            }
+        )
+
+    return {
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "animal_mode": healing.get("animal_mode", "unknown"),
+        "safe_mode_active": bool(healing.get("safe_mode_active", False)),
+        "consecutive_failures": int(healing.get("consecutive_failures", 0) or 0),
+        "main_url": cne.get("main_url", ""),
+        "total": len(endpoints),
+        "online": online,
+        "degraded": degraded,
+        "offline": offline,
+        "endpoints": endpoints,
+        "available": True,
+    }
+
+
 def _load_tracker(snapshot_paths: list[Path]) -> tuple[InconsistentActsTracker, list[datetime]]:
     """Feed ordered snapshots into a fresh tracker; return it with timestamps.
 
@@ -276,6 +342,7 @@ def run_and_publish(
     chain_length: int = 0,
     target_cadence_minutes: float = 5.0,
     dept_code: Optional[str] = None,
+    endpoints_yaml_path: Optional[Path] = None,
 ) -> Optional[int]:
     """Run forensics over snapshots and publish to Supabase. Always non-fatal.
 
@@ -300,7 +367,8 @@ def run_and_publish(
     anomaly_flag = any(a.severity == "critical" for a in anomalies) or coverage_breached
     alert_state = "anomaly" if anomaly_flag else "normal"
 
-    raw_meta = {"forensics": forensics, "coverage": coverage}
+    endpoint_health = build_endpoint_health_block(endpoints_yaml_path)
+    raw_meta = {"forensics": forensics, "coverage": coverage, "endpoint_health": endpoint_health}
 
     snapshot_id = supabase_sync.push_snapshot(
         captured_at=captured_at,
