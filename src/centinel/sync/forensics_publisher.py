@@ -151,10 +151,7 @@ def build_forensics_block(tracker: InconsistentActsTracker) -> dict[str, Any]:
         first_snap = snaps[0]
         delta = latest_snap.inconsistent_count - first_snap.inconsistent_count
         trend = "rising" if delta > 0 else "falling" if delta < 0 else "stable"
-        history = [
-            {"count": s.inconsistent_count, "ts": s.timestamp.isoformat()}
-            for s in snaps[-30:]
-        ]
+        history = [{"count": s.inconsistent_count, "ts": s.timestamp.isoformat()} for s in snaps[-30:]]
         inconsistent_block = {
             "current_count": latest_snap.inconsistent_count,
             "delta_from_first": delta,
@@ -228,9 +225,7 @@ def build_coverage(
     coverage_pct = round((covered / total_span) * 100.0, 2) if total_span > 0 else 100.0
 
     open_gap_seconds = (now - last).total_seconds()
-    open_gap_minutes = (
-        round(open_gap_seconds / 60.0, 1) if open_gap_seconds > grace_seconds else 0.0
-    )
+    open_gap_minutes = round(open_gap_seconds / 60.0, 1) if open_gap_seconds > grace_seconds else 0.0
 
     return {
         "monitoring_since": first.isoformat(),
@@ -295,20 +290,14 @@ def run_and_publish(
     try:
         tracker, timestamps = _load_tracker(snapshot_paths)
         forensics = build_forensics_block(tracker)
-        coverage = build_coverage(
-            timestamps, target_cadence_minutes=target_cadence_minutes
-        )
+        coverage = build_coverage(timestamps, target_cadence_minutes=target_cadence_minutes)
         anomalies: list[Anomaly] = tracker.detect_anomalies()
     except Exception as exc:  # noqa: BLE001 - publishing must never break pipeline
         logger.warning("forensics_build_failed error=%s", exc)
         return None
 
-    coverage_breached = (
-        coverage["coverage_pct"] < 100.0 or coverage["open_gap_minutes"] > 0.0
-    )
-    anomaly_flag = (
-        any(a.severity == "critical" for a in anomalies) or coverage_breached
-    )
+    coverage_breached = coverage["coverage_pct"] < 100.0 or coverage["open_gap_minutes"] > 0.0
+    anomaly_flag = any(a.severity == "critical" for a in anomalies) or coverage_breached
     alert_state = "anomaly" if anomaly_flag else "normal"
 
     raw_meta = {"forensics": forensics, "coverage": coverage}

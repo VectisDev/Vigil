@@ -78,7 +78,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 import argparse
 import hashlib
 import json
@@ -822,7 +821,9 @@ def run_pipeline(config: dict[str, Any]) -> None:
             status_code: int | None = None
             health_ok = False
             try:
-                status_code = perform_cne_preflight_request(config, proxy_dict, user_agent, request_headers=request_headers)
+                status_code = perform_cne_preflight_request(
+                    config, proxy_dict, user_agent, request_headers=request_headers
+                )
                 health_ok = status_code < 400
                 consecutive_failures = 0 if health_ok else consecutive_failures + 1
             except (
@@ -1279,17 +1280,6 @@ def _anchor_if_due(config: dict[str, Any], state: dict[str, Any], now: datetime)
     logger.info("anchor_skipped_arbitrum_removed")
     return
 
-    anchor_record = {
-        "batch_id": result.get("batch_id"),
-        "root": result.get("root"),
-        "tx_hash": result.get("tx_hash"),
-        "timestamp": result.get("timestamp"),
-        "individual_hashes": hashes,
-    }
-    anchor_path = ANCHOR_LOG_DIR / f"anchor_{anchor_record['batch_id']}.json"
-    anchor_path.write_text(json.dumps(anchor_record, indent=2, ensure_ascii=False), encoding="utf-8")
-    state["last_anchor_at"] = result.get("timestamp")
-
 
 def _publish_forensics(config: dict[str, Any], now: datetime) -> None:
     """/** Publica forenses + cobertura a Supabase. / Publish forensics + coverage to Supabase. **
@@ -1305,9 +1295,7 @@ def _publish_forensics(config: dict[str, Any], now: datetime) -> None:
             return
 
         hash_files = iter_all_hashes(hash_root=HASH_DIR)
-        leaf_hashes = [
-            p.read_text(encoding="utf-8").strip() for p in hash_files if p.exists()
-        ]
+        leaf_hashes = [p.read_text(encoding="utf-8").strip() for p in hash_files if p.exists()]
         leaf_hashes = [h for h in leaf_hashes if h]
         chain_hash = leaf_hashes[-1] if leaf_hashes else ""
         merkle_root = compute_merkle_root(leaf_hashes) or chain_hash or ""
@@ -1365,40 +1353,6 @@ def _anchor_snapshot(
 
     logger.info("anchor_snapshot_skipped_arbitrum_removed")
     return
-
-    anchor_record = {
-        "snapshot": snapshot_path.name,
-        "root_hash": root_hash,
-        "raw_hash": anchor_hashes["raw_hash"],
-        "diffs_hash": anchor_hashes["diffs_hash"],
-        "rules_hash": anchor_hashes["rules_hash"],
-        "diff_summary": diff_summary,
-        "rules_report_path": rules_report_path.as_posix(),
-        "tx_hash": None,
-        "tx_url": "",
-        "network": "Bitcoin (OTS)",
-        "anchored_at": None,
-        "anchor_id": None,
-        "generated_at": now.isoformat(),
-    }
-
-    anchor_path = ANCHOR_LOG_DIR / f"anchor_snapshot_{snapshot_path.stem}.json"
-    anchor_path.write_text(json.dumps(anchor_record, indent=2, ensure_ascii=False), encoding="utf-8")
-    state["last_anchor_snapshot_at"] = anchor_result.get("timestamp")
-
-    if rules_report_path.exists():
-        report = json.loads(rules_report_path.read_text(encoding="utf-8"))
-        report["blockchain_anchor"] = {
-            "root_hash": root_hash,
-            "tx_hash": tx_hash,
-            "tx_url": tx_url,
-            "network": anchor_record["network"],
-            "anchored_at": anchor_result.get("timestamp"),
-        }
-        rules_report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    report_path = REPORTS_DIR / f"anchor_report_{snapshot_path.stem}.json"
-    report_path.write_text(json.dumps(anchor_record, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main():

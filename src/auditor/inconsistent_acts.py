@@ -133,14 +133,10 @@ class InconsistentActsTracker:
             runtime_config.get("run_test_pvalue_threshold", run_test_pvalue_threshold)
         )
         self.max_resolution_rate = float(
-            runtime_config.get(
-                "max_resolution_rate", max_resolution_rate or self.DEFAULT_MAX_RESOLUTION_RATE
-            )
+            runtime_config.get("max_resolution_rate", max_resolution_rate or self.DEFAULT_MAX_RESOLUTION_RATE)
         )
         self.blackout_gap_minutes = int(
-            runtime_config.get(
-                "blackout_gap_minutes", blackout_gap_minutes or self.DEFAULT_BLACKOUT_GAP_MINUTES
-            )
+            runtime_config.get("blackout_gap_minutes", blackout_gap_minutes or self.DEFAULT_BLACKOUT_GAP_MINUTES)
         )
 
         self.detected_inconsistent_key = self._load_persisted_key()
@@ -172,9 +168,7 @@ class InconsistentActsTracker:
             self.detected_inconsistent_key = self._detect_inconsistent_key(json_data)
             self._persist_key(self.detected_inconsistent_key)
 
-        inconsistent_count = self._extract_inconsistent_count(
-            json_data, self.detected_inconsistent_key
-        )
+        inconsistent_count = self._extract_inconsistent_count(json_data, self.detected_inconsistent_key)
         candidate_votes = self._extract_candidate_votes(json_data)
         source_hash = hashlib.sha256(
             json.dumps(json_data, sort_keys=True, ensure_ascii=False).encode("utf-8")
@@ -198,9 +192,7 @@ class InconsistentActsTracker:
         # English/Español: classify votes strictly on the resolution boundary / clasificar votos estrictamente en la frontera de resolución.
         if change.delta_actas > 0:
             for candidate, delta in change.delta_votos_por_candidato.items():
-                self.special_scrutiny_votes[candidate] = (
-                    self.special_scrutiny_votes.get(candidate, 0) + delta
-                )
+                self.special_scrutiny_votes[candidate] = self.special_scrutiny_votes.get(candidate, 0) + delta
         else:
             for candidate, delta in change.delta_votos_por_candidato.items():
                 self.normal_votes[candidate] = self.normal_votes.get(candidate, 0) + delta
@@ -208,10 +200,7 @@ class InconsistentActsTracker:
         self.events.append(change)
 
         delta_total = change.impacted_total_votes
-        if (
-            inconsistent_count > self.high_inconsistent_threshold
-            and delta_total < self.progressive_injection_threshold
-        ):
+        if inconsistent_count > self.high_inconsistent_threshold and delta_total < self.progressive_injection_threshold:
             # English/Español: track low-delta injection while inconsistent acts remain high / registrar inyección de delta bajo con AI altas.
             self.injection_history.append(
                 {
@@ -285,19 +274,13 @@ class InconsistentActsTracker:
                 "improbable": False,
             }
 
-        historical = [
-            float(event.impacted_total_votes)
-            for event in self.events
-            if event.impacted_total_votes > 0
-        ]
+        historical = [float(event.impacted_total_votes) for event in self.events if event.impacted_total_votes > 0]
         baseline = historical[: -len(deltas)] if len(historical) > len(deltas) else historical
         if len(baseline) < 2:
             baseline = deltas
 
         baseline_mean = sum(baseline) / len(baseline)
-        baseline_var = sum((value - baseline_mean) ** 2 for value in baseline) / max(
-            len(baseline) - 1, 1
-        )
+        baseline_var = sum((value - baseline_mean) ** 2 for value in baseline) / max(len(baseline) - 1, 1)
         baseline_sigma = sqrt(max(baseline_var, 1e-9))
 
         # English/Español: cumulative z-score against dynamic baseline / z-score acumulado contra línea base dinámica.
@@ -308,9 +291,7 @@ class InconsistentActsTracker:
 
         run_pvalue = self._runs_test_pvalue(deltas)
         autocorr = self._autocorrelation_lag1(deltas)
-        deltas_variance = sum((value - (sum(deltas) / len(deltas))) ** 2 for value in deltas) / max(
-            len(deltas) - 1, 1
-        )
+        deltas_variance = sum((value - (sum(deltas) / len(deltas))) ** 2 for value in deltas) / max(len(deltas) - 1, 1)
         # English/Español: near-zero variance in consecutive micro-deltas is itself non-random / varianza casi cero en micro-deltas consecutivos ya es no aleatoria.
         improbable = bool(
             z_pvalue < 0.01
@@ -455,9 +436,7 @@ class InconsistentActsTracker:
                     and event.is_bulk_resolution
                 ):
                     stag_start_ts = (
-                        self.events[stagnation_start].timestamp
-                        if stagnation_start is not None
-                        else event.timestamp
+                        self.events[stagnation_start].timestamp if stagnation_start is not None else event.timestamp
                     )
                     patterns.append(
                         {
@@ -599,8 +578,7 @@ class InconsistentActsTracker:
                         f"AI: {prev.inconsistent_count} → {curr.inconsistent_count} "
                         f"(Δ={delta_inconsistent}). "
                         + (
-                            "Cambios de tendencia: "
-                            + ", ".join(f"{c}: {s:+.3f}pp" for c, s in trend_shifts.items())
+                            "Cambios de tendencia: " + ", ".join(f"{c}: {s:+.3f}pp" for c, s in trend_shifts.items())
                             if trend_shifts
                             else "Sin cambio de tendencia significativo."
                         )
@@ -620,9 +598,7 @@ class InconsistentActsTracker:
 
         current = self.snapshots[-1]
         previous = (
-            previous_snapshot
-            if isinstance(previous_snapshot, SnapshotRecord)
-            else SnapshotRecord(**previous_snapshot)
+            previous_snapshot if isinstance(previous_snapshot, SnapshotRecord) else SnapshotRecord(**previous_snapshot)
         )
 
         previous_count = int(previous.inconsistent_count)
@@ -698,9 +674,7 @@ class InconsistentActsTracker:
 
         special_props = self._proportions(self.special_scrutiny_votes)
         normal_props = self._proportions(self.normal_votes)
-        national_props = self._proportions(
-            self._merge_votes(self.special_scrutiny_votes, self.normal_votes)
-        )
+        national_props = self._proportions(self._merge_votes(self.special_scrutiny_votes, self.normal_votes))
 
         chi_stat = 0.0
         for candidate, observed in self.special_scrutiny_votes.items():
@@ -784,15 +758,11 @@ class InconsistentActsTracker:
         hold-and-release, Benford, y apagones comunicacionales.
         """
         anomalies: list[Anomaly] = []
-        special_deltas = [
-            event.impacted_total_votes for event in self.events if event.delta_actas > 0
-        ]
+        special_deltas = [event.impacted_total_votes for event in self.events if event.delta_actas > 0]
 
         if len(special_deltas) >= 2:
             mean_delta = sum(special_deltas) / len(special_deltas)
-            variance = sum((value - mean_delta) ** 2 for value in special_deltas) / len(
-                special_deltas
-            )
+            variance = sum((value - mean_delta) ** 2 for value in special_deltas) / len(special_deltas)
             sigma = sqrt(variance)
             threshold = mean_delta + (3 * sigma)
             for event in self.events:
@@ -854,11 +824,7 @@ class InconsistentActsTracker:
                             kind="statistical_bias",
                             severity="critical",
                             message=f"Statistically significant bias detected for {candidate} (p<0.01).",
-                            timestamp=(
-                                self.snapshots[-1].timestamp
-                                if self.snapshots
-                                else datetime.now(timezone.utc)
-                            ),
+                            timestamp=(self.snapshots[-1].timestamp if self.snapshots else datetime.now(timezone.utc)),
                             metadata={
                                 "candidate": candidate,
                                 "adjusted_pvalue": payload["bonferroni_adjusted_pvalue"],
@@ -891,11 +857,7 @@ class InconsistentActsTracker:
                     kind="asymmetric_benefit",
                     severity="critical",
                     message=asymmetry["description"],
-                    timestamp=(
-                        self.snapshots[-1].timestamp
-                        if self.snapshots
-                        else datetime.now(timezone.utc)
-                    ),
+                    timestamp=(self.snapshots[-1].timestamp if self.snapshots else datetime.now(timezone.utc)),
                     metadata={
                         "beneficiary": asymmetry["beneficiary"],
                         "swing_pp": asymmetry["swing_pp"],
@@ -929,11 +891,7 @@ class InconsistentActsTracker:
                     kind="benford_deviation",
                     severity="critical",
                     message=benford["description"],
-                    timestamp=(
-                        self.snapshots[-1].timestamp
-                        if self.snapshots
-                        else datetime.now(timezone.utc)
-                    ),
+                    timestamp=(self.snapshots[-1].timestamp if self.snapshots else datetime.now(timezone.utc)),
                     metadata={
                         "chi2_statistic": benford["chi2_statistic"],
                         "chi2_pvalue": benford["chi2_pvalue"],
@@ -971,8 +929,7 @@ class InconsistentActsTracker:
         generated_at = datetime.now(timezone.utc).isoformat()
 
         hashes = "\n".join(
-            f"- `{snapshot.timestamp.isoformat()}`: `{snapshot.source_hash}`"
-            for snapshot in self.snapshots
+            f"- `{snapshot.timestamp.isoformat()}`: `{snapshot.source_hash}`" for snapshot in self.snapshots
         )
 
         latex_block = r"""
@@ -995,17 +952,12 @@ z = \frac{\hat{p}_{special} - \hat{p}_{normal}}{\sqrt{\hat{p}(1-\hat{p})(\frac{1
             f"```json\n{json.dumps(stats, indent=2, ensure_ascii=False)}\n```\n",
             f"## 4. Anomalías detectadas / Detected anomalies\n"
             f"```json\n{json.dumps([asdict(a) for a in anomalies], indent=2, default=str, ensure_ascii=False)}\n```\n",
-            f"## 5. Detección de Inyección Progresiva Controlada\n"
-            f"{self._render_progressive_injection_section()}\n",
-            f"## 6. Velocidad de Resolución / Resolution Velocity\n"
-            f"{self._render_velocity_section()}\n",
-            f"## 7. Beneficio Asimétrico / Asymmetric Benefit\n"
-            f"{self._render_asymmetry_section()}\n",
+            f"## 5. Detección de Inyección Progresiva Controlada\n" f"{self._render_progressive_injection_section()}\n",
+            f"## 6. Velocidad de Resolución / Resolution Velocity\n" f"{self._render_velocity_section()}\n",
+            f"## 7. Beneficio Asimétrico / Asymmetric Benefit\n" f"{self._render_asymmetry_section()}\n",
             f"## 8. Patrón Hold-and-Release\n" f"{self._render_hold_and_release_section()}\n",
-            f"## 9. Ley de Benford en Escrutinio Especial / Benford's Law\n"
-            f"{self._render_benford_section()}\n",
-            f"## 10. Apagones Comunicacionales / Communication Blackouts\n"
-            f"{self._render_blackout_section()}\n",
+            f"## 9. Ley de Benford en Escrutinio Especial / Benford's Law\n" f"{self._render_benford_section()}\n",
+            f"## 10. Apagones Comunicacionales / Communication Blackouts\n" f"{self._render_blackout_section()}\n",
             f"## Ecuaciones / Equations\n{latex_block}\n",
             f"## Hashes de fuente SHA-256 / Source hashes SHA-256\n{hashes}\n",
         ]
@@ -1022,8 +974,7 @@ z = \frac{\hat{p}_{special} - \hat{p}_{normal}}{\sqrt{\hat{p}(1-\hat{p})(\frac{1
             return "Patrón detectado en: N/A"
 
         net_swing = ", ".join(
-            f"{candidate} {delta:+d} votos"
-            for candidate, delta in sorted(detection["net_swing"].items())
+            f"{candidate} {delta:+d} votos" for candidate, delta in sorted(detection["net_swing"].items())
         )
         return (
             f"Patrón detectado en: {detection['start_timestamp']} – {detection['end_timestamp']}  \n"
@@ -1247,9 +1198,7 @@ z = \frac{\hat{p}_{special} - \hat{p}_{normal}}{\sqrt{\hat{p}(1-\hat{p})(\frac{1
                 or candidate.get("slot")
                 or "unknown"
             )
-            vote_value = self._to_int(
-                candidate.get("votes") or candidate.get("votos") or 0
-            )
+            vote_value = self._to_int(candidate.get("votes") or candidate.get("votos") or 0)
             votes[name] = vote_value
         return votes
 
@@ -1261,9 +1210,7 @@ z = \frac{\hat{p}_{special} - \hat{p}_{normal}}{\sqrt{\hat{p}(1-\hat{p})(\frac{1
         if isinstance(payload, dict):
             for key, value in payload.items():
                 lowered = key.lower()
-                if lowered in {"candidates", "candidatos", "resultados"} and isinstance(
-                    value, list
-                ):
+                if lowered in {"candidates", "candidatos", "resultados"} and isinstance(value, list):
                     return value
                 found = self._find_candidates_container(value)
                 if found:
@@ -1302,18 +1249,13 @@ z = \frac{\hat{p}_{special} - \hat{p}_{normal}}{\sqrt{\hat{p}(1-\hat{p})(\frac{1
                 result[prefix] = int(float(stripped))
         return result
 
-    def _candidate_deltas(
-        self, previous: dict[str, int], current: dict[str, int]
-    ) -> dict[str, int]:
+    def _candidate_deltas(self, previous: dict[str, int], current: dict[str, int]) -> dict[str, int]:
         """Compute per-candidate vote deltas.
 
         Calcula deltas de votos por candidato.
         """
         all_candidates = sorted(set(previous) | set(current))
-        return {
-            candidate: current.get(candidate, 0) - previous.get(candidate, 0)
-            for candidate in all_candidates
-        }
+        return {candidate: current.get(candidate, 0) - previous.get(candidate, 0) for candidate in all_candidates}
 
     def _proportions(self, votes_by_candidate: dict[str, int]) -> dict[str, float]:
         """Compute proportions safely from vote dictionary.
@@ -1346,9 +1288,7 @@ z = \frac{\hat{p}_{special} - \hat{p}_{normal}}{\sqrt{\hat{p}(1-\hat{p})(\frac{1
         margin = z * sqrt(max(p * (1 - p) / n, 0.0))
         return {"low": max(p - margin, 0.0), "high": min(p + margin, 1.0)}
 
-    def _approx_power_two_proportion(
-        self, p1: float, p2: float, n1: int, n2: int, alpha: float = 0.05
-    ) -> float:
+    def _approx_power_two_proportion(self, p1: float, p2: float, n1: int, n2: int, alpha: float = 0.05) -> float:
         """Approximate power for two-proportion z test.
 
         Aproxima potencia para prueba z de dos proporciones.
@@ -1420,9 +1360,7 @@ z = \frac{\hat{p}_{special} - \hat{p}_{normal}}{\sqrt{\hat{p}(1-\hat{p})(\frac{1
         x_mean = sum(x) / len(x)
         y_mean = sum(y) / len(y)
         numerator = sum((xi - x_mean) * (yi - y_mean) for xi, yi in zip(x, y))
-        denominator = sqrt(
-            sum((xi - x_mean) ** 2 for xi in x) * sum((yi - y_mean) ** 2 for yi in y)
-        )
+        denominator = sqrt(sum((xi - x_mean) ** 2 for xi in x) * sum((yi - y_mean) ** 2 for yi in y))
         if denominator == 0:
             return 0.0
         return float(numerator / denominator)
