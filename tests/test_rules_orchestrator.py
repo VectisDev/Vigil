@@ -143,10 +143,10 @@ def test_all_rules_enabled_by_default(monkeypatch):
 
 
 def test_all_legacy_rules_registered():
-    """Verifica que las 20 reglas (13 originales + 7 legacy) estén registradas.
+    """Verifica que las 21 reglas (13 originales + 7 legacy + 1 forense) estén registradas.
 
     English:
-        Verify that all 20 rules (13 original + 7 legacy) are registered.
+        Verify that all 21 rules (13 original + 7 legacy + 1 forensic) are registered.
     """
     from centinel.core import rules_engine  # noqa: F401 — triggers imports
 
@@ -181,6 +181,10 @@ def test_all_legacy_rules_registered():
     }
     for key in expected_original:
         assert key in registered_keys, f"Original rule {key!r} not registered"
+
+    # Regla forense derivada del análisis de datos reales Honduras 2025.
+    # Forensic rule derived from real Honduras 2025 data analysis.
+    assert "inconsistency_rate" in registered_keys, "Forensic rule 'inconsistency_rate' not registered"
 
 
 def test_research_rules_disabled_by_default(monkeypatch):
