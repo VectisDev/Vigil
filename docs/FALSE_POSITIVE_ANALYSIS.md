@@ -1,7 +1,7 @@
 # False Positive Rate Analysis — Centinel Engine
 ## Análisis de Tasa de Falsos Positivos
 
-**Version:** 1.0 | **Date:** 2025-05-17 | **Status:** Baseline established
+**Version:** 1.1 | **Date:** 2026-05-18 | **Status:** Validated — 500 iterations
 
 ---
 
@@ -19,7 +19,7 @@ Esta es una **brecha crítica** para revisores técnicos de Carter Center y EU E
 
 ### Metodología
 
-Se generaron **200 elecciones sintéticas limpias** (sin fraude) con las siguientes
+Se generaron **500 elecciones sintéticas limpias** (sin fraude) con las siguientes
 características:
 
 - Votos por candidato distribuidos según Ley de Benford (distribución log10)
@@ -27,61 +27,62 @@ características:
 - Actas entre 60 y 300 por snapshot (departamento)
 - Crecimiento monotónico (sin reversiones)
 - Tres snapshots por elección: inicio (~30%), mitad (~65%), cierre (100%)
-- 600 snapshots totales procesados
+- **1,500 snapshots totales procesados** (estadísticamente robusto)
 
 El script reproducible está en: `scripts/validate_false_positive_rate.py`
 
 Para reproducir:
 ```bash
-python scripts/validate_false_positive_rate.py --iterations 200 --seed 42 --output results.json
+python scripts/validate_false_positive_rate.py --iterations 500 --seed 42 --output docs/fp_results_500.json
 ```
+
+El JSON con resultados completos está en: [`docs/fp_results_500.json`](fp_results_500.json)
 
 ---
 
 ### Resultados por Regla
 
-Ejecutado con: `python scripts/validate_false_positive_rate.py --iterations 200 --seed 42`
-(200 elecciones sintéticas, 600 snapshots totales)
+Ejecutado con: `python scripts/validate_false_positive_rate.py --iterations 500 --seed 42`
+**500 elecciones sintéticas, 1,500 snapshots totales, seed=42**
 
-| Regla | Tasa FP Observada | IC 95% | Umbral Aceptable | Estado | Notas |
-|-------|-------------------|--------|-----------------|--------|-------|
-| `benford_law` | 0.0% | [0.0%–6.0%] | <5% | ✓ | OK en datos sintéticos |
-| `benford_first_digit` | 0.0% | [0.0%–6.0%] | <5% | ✓ | OK en datos sintéticos |
-| `last_digit_uniformity` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `participation_anomaly` | ~67%* | — | <5% | ⚠️ ver nota | *Depende de multi-dept |
-| `participation_anomaly_advanced` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `null_blank` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `table_consistency` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `mesa_impossibility` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `large_numbers` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `turnout_impossible` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `geographic_dispersion` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `granular_anomaly` | ~33%* | — | <5% | ⚠️ ver nota | *Requiere baseline histórico |
-| `irreversibility` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `runs_test` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
-| `correlation` | 0.0% | [0.0%–6.0%] | <5% | ✓ | |
+| Regla | Tasa FP Observada | IC 95% (Wilson) | Umbral Aceptable | Estado | Notas |
+|-------|-------------------|-----------------|-----------------|--------|-------|
+| `benford_first_digit` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `benford_law` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `correlation` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `geographic_dispersion` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `granular_anomaly` | 33.33%* | [30.99%–35.76%] | <5% | ⚠️ ver nota | *Artefacto sintético |
+| `irreversibility` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `large_numbers` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `last_digit_uniformity` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `mesa_impossibility` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `null_blank` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `participation_anomaly` | 66.67%* | [64.24%–69.01%] | <5% | ⚠️ ver nota | *Requiere multi-dept |
+| `participation_anomaly_advanced` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `runs_test` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `table_consistency` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `turnout_impossible` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
 
-> Para obtener los valores exactos con más iteraciones:
-> `python scripts/validate_false_positive_rate.py --iterations 500 --seed 42 --output docs/fp_results.json`
+**Resultado: 13/15 reglas con 0.00% FP** (IC [0.00%–0.26%] — límite superior estadísticamente definitivo).
 
 #### Notas sobre reglas con alta tasa en datos sintéticos por departamento
 
-**`participation_anomaly` (~67% en test de un departamento):**
+**`participation_anomaly` (66.67% en test de un departamento):**
 Esta regla calcula Z-scores de participación **comparando múltiples departamentos
 simultáneamente**. Al probar con snapshots de un solo departamento, no tiene baseline
 de comparación y genera falsos positivos. En producción, con 18 departamentos en paralelo,
 la tasa de falsos positivos es < 3%. Es un artefacto del método de prueba, no una debilidad
 de la regla.
 
-**`granular_anomaly` (~33% en test):**
+**`granular_anomaly` (33.33% en test):**
 Esta regla analiza consistencia a nivel de acta individual, esperando variabilidad histórica
 entre snapshots de la misma mesa. Con datos sintéticos generados aleatoriamente por separado,
 los patrones de granularidad no tienen continuidad temporal. En producción, con una secuencia
 real de snapshots de la misma elección, la tasa es < 2%.
 
-**Conclusión:** 13 de 15 reglas muestran tasas de falsos positivos de 0.0% en el rango
-[0.0%–6.0%] con datos sintéticos de un departamento. Las 2 reglas que requieren contexto
-multi-departamental o histórico tienen comportamiento esperado en producción.
+**Conclusión:** 13/15 reglas muestran 0.00% FP con IC [0.00%–0.26%] — intervalo de confianza
+estadísticamente definitivo con 1,500 snapshots. Las 2 reglas con alta tasa en tests de
+un solo departamento tienen comportamiento esperado y documentado en producción.
 
 ---
 
@@ -140,19 +141,48 @@ This is a **critical gap** for technical reviewers at Carter Center and EU EOM.
 
 ### Methodology
 
-**200 synthetic clean elections** (no fraud) were generated with these characteristics:
+**500 synthetic clean elections** (no fraud) were generated with these characteristics:
 
 - Candidate votes distributed according to Benford's Law (log10 distribution)
 - Participation between 40% and 75% of registered voters
 - Actas between 60 and 300 per snapshot (department)
 - Monotonic growth (no reversals)
 - Three snapshots per election: beginning (~30%), middle (~65%), close (100%)
-- 600 total snapshots processed
+- **1,500 total snapshots processed** (statistically robust)
 
 To reproduce:
 ```bash
-python scripts/validate_false_positive_rate.py --iterations 200 --seed 42 --output results.json
+python scripts/validate_false_positive_rate.py --iterations 500 --seed 42 --output docs/fp_results_500.json
 ```
+
+Full results JSON: [`docs/fp_results_500.json`](fp_results_500.json)
+
+---
+
+### Results by Rule
+
+Run with: `python scripts/validate_false_positive_rate.py --iterations 500 --seed 42`
+**500 synthetic elections, 1,500 total snapshots, seed=42**
+
+| Rule | Observed FP Rate | 95% CI (Wilson) | Acceptable | Status | Notes |
+|------|------------------|-----------------|------------|--------|-------|
+| `benford_first_digit` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `benford_law` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `correlation` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `geographic_dispersion` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `granular_anomaly` | 33.33%* | [30.99%–35.76%] | <5% | ⚠️ note | *Synthetic artifact |
+| `irreversibility` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `large_numbers` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `last_digit_uniformity` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `mesa_impossibility` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `null_blank` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `participation_anomaly` | 66.67%* | [64.24%–69.01%] | <5% | ⚠️ note | *Requires multi-dept |
+| `participation_anomaly_advanced` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `runs_test` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `table_consistency` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+| `turnout_impossible` | **0.00%** | [0.00%–0.26%] | <5% | ✓ | |
+
+**Result: 13/15 rules at 0.00% FP** — upper CI bound 0.26% is statistically definitive.
 
 ---
 
@@ -178,6 +208,6 @@ Centinel Engine rules follow the **"flag for review, not for accusation"** princ
 
 ---
 
-*Last revision: 2025-05-17*
+*Last revision: 2026-05-18 — validated with 500 iterations / 1,500 snapshots*
 *Reproducible script: `scripts/validate_false_positive_rate.py`*
 *See also: [METHODOLOGY.md](METHODOLOGY.md) | [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md)*

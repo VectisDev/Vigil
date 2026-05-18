@@ -71,7 +71,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import yaml
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator, ConfigDict
 
 CONFIG_PATH = Path("command_center") / "config.yaml"
 RULES_PATH = Path("command_center") / "rules.yaml"
@@ -241,9 +241,7 @@ class RulesConfig(BaseModel):
                 )
         return self
 
-    model_config = {
-        "extra": "allow",
-    }
+    model_config = ConfigDict(extra="allow")
 
 
 def _archive_config_file(source_path: Path, prefix: str) -> None:
