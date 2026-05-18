@@ -1,6 +1,6 @@
 # Reporte de Calibración Centinel — Honduras 2025
 
-**Fecha de análisis:** 2026-05-18 05:07 UTC
+**Fecha de análisis:** 2026-05-18 13:28 UTC
 **Snapshots analizados:** 64
 **Alertas totales:** 83 (🔴 82 CRITICAL · 🟠 1 HIGH · 🟡 0 WARNING)
 
