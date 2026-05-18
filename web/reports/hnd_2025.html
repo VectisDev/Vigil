@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría HND-2025 — CENTINEL</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1115;--panel:#15171c;--panel2:#1a1d24;--border:#24272e;
+    --fg:#e7e9ec;--muted:#8b929c;--accent:#6ea8fe;--purple:#b08cf0;
+    --red:#f87171;--orange:#fb923c;--green:#4ade80;--yellow:#facc15;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6}
+  .page{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
+  a.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;text-decoration:none;margin-bottom:32px}
+  a.back:hover{color:var(--fg)}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin-bottom:10px}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.03em;margin-bottom:8px}
+  .subtitle{color:var(--muted);font-size:15px;max-width:680px;margin-bottom:36px}
+
+  /* KPI strip */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:36px}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+  .kpi-val{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+  .kpi-lbl{font-size:12px;color:var(--muted)}
+  .kpi.bad .kpi-val{color:var(--red)}
+  .kpi.warn .kpi-val{color:var(--orange)}
+  .kpi.ok .kpi-val{color:var(--green)}
+
+  /* Result cards */
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:36px}
+  .result-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px 24px}
+  .result-card.leader{border-color:#3a5a8a}
+  .result-partido{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+  .result-candidato{font-size:17px;font-weight:600;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .result-votos{font-size:28px;font-weight:700;letter-spacing:-.02em;color:var(--accent);margin-bottom:4px}
+  .result-pct{font-size:13px;color:var(--muted)}
+  .result-bar{height:4px;border-radius:2px;margin-top:12px;background:var(--border)}
+  .result-bar-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .6s ease}
+  .result-card:not(.leader) .result-bar-fill{background:var(--muted)}
+
+  /* Alert breakdown */
+  .section{margin-bottom:36px}
+  .section h2{font-size:16px;font-weight:600;margin-bottom:16px;color:var(--fg)}
+  .alert-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:0}
+  .pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px}
+  .pill-count{font-size:20px;font-weight:700;min-width:28px}
+  .pill-rule{color:var(--muted);font-size:12px;font-family:ui-monospace,monospace}
+  .pill.sev-CRITICAL .pill-count{color:var(--red)}
+  .pill.sev-HIGH .pill-count{color:var(--orange)}
+  .pill.sev-WARNING .pill-count{color:var(--yellow)}
+
+  /* Chart card */
+  .chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:36px}
+  .chart-card h2{font-size:15px;font-weight:600;margin-bottom:20px}
+  .chart-wrap{position:relative;height:260px}
+
+  /* Table */
+  .tbl-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:36px}
+  .tbl-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .tbl-head h2{font-size:15px;font-weight:600}
+  .tbl-filter{display:flex;gap:8px}
+  .f-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;transition:.15s}
+  .f-btn:hover,.f-btn.active{border-color:var(--accent);color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:10px 16px;border-bottom:1px solid #1c1f26;vertical-align:top;max-width:420px}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#1a1d24}
+  .sev{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.05em;white-space:nowrap}
+  .sev-CRITICAL{background:rgba(248,113,113,.12);color:var(--red)}
+  .sev-HIGH{background:rgba(251,146,60,.12);color:var(--orange)}
+  .sev-WARNING{background:rgba(250,204,21,.1);color:var(--yellow)}
+  .rule-code{font-family:ui-monospace,monospace;font-size:11px;color:var(--purple);background:rgba(176,140,240,.08);padding:2px 7px;border-radius:4px}
+  .ts-cell{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+  .msg-cell{line-height:1.5;color:var(--fg)}
+
+  /* Reproducibility box */
+  .repro{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin-top:32px}
+  .repro h3{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted)}
+  pre{font-family:ui-monospace,monospace;font-size:12px;color:var(--accent);overflow-x:auto;line-height:1.7}
+  .tag-line{margin-top:16px;font-size:12px;color:var(--muted)}
+
+  /* Loading */
+  #loading{text-align:center;padding:60px;color:var(--muted);font-size:14px}
+  #error{display:none;text-align:center;padding:60px;color:var(--red)}
+
+  @media(max-width:600px){
+    .results{grid-template-columns:1fr}
+    h1{font-size:22px}
+    .kpi-val{font-size:20px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="../">← Volver al inicio / Back to home</a>
+
+  <div class="eyebrow">Análisis forense · Honduras 2025</div>
+  <h1>Elecciones Generales Honduras 2025 — Auditoría Criptográfica</h1>
+  <p class="subtitle">
+    64 snapshots oficiales del CNE analizados por el motor Centinel.
+    Periodo: 3–10 diciembre 2025 · Escrutinio final: 99.4 %.
+    Todos los resultados son reproducibles por cualquier tercero.
+    <br><span style="color:#6ea8fe;font-size:13px;margin-top:4px;display:block">
+    64 official CNE snapshots analyzed by the Centinel engine.
+    Period: Dec 3–10, 2025 · Final scrutiny: 99.4 %.
+    All findings are independently reproducible.
+    </span>
+  </p>
+
+  <div id="loading">Cargando datos de calibración…</div>
+  <div id="error">Error al cargar los datos. / Failed to load data.</div>
+  <div id="content" style="display:none">
+
+    <!-- KPIs -->
+    <div class="kpis" id="kpi-strip"></div>
+
+    <!-- Results -->
+    <div class="section">
+      <h2>Resultados finales (99.4 % escrutinio) / Final results</h2>
+      <div class="results" id="results-grid"></div>
+    </div>
+
+    <!-- Alert breakdown -->
+    <div class="section">
+      <h2>Anomalías detectadas por regla / Anomalies detected by rule</h2>
+      <div class="alert-pills" id="pills"></div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card">
+      <h2>Evolución temporal: votos y escrutinio / Vote progression over time</h2>
+      <div class="chart-wrap"><canvas id="chart-votes"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h2>Brecha entre candidatos y eventos de blackout / Vote gap &amp; blackout events</h2>
+      <div class="chart-wrap"><canvas id="chart-gap"></canvas></div>
+    </div>
+
+    <!-- Alert table -->
+    <div class="tbl-wrap">
+      <div class="tbl-head">
+        <h2>Tabla de alertas / Alert log</h2>
+        <div class="tbl-filter" id="filter-btns"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Severidad</th>
+              <th>Regla</th>
+              <th>Timestamp</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody id="alert-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Reproducibility -->
+    <div class="repro">
+      <h3>Reproducibilidad / Reproducibility</h3>
+      <pre>git clone https://github.com/userf8a2c4/centinel-engine.git
+cd centinel-engine
+poetry install
+python scripts/calibrate_2025.py --data tests/fixtures/hnd_2025/
+# → reports/calibration_2025.json (83 alertas idénticas / identical alerts)</pre>
+      <p class="tag-line">
+        AGPL-3.0 · Datos públicos CNE Honduras · Análisis: CENTINEL v0.2.0 · 2026-05-18
+      </p>
+    </div>
+
+  </div><!-- #content -->
+</div><!-- .page -->
+
+<script>
+const DATA_URL = '../data/calibration_hnd_2025.json';
+
+const RULE_LABELS = {
+  inconsistency_rate:         {es:'Tasa de inconsistencia',  en:'Inconsistency rate',    sev:'CRITICAL'},
+  snapshot_jump:              {es:'Salto abrupto',           en:'Snapshot jump',         sev:'CRITICAL'},
+  data_blackout_start:        {es:'Inicio blackout',         en:'Blackout start',        sev:'CRITICAL'},
+  data_blackout_end:          {es:'Fin blackout',            en:'Blackout end',          sev:'CRITICAL'},
+  trend_reversal_at_blackout: {es:'Reversión post-blackout', en:'Post-blackout reversal',sev:'CRITICAL'},
+  universe_mutation:          {es:'Mutación universo',       en:'Universe mutation',     sev:'CRITICAL'},
+  processing_speed:           {es:'Velocidad procesamiento', en:'Processing speed',      sev:'HIGH'},
+};
+
+function fmt(n){return n.toLocaleString('es-HN')}
+function fmtTs(iso){return iso.replace('T',' ').replace(/\+.*/,'').replace(/:00$/,'')}
+
+async function init(){
+  const loading = document.getElementById('loading');
+  const errEl   = document.getElementById('error');
+  const content = document.getElementById('content');
+  try {
+    const resp = await fetch(DATA_URL, {cache:'no-store'});
+    if(!resp.ok) throw new Error(resp.status);
+    const data = await resp.json();
+    loading.style.display = 'none';
+    content.style.display = 'block';
+    render(data);
+  } catch(e) {
+    loading.style.display = 'none';
+    errEl.style.display   = 'block';
+    console.error(e);
+  }
+}
+
+function render(data){
+  const {alerts, summary} = data;
+  const last = summary[summary.length-1];
+  const first = summary[0];
+
+  // ── KPIs ──────────────────────────────────────────────────────────────
+  const critCount = alerts.filter(a=>a.severity==='CRITICAL').length;
+  const highCount = alerts.filter(a=>a.severity==='HIGH').length;
+  const blackouts = alerts.filter(a=>a.rule==='data_blackout_start').length;
+  const kpis = [
+    {val: alerts.length,       lbl:'Alertas totales',        cls:'bad'},
+    {val: critCount,           lbl:'CRITICAL',               cls:'bad'},
+    {val: highCount,           lbl:'HIGH',                   cls:'warn'},
+    {val: blackouts,           lbl:'Blackouts de datos',     cls:'bad'},
+    {val: last.pct_escrutinio+'%', lbl:'Escrutinio final',  cls:'ok'},
+    {val: summary.length,      lbl:'Snapshots analizados',  cls:''},
+  ];
+  document.getElementById('kpi-strip').innerHTML = kpis.map(k=>`
+    <div class="kpi ${k.cls}">
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-lbl">${k.lbl}</div>
+    </div>`).join('');
+
+  // ── Results ────────────────────────────────────────────────────────────
+  const totalV = last.votos_lider + last.votos_segundo;
+  const pctL = (last.votos_lider / totalV * 100).toFixed(2);
+  const pctS = (last.votos_segundo / totalV * 100).toFixed(2);
+  const shortParty = p => p.replace('PARTIDO ','').replace(' DE HONDURAS','');
+  document.getElementById('results-grid').innerHTML = `
+    <div class="result-card leader">
+      <div class="result-partido">${shortParty(last.lider)} · 1.er lugar</div>
+      <div class="result-candidato" title="${last.lider}">${last.lider}</div>
+      <div class="result-votos">${fmt(last.votos_lider)}</div>
+      <div class="result-pct">${pctL} % de los votos contabilizados</div>
+      <div class="result-bar"><div class="result-bar-fill" style="width:${pctL}%"></div></div>
+    </div>
+    <div class="result-card">
+      <div class="result-partido">${shortParty(last.segundo)} · 2.o lugar</div>
+      <div class="result-candidato" title="${last.segundo}">${last.segundo}</div>
+      <div class="result-votos">${fmt(last.votos_segundo)}</div>
+      <div class="result-pct">${pctS} % de los votos contabilizados</div>
+      <div class="result-bar"><div class="result-bar-fill" style="width:${pctS}%"></div></div>
+    </div>`;
+
+  // ── Pills ──────────────────────────────────────────────────────────────
+  const ruleCount = {};
+  alerts.forEach(a=>{ ruleCount[a.rule] = (ruleCount[a.rule]||0)+1; });
+  const sorted = Object.entries(ruleCount).sort((a,b)=>b[1]-a[1]);
+  const sev = r => (RULE_LABELS[r]||{}).sev||'HIGH';
+  document.getElementById('pills').innerHTML = sorted.map(([rule,cnt])=>`
+    <div class="pill sev-${sev(rule)}">
+      <span class="pill-count">${cnt}</span>
+      <div>
+        <div>${(RULE_LABELS[rule]||{}).es||rule}</div>
+        <div class="pill-rule">${rule}</div>
+      </div>
+    </div>`).join('');
+
+  // ── Charts ────────────────────────────────────────────────────────────
+  const labels   = summary.map(s=>fmtTs(s.ts));
+  const vLider   = summary.map(s=>s.votos_lider);
+  const vSegundo = summary.map(s=>s.votos_segundo);
+  const pctEsc   = summary.map(s=>s.pct_escrutinio);
+  const blackoutIdxs = summary.map((s,i)=>s.blackout?i:null).filter(i=>i!==null);
+
+  const chartDefaults = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#8b929c',font:{size:12}}},tooltip:{mode:'index',intersect:false}},
+    scales:{
+      x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:10}},grid:{color:'#1c1f26'}},
+      y:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
+    }
+  };
+
+  // Votes chart
+  new Chart(document.getElementById('chart-votes'),{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Votos líder',    data:vLider,   borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.06)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+        {label:'Votos 2.o lugar',data:vSegundo, borderColor:'#b08cf0',backgroundColor:'rgba(176,140,240,.06)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+        {label:'Escrutinio %',   data:pctEsc,   borderColor:'#4ade80',backgroundColor:'transparent',tension:.3,pointRadius:0,borderWidth:1.5,borderDash:[4,3],yAxisID:'y2'},
+      ]
+    },
+    options:{
+      ...chartDefaults,
+      scales:{
+        ...chartDefaults.scales,
+        y:{...chartDefaults.scales.y,title:{display:true,text:'Votos',color:'#8b929c'}},
+        y2:{position:'right',ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},grid:{display:false},title:{display:true,text:'Escrutinio %',color:'#8b929c'}},
+      }
+    }
+  });
+
+  // Gap chart with blackout annotations
+  const gaps = summary.map(s=>s.brecha);
+  const bkStart = alerts.filter(a=>a.rule==='data_blackout_start').map(a=>fmtTs(a.ts));
+  const bkEnd   = alerts.filter(a=>a.rule==='data_blackout_end').map(a=>fmtTs(a.ts));
+
+  new Chart(document.getElementById('chart-gap'),{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Brecha (votos)',data:gaps,borderColor:'#fb923c',backgroundColor:'rgba(251,146,60,.07)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+        {label:'Blackout start',data:labels.map((l,i)=>bkStart.includes(l)?gaps[i]:null),borderColor:'#f87171',backgroundColor:'#f87171',pointRadius:6,pointStyle:'triangle',showLine:false,label:'Blackout'},
+      ]
+    },
+    options:{
+      ...chartDefaults,
+      scales:{
+        ...chartDefaults.scales,
+        y:{...chartDefaults.scales.y,title:{display:true,text:'Brecha de votos',color:'#8b929c'}},
+      }
+    }
+  });
+
+  // ── Alert table ────────────────────────────────────────────────────────
+  let activeFilter = 'ALL';
+  const rules = ['ALL',...new Set(alerts.map(a=>a.rule))];
+
+  function renderTable(){
+    const filtered = activeFilter==='ALL' ? alerts : alerts.filter(a=>a.rule===activeFilter);
+    document.getElementById('alert-tbody').innerHTML = filtered.map(a=>`
+      <tr>
+        <td><span class="sev sev-${a.severity}">${a.severity}</span></td>
+        <td><span class="rule-code">${a.rule}</span></td>
+        <td class="ts-cell">${fmtTs(a.ts)}</td>
+        <td class="msg-cell">${a.message}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('filter-btns').innerHTML = rules.map(r=>`
+    <button class="f-btn${r==='ALL'?' active':''}" data-rule="${r}">${r==='ALL'?'Todas':r}</button>
+  `).join('');
+
+  document.getElementById('filter-btns').addEventListener('click',e=>{
+    const btn = e.target.closest('.f-btn');
+    if(!btn) return;
+    activeFilter = btn.dataset.rule;
+    document.querySelectorAll('.f-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    renderTable();
+  });
+
+  renderTable();
+}
+
+init();
+</script>
+</body>
+</html>
