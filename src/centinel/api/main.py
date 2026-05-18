@@ -81,6 +81,7 @@ import logging
 import os
 import re
 import sqlite3
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -106,7 +107,17 @@ ALERTS_LOG = BASE_DIR / "alerts.log"
 RULES_PATH = BASE_DIR / "command_center" / "rules.yaml"
 SUMMARY_PATH = BASE_DIR / "reports" / "summary.txt"
 
-app = FastAPI(title="C.E.N.T.I.N.E.L. Public API", version="0.1.0")
+@asynccontextmanager
+async def _lifespan(application: FastAPI):  # noqa: ARG001
+    logger.warning(
+        "CENTINEL_STARTUP build=%s time=%s",
+        globals().get("_build_stamp", "dev"),
+        datetime.now(timezone.utc).isoformat(),
+    )
+    yield
+
+
+app = FastAPI(title="C.E.N.T.I.N.E.L. Public API", version="0.1.0", lifespan=_lifespan)
 logger = logging.getLogger(__name__)
 
 # Mount /audit/* router for independent third-party verification.
@@ -922,13 +933,6 @@ _build_info_path = BASE_DIR / "BUILD_INFO"
 _build_stamp = _build_info_path.read_text().strip() if _build_info_path.exists() else "dev"
 
 
-@app.on_event("startup")
-async def _log_build_version() -> None:
-    logger.warning(
-        "CENTINEL_STARTUP build=%s time=%s",
-        _build_stamp,
-        datetime.now(timezone.utc).isoformat(),
-    )
 
 
 @app.get("/live")
