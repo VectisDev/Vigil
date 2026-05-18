@@ -3,363 +3,394 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Auditoría HND-2025 — CENTINEL</title>
+<title>CENTINEL — HND-2025 Análisis Forense</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  :root{
-    --bg:#0f1115;--panel:#15171c;--panel2:#1a1d24;--border:#24272e;
-    --fg:#e7e9ec;--muted:#8b929c;--accent:#6ea8fe;--purple:#b08cf0;
-    --red:#f87171;--orange:#fb923c;--green:#4ade80;--yellow:#facc15;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6}
-  .page{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
-  a.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;text-decoration:none;margin-bottom:32px}
-  a.back:hover{color:var(--fg)}
-  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin-bottom:10px}
-  h1{font-size:30px;font-weight:700;letter-spacing:-.03em;margin-bottom:8px}
-  .subtitle{color:var(--muted);font-size:15px;max-width:680px;margin-bottom:36px}
-
-  /* KPI strip */
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:36px}
-  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
-  .kpi-val{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
-  .kpi-lbl{font-size:12px;color:var(--muted)}
-  .kpi.bad .kpi-val{color:var(--red)}
-  .kpi.warn .kpi-val{color:var(--orange)}
-  .kpi.ok .kpi-val{color:var(--green)}
-
-  /* Result cards */
-  .results{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:36px}
-  .result-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px 24px}
-  .result-card.leader{border-color:#3a5a8a}
-  .result-partido{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
-  .result-candidato{font-size:17px;font-weight:600;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .result-votos{font-size:28px;font-weight:700;letter-spacing:-.02em;color:var(--accent);margin-bottom:4px}
-  .result-pct{font-size:13px;color:var(--muted)}
-  .result-bar{height:4px;border-radius:2px;margin-top:12px;background:var(--border)}
-  .result-bar-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .6s ease}
-  .result-card:not(.leader) .result-bar-fill{background:var(--muted)}
-
-  /* Alert breakdown */
-  .section{margin-bottom:36px}
-  .section h2{font-size:16px;font-weight:600;margin-bottom:16px;color:var(--fg)}
-  .alert-pills{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:0}
-  .pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px}
-  .pill-count{font-size:20px;font-weight:700;min-width:28px}
-  .pill-rule{color:var(--muted);font-size:12px;font-family:ui-monospace,monospace}
-  .pill.sev-CRITICAL .pill-count{color:var(--red)}
-  .pill.sev-HIGH .pill-count{color:var(--orange)}
-  .pill.sev-WARNING .pill-count{color:var(--yellow)}
-
-  /* Chart card */
-  .chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:36px}
-  .chart-card h2{font-size:15px;font-weight:600;margin-bottom:20px}
-  .chart-wrap{position:relative;height:260px}
-
-  /* Table */
-  .tbl-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:36px}
-  .tbl-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-  .tbl-head h2{font-size:15px;font-weight:600}
-  .tbl-filter{display:flex;gap:8px}
-  .f-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;transition:.15s}
-  .f-btn:hover,.f-btn.active{border-color:var(--accent);color:var(--accent)}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
-  td{padding:10px 16px;border-bottom:1px solid #1c1f26;vertical-align:top;max-width:420px}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:#1a1d24}
-  .sev{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.05em;white-space:nowrap}
-  .sev-CRITICAL{background:rgba(248,113,113,.12);color:var(--red)}
-  .sev-HIGH{background:rgba(251,146,60,.12);color:var(--orange)}
-  .sev-WARNING{background:rgba(250,204,21,.1);color:var(--yellow)}
-  .rule-code{font-family:ui-monospace,monospace;font-size:11px;color:var(--purple);background:rgba(176,140,240,.08);padding:2px 7px;border-radius:4px}
-  .ts-cell{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);white-space:nowrap}
-  .msg-cell{line-height:1.5;color:var(--fg)}
-
-  /* Reproducibility box */
-  .repro{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin-top:32px}
-  .repro h3{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted)}
-  pre{font-family:ui-monospace,monospace;font-size:12px;color:var(--accent);overflow-x:auto;line-height:1.7}
-  .tag-line{margin-top:16px;font-size:12px;color:var(--muted)}
-
-  /* Loading */
-  #loading{text-align:center;padding:60px;color:var(--muted);font-size:14px}
-  #error{display:none;text-align:center;padding:60px;color:var(--red)}
-
-  @media(max-width:600px){
-    .results{grid-template-columns:1fr}
-    h1{font-size:22px}
-    .kpi-val{font-size:20px}
-  }
+:root{
+  --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
+  --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;
+  --warn:#d4b066;--purple:#b08cf0;--replay:#c97af7;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased}
+#breadcrumb{padding:7px 24px;font-size:11px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:6px}
+#breadcrumb a{color:var(--muted);text-decoration:none}
+#breadcrumb a:hover{color:var(--fg)}
+#breadcrumb .sep{opacity:.35}
+#replay-banner{background:rgba(201,122,247,.10);border-bottom:2px solid rgba(201,122,247,.35);padding:10px 24px;font-size:13px;font-weight:600;color:var(--replay);letter-spacing:.04em;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#replay-banner .pill{background:rgba(201,122,247,.18);border:1px solid rgba(201,122,247,.3);border-radius:6px;padding:3px 10px;font-size:11px;white-space:nowrap}
+#replay-banner a{color:var(--muted);font-size:12px;text-decoration:none;margin-left:auto}
+#scrubber-wrap{background:var(--panel);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#scrubber-btns{display:flex;gap:6px;flex-shrink:0}
+.sc-btn{background:rgba(201,122,247,.15);border:1px solid rgba(201,122,247,.3);color:var(--replay);border-radius:7px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
+.sc-btn:hover{background:rgba(201,122,247,.28)}
+#time-scrubber{flex:1;min-width:180px;accent-color:var(--replay)}
+#scrubber-ts{font-size:13px;color:var(--replay);font-family:var(--mono);min-width:190px;white-space:nowrap}
+#scrubber-count{font-size:12px;color:var(--muted);white-space:nowrap}
+#status-row{display:flex;gap:12px;flex-wrap:wrap;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg)}
+.status-card{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:600;letter-spacing:.03em;border:1px solid var(--border);background:rgba(255,255,255,.03);flex:1;min-width:140px}
+.sc-ok{border-color:rgba(87,192,141,.22);color:var(--ok)}
+.sc-warn{border-color:rgba(212,176,104,.22);color:var(--warn)}
+.sc-bad{border-color:rgba(223,107,134,.22);color:var(--bad)}
+.sc-purple{border-color:rgba(201,122,247,.3);color:var(--replay)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-ok{background:var(--ok)}.dot-warn{background:var(--warn)}.dot-bad{background:var(--bad)}.dot-purple{background:var(--replay)}
+main{max-width:1100px;margin:0 auto;padding:28px 20px;display:grid;gap:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:800px){.grid2,.grid4{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px 24px}
+.card h2{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.kpi-val{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.kpi-label{font-size:12px;color:var(--muted);margin-top:4px}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--accent);transition:.4s}
+.kpi-ok .kpi-val{color:var(--ok)}.kpi-warn .kpi-val{color:var(--warn)}.kpi-bad .kpi-val{color:var(--bad)}
+.cand-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cand-name{width:110px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+.cand-bar-wrap{flex:1;height:20px;background:var(--border);border-radius:4px;overflow:hidden}
+.cand-bar{height:100%;border-radius:4px;transition:.5s}
+.cand-pct{width:42px;text-align:right;font-size:12px;font-family:var(--mono)}
+.cand-votes{width:88px;text-align:right;font-size:11px;font-family:var(--mono);color:var(--muted)}
+#blackout-notice{display:none;background:rgba(223,107,134,.12);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--bad);font-weight:600;text-align:center;margin-bottom:12px}
+.forensic-card{cursor:pointer;user-select:none}
+.forensic-header{display:flex;align-items:center;gap:10px}
+.forensic-status{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.forensic-title{font-weight:600;font-size:14px;flex:1}
+.forensic-chevron{color:var(--muted);font-size:12px;transition:.2s;flex-shrink:0}
+.forensic-card.open .forensic-chevron{transform:rotate(90deg)}
+.forensic-body{margin-top:14px;display:none;font-size:13px;color:var(--muted)}
+.forensic-body.open{display:block}
+.forensic-note{font-size:12px;margin-top:10px;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:6px;border-left:3px solid var(--border);font-style:italic}
+.alert-msg{background:rgba(223,107,134,.07);border:1px solid rgba(223,107,134,.2);border-radius:6px;padding:8px 12px;margin-top:10px;font-size:12px;font-family:var(--mono);color:var(--bad);white-space:pre-wrap;word-break:break-word}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:8px 10px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.tbl td{padding:8px 10px;border-bottom:1px solid #1c1f26;font-family:var(--mono);font-size:12px}
+.sev-LOW{color:var(--muted)}.sev-MEDIUM{color:var(--warn)}.sev-HIGH{color:orange}.sev-CRITICAL{color:var(--bad);font-weight:700}
+#alert-count-label{font-size:12px;color:var(--muted);font-weight:400;margin-left:8px;text-transform:none;letter-spacing:0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:32px 20px;border-top:1px solid var(--border);margin-top:20px}
+footer a{color:var(--accent);text-decoration:none}
+#loading-msg{text-align:center;color:var(--muted);padding:80px 20px;font-size:14px}
 </style>
 </head>
 <body>
-<div class="page">
-  <a class="back" href="../">← Volver al inicio / Back to home</a>
-
-  <div class="eyebrow">Análisis forense · Honduras 2025</div>
-  <h1>Elecciones Generales Honduras 2025 — Auditoría Criptográfica</h1>
-  <p class="subtitle">
-    64 snapshots oficiales del CNE analizados por el motor Centinel.
-    Periodo: 3–10 diciembre 2025 · Escrutinio final: 99.4 %.
-    Todos los resultados son reproducibles por cualquier tercero.
-    <br><span style="color:#6ea8fe;font-size:13px;margin-top:4px;display:block">
-    64 official CNE snapshots analyzed by the Centinel engine.
-    Period: Dec 3–10, 2025 · Final scrutiny: 99.4 %.
-    All findings are independently reproducible.
-    </span>
-  </p>
-
-  <div id="loading">Cargando datos de calibración…</div>
-  <div id="error">Error al cargar los datos. / Failed to load data.</div>
-  <div id="content" style="display:none">
-
-    <!-- KPIs -->
-    <div class="kpis" id="kpi-strip"></div>
-
-    <!-- Results -->
-    <div class="section">
-      <h2>Resultados finales (99.4 % escrutinio) / Final results</h2>
-      <div class="results" id="results-grid"></div>
-    </div>
-
-    <!-- Alert breakdown -->
-    <div class="section">
-      <h2>Anomalías detectadas por regla / Anomalies detected by rule</h2>
-      <div class="alert-pills" id="pills"></div>
-    </div>
-
-    <!-- Chart -->
-    <div class="chart-card">
-      <h2>Evolución temporal: votos y escrutinio / Vote progression over time</h2>
-      <div class="chart-wrap"><canvas id="chart-votes"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <h2>Brecha entre candidatos y eventos de blackout / Vote gap &amp; blackout events</h2>
-      <div class="chart-wrap"><canvas id="chart-gap"></canvas></div>
-    </div>
-
-    <!-- Alert table -->
-    <div class="tbl-wrap">
-      <div class="tbl-head">
-        <h2>Tabla de alertas / Alert log</h2>
-        <div class="tbl-filter" id="filter-btns"></div>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Severidad</th>
-              <th>Regla</th>
-              <th>Timestamp</th>
-              <th>Descripción</th>
-            </tr>
-          </thead>
-          <tbody id="alert-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Reproducibility -->
-    <div class="repro">
-      <h3>Reproducibilidad / Reproducibility</h3>
-      <pre>git clone https://github.com/userf8a2c4/centinel-engine.git
-cd centinel-engine
-poetry install
-python scripts/calibrate_2025.py --data tests/fixtures/hnd_2025/
-# → reports/calibration_2025.json (83 alertas idénticas / identical alerts)</pre>
-      <p class="tag-line">
-        AGPL-3.0 · Datos públicos CNE Honduras · Análisis: CENTINEL v0.2.0 · 2026-05-18
-      </p>
-    </div>
-
-  </div><!-- #content -->
-</div><!-- .page -->
-
+<nav id="breadcrumb">
+  <a href="../">CENTINEL</a><span class="sep">/</span>
+  <a href="../">Inicio</a><span class="sep">/</span>
+  <span>HND-2025 — Análisis Forense</span>
+</nav>
+<div id="replay-banner">
+  <span>📂 MÁQUINA DEL TIEMPO</span>
+  <span class="pill">64 snapshots · 3–10 dic 2025</span>
+  <span class="pill">Datos CNE oficiales</span>
+  <span class="pill">83 anomalías detectadas</span>
+  <a href="../panel/">← Panel en vivo</a>
+</div>
+<div id="scrubber-wrap">
+  <div id="scrubber-btns">
+    <button class="sc-btn" onclick="step(-1)">◀</button>
+    <button class="sc-btn" id="play-btn" onclick="togglePlay()">▶ Play</button>
+    <button class="sc-btn" onclick="step(1)">▶</button>
+  </div>
+  <input type="range" id="time-scrubber" min="0" max="63" value="0" oninput="scrub(+this.value)">
+  <span id="scrubber-ts">—</span>
+  <span id="scrubber-count">—</span>
+</div>
+<div id="status-row">
+  <div id="badge-estado" class="status-card sc-ok"><span class="dot dot-ok"></span><span id="badge-estado-txt">CARGANDO</span></div>
+  <div id="badge-alertas" class="status-card sc-ok"><span class="dot dot-ok"></span><span id="badge-alertas-txt">ALERTAS —</span></div>
+  <div id="badge-blackout" class="status-card sc-ok"><span class="dot dot-ok"></span><span id="badge-blackout-txt">SIN BLACKOUT</span></div>
+  <div id="badge-escrutinio" class="status-card sc-purple"><span class="dot dot-purple"></span><span id="badge-escrutinio-txt">ESCRUTINIO —</span></div>
+</div>
+<div id="loading-msg">Cargando datos del CNE Honduras 2025…</div>
+<main id="main-content" style="display:none">
+<div class="grid4">
+  <div class="card" id="kpi-actas">
+    <h2>Actas Divulgadas</h2>
+    <div class="kpi-val" id="v-actas">—</div>
+    <div class="kpi-label" id="l-actas">de 19,152 totales</div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-actas" style="width:0%"></div></div>
+  </div>
+  <div class="card">
+    <h2>Votos Válidos</h2>
+    <div class="kpi-val" id="v-votos">—</div>
+    <div class="kpi-label">contabilizados</div>
+  </div>
+  <div class="card">
+    <h2>Escrutinio</h2>
+    <div class="kpi-val" id="v-escrutinio">—</div>
+    <div class="kpi-label">actas procesadas</div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-escrutinio" style="width:0%;background:var(--replay)"></div></div>
+  </div>
+  <div class="card" id="kpi-incons">
+    <h2>Actas Inconsistentes</h2>
+    <div class="kpi-val" id="v-incons">—</div>
+    <div class="kpi-label" id="l-incons">del total divulgado</div>
+  </div>
+</div>
+<div class="card">
+  <h2>Resultados por Candidato</h2>
+  <div id="blackout-notice">⚠ BLACKOUT DE DATOS — Los votos desaparecieron del servidor CNE en este instante</div>
+  <div id="cand-list"></div>
+</div>
+<div class="grid2">
+  <div class="card forensic-card" id="fc-incons" onclick="toggleFC('incons')">
+    <div class="forensic-header"><div class="forensic-status" id="fs-incons" style="background:var(--muted)"></div><div class="forensic-title">Tasa de Inconsistencia</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-body" id="fb-incons"><p>Actas marcadas como inconsistentes por el CNE. Un 14.3% sostenido supera el umbral crítico del 10%.</p><div id="fm-incons" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>inconsistency_rate</code> · Umbral: 10% · 55 alertas</div></div>
+  </div>
+  <div class="card forensic-card" id="fc-blackout" onclick="toggleFC('blackout')">
+    <div class="forensic-header"><div class="forensic-status" id="fs-blackout" style="background:var(--muted)"></div><div class="forensic-title">Blackout de Datos</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-body" id="fb-blackout"><p>Períodos donde los votos se vuelven vacíos mientras las actas siguen contando. El servidor CNE dejó de reportar candidatos pero continuó acumulando actas.</p><div id="fm-blackout" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>data_blackout_start/end</code> · 16 alertas · 8 períodos</div></div>
+  </div>
+  <div class="card forensic-card" id="fc-jump" onclick="toggleFC('jump')">
+    <div class="forensic-header"><div class="forensic-status" id="fs-jump" style="background:var(--muted)"></div><div class="forensic-title">Salto de Snapshot</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-body" id="fb-jump"><p>Variación abrupta de votos entre dos snapshots consecutivos. Salto del 6.4% (PN) y 6.5% (LIBRE) en 786 minutos el 4 de diciembre.</p><div id="fm-jump" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>snapshot_jump</code> · 2 alertas · 2025-12-04T11:06</div></div>
+  </div>
+  <div class="card forensic-card" id="fc-universe" onclick="toggleFC('universe')">
+    <div class="forensic-header"><div class="forensic-status" id="fs-universe" style="background:var(--muted)"></div><div class="forensic-title">Mutación del Universo</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-body" id="fb-universe"><p>El universo electoral (actas_totales) cambió de 19,152 → 0 en un snapshot, violando el principio de inmutabilidad del padrón.</p><div id="fm-universe" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>universe_mutation</code> · 1 alerta · 2025-12-04T16:00</div></div>
+  </div>
+  <div class="card forensic-card" id="fc-reversal" onclick="toggleFC('reversal')">
+    <div class="forensic-header"><div class="forensic-status" id="fs-reversal" style="background:var(--muted)"></div><div class="forensic-title">Reversión Post-Blackout</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-body" id="fb-reversal"><p>La brecha entre 1.er y 2.o partido aumentó un 69.6% durante el período de opacidad. El partido en segundo lugar mejoró su posición mientras los datos eran invisibles.</p><div id="fm-reversal" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>trend_reversal_at_blackout</code> · 1 alerta</div></div>
+  </div>
+  <div class="card forensic-card" id="fc-speed" onclick="toggleFC('speed')">
+    <div class="forensic-header"><div class="forensic-status" id="fs-speed" style="background:var(--muted)"></div><div class="forensic-title">Velocidad de Procesamiento</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-body" id="fb-speed"><p>Aceleración anómala en la velocidad de ingreso de actas. El ritmo excedió el límite estadístico para escrutinio manual.</p><div id="fm-speed" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>processing_speed</code> · 1 alerta · severidad HIGH</div></div>
+  </div>
+</div>
+<div class="grid2">
+  <div class="card"><h2>Progreso del Escrutinio</h2><canvas id="chart-escrutinio" height="200"></canvas></div>
+  <div class="card"><h2>Brecha 1.° — 2.° Partido <span style="font-size:10px;color:var(--bad);font-weight:400">▼ zonas rojas = blackout</span></h2><canvas id="chart-gap" height="200"></canvas></div>
+</div>
+<div class="grid2">
+  <div class="card"><h2>Actas Inconsistentes</h2><canvas id="chart-incons" height="200"></canvas></div>
+  <div class="card"><h2>Ley de Benford — Primer dígito <span id="benford-label" style="font-size:10px;color:var(--muted);font-weight:400"></span></h2><canvas id="chart-benford" height="200"></canvas></div>
+</div>
+<div class="card">
+  <h2>Alertas detectadas <span id="alert-count-label"></span></h2>
+  <div style="max-height:360px;overflow-y:auto">
+    <table class="tbl">
+      <thead><tr><th>Timestamp</th><th>Regla</th><th>Severidad</th><th>Mensaje</th></tr></thead>
+      <tbody id="alert-tbody"></tbody>
+    </table>
+  </div>
+</div>
+</main>
+<footer>
+  <p>CENTINEL — Auditoría criptográfica independiente · <a href="https://github.com/userf8a2c4/centinel-engine">AGPL-3.0</a></p>
+  <p style="margin-top:6px">Datos: 64 snapshots oficiales CNE Honduras · Dic 2025 · Reproducible por cualquier tercero</p>
+  <p style="margin-top:6px;font-style:italic;font-size:11px">Las alertas son señales de auditoría, no acusaciones. Requieren investigación independiente.</p>
+</footer>
 <script>
-const DATA_URL = '../data/calibration_hnd_2025.json';
+var SERIES_URL = '../data/hnd_2025_series.json';
+var series = null, currentIdx = 0, playInterval = null, charts = {};
 
-const RULE_LABELS = {
-  inconsistency_rate:         {es:'Tasa de inconsistencia',  en:'Inconsistency rate',    sev:'CRITICAL'},
-  snapshot_jump:              {es:'Salto abrupto',           en:'Snapshot jump',         sev:'CRITICAL'},
-  data_blackout_start:        {es:'Inicio blackout',         en:'Blackout start',        sev:'CRITICAL'},
-  data_blackout_end:          {es:'Fin blackout',            en:'Blackout end',          sev:'CRITICAL'},
-  trend_reversal_at_blackout: {es:'Reversión post-blackout', en:'Post-blackout reversal',sev:'CRITICAL'},
-  universe_mutation:          {es:'Mutación universo',       en:'Universe mutation',     sev:'CRITICAL'},
-  processing_speed:           {es:'Velocidad procesamiento', en:'Processing speed',      sev:'HIGH'},
+var cursorPlugin = {
+  id: 'centinel-cursor',
+  afterDraw: function(chart) {
+    if (!series || currentIdx < 0) return;
+    var meta = chart.getDatasetMeta(0);
+    if (!meta || !meta.data || !meta.data[currentIdx]) return;
+    var x = meta.data[currentIdx].x;
+    var ca = chart.chartArea;
+    var ctx = chart.ctx;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, ca.top);
+    ctx.lineTo(x, ca.bottom);
+    ctx.strokeStyle = 'rgba(201,122,247,.75)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+    ctx.restore();
+  }
 };
+Chart.register(cursorPlugin);
 
-function fmt(n){return n.toLocaleString('es-HN')}
-function fmtTs(iso){return iso.replace('T',' ').replace(/\+.*/,'').replace(/:00$/,'')}
+fetch(SERIES_URL)
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(data){ series=data; init(); })
+  .catch(function(e){
+    document.getElementById('loading-msg').innerHTML =
+      '<span style="color:var(--bad)">Error cargando datos: '+e.message+'</span>';
+  });
 
-async function init(){
-  const loading = document.getElementById('loading');
-  const errEl   = document.getElementById('error');
-  const content = document.getElementById('content');
-  try {
-    const resp = await fetch(DATA_URL, {cache:'no-store'});
-    if(!resp.ok) throw new Error(resp.status);
-    const data = await resp.json();
-    loading.style.display = 'none';
-    content.style.display = 'block';
-    render(data);
-  } catch(e) {
-    loading.style.display = 'none';
-    errEl.style.display   = 'block';
-    console.error(e);
+function init(){
+  document.getElementById('loading-msg').style.display='none';
+  document.getElementById('main-content').style.display='grid';
+  var sc=document.getElementById('time-scrubber');
+  sc.max=series.snapshots.length-1;
+  buildCandList();
+  initCharts();
+  scrub(0);
+}
+
+function scrub(idx){
+  idx=Math.max(0,Math.min(idx,series.snapshots.length-1));
+  currentIdx=idx;
+  var snap=series.snapshots[idx];
+  document.getElementById('time-scrubber').value=idx;
+  document.getElementById('scrubber-ts').textContent=fmtTs(snap.ts);
+  document.getElementById('scrubber-count').textContent=(idx+1)+' / '+series.snapshots.length+' · '+snap.pct_escrutinio.toFixed(1)+'% escrutinio';
+  updateStatusBadges(snap,idx);
+  updateKPIs(snap);
+  updateCandidates(snap);
+  updateForensics(snap);
+  updateAlertTable(snap.ts);
+  refreshCharts();
+}
+
+function togglePlay(){
+  if(playInterval){
+    clearInterval(playInterval);playInterval=null;
+    document.getElementById('play-btn').textContent='▶ Play';
+  }else{
+    if(currentIdx>=series.snapshots.length-1) scrub(0);
+    playInterval=setInterval(function(){
+      if(currentIdx>=series.snapshots.length-1){
+        clearInterval(playInterval);playInterval=null;
+        document.getElementById('play-btn').textContent='▶ Play';return;
+      }
+      scrub(currentIdx+1);
+    },700);
+    document.getElementById('play-btn').textContent='⏸ Pausa';
   }
 }
 
-function render(data){
-  const {alerts, summary} = data;
-  const last = summary[summary.length-1];
-  const first = summary[0];
-
-  // ── KPIs ──────────────────────────────────────────────────────────────
-  const critCount = alerts.filter(a=>a.severity==='CRITICAL').length;
-  const highCount = alerts.filter(a=>a.severity==='HIGH').length;
-  const blackouts = alerts.filter(a=>a.rule==='data_blackout_start').length;
-  const kpis = [
-    {val: alerts.length,       lbl:'Alertas totales',        cls:'bad'},
-    {val: critCount,           lbl:'CRITICAL',               cls:'bad'},
-    {val: highCount,           lbl:'HIGH',                   cls:'warn'},
-    {val: blackouts,           lbl:'Blackouts de datos',     cls:'bad'},
-    {val: last.pct_escrutinio+'%', lbl:'Escrutinio final',  cls:'ok'},
-    {val: summary.length,      lbl:'Snapshots analizados',  cls:''},
-  ];
-  document.getElementById('kpi-strip').innerHTML = kpis.map(k=>`
-    <div class="kpi ${k.cls}">
-      <div class="kpi-val">${k.val}</div>
-      <div class="kpi-lbl">${k.lbl}</div>
-    </div>`).join('');
-
-  // ── Results ────────────────────────────────────────────────────────────
-  const totalV = last.votos_lider + last.votos_segundo;
-  const pctL = (last.votos_lider / totalV * 100).toFixed(2);
-  const pctS = (last.votos_segundo / totalV * 100).toFixed(2);
-  const shortParty = p => p.replace('PARTIDO ','').replace(' DE HONDURAS','');
-  document.getElementById('results-grid').innerHTML = `
-    <div class="result-card leader">
-      <div class="result-partido">${shortParty(last.lider)} · 1.er lugar</div>
-      <div class="result-candidato" title="${last.lider}">${last.lider}</div>
-      <div class="result-votos">${fmt(last.votos_lider)}</div>
-      <div class="result-pct">${pctL} % de los votos contabilizados</div>
-      <div class="result-bar"><div class="result-bar-fill" style="width:${pctL}%"></div></div>
-    </div>
-    <div class="result-card">
-      <div class="result-partido">${shortParty(last.segundo)} · 2.o lugar</div>
-      <div class="result-candidato" title="${last.segundo}">${last.segundo}</div>
-      <div class="result-votos">${fmt(last.votos_segundo)}</div>
-      <div class="result-pct">${pctS} % de los votos contabilizados</div>
-      <div class="result-bar"><div class="result-bar-fill" style="width:${pctS}%"></div></div>
-    </div>`;
-
-  // ── Pills ──────────────────────────────────────────────────────────────
-  const ruleCount = {};
-  alerts.forEach(a=>{ ruleCount[a.rule] = (ruleCount[a.rule]||0)+1; });
-  const sorted = Object.entries(ruleCount).sort((a,b)=>b[1]-a[1]);
-  const sev = r => (RULE_LABELS[r]||{}).sev||'HIGH';
-  document.getElementById('pills').innerHTML = sorted.map(([rule,cnt])=>`
-    <div class="pill sev-${sev(rule)}">
-      <span class="pill-count">${cnt}</span>
-      <div>
-        <div>${(RULE_LABELS[rule]||{}).es||rule}</div>
-        <div class="pill-rule">${rule}</div>
-      </div>
-    </div>`).join('');
-
-  // ── Charts ────────────────────────────────────────────────────────────
-  const labels   = summary.map(s=>fmtTs(s.ts));
-  const vLider   = summary.map(s=>s.votos_lider);
-  const vSegundo = summary.map(s=>s.votos_segundo);
-  const pctEsc   = summary.map(s=>s.pct_escrutinio);
-  const blackoutIdxs = summary.map((s,i)=>s.blackout?i:null).filter(i=>i!==null);
-
-  const chartDefaults = {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{labels:{color:'#8b929c',font:{size:12}}},tooltip:{mode:'index',intersect:false}},
-    scales:{
-      x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:10}},grid:{color:'#1c1f26'}},
-      y:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
-    }
-  };
-
-  // Votes chart
-  new Chart(document.getElementById('chart-votes'),{
-    type:'line',
-    data:{
-      labels,
-      datasets:[
-        {label:'Votos líder',    data:vLider,   borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.06)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
-        {label:'Votos 2.o lugar',data:vSegundo, borderColor:'#b08cf0',backgroundColor:'rgba(176,140,240,.06)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
-        {label:'Escrutinio %',   data:pctEsc,   borderColor:'#4ade80',backgroundColor:'transparent',tension:.3,pointRadius:0,borderWidth:1.5,borderDash:[4,3],yAxisID:'y2'},
-      ]
-    },
-    options:{
-      ...chartDefaults,
-      scales:{
-        ...chartDefaults.scales,
-        y:{...chartDefaults.scales.y,title:{display:true,text:'Votos',color:'#8b929c'}},
-        y2:{position:'right',ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},grid:{display:false},title:{display:true,text:'Escrutinio %',color:'#8b929c'}},
-      }
-    }
-  });
-
-  // Gap chart with blackout annotations
-  const gaps = summary.map(s=>s.brecha);
-  const bkStart = alerts.filter(a=>a.rule==='data_blackout_start').map(a=>fmtTs(a.ts));
-  const bkEnd   = alerts.filter(a=>a.rule==='data_blackout_end').map(a=>fmtTs(a.ts));
-
-  new Chart(document.getElementById('chart-gap'),{
-    type:'line',
-    data:{
-      labels,
-      datasets:[
-        {label:'Brecha (votos)',data:gaps,borderColor:'#fb923c',backgroundColor:'rgba(251,146,60,.07)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
-        {label:'Blackout start',data:labels.map((l,i)=>bkStart.includes(l)?gaps[i]:null),borderColor:'#f87171',backgroundColor:'#f87171',pointRadius:6,pointStyle:'triangle',showLine:false,label:'Blackout'},
-      ]
-    },
-    options:{
-      ...chartDefaults,
-      scales:{
-        ...chartDefaults.scales,
-        y:{...chartDefaults.scales.y,title:{display:true,text:'Brecha de votos',color:'#8b929c'}},
-      }
-    }
-  });
-
-  // ── Alert table ────────────────────────────────────────────────────────
-  let activeFilter = 'ALL';
-  const rules = ['ALL',...new Set(alerts.map(a=>a.rule))];
-
-  function renderTable(){
-    const filtered = activeFilter==='ALL' ? alerts : alerts.filter(a=>a.rule===activeFilter);
-    document.getElementById('alert-tbody').innerHTML = filtered.map(a=>`
-      <tr>
-        <td><span class="sev sev-${a.severity}">${a.severity}</span></td>
-        <td><span class="rule-code">${a.rule}</span></td>
-        <td class="ts-cell">${fmtTs(a.ts)}</td>
-        <td class="msg-cell">${a.message}</td>
-      </tr>`).join('');
-  }
-
-  document.getElementById('filter-btns').innerHTML = rules.map(r=>`
-    <button class="f-btn${r==='ALL'?' active':''}" data-rule="${r}">${r==='ALL'?'Todas':r}</button>
-  `).join('');
-
-  document.getElementById('filter-btns').addEventListener('click',e=>{
-    const btn = e.target.closest('.f-btn');
-    if(!btn) return;
-    activeFilter = btn.dataset.rule;
-    document.querySelectorAll('.f-btn').forEach(b=>b.classList.toggle('active', b===btn));
-    renderTable();
-  });
-
-  renderTable();
+function step(dir){
+  if(playInterval){clearInterval(playInterval);playInterval=null;document.getElementById('play-btn').textContent='▶ Play';}
+  scrub(currentIdx+dir);
 }
 
-init();
+function updateStatusBadges(snap,idx){
+  var alertsUpTo=series.alerts.filter(function(a){return a.ts<=snap.ts;});
+  var criticals=alertsUpTo.filter(function(a){return a.severity==='CRITICAL';}).length;
+  var blackoutsUpTo=series.snapshots.slice(0,idx+1).filter(function(s){return s.blackout;}).length;
+  var estadoEl=document.getElementById('badge-estado');
+  var estadoTxt=document.getElementById('badge-estado-txt');
+  if(criticals>0){estadoEl.className='status-card sc-bad';estadoEl.querySelector('.dot').className='dot dot-bad';estadoTxt.textContent='ANOMALÍAS DETECTADAS';}
+  else{estadoEl.className='status-card sc-ok';estadoEl.querySelector('.dot').className='dot dot-ok';estadoTxt.textContent='SIN ANOMALÍAS';}
+  var alertBadge=document.getElementById('badge-alertas');
+  alertBadge.className=criticals>0?'status-card sc-bad':'status-card sc-ok';
+  alertBadge.querySelector('.dot').className=criticals>0?'dot dot-bad':'dot dot-ok';
+  document.getElementById('badge-alertas-txt').textContent=criticals+' ALERTAS CRÍTICAS';
+  var boBadge=document.getElementById('badge-blackout');
+  if(snap.blackout){boBadge.className='status-card sc-bad';boBadge.querySelector('.dot').className='dot dot-bad';document.getElementById('badge-blackout-txt').textContent='⚠ BLACKOUT ACTIVO';}
+  else if(blackoutsUpTo>0){boBadge.className='status-card sc-warn';boBadge.querySelector('.dot').className='dot dot-warn';document.getElementById('badge-blackout-txt').textContent=blackoutsUpTo+' BLACKOUTS VISTOS';}
+  else{boBadge.className='status-card sc-ok';boBadge.querySelector('.dot').className='dot dot-ok';document.getElementById('badge-blackout-txt').textContent='SIN BLACKOUT';}
+  document.getElementById('badge-escrutinio-txt').textContent='ESCRUTINIO '+snap.pct_escrutinio.toFixed(1)+'%';
+}
+
+function updateKPIs(snap){
+  var pctIncons=snap.actas_divulgadas>0?(snap.inconsistentes/snap.actas_divulgadas*100).toFixed(1):'0.0';
+  var acTot=snap.actas_totales>0?snap.actas_totales:19152;
+  setText('v-actas',fmt(snap.actas_divulgadas));
+  setText('l-actas','de '+fmt(acTot)+' totales');
+  document.getElementById('prog-actas').style.width=Math.min(snap.actas_totales>0?snap.actas_divulgadas/snap.actas_totales*100:snap.pct_escrutinio,100)+'%';
+  setText('v-votos',snap.validos>0?fmt(snap.validos):(snap.blackout?'—':'0'));
+  setText('v-escrutinio',snap.pct_escrutinio.toFixed(1)+'%');
+  document.getElementById('prog-escrutinio').style.width=Math.min(snap.pct_escrutinio,100)+'%';
+  setText('v-incons',fmt(snap.inconsistentes));
+  setText('l-incons',pctIncons+'% del total divulgado');
+  document.getElementById('kpi-incons').className='card'+(parseFloat(pctIncons)>=10?' kpi-bad':' kpi-ok');
+}
+
+function buildCandList(){
+  var snap=series.snapshots[0];
+  document.getElementById('cand-list').innerHTML=snap.partidos.map(function(p){
+    return '<div class="cand-row" id="crow-'+p.abbrev+'">'+
+      '<div class="cand-name" title="'+escHtml(p.candidato)+'">'+p.abbrev+' · '+p.candidato.split(' ')[0]+'</div>'+
+      '<div class="cand-bar-wrap"><div class="cand-bar" id="cbar-'+p.abbrev+'" style="width:'+p.pct+'%;background:'+p.color+'"></div></div>'+
+      '<div class="cand-pct" id="cpct-'+p.abbrev+'" style="color:'+p.color+'">'+p.pct.toFixed(1)+'%</div>'+
+      '<div class="cand-votes" id="cvot-'+p.abbrev+'">'+fmt(p.votos)+'</div></div>';
+  }).join('');
+}
+
+function updateCandidates(snap){
+  document.getElementById('blackout-notice').style.display=snap.blackout?'block':'none';
+  var maxV=Math.max.apply(null,snap.partidos.map(function(p){return p.votos;}).concat([1]));
+  snap.partidos.forEach(function(p){
+    var barEl=document.getElementById('cbar-'+p.abbrev);
+    var pctEl=document.getElementById('cpct-'+p.abbrev);
+    var votEl=document.getElementById('cvot-'+p.abbrev);
+    if(!barEl) return;
+    if(snap.blackout){barEl.style.width='0%';pctEl.textContent='—';votEl.textContent='VACÍO';votEl.style.color='var(--bad)';}
+    else{barEl.style.width=(maxV>0?p.votos/maxV*100:0)+'%';pctEl.textContent=p.pct.toFixed(1)+'%';votEl.textContent=fmt(p.votos);votEl.style.color='var(--muted)';}
+  });
+}
+
+var FC_RULES={incons:['inconsistency_rate'],blackout:['data_blackout_start','data_blackout_end'],jump:['snapshot_jump'],universe:['universe_mutation'],reversal:['trend_reversal_at_blackout'],speed:['processing_speed']};
+
+function updateForensics(snap){
+  var alertsUpTo=series.alerts.filter(function(a){return a.ts<=snap.ts;});
+  Object.keys(FC_RULES).forEach(function(key){
+    var rules=FC_RULES[key];
+    var matches=alertsUpTo.filter(function(a){return rules.indexOf(a.rule)>=0;});
+    var fsEl=document.getElementById('fs-'+key);
+    var fmEl=document.getElementById('fm-'+key);
+    if(matches.length>0){
+      var isCrit=matches.some(function(a){return a.severity==='CRITICAL';});
+      fsEl.style.background=isCrit?'var(--bad)':'var(--warn)';
+      if(fmEl){var last=matches[matches.length-1];fmEl.textContent='['+last.rule+'] '+last.message;fmEl.style.display='block';}
+    }else{fsEl.style.background='var(--muted)';if(fmEl) fmEl.style.display='none';}
+  });
+}
+
+function toggleFC(key){document.getElementById('fc-'+key).classList.toggle('open');document.getElementById('fb-'+key).classList.toggle('open');}
+
+function updateAlertTable(ts){
+  var filtered=series.alerts.filter(function(a){return a.ts<=ts;});
+  document.getElementById('alert-count-label').textContent='· '+filtered.length+' de '+series.alerts.length;
+  var tbody=document.getElementById('alert-tbody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:20px">Sin alertas hasta este instante</td></tr>';return;}
+  tbody.innerHTML=filtered.slice().reverse().map(function(a){
+    return '<tr><td>'+fmtTsShort(a.ts)+'</td><td>'+escHtml(a.rule)+'</td><td class="sev-'+a.severity+'">'+a.severity+'</td><td style="color:var(--fg);font-family:-apple-system,sans-serif;font-size:12px">'+escHtml(a.message)+'</td></tr>';
+  }).join('');
+}
+
+function initCharts(){
+  var snaps=series.snapshots;
+  var labels=snaps.map(function(s){return fmtTsShort(s.ts);});
+  function baseOpts(){return {responsive:true,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}},tooltip:{backgroundColor:'#1a1d24',titleColor:'#e7e9ec',bodyColor:'#8b929c',borderColor:'#24272e',borderWidth:1}},scales:{x:{ticks:{color:'#8b929c',maxRotation:45,font:{size:9},maxTicksLimit:12},grid:{color:'#24272e'}},y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10}}}}};}
+  var escData=snaps.map(function(s){return s.blackout?null:s.pct_escrutinio;});
+  charts.escrutinio=new Chart(document.getElementById('chart-escrutinio'),{type:'line',data:{labels:labels,datasets:[{label:'Escrutinio %',data:escData,borderColor:'var(--replay)',backgroundColor:'rgba(201,122,247,.12)',fill:true,tension:0.3,pointRadius:2,borderWidth:2,spanGaps:true},{label:'Blackout',data:snaps.map(function(s){return s.blackout?101:null;}),borderColor:'transparent',backgroundColor:'rgba(223,107,134,.2)',fill:true,pointRadius:0,borderWidth:0}]},options:baseOpts()});
+  var gapData=snaps.map(function(s){if(s.blackout||s.partidos.length<2) return null;var sorted=s.partidos.slice().sort(function(a,b){return b.votos-a.votos;});return sorted[0].votos-sorted[1].votos;});
+  var maxGap=Math.max.apply(null,gapData.filter(function(v){return v!==null;}).concat([1]));
+  charts.gap=new Chart(document.getElementById('chart-gap'),{type:'line',data:{labels:labels,datasets:[{label:'Brecha votos (1°−2°)',data:gapData,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.1)',fill:true,tension:0.3,pointRadius:2,borderWidth:2,spanGaps:true},{label:'Blackout',data:snaps.map(function(s){return s.blackout?maxGap:null;}),borderColor:'transparent',backgroundColor:'rgba(223,107,134,.2)',fill:true,pointRadius:0,borderWidth:0}]},options:baseOpts()});
+  charts.incons=new Chart(document.getElementById('chart-incons'),{type:'line',data:{labels:labels,datasets:[{label:'Actas inconsistentes',data:snaps.map(function(s){return s.inconsistentes;}),borderColor:'var(--bad)',backgroundColor:'rgba(223,107,134,.12)',fill:true,tension:0.3,pointRadius:2,borderWidth:2}]},options:baseOpts()});
+  charts.benford=null;
+  renderBenford(0);
+}
+
+function renderBenford(idx){
+  var snaps=series.snapshots.slice(0,idx+1);
+  var votes=[];
+  snaps.forEach(function(s){if(s.blackout) return;s.partidos.forEach(function(p){if(p.votos>0) votes.push(p.votos);});});
+  var counts=[0,0,0,0,0,0,0,0,0];
+  votes.forEach(function(v){var s=String(v).replace(/[^0-9]/g,'');if(!s) return;var d=parseInt(s[0],10);if(d>=1&&d<=9) counts[d-1]++;});
+  var total=counts.reduce(function(a,b){return a+b;},0)||1;
+  var observed=counts.map(function(c){return +(c/total*100).toFixed(1);});
+  var expected=[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6];
+  document.getElementById('benford-label').textContent='('+votes.length+' valores)';
+  var el=document.getElementById('chart-benford');
+  if(charts.benford){charts.benford.destroy();charts.benford=null;}
+  charts.benford=new Chart(el,{type:'bar',data:{labels:['1','2','3','4','5','6','7','8','9'],datasets:[{label:'Observado %',data:observed,backgroundColor:'rgba(201,122,247,.6)',borderRadius:4},{label:'Benford esperado %',data:expected,backgroundColor:'rgba(139,146,156,.2)',borderRadius:4}]},options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},scales:{x:{ticks:{color:'#8b929c'},grid:{color:'#24272e'}},y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',callback:function(v){return v+'%';}}}}}});
+}
+
+function refreshCharts(){
+  if(charts.escrutinio) charts.escrutinio.draw();
+  if(charts.gap) charts.gap.draw();
+  if(charts.incons) charts.incons.draw();
+  renderBenford(currentIdx);
+}
+
+function fmt(n){if(n===null||n===undefined) return '—';return n.toLocaleString('es-HN');}
+function fmtTs(ts){if(!ts) return '—';var d=new Date(ts);return d.toLocaleString('es-HN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+' UTC';}
+function fmtTsShort(ts){if(!ts) return '—';var d=new Date(ts);return d.toLocaleDateString('es-HN',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'});}
+function setText(id,val){var el=document.getElementById(id);if(el) el.textContent=val;}
+function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 </script>
 </body>
 </html>
