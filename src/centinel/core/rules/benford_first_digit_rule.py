@@ -191,7 +191,12 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
             "severity": severity,
             "department": department,
             "message": message,
-            "value": {"mad": mad, "p_value": float(chi_result.pvalue)},
+            "value": {
+                "mad": mad,
+                "p_value": float(chi_result.pvalue),
+                "observed_pct": (observed_counts / total * 100).tolist(),
+                "expected_pct": (expected_probs * 100).tolist(),
+            },
             "threshold": {
                 "mad_warning": mad_warning,
                 "mad_critical": mad_critical,
