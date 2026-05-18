@@ -11,6 +11,9 @@
 analysis_results.json
 analysis_results.parquet
 anomalies_report.json
+centinel_informe_nacional.pdf
+centinel_informe_nacional.sha256
+*.sha256
 
 # Config history (auto-archived by config_loader)
 command_center/configs/history/
