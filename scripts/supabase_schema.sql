@@ -1,6 +1,6 @@
 -- Centinel Electoral Honduras — Supabase Schema
--- Ejecutar una sola vez en el proyecto Supabase (SQL Editor)
--- Run once in your Supabase project (SQL Editor)
+-- Idempotente: seguro de re-ejecutar en cualquier momento sin errores.
+-- Idempotent: safe to re-run at any time without errors.
 
 -- ================================================================
 -- TABLAS PÚBLICAS (lectura sin autenticación)
