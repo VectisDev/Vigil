@@ -18,6 +18,13 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 #breadcrumb{padding:10px 24px;background:var(--panel);border-bottom:1px solid var(--border);
   font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
 #breadcrumb span{color:var(--fg)}
+#breadcrumb a{color:var(--muted);text-decoration:none}
+#breadcrumb a:hover{color:var(--fg)}
+#dl-btn{margin-left:auto;display:flex;gap:6px}
+.dl-pill{background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
+  letter-spacing:.03em;transition:.15s}
+.dl-pill:hover{border-color:var(--accent);color:var(--accent)}
 
 /* ── CONSOLA DE REPRODUCCIÓN FORENSE ── */
 #sim-control-bar{
@@ -247,7 +254,13 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 
 <!-- BREADCRUMB -->
 <div id="breadcrumb">
-  CENTINEL / Sandbox / <span>Simulación Forense Académica</span>
+  <a href="../../">CENTINEL</a>
+  <span class="sep">/</span>
+  <span>Simulación Forense Académica</span>
+  <div id="dl-btn">
+    <button class="dl-pill" onclick="downloadPNG()">↓ PNG</button>
+    <button class="dl-pill" onclick="downloadPDF()">↓ PDF</button>
+  </div>
 </div>
 
 <!-- CONSOLA DE REPRODUCCIÓN FORENSE -->
@@ -1367,6 +1380,30 @@ function restoreVis(){
   logE('OK','Sandbox Forense Académico listo — CENTINEL v1');
   logE('INFO','Selecciona un dataset y presiona ▶ para iniciar la simulación');
 })();
+
+function downloadPNG(){
+  import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.min.js')
+    .then(m=>m.default(document.querySelector('.page'),{backgroundColor:'#0f1115',scale:2,useCORS:true}))
+    .then(canvas=>{const a=document.createElement('a');
+      a.href=canvas.toDataURL('image/png');
+      a.download=`centinel-sandbox-snap${SIM.idx+1}.png`;a.click();
+      logE('OK','PNG exportado');})
+    .catch(()=>logE('WARN','Error generando PNG'));
+}
+function downloadPDF(){
+  import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.min.js')
+    .then(m=>m.default(document.querySelector('.page'),{backgroundColor:'#0f1115',scale:2,useCORS:true}))
+    .then(canvas=>{
+      const w=canvas.width,h=canvas.height;
+      const pdf=URL.createObjectURL(new Blob([
+        `%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${w/2} ${h/2}]/Contents 4 0 R/Resources<</XObject<</Im1 5 0 R>>>>>>endobj\n`],
+        {type:'application/pdf'}));
+      // Fallback: open PNG in new tab for print-to-PDF
+      const win=window.open('');
+      win.document.write(`<title>CENTINEL Sandbox — Snap ${SIM.idx+1}</title><body style="margin:0;background:#0f1115"><img src="${canvas.toDataURL()}" style="max-width:100%"></body>`);
+      logE('OK','Abre el panel del navegador → Imprimir → Guardar como PDF');})
+    .catch(()=>logE('WARN','Error generando PDF'));
+}
 </script>
 </body>
 </html>
