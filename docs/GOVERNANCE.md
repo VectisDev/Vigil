@@ -1,7 +1,7 @@
 # Governance Document — Centinel Engine
 ## Documento de Gobernanza
 
-**Version:** 1.0 | **Date:** 2025-05-17 | **Status:** Active
+**Version:** 1.1 | **Date:** 2026-05-18 | **Status:** Active
 
 ---
 

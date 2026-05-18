@@ -1,4 +1,6 @@
-# Preparación institucional para observadores multilaterales
+# Preparación Institucional | Institutional Readiness
+
+**Version:** 1.0 | **Date:** 2026-05-18 | **Status:** Active
 
 ## Contexto
 Esta nota resume qué puede presentar hoy C.E.N.T.I.N.E.L. en conversaciones de alto nivel con entes como OEA/UE/Carter Center, y qué reforzar para aumentar confianza externa.

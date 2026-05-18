@@ -1,5 +1,7 @@
 # Metodología Técnica | Technical Methodology
 
+**Version:** 1.1 | **Date:** 2026-05-18 | **Status:** Active
+
 > **Estado de implementación:** Este documento refleja el sistema **tal como está
 > implementado y corriendo en producción**, no un plan futuro. Cada regla descrita
 > existe en `src/centinel/core/rules/` o `src/auditor/inconsistent_acts.py` y se
