@@ -30,6 +30,7 @@ with SHA-256, and applies 24 statistical detectors to detect manipulation in rea
 | 3 | **Governance** | [`docs/GOVERNANCE.md`](../docs/GOVERNANCE.md) | Estructura de decisión, licencia AGPL y sostenibilidad / Decision structure, AGPL license, sustainability |
 | 4 | **Security Audit** | [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md) | Red-team interno RT-01..RT-15, score 9.9/10, todos cerrados / Internal red-team, all 15 issues closed |
 | 5 | **False Positive Analysis** | [`docs/FALSE_POSITIVE_ANALYSIS.md`](../docs/FALSE_POSITIVE_ANALYSIS.md) | Análisis de tasa de falsas alarmas por detector / False alarm rate per detector |
+| 6 | **Budget Narrative** | [`docs/BUDGET_NARRATIVE.md`](../docs/BUDGET_NARRATIVE.md) | Presupuesto detallado para grant OTF / Detailed OTF grant budget ($95K, 12 meses) |
 
 ---
 
