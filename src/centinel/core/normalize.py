@@ -79,7 +79,7 @@ import json
 import logging
 from typing import Dict, Any, List, Iterable, Literal
 
-from pydantic import BaseModel, Field, ValidationError, validator, root_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator, ConfigDict
 
 import jsonschema
 
@@ -150,7 +150,7 @@ class PresidentialActa(BaseModel):
     votos_totales: Any | None = None
     meta: Dict[str, Any] | None = None
 
-    @validator("departamento", pre=True)
+    @field_validator("departamento", mode="before")
     def _strip_departamento(cls, value: str | None) -> str | None:
         """/** Normaliza departamento y valida no vacío si está presente.
         / Normalize department and validate non-empty when present. **/"""
@@ -161,14 +161,14 @@ class PresidentialActa(BaseModel):
             raise ValueError("departamento cannot be empty")
         return cleaned
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def _alias_votes(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """/** Normaliza votos desde claves alternativas. / Normalize votes from alternative keys. **/"""
         if "votos" not in values and "total_votes" in values:
             values["votos"] = values["total_votes"]
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def _require_minimal_structure(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """/** Valida que el payload tenga al menos una estructura reconocible.
 
@@ -186,13 +186,7 @@ class PresidentialActa(BaseModel):
             )
         return values
 
-    class Config:
-        """Español: Clase Config del módulo src/centinel/core/normalize.py.
-
-        English: Config class defined in src/centinel/core/normalize.py.
-        """
-
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 def _drop_disallowed_keys(payload: Any) -> Any:
@@ -242,7 +236,7 @@ def _compute_payload_hash(raw: Any) -> str:
 def _validate_presidential_acta(raw: Dict[str, Any], payload_hash: str) -> bool:
     """/** Valida payload con Pydantic y registra errores. / Validate payload with Pydantic and log errors. **/"""
     try:
-        PresidentialActa.parse_obj(raw)
+        PresidentialActa.model_validate(raw)
     except ValidationError as exc:
         # Seguridad: registrar hash del JSON inválido sin datos sensibles. / Security: log invalid JSON hash without sensitive data.
         logger.error("presidential_acta_invalid hash=%s error=%s", payload_hash, exc)
