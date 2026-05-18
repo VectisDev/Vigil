@@ -69,7 +69,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 from __future__ import annotations
 
 import argparse
@@ -575,17 +574,21 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             [[sx["exec_status_label"], data.get("global_status_text", "")]],
             colWidths=[doc.width * 0.35, doc.width * 0.65],
         )
-        status_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#1F77B4")),
-            ("TEXTCOLOR", (0, 0), (0, 0), colors.white),
-            ("FONTNAME", (0, 0), (0, 0), bold_font),
-            ("FONTNAME", (1, 0), (1, 0), bold_font),
-            ("FONTSIZE", (0, 0), (-1, -1), 10),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d0d4db")),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ]))
+        status_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#1F77B4")),
+                    ("TEXTCOLOR", (0, 0), (0, 0), colors.white),
+                    ("FONTNAME", (0, 0), (0, 0), bold_font),
+                    ("FONTNAME", (1, 0), (1, 0), bold_font),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d0d4db")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
         page.append(status_table)
         page.append(Spacer(1, 8))
         page.append(Paragraph(sx["exec_how_verify"], styles["HeadingSecondary"]))
@@ -595,15 +598,19 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             [[sx["exec_agnostic"]]],
             colWidths=[doc.width],
         )
-        note_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF3CD")),
-            ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#856404")),
-            ("FONTNAME", (0, 0), (-1, -1), bold_font),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("TOPPADDING", (0, 0), (-1, -1), 8),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-            ("LEFTPADDING", (0, 0), (-1, -1), 10),
-        ]))
+        note_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF3CD")),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#856404")),
+                    ("FONTNAME", (0, 0), (-1, -1), bold_font),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("TOPPADDING", (0, 0), (-1, -1), 8),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ]
+            )
+        )
         page.append(note_table)
         return page
 
@@ -729,14 +736,15 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
         """
         canvas.saveState()
         # ── LETTERHEAD: dark blue bar on page 1 only ──
-        if getattr(canvas, '_pageNumber', 0) == 1:
+        if getattr(canvas, "_pageNumber", 0) == 1:
             lh_h = 1.4 * cm
             canvas.setFillColor(colors.Color(0.07, 0.14, 0.30))
             canvas.rect(0, page_size[1] - lh_h, page_size[0], lh_h, fill=1, stroke=0)
             canvas.setFont(bold_font, 11)
             canvas.setFillColor(colors.white)
-            canvas.drawString(1.5 * cm, page_size[1] - lh_h + 0.38 * cm,
-                              "Centinela Electoral Honduras — Motor de Auditoría Electoral")
+            canvas.drawString(
+                1.5 * cm, page_size[1] - lh_h + 0.38 * cm, "Centinela Electoral Honduras — Motor de Auditoría Electoral"
+            )
         canvas.setFont(regular_font, 8)
         canvas.setFillColor(colors.grey)
         canvas.drawString(1.5 * cm, 0.75 * cm, data["footer_left"])
@@ -795,8 +803,7 @@ _STRINGS: dict[str, dict[str, str]] = {
         "generated_tpl": "Fecha/hora: {ts} UTC",
         "global_status": "ESTATUS GLOBAL: VERIFICABLE · SIN ANOMALÍAS CRÍTICAS",
         "executive_summary": (
-            "Auditoría digital con deltas por departamento, controles Benford "
-            "y trazabilidad criptográfica."
+            "Auditoría digital con deltas por departamento, controles Benford " "y trazabilidad criptográfica."
         ),
         "kpi_headers": ["Auditorías", "Correctivas", "Snapshots", "Reglas", "Hashes"],
         "anomaly_headers": ["Dept", "Candidato", "Δ abs", "Δ %", "Hora", "Hash", "Tipo"],
@@ -848,8 +855,7 @@ _STRINGS: dict[str, dict[str, str]] = {
         "generated_tpl": "Generated: {ts} UTC",
         "global_status": "GLOBAL STATUS: VERIFIABLE · NO CRITICAL ANOMALIES",
         "executive_summary": (
-            "Digital audit with deltas by department, Benford controls "
-            "and cryptographic traceability."
+            "Digital audit with deltas by department, Benford controls " "and cryptographic traceability."
         ),
         "kpi_headers": ["Audits", "Corrective", "Snapshots", "Rules", "Hashes"],
         "anomaly_headers": ["Dept", "Candidate", "Δ abs", "Δ %", "Hour", "Hash", "Type"],
@@ -857,9 +863,7 @@ _STRINGS: dict[str, dict[str, str]] = {
         "rules_list": ["granular_anomaly (Δ% 0.5)", "benford (p<0.05)", "z-score (>3)"],
         "crypto_text": "Root hash: {root_hash} · QR for public scan and validation.",
         "risk_text": "Risk map: negative deltas, temporal irregularities and geographic dispersion.",
-        "governance_text": (
-            "Governance: traceability, immutability and audited publication of CNE JSON."
-        ),
+        "governance_text": ("Governance: traceability, immutability and audited publication of CNE JSON."),
         "benford_caption": "Benford distribution: observed vs expected (red when exceeding 5%).",
         "timeline_caption": "Timeline with red dots at anomaly hours.",
         "heatmap_caption": "Risk map by department/hour (red = higher risk).",
@@ -940,7 +944,9 @@ def main() -> None:
     else:
         snapshot_rows = [
             ["Timestamp", "Dept", "Candidato", "Impacto", "Estado", "Hash"],
-        ] + snapshots_real[_snap_cols].head(10).values.tolist()
+        ] + snapshots_real[
+            _snap_cols
+        ].head(10).values.tolist()
 
     s = _STRINGS.get(args.lang, _STRINGS["es"])
     # For bilingual executive summary, always include both languages
@@ -1002,6 +1008,7 @@ def main() -> None:
 def _upload_to_supabase(pdf_bytes: bytes, filename: str) -> str | None:
     """Upload PDF to Supabase Storage bucket 'reports'. Returns public URL or None."""
     import os
+
     supabase_url = os.environ.get("SUPABASE_URL", "")
     service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
     if not supabase_url or not service_key or "PROYECTO" in supabase_url:
@@ -1009,6 +1016,7 @@ def _upload_to_supabase(pdf_bytes: bytes, filename: str) -> str | None:
         return None
     try:
         import urllib.request
+
         ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         object_path = f"reports/{ts}_{filename}"
         upload_url = f"{supabase_url}/storage/v1/object/{object_path}"
@@ -1023,7 +1031,7 @@ def _upload_to_supabase(pdf_bytes: bytes, filename: str) -> str | None:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req) as resp:  # nosec B310
             resp.read()
         public_url = f"{supabase_url}/storage/v1/object/public/{object_path}"
         print(f"PDF uploaded: {public_url}")

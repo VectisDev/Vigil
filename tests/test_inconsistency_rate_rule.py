@@ -52,6 +52,7 @@ from centinel.core.rules.registry import list_rules
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
 
+
 def _cne_snap(actas_inconsistentes: int, actas_correctas: int) -> dict:
     """Construye un snapshot en formato JSON crudo del CNE."""
     divulgadas = actas_inconsistentes + actas_correctas
@@ -97,6 +98,7 @@ CONFIG_DEFAULT = {"critical_pct": 10, "escalation_delta_pct": 1.0}
 
 # ── Tests de nivel absoluto ───────────────────────────────────────────────
 
+
 def test_no_alert_below_threshold():
     """No debe alertar cuando la tasa es menor al umbral crítico."""
     snap = _cne_snap(actas_inconsistentes=500, actas_correctas=9500)  # 5%
@@ -128,11 +130,12 @@ def test_at_exact_threshold_triggers():
 
 # ── Tests de escalada ─────────────────────────────────────────────────────
 
+
 def test_escalation_alert():
     """Debe emitir alerta de escalada cuando la tasa sube > delta umbral."""
     # prev: 5% → current: 7% (Δ = 2% > 1% umbral)
-    prev = _cne_snap(actas_inconsistentes=500, actas_correctas=9500)   # 5%
-    curr = _cne_snap(actas_inconsistentes=700, actas_correctas=9300)   # 7%
+    prev = _cne_snap(actas_inconsistentes=500, actas_correctas=9500)  # 5%
+    curr = _cne_snap(actas_inconsistentes=700, actas_correctas=9300)  # 7%
     alerts = apply(curr, prev, CONFIG_DEFAULT)
     esc_alerts = [a for a in alerts if "Escalada" in a["type"]]
     assert len(esc_alerts) == 1
@@ -161,6 +164,7 @@ def test_no_previous_data_only_level():
 
 # ── Tests de datos vacíos o faltantes ────────────────────────────────────
 
+
 def test_no_alert_without_inconsistency_data():
     """No debe alertar si no hay datos de inconsistencias."""
     snap = {"totals": {"total_votes": 1000000}}
@@ -185,6 +189,7 @@ def test_no_alert_zero_actas_divulgadas():
 
 # ── Test de formato canónico ──────────────────────────────────────────────
 
+
 def test_canonical_format():
     """La regla debe funcionar con el formato canónico de Centinel."""
     snap = _canonical_snap(actas_inconsistentes=1500, actas_divulgadas=10000)  # 15%
@@ -195,6 +200,7 @@ def test_canonical_format():
 
 
 # ── Test de registro ──────────────────────────────────────────────────────
+
 
 def test_rule_registered():
     """La regla debe estar registrada en el registry con los metadatos correctos."""

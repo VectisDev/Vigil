@@ -185,9 +185,7 @@ class RulesEngine:
         if not rules_config.get("global_enabled", True):
             return False
 
-        if rule.config_key in RESEARCH_RULE_KEYS and not rules_config.get(
-            "enable_research_rules", False
-        ):
+        if rule.config_key in RESEARCH_RULE_KEYS and not rules_config.get("enable_research_rules", False):
             return False
 
         return self._get_rule_config(rule).get("enabled", True)
@@ -223,8 +221,7 @@ class RulesEngine:
                         "severity": "CRITICAL",
                         "snapshot": snapshot_name,
                         "justification": (
-                            "Falta el snapshot esperado en el directorio normalizado. "
-                            f"snapshot={snapshot_name}."
+                            "Falta el snapshot esperado en el directorio normalizado. " f"snapshot={snapshot_name}."
                         ),
                     }
                 )

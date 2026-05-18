@@ -208,12 +208,14 @@ def load_hash_chain(source_dir: Path) -> list[dict]:
         try:
             snap = json.loads(f.read_text())
             if "hash" in snap or "snapshot_hash" in snap:
-                entries.append({
-                    "file": f.name,
-                    "hash": snap.get("hash") or snap.get("snapshot_hash"),
-                    "timestamp": snap.get("timestamp") or snap.get("captured_at"),
-                    "previous_hash": snap.get("previous_hash"),
-                })
+                entries.append(
+                    {
+                        "file": f.name,
+                        "hash": snap.get("hash") or snap.get("snapshot_hash"),
+                        "timestamp": snap.get("timestamp") or snap.get("captured_at"),
+                        "previous_hash": snap.get("previous_hash"),
+                    }
+                )
         except Exception:
             continue
     return entries
@@ -222,6 +224,7 @@ def load_hash_chain(source_dir: Path) -> list[dict]:
 def compute_merkle_root(hashes: list[str]) -> str:
     """Bitcoin-style Merkle root."""
     import hashlib as _h
+
     if not hashes:
         return ""
     if len(hashes) == 1:
@@ -238,13 +241,16 @@ def compute_merkle_root(hashes: list[str]) -> str:
 
 def generate_pdf_report(source_dir: Path, lang: str) -> bytes:
     """Call generate_report.py and return PDF bytes."""
-    output_name = f"/tmp/centinel_report_{lang}.pdf"
+    output_name = f"/tmp/centinel_report_{lang}.pdf"  # nosec B108
     cmd = [
         sys.executable,
         str(Path(__file__).parent / "generate_report.py"),
-        "--source-dir", str(source_dir),
-        "--output", output_name,
-        "--lang", lang,
+        "--source-dir",
+        str(source_dir),
+        "--output",
+        output_name,
+        "--lang",
+        lang,
         "--sign",
     ]
     try:
@@ -268,13 +274,16 @@ def build_observer_pack(
     hashes = [e.get("hash", "") for e in hash_chain if e.get("hash")]
     merkle_root = compute_merkle_root(hashes)
 
-    hash_chain_json = json.dumps({
-        "run_id": run_id,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "merkle_root": merkle_root,
-        "chain_length": len(hash_chain),
-        "entries": hash_chain,
-    }, indent=2).encode()
+    hash_chain_json = json.dumps(
+        {
+            "run_id": run_id,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "merkle_root": merkle_root,
+            "chain_length": len(hash_chain),
+            "entries": hash_chain,
+        },
+        indent=2,
+    ).encode()
 
     snapshot_json = json.dumps(snapshot, indent=2, ensure_ascii=False).encode()
     merkle_txt = f"{merkle_root}\n".encode()
@@ -313,10 +322,7 @@ def build_observer_pack(
         files["checkpoint.ots"] = ots_found
 
     # Build manifest
-    manifest_lines = [
-        f"{_sha256_bytes(content)}  {name}\n"
-        for name, content in sorted(files.items())
-    ]
+    manifest_lines = [f"{_sha256_bytes(content)}  {name}\n" for name, content in sorted(files.items())]
     manifest_bytes = "".join(manifest_lines).encode()
     files["manifest.sha256"] = manifest_bytes
 
@@ -333,21 +339,14 @@ def build_observer_pack(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Generate standardized observer pack ZIP for Centinel Engine"
+    parser = argparse.ArgumentParser(description="Generate standardized observer pack ZIP for Centinel Engine")
+    parser.add_argument(
+        "--source-dir", default="data", help="Directory containing snapshot JSON files (default: data/)"
     )
     parser.add_argument(
-        "--source-dir", default="data",
-        help="Directory containing snapshot JSON files (default: data/)"
+        "--output", default="observer_pack.zip", help="Output ZIP file path (default: observer_pack.zip)"
     )
-    parser.add_argument(
-        "--output", default="observer_pack.zip",
-        help="Output ZIP file path (default: observer_pack.zip)"
-    )
-    parser.add_argument(
-        "--run-id", default=None,
-        help="Run identifier (default: current UTC timestamp)"
-    )
+    parser.add_argument("--run-id", default=None, help="Run identifier (default: current UTC timestamp)")
     args = parser.parse_args()
 
     source_dir = Path(args.source_dir)
