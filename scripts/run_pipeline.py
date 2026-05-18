@@ -1030,7 +1030,9 @@ def run_pipeline(config: dict[str, Any]) -> None:
                 run_command([sys.executable, "scripts/summarize_findings.py"], "reportes")
                 state["last_report_at"] = now.isoformat()
                 # Generate membretado PDF and upload to Supabase Storage
-                pdf_url = _generate_and_upload_pdf(args.output if hasattr(args, "output") else "centinel_informe.pdf")
+                _cli_args = globals().get("args")
+                _pdf_name = getattr(_cli_args, "output", "centinel_informe_nacional.pdf")
+                pdf_url = _generate_and_upload_pdf(_pdf_name)
                 if pdf_url:
                     state["last_report_pdf_url"] = pdf_url
             else:

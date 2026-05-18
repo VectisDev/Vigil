@@ -116,6 +116,10 @@ _install_apscheduler_stubs()
 
 def _install_crypto_stub() -> None:
     """/** Instala stub de cryptography.fernet para tests. / Install cryptography.fernet stub for tests. **"""
+    import importlib.util
+    if importlib.util.find_spec("cryptography") is not None:
+        # Real package is available — importing the stub would block cryptography.hazmat
+        return
     cryptography_module = types.ModuleType("cryptography")
     fernet_module = types.ModuleType("cryptography.fernet")
 
