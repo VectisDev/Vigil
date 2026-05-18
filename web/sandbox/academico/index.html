@@ -19,7 +19,7 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
 #breadcrumb span{color:var(--fg)}
 
-/* ── SIMULATION CONTROL BAR ── */
+/* ── CONSOLA DE REPRODUCCIÓN FORENSE ── */
 #sim-control-bar{
   position:sticky;top:0;z-index:150;
   background:rgba(15,17,21,.96);backdrop-filter:blur(8px);
@@ -250,7 +250,8 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   CENTINEL / Sandbox / <span>Simulación Forense Académica</span>
 </div>
 
-<!-- SIMULATION CONTROL BAR -->
+<!-- CONSOLA DE REPRODUCCIÓN FORENSE -->
+<div class="section-title" style="max-width:1400px;margin:16px auto 0;padding:0 24px">Consola de Reproducción Forense</div>
 <div id="sim-control-bar">
   <button class="sim-transport-btn" id="btn-play" onclick="simPlay()" title="Play">▶</button>
   <button class="sim-transport-btn" id="btn-pause" onclick="simPause()" title="Pausa">⏸</button>
@@ -275,7 +276,7 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   <select class="dataset-select" id="dataset-select" onchange="loadDataset(this.value)">
     <option value="../../data/hnd_2025_series.json">HN 2025 real (64 snaps)</option>
     <option value="../../data/sim_eleccion_limpia_5min.json">Simulación limpia — 5min (576 snaps)</option>
-    <option value="../../data/sim_eleccion_anomala_5min.json">Simulación anómala — 5min (576 snaps)</option>
+    <option value="../../data/sim_eleccion_anomala_5min.json">Simulación referencia (anomalías embebidas — ground truth)</option>
   </select>
 </div>
 
