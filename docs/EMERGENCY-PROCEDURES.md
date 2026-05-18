@@ -1,6 +1,9 @@
-# EMERGENCIA – Guía de Emergencia Centinel
+# Emergency Procedures | Guía de Emergencia Centinel
 
-Documento de una sola página para actuar en 2 minutos bajo estrés.
+**Version:** 1.0 | **Date:** 2026-05-18 | **Status:** Active
+
+Documento de una sola página para actuar en 2 minutos bajo estrés.  
+*One-page guide for action under stress in under 2 minutes.*
 
 ## Situaciones y acciones inmediatas
 
@@ -161,3 +164,41 @@ docker logs centinel-engine --tail 200
 
 **Nota final:**
 > "Primero respira. No toques nada sin pensar. Todo está diseñado para poder recuperarse."
+
+---
+
+## English Summary — Emergency Procedures
+
+This document is the operator's field guide for Centinel Engine incidents. Act within 2 minutes; escalate only after stabilizing.
+
+### Quick Diagnostic
+
+```bash
+python maintain.py status          # service health
+docker logs centinel-engine --tail 50  # recent logs (if using Docker)
+```
+
+### Scenario Matrix
+
+| Symptom | Immediate action |
+|---------|-----------------|
+| System not responding | Restart via `docker-compose down && docker-compose up -d` or `make restart` |
+| CNE API unreachable | Check network; the panel continues serving cached data from GitHub Pages |
+| Hash chain broken | DO NOT continue. Preserve logs. Contact audit team before restarting |
+| Missing snapshot | Check `data/snapshots/`; restore from last checkpoint in `data/temp/checkpoint.json` |
+| Alerts storm | Verify if election data source changed; check `logs/anchors/` for chain continuity |
+
+### Key Contacts
+
+Fill before deployment:
+
+| Role | Name | Contact |
+|------|------|---------|
+| Technical lead | ________ | ________ |
+| Backup operator | ________ | ________ |
+| UPNFM academic liaison | ________ | ________ |
+| OTF program contact | ________ | ________ |
+
+### Guiding Principle
+
+> "Breathe first. Touch nothing without thinking. Everything is designed to be recoverable."

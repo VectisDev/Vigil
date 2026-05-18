@@ -1,4 +1,6 @@
-# Auditoría de Seguridad — D11–D13 & Sistema Completo
+# Security Review | Auditoría de Seguridad
+
+**Version:** 1.0 | **Date:** 2026-05-18 | **Status:** Active
 
 **ES:** Revisión de Seguridad Técnica — Análisis de Defensas, Debilidades, Mitigaciones  
 **EN:** Technical Security Review — Defense Analysis, Weaknesses, Mitigations
