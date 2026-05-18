@@ -102,7 +102,9 @@
   .login-btn{width:100%;padding:12px;background:var(--accent);color:#0b1220;border:none;border-radius:9px;font-weight:700;font-size:15px;cursor:pointer;transition:.15s}
   .login-btn:hover{filter:brightness(1.08)}
   #login-error{color:var(--bad);font-size:12px;margin-top:8px;text-align:center;min-height:18px}
-  #login-user{position:fixed;top:14px;right:80px;font-size:12px;color:var(--muted);z-index:200}
+  #login-user{position:fixed;top:14px;right:80px;font-size:12px;color:var(--muted);z-index:200;display:flex;align-items:center;gap:10px}
+  #logout-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:2px 10px;font-size:11px;cursor:pointer;transition:.15s}
+  #logout-btn:hover{border-color:var(--bad);color:var(--bad)}
 
   /* ── KILL SWITCH ── */
   #kill-btn{position:fixed;bottom:24px;right:24px;z-index:500;background:#df6b86;color:#fff;border:none;border-radius:12px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(223,107,134,.5);letter-spacing:.02em;transition:.2s}
@@ -169,7 +171,7 @@
 <!-- ── KILL SWITCH ── -->
 <button id="kill-btn" onclick="doKillSwitch()">⏹ DETENER TODO</button>
 <div id="kill-status"></div>
-<div id="login-user"></div>
+<div id="login-user"><span id="login-user-email"></span><button id="logout-btn" hidden onclick="doLogout()">Cerrar sesión</button></div>
 
 <!-- ── NIVEL 1: DESPLIEGUE RÁPIDO ── -->
 <div class="pd-level1" id="pd-level1-box">
@@ -702,14 +704,15 @@ async function applyRole(){
 async function checkAuth(){
   if(isDemo || !sb){
     document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('login-user').textContent='Demo — sin Supabase';
+    document.getElementById('login-user-email').textContent='Demo — sin Supabase';
     return;
   }
   const {data:{user}} = await sb.auth.getUser();
   if(user){
     sbUser = user;
     document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('login-user').textContent=user.email;
+    document.getElementById('login-user-email').textContent=user.email;
+    document.getElementById('logout-btn').hidden=false;
     await applyRole();
   }
 }
@@ -734,11 +737,22 @@ async function doLogin(){
     }
     sbUser = data.user;
     document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('login-user').textContent=data.user.email;
+    document.getElementById('login-user-email').textContent=data.user.email;
+    document.getElementById('logout-btn').hidden=false;
     await applyRole();
   }catch(e){
     errEl.textContent = e.message||'Error de autenticación';
   }
+}
+
+async function doLogout(){
+  if(sb) await sb.auth.signOut();
+  sbUser = null;
+  document.getElementById('login-user-email').textContent='';
+  document.getElementById('logout-btn').hidden=true;
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
 }
 document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
