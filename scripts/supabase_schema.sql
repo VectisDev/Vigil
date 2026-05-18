@@ -145,6 +145,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS upnfm_rules_updated_at ON upnfm_rules;
 CREATE TRIGGER upnfm_rules_updated_at
   BEFORE UPDATE ON upnfm_rules
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
