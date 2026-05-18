@@ -1002,6 +1002,8 @@ function erf(x){
   const y=1-(0.254829592*t-0.284496736*t**2+1.421413741*t**3-1.453152027*t**4+1.061405429*t**5)*Math.exp(-x*x);
   return x<0?-y:y;
 }
+const PARTY_COLORS={'PN':'#0D3B99','PLH':'#FF0000','LIBRE':'#1a1a1a','PSH':'#00AEEF','DC':'#008751','PINU':'#FF6600','ALIANZA':'#0047AB'};
+function partyColor(p){return(PARTY_COLORS[p.abbrev]||p.color||'#555555')+'cc';}
 function seededRng(seed){let s=seed>>>0;return()=>{s=((s*1664525+1013904223)>>>0);return s/4294967296;};}
 const DEPTS=['Francisco Morazán','Cortés','Yoro','Olancho','Santa Bárbara','Atlántida',
   'Choluteca','Comayagua','El Paraíso','Colón','La Paz','Lempira','Copán',
@@ -1087,7 +1089,7 @@ function renderCandidates(snap){
   if(!snap.partidos)return;
   const labs=snap.partidos.map(p=>p.abbrev);
   const data=snap.partidos.map(p=>p.votos||0);
-  const bgs=snap.partidos.map(p=>p.color+'cc');
+  const bgs=snap.partidos.map(p=>partyColor(p));
   mk('s-chart-cand',{type:'bar',data:{labels:labs,datasets:[{label:'Votos',data,backgroundColor:bgs,borderRadius:5}]},
     options:{...CHART_OPT,plugins:{title:{display:true,text:'Votos por Partido',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}},legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString()} votos (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
 }
