@@ -6,7 +6,7 @@ name: Deploy web verifier to GitHub Pages
 on:
   push:
     branches: [main, dev-v10, dev-v9]
-    paths: ["web/**", ".github/workflows/pages.yml", "tests/fixtures/hnd_2025/**", "scripts/calibrate_2025.py"]
+    paths: ["web/**", ".github/workflows/pages.yml", "tests/fixtures/hnd_2025/**", "scripts/calibrate_2025.py", "scripts/generate_hnd_2025_series.py"]
   workflow_dispatch:
 
 permissions:
@@ -40,6 +40,10 @@ jobs:
           python scripts/calibrate_2025.py --data tests/fixtures/hnd_2025/ --output-dir /tmp/calibration
           cp /tmp/calibration/calibration_2025.json web/data/calibration_hnd_2025.json
         continue-on-error: true  # deploy even if calibration fails (static JSON still in repo)
+
+      - name: Generate HND-2025 time-series for panel replay
+        run: python scripts/generate_hnd_2025_series.py
+        continue-on-error: true  # deploy even if generation fails (static JSON still in repo)
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa  # v3
