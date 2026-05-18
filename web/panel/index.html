@@ -98,6 +98,13 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px;display:grid;gap:20px}
 /* ── INFO TIPS ── */
 .info-tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:rgba(139,146,156,.12);color:var(--muted);font-size:9px;font-weight:700;cursor:help;margin-left:7px;position:relative;vertical-align:middle;flex-shrink:0;user-select:none}
 
+/* ── EP GRID ── */
+#ep-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin-top:4px}
+.ep-row{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);min-width:0}
+.ep-row:nth-last-child(-n+2){border-bottom:none}
+.ep-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.ep-badge{font-size:10px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+.ep-ok{color:var(--ok)}.ep-warn{color:var(--warn)}.ep-bad{color:var(--bad)}
 /* ── CANDIDATE ── */
 .cand-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .cand-bar-wrap{flex:1;height:22px;background:var(--border);border-radius:4px;overflow:hidden;position:relative}
@@ -293,6 +300,16 @@ footer a{color:var(--accent);text-decoration:none}
 <div class="card" data-section="nullblank">
   <h2>Nulos y blancos por departamento</h2>
   <canvas id="chart-nullblank" height="200"></canvas>
+</div>
+
+<!-- ── ENDPOINTS CNE ── -->
+<div class="card" data-section="endpoints">
+  <h2>Estado endpoints CNE
+    <span class="info-tip" data-tooltip="Conectividad en tiempo real de los 19 endpoints del CNE (1 nacional + 18 departamentales). Verde = responde. Amarillo = degradado. Rojo = sin respuesta. El pipeline continúa aunque algún endpoint falle.">i</span>
+  </h2>
+  <div id="ep-card-summary" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+  <div id="ep-card-grid"></div>
+  <div id="ep-card-footer" style="font-size:11px;color:var(--muted);margin-top:10px"></div>
 </div>
 
 <!-- ── ALERTAS ── -->
@@ -665,7 +682,7 @@ const FORENSIC_DEFS=[
 function renderEndpointHealth(eh){
   _epByCode={};_epNational=null;
   const nb=document.getElementById('ep-national-badge');
-  if(!eh){nb.hidden=true;return;}
+  if(!eh){nb.hidden=true;_clearEpCard('Sin datos.');return;}
   (eh.endpoints||[]).forEach(ep=>{
     const dept=(ep.dept||'').toUpperCase().trim();
     if(dept==='NACIONAL'){_epNational=ep;}
@@ -682,6 +699,48 @@ function renderEndpointHealth(eh){
   nb.innerHTML=`<span class="dot ${dotCls}"></span>CNE ${mode}`;
   nb.hidden=false;
   updateDeptCellEpDots();
+  // ── poblar card ──
+  const grid=document.getElementById('ep-card-grid');
+  const summary=document.getElementById('ep-card-summary');
+  const footer=document.getElementById('ep-card-footer');
+  if(!grid)return;
+  if(!eh.available||!eh.endpoints||!eh.endpoints.length){
+    _clearEpCard('Sin datos — endpoints no configurados en YAML.');
+    if(summary)summary.textContent='';
+    return;
+  }
+  if(summary)summary.textContent=`${eh.online||0}/${eh.total||0} en línea · ${eh.degraded||0} degradados · ${eh.offline||0} sin respuesta`;
+  grid.innerHTML='';
+  const sorted=[...eh.endpoints].sort((a,b)=>{
+    if((a.dept||'').toUpperCase()==='NACIONAL')return -1;
+    if((b.dept||'').toUpperCase()==='NACIONAL')return 1;
+    return (a.dept||'').localeCompare(b.dept||'','es');
+  });
+  sorted.forEach(ep=>{
+    const ok=ep.status==='ok',deg=ep.status==='degraded';
+    const row=document.createElement('div');
+    row.className='ep-row';
+    row.title=ep.url||ep.dept||'';
+    row.innerHTML=`<span class="dot ${ok?'dot-ok':deg?'dot-warn':'dot-bad'}"></span>`
+      +`<span class="ep-name">${_fmtDept(ep.dept)}</span>`
+      +(ep.auto_replaced?'<span style="color:var(--warn);font-size:9px" title="Endpoint reemplazado automáticamente">⟳</span>':'')
+      +`<span class="ep-badge ${ok?'ep-ok':deg?'ep-warn':'ep-bad'}">${ok?'OK':deg?'DEG':'OFF'}</span>`;
+    grid.appendChild(row);
+  });
+  const ts=eh.checked_at?`Verificado ${ago(eh.checked_at)}`:'';
+  const modeStr=eh.animal_mode&&eh.animal_mode!=='normal'?` · Modo ${eh.animal_mode.toUpperCase()}`:'';
+  if(footer)footer.textContent=ts+modeStr;
+}
+function _clearEpCard(msg){
+  const g=document.getElementById('ep-card-grid');
+  const s=document.getElementById('ep-card-summary');
+  if(g)g.innerHTML=`<span style="color:var(--muted);font-size:12px">${msg}</span>`;
+  if(s)s.textContent='';
+}
+function _fmtDept(d){
+  if(!d||d==='?')return '—';
+  if(d.toUpperCase()==='NACIONAL')return 'Nacional';
+  return d.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 }
 function updateDeptCellEpDots(){
   document.querySelectorAll('#dept-grid .dept-cell[data-hn-code]').forEach(cell=>{
@@ -1036,7 +1095,7 @@ const SECTION_LABELS={
   incons:'Registros inconsistentes',candidates:'Candidatos y mapa',
   timeline:'Serie temporal',benford:'Benford',lastdigit:'Último dígito',
   zscore:'Z-score por depto',participation:'Participación por depto',
-  nullblank:'Nulos y blancos',alerts:'Alertas',forensics:'Análisis forense',
+  nullblank:'Nulos y blancos',endpoints:'Endpoints CNE',alerts:'Alertas',forensics:'Análisis forense',
   chain:'Cadena criptográfica',
 };
 function applySectionPrefs(){
