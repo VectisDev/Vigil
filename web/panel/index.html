@@ -38,11 +38,6 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
 .status-card.sc-ok{border-color:rgba(87,192,141,.22);color:var(--ok)}
 .status-card.sc-warn{border-color:rgba(212,176,104,.22);color:var(--warn)}
 .status-card.sc-bad{border-color:rgba(223,107,134,.22);color:var(--bad)}
-/* ops line — replaces both color banners */
-#ops-line{padding:7px 24px;font-size:11px;font-family:var(--mono);color:var(--muted);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap;letter-spacing:.01em;background:var(--bg)}
-#ops-line.ops-blackout{color:var(--bad);border-left:3px solid var(--bad);padding-left:21px}
-#ops-line .ops-tag{font-weight:700;letter-spacing:.06em;font-size:10px}
-#ops-line .ops-hash{opacity:.55;font-size:10px}
 /* global hover tooltip */
 #g-tooltip{position:fixed;background:#1a1d24;border:1px solid var(--border);color:var(--fg);font-size:11px;line-height:1.55;border-radius:7px;padding:9px 13px;max-width:260px;pointer-events:none;z-index:9999;display:none;white-space:normal;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-weight:400;box-shadow:0 4px 20px rgba(0,0,0,.4)}
 #last-update{color:var(--muted);font-size:12px;margin-left:auto}
@@ -162,7 +157,6 @@ footer a{color:var(--accent);text-decoration:none}
   <div id="ep-national-badge" class="status-card sc-ok" hidden data-gtt="Estado del endpoint nacional del CNE. Verde = responde. Rojo = sin datos, tiempo de blackout registrado con hash."><span class="dot dot-ok"></span>CNE —</div>
 </div>
 <!-- ── OPS LINE ── -->
-<div id="ops-line"><span class="ops-tag">OPERACIONAL</span><span id="ops-coverage"></span><span id="ops-blackout-info" hidden><span id="ops-since"></span><span class="ops-hash" id="ops-hash"></span></span></div>
 <!-- ── GLOBAL TOOLTIP ── -->
 <div id="g-tooltip"></div>
 <!-- ── CUSTOMIZE DRAWER ── -->
@@ -431,18 +425,7 @@ function updateStatusBar(data){
   document.getElementById('last-update').textContent='Actualizado '+ago(new Date().toISOString());
 }
 
-// ── COBERTURA DE CAPTURA → ops-line ──
-function renderCoverage(cov){
-  const covEl=document.getElementById('ops-coverage');
-  if(!cov){covEl.textContent='';return}
-  const pct=(cov.coverage_pct??100);
-  const openGap=(cov.open_gap_minutes??0);
-  const since=cov.monitoring_since?new Date(cov.monitoring_since).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}):'—';
-  let txt=`desde ${since} · cobertura ${pct.toFixed(1)}%`;
-  if(openGap>0) txt+=` · ✕ captura interrumpida ${Math.round(openGap)} min`;
-  else if(cov.gaps_count>0) txt+=` · ${cov.gaps_count} gap(s) registrados`;
-  covEl.textContent=txt;
-}
+function renderCoverage(_cov){}
 
 // ── KPIs ──
 function renderKPIs(nat){
@@ -819,34 +802,24 @@ function renderChain(records){
     </tr>`).join('');
 }
 
-// ── CNE BLACKOUT → ops-line ──
+// ── CNE BLACKOUT → ep-national-badge ──
 let _blackoutTimer=null;
 function _showBlackoutBanner(cne){
-  const line=document.getElementById('ops-line');
-  const info=document.getElementById('ops-blackout-info');
-  const tag=line.querySelector('.ops-tag');
-  if(!line)return;
-  line.classList.add('ops-blackout');
-  if(tag)tag.textContent='▲ CNE SIN RESPUESTA';
-  info.hidden=false;
-  const lastOk=cne.last_successful_fetch?new Date(cne.last_successful_fetch).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}):'—';
-  const hash=(cne.blackout_hash||'').slice(0,16);
+  const card=document.getElementById('ep-national-badge');
+  if(!card)return;
+  card.hidden=false;
+  const hash=(cne.blackout_hash||'').slice(0,12);
   if(_blackoutTimer)clearInterval(_blackoutTimer);
   let elapsed=cne.blackout_minutes||0;
   const update=()=>{
-    document.getElementById('ops-since').textContent=`· último dato ${lastOk} · ${elapsed} min `;
-    document.getElementById('ops-hash').textContent=`hash:${hash}…`;
+    card.className='status-card sc-bad';
+    card.dataset.gtt=`Sin respuesta del CNE hace ${elapsed} min. Hash evidencia: ${cne.blackout_hash||'—'}`;
+    card.innerHTML=`<span class="dot dot-bad"></span>CNE — ${elapsed} min sin datos`;
   };
   update();
   _blackoutTimer=setInterval(()=>{elapsed++;update();},60000);
 }
 function _hideBlackoutBanner(){
-  const line=document.getElementById('ops-line');
-  const info=document.getElementById('ops-blackout-info');
-  const tag=line?.querySelector('.ops-tag');
-  if(line)line.classList.remove('ops-blackout');
-  if(tag)tag.textContent='OPERACIONAL';
-  if(info)info.hidden=true;
   if(_blackoutTimer){clearInterval(_blackoutTimer);_blackoutTimer=null;}
 }
 
