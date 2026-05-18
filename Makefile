@@ -1,5 +1,5 @@
 .PHONY: help quickstart wizard setup install start stop restart status logs \
-        init snapshot collect audit analyze summary pipeline report \
+        init snapshot collect audit analyze summary pipeline report calibrate \
         security test-stress security-scan test lint \
         test-security test-security-chaos test-security-all
 
@@ -79,6 +79,9 @@ pipeline: ## Ejecutar pipeline UNA vez / Run pipeline ONCE
 
 report: ## Generar informe PDF bilingüe / Generate bilingual PDF audit report
 	$(PYTHON_COMMAND) scripts/generate_report.py
+
+calibrate: ## Calibrar reglas contra datos reales HND-2025 / Calibrate rules against HND-2025 real data
+	$(PYTHON_COMMAND) scripts/calibrate_2025.py --data tests/fixtures/hnd_2025/
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TESTS Y CALIDAD / TESTS AND QUALITY
