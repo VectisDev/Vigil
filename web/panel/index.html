@@ -26,6 +26,15 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
 .badge-ok{background:rgba(87,192,141,.07)!important;color:var(--ok);border-color:rgba(87,192,141,.22)!important}
 .badge-warn{background:rgba(212,176,102,.07)!important;color:var(--warn);border-color:rgba(212,176,102,.22)!important}
 .badge-bad{background:rgba(223,107,134,.07)!important;color:var(--bad);border-color:rgba(223,107,134,.22)!important}
+#back-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 12px;font-size:12px;cursor:pointer;transition:.15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+#back-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* Status cards row below header */
+#status-row{display:flex;gap:12px;flex-wrap:wrap;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg)}
+.status-card{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:600;letter-spacing:.03em;border:1px solid var(--border);background:rgba(255,255,255,.03);flex:1;min-width:140px;cursor:default;transition:.15s}
+.status-card:hover{background:rgba(255,255,255,.055)}
+.status-card.sc-ok{border-color:rgba(87,192,141,.22);color:var(--ok)}
+.status-card.sc-warn{border-color:rgba(212,176,104,.22);color:var(--warn)}
+.status-card.sc-bad{border-color:rgba(223,107,134,.22);color:var(--bad)}
 #last-update{margin-left:auto;color:var(--muted);font-size:12px}
 #pdf-link{color:var(--accent);font-size:11px;text-decoration:none;padding:5px 11px;border:1px solid rgba(110,168,254,.3);border-radius:7px;white-space:nowrap;transition:.15s}
 #pdf-link:hover{border-color:var(--accent)}
@@ -124,17 +133,19 @@ footer a{color:var(--accent);text-decoration:none}
 
 <!-- ── STATUS BAR ── -->
 <div id="statusbar">
+  <a id="back-btn" href="../">← Inicio</a>
   <span id="site-title">Proyecto CENTINEL - HN</span>
-  <div id="status-cards">
-    <span id="alert-badge" class="badge badge-ok" data-tip-key="badge-alert"><span class="dot dot-ok"></span>SISTEMA NORMAL</span>
-    <span id="chain-badge" class="badge badge-ok" data-tip-key="badge-chain"><span class="dot dot-ok"></span>CADENA ÍNTEGRA</span>
-    <span id="ots-badge" class="badge badge-warn" data-tip-key="badge-ots"><span class="dot dot-warn"></span>OTS VERIFICANDO</span>
-    <span id="mirror-badge" class="badge badge-ok" data-tip-key="badge-mirror"><span class="dot dot-ok"></span>ESPEJOS —</span>
-    <span id="ep-national-badge" class="badge badge-ok" hidden data-tip-key="badge-ep"><span class="dot dot-ok"></span>CNE —</span>
-  </div>
   <a id="pdf-link" href="#" hidden>⬇ PDF</a>
   <button id="customize-btn" onclick="toggleDrawer()">⚙ Personalizar</button>
   <span id="last-update">Actualizando…</span>
+</div>
+<!-- ── STATUS CARDS ROW ── -->
+<div id="status-row">
+  <div id="alert-badge" class="status-card sc-ok" data-tip-key="badge-alert"><span class="dot dot-ok"></span>SISTEMA NORMAL</div>
+  <div id="chain-badge" class="status-card sc-ok" data-tip-key="badge-chain"><span class="dot dot-ok"></span>CADENA ÍNTEGRA</div>
+  <div id="ots-badge" class="status-card sc-warn" data-tip-key="badge-ots"><span class="dot dot-warn"></span>OTS VERIFICANDO</div>
+  <div id="mirror-badge" class="status-card sc-ok" data-tip-key="badge-mirror"><span class="dot dot-ok"></span>ESPEJOS —</div>
+  <div id="ep-national-badge" class="status-card sc-ok" hidden data-tip-key="badge-ep"><span class="dot dot-ok"></span>CNE —</div>
 </div>
 <!-- ── CUSTOMIZE DRAWER ── -->
 <div id="customize-drawer">
@@ -147,7 +158,7 @@ footer a{color:var(--accent);text-decoration:none}
 <div id="cne-blackout-banner" hidden
      style="background:rgba(223,107,134,.12);border-bottom:2px solid var(--bad);
             padding:10px 24px;font-size:13px;font-weight:600;color:var(--bad);
-            position:sticky;top:52px;z-index:99;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            position:sticky;top:104px;z-index:99;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
   <span>⚠ CNE SIN RESPUESTA</span>
   <span>Duración: <span id="blackout-duration">0</span> min</span>
   <span>Último dato: <span id="blackout-last-ts">—</span></span>
@@ -401,14 +412,13 @@ function copyMerkle(){
 function updateStatusBar(data){
   const state=data.alertState||'normal';
   const ab=document.getElementById('alert-badge');
-  const dot=ab.querySelector('.dot');
-  if(state==='normal'){ab.className='badge badge-ok';dot.className='dot dot-ok';ab.innerHTML='<span class="dot dot-ok"></span>SISTEMA NORMAL'}
-  else if(state==='anomaly'){ab.className='badge badge-warn';ab.innerHTML='<span class="dot dot-warn"></span>ANOMALÍA DETECTADA'}
-  else{ab.className='badge badge-bad';ab.innerHTML='<span class="dot dot-bad"></span>RUPTURA DE CADENA'}
+  if(state==='normal'){ab.className='status-card sc-ok';ab.innerHTML='<span class="dot dot-ok"></span>SISTEMA NORMAL'}
+  else if(state==='anomaly'){ab.className='status-card sc-warn';ab.innerHTML='<span class="dot dot-warn"></span>ANOMALÍA DETECTADA'}
+  else{ab.className='status-card sc-bad';ab.innerHTML='<span class="dot dot-bad"></span>RUPTURA DE CADENA'}
 
   const ip=data.national?.integrityPercent??100;
   const cb=document.getElementById('chain-badge');
-  cb.className=ip>=100?'badge badge-ok':'badge badge-bad';
+  cb.className=ip>=100?'status-card sc-ok':'status-card sc-bad';
   cb.innerHTML=ip>=100?'<span class="dot dot-ok"></span>CADENA ÍNTEGRA':'<span class="dot dot-bad"></span>CADENA ROTA';
 
   document.getElementById('last-update').textContent='Actualizado '+ago(new Date().toISOString());
