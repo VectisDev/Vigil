@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CENTINEL — Sandbox Forense Académico</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
+  --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;
+  --warn:#d4b066;--purple:#b08cf0;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-size:14px;min-height:100vh}
+
+/* ── NAV ── */
+#breadcrumb{padding:10px 24px;background:var(--panel);border-bottom:1px solid var(--border);
+  font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+#breadcrumb span{color:var(--fg)}
+
+/* ── SIMULATION CONTROL BAR ── */
+#sim-control-bar{
+  position:sticky;top:0;z-index:150;
+  background:rgba(15,17,21,.96);backdrop-filter:blur(8px);
+  border-bottom:2px solid rgba(176,140,240,.25);
+  padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.sim-transport-btn{
+  background:var(--panel);border:1px solid var(--border);color:var(--fg);
+  border-radius:8px;padding:6px 14px;font-size:18px;cursor:pointer;transition:.15s;
+  line-height:1;
+}
+.sim-transport-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sim-transport-btn.active{border-color:var(--accent);color:var(--accent)}
+.speed-group{display:flex;gap:4px}
+.speed-pill{
+  background:var(--panel);border:1px solid var(--border);color:var(--muted);
+  border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;transition:.15s;
+}
+.speed-pill.on{border-color:var(--purple);color:var(--purple);background:rgba(176,140,240,.1)}
+#sim-timeline-wrap{
+  flex:1;min-width:160px;position:relative;height:22px;
+  background:var(--border);border-radius:11px;cursor:pointer;overflow:hidden;
+}
+#sim-progress-fill{
+  height:100%;border-radius:11px;
+  background:linear-gradient(90deg,var(--purple),var(--accent));
+  transition:width .12s;pointer-events:none;
+}
+#sim-scrubber{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+  accent-color:var(--purple);
+}
+.sim-badge{
+  border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;white-space:nowrap;
+  background:rgba(139,146,156,.12);border:1px solid rgba(139,146,156,.3);color:var(--muted);
+}
+.sim-badge.playing{background:rgba(87,192,141,.12);border-color:rgba(87,192,141,.3);color:var(--ok)}
+.sim-badge.paused{background:rgba(212,176,102,.12);border-color:rgba(212,176,102,.3);color:var(--warn)}
+#sim-info{font-size:11px;color:var(--muted);white-space:nowrap}
+.dataset-select{
+  background:var(--panel);border:1px solid var(--border);color:var(--fg);
+  border-radius:7px;padding:5px 8px;font-size:11px;cursor:pointer;
+}
+
+/* ── LAYOUT ── */
+.page{max-width:1400px;margin:0 auto;padding:20px}
+.section-title{
+  font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;
+  letter-spacing:.07em;margin:28px 0 14px;display:flex;align-items:center;gap:8px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* ── KPIs ── */
+.kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.kpi-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kpi-val{font-size:22px;font-weight:800;color:var(--fg)}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.kpi-bar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .4s}
+.badge{display:inline-block;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700}
+.b-ok{background:rgba(87,192,141,.12);color:var(--ok);border:1px solid rgba(87,192,141,.3)}
+.b-bad{background:rgba(223,107,134,.12);color:var(--bad);border:1px solid rgba(223,107,134,.3)}
+.b-warn{background:rgba(212,176,102,.12);color:var(--warn);border:1px solid rgba(212,176,102,.3)}
+.b-pur{background:rgba(176,140,240,.12);color:var(--purple);border:1px solid rgba(176,140,240,.3)}
+.b-na{background:rgba(139,146,156,.12);color:var(--muted);border:1px solid rgba(139,146,156,.2)}
+
+/* ── FORENSIC CARDS ── */
+.forensic-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.forensic-hdr{
+  display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
+  cursor:pointer;background:var(--panel);
+}
+.forensic-hdr:hover{background:rgba(255,255,255,.02)}
+.forensic-title{font-size:12px;font-weight:600}
+.forensic-body{display:none;padding:12px 14px;font-size:12px;color:var(--muted);
+  background:rgba(255,255,255,.015);line-height:1.6}
+.forensic-body.open{display:block}
+
+/* ── ALERTS TABLE ── */
+.alerts-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.alerts-tbl th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.04em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+.alerts-tbl td{padding:8px 10px;border-bottom:1px solid rgba(36,39,46,.6)}
+.alerts-tbl tr:last-child td{border-bottom:none}
+#alerts-empty{text-align:center;color:var(--muted);padding:20px;font-size:12px}
+
+/* ── THRESHOLD SECTION ── */
+.thresh-lock-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.thresh-lock-panel h4{font-size:12px;font-weight:700;margin-bottom:10px;color:var(--accent)}
+#thresh-prereg-text{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--fg);font-family:var(--mono);font-size:12px;padding:10px 12px;resize:vertical;min-height:72px;
+}
+#thresh-prereg-text:focus{outline:none;border-color:var(--accent)}
+.lock-btn{
+  margin-top:8px;background:rgba(110,168,254,.1);border:1px solid rgba(110,168,254,.4);
+  color:var(--accent);border-radius:7px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;
+}
+.lock-btn:hover{background:rgba(110,168,254,.18)}
+.lock-btn:disabled{opacity:.4;cursor:not-allowed}
+.thresh-sliders{opacity:.3;pointer-events:none;transition:.3s}
+.thresh-sliders.unlocked{opacity:1;pointer-events:auto}
+.thresh-group{border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.thresh-group-label{font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.rule-row{display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid rgba(36,39,46,.5)}
+.rule-row:last-child{border-bottom:none}
+.rule-name{font-size:11px;color:var(--muted);flex:1;min-width:160px}
+.rule-chk{accent-color:var(--purple);cursor:pointer}
+.rule-slider{flex:1;min-width:80px;accent-color:var(--accent);cursor:pointer}
+.rule-val{font-size:11px;font-family:var(--mono);color:var(--fg);min-width:60px;text-align:right}
+.reset-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;margin-bottom:12px}
+.reset-btn:hover{border-color:var(--fg);color:var(--fg)}
+
+/* ── INJECTION MATRIX ── */
+.inj-mode-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.inj-mode-btn{
+  background:var(--panel);border:1px solid var(--border);color:var(--muted);
+  border-radius:7px;padding:7px 18px;cursor:pointer;font-size:13px;transition:.15s;
+}
+.inj-mode-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(110,168,254,.08)}
+#inj-schedule-wrap{display:none;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+#inj-schedule-wrap.show{display:flex}
+#inj-sched-idx{
+  width:90px;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  color:var(--fg);padding:5px 8px;font-size:12px;font-family:var(--mono);
+}
+.inj-block{border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.inj-block-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.inj-block-title span{font-size:10px}
+.inj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.inj-card{
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;display:flex;flex-direction:column;gap:7px;
+}
+.inj-card-label{font-size:12px;font-weight:600}
+.inj-card-desc{font-size:10px;color:var(--muted);line-height:1.45}
+.inj-param-row{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.inj-param-row input[type=range]{flex:1;accent-color:var(--bad)}
+.inj-param-val{font-family:var(--mono);color:var(--fg);min-width:45px;text-align:right}
+.inj-btn{
+  background:transparent;border:1px solid rgba(223,107,134,.4);color:var(--bad);
+  border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;
+  transition:.15s;align-self:flex-end;
+}
+.inj-btn:hover{background:rgba(223,107,134,.1);border-color:var(--bad)}
+.inj-btn.b{border-color:rgba(212,176,102,.4);color:var(--warn)}
+.inj-btn.b:hover{background:rgba(212,176,102,.1);border-color:var(--warn)}
+.inj-btn.c{border-color:rgba(176,140,240,.4);color:var(--purple)}
+.inj-btn.c:hover{background:rgba(176,140,240,.1);border-color:var(--purple)}
+.breaking-badge{font-size:9px;background:rgba(223,107,134,.12);border:1px solid rgba(223,107,134,.3);
+  color:var(--bad);border-radius:4px;padding:1px 5px;white-space:nowrap}
+
+/* ── ACTIVE INJECTIONS ── */
+#inj-active-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+#inj-active-panel h4{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+#inj-active-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
+#inj-active-empty{font-size:11px;color:var(--muted);font-style:italic}
+.inj-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(223,107,134,.1);border:1px solid rgba(223,107,134,.3);
+  color:var(--bad);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:600;
+}
+.inj-tag.sched{background:rgba(212,176,102,.1);border-color:rgba(212,176,102,.3);color:var(--warn)}
+.inj-tag button{background:none;border:none;color:inherit;cursor:pointer;font-size:12px;padding:0 1px;line-height:1}
+
+/* ── TELEMETRY ── */
+.telem-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.telem-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.telem-panel h4{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.telem-log{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:10px;height:260px;overflow-y:auto;
+  font-family:var(--mono);font-size:10.5px;line-height:1.65;
+}
+.telem-log div{margin-bottom:1px;word-break:break-all}
+.tl-ok{color:var(--ok)}.tl-warn{color:var(--warn)}.tl-bad{color:var(--bad)}.tl-muted{color:var(--muted)}
+
+/* ── VIS OVERLAY ── */
+#vis-overlay{
+  display:none;position:fixed;inset:0;background:rgba(15,17,21,.88);
+  z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+#vis-overlay.show{display:flex}
+.overlay-msg{font-size:26px;font-weight:800;color:var(--bad);animation:blink 1s step-start infinite}
+@keyframes blink{50%{opacity:0}}
+.overlay-restore{
+  background:rgba(223,107,134,.12);border:1px solid var(--bad);color:var(--bad);
+  border-radius:8px;padding:8px 20px;cursor:pointer;font-size:13px;font-weight:600;
+}
+
+/* ── ANOMALY TIMELINE MARKERS ── */
+.anom-marker-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.anom-marker{
+  font-size:9px;background:rgba(223,107,134,.1);border:1px solid rgba(223,107,134,.3);
+  color:var(--bad);border-radius:4px;padding:2px 6px;cursor:default;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .grid4{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}
+  .telem-wrap{grid-template-columns:1fr}
+  .inj-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .grid4{grid-template-columns:1fr}
+  #sim-control-bar{gap:8px}
+}
+</style>
+</head>
+<body>
+
+<!-- VIS OVERLAY -->
+<div id="vis-overlay">
+  <div class="overlay-msg">⚠ SISTEMA DE VISUALIZACIÓN CAÍDO</div>
+  <div style="font-size:14px;color:var(--muted)">Evento A3 activo — datos congelados</div>
+  <button class="overlay-restore" onclick="restoreVis()">Restaurar visualización</button>
+</div>
+
+<!-- BREADCRUMB -->
+<div id="breadcrumb">
+  CENTINEL / Sandbox / <span>Simulación Forense Académica</span>
+</div>
+
+<!-- SIMULATION CONTROL BAR -->
+<div id="sim-control-bar">
+  <button class="sim-transport-btn" id="btn-play" onclick="simPlay()" title="Play">▶</button>
+  <button class="sim-transport-btn" id="btn-pause" onclick="simPause()" title="Pausa">⏸</button>
+  <button class="sim-transport-btn" onclick="simStop()" title="Stop">⏹</button>
+
+  <div class="speed-group" id="speed-group">
+    <button class="speed-pill on" data-s="1"  onclick="setSpeed(1)">1×</button>
+    <button class="speed-pill"    data-s="5"  onclick="setSpeed(5)">5×</button>
+    <button class="speed-pill"    data-s="10" onclick="setSpeed(10)">10×</button>
+    <button class="speed-pill"    data-s="60" onclick="setSpeed(60)">60×</button>
+  </div>
+
+  <div id="sim-timeline-wrap">
+    <div id="sim-progress-fill" style="width:0%"></div>
+    <input type="range" id="sim-scrubber" min="0" max="575" value="0"
+           oninput="simJumpTo(this.value)" style="cursor:pointer">
+  </div>
+
+  <span id="sim-info">Snap 0 / — | 0%</span>
+  <span class="sim-badge" id="sim-badge">DETENIDO</span>
+
+  <select class="dataset-select" id="dataset-select" onchange="loadDataset(this.value)">
+    <option value="../../data/hnd_2025_series.json">HN 2025 real (64 snaps)</option>
+    <option value="../../data/sim_eleccion_limpia_5min.json">Simulación limpia — 5min (576 snaps)</option>
+    <option value="../../data/sim_eleccion_anomala_5min.json">Simulación anómala — 5min (576 snaps)</option>
+  </select>
+</div>
+
+<div class="page">
+
+<!-- ══ SECTION 1 — KPIs ══════════════════════════════════════════════════════ -->
+<div class="section-title">Indicadores de la Simulación</div>
+<div class="grid4">
+  <div class="kpi-card">
+    <div class="kpi-label">Actas Divulgadas</div>
+    <div class="kpi-val" id="k-actas">—</div>
+    <div class="kpi-sub" id="k-actas-sub">de — totales</div>
+    <div class="kpi-bar"><div class="kpi-bar-fill" id="k-actas-bar" style="width:0%"></div></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Votos Válidos</div>
+    <div class="kpi-val" id="k-votos">—</div>
+    <div class="kpi-sub" id="k-votos-sub">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">% Escrutinio</div>
+    <div class="kpi-val" id="k-pct">—</div>
+    <div class="kpi-sub" id="k-pct-sub">—</div>
+    <div class="kpi-bar"><div class="kpi-bar-fill" id="k-pct-bar" style="width:0%;background:var(--purple)"></div></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Integridad de Cadena</div>
+    <div class="kpi-val" id="k-int">—</div>
+    <div class="kpi-sub" id="k-int-sub">—</div>
+  </div>
+</div>
+
+<!-- Anomaly markers (shown when anomalous dataset) -->
+<div id="anom-marker-row" class="anom-marker-row" style="margin-top:12px;display:none"></div>
+
+<!-- ══ SECTION 2 — CHARTS ════════════════════════════════════════════════════ -->
+<div class="section-title">Panel de Visualización Forense</div>
+<div class="card" style="margin-bottom:14px">
+  <canvas id="s-chart-cand" height="80"></canvas>
+</div>
+<div class="card" style="margin-bottom:14px">
+  <canvas id="s-chart-timeline" height="70"></canvas>
+</div>
+<div class="grid2" style="margin-bottom:14px">
+  <div class="card">
+    <canvas id="s-chart-benford" height="120"></canvas>
+    <div id="s-benford-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
+  </div>
+  <div class="card">
+    <canvas id="s-chart-lastdigit" height="120"></canvas>
+    <div id="s-lastdigit-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
+  </div>
+</div>
+<div class="grid3" style="margin-bottom:14px">
+  <div class="card"><canvas id="s-chart-zscore" height="140"></canvas></div>
+  <div class="card"><canvas id="s-chart-participation" height="140"></canvas></div>
+  <div class="card"><canvas id="s-chart-nullblank" height="140"></canvas></div>
+</div>
+
+<!-- Forensic detector cards -->
+<div id="s-forensic-list" style="margin-bottom:14px"></div>
+
+<!-- Alerts table -->
+<div class="card" style="margin-bottom:14px">
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Tabla de Alertas</div>
+  <div id="alerts-empty" style="color:var(--muted);font-size:12px;padding:12px 0">Sin alertas activas</div>
+  <table class="alerts-tbl" id="alerts-table" style="display:none">
+    <thead><tr>
+      <th>Tiempo</th><th>Tipo</th><th>Severidad</th><th>Descripción</th>
+    </tr></thead>
+    <tbody id="alerts-tbody"></tbody>
+  </table>
+</div>
+
+<!-- ══ SECTION 3 — THRESHOLDS ════════════════════════════════════════════════ -->
+<div class="section-title">Umbrales de Sensibilidad de Reglas</div>
+<div class="thresh-lock-panel">
+  <h4>Pre-registro de Hipótesis</h4>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
+    Registra tu hipótesis antes de ajustar los umbrales. Una vez bloqueada, no se puede modificar (previene p-hacking).
+  </div>
+  <textarea id="thresh-prereg-text" placeholder="Hipótesis de investigación: ej. 'Si se reduce el umbral de Benford MAD a 0.005, el motor detectará la anomalía de ballot stuffing antes del snapshot 100 en la serie anómala.'"></textarea>
+  <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+    <button class="lock-btn" id="thresh-lock-btn" onclick="lockThresholds()">Bloquear hipótesis y habilitar sliders</button>
+    <span id="thresh-lock-stat"></span>
+  </div>
+</div>
+<div class="thresh-sliders" id="thresh-sliders">
+  <button class="reset-btn" onclick="resetThresholds()">Restaurar defaults</button>
+  <div id="thresh-sliders-container"></div>
+</div>
+
+<!-- ══ SECTION 4 — INJECTION MATRIX ══════════════════════════════════════════ -->
+<div class="section-title">Matriz de Inyección de Eventos</div>
+
+<div class="inj-mode-bar">
+  <button class="inj-mode-btn on" id="btn-inj-instant" onclick="setInjMode('instant')">Inmediata</button>
+  <button class="inj-mode-btn" id="btn-inj-sched" onclick="setInjMode('scheduled')">Programada</button>
+  <div id="inj-schedule-wrap">
+    en snapshot nº <input type="number" id="inj-sched-idx" min="0" max="575" value="100" style="width:70px">
+    <span style="font-size:10px;color:var(--muted)">(0–575)</span>
+  </div>
+</div>
+
+<!-- Bloque A -->
+<div class="inj-block">
+  <div class="inj-block-title">
+    <span class="badge b-bad">A</span> Anomalías del Sitio Origen — Vectores del Scraper
+    <span style="font-size:10px;color:var(--muted)">Fallos extrínsecos de la infraestructura de datos</span>
+  </div>
+  <div class="inj-grid" id="inj-grid-a"></div>
+</div>
+
+<!-- Bloque B -->
+<div class="inj-block">
+  <div class="inj-block-title">
+    <span class="badge b-warn">B</span> Escenario Red Team — Ataques a CENTINEL
+    <span style="font-size:10px;color:var(--muted)">Una defensa por tarjeta · escala hasta el punto de quiebre</span>
+  </div>
+  <div class="inj-grid" id="inj-grid-b"></div>
+</div>
+
+<!-- Bloque C -->
+<div class="inj-block">
+  <div class="inj-block-title">
+    <span class="badge b-pur">C</span> Anomalías Electorales Estadísticas
+    <span style="font-size:10px;color:var(--muted)">Patrones de fraude/error para evaluar mecanismos de detección</span>
+  </div>
+  <div class="inj-grid" id="inj-grid-c"></div>
+</div>
+
+<!-- Active injections -->
+<div id="inj-active-panel">
+  <h4>Inyecciones activas en esta sesión</h4>
+  <div id="inj-active-list"><span id="inj-active-empty">Ninguna</span></div>
+</div>
+
+<!-- ══ SECTION 5 — DUAL TELEMETRY ════════════════════════════════════════════ -->
+<div class="section-title">Centro de Telemetría Dual</div>
+<div class="telem-wrap">
+  <div class="telem-panel">
+    <h4>
+      <span style="width:8px;height:8px;background:var(--ok);border-radius:50%;display:inline-block"></span>
+      Pantalla 1 — Engine Telemetry
+    </h4>
+    <div class="telem-log" id="telem-engine"></div>
+  </div>
+  <div class="telem-panel">
+    <h4>
+      <span style="width:8px;height:8px;background:var(--bad);border-radius:50%;display:inline-block"></span>
+      Pantalla 2 — Attack Logger
+    </h4>
+    <div class="telem-log" id="telem-attack"></div>
+  </div>
+</div>
+
+<div style="height:60px"></div>
+</div><!-- /page -->
+
+<script>
+"use strict";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let SERIES = null;
+let SIM = {
+  snapshots: [],
+  idx: 0,
+  speed: 1,
+  state: 'stopped', // 'playing' | 'paused' | 'stopped'
+  timer: null,
+};
+const TICK_MS = { 1: 1500, 5: 300, 10: 150, 60: 25 };
+
+let activeInjections = [];
+let scheduledInjections = [];
+let injMode = 'instant';
+let simAlerts = [];
+let simChains = [];     // chain integrity history: array of booleans (true=ok)
+let historyBenford = []; // accumulated votes for Benford analysis
+let historyTimeline = []; // [{ts, actas, anomalias}]
+let historyIncons = [];
+
+// Threshold values (keyed by id)
+let TV = {};
+let TE = {}; // enabled flags
+let threshLocked = false;
+
+// Charts registry
+let SC = {};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RULES DEFINITIONS
+// ═══════════════════════════════════════════════════════════════════════════
+const RULES_DEFS = [
+  {id:'benford_mad_warning',   grp:'Benford (1er dígito)',      label:'MAD warning',           min:0.001, max:0.05,  step:0.001, def:0.008, unit:''},
+  {id:'benford_mad_critical',  grp:'Benford (1er dígito)',      label:'MAD critical',           min:0.001, max:0.05,  step:0.001, def:0.015, unit:''},
+  {id:'benford_chi_pvalue',    grp:'Benford (ley candidatos)',  label:'Chi² p-valor',           min:0.001, max:0.1,   step:0.001, def:0.05,  unit:''},
+  {id:'benford_dev_pct',       grp:'Benford (ley candidatos)',  label:'Desviación %',           min:5,     max:40,    step:1,     def:15,    unit:'%'},
+  {id:'lastdigit_chi',         grp:'Uniformidad último dígito', label:'Chi² p-valor crítico',   min:0.0001,max:0.05,  step:0.0001,def:0.001, unit:''},
+  {id:'zscore_thr',            grp:'Anomalía granular',         label:'Z-score umbral',         min:1,     max:8,     step:0.1,   def:3.0,   unit:'σ'},
+  {id:'delta_pct',             grp:'Anomalía granular',         label:'Delta % alerta',         min:0.5,   max:15,    step:0.5,   def:3.0,   unit:'%'},
+  {id:'reversal_min',          grp:'Anomalía granular',         label:'Margen mín reversión',   min:100,   max:5000,  step:100,   def:500,   unit:' v'},
+  {id:'snap_jump_pct',         grp:'Salto de snapshot',         label:'Salto máx %',            min:1,     max:50,    step:1,     def:5,     unit:'%'},
+  {id:'snap_jump_min',         grp:'Salto de snapshot',         label:'Ventana (min)',           min:5,     max:60,    step:5,     def:10,    unit:'min'},
+  {id:'null_warn',             grp:'Nulos y Blancos',           label:'Warning %',              min:3,     max:20,    step:0.5,   def:8,     unit:'%'},
+  {id:'null_crit',             grp:'Nulos y Blancos',           label:'Critical %',             min:5,     max:30,    step:0.5,   def:12,    unit:'%'},
+  {id:'part_jump',             grp:'Participación anómala',     label:'Salto escrutinio',       min:1,     max:20,    step:0.5,   def:5,     unit:'%'},
+  {id:'part_mean',             grp:'Participación avanzada',    label:'Media histórica',        min:50,    max:100,   step:0.5,   def:88.15, unit:'%'},
+  {id:'part_std',              grp:'Participación avanzada',    label:'Stdev histórica',        min:0.5,   max:20,    step:0.5,   def:5.51,  unit:'%'},
+  {id:'speed_max',             grp:'Velocidad procesamiento',   label:'Máx actas / 15min',      min:100,   max:2000,  step:50,    def:500,   unit:''},
+  {id:'incons_crit',           grp:'Tasa inconsistencia',       label:'Inconsistencia critical',min:2,     max:30,    step:0.5,   def:10,    unit:'%'},
+  {id:'incons_delta',          grp:'Tasa inconsistencia',       label:'Escalada Δ',             min:0.1,   max:5,     step:0.1,   def:0.5,   unit:'%'},
+  {id:'geo_cv',                grp:'Dispersión geográfica',     label:'CV crítico',             min:0.1,   max:0.9,   step:0.05,  def:0.45,  unit:''},
+  {id:'corr_r',                grp:'Correlación part.-voto',    label:'Correlación R crítica',  min:0.5,   max:0.99,  step:0.01,  def:0.85,  unit:''},
+  {id:'runs_pval',             grp:'Corrida aleatoria',         label:'P-valor crítico',        min:0.001, max:0.1,   step:0.001, def:0.01,  unit:''},
+  {id:'trend_pct',             grp:'Desviación de tendencia',   label:'Umbral tendencia',       min:2,     max:30,    step:1,     def:10,    unit:'%'},
+  {id:'lln_z',                 grp:'Grandes números',           label:'Z umbral',               min:1,     max:6,     step:0.1,   def:3.0,   unit:'σ'},
+  {id:'vote_change',           grp:'Diferencia básica',         label:'Cambio relativo votos',  min:5,     max:40,    step:1,     def:15,    unit:'%'},
+];
+RULES_DEFS.forEach(r => { TV[r.id] = r.def; TE[r.id] = true; });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INJECTION EVENTS REGISTRY
+// ═══════════════════════════════════════════════════════════════════════════
+const EVENTS = {
+  // ── BLOQUE A ──────────────────────────────────────────────────────────
+  A1:{block:'A',label:'Desconexión de Endpoints',
+    desc:'Apaga selectivamente endpoints de datos; detiene el incremento de actas.',
+    breakpoint:'Sin datos nuevos → blackout activado',
+    param:{label:'Endpoints',min:1,max:19,def:5,unit:''},
+    apply(s,p){s.blackout=true;s._ep_disc=p;
+      logE('WARN',`Inyección A1: ${p} endpoints desconectados — blackout activado`);
+      logA('ALERT','10.0.0.1','Endpoint kill','Mitigated · Rerouted');}
+  },
+  A2:{block:'A',label:'Rollback de Datos',
+    desc:'Revierte actas_divulgadas y votos a un estado anterior (timestamp no monótono).',
+    breakpoint:'Snapshot_jump negativo → Benford gap → alerta de reversión',
+    param:{label:'Snapshots atrás',min:1,max:20,def:5,unit:''},
+    apply(s,p,idx){
+      const t=Math.max(0,idx-p); const old=SIM.snapshots[t];
+      s.actas_divulgadas=old.actas_divulgadas; s.validos=old.validos;
+      s.nulos=old.nulos; s.blancos=old.blancos; s._rollback=true;
+      pushAlert('CRITICAL','Rollback',`Datos revertidos ${p} snapshots — reversión detectada`);
+      logE('CRITICAL',`Rollback: datos revertidos al estado del snapshot ${t}`);}
+  },
+  A3:{block:'A',label:'Caída del Sistema de Visualización',
+    desc:'Simula colapso total del sistema de entrega de datos externos.',
+    breakpoint:'Visualización offline → todos los gráficos congelados',
+    param:null,
+    apply(s){s._vis_down=true;document.getElementById('vis-overlay').classList.add('show');
+      logE('CRITICAL','Sistema de visualización caído — modo offline activo');
+      logA('CRITICAL','0.0.0.0','DoS — API down','Cached Persistent');}
+  },
+  A4:{block:'A',label:'Hold-and-Release Masivo',
+    desc:'Congela el flujo de actas y luego las libera todas de golpe (burst masivo).',
+    breakpoint:'Spike de velocidad → processing_speed alerta → snapshot_jump crítico',
+    param:{label:'Actas retenidas',min:200,max:5000,def:1200,unit:''},
+    apply(s,p,idx){
+      if(!this._hc)this._hc=0; this._hc++;
+      if(this._hc<5){s.actas_divulgadas=SIM.snapshots[Math.max(0,idx-1)].actas_divulgadas;
+        logE('WARN',`Hold-and-Release: reteniendo ${p} actas — ciclo ${this._hc}/5`);}
+      else{s.actas_divulgadas=Math.min(s.actas_divulgadas+p,s.actas_totales);
+        s.validos+=p*165; this._hc=0;
+        pushAlert('CRITICAL','HoldRelease',`Liberación masiva de ${p} actas — velocidad 5× la normal`);
+        logE('CRITICAL',`Hold-and-Release: burst de ${p} actas liberadas`);}}
+  },
+  A5:{block:'A',label:'Apagón Geográfico',
+    desc:'Todas las actas de un departamento dejan de llegar simultáneamente.',
+    breakpoint:'CV geográfico spike → dispersión crítica',
+    param:{label:'Intensidad',min:1,max:5,def:1,unit:'×'},
+    apply(s,p){s._geo_blackout=true;s._geo_factor=p;
+      pushAlert('HIGH','GeoBlackout','Francisco Morazán: sin datos');
+      logE('CRITICAL','Apagón geográfico: Francisco Morazán sin actas');}
+  },
+  A6:{block:'A',label:'Desincronización de Timestamps',
+    desc:'Timestamps consecutivos no monótonos o con salto al futuro.',
+    breakpoint:'Trend analysis colapsado → timeline inconsistente',
+    param:{label:'Drift (min)',min:5,max:180,def:45,unit:''},
+    apply(s,p){const d=new Date(s.ts);d.setMinutes(d.getMinutes()+p);s.ts=d.toISOString();
+      s._ts_drift=p;
+      logE('WARN',`Desincronización: timestamp +${p}min — monotonía rota`);}
+  },
+  A7:{block:'A',label:'Duplicación de Actas',
+    desc:'Mismo lote de actas repetido con votos distintos (detección de duplicados).',
+    breakpoint:'Votos inflados → Benford violation → mesa_reconciliation alerta',
+    param:{label:'Actas duplicadas',min:10,max:500,def:80,unit:''},
+    apply(s,p){const bonus=p*150;s.validos+=bonus;
+      s.partidos.forEach(pt=>{pt.votos+=Math.round(bonus*(pt.pct/100));});
+      s._duplication=p;
+      pushAlert('HIGH','AktaDuplication',`${p} actas duplicadas — +${bonus.toLocaleString()} votos inflados`);
+      logE('CRITICAL',`Duplicación: +${p} actas → +${bonus.toLocaleString()} votos fantasma`);}
+  },
+  A8:{block:'A',label:'Datos Parciales / Truncados',
+    desc:'Payloads JSON con campos críticos nulos o ausentes.',
+    breakpoint:'basic_diff alerta → table_consistency violation',
+    param:{label:'Probabilidad %',min:10,max:80,def:30,unit:'%'},
+    apply(s,p){const pr=p/100;
+      if(Math.random()<pr)s.validos=null;
+      if(Math.random()<pr)s.nulos=null;
+      if(Math.random()<pr)s.blancos=null;
+      s._partial=true;
+      logE('WARN',`Datos truncados: ${p}% probabilidad de campos nulos por snapshot`);}
+  },
+  A9:{block:'A',label:'Throttling Artificial del CNE',
+    desc:'Solo 1 actualización de actas cada N ticks (cadencia artificialmente reducida).',
+    breakpoint:'Participation anomaly → latency detectada',
+    param:{label:'Ticks entre updates',min:2,max:8,def:3,unit:''},
+    apply(s,p,idx){if(idx%p!==0){s.actas_divulgadas=SIM.snapshots[Math.max(0,idx-1)].actas_divulgadas;
+      s._throttled=true;} logE('WARN',`Throttling: actualización cada ${p} ticks`);}
+  },
+
+  // ── BLOQUE B ──────────────────────────────────────────────────────────
+  B1:{block:'B',label:'DDoS Sostenido',
+    desc:'Simula carga masiva de solicitudes. Evalúa rate limiting y arquitectura Static-First.',
+    breakpoint:'> 100k req/s → Rate limiter exhausto → logs muestran "503 flooding"',
+    param:{label:'Intensidad (req/s)',min:100,max:200000,def:5000,unit:''},
+    apply(s,p){s._ddos=p;
+      for(let i=0;i<Math.min(4,1+Math.floor(p/10000));i++){
+        logA('CRITICAL',`${rndIP()}`,'DDoS HTTP flood',
+          p>100000?'⚠ Rate limiter EXHAUSTO':'Mitigated · Rate limited');}
+      if(p>100000)pushAlert('CRITICAL','DDoS',`Rate limiter superado: ${p.toLocaleString()} req/s`);
+      logE('CRITICAL',`DDoS: ${p.toLocaleString()} req/s — ${p>100000?'LÍMITE SUPERADO':'mitigado'}`);}
+  },
+  B2:{block:'B',label:'Activación de Honeypots',
+    desc:'Peticiones a rutas trampa (/admin, /debug, /.git). Evalúa detección perimetral.',
+    breakpoint:'Sin escalada → "Honeypot muted" (falso negativo)',
+    param:{label:'Intentos por tick',min:1,max:50,def:5,unit:''},
+    apply(s,p){const routes=['/admin','/debug','/.git','/.env','/api/internal','/metrics'];
+      for(let i=0;i<Math.min(p,6);i++){
+        logA('WARN',rndIP(),`Honeypot trigger → ${routes[i%routes.length]}`,
+          'Blacklisted · Fingerprinted');}
+      logE('INFO',`Honeypots: ${p} peticiones a rutas trampa capturadas`);}
+  },
+  B3:{block:'B',label:'Tampering / Alteración en Tránsito',
+    desc:'Inyecta votos alterados y hash SHA-256 incorrecto. Evalúa integridad de cadena.',
+    breakpoint:'100% alteración → integridad 0% → cadena "ROTA"',
+    param:{label:'% actas alteradas',min:1,max:100,def:10,unit:'%'},
+    apply(s,p){const f=p/100;
+      if(s.partidos&&s.partidos.length>=2){const d=Math.round(s.partidos[1].votos*f*0.1);
+        s.partidos[0].votos+=d;s.partidos[1].votos-=d;}
+      s._chain_broken_pct=p;
+      if(p>=80)pushAlert('CRITICAL','ChainTampering',`${p}% actas alteradas — cadena comprometida`);
+      logE('CRITICAL',`Tampering: ${p}% votos alterados → SHA-256 mismatch → integridad ${(100-p).toFixed(0)}%`);
+      logA('CRITICAL',rndIP(),'MITM hash tampering',
+        p>=100?'⚠ CADENA ROTA':'SHA-256 rejected · Mitigated');}
+  },
+  B4:{block:'B',label:'Inyección de Hash Falso',
+    desc:'Inserta un bloque forjado. Evalúa verificación del árbol de Merkle.',
+    breakpoint:'Merkle root mismatch persistente → chain verification = FAIL',
+    param:null,
+    apply(s){s._false_hash=fakeHash(Math.random());
+      pushAlert('CRITICAL','MerkleInject','Merkle root mismatch — bloque forjado detectado');
+      logE('CRITICAL','Hash falso: divergencia de Merkle root → chain fork rechazado');
+      logA('CRITICAL',rndIP(),'Block hash injection','Blacklisted · Chain fork rejected');}
+  },
+  B5:{block:'B',label:'Contaminación de Espejo CDN',
+    desc:'Uno o más espejos sirven datos modificados. Evalúa consenso multi-espejo.',
+    breakpoint:'≥50% contaminados → consenso imposible → modo offline',
+    param:{label:'Espejos comprometidos',min:1,max:5,def:1,unit:' de 5'},
+    apply(s,p){s._cdn_mirrors_poisoned=p;
+      if(p>=3)pushAlert('CRITICAL','CDNPoison',`${p}/5 espejos contaminados — consenso imposible`);
+      logE(p>=3?'CRITICAL':'WARN',`CDN: ${p}/5 espejos contaminados — ${p>=3?'CONSENSO IMPOSIBLE':'divergencia detectada'}`);
+      logA('WARN','CDN-Edge-Node-'+p,'Mirror poisoning',
+        p>=3?'⚠ CONSENSUS FAILED':'Cached Persistent · Mitigated');}
+  },
+  B6:{block:'B',label:'Envenenamiento de Caché',
+    desc:'TTL falso: datos obsoletos servidos durante N ticks. Evalúa frescura de datos.',
+    breakpoint:'TTL > 60min → divergencia >25% del origen real → alerta de consistencia',
+    param:{label:'TTL falso (min)',min:5,max:240,def:30,unit:'min'},
+    apply(s,p){s._cache_stale=p;
+      if(p>60)pushAlert('HIGH','CachePoison',`Caché venenoso: TTL=${p}min → datos obsoletos`);
+      logE(p>60?'CRITICAL':'WARN',`Caché: TTL=${p}min — ${p>60?'divergencia crítica':'monitoreo activo'}`);
+      logA('WARN',rndIP(),'Cache poisoning',`TTL=${p}min · Cached Persistent`);}
+  },
+  B7:{block:'B',label:'Ataque de Sincronización Temporal',
+    desc:'Manipula timestamps para crear falsa estabilidad en el análisis de tendencias.',
+    breakpoint:'Todos timestamps iguales → trend analysis colapsado',
+    param:{label:'Distorsión (min)',min:1,max:120,def:15,unit:'min'},
+    apply(s,p){if(SIM.idx<SIM.snapshots.length-1){
+      s.ts=SIM.snapshots[Math.min(SIM.idx+1,SIM.snapshots.length-1)].ts;}
+      s._time_distorted=p;
+      logE('WARN',`Sincronización temporal: timestamps distorsionados ±${p}min`);
+      logA('WARN',rndIP(),'NTP timing attack',`+${p}min drift · Mitigated`);}
+  },
+  B8:{block:'B',label:'Falsificación de Ancla OTS',
+    desc:'Intenta reemplazar el Merkle root anclado en Bitcoin. Evalúa inmutabilidad OTS.',
+    breakpoint:'Siempre falla (OTS inmutable) — muestra "OTS anchor mismatch"',
+    param:null,
+    apply(s){s._ots_attack=true;
+      logE('CRITICAL','Ataque OTS: intento de suplantar ancla Bitcoin → RECHAZADO (OTS inmutable)');
+      logA('CRITICAL',rndIP(),'OpenTimestamps spoof','⚠ OTS ANCHOR MISMATCH · Rejected');}
+  },
+  B9:{block:'B',label:'Bypass de Firma Ed25519',
+    desc:'Inyecta payload sin firma válida de operador. Evalúa verificación de firma.',
+    breakpoint:'Checkpoint rechazado → KPI muestra "Firma inválida"',
+    param:null,
+    apply(s){s._sig_invalid=true;
+      pushAlert('CRITICAL','SigBypass','Firma Ed25519 inválida — checkpoint rechazado');
+      logE('CRITICAL','Firma de operador inválida — checkpoint rechazado por verificador');
+      logA('CRITICAL',rndIP(),'Ed25519 bypass attempt','Signature rejected · Blacklisted');}
+  },
+  B10:{block:'B',label:'Tampering del Binario (Auto-audit)',
+    desc:'Simula hash de binario diferente al baseline. Evalúa auto-auditoría de integridad.',
+    breakpoint:'Auto-audit falla → todos los semáforos rojos → modo cuarentena',
+    param:{label:'Módulos comprometidos',min:1,max:5,def:2,unit:''},
+    apply(s,p){s._binary_tampered=p;
+      pushAlert('CRITICAL','BinaryTamper',`Auto-audit: ${p} módulos con hash diferente al baseline`);
+      logE('CRITICAL',`Binary integrity: ${p} módulos comprometidos → AUTO-AUDIT FALLA → cuarentena`);
+      logA('CRITICAL',rndIP(),'Binary tampering',`${p} modules → Quarantine mode`);}
+  },
+  B11:{block:'B',label:'Bypass de Zero-Trust Middleware',
+    desc:'Peticiones con cabeceras forjadas (X-Forwarded-For, Origin falso). Evalúa middleware.',
+    breakpoint:'Middleware no filtra → "ZT bypass" en log → datos no autorizados',
+    param:{label:'Cabeceras forjadas',min:1,max:10,def:3,unit:''},
+    apply(s,p){s._zt_bypass_attempt=p;
+      for(let i=0;i<Math.min(p,5);i++){
+        logA(p>=5?'CRITICAL':'WARN',rndIP(),
+          `ZT bypass: X-Forwarded-For spoof`,p>=5?'⚠ ZT BYPASS DETECTED':'Filtered · Mitigated');}
+      if(p>=5)pushAlert('CRITICAL','ZTBypass',`Zero-trust bypass: ${p} cabeceras forjadas penetraron`);
+      logE(p>=5?'CRITICAL':'WARN',`Zero-trust middleware: ${p} cabeceras forjadas — ${p>=5?'BYPASS DETECTADO':'filtradas'}`);}
+  },
+  B12:{block:'B',label:'Colapso Cascada de Espejos',
+    desc:'Contamina espejos 1→2→3 en ticks consecutivos hasta consenso imposible.',
+    breakpoint:'3er espejo contaminado → sistema entra en modo solo-local',
+    param:{label:'Velocidad cascada (ticks)',min:1,max:10,def:3,unit:''},
+    apply(s,p){if(!this._cascade)this._cascade=0;this._cascade++;
+      s._cdn_mirrors_poisoned=Math.min(this._cascade,5);
+      const msg=this._cascade>=3?'⚠ MODO SOLO-LOCAL ACTIVADO':'Escalando...';
+      if(this._cascade>=3)pushAlert('CRITICAL','MirrorCascade','Consenso imposible — modo solo-local');
+      logE(this._cascade>=3?'CRITICAL':'WARN',`Cascada espejos: ${this._cascade} comprometidos — ${msg}`);
+      logA('WARN',`CDN-Mirror-${this._cascade}`,'Mirror cascade poisoning',msg);}
+  },
+  B13:{block:'B',label:'Bifurcación de Cadena (Chain Fork)',
+    desc:'Dos nodos reciben versiones distintas del mismo snapshot — fork detectado.',
+    breakpoint:'Fork persistente → ingesta pausada hasta reconciliación',
+    param:null,
+    apply(s){s._chain_fork=true;
+      pushAlert('CRITICAL','ChainFork','Fork de cadena detectado — motor pausado hasta reconciliación');
+      logE('CRITICAL','Chain fork: dos versiones del snapshot divergen — ingesta suspendida');
+      logA('CRITICAL',rndIP(),'Chain split attack','Fork isolated · Reconciliation pending');}
+  },
+
+  // ── BLOQUE C ──────────────────────────────────────────────────────────
+  C1:{block:'C',label:'Inyección Progresiva de Ventaja',
+    desc:'Un candidato gana votos adicionales por snapshot de forma sistemática.',
+    breakpoint:'Asymmetric benefit detector → CRITICAL tras N snapshots',
+    param:{label:'Votos extra / snap',min:50,max:3000,def:400,unit:''},
+    apply(s,p){const acc=activeInjections.filter(i=>i.id==='C1').length*p;
+      if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=acc;s.validos+=acc;}
+      logE('CRITICAL',`Inyección progresiva: partido[0] acumula +${acc.toLocaleString()} votos`);}
+  },
+  C2:{block:'C',label:'Votos Redondeados (Ballot Stuffing)',
+    desc:'Totales redondeados al múltiplo de N → viola Benford y uniformidad de último dígito.',
+    breakpoint:'Benford MAD spike → último dígito chi² → CRITICAL',
+    param:{label:'Redondeo a múltiplo de',min:100,max:1000,def:500,unit:''},
+    apply(s,p){if(s.partidos)s.partidos.forEach(pt=>{pt.votos=Math.round(pt.votos/p)*p;});
+      s._benford_biased=true;
+      logE('WARN',`Votos redondeados a ×${p} — violación Benford y último dígito inminente`);}
+  },
+  C3:{block:'C',label:'Abstención Anormal por Zona',
+    desc:'Un departamento salta a participación imposible en un tick.',
+    breakpoint:'Participation_anomaly_advanced z-score > 3σ → CRITICAL',
+    param:{label:'Participación forzada %',min:50,max:100,def:97,unit:'%'},
+    apply(s,p){const implied=Math.round(s.actas_totales*p/100);
+      s.actas_divulgadas=Math.max(s.actas_divulgadas,implied);
+      s._forced_part=p;
+      pushAlert('HIGH','AbnormalAbstention',`Participación forzada a ${p}% en zona afectada`);
+      logE('CRITICAL',`Abstención anormal: participación ${p}% → z-score > 3σ`);}
+  },
+  C4:{block:'C',label:'Concentración Extrema de Votos',
+    desc:'Un candidato obtiene >90% de todas las actas nuevas de una zona.',
+    breakpoint:'Z-score departamental extremo → geographic_dispersion CRITICAL',
+    param:{label:'Mesas afectadas',min:10,max:300,def:80,unit:''},
+    apply(s,p){const tv=p*150,p0=Math.round(tv*0.93);
+      if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=p0;s.validos+=tv;}
+      s._concentration=p;
+      pushAlert('CRITICAL','VoteConcentration',`Partido[0]: 93% en ${p} mesas → z-score extremo`);
+      logE('CRITICAL',`Concentración: partido[0] obtiene 93% en ${p} mesas — dispersión geográfica crítica`);}
+  },
+  C5:{block:'C',label:'Campaña de Votos Nulos',
+    desc:'Spike sistemático de nulos en zonas de oposición.',
+    breakpoint:'null_blank_votes: critical_pct superado → CRITICAL',
+    param:{label:'Factor multiplicador',min:1.5,max:10,def:3.5,unit:'×'},
+    apply(s,p){s.nulos=Math.round((s.nulos||0)*p);
+      pushAlert('HIGH','NullCampaign',`Votos nulos ×${p} — campaña de nulización detectada`);
+      logE('WARN',`Campaña de nulos: ×${p} — umbral null_blank_critical superado`);}
+  },
+  C6:{block:'C',label:'Aceleración Nocturna (2–4 AM)',
+    desc:'40% de las actas pendientes llegan en un solo tick de madrugada.',
+    breakpoint:'processing_speed: max_actas_per_15min superado → CRITICAL',
+    param:{label:'Actas madrugada',min:200,max:3000,def:900,unit:''},
+    apply(s,p){s.actas_divulgadas=Math.min(s.actas_divulgadas+p,s.actas_totales);
+      s.validos+=(p*165);s._nocturnal=true;
+      pushAlert('CRITICAL','NocturnalAccel',`+${p} actas a las 2–4 AM → velocidad 8× la normal`);
+      logE('CRITICAL',`Aceleración nocturna: +${p} actas → processing_speed CRÍTICO`);}
+  },
+  C7:{block:'C',label:'Uniformidad Sospechosa de Mesas',
+    desc:'Porcentajes de candidatos idénticos durante N ticks → datos fabricados.',
+    breakpoint:'last_digit_uniformity chi² spike → runs_test → CRITICAL',
+    param:null,
+    apply(s){if(s.partidos)s.partidos.forEach((pt,i)=>{
+      pt.votos=Math.round((s.validos||0)*PARTIDOS_FINAL[i].pct/100);
+      pt.pct=PARTIDOS_FINAL[i].pct;});
+      s._uniformidad=true;
+      logE('WARN','Uniformidad sospechosa: todos los % idénticos al teórico → fabricación de datos');}
+  },
+  C8:{block:'C',label:'Inversión de Resultados post-Apagón',
+    desc:'Tras un apagón, el candidato líder cambia abruptamente.',
+    breakpoint:'trend_shift critical + asymmetric_benefit → CRITICAL',
+    param:null,
+    apply(s){if(s.partidos&&s.partidos.length>=2){
+      const v0=s.partidos[0].votos,v1=s.partidos[1].votos;
+      s.partidos[0].votos=v1;s.partidos[1].votos=v0;
+      s.partidos[0].pct=parseFloat((v1/(s.validos||1)*100).toFixed(2));
+      s.partidos[1].pct=parseFloat((v0/(s.validos||1)*100).toFixed(2));}
+      s._inversion=true;
+      pushAlert('CRITICAL','ResultInversion','Candidato líder cambia post-apagón → trend_shift CRITICAL');
+      logE('CRITICAL','Inversión de resultados: partido[0] y [1] intercambiados post-apagón');}
+  },
+  C9:{block:'C',label:'Arrastre Coordinado de Partido',
+    desc:'Exactamente +N% para un partido en todos los departamentos simultáneamente.',
+    breakpoint:'geographic_dispersion: demasiado uniforme → runs_test → CRITICAL',
+    param:{label:'Votos coordinados / snap',min:100,max:2000,def:500,unit:''},
+    apply(s,p){if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=p;s.validos+=p;}
+      s._coordinated=true;
+      logE('WARN',`Arrastre coordinado: +${p} votos uniformes para partido[0] en todos los dptos`);}
+  },
+  C10:{block:'C',label:'Mesa Fantasma / Conteo Imposible',
+    desc:'actas_divulgadas supera actas_totales — mesas que no existen.',
+    breakpoint:'turnout_impossible rule → CRITICAL inmediato',
+    param:{label:'Actas fantasma',min:10,max:1000,def:300,unit:''},
+    apply(s,p){s.actas_divulgadas=(s.actas_totales||19167)+p;
+      pushAlert('CRITICAL','GhostMesas',`Conteo imposible: ${s.actas_divulgadas} > ${s.actas_totales} actas`);
+      logE('CRITICAL',`Mesa fantasma: actas_divulgadas=${s.actas_divulgadas} > totales=${s.actas_totales} → CRITICAL`);}
+  },
+};
+
+// Final party percentages (for uniformity injection)
+const PARTIDOS_FINAL=[
+  {pct:38.28},{pct:37.03},{pct:18.23},{pct:0.75},{pct:0.16}
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function rndIP(){return `${rnd(1,223)}.${rnd(1,254)}.${rnd(1,254)}.${rnd(1,254)}`;}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function fakeHash(seed){
+  let s=(seed*1000)|0; s=s^(s<<13);s=s^(s>>7);s=s^(s<<17);
+  return Array.from({length:32},()=>{s=((s*1664525+1013904223)>>>0);
+    return (s&0xff).toString(16).padStart(2,'0');}).join('');
+}
+function deepClone(o){return JSON.parse(JSON.stringify(o));}
+function fmt(n){return n==null?'—':(n|0).toLocaleString('es-HN');}
+function fmtPct(p){return p==null?'—':parseFloat(p).toFixed(2)+'%';}
+function tsShort(ts){try{return new Date(ts).toLocaleString('es-HN',{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});}catch{return ts||'';}}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TELEMETRY
+// ═══════════════════════════════════════════════════════════════════════════
+const MAX_LOG=250;
+function tsLog(){return new Date().toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function appendLog(id,cls,html){
+  const el=document.getElementById(id);
+  const d=document.createElement('div');d.className=cls;d.innerHTML=html;
+  el.appendChild(d);while(el.children.length>MAX_LOG)el.removeChild(el.firstChild);
+  el.scrollTop=el.scrollHeight;
+}
+function logE(sev,msg){
+  const cls={INFO:'tl-muted',WARN:'tl-warn',CRITICAL:'tl-bad',OK:'tl-ok'}[sev]||'tl-muted';
+  appendLog('telem-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] ${msg}`);
+}
+function logA(sev,ip,vector,cm){
+  const cls={ALERT:'tl-bad',CRITICAL:'tl-bad',WARN:'tl-warn',INFO:'tl-muted'}[sev]||'tl-muted';
+  const ua=['Mozilla/5.0 (Scrapy)','python-req/2.31','Go-http/2.0','curl/7.88','libwww/6.72'][rnd(0,4)];
+  appendLog('telem-attack',cls,`[${tsLog()}] IP=${ip} | ${vector} | UA:${ua} | → ${cm}`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════════════════════════════════════
+function pushAlert(sev,tipo,desc){
+  const now=tsShort(SIM.snapshots[SIM.idx]?.ts||new Date().toISOString());
+  simAlerts.push({ts:now,tipo,sev,desc});
+  renderAlerts();
+}
+function renderAlerts(){
+  const tbody=document.getElementById('alerts-tbody');
+  const empty=document.getElementById('alerts-empty');
+  const tbl=document.getElementById('alerts-table');
+  if(!simAlerts.length){tbl.style.display='none';empty.style.display='';return;}
+  tbl.style.display='';empty.style.display='none';
+  tbody.innerHTML=simAlerts.slice(-50).reverse().map(a=>{
+    const cls=a.sev==='CRITICAL'?'b-bad':a.sev==='HIGH'?'b-warn':'b-ok';
+    return `<tr><td>${a.ts}</td><td>${a.tipo}</td>
+      <td><span class="badge ${cls}">${a.sev}</span></td><td>${a.desc}</td></tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA LOADING
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadDataset(url){
+  simStop();
+  logE('INFO','Cargando dataset: '+url);
+  try{
+    const r=await fetch(url);
+    if(!r.ok)throw new Error(r.status);
+    SERIES=await r.json();
+    SIM.snapshots=deepClone(SERIES.snapshots);
+    document.getElementById('sim-scrubber').max=String(SIM.snapshots.length-1);
+    // Show anomaly markers if applicable
+    const markerRow=document.getElementById('anom-marker-row');
+    if(SERIES.meta?.anomalias_embebidas?.length){
+      markerRow.style.display='flex';
+      markerRow.innerHTML='<span style="font-size:10px;color:var(--muted);margin-right:4px">Anomalías embebidas:</span>'+
+        SERIES.meta.anomalias_embebidas.map(a=>
+          `<span class="anom-marker" title="${a.descripcion}">idx=${a.snapshot_idx} · ${a.tipo.replace(/_/g,' ')}</span>`
+        ).join('');
+    }else{markerRow.style.display='none';}
+    renderSimFrame(0);
+    logE('OK',`Dataset listo: ${SIM.snapshots.length} snapshots cargados`);
+  }catch(e){logE('CRITICAL','Error cargando dataset: '+e.message);}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SIMULATION ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+function simPlay(){
+  if(!SERIES){logE('WARN','Carga un dataset primero');return;}
+  if(SIM.state==='playing')return;
+  SIM.state='playing';
+  updateBadge();
+  document.getElementById('btn-play').classList.add('active');
+  clearInterval(SIM.timer);
+  SIM.timer=setInterval(simTick,TICK_MS[SIM.speed]||(SIM.speed<=10?150:25));
+  logE('INFO',`Simulación iniciada — velocidad ${SIM.speed}×`);
+}
+function simPause(){
+  SIM.state='paused';clearInterval(SIM.timer);
+  document.getElementById('btn-play').classList.remove('active');
+  updateBadge();logE('INFO','Simulación pausada');
+}
+function simStop(){
+  SIM.state='stopped';clearInterval(SIM.timer);SIM.idx=0;
+  document.getElementById('btn-play').classList.remove('active');
+  if(SERIES)SIM.snapshots=deepClone(SERIES.snapshots);
+  activeInjections=[];scheduledInjections=[];simAlerts=[];
+  historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
+  Object.values(EVENTS).forEach(e=>{if(e._hc!==undefined)delete e._hc;if(e._cascade!==undefined)delete e._cascade;});
+  renderActiveInjections();renderAlerts();
+  updateBadge();updateScrubber();
+  if(SERIES)renderSimFrame(0);
+  document.getElementById('vis-overlay').classList.remove('show');
+  logE('INFO','Simulación detenida y reiniciada');
+}
+function simTick(){
+  if(SIM.idx>=SIM.snapshots.length-1){simPause();logE('OK','Simulación completada');return;}
+  SIM.idx++;applyScheduledInjections(SIM.idx);
+  updateScrubber();renderSimFrame(SIM.idx);
+}
+function simJumpTo(val){
+  SIM.idx=parseInt(val);updateScrubber();
+  if(SERIES)renderSimFrame(SIM.idx);
+}
+function setSpeed(s){
+  SIM.speed=s;
+  document.querySelectorAll('#speed-group .speed-pill').forEach(b=>{
+    b.classList.toggle('on',parseInt(b.dataset.s)===s);});
+  if(SIM.state==='playing'){clearInterval(SIM.timer);
+    SIM.timer=setInterval(simTick,TICK_MS[s]||(s<=10?150:25));}
+  logE('INFO',`Velocidad → ${s}×`);
+}
+function updateBadge(){
+  const el=document.getElementById('sim-badge');
+  el.textContent={playing:'SIMULANDO',paused:'PAUSADO',stopped:'DETENIDO'}[SIM.state];
+  el.className='sim-badge '+SIM.state;
+}
+function updateScrubber(){
+  const sc=document.getElementById('sim-scrubber');
+  const n=SIM.snapshots.length||1;sc.max=n-1;sc.value=SIM.idx;
+  const pct=((SIM.idx/(n-1))*100||0).toFixed(1);
+  document.getElementById('sim-progress-fill').style.width=pct+'%';
+  const snap=SIM.snapshots[SIM.idx];
+  document.getElementById('sim-info').textContent=
+    `Snap ${SIM.idx+1}/${n} | ${tsShort(snap?.ts||'')} | ${fmtPct(snap?.pct_escrutinio||0)}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FORENSICS COMPUTATION
+// ═══════════════════════════════════════════════════════════════════════════
+function computeBenford(votes){
+  const exp=[.301,.176,.125,.097,.079,.067,.058,.051,.046];
+  const counts=new Array(9).fill(0);
+  votes.forEach(v=>{if(v>0){const d=parseInt(String(Math.abs(v))[0]);if(d>=1&&d<=9)counts[d-1]++;}});
+  const N=counts.reduce((a,b)=>a+b,0)||1;
+  let chi2=0;
+  const digits=counts.map((c,i)=>{const e=exp[i]*N;chi2+=Math.pow(c-e,2)/e;
+    return{d:i+1,exp:+(exp[i]*100).toFixed(1),obs:+(c/N*100).toFixed(1)};});
+  const pval=chi2pval(chi2,8);
+  return{chi2,pval,digits,N};
+}
+function computeLastDigit(votes){
+  const counts=new Array(10).fill(0);
+  votes.forEach(v=>{if(v>0)counts[Math.abs(v)%10]++;});
+  const N=counts.reduce((a,b)=>a+b,0)||1;
+  let chi2=0;
+  const digits=counts.map((c,i)=>{const e=N/10;chi2+=Math.pow(c-e,2)/e;
+    return{d:i,obs:+(c/N*100).toFixed(1)};});
+  const pval=chi2pval(chi2,9);
+  return{chi2,pval,digits,N};
+}
+function chi2pval(chi2,df){
+  const x=chi2/df;
+  const z=(Math.pow(x,1/3)-(1-2/(9*df)))/Math.sqrt(2/(9*df));
+  return 1-normalCDF(z);
+}
+function normalCDF(x){return 0.5*(1+erf(x/Math.SQRT2));}
+function erf(x){
+  const t=1/(1+0.3275911*Math.abs(x));
+  const y=1-(0.254829592*t-0.284496736*t**2+1.421413741*t**3-1.453152027*t**4+1.061405429*t**5)*Math.exp(-x*x);
+  return x<0?-y:y;
+}
+function seededRng(seed){let s=seed>>>0;return()=>{s=((s*1664525+1013904223)>>>0);return s/4294967296;};}
+const DEPTS=['Francisco Morazán','Cortés','Yoro','Olancho','Santa Bárbara','Atlántida',
+  'Choluteca','Comayagua','El Paraíso','Colón','La Paz','Lempira','Copán',
+  'Intibucá','Ocotepeque','Valle','Gracias a Dios','Islas Bahía'];
+const DEPT_W=[.18,.17,.09,.08,.07,.07,.06,.05,.04,.04,.03,.03,.03,.02,.02,.01,.005,.005];
+function getDeptData(snap){
+  const r=seededRng((snap.idx||0)*31337+1);
+  return DEPTS.map((name,i)=>{
+    if(snap._geo_blackout&&i===0)return{name,actas:0,pct:0,nulos:0,blancos:0,zscore:8.5};
+    const base=DEPT_W[i];const noise=0.9+r()*0.2;const f=base*noise;
+    const pct=snap.actas_totales>0?(f*snap.actas_divulgadas/snap.actas_totales/(base||0.01)*100):0;
+    const zscore=+((f-0.055)/0.045+(r()-0.5)*0.4).toFixed(2);
+    return{name,pct:Math.min(pct,100),nulos:Math.round((snap.nulos||0)*f),
+           blancos:Math.round((snap.blancos||0)*f),zscore,
+           actas:Math.round((snap.actas_divulgadas||0)*f)};
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FRAME RENDERING
+// ═══════════════════════════════════════════════════════════════════════════
+function renderSimFrame(idx){
+  const snap=SIM.snapshots[idx]; if(!snap)return;
+  // Skip heavy chart redraws at 60× (only update KPIs)
+  const fastMode=SIM.speed>=60;
+
+  // Accumulate history
+  historyBenford=SIM.snapshots.slice(0,idx+1)
+    .flatMap(s=>(s.partidos||[]).map(p=>p.votos)).filter(v=>v>0);
+  const last10=SIM.snapshots.slice(Math.max(0,idx-9),idx+1);
+  historyTimeline=SIM.snapshots.slice(0,idx+1).map((s,i)=>({
+    ts:tsShort(s.ts),actas:s.actas_divulgadas||0,anom:s._chain_broken_pct||s._false_hash||s._rollback?1:0}));
+  historyIncons=SIM.snapshots.slice(0,idx+1).map(s=>s.inconsistentes||0);
+
+  // Chain integrity
+  const chainOk=!snap._chain_broken_pct&&!snap._false_hash&&!snap._sig_invalid&&!snap._chain_fork;
+  const chainPct=snap._chain_broken_pct?Math.max(0,100-snap._chain_broken_pct):100;
+  simChains.push(chainOk);
+
+  // KPIs
+  document.getElementById('k-actas').textContent=fmt(snap.actas_divulgadas);
+  document.getElementById('k-actas-sub').textContent=`de ${fmt(snap.actas_totales)} totales`;
+  document.getElementById('k-actas-bar').style.width=
+    Math.min(100,(snap.actas_divulgadas||0)/(snap.actas_totales||1)*100).toFixed(1)+'%';
+  document.getElementById('k-votos').textContent=snap.validos==null?'TRUNCADO':fmt(snap.validos);
+  document.getElementById('k-votos-sub').textContent=snap._partial?'⚠ datos parciales':'votos válidos';
+  document.getElementById('k-pct').textContent=fmtPct(snap.pct_escrutinio);
+  document.getElementById('k-pct-bar').style.width=(snap.pct_escrutinio||0)+'%';
+  const intEl=document.getElementById('k-int');
+  intEl.textContent=snap._binary_tampered?'CUARENTENA':chainPct+'%';
+  intEl.style.color=chainPct<50?'var(--bad)':chainPct<90?'var(--warn)':'var(--ok)';
+  document.getElementById('k-int-sub').textContent=
+    snap._binary_tampered?`auto-audit: ${snap._binary_tampered} módulos`:
+    snap._chain_fork?'chain fork detectado':
+    snap._sig_invalid?'firma inválida':
+    chainOk?'cadena íntegra':'cadena comprometida';
+
+  if(fastMode)return; // skip charts at 60×
+
+  const depts=getDeptData(snap);
+  const benf=computeBenford(historyBenford);
+  const lastd=computeLastDigit(historyBenford);
+
+  renderCandidates(snap);
+  renderTimeline();
+  renderBenford(benf,snap);
+  renderLastDigit(lastd,snap);
+  renderZScore(depts);
+  renderParticipation(depts);
+  renderNullBlank(depts);
+  renderForensics(snap,benf,lastd,last10);
+  emitEngineEvents(snap,idx,benf,lastd);
+}
+
+const CHART_OPT={animation:false,responsive:true,
+  plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
+  scales:{x:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
+         y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
+function mk(id,cfg){if(SC[id])SC[id].destroy();
+  const c=document.getElementById(id);if(!c)return;SC[id]=new Chart(c,cfg);}
+
+function renderCandidates(snap){
+  if(!snap.partidos)return;
+  const labs=snap.partidos.map(p=>p.abbrev);
+  const data=snap.partidos.map(p=>p.votos||0);
+  const bgs=snap.partidos.map(p=>p.color+'cc');
+  mk('s-chart-cand',{type:'bar',data:{labels:labs,datasets:[{label:'Votos',data,backgroundColor:bgs,borderRadius:5}]},
+    options:{...CHART_OPT,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString()} votos (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
+}
+
+function renderTimeline(){
+  const labs=historyTimeline.map(h=>h.ts);
+  const a=historyTimeline.map(h=>h.actas);
+  const an=historyTimeline.map(h=>h.anom);
+  mk('s-chart-timeline',{type:'line',data:{labels:labs,datasets:[
+    {label:'Actas acumuladas',data:a,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0,yAxisID:'y'},
+    {label:'Anomalías',data:an,borderColor:'#df6b86',fill:false,tension:.1,pointRadius:2,yAxisID:'y2'}]},
+    options:{...CHART_OPT,scales:{
+      x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:9}},grid:{color:'#1c1f26'}},
+      y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Actas',color:'#8b929c'}},
+      y2:{position:'right',ticks:{color:'#df6b86'},grid:{drawOnChartArea:false},title:{display:true,text:'Anomalías',color:'#df6b86'}}}}});
+}
+
+function renderBenford(benf,snap){
+  const labs=benf.digits.map(d=>'D'+d.d);
+  const exp=benf.digits.map(d=>d.exp);
+  const obs=benf.digits.map(d=>d.obs);
+  const violated=TE.benford_chi_pvalue&&benf.pval<TV.benford_chi_pvalue;
+  const obsBg=violated?'rgba(223,107,134,.7)':'rgba(110,168,254,.7)';
+  mk('s-chart-benford',{type:'bar',data:{labels:labs,datasets:[
+    {label:'Esperado %',data:exp,backgroundColor:'rgba(110,168,254,.25)',borderColor:'#6ea8fe',borderWidth:1},
+    {label:'Observado %',data:obs,backgroundColor:obsBg,borderColor:'#6ea8fe',borderWidth:1}]},
+    options:{...CHART_OPT,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
+  const stats=document.getElementById('s-benford-stats');
+  if(benf.N<15){stats.innerHTML='<span style="color:var(--muted)">n insuficiente (&lt;15 muestras)</span>';return;}
+  stats.innerHTML=`χ² = ${benf.chi2.toFixed(2)} | p = ${benf.pval.toFixed(3)} | n=${benf.N} → `+
+    (violated?'<span style="color:var(--bad)">⚠ Umbral violado</span>':'<span style="color:var(--ok)">Normal</span>');
+}
+
+function renderLastDigit(lastd,snap){
+  const labs=lastd.digits.map(d=>String(d.d));
+  const obs=lastd.digits.map(d=>d.obs);
+  const violated=TE.lastdigit_chi&&lastd.pval<TV.lastdigit_chi;
+  const bg=obs.map((_,i)=>violated&&(i===0||i===5)?'rgba(223,107,134,.7)':'rgba(176,140,240,.5)');
+  mk('s-chart-lastdigit',{type:'bar',data:{labels:labs,datasets:[
+    {label:'Uniforme 10%',data:new Array(10).fill(10),backgroundColor:'rgba(87,192,141,.2)',borderColor:'#57c08d',borderWidth:1},
+    {label:'Observado %',data:obs,backgroundColor:bg,borderWidth:0}]},
+    options:{...CHART_OPT,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
+  const stats=document.getElementById('s-lastdigit-stats');
+  stats.innerHTML=lastd.N<20?'<span style="color:var(--muted)">n insuficiente</span>':
+    `χ² = ${lastd.chi2.toFixed(2)} | p = ${lastd.pval.toFixed(3)} → `+
+    (violated?'<span style="color:var(--bad)">⚠ Violación detectada</span>':'<span style="color:var(--ok)">Uniforme</span>');
+}
+
+function renderZScore(depts){
+  const labs=depts.map(d=>d.name.split(' ')[0]);
+  const zs=depts.map(d=>d.zscore);
+  const bgs=zs.map(z=>Math.abs(z)>TV.zscore_thr?'rgba(223,107,134,.7)':'rgba(110,168,254,.5)');
+  mk('s-chart-zscore',{type:'bar',data:{labels:labs,datasets:[{label:'Z-score',data:zs,backgroundColor:bgs,borderRadius:3}]},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},
+             y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'}}}}});
+}
+
+function renderParticipation(depts){
+  const labs=depts.map(d=>d.name.split(' ')[0]);
+  const pcts=depts.map(d=>parseFloat(d.pct.toFixed(1)));
+  const bgs=pcts.map(p=>p>95?'rgba(223,107,134,.7)':p>80?'rgba(110,168,254,.5)':'rgba(87,192,141,.5)');
+  mk('s-chart-participation',{type:'bar',data:{labels:labs,datasets:[{label:'% Escrutinio',data:pcts,backgroundColor:bgs,borderRadius:3}]},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'},max:110},
+             y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'}}}}});
+}
+
+function renderNullBlank(depts){
+  const labs=depts.map(d=>d.name.split(' ')[0]);
+  mk('s-chart-nullblank',{type:'bar',data:{labels:labs,datasets:[
+    {label:'Nulos',data:depts.map(d=>d.nulos),backgroundColor:'rgba(223,107,134,.6)',borderRadius:2},
+    {label:'Blancos',data:depts.map(d=>d.blancos),backgroundColor:'rgba(212,176,102,.5)',borderRadius:2}]},
+    options:{...CHART_OPT,indexAxis:'y',
+      scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'},stacked:true},
+             y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'},stacked:true}}}});
+}
+
+function renderForensics(snap,benf,lastd,last10){
+  const verdicts=[
+    {id:'prog',label:'Inyección Progresiva de Ventaja',
+     detected:snap._inversion||activeInjections.some(i=>i.id==='C1'),
+     detail:'Monitorea si un partido gana ventaja sistemática entre snapshots consecutivos.'},
+    {id:'vel',label:'Anomalía de Velocidad',
+     detected:snap._nocturnal||snap._throttled===false,
+     detail:`Máx actas/15min: ${TV.speed_max}. Actual: ${((snap.actas_divulgadas||0)-(SIM.snapshots[Math.max(0,SIM.idx-3)]?.actas_divulgadas||0)).toFixed(0)}`},
+    {id:'asym',label:'Beneficio Asimétrico',
+     detected:snap._chain_broken_pct>50||snap._inversion,
+     detail:'Evalúa si un candidato concentra desproporcionadamente las actas nuevas.'},
+    {id:'hold',label:'Hold-and-Release',
+     detected:activeInjections.some(i=>i.id==='A4'),
+     detail:'Detecta períodos de estancamiento seguidos de liberaciones masivas.'},
+    {id:'benf',label:'Benford (1er dígito)',
+     detected:benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue,
+     detail:benf.N<15?'Datos insuficientes':`χ²=${benf.chi2.toFixed(2)} p=${benf.pval.toFixed(3)} umbral=${TV.benford_chi_pvalue}`},
+    {id:'zsc',label:'Z-score',
+     detected:snap._concentration||snap._geo_blackout,
+     detail:`Umbral configurado: ${TV.zscore_thr}σ`},
+    {id:'blk',label:'Apagón / Blackout',
+     detected:snap.blackout||snap._geo_blackout,
+     detail:snap.blackout?'Blackout activo detectado':'Sin blackout en snapshot actual'},
+  ];
+  const container=document.getElementById('s-forensic-list');
+  container.innerHTML=verdicts.map(v=>{
+    const cls=v.detected?'b-bad':'b-ok';
+    const lbl=v.detected?'ALERTA':'OK';
+    return `<div class="forensic-card">
+      <div class="forensic-hdr" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span class="forensic-title">${v.label}</span>
+        <span class="badge ${cls}">${lbl}</span>
+      </div>
+      <div class="forensic-body">${v.detail}</div>
+    </div>`;
+  }).join('');
+}
+
+function emitEngineEvents(snap,idx,benf,lastd){
+  if(idx%6===0)logE('INFO',`SHA-256 verificado ✓ snap ${idx} — hash=${fakeHash(idx).slice(0,12)}...`);
+  if(snap.blackout||snap._geo_blackout)logE('CRITICAL',`Apagón detectado en snapshot ${idx}`);
+  if(benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue)
+    logE('WARN',`Benford χ²=${benf.chi2.toFixed(2)} p=${benf.pval.toFixed(3)} → umbral violado`);
+  if(lastd.N>=20&&lastd.pval<TV.lastdigit_chi&&TE.lastdigit_chi)
+    logE('WARN',`Último dígito chi²=${lastd.chi2.toFixed(2)} p=${lastd.pval.toFixed(3)} → uniformidad rota`);
+  if(snap._rollback)logE('CRITICAL','Reversión de datos detectada — actas_divulgadas retrocedió');
+  if(snap._uniformidad)logE('WARN','Uniformidad sospechosa: distribución de votos perfectamente teórica');
+  if(snap._mesa_fantasma||snap.actas_divulgadas>snap.actas_totales)
+    logE('CRITICAL',`Conteo imposible: ${snap.actas_divulgadas} > ${snap.actas_totales} actas`);
+  if(snap._ep_disc)logE('WARN',`${snap._ep_disc} endpoints desconectados — blackout perimetral`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// THRESHOLD PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+function lockThresholds(){
+  const txt=document.getElementById('thresh-prereg-text').value.trim();
+  if(!txt){alert('Escribe tu hipótesis primero.');return;}
+  threshLocked=true;
+  document.getElementById('thresh-prereg-text').setAttribute('readonly','');
+  document.getElementById('thresh-lock-btn').disabled=true;
+  document.getElementById('thresh-lock-stat').innerHTML='<span class="badge b-ok">hipótesis bloqueada</span>';
+  document.getElementById('thresh-sliders').classList.add('unlocked');
+  localStorage.setItem('centinel_acad_prereg',JSON.stringify({txt,ts:new Date().toISOString()}));
+  logE('INFO','Pre-registro de umbrales bloqueado por investigador');
+}
+function resetThresholds(){RULES_DEFS.forEach(r=>{TV[r.id]=r.def;
+  const sl=document.getElementById('sl-'+r.id);if(sl)sl.value=r.def;
+  const vl=document.getElementById('tv-'+r.id);if(vl)vl.textContent=r.def+(r.unit||'');});
+  logE('INFO','Umbrales restaurados a valores por defecto');}
+function updateTV(id,val){
+  const r=RULES_DEFS.find(x=>x.id===id); TV[id]=parseFloat(val);
+  document.getElementById('tv-'+id).textContent=val+(r?.unit||'');
+  if(SERIES)renderSimFrame(SIM.idx);}
+function toggleTE(id,on){TE[id]=on;if(SERIES)renderSimFrame(SIM.idx);}
+
+function renderThresholdSliders(){
+  const grps={};
+  RULES_DEFS.forEach(r=>{if(!grps[r.grp])grps[r.grp]=[];grps[r.grp].push(r);});
+  document.getElementById('thresh-sliders-container').innerHTML=
+    Object.entries(grps).map(([g,rules])=>`
+      <div class="thresh-group">
+        <div class="thresh-group-label">${g}</div>
+        ${rules.map(r=>`<div class="rule-row">
+          <span class="rule-name">${r.label}</span>
+          <input type="checkbox" class="rule-chk" ${TE[r.id]?'checked':''} onchange="toggleTE('${r.id}',this.checked)">
+          <input type="range" class="rule-slider" id="sl-${r.id}"
+            min="${r.min}" max="${r.max}" step="${r.step}" value="${r.def}"
+            oninput="updateTV('${r.id}',this.value)">
+          <span class="rule-val" id="tv-${r.id}">${r.def}${r.unit||''}</span>
+        </div>`).join('')}
+      </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INJECTION SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+function setInjMode(m){
+  injMode=m;
+  document.getElementById('btn-inj-instant').classList.toggle('on',m==='instant');
+  document.getElementById('btn-inj-sched').classList.toggle('on',m==='scheduled');
+  const sw=document.getElementById('inj-schedule-wrap');
+  m==='scheduled'?sw.classList.add('show'):sw.classList.remove('show');
+}
+function injectEvent(id){
+  const ev=EVENTS[id];if(!ev)return;
+  const paramEl=document.querySelector(`[data-ev="${id}"] .inj-param-range`);
+  const paramVal=paramEl?parseFloat(paramEl.value):null;
+  if(injMode==='instant'){
+    const snap=SIM.snapshots[SIM.idx]||{};
+    ev.apply(snap,paramVal,SIM.idx);
+    activeInjections.push({id,label:ev.label,mode:'inmediata',atIdx:SIM.idx,ts:new Date()});
+    renderActiveInjections();renderSimFrame(SIM.idx);
+  }else{
+    const atIdx=parseInt(document.getElementById('inj-sched-idx').value)||100;
+    scheduledInjections.push({id,paramVal,atIdx});
+    activeInjections.push({id,label:ev.label,mode:'programada',atIdx,schedRef:scheduledInjections.length-1});
+    renderActiveInjections();
+    logE('INFO',`Inyección programada: ${ev.label} en snapshot ${atIdx}`);
+  }
+}
+function applyScheduledInjections(idx){
+  scheduledInjections.filter(s=>s.atIdx===idx).forEach(s=>{
+    const ev=EVENTS[s.id];if(ev)ev.apply(SIM.snapshots[idx],s.paramVal,idx);
+  });
+  scheduledInjections=scheduledInjections.filter(s=>s.atIdx>idx);
+}
+function cancelInjection(i){
+  activeInjections.splice(i,1);renderActiveInjections();
+}
+function renderActiveInjections(){
+  const el=document.getElementById('inj-active-list');
+  const empty=document.getElementById('inj-active-empty');
+  if(!activeInjections.length){el.innerHTML='';el.appendChild(empty);return;}
+  el.innerHTML=activeInjections.map((inj,i)=>`
+    <span class="inj-tag ${inj.mode==='programada'?'sched':''}">
+      ${inj.id}: ${inj.label.split(' ').slice(0,3).join(' ')}
+      ${inj.mode==='programada'?` @${inj.atIdx}`:''}
+      <button onclick="cancelInjection(${i})" title="Cancelar">×</button>
+    </span>`).join('');
+}
+
+function renderInjGrid(gridId,block){
+  const container=document.getElementById(gridId);
+  const evs=Object.entries(EVENTS).filter(([,e])=>e.block===block);
+  container.innerHTML=evs.map(([id,ev])=>{
+    const btnCls=block==='B'?'b':block==='C'?'c':'';
+    const paramHtml=ev.param?`
+      <div class="inj-param-row">
+        <span style="flex:0;white-space:nowrap;font-size:9px">${ev.param.label}</span>
+        <input type="range" class="inj-param-range"
+          min="${ev.param.min}" max="${ev.param.max}" value="${ev.param.def}"
+          oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}'">
+        <span class="inj-param-val">${ev.param.def}${ev.param.unit||''}</span>
+      </div>`:'';
+    return `<div class="inj-card" data-ev="${id}">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="inj-card-label">${id}: ${ev.label}</span>
+      </div>
+      <div class="inj-card-desc">${ev.desc}</div>
+      <div class="breaking-badge">⚡ ${ev.breakpoint}</div>
+      ${paramHtml}
+      <button class="inj-btn ${btnCls}" onclick="injectEvent('${id}')">Inyectar</button>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESTORE VIS
+// ═══════════════════════════════════════════════════════════════════════════
+function restoreVis(){
+  document.getElementById('vis-overlay').classList.remove('show');
+  if(SIM.snapshots[SIM.idx])SIM.snapshots[SIM.idx]._vis_down=false;
+  logE('OK','Sistema de visualización restaurado');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+(async function init(){
+  renderThresholdSliders();
+  renderInjGrid('inj-grid-a','A');
+  renderInjGrid('inj-grid-b','B');
+  renderInjGrid('inj-grid-c','C');
+  renderActiveInjections();
+  // Restore pre-registration if exists
+  const saved=localStorage.getItem('centinel_acad_prereg');
+  if(saved){try{const{txt}=JSON.parse(saved);
+    document.getElementById('thresh-prereg-text').value=txt;lockThresholds();}catch{}}
+  // Load default dataset
+  await loadDataset('../../data/hnd_2025_series.json');
+  logE('OK','Sandbox Forense Académico listo — CENTINEL v1');
+  logE('INFO','Selecciona un dataset y presiona ▶ para iniciar la simulación');
+})();
+</script>
+</body>
+</html>
