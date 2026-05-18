@@ -6,7 +6,7 @@ name: Deploy web verifier to GitHub Pages
 on:
   push:
     branches: [main, dev-v10, dev-v9]
-    paths: ["web/**", ".github/workflows/pages.yml"]
+    paths: ["web/**", ".github/workflows/pages.yml", "tests/fixtures/hnd_2025/**", "scripts/calibrate_2025.py"]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +26,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+
+      - name: Set up Python for calibration
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Regenerate HND-2025 calibration data
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install python-dateutil
+          python scripts/calibrate_2025.py --data tests/fixtures/hnd_2025/ --output-dir /tmp/calibration
+          cp /tmp/calibration/calibration_2025.json web/data/calibration_hnd_2025.json
+        continue-on-error: true  # deploy even if calibration fails (static JSON still in repo)
+
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa  # v3
         with:
