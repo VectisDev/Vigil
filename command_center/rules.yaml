@@ -1,71 +1,236 @@
 # ============================================================
 # REGLAS GENERALES DEL COMMAND CENTER (ES) / GENERAL RULES (EN)
 # ============================================================
-# ES: Umbrales globales y metadatos mínimos de reglas analíticas.
-# EN: Global thresholds and minimal analytical-rule metadata.
+# ES: Fuente de verdad para umbrales y configuración de las 23 reglas analíticas.
+#     Todos los parámetros aquí coinciden con los config.get() en src/centinel/core/rules/*.py.
+#     Modificar este archivo es suficiente para recalibrar el sistema sin redeployment.
+# EN: Single source of truth for thresholds and configuration of all 23 analytical rules.
+#     All parameters here match the config.get() calls in src/centinel/core/rules/*.py.
+#     Editing this file is sufficient to recalibrate the system without redeployment.
 #
 # ES: Índice:
 # EN: Index:
-# 01_umbral_resiliencia
-# 02_seguridad_general
-# 03_definiciones_de_reglas
+# 01_resiliencia        — reintentos, backoff
+# 02_seguridad          — encrypt, rate limiting
+# 03_globales           — chi2, Benford, JSON limit
+# 04_reglas             — 23 reglas con severidad, enabled, parámetros calibrables
 
 # ES: Convención binaria: todos los flags tipo enabled/monitor/critical/anonymize/encrypt
 #     usan true/false (booleano YAML, sin comillas).
 # EN: Binary convention: all flags such as enabled/monitor/critical/anonymize/encrypt
 #     use true/false (YAML booleans, without quotes).
 
-# Umbrales de resiliencia y reglas generales del command center.
-# Resilience thresholds and general rules for the command center.
-
-# Máximo de reintentos de red (HTTPAdapter/Retry).
-# Max retry count for network calls (HTTPAdapter/Retry).
+# ── 01. RESILIENCIA ──────────────────────────────────────────
 retry_max: 5
-
-# Factor de backoff exponencial (segundos base).
-# Exponential backoff factor (base seconds).
 backoff_factor: 2
 
-# Umbral crítico para chi-cuadrado y Benford.
-# Critical threshold for chi-square and Benford.
-chi2_p_critical: 0.01
-
-# Mínimo de muestras para Benford.
-# Minimum samples for Benford.
-benford_min_samples: 10
-
-# Límite de JSON presidenciales por ciclo.
-# Presidential JSON limit per cycle.
-max_json_presidenciales: 19
-
-# Configuración de seguridad.
-# Security settings.
+# ── 02. SEGURIDAD ────────────────────────────────────────────
 security:
   encrypt_enabled: true
   log_sensitive: false
   rate_limit_rpm: 10
 
-# Definiciones de reglas con metadatos mínimos.
-# Rule definitions with minimum metadata.
+# ── 03. GLOBALES ─────────────────────────────────────────────
+chi2_p_critical: 0.01
+benford_min_samples: 10
+max_json_presidenciales: 19
+
+# ── 04. REGLAS ANALÍTICAS ────────────────────────────────────
+# Cada entrada usa el config_key del decorador @rule en el módulo correspondiente.
+# Each entry uses the config_key from the @rule decorator in the corresponding module.
 rules:
+
+  # ── BENFORD — Primer dígito (MAD + chi²) ─────────────────
+  # Módulo: benford_first_digit_rule.py | Severity: CRITICAL
   benford_first_digit:
-    # Nombre único de la regla (Unique rule name).
-    rule_name: "benford_first_digit"
-    # Umbral principal de la regla (Primary rule threshold).
-    threshold: 0.05
-    # Si la regla está habilitada (Whether the rule is enabled).
     enabled: true
-    # Parámetros específicos de la regla (Rule-specific parameters).
-    parameters:
-      min_samples: 50
-  turnout_zscore:
-    # Nombre único de la regla (Unique rule name).
-    rule_name: "turnout_zscore"
-    # Umbral principal de la regla (Primary rule threshold).
-    threshold: 2.5
-    # Si la regla está habilitada (Whether the rule is enabled).
+    severity: "CRITICAL"
+    min_samples: 15
+    mad_warning: 0.008
+    mad_critical: 0.015
+    chi_pvalue_critical: 0.01
+
+  # ── BENFORD — Alternativa por candidato (chi²) ───────────
+  # Módulo: benford_law_rule.py | Severity: Medium
+  benford_law:
     enabled: true
-    # Parámetros específicos de la regla (Rule-specific parameters).
-    parameters:
-      turnout_min: 0.4
-      turnout_max: 0.95
+    severity: "Medium"
+    min_samples: 10
+    deviation_pct: 15
+    chi_square_threshold: 0.05
+
+  # ── UNIFORMIDAD ÚLTIMO DÍGITO (chi²) ─────────────────────
+  # Módulo: last_digit_uniformity_rule.py | Severity: CRITICAL
+  last_digit_uniformity:
+    enabled: true
+    severity: "CRITICAL"
+    min_samples: 20
+    chi_pvalue_critical: 0.001
+
+  # ── ANOMALÍAS GRANULARES (deltas neg., z-score, reversión) ─
+  # Módulo: granular_anomaly_rule.py | Severity: CRITICAL
+  granular_anomaly:
+    enabled: true
+    severity: "CRITICAL"
+    negative_delta_threshold: 0
+    delta_pct_alert: 3.0
+    delta_pct_time_window_minutes: 30
+    zscore_threshold: 3.0
+    zscore_min_abs_delta: 100
+    zscore_min_departments: 5
+    benford_pvalue_threshold: 0.05
+    benford_min_samples: 50
+    benford_min_vote: 10
+    turnout_min_pct: 0.0
+    turnout_max_pct: 100.0
+    reversal_min_lead_margin: 500
+    reversal_time_window_minutes: 30
+    reversal_min_negative_delta: 100
+    sum_mismatch_threshold: 1
+
+  # ── IMPOSIBILIDAD ARITMÉTICA POR REGISTRO ────────────────
+  # Módulo: mesa_impossibility_rule.py | Severity: CRITICAL
+  mesa_impossibility:
+    enabled: true
+    severity: "CRITICAL"
+
+  # ── MUTACIÓN DE REGISTROS ENTRE PUBLICACIONES ────────────
+  # Módulo: mesa_reconciliation_rule.py | Severity: CRITICAL
+  mesa_reconciliation:
+    enabled: true
+    severity: "CRITICAL"
+
+  # ── MESAS DUPLICADAS O DESAPARECIDAS ─────────────────────
+  # Módulo: mesas_diff_rule.py | Severity: CRITICAL
+  mesas_diff:
+    enabled: true
+    severity: "CRITICAL"
+
+  # ── SALTOS ENTRE SNAPSHOTS (>X% en Y min) ────────────────
+  # Módulo: snapshot_jump_rule.py | Severity: CRITICAL
+  snapshot_jump:
+    enabled: true
+    severity: "CRITICAL"
+    max_change_pct: 5
+    max_minutes: 10
+
+  # ── CORRELACIÓN PARTICIPACIÓN-VOTO (Pearson) ─────────────
+  # Módulo: correlation_participation_vote_rule.py | Severity: CRITICAL
+  participation_vote_correlation:
+    enabled: true
+    severity: "CRITICAL"
+    min_samples: 30
+    critical_r: 0.85
+
+  # ── DISPERSIÓN GEOGRÁFICA (CV entre departamentos) ───────
+  # Módulo: geographic_dispersion_rule.py | Severity: CRITICAL
+  geographic_dispersion:
+    enabled: true
+    severity: "CRITICAL"
+    critical_cv: 0.45
+    min_departments: 5
+
+  # ── NULOS Y BLANCOS ELEVADOS ─────────────────────────────
+  # Módulo: null_blank_rule.py | Severity: CRITICAL
+  null_blank_votes:
+    enabled: true
+    severity: "CRITICAL"
+    warning_pct: 8
+    critical_pct: 12
+
+  # ── CONSISTENCIA POR MESA (suma votos vs total) ──────────
+  # Módulo: table_consistency_rule.py | Severity: CRITICAL
+  table_consistency:
+    enabled: true
+    severity: "CRITICAL"
+    total_tolerance: 1
+
+  # ── RUNS TEST (aleatoriedad en secuencia de mesas) ───────
+  # Módulo: runs_test_rule.py | Severity: CRITICAL
+  runs_test:
+    enabled: true
+    severity: "CRITICAL"
+    min_samples: 30
+    critical_pvalue: 0.01
+
+  # ── PARTICIPACIÓN ANÓMALA AVANZADA (z-score >3σ) ─────────
+  # Módulo: participation_anomaly_advanced_rule.py | Severity: CRITICAL
+  participation_anomaly_advanced:
+    enabled: true
+    severity: "CRITICAL"
+    min_turnout_pct: 40
+    max_turnout_pct: 90
+    # Valores históricos por departamento — poblar tras calibración con datos 2025.
+    # Historical values — populate after calibration with 2025 data.
+    historical_mean: null
+    historical_std: null
+
+  # ── TURNOUT IMPOSIBLE (<0% o >100%) ──────────────────────
+  # Módulo: turnout_impossible_rule.py | Severity: CRITICAL
+  turnout_impossible:
+    enabled: true
+    severity: "CRITICAL"
+    min_turnout_pct: 0
+    max_turnout_pct: 100
+
+  # ── CONSISTENCIA ARITMÉTICA BÁSICA ───────────────────────
+  # Módulo: basic_diff_rule.py | Severity: High
+  basic_diff:
+    enabled: true
+    severity: "High"
+    relative_vote_change_pct: 15
+
+  # ── IRREVERSIBILIDAD ESTADÍSTICA ─────────────────────────
+  # Módulo: irreversibility_rule.py | Severity: High
+  irreversibility:
+    enabled: true
+    severity: "High"
+    historical_participation_rate: 0.60
+    sqlite_path: "reports/irreversibility_state.db"
+
+  # ── ANOMALÍA DE PARTICIPACIÓN (saltos de escrutinio) ─────
+  # Módulo: participation_anomaly_rule.py | Severity: High
+  participation_anomaly:
+    enabled: true
+    severity: "High"
+    scrutiny_jump_pct: 5
+
+  # ── VELOCIDAD DE PROCESAMIENTO (actas/15min) ─────────────
+  # Módulo: processing_speed_rule.py | Severity: High
+  processing_speed:
+    enabled: true
+    severity: "High"
+    max_actas_per_15min: 500
+
+  # ── CONVERGENCIA LEY DE GRANDES NÚMEROS ─────────────────
+  # Módulo: large_numbers_rule.py | Severity: Medium
+  large_numbers_convergence:
+    enabled: true
+    severity: "Medium"
+    min_samples: 30
+    z_threshold: 3.0
+    min_total_votes: 200
+
+  # ── DESVIACIÓN DE TENDENCIA ───────────────────────────────
+  # Módulo: trend_shift_rule.py | Severity: High
+  trend_shift:
+    enabled: true
+    severity: "High"
+    threshold_percent: 10
+    max_hours: 3
+
+  # ── APARICIÓN TARDÍA DE REGISTROS ────────────────────────
+  # Módulo: late_mesa_rule.py | Severity: WARNING
+  late_mesa:
+    enabled: true
+    severity: "WARNING"
+
+  # ── OUTLIERS ML (Isolation Forest) ───────────────────────
+  # Módulo: ml_outliers_rule.py | Severity: Medium
+  ml_outliers:
+    enabled: true
+    severity: "Medium"
+    min_samples: 5
+    max_history: 200
+    contamination: 0.1
+    history_db_path: "reports/ml_outliers_history.db"
