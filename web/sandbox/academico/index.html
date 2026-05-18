@@ -1089,7 +1089,7 @@ function renderCandidates(snap){
   const data=snap.partidos.map(p=>p.votos||0);
   const bgs=snap.partidos.map(p=>p.color+'cc');
   mk('s-chart-cand',{type:'bar',data:{labels:labs,datasets:[{label:'Votos',data,backgroundColor:bgs,borderRadius:5}]},
-    options:{...CHART_OPT,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString()} votos (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
+    options:{...CHART_OPT,plugins:{title:{display:true,text:'Votos por Partido',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}},legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString()} votos (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
 }
 
 function renderTimeline(){
@@ -1099,7 +1099,7 @@ function renderTimeline(){
   mk('s-chart-timeline',{type:'line',data:{labels:labs,datasets:[
     {label:'Actas acumuladas',data:a,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0,yAxisID:'y'},
     {label:'Anomalías',data:an,borderColor:'#df6b86',fill:false,tension:.1,pointRadius:2,yAxisID:'y2'}]},
-    options:{...CHART_OPT,scales:{
+    options:{...CHART_OPT,plugins:{...CHART_OPT.plugins,title:{display:true,text:'Actas Acumuladas y Eventos Anómalos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}}},scales:{
       x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:9}},grid:{color:'#1c1f26'}},
       y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Actas',color:'#8b929c'}},
       y2:{position:'right',ticks:{color:'#df6b86'},grid:{drawOnChartArea:false},title:{display:true,text:'Anomalías',color:'#df6b86'}}}}});
@@ -1114,7 +1114,7 @@ function renderBenford(benf,snap){
   mk('s-chart-benford',{type:'bar',data:{labels:labs,datasets:[
     {label:'Esperado %',data:exp,backgroundColor:'rgba(110,168,254,.25)',borderColor:'#6ea8fe',borderWidth:1},
     {label:'Observado %',data:obs,backgroundColor:obsBg,borderColor:'#6ea8fe',borderWidth:1}]},
-    options:{...CHART_OPT,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:'Ley de Benford — Distribución del Primer Dígito',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
   const stats=document.getElementById('s-benford-stats');
   if(benf.N<15){stats.innerHTML='<span style="color:var(--muted)">n insuficiente (&lt;15 muestras)</span>';return;}
@@ -1130,7 +1130,7 @@ function renderLastDigit(lastd,snap){
   mk('s-chart-lastdigit',{type:'bar',data:{labels:labs,datasets:[
     {label:'Uniforme 10%',data:new Array(10).fill(10),backgroundColor:'rgba(87,192,141,.2)',borderColor:'#57c08d',borderWidth:1},
     {label:'Observado %',data:obs,backgroundColor:bg,borderWidth:0}]},
-    options:{...CHART_OPT,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:'Uniformidad del Último Dígito',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
   const stats=document.getElementById('s-lastdigit-stats');
   stats.innerHTML=lastd.N<20?'<span style="color:var(--muted)">n insuficiente</span>':
@@ -1143,7 +1143,7 @@ function renderZScore(depts){
   const zs=depts.map(d=>d.zscore);
   const bgs=zs.map(z=>Math.abs(z)>TV.zscore_thr?'rgba(223,107,134,.7)':'rgba(110,168,254,.5)');
   mk('s-chart-zscore',{type:'bar',data:{labels:labs,datasets:[{label:'Z-score',data:zs,backgroundColor:bgs,borderRadius:3}]},
-    options:{...CHART_OPT,indexAxis:'y',plugins:{legend:{display:false}},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Z-score de Participación por Departamento',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'}}}}});
 }
@@ -1153,7 +1153,7 @@ function renderParticipation(depts){
   const pcts=depts.map(d=>parseFloat(d.pct.toFixed(1)));
   const bgs=pcts.map(p=>p>95?'rgba(223,107,134,.7)':p>80?'rgba(110,168,254,.5)':'rgba(87,192,141,.5)');
   mk('s-chart-participation',{type:'bar',data:{labels:labs,datasets:[{label:'% Escrutinio',data:pcts,backgroundColor:bgs,borderRadius:3}]},
-    options:{...CHART_OPT,indexAxis:'y',plugins:{legend:{display:false}},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Escrutinio por Departamento (%)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'},max:110},
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'}}}}});
 }
@@ -1163,7 +1163,7 @@ function renderNullBlank(depts){
   mk('s-chart-nullblank',{type:'bar',data:{labels:labs,datasets:[
     {label:'Nulos',data:depts.map(d=>d.nulos),backgroundColor:'rgba(223,107,134,.6)',borderRadius:2},
     {label:'Blancos',data:depts.map(d=>d.blancos),backgroundColor:'rgba(212,176,102,.5)',borderRadius:2}]},
-    options:{...CHART_OPT,indexAxis:'y',
+    options:{...CHART_OPT,indexAxis:'y',plugins:{...CHART_OPT.plugins,title:{display:true,text:'Votos Nulos y Blancos por Departamento',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'},stacked:true},
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'},stacked:true}}}});
 }
