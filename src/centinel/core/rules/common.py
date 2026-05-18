@@ -118,13 +118,7 @@ def safe_float_or_none(value: object) -> Optional[float]:
 def extract_department(data: dict) -> str:
     """Extrae el departamento o retorna un valor por defecto. (Extract the department or return a default value.)"""
     meta = data.get("meta") or data.get("metadata") or {}
-    return (
-        data.get("departamento")
-        or data.get("dep")
-        or data.get("department")
-        or meta.get("department")
-        or "NACIONAL"
-    )
+    return data.get("departamento") or data.get("dep") or data.get("department") or meta.get("department") or "NACIONAL"
 
 
 def parse_timestamp(data: dict) -> Optional[object]:
@@ -257,10 +251,7 @@ def extract_actas_mesas_counts(data: dict) -> Dict[str, Optional[int]]:
             or totals.get("actas")
         ),
         "mesas_totales": safe_int_or_none(
-            mesas.get("totales")
-            or mesas.get("total")
-            or data.get("mesas_totales")
-            or data.get("mesas_total")
+            mesas.get("totales") or mesas.get("total") or data.get("mesas_totales") or data.get("mesas_total")
         ),
         "mesas_procesadas": safe_int_or_none(
             mesas.get("procesadas") or mesas.get("divulgadas") or data.get("mesas_procesadas")
@@ -292,14 +283,13 @@ def extract_inconsistency_data(data: dict) -> Dict[str, Optional[int]]:
     tot_actas = (data.get("estadisticas") or {}).get("totalizacion_actas") or {}
 
     actas_inconsistentes = safe_int_or_none(
-        data.get("actas_inconsistentes")
-        or estado.get("actas_inconsistentes")
-        or _nested("actas.inconsistentes")
+        data.get("actas_inconsistentes") or estado.get("actas_inconsistentes") or _nested("actas.inconsistentes")
     )
     actas_divulgadas = safe_int_or_none(
         data.get("actas_divulgadas")
         or tot_actas.get("actas_divulgadas")
-        or estado.get("actas_correctas") and (
+        or estado.get("actas_correctas")
+        and (
             (safe_int_or_none(estado.get("actas_correctas")) or 0)
             + (safe_int_or_none(estado.get("actas_inconsistentes")) or 0)
         )
@@ -313,11 +303,7 @@ def extract_inconsistency_data(data: dict) -> Dict[str, Optional[int]]:
 
 def extract_porcentaje_escrutado(data: dict) -> Optional[float]:
     """Extrae el porcentaje de escrutinio cuando existe. (Extract the scrutiny percentage when available.)"""
-    porcentaje = (
-        data.get("porcentaje_escrutado")
-        or data.get("porcentaje")
-        or data.get("porcentaje_escrutinio")
-    )
+    porcentaje = data.get("porcentaje_escrutado") or data.get("porcentaje") or data.get("porcentaje_escrutinio")
     if porcentaje is None:
         meta = data.get("meta") or data.get("metadata") or {}
         porcentaje = meta.get("porcentaje_escrutado") or meta.get("porcentaje")
@@ -349,13 +335,7 @@ def extract_mesas(data: dict) -> List[dict]:
 
 def extract_mesa_code(mesa: dict) -> Optional[str]:
     """Extrae el código de mesa desde campos conocidos. (Extract the table code from known fields.)"""
-    code = (
-        mesa.get("codigo")
-        or mesa.get("codigo_mesa")
-        or mesa.get("mesa_id")
-        or mesa.get("id")
-        or mesa.get("code")
-    )
+    code = mesa.get("codigo") or mesa.get("codigo_mesa") or mesa.get("mesa_id") or mesa.get("id") or mesa.get("code")
     return str(code) if code is not None else None
 
 
@@ -379,14 +359,9 @@ def extract_mesa_vote_breakdown(mesa: dict) -> Dict[str, Optional[int]]:
         "blank_votes": safe_int_or_none(
             totals.get("blank_votes") or totals.get("blancos") or mesa.get("votos_blancos")
         ),
-        "null_votes": safe_int_or_none(
-            totals.get("null_votes") or totals.get("nulos") or mesa.get("votos_nulos")
-        ),
+        "null_votes": safe_int_or_none(totals.get("null_votes") or totals.get("nulos") or mesa.get("votos_nulos")),
         "total_votes": safe_int_or_none(
-            totals.get("total_votes")
-            or totals.get("total")
-            or mesa.get("total_votes")
-            or mesa.get("votos_emitidos")
+            totals.get("total_votes") or totals.get("total") or mesa.get("total_votes") or mesa.get("votos_emitidos")
         ),
         "registered_voters": safe_int_or_none(
             totals.get("registered_voters")
@@ -404,11 +379,7 @@ def extract_department_entries(data: dict) -> List[dict]:
         if isinstance(entries, list):
             return [entry for entry in entries if isinstance(entry, dict)]
         if isinstance(entries, dict):
-            return [
-                {"department": dept, **payload}
-                for dept, payload in entries.items()
-                if isinstance(payload, dict)
-            ]
+            return [{"department": dept, **payload} for dept, payload in entries.items() if isinstance(payload, dict)]
     return []
 
 
@@ -448,9 +419,7 @@ def collect_all_mesas(data: dict) -> List[dict]:
             collected.append(mesa)
 
     for dept in extract_department_entries(data):
-        dept_name = str(
-            dept.get("department") or dept.get("departamento") or dept.get("nombre") or ""
-        )
+        dept_name = str(dept.get("department") or dept.get("departamento") or dept.get("nombre") or "")
         for mesa in extract_mesas(dept):
             if id(mesa) in seen:
                 continue

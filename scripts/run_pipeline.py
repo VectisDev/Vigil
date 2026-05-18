@@ -1048,7 +1048,13 @@ def run_pipeline(config: dict[str, Any]) -> None:
             _anchor_snapshot(config, state, now, latest_snapshot)
             _anchor_if_due(config, state, now)
 
-        _publish_forensics(config, now, extra_meta={"report_pdf_url": state.get("last_report_pdf_url")} if state.get("last_report_pdf_url") else None)
+        _publish_forensics(
+            config,
+            now,
+            extra_meta=(
+                {"report_pdf_url": state.get("last_report_pdf_url")} if state.get("last_report_pdf_url") else None
+            ),
+        )
 
         scrape_status = vital_signs.update_status_after_scrape(
             scrape_status,
@@ -1109,7 +1115,7 @@ def run_pipeline(config: dict[str, Any]) -> None:
 def safe_run_pipeline(config: dict[str, Any], security_manager: DefensiveSecurityManager | None = None) -> bool:
     """/** Ejecuta pipeline con protección contra fallas de red. / Run pipeline with protection against network failures. **"""
     # Prevent concurrent runs (e.g. GitHub Actions schedule + workflow_dispatch overlap)
-    _lock_fd = open("/tmp/centinel_pipeline.lock", "w")  # noqa: SIM115
+    _lock_fd = open("/tmp/centinel_pipeline.lock", "w")  # noqa: SIM115  # nosec B108
     try:
         fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
@@ -1315,9 +1321,10 @@ def _generate_and_upload_pdf(output_filename: str = "centinel_informe.pdf") -> s
     """Run generate_report.py --upload and return the public URL printed to stdout."""
     try:
         result = subprocess.run(
-            [sys.executable, "scripts/generate_report.py", "--upload", "--sign",
-             "--output", output_filename],
-            capture_output=True, text=True, timeout=120,
+            [sys.executable, "scripts/generate_report.py", "--upload", "--sign", "--output", output_filename],
+            capture_output=True,
+            text=True,
+            timeout=120,
         )
         for line in result.stdout.splitlines():
             if line.startswith("PDF uploaded:"):
@@ -1357,7 +1364,7 @@ def _trigger_emergency_publish(reason: str = "anomaly_detected") -> None:
         method="POST",
     )
     try:
-        with _urllib_req.urlopen(req, timeout=10) as resp:
+        with _urllib_req.urlopen(req, timeout=10) as resp:  # nosec B310
             log_event(logger, logging.INFO, "emergency_publish_triggered", status=resp.status, reason=reason)
     except Exception as exc:
         log_event(logger, logging.WARNING, "emergency_publish_failed", error=str(exc))
@@ -1444,9 +1451,7 @@ def _anchor_snapshot(
         ots_path = ots_dir / f"{ts_slug}_{root_hash[:12]}.ots"
         ots_path.write_bytes(ots_proof.raw_proof)
         proof_meta = ots_dir / f"{ts_slug}_{root_hash[:12]}.json"
-        proof_meta.write_text(
-            json.dumps(ots_proof.to_dict(), indent=2), encoding="utf-8"
-        )
+        proof_meta.write_text(json.dumps(ots_proof.to_dict(), indent=2), encoding="utf-8")
         logger.info(
             "ots_proof_saved path=%s server=%s",
             ots_path,

@@ -196,9 +196,7 @@ def _load_yaml_mapping(path: Path) -> dict[str, Any]:
     try:
         raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     except yaml.YAMLError as exc:
-        raise ValueError(
-            f"{path.name} tiene errores de sintaxis YAML ({path.name} has YAML syntax errors)."
-        ) from exc
+        raise ValueError(f"{path.name} tiene errores de sintaxis YAML ({path.name} has YAML syntax errors).") from exc
     if not isinstance(raw, dict):
         raise ValueError(f"{path.name} debe ser un mapa YAML ({path.name} must be a YAML mapping).")
     return raw
@@ -217,9 +215,7 @@ class RuleDefinition(BaseModel):
     def rule_name_must_be_non_empty(cls, value: Optional[str]) -> Optional[str]:
         """Ensure rule_name, if provided, is not blank. (Asegura que rule_name, si se provee, no esté vacío.)"""
         if value is not None and not value.strip():
-            raise ValueError(
-                "rule_name debe ser una cadena no vacía (rule_name must be a non-empty string)."
-            )
+            raise ValueError("rule_name debe ser una cadena no vacía (rule_name must be a non-empty string).")
         return value
 
 
@@ -294,9 +290,7 @@ def load_rules_config() -> dict[str, Any]:
 def load_config() -> dict[str, Any]:
     """Load configuration from command_center/config.yaml and validate required keys. (Carga la configuración desde command_center/config.yaml y valida sus claves.)"""
     if not CONFIG_PATH.exists():
-        raise FileNotFoundError(
-            "Falta command_center/config.yaml. Centraliza toda la configuración en esa ruta."
-        )
+        raise FileNotFoundError("Falta command_center/config.yaml. Centraliza toda la configuración en esa ruta.")
 
     config = _load_yaml_mapping(CONFIG_PATH)
     _validate_binary_conventions(config, source_name=CONFIG_PATH.as_posix())
