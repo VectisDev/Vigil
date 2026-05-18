@@ -1,0 +1,115 @@
+name: Generate Observer Pack
+
+# Genera el ZIP del observer pack (PDF + hashes + snapshot) y lo sube como artifact.
+# Generates the observer pack ZIP (PDF + hashes + snapshot) and uploads as artifact.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'observer_pack/**'
+      - 'docs/THEORY_OF_CHANGE.md'
+      - 'docs/METHODOLOGY.md'
+      - 'docs/GOVERNANCE.md'
+      - 'docs/BUDGET_NARRATIVE.md'
+      - 'docs/FALSE_POSITIVE_ANALYSIS.md'
+      - 'scripts/generate_observer_pack.py'
+      - 'scripts/generate_report.py'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Run ID label (e.g. 2025-11-30T20:00Z)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  PYTHONPATH: src
+
+jobs:
+  build-observer-pack:
+    name: Build & Upload Observer Pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            "pandas>=2.0.0" \
+            "reportlab>=4.2.5" \
+            "matplotlib>=3.8.0" \
+            "python-dateutil" \
+            "scipy>=1.11.0" \
+            "numpy>=1.24.0" \
+            "PyYAML>=6.0"
+
+      - name: Create output directories
+        run: mkdir -p web/reports observer_pack/dist
+
+      - name: Generate bilingual PDF report
+        run: |
+          python scripts/generate_report.py \
+            --source-dir data \
+            --output web/reports/latest.pdf \
+            --lang es \
+            --sign || true
+
+      - name: Generate observer pack ZIP
+        run: |
+          RUN_ID="${{ github.event.inputs.run_id }}"
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID="$(date -u +%Y-%m-%dT%H:%MZ)"
+          fi
+          python scripts/generate_observer_pack.py \
+            --source-dir data \
+            --output observer_pack/dist/centinel_observer_pack.zip \
+            --run-id "$RUN_ID" || echo "[WARN] Observer pack generation completed with warnings"
+
+      - name: Compute SHA-256 of pack
+        run: |
+          if [ -f observer_pack/dist/centinel_observer_pack.zip ]; then
+            sha256sum observer_pack/dist/centinel_observer_pack.zip \
+              > observer_pack/dist/centinel_observer_pack.zip.sha256
+            echo "Pack SHA-256:"
+            cat observer_pack/dist/centinel_observer_pack.zip.sha256
+          fi
+
+      - name: Upload observer pack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: centinel-observer-pack-${{ github.sha }}
+          path: |
+            observer_pack/dist/centinel_observer_pack.zip
+            observer_pack/dist/centinel_observer_pack.zip.sha256
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Commit pack to web/downloads (if changed)
+        run: |
+          mkdir -p web/downloads
+          if [ -f observer_pack/dist/centinel_observer_pack.zip ]; then
+            cp observer_pack/dist/centinel_observer_pack.zip web/downloads/
+            cp observer_pack/dist/centinel_observer_pack.zip.sha256 web/downloads/ 2>/dev/null || true
+            git config user.name "centinel-bot"
+            git config user.email "centinel-bot@users.noreply.github.com"
+            git add web/downloads/ || true
+            if git diff --cached --quiet; then
+              echo "No changes to observer pack."
+            else
+              git commit -m "data: auto-publish observer pack [skip ci]"
+              git push -u origin main
+            fi
+          fi
