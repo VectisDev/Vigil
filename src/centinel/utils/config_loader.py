@@ -68,7 +68,7 @@ import logging
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import yaml
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
@@ -207,16 +207,16 @@ def _load_yaml_mapping(path: Path) -> dict[str, Any]:
 class RuleDefinition(BaseModel):
     """Defines a single rule entry for rules.yaml. (Define una entrada individual de regla para rules.yaml.)"""
 
-    rule_name: str = Field(..., min_length=1)
-    threshold: float
+    rule_name: Optional[str] = Field(default=None)
+    threshold: Optional[float] = None
     enabled: bool = True
     parameters: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("rule_name")
     @classmethod
-    def rule_name_must_be_non_empty(cls, value: str) -> str:
-        """Ensure rule_name is not blank. (Asegura que rule_name no esté vacío.)"""
-        if not value.strip():
+    def rule_name_must_be_non_empty(cls, value: Optional[str]) -> Optional[str]:
+        """Ensure rule_name, if provided, is not blank. (Asegura que rule_name, si se provee, no esté vacío.)"""
+        if value is not None and not value.strip():
             raise ValueError(
                 "rule_name debe ser una cadena no vacía (rule_name must be a non-empty string)."
             )
@@ -236,9 +236,9 @@ class RulesConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_rule_key_matches_name(self) -> "RulesConfig":
-        """Ensure rule keys match rule_name. (Asegura que la clave coincida con rule_name.)"""
+        """Ensure rule_name, when present, matches the dict key. (Asegura que rule_name coincida con la clave si está presente.)"""
         for key, rule in self.rules.items():
-            if rule.rule_name != key:
+            if rule.rule_name is not None and rule.rule_name != key:
                 raise ValueError(
                     "rules.{key}.rule_name debe coincidir con la clave "
                     "(rules.{key}.rule_name must match the key).".format(key=key)
