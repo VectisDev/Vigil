@@ -95,7 +95,7 @@ logger = logging.getLogger(__name__)
 
 RULE_CONFIG_ALIASES: dict[str, str] = {
     "benford": "benford_first_digit",
-    "benford_law": "benford_first_digit",
+    # "benford_law" removed: reads its own config section (min_samples, deviation_pct, chi_square_threshold)
     "irreversibility": "irreversibility_rule",
     "processing_speed": "processing_speed_rule",
     "ml_outliers": "ml_outliers_rule",
