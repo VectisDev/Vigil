@@ -930,13 +930,17 @@ def main() -> None:
     ]
 
     snapshots_real = snapshot_df.copy()
-    if "is_real" in snapshots_real.columns:
-        snapshots_real = snapshots_real[snapshots_real["is_real"]]
-    snapshot_rows = [
-        ["Timestamp", "Dept", "Candidato", "Impacto", "Estado", "Hash"],
-    ] + snapshots_real[
-        ["timestamp", "department", "candidate", "impact", "status", "hash"]
-    ].head(10).values.tolist()
+    if "is_real" in snapshots_real.columns and not snapshots_real.empty:
+        filtered = snapshots_real[snapshots_real["is_real"]]
+        if not filtered.empty:
+            snapshots_real = filtered
+    _snap_cols = ["timestamp", "department", "candidate", "impact", "status", "hash"]
+    if snapshots_real.empty or not all(c in snapshots_real.columns for c in _snap_cols):
+        snapshot_rows = [["Timestamp", "Dept", "Candidato", "Impacto", "Estado", "Hash"]]
+    else:
+        snapshot_rows = [
+            ["Timestamp", "Dept", "Candidato", "Impacto", "Estado", "Hash"],
+        ] + snapshots_real[_snap_cols].head(10).values.tolist()
 
     s = _STRINGS.get(args.lang, _STRINGS["es"])
     # For bilingual executive summary, always include both languages
