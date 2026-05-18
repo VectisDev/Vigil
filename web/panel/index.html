@@ -939,9 +939,9 @@ function _renderAll(data,snap){
   if(data.chain_records)renderChain(data.chain_records);
   const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
   document.getElementById('footer-merkle').textContent=mr;
-  const pdfUrl=snap?.report_pdf_url||(data._snapshots?.[0]?.raw_meta||{}).report_pdf_url;
+  const pdfUrl=snap?.report_pdf_url||(data._snapshots?.[0]?.raw_meta||{}).report_pdf_url||'../reports/latest.pdf';
   const pdfLink=document.getElementById('pdf-link');
-  if(pdfUrl&&pdfLink){pdfLink.href=pdfUrl;pdfLink.hidden=false;}
+  if(pdfLink){pdfLink.href=pdfUrl;pdfLink.hidden=false;}
   if(data.forensics)renderLastDigit(data.forensics);
   renderZScore(data.departments);
   renderParticipation(data.departments);

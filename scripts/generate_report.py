@@ -75,6 +75,7 @@ import argparse
 import hashlib
 import io
 import json
+import math
 import random
 from datetime import datetime, timezone
 from pathlib import Path
@@ -291,15 +292,79 @@ def build_heatmap(anomalies: pd.DataFrame) -> pd.DataFrame:
     return heatmap
 
 
-def build_benford_data() -> pd.DataFrame:
+def build_benford_data(alerts: list | None = None) -> pd.DataFrame:
     """Español: Función build_benford_data del módulo scripts/generate_report.py.
 
     English: Function build_benford_data defined in scripts/generate_report.py.
+    Uses real observed_pct from rules engine alerts when available; falls back
+    to static demo data.
     """
-    expected = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
-    observed = [29.3, 18.2, 12.1, 10.4, 7.2, 6.9, 5.5, 5.0, 5.4]
-    digits = list(range(1, 10))
-    return pd.DataFrame({"digit": digits, "expected": expected, "observed": observed})
+    expected = [math.log10(1 + 1 / d) * 100 for d in range(1, 10)]
+    observed = None
+    if alerts:
+        for alert in alerts:
+            val = alert.get("value") if isinstance(alert.get("value"), dict) else {}
+            obs = val.get("observed_pct") if isinstance(val, dict) else None
+            if obs and len(obs) == 9:
+                observed = obs
+                break
+    if observed is None:
+        observed = [29.3, 18.2, 12.1, 10.4, 7.2, 6.9, 5.5, 5.0, 5.4]
+    return pd.DataFrame({"digit": list(range(1, 10)), "expected": expected, "observed": observed})
+
+
+def load_anomalies_report(source_dir: Path) -> list:
+    """Load real alerts from anomalies_report.json written by the rules engine."""
+    candidates = [
+        source_dir / "anomalies_report.json",
+        source_dir.parent / "anomalies_report.json",
+        Path("anomalies_report.json"),
+    ]
+    for path in candidates:
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                return data if isinstance(data, list) else []
+            except (json.JSONDecodeError, OSError):
+                pass
+    return []
+
+
+_SEVERITY_BG = {
+    "CRITICAL": "#fdecea",
+    "HIGH": "#fff3e0",
+    "WARNING": "#fff8e1",
+    "MEDIUM": "#e8f0fe",
+}
+_SEVERITY_FG = {
+    "CRITICAL": "#c62828",
+    "HIGH": "#e65100",
+    "WARNING": "#f57f17",
+    "MEDIUM": "#1a73e8",
+}
+
+
+def build_rules_alerts_table(alerts: list) -> list:
+    """Build severity-colored rows for the rules engine alerts section."""
+    if not alerts:
+        return []
+    _order = {"CRITICAL": 0, "HIGH": 1, "WARNING": 2, "MEDIUM": 3}
+    sorted_alerts = sorted(
+        alerts,
+        key=lambda a: _order.get(str(a.get("severity", "")).upper(), 99),
+    )
+    rows = [["Tipo / Type", "Severidad", "Depto.", "Justificación / Justification"]]
+    for alert in sorted_alerts[:15]:
+        just = str(alert.get("justification") or alert.get("message") or "")
+        if len(just) > 90:
+            just = just[:87] + "…"
+        rows.append([
+            str(alert.get("type") or alert.get("rule") or ""),
+            str(alert.get("severity") or ""),
+            str(alert.get("department") or "—"),
+            just,
+        ])
+    return rows
 
 
 def _register_pdf_fonts() -> tuple[str, str]:
@@ -714,17 +779,48 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
     elements.append(snapshot_table)
     elements.append(Spacer(1, 8))
 
-    elements.append(Paragraph("Sección 5 · Reglas Activas", styles["HeadingSecondary"]))
+    # ── Sección 5 · Alertas del Motor de Reglas (datos reales) ───────────────
+    rules_alerts_rows = data.get("rules_alerts_rows", [])
+    if rules_alerts_rows and len(rules_alerts_rows) > 1:
+        elements.append(Paragraph("Sección 5 · Alertas del Motor de Reglas", styles["HeadingSecondary"]))
+        alerts_col_widths = [
+            doc.width * 0.22,
+            doc.width * 0.11,
+            doc.width * 0.12,
+            doc.width * 0.55,
+        ]
+        alerts_tbl = build_table(rules_alerts_rows, alerts_col_widths)
+        sev_style = [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F77B4")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#d0d4db")),
+        ]
+        for row_idx, row in enumerate(rules_alerts_rows[1:], start=1):
+            sev = str(row[1]).upper() if len(row) > 1 else ""
+            if sev in _SEVERITY_BG:
+                sev_style.append(
+                    ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor(_SEVERITY_BG[sev]))
+                )
+                sev_style.append(
+                    ("TEXTCOLOR", (1, row_idx), (1, row_idx), colors.HexColor(_SEVERITY_FG[sev]))
+                )
+        alerts_tbl.setStyle(TableStyle(sev_style))
+        elements.append(alerts_tbl)
+        elements.append(Spacer(1, 8))
+
+    elements.append(Paragraph("Sección 6 · Reglas Activas", styles["HeadingSecondary"]))
     for rule in data["rules_list"]:
         elements.append(Paragraph(f"• {rule}", styles["Body"]))
     elements.append(Spacer(1, 6))
 
-    elements.append(Paragraph("Sección 6 · Verificación Criptográfica", styles["HeadingSecondary"]))
+    elements.append(Paragraph("Sección 7 · Verificación Criptográfica", styles["HeadingSecondary"]))
     elements.append(Paragraph(data["crypto_text"], styles["Body"]))
     elements.append(Spacer(1, 8))
 
     elements.append(PageBreak())
-    elements.append(Paragraph("Sección 7 · Mapa de Riesgos y Gobernanza", styles["HeadingSecondary"]))
+    elements.append(Paragraph("Sección 8 · Mapa de Riesgos y Gobernanza", styles["HeadingSecondary"]))
     elements.append(Paragraph(data["risk_text"], styles["Body"]))
     elements.append(Paragraph(data["governance_text"], styles["Body"]))
     elements.append(Spacer(1, 6))
@@ -907,7 +1003,9 @@ def main() -> None:
         snapshot_df = snapshot_df[snapshot_df["department"].str.lower() == args.department.lower()]
     anomalies_df = build_anomalies(snapshot_df)
     heatmap_df = build_heatmap(anomalies_df)
-    benford_df = build_benford_data()
+    real_alerts = load_anomalies_report(Path(args.source_dir))
+    benford_df = build_benford_data(real_alerts)
+    rules_alerts_rows = build_rules_alerts_table(real_alerts)
 
     anomalies_sorted = anomalies_df.copy()
     if not anomalies_sorted.empty:
@@ -987,6 +1085,7 @@ def main() -> None:
         "exec_es": {k: s_es[k] for k in s_es if k.startswith("exec_")},
         "exec_en": {k: s_en[k] for k in s_en if k.startswith("exec_")},
         "global_status_text": s["global_status"],
+        "rules_alerts_rows": rules_alerts_rows,
     }
 
     chart_buffers = create_pdf_charts(benford_df, snapshot_df, heatmap_df, anomalies_df)
