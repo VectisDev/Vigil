@@ -464,8 +464,6 @@ rules:
     enabled: true
   benford_law:
     enabled: true
-  correlation_participation_vote:
-    enabled: true
   geographic_dispersion:
     enabled: true
   granular_anomaly:
@@ -485,35 +483,68 @@ rules:
     reversal_time_window_minutes: 30
     reversal_min_negative_delta: 100
     sum_mismatch_threshold: 1
+  inconsistency_rate:
+    enabled: true
+    severity: "CRITICAL"
+    critical_pct: 10
+    escalation_delta_pct: 0.5
   irreversibility:
     enabled: true
     historical_participation_rate: 0.60
     sqlite_path: "reports/irreversibility_state.db"
-  large_numbers:
+  large_numbers_convergence:
     enabled: true
+    min_samples: 30
+    z_threshold: 3.0
+    min_total_votes: 200
   last_digit_uniformity:
+    enabled: true
+  late_mesa:
+    enabled: true
+  mesa_impossibility:
+    enabled: true
+  mesa_reconciliation:
     enabled: true
   mesas_diff:
     enabled: true
   ml_outliers:
     enabled: true
-  null_blank:
+  null_blank_votes:
     enabled: true
+    severity: "CRITICAL"
+    warning_pct: 8
+    critical_pct: 12
   participation_anomaly:
     enabled: true
   participation_anomaly_advanced:
     enabled: true
+    min_turnout_pct: 40
+    max_turnout_pct: 100
+    historical_mean: 88.15
+    historical_std: 5.51
+  participation_vote_correlation:
+    enabled: true
+    min_samples: 30
+    critical_r: 0.85
   processing_speed:
     enabled: true
+    max_actas_per_15min: 500
   runs_test:
     enabled: true
+    min_samples: 30
+    critical_pvalue: 0.01
   snapshot_jump:
     enabled: true
+    max_change_pct: 5
+    max_minutes: 10
   table_consistency:
     enabled: true
+    total_tolerance: 1
   trend_shift:
     enabled: true
     threshold_percent: 10
     max_hours: 3
   turnout_impossible:
     enabled: true
+    min_turnout_pct: 0
+    max_turnout_pct: 100
