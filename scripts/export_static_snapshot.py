@@ -146,6 +146,17 @@ def _latest_snapshot(data_dir: Path) -> dict:
     return {}
 
 
+def _build_endpoint_health(root: Path) -> dict:
+    empty = {"available": False, "total": 0, "online": 0, "degraded": 0, "offline": 0, "endpoints": []}
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(root / "src"))
+        from centinel.sync.forensics_publisher import build_endpoint_health_block
+        return build_endpoint_health_block(root / "config" / "prod" / "endpoints.yaml")
+    except Exception:
+        return empty
+
+
 def export_snapshot(root: Path = Path(".")) -> Path:
     data_dir = root / "data"
     hash_dir = root / "hashes"
@@ -179,6 +190,7 @@ def export_snapshot(root: Path = Path(".")) -> Path:
         "alerts": alerts[:50],
         "coverage": _build_coverage(snapshot),
         "report_pdf_url": state.get("last_report_pdf_url"),
+        "endpoint_health": _build_endpoint_health(root),
     }
 
     out_path = out_dir / "snapshot.json"
