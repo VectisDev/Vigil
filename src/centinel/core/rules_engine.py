@@ -69,6 +69,7 @@ from centinel.core.rules import (  # noqa: F401
     correlation_participation_vote_rule,
     geographic_dispersion_rule,
     granular_anomaly_rule,
+    inconsistency_rate_rule,
     irreversibility_rule,
     large_numbers_rule,
     last_digit_uniformity_rule,

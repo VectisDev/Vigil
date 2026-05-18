@@ -268,6 +268,49 @@ def extract_actas_mesas_counts(data: dict) -> Dict[str, Optional[int]]:
     }
 
 
+def extract_inconsistency_data(data: dict) -> Dict[str, Optional[int]]:
+    """Extrae conteos de actas inconsistentes y divulgadas desde cualquier formato CNE.
+
+    Soporta el formato canónico de Centinel y el formato JSON crudo del CNE
+    (estadisticas.estado_actas_divulgadas.*).
+
+    Extract inconsistent and disclosed tally-sheet counts from any CNE format.
+
+    Supports both Centinel canonical format and raw CNE JSON format
+    (estadisticas.estado_actas_divulgadas.*).
+    """
+
+    def _nested(path: str) -> Optional[int]:
+        current: object = data
+        for part in path.split("."):
+            if not isinstance(current, dict):
+                return None
+            current = current.get(part)  # type: ignore[union-attr]
+        return safe_int_or_none(current)
+
+    estado = (data.get("estadisticas") or {}).get("estado_actas_divulgadas") or {}
+    tot_actas = (data.get("estadisticas") or {}).get("totalizacion_actas") or {}
+
+    actas_inconsistentes = safe_int_or_none(
+        data.get("actas_inconsistentes")
+        or estado.get("actas_inconsistentes")
+        or _nested("actas.inconsistentes")
+    )
+    actas_divulgadas = safe_int_or_none(
+        data.get("actas_divulgadas")
+        or tot_actas.get("actas_divulgadas")
+        or estado.get("actas_correctas") and (
+            (safe_int_or_none(estado.get("actas_correctas")) or 0)
+            + (safe_int_or_none(estado.get("actas_inconsistentes")) or 0)
+        )
+        or _nested("actas.divulgadas")
+    )
+    return {
+        "actas_inconsistentes": actas_inconsistentes,
+        "actas_divulgadas": actas_divulgadas,
+    }
+
+
 def extract_porcentaje_escrutado(data: dict) -> Optional[float]:
     """Extrae el porcentaje de escrutinio cuando existe. (Extract the scrutiny percentage when available.)"""
     porcentaje = (
