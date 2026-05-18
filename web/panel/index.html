@@ -943,16 +943,17 @@ function renderLastDigit(forensics){
   const ld=forensics?.last_digit||null;
   const labels=['0','1','2','3','4','5','6','7','8','9'];
   const expected=labels.map(()=>10);
-  let observed,note='';
-  if(ld&&ld.counts&&ld.counts.length===10){
-    const total=ld.counts.reduce((a,b)=>a+b,0)||1;
-    observed=ld.counts.map(c=>+(c/total*100).toFixed(2));
-    const chi2=ld.chi2||0;
-    note=`χ²=${chi2.toFixed(2)} · ${chi2>15.5?'⚠ Distribución no uniforme':'Distribución uniforme (esperado)'}`;
-  } else {
-    observed=labels.map(()=>+(9+Math.random()*2).toFixed(2));
-    note='Datos demo — requiere conteos por acta individual para análisis real.';
+  if(!ld||!ld.counts||ld.counts.length!==10){
+    if(charts.lastdigit){charts.lastdigit.destroy();charts.lastdigit=null;}
+    document.getElementById('lastdigit-stats').textContent='Sin datos reales — requiere conteos por acta individual.';
+    el.style.display='none';
+    return;
   }
+  el.style.display='';
+  const total=ld.counts.reduce((a,b)=>a+b,0)||1;
+  const observed=ld.counts.map(c=>+(c/total*100).toFixed(2));
+  const chi2=ld.chi2||0;
+  const note=`χ²=${chi2.toFixed(2)} · ${chi2>15.5?'⚠ Distribución no uniforme':'Distribución uniforme (esperado)'}`;
   document.getElementById('lastdigit-stats').textContent=note;
   if(charts.lastdigit)charts.lastdigit.destroy();
   charts.lastdigit=new Chart(el,{
