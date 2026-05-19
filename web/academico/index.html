@@ -81,6 +81,10 @@ body.auth-pending{visibility:hidden}
   letter-spacing:.07em;margin:28px 0 14px;display:flex;align-items:center;gap:8px;
 }
 .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-dl{background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;
+  letter-spacing:.03em;transition:.15s;white-space:nowrap;text-transform:none}
+.section-dl:hover{border-color:var(--accent);color:var(--accent)}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
@@ -381,7 +385,7 @@ body.auth-pending{visibility:hidden}
 </div>
 
 <!-- ══ SECTION 3 — THRESHOLDS ════════════════════════════════════════════════ -->
-<div class="section-title">Umbrales de Sensibilidad de Reglas</div>
+<div class="section-title">Umbrales de Sensibilidad de Reglas<button class="section-dl" onclick="downloadUmbralesPNG()">↓ PNG</button></div>
 <div class="thresh-lock-panel">
   <h4>Pre-registro de Hipótesis</h4>
   <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
@@ -399,7 +403,7 @@ body.auth-pending{visibility:hidden}
 </div>
 
 <!-- ══ SECTION 4 — INJECTION MATRIX ══════════════════════════════════════════ -->
-<div class="section-title">Matriz de Inyección de Eventos</div>
+<div class="section-title">Matriz de Inyección de Eventos<button class="section-dl" onclick="downloadMatrizPNG()">↓ PNG</button></div>
 
 <div class="inj-mode-bar">
   <button class="inj-mode-btn on" id="btn-inj-instant" onclick="setInjMode('instant')">Inmediata</button>
@@ -444,7 +448,7 @@ body.auth-pending{visibility:hidden}
 </div>
 
 <!-- ══ SECTION 5 — DUAL TELEMETRY ════════════════════════════════════════════ -->
-<div class="section-title">Centro de Telemetría Dual</div>
+<div class="section-title">Centro de Telemetría Dual<button class="section-dl" onclick="downloadTelemTxt('engine')">↓ Engine TXT</button><button class="section-dl" onclick="downloadTelemTxt('attack')">↓ Attack TXT</button></div>
 <div class="telem-wrap">
   <div class="telem-panel">
     <h4>
@@ -1441,32 +1445,116 @@ function restoreVis(){
 function downloadPNG(){
   // Composite all Chart.js canvases using native Canvas API — no external lib
   const charts=Array.from(document.querySelectorAll('.page canvas')).filter(c=>c.width>0);
-  if(!charts.length){logE('WARN','No hay gráficas renderizadas — inicia la simulación primero');return;}
-  const PAD=16, GAP=12;
-  const W=Math.max(...charts.map(c=>c.width));
-  const H=charts.reduce((s,c)=>s+c.height+GAP,0)+PAD*2;
+  const IDS=['s-chart-cand','s-chart-timeline','s-chart-benford','s-chart-lastdigit',
+             's-chart-zscore','s-chart-participation','s-chart-nullblank'];
+  const cs=IDS.map(id=>document.getElementById(id)).filter(c=>c&&c.width>0&&c.offsetWidth>0);
+  if(!cs.length){logE('WARN','No hay gráficas — inicia la simulación primero');return;}
+  const PAD=20,GAP=10,S=2;
+  const W=cs[0].offsetWidth;
+  const rows=[[cs[0]],[cs[1]]];
+  if(cs[2]&&cs[3])rows.push([cs[2],cs[3]]);else if(cs[2])rows.push([cs[2]]);
+  const r3=cs.slice(4).filter(Boolean);if(r3.length)rows.push(r3);
+  const rowH=rows.map(r=>Math.max(...r.map(c=>c.offsetHeight)));
+  const totalH=rowH.reduce((a,b)=>a+b,0)+GAP*(rows.length-1)+PAD*2+36;
   const out=document.createElement('canvas');
-  out.width=W+PAD*2; out.height=H;
+  out.width=(W+PAD*2)*S; out.height=totalH*S;
   const ctx=out.getContext('2d');
-  ctx.fillStyle='#0f1115';
-  ctx.fillRect(0,0,out.width,out.height);
-  // header
-  ctx.fillStyle='#8b929c';ctx.font='bold 22px system-ui';
-  ctx.fillText(`CENTINEL · Snap ${SIM.idx+1} / ${SIM.snapshots.length}`,PAD,PAD+16);
-  let y=PAD+36;
-  charts.forEach(c=>{ctx.drawImage(c,PAD,y,c.width,c.height);y+=c.height+GAP;});
+  ctx.scale(S,S);
+  ctx.fillStyle='#0f1115';ctx.fillRect(0,0,W+PAD*2,totalH);
+  ctx.fillStyle='#b08cf0';ctx.font='bold 14px system-ui';
+  ctx.fillText('CENTINEL Electoral',PAD,PAD+12);
+  ctx.fillStyle='#8b929c';ctx.font='12px system-ui';
+  ctx.fillText(`Snap ${SIM.idx+1} / ${SIM.snapshots.length}  ·  ${new Date().toLocaleString('es-HN')}`,PAD,PAD+28);
+  let y=PAD+40;
+  rows.forEach((row,ri)=>{
+    const cw=Math.floor((W-GAP*(row.length-1))/row.length);
+    let x=PAD;
+    row.forEach(c=>{ctx.drawImage(c,x,y,cw,c.offsetHeight);x+=cw+GAP;});
+    y+=rowH[ri]+GAP;
+  });
   try{
     const a=document.createElement('a');
     a.href=out.toDataURL('image/png');
-    a.download=`centinel-snap${SIM.idx+1}.png`;
+    a.download=`centinel-panel-snap${SIM.idx+1}.png`;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
-    logE('OK','PNG descargado');
-  }catch(e){
-    logE('WARN','Canvas bloqueado por el navegador (escudos activos) — baja los shields para esta página');
-  }
+    logE('OK','PNG del panel descargado');
+  }catch(e){logE('WARN','Canvas bloqueado — baja los shields para esta página');}
 }
+
+function _makePNG(title, lines, filename){
+  const S=2,PAD=20,LH=22,COLS=2;
+  const colLines=Math.ceil(lines.length/COLS);
+  const W=900,H=PAD*2+30+colLines*LH+10;
+  const out=document.createElement('canvas');
+  out.width=W*S;out.height=H*S;
+  const ctx=out.getContext('2d');
+  ctx.scale(S,S);
+  ctx.fillStyle='#0f1115';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#b08cf0';ctx.font='bold 13px system-ui';ctx.fillText(title,PAD,PAD+12);
+  ctx.fillStyle='#8b929c';ctx.font='10px system-ui';
+  ctx.fillText(`CENTINEL · ${new Date().toLocaleString('es-HN')}`,PAD,PAD+26);
+  const colW=Math.floor((W-PAD*2)/COLS);
+  lines.forEach((ln,i)=>{
+    const col=Math.floor(i/colLines),row=i%colLines;
+    const x=PAD+col*colW,y=PAD+36+row*LH;
+    ctx.fillStyle=ln.startsWith('⚠')||ln.includes('CRÍTICO')?'#df6b86':
+                  ln.startsWith('✓')||ln.includes('OK')?'#57c08d':'#e7e9ec';
+    ctx.font=ln.startsWith('──')?'bold 10px system-ui':'11px system-ui';
+    ctx.fillText(ln.substring(0,60),x,y);
+  });
+  try{
+    const a=document.createElement('a');
+    a.href=out.toDataURL('image/png');a.download=filename;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }catch(e){logE('WARN','Canvas bloqueado — baja los shields');}
+}
+
+function downloadUmbralesPNG(){
+  const lines=[];
+  RULES_DEFS.forEach(r=>{
+    if(r.grp&&(!lines.length||lines[lines.length-1]!=='── '+r.grp))
+      lines.push('── '+r.grp);
+    const on=TE[r.id]!==false;
+    const val=TV[r.id]!==undefined?TV[r.id]:r.def;
+    lines.push(`  ${on?'✓':'✗'} ${r.label}: ${val}${r.unit||''}  [${r.min}–${r.max}]`);
+  });
+  _makePNG('Umbrales de Sensibilidad de Reglas',lines,`centinel-umbrales-snap${SIM.idx+1}.png`);
+  logE('OK','PNG de umbrales descargado');
+}
+
+function downloadMatrizPNG(){
+  const lines=[];
+  if(!activeInjections.length&&!scheduledInjections.length){
+    lines.push('Sin inyecciones activas ni programadas.');
+  }else{
+    if(activeInjections.length){
+      lines.push('── Inyecciones activas');
+      activeInjections.forEach(inj=>lines.push(
+        `  [${inj.id}] ${inj.label} · ${inj.mode} · snap ${inj.atIdx+1}`));
+    }
+    if(scheduledInjections.length){
+      lines.push('── Programadas en cola');
+      scheduledInjections.forEach(s=>lines.push(
+        `  [${s.id}] → snap ${s.atIdx+1}  param=${s.paramVal}`));
+    }
+  }
+  _makePNG('Matriz de Inyección de Eventos — Estado actual',lines,`centinel-inyecciones-snap${SIM.idx+1}.png`);
+  logE('OK','PNG de inyecciones descargado');
+}
+
+function downloadTelemTxt(panel){
+  const el=document.getElementById(`telem-${panel}`);
+  const txt=Array.from(el.querySelectorAll('div')).map(d=>d.innerText||d.textContent).join('\n');
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`centinel-${panel}-snap${SIM.idx+1}.txt`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  logE('OK',`Log ${panel} descargado como TXT`);
+}
+
 function downloadPDF(){
-  // Native window.print() on the current page — works in all browsers including Brave
   logE('INFO','Abriendo diálogo de impresión — selecciona "Guardar como PDF"');
   window.print();
 }
