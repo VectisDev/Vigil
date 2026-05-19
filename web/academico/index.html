@@ -348,10 +348,10 @@ body.auth-pending{visibility:hidden}
   <button class="sim-transport-btn" id="btn-loop" onclick="toggleLoop()" title="Loop">⟳</button>
 
   <div class="speed-group" id="speed-group">
-    <button class="speed-pill on" data-s="1"  onclick="setSpeed(1)">1×</button>
-    <button class="speed-pill"    data-s="5"  onclick="setSpeed(5)">5×</button>
-    <button class="speed-pill"    data-s="10" onclick="setSpeed(10)">10×</button>
-    <button class="speed-pill"    data-s="60" onclick="setSpeed(60)">60×</button>
+    <button class="speed-pill on" data-s="1"   onclick="setSpeed(1)">1×</button>
+    <button class="speed-pill"    data-s="10"  onclick="setSpeed(10)">10×</button>
+    <button class="speed-pill"    data-s="100" onclick="setSpeed(100)">100×</button>
+    <button class="speed-pill"    data-s="500" onclick="setSpeed(500)">500×</button>
   </div>
 
   <div id="sim-timeline-wrap">
@@ -566,7 +566,7 @@ let SIM = {
   timer: null,
   loop: false,
 };
-const TICK_MS = { 1: 1500, 5: 300, 10: 150, 60: 25 };
+const TICK_MS = { 1: 1500, 10: 200, 100: 20, 500: 4 };
 
 let activeInjections = [];
 let scheduledInjections = [];
@@ -1034,7 +1034,7 @@ function simPlay(){
   const btn=document.getElementById('btn-play');
   btn.textContent='⏸';btn.classList.add('active');
   clearInterval(SIM.timer);
-  SIM.timer=setInterval(simTick,TICK_MS[SIM.speed]||(SIM.speed<=10?150:25));
+  SIM.timer=setInterval(simTick,TICK_MS[SIM.speed]||(SIM.speed<=10?200:4));
   logE('INFO',`Simulación iniciada — velocidad ${SIM.speed}×`);
 }
 function simPause(){
@@ -1162,7 +1162,7 @@ function getDeptData(snap){
 function renderSimFrame(idx){
   const snap=SIM.snapshots[idx]; if(!snap)return;
   // Skip heavy chart redraws at 60× (only update KPIs)
-  const fastMode=SIM.speed>=60;
+  const fastMode=SIM.speed>=100;
 
   // Accumulate history
   historyBenford=SIM.snapshots.slice(0,idx+1)
