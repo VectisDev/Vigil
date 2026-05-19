@@ -282,8 +282,7 @@ body.auth-pending{visibility:hidden}
 <!-- CONSOLA DE REPRODUCCIÓN FORENSE -->
 <div class="section-title" style="max-width:1400px;margin:16px auto 0;padding:0 24px">Consola de Reproducción Forense</div>
 <div id="sim-control-bar">
-  <button class="sim-transport-btn" id="btn-play" onclick="simPlay()" title="Play">▶</button>
-  <button class="sim-transport-btn" id="btn-pause" onclick="simPause()" title="Pausa">⏸</button>
+  <button class="sim-transport-btn" id="btn-play" onclick="simToggle()" title="Play / Pausa">▶</button>
   <button class="sim-transport-btn" onclick="simStop()" title="Stop">⏹</button>
   <button class="sim-transport-btn" id="btn-loop" onclick="toggleLoop()" title="Loop">⟳</button>
 
@@ -960,24 +959,29 @@ async function loadDataset(url){
 // ═══════════════════════════════════════════════════════════════════════════
 // SIMULATION ENGINE
 // ═══════════════════════════════════════════════════════════════════════════
+function simToggle(){
+  if(SIM.state==='playing') simPause(); else simPlay();
+}
 function simPlay(){
   if(!SERIES){logE('WARN','Carga un dataset primero');return;}
   if(SIM.state==='playing')return;
   SIM.state='playing';
   updateBadge();
-  document.getElementById('btn-play').classList.add('active');
+  const btn=document.getElementById('btn-play');
+  btn.textContent='⏸';btn.classList.add('active');
   clearInterval(SIM.timer);
   SIM.timer=setInterval(simTick,TICK_MS[SIM.speed]||(SIM.speed<=10?150:25));
   logE('INFO',`Simulación iniciada — velocidad ${SIM.speed}×`);
 }
 function simPause(){
   SIM.state='paused';clearInterval(SIM.timer);
-  document.getElementById('btn-play').classList.remove('active');
+  const btn=document.getElementById('btn-play');
+  btn.textContent='▶';btn.classList.remove('active');
   updateBadge();logE('INFO','Simulación pausada');
 }
 function simStop(){
   SIM.state='stopped';clearInterval(SIM.timer);SIM.idx=0;
-  document.getElementById('btn-play').classList.remove('active');
+  const _b=document.getElementById('btn-play');_b.textContent='▶';_b.classList.remove('active');
   if(SERIES)SIM.snapshots=deepClone(SERIES.snapshots);
   activeInjections=[];scheduledInjections=[];simAlerts=[];
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
