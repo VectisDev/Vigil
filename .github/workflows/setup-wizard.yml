@@ -84,9 +84,11 @@ jobs:
                 '',
                 '---',
                 '',
-                '**✅ Cuando termines, este issue se cierra solo.**',
-                'El sistema creará el repositorio de datos y completará el setup automáticamente.',
-                'No necesitas crear ningún repo manualmente.',
+                '**✅ Cuando termines los dos pasos, vuelve aquí y haz clic:**',
+                `**[→ Re-ejecutar el Setup Wizard](https://github.com/${owner}/${repo}/actions/workflows/setup-wizard.yml)**`,
+                '→ Clic en **"Run workflow"** → **"Run workflow"**',
+                '',
+                'El wizard completará el setup automáticamente sin que tengas que hacer nada más.',
               ].join('\n')
             });
 
@@ -291,24 +293,40 @@ jobs:
               ].join('\n')
             });
 
-      - name: Update README with centinel-data and Pages links
+      - name: Finalize README and deploy panel
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
         env:
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
-          PAGES_ENABLED: ${{ steps.pages.outputs.pages_enabled }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Update data and Pages links
           DATA_LINK="[centinel-data →](https://github.com/${REPO_OWNER}/centinel-data)"
           sed -i "s|<!-- CENTINEL_DATA_URL -->.*<!-- /CENTINEL_DATA_URL -->|<!-- CENTINEL_DATA_URL -->${DATA_LINK}<!-- /CENTINEL_DATA_URL -->|" README.md
 
           PAGES_LINK="[Panel →](https://${REPO_OWNER}.github.io/${REPO_NAME}/)"
           sed -i "s|<!-- CENTINEL_PAGES_URL -->.*<!-- /CENTINEL_PAGES_URL -->|<!-- CENTINEL_PAGES_URL -->${PAGES_LINK}<!-- /CENTINEL_PAGES_URL -->|" README.md
 
+          # In forks: update CI badge to point to this fork, remove fork-setup section
+          ORIGINAL_OWNER="userf8a2c4"
+          ORIGINAL_REPO="centinel-engine"
+          if [ "$REPO_OWNER" != "$ORIGINAL_OWNER" ] || [ "$REPO_NAME" != "$ORIGINAL_REPO" ]; then
+            sed -i "s|github.com/${ORIGINAL_OWNER}/${ORIGINAL_REPO}/actions|github.com/${REPO_OWNER}/${REPO_NAME}/actions|g" README.md
+            sed -i '/<!-- FORK-SETUP-START -->/,/<!-- FORK-SETUP-END -->/d' README.md
+          fi
+
           git config user.name "centinel-bot"
           git config user.email "bot@centinel.app"
           git add README.md
-          git diff --cached --quiet || git commit -m "docs: link centinel-data repo and Pages panel"
+          git diff --cached --quiet || git commit -m "setup: link repos, update badges, remove fork instructions"
           git push
+
+          # Trigger panel deployment so it's live without needing a manual push
+          curl -sS \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"ref\":\"main\"}" \
+            "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/pages.yml/dispatches" || true
 
       - name: Close setup issue
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
@@ -326,7 +344,14 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
-                body: '✅ **Setup completado automáticamente.**\n\nEl repositorio de datos ha sido creado y conectado. Este issue se cierra.'
+                body: [
+                  '✅ **Setup completado.**',
+                  '',
+                  `- Repositorio de datos: https://github.com/${context.repo.owner}/centinel-data`,
+                  `- Panel: https://${context.repo.owner}.github.io/${context.repo.repo}/`,
+                  '',
+                  'El panel se está desplegando ahora — estará disponible en unos minutos.',
+                ].join('\n')
               });
               await github.rest.issues.update({
                 owner: context.repo.owner,

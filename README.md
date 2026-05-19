@@ -18,6 +18,24 @@ computadora portátil.
 > audit a national election from a laptop — no institutional dependency, no
 > dedicated infrastructure, zero operating cost.*
 
+<!-- FORK-SETUP-START -->
+---
+
+## Hiciste fork? Empieza aquí / Forked this repo? Start here
+
+El sistema se despliega solo — solo necesitas dos clics para activarlo.
+
+**Paso 1 — Habilitar workflows** (GitHub los desactiva en forks por seguridad):
+→ Ve a la pestaña **[Actions](../../actions)** de tu fork y haz clic en **"I understand my workflows, go ahead and enable them"**
+
+**Paso 2 — Ejecutar el Setup Wizard:**
+→ En Actions, abre **[Setup Wizard](../../actions/workflows/setup-wizard.yml)** → **"Run workflow"** → **"Run workflow"**
+
+El wizard abrirá un Issue en tu repo con exactamente lo que necesita, si necesita algo.
+A partir de ahí, todo es automático.
+
+<!-- FORK-SETUP-END -->
+
 ---
 
 ## Qué resuelve
