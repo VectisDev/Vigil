@@ -367,6 +367,8 @@ body.auth-pending{visibility:hidden}
     <option value="../data/hnd_2025_series.json">HN 2025 real (64 snaps)</option>
     <option value="../data/sim_eleccion_limpia_5min.json">Simulación limpia — 5min (576 snaps)</option>
     <option value="../data/sim_eleccion_anomala_5min.json">Simulación referencia (anomalías embebidas — ground truth)</option>
+    <option value="../data/sim_mes_adversarial_15min.json">Simulación adversarial — 30 días / 15 min (2 880 snaps)</option>
+    <option value="../data/sim_mes_adversarial_anomala_15min.json">Simulación adversarial anomalías — 30 días / 15 min (ground truth)</option>
   </select>
 </div>
 
@@ -1233,7 +1235,9 @@ function renderTimeline(){
   mk('s-chart-timeline',{type:'line',data:{labels:labs,datasets:[
     {label:'Actas acumuladas',data:a,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0,yAxisID:'y'},
     {label:'Anomalías',data:an,borderColor:'#df6b86',fill:false,tension:.1,pointRadius:2,yAxisID:'y2'}]},
-    options:{...CHART_OPT,plugins:{...CHART_OPT.plugins,title:{display:true,text:'Actas Acumuladas y Eventos Anómalos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}}},scales:{
+    options:{...CHART_OPT,plugins:{...CHART_OPT.plugins,
+      decimation:{enabled:true,algorithm:'lttb',samples:400,threshold:400},
+      title:{display:true,text:'Actas Acumuladas y Eventos Anómalos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}}},scales:{
       x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:9}},grid:{color:'#1c1f26'}},
       y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Actas',color:'#8b929c'}},
       y2:{position:'right',ticks:{color:'#df6b86'},grid:{drawOnChartArea:false},title:{display:true,text:'Anomalías',color:'#df6b86'}}}}});
