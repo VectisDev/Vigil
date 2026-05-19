@@ -22,6 +22,16 @@
 
 ---
 
+## Setup y Datos | Setup & Data
+
+| Document | Description |
+|----------|-------------|
+| [SETUP-GUIDE.md](SETUP-GUIDE.md) | Self-configuring setup — what the wizard does / El wizard explica cada paso |
+| [DATA-REPOS.md](DATA-REPOS.md) | Code/data separation: centinel-engine → centinel-data / Separación código/datos |
+| [IPFS-RESILIENCE.md](IPFS-RESILIENCE.md) | IPFS layer for censorship-resistant data / Capa IPFS contra censura |
+
+---
+
 ## Para Operadores de Campo | For Field Operators
 
 | Document | Description |

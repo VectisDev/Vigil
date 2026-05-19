@@ -98,6 +98,18 @@ campo y dictamen académico independiente.
 
 ---
 
+## Arquitectura de Datos
+
+Centinel separa el código (este repositorio) de los datos electorales capturados (centinel-data). Los datos se publican automáticamente en un repositorio independiente en cada captura, garantizando que cualquier auditor pueda verificarlos sin ejecutar el motor.
+
+**Repositorio de datos:** <!-- CENTINEL_DATA_URL -->*(se configura automáticamente al hacer fork)*<!-- /CENTINEL_DATA_URL -->
+
+El sistema se configura solo: al hacer fork, el wizard detecta qué falta y abre un Issue con instrucciones exactas. Normalmente es un solo paso.
+
+→ [Arquitectura de separación código/datos](docs/DATA-REPOS.md) · [Guía de setup](docs/SETUP-GUIDE.md)
+
+---
+
 ## Documentación
 
 | Documento | Audiencia |
