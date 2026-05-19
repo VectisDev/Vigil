@@ -1218,7 +1218,6 @@ function getDeptData(snap){
 function evaluateCheapRules(snap,idx){
   const d=snap._cd={};
   const prev=idx>0?SIM.snapshots[idx-1]:null;
-  const total=(snap.validos||0)+(snap.nulos||0)+(snap.blancos||0);
 
   function flag(ruleKey,cond,level,msg){
     if(!cond)return;
@@ -1226,6 +1225,18 @@ function evaluateCheapRules(snap,idx){
     const last=_alertLast[ruleKey]||0;
     if(idx-last>=_COOLDOWN){_alertLast[ruleKey]=idx;logE(level,msg);}
   }
+
+  // A8 — Datos parciales/truncados: campos críticos son null → instrumentos perdidos
+  const hasNullFields=snap.validos===null||snap.nulos===null||snap.blancos===null;
+  if(hasNullFields||snap._partial){
+    const nulled=[snap.validos===null?'validos':null,snap.nulos===null?'nulos':null,
+                  snap.blancos===null?'blancos':null].filter(Boolean);
+    flag('partial_data',true,'CRITICAL',
+      `Datos truncados: campo(s) ${nulled.length?nulled.join(', '):'críticos'} ausentes — integridad comprometida`);
+    d._nullFields=nulled;
+  }
+  // Safe totals — use null-aware values for downstream rules
+  const total=(snap.validos??0)+(snap.nulos??0)+(snap.blancos??0);
 
   // snap_jump_pct — actas jump/drop > threshold% of total in one 5-min snap
   if(TE.snap_jump_pct&&prev){
@@ -1251,7 +1262,7 @@ function evaluateCheapRules(snap,idx){
 
   // null_warn / null_crit
   if(total>100){
-    const np=(snap.nulos||0)/total*100;
+    const np=(snap.nulos??0)/total*100;
     d._nullPct=np;
     if(TE.null_crit&&np>TV.null_crit)
       flag('null_crit',true,'CRITICAL',`Nulos críticos: ${np.toFixed(1)}% — umbral ${TV.null_crit}%`);
@@ -1607,6 +1618,12 @@ function renderForensics(snap,benf,lastd,last10,ext){
     return`<div class="forensic-card"><div class="forensic-hdr" onclick="this.nextElementSibling.classList.toggle('open')"><span class="forensic-title">${label}</span>${status}</div><div class="forensic-body">${detail}</div></div>`;
   }
   const verdicts=[];
+
+  // 0. Integridad de payload — campos críticos presentes
+  const pdCD=cd.partial_data;
+  verdicts.push(card('Integridad del payload',badge(pdCD?'CRITICAL':'OK'),
+    pdCD?`⚠ Campos ausentes: ${(cd._nullFields||[]).join(', ')||'validos/nulos/blancos'} — datos truncados`
+        :'Todos los campos críticos presentes'));
 
   // 1. Benford — chi² p-value
   const bfViol=benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue;
