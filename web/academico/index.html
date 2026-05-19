@@ -1052,6 +1052,7 @@ function simPause(){
   const btn=document.getElementById('btn-play');
   btn.textContent='▶';btn.classList.remove('active');
   updateBadge();logE('INFO','Simulación pausada');
+  renderSimFrame(SIM.idx); // always render full charts on pause regardless of speed
 }
 function simStop(){
   SIM.state='stopped';clearInterval(SIM.timer);SIM.idx=0;
@@ -1205,7 +1206,7 @@ function renderSimFrame(idx){
     snap._sig_invalid?'firma inválida':
     chainOk?'cadena íntegra':'cadena comprometida';
 
-  if(fastMode)return; // skip charts at 60×
+  if(fastMode && SIM.state==='playing' && idx%144!==0)return; // throttle: render every ~12h sim-time during fast play
 
   const depts=getDeptData(snap);
   const benf=computeBenford(historyBenford);
