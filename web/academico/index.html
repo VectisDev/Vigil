@@ -466,7 +466,7 @@ body.auth-pending{visibility:hidden}
 </div>
 
 <!-- ══ SECTION 4 — INJECTION MATRIX ══════════════════════════════════════════ -->
-<div class="section-title">Matriz de Inyección de Eventos<span id="matriz-title-badge" class="inj-count-badge" style="display:none"></span><button class="section-dl" onclick="downloadMatrizPNG()">↓ PNG</button></div>
+<div class="section-title">Matriz de Inyección de Eventos<span id="matriz-title-badge" style="margin-left:8px;display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center;vertical-align:middle"></span><button class="section-dl" onclick="downloadMatrizPNG()">↓ PNG</button></div>
 
 <div class="inj-mode-bar">
   <button class="inj-mode-btn on" id="btn-inj-instant" onclick="setInjMode('instant')">Inmediata</button>
@@ -1458,26 +1458,29 @@ function renderActiveInjections(){
   const empty=document.getElementById('inj-active-empty');
   const topbar=document.getElementById('inj-topbar');
   const n=activeInjections.length;
-  // Update Matriz section title badge count
   const matrizTitle=document.getElementById('matriz-title-badge');
-  if(matrizTitle){matrizTitle.textContent=n>0?n:'';matrizTitle.style.display=n>0?'':'none';}
   if(!n){
     el.innerHTML='';el.appendChild(empty);
     topbar.style.display='none';topbar.innerHTML='';
+    if(matrizTitle)matrizTitle.innerHTML='';
     return;
   }
-  const mkBadge=(cls,mini)=>activeInjections.map((inj,i)=>{
+  const miniBadges=activeInjections.map((inj,i)=>{
     const schedCls=inj.mode==='programada'?'sched':'';
     const shortLabel=inj.id+' · '+inj.label.split(' ').slice(0,3).join(' ')+(inj.mode==='programada'?` @snap${inj.atIdx+1}`:'');
-    return mini
-      ?`<span class="inj-tag-top ${schedCls}">${shortLabel}<button onclick="cancelInjection(${i})" title="Cancelar inyección">×</button></span>`
-      :`<span class="inj-tag ${schedCls}">${inj.id}: ${inj.label.split(' ').slice(0,3).join(' ')}${inj.mode==='programada'?` @snap${inj.atIdx+1}`:''}<button onclick="cancelInjection(${i})" title="Cancelar">×</button></span>`;
+    return `<span class="inj-tag-top ${schedCls}">${shortLabel}<button onclick="cancelInjection(${i})" title="Cancelar inyección">×</button></span>`;
   }).join('');
-  // Full list in Matriz panel
-  el.innerHTML=mkBadge('inj-tag',false);
-  // Mini topbar
+  const fullBadges=activeInjections.map((inj,i)=>{
+    const schedCls=inj.mode==='programada'?'sched':'';
+    return `<span class="inj-tag ${schedCls}">${inj.id}: ${inj.label.split(' ').slice(0,3).join(' ')}${inj.mode==='programada'?` @snap${inj.atIdx+1}`:''}<button onclick="cancelInjection(${i})" title="Cancelar">×</button></span>`;
+  }).join('');
+  // Full list in #inj-active-panel
+  el.innerHTML=fullBadges;
+  // Mini topbar (below console)
   topbar.style.display='flex';
-  topbar.innerHTML=`<span id="inj-topbar-label">Inyecciones activas (${n}):</span>`+mkBadge('inj-tag-top',true);
+  topbar.innerHTML=`<span id="inj-topbar-label">Inyecciones activas (${n}):</span>`+miniBadges;
+  // Inline badges in Matriz section title
+  if(matrizTitle)matrizTitle.innerHTML=miniBadges;
 }
 
 function renderInjGrid(gridId,block){
