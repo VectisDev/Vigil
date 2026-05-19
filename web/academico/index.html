@@ -1241,8 +1241,26 @@ function renderCandidates(snap){
   const labs=snap.partidos.map(p=>p.abbrev);
   const data=snap.partidos.map(p=>p.votos||0);
   const bgs=snap.partidos.map(p=>partyColor(p));
+  const barLabelPlugin={id:'candLabels',afterDatasetsDraw(chart){
+    const ctx=chart.ctx;
+    chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+      const v=data[i]; if(!v)return;
+      const pct=snap.partidos[i]?.pct||0;
+      const x=bar.x, top=bar.y;
+      ctx.save();
+      ctx.textAlign='center';
+      ctx.font='bold 11px system-ui,sans-serif';
+      ctx.fillStyle='#e8eaed';
+      ctx.fillText(v.toLocaleString('es-HN'),x,Math.max(top-18,12));
+      ctx.font='10px system-ui,sans-serif';
+      ctx.fillStyle='#8b929c';
+      ctx.fillText(pct+'%',x,Math.max(top-6,22));
+      ctx.restore();
+    });
+  }};
   mk('s-chart-cand',{type:'bar',data:{labels:labs,datasets:[{label:'Votos',data,backgroundColor:bgs,borderRadius:5}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:'Votos por Partido',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}},legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString()} votos (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
+    plugins:[barLabelPlugin],
+    options:{...CHART_OPT,layout:{padding:{top:28}},plugins:{title:{display:true,text:'Votos por Partido',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}},legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString('es-HN')} votos (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
 }
 
 function renderTimeline(){
