@@ -33,8 +33,14 @@ body.auth-pending{visibility:hidden}
 #sim-control-bar{
   position:sticky;top:0;z-index:150;
   background:rgba(15,17,21,.96);backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(176,140,240,.15);
+  padding:8px 20px;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;overflow:hidden;
+}
+#dataset-bar{
+  position:sticky;top:50px;z-index:149;
+  background:rgba(15,17,21,.96);backdrop-filter:blur(8px);
   border-bottom:2px solid rgba(176,140,240,.25);
-  padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:5px 20px;display:flex;align-items:center;gap:8px;
 }
 .sim-transport-btn{
   background:var(--panel);border:1px solid var(--border);color:var(--fg);
@@ -71,8 +77,10 @@ body.auth-pending{visibility:hidden}
 #sim-info{font-size:11px;color:var(--muted);white-space:nowrap}
 .dataset-select{
   background:var(--panel);border:1px solid var(--border);color:var(--fg);
-  border-radius:7px;padding:5px 8px;font-size:11px;cursor:pointer;
+  border-radius:7px;padding:4px 8px;font-size:11px;cursor:pointer;flex:1;max-width:560px;
 }
+.dataset-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em;white-space:nowrap;}
 
 /* ── LAYOUT ── */
 .page{max-width:1400px;margin:0 auto;padding:20px}
@@ -332,7 +340,7 @@ body.auth-pending{visibility:hidden}
   <span class="sep">/</span>
   <span>Simulación Forense Académica</span>
   <div id="dl-btn">
-    <button class="dl-pill" onclick="downloadFullPNG()">↓ PNG completo</button>
+    <button class="dl-pill" onclick="downloadFullPNG()">↓ PNG</button>
     <button class="dl-pill" onclick="downloadPDF()">↓ PDF</button>
     <span id="user-email" style="font-size:11px;color:var(--muted);padding:0 4px"></span>
     <button class="dl-pill" onclick="openSettings()" title="Configuración de cuenta" style="font-size:14px;padding:3px 9px">⚙</button>
@@ -341,7 +349,6 @@ body.auth-pending{visibility:hidden}
 </div>
 
 <!-- CONSOLA DE REPRODUCCIÓN FORENSE -->
-<div class="section-title" style="max-width:1400px;margin:16px auto 0;padding:0 24px">Consola de Reproducción Forense</div>
 <div id="sim-control-bar">
   <button class="sim-transport-btn" id="btn-play" onclick="simToggle()" title="Play / Pausa">▶</button>
   <button class="sim-transport-btn" onclick="simStop()" title="Stop">⏹</button>
@@ -362,13 +369,23 @@ body.auth-pending{visibility:hidden}
 
   <span id="sim-info">Snap 0 / — | 0%</span>
   <span class="sim-badge" id="sim-badge">DETENIDO</span>
+</div>
 
+<!-- Dataset selector bar -->
+<div id="dataset-bar">
+  <span class="dataset-label">Dataset</span>
   <select class="dataset-select" id="dataset-select" onchange="loadDataset(this.value)">
-    <option value="../data/hnd_2025_series.json">HN 2025 real (64 snaps)</option>
-    <option value="../data/sim_eleccion_limpia_5min.json">Simulación limpia — 5min (576 snaps)</option>
-    <option value="../data/sim_eleccion_anomala_5min.json">Simulación referencia (anomalías embebidas — ground truth)</option>
-    <option value="../data/sim_mes_adversarial_5min.json">Simulación adversarial HN 2025 — 28 días / 5 min (8 064 snaps)</option>
-    <option value="../data/sim_mes_adversarial_anomala_5min.json">Simulación adversarial HN 2025 anomalías — 28 días / 5 min (ground truth)</option>
+    <optgroup label="Datos reales">
+      <option value="../data/hnd_2025_series.json">HN 2025 · 30 nov 2025 · 64 snaps</option>
+    </optgroup>
+    <optgroup label="Simulación estándar · 5 min · 576 snaps">
+      <option value="../data/sim_eleccion_limpia_5min.json">Limpia — sin anomalías</option>
+      <option value="../data/sim_eleccion_anomala_5min.json">Con anomalías embebidas [GT]</option>
+    </optgroup>
+    <optgroup label="Adversarial HN 2025 · 28 días · 5 min · 8 064 snaps">
+      <option value="../data/sim_mes_adversarial_5min.json">Calibrada — limpia</option>
+      <option value="../data/sim_mes_adversarial_anomala_5min.json">Calibrada — con anomalías [GT]</option>
+    </optgroup>
   </select>
 </div>
 
