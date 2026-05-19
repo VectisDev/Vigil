@@ -104,9 +104,11 @@ Centinel separa el código (este repositorio) de los datos electorales capturado
 
 **Repositorio de datos:** <!-- CENTINEL_DATA_URL -->*(se configura automáticamente al hacer fork)*<!-- /CENTINEL_DATA_URL -->
 
+**Panel de visualización:** <!-- CENTINEL_PAGES_URL -->*(se activa automáticamente al hacer fork)*<!-- /CENTINEL_PAGES_URL -->
+
 El sistema se configura solo: al hacer fork, el wizard detecta qué falta y abre un Issue con instrucciones exactas. Normalmente es un solo paso.
 
-→ [Arquitectura de separación código/datos](docs/DATA-REPOS.md) · [Guía de setup](docs/SETUP-GUIDE.md)
+→ [Arquitectura de separación código/datos](docs/DATA-REPOS.md) · [Guía de setup](docs/SETUP-GUIDE.md) · [Panel de visualización](docs/PAGES-GUIDE.md)
 
 ---
 
