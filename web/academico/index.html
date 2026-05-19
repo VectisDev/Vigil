@@ -582,10 +582,16 @@ let activeInjections = [];
 let scheduledInjections = [];
 let injMode = 'instant';
 let simAlerts = [];
-let simChains = [];     // chain integrity history: array of booleans (true=ok)
-let historyBenford = []; // accumulated votes for Benford analysis
-let historyTimeline = []; // [{ts, actas, anomalias}]
+let simChains = [];
+let historyBenford = [];
+let historyTimeline = [];
 let historyIncons = [];
+let historyLeader = [];   // sequence of leading party abbrev (for runs test)
+let historyLeadPct = [];  // leading party pct over time (for trend)
+
+// Alert cooldown: prevents log spam for same rule within COOLDOWN_SNAPS
+const _alertLast = {};
+const _COOLDOWN = 144; // ~12h simulated time at 5-min intervals
 
 // Threshold values (keyed by id)
 let TV = {};
@@ -1060,6 +1066,8 @@ function simStop(){
   if(SERIES)SIM.snapshots=deepClone(SERIES.snapshots);
   activeInjections=[];scheduledInjections=[];simAlerts=[];
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
+  historyLeader=[];historyLeadPct=[];
+  Object.keys(_alertLast).forEach(k=>delete _alertLast[k]);
   Object.values(EVENTS).forEach(e=>{if(e._hc!==undefined)delete e._hc;if(e._cascade!==undefined)delete e._cascade;});
   renderActiveInjections();renderAlerts();
   updateBadge();updateScrubber();
@@ -1136,6 +1144,43 @@ function computeLastDigit(votes){
   const pval=chi2pval(chi2,9);
   return{chi2,pval,digits,N};
 }
+function computeBenfordMAD(benf){
+  if(benf.N<15)return null;
+  return benf.digits.reduce((a,d)=>a+Math.abs(d.obs/100-d.exp/100),0)/9;
+}
+function computeRunsTest(seq){
+  if(seq.length<20)return null;
+  let runs=1;
+  for(let i=1;i<seq.length;i++)if(seq[i]!==seq[i-1])runs++;
+  const n=seq.length;
+  const n1=seq.filter(s=>s===seq[0]).length, n2=n-n1;
+  if(!n1||!n2)return null;
+  const mu=2*n1*n2/n+1;
+  const v=(2*n1*n2*(2*n1*n2-n))/(n*n*(n-1));
+  if(v<=0)return null;
+  const z=(runs-mu)/Math.sqrt(v);
+  return{runs,n,z,pval:2*(1-normalCDF(Math.abs(z)))};
+}
+function computeTrendDev(pcts,cur){
+  if(pcts.length<5)return null;
+  const n=pcts.length,xm=(n-1)/2,ym=pcts.reduce((a,b)=>a+b,0)/n;
+  let num=0,den=0;
+  pcts.forEach((y,x)=>{num+=(x-xm)*(y-ym);den+=(x-xm)**2;});
+  if(!den)return null;
+  const s=num/den,b=ym-s*xm,pred=b+s*n;
+  return{predicted:pred,dev:Math.abs(cur-pred)};
+}
+function computeLLNZ(votes){
+  if(votes.length<50)return null;
+  const exp=[.301,.176,.125,.097,.079,.067,.058,.051,.046];
+  const cnt=new Array(9).fill(0);
+  votes.forEach(v=>{if(v>0){const d=parseInt(String(Math.abs(v))[0]);if(d>=1&&d<=9)cnt[d-1]++;}});
+  const N=cnt.reduce((a,b)=>a+b,0)||1;
+  const obsVar=exp.map((e,i)=>(cnt[i]/N-e)**2).reduce((a,b)=>a+b,0)/9;
+  const expVar=exp.reduce((a,p)=>a+p*(1-p)/N,0)/9;
+  const se=Math.sqrt(2)*expVar/Math.sqrt(N);
+  return se>0?{z:(obsVar-expVar)/se,N}:null;
+}
 function chi2pval(chi2,df){
   const x=chi2/df;
   const z=(Math.pow(x,1/3)-(1-2/(9*df)))/Math.sqrt(2/(9*df));
@@ -1165,6 +1210,129 @@ function getDeptData(snap){
            blancos:Math.round((snap.blancos||0)*f),zscore,
            actas:Math.round((snap.actas_divulgadas||0)*f)};
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CENTINEL RULE ENGINE — evaluated on every tick
+// ═══════════════════════════════════════════════════════════════════════════
+function evaluateCheapRules(snap,idx){
+  const d=snap._cd={};
+  const prev=idx>0?SIM.snapshots[idx-1]:null;
+  const total=(snap.validos||0)+(snap.nulos||0)+(snap.blancos||0);
+
+  function flag(ruleKey,cond,level,msg){
+    if(!cond)return;
+    d[ruleKey]={level,msg};
+    const last=_alertLast[ruleKey]||0;
+    if(idx-last>=_COOLDOWN){_alertLast[ruleKey]=idx;logE(level,msg);}
+  }
+
+  // snap_jump_pct — actas jump > threshold% of total in one 5-min snap
+  if(TE.snap_jump_pct&&prev){
+    const delta=(snap.actas_divulgadas||0)-(prev.actas_divulgadas||0);
+    const pct=delta/(snap.actas_totales||1)*100;
+    flag('snap_jump_pct',pct>TV.snap_jump_pct,'WARN',
+      `Salto snapshot: +${delta.toLocaleString()} actas (+${pct.toFixed(1)}%) en 5 min — umbral ${TV.snap_jump_pct}%`);
+    d._actasDelta=delta;
+  }
+
+  // speed_max — actas processed per 15-min window (3 snaps × 5 min)
+  if(TE.speed_max){
+    const p3=SIM.snapshots[Math.max(0,idx-3)];
+    const spd=(snap.actas_divulgadas||0)-(p3?.actas_divulgadas||0);
+    d._speed15=spd;
+    flag('speed_max',spd>TV.speed_max,'WARN',
+      `Velocidad: ${spd.toLocaleString()} actas/15 min — límite ${TV.speed_max}`);
+  }
+
+  // null_warn / null_crit
+  if(total>100){
+    const np=(snap.nulos||0)/total*100;
+    d._nullPct=np;
+    if(TE.null_crit&&np>TV.null_crit)
+      flag('null_crit',true,'CRITICAL',`Nulos críticos: ${np.toFixed(1)}% — umbral ${TV.null_crit}%`);
+    else if(TE.null_warn&&np>TV.null_warn)
+      flag('null_warn',true,'WARN',`Nulos elevados: ${np.toFixed(1)}% — umbral ${TV.null_warn}%`);
+  }
+
+  // part_jump — escrutinio delta > threshold in one snap
+  if(TE.part_jump&&prev){
+    const jp=(snap.pct_escrutinio||0)-(prev.pct_escrutinio||0);
+    flag('part_jump',jp>TV.part_jump,'WARN',
+      `Salto escrutinio: +${jp.toFixed(2)}% en 5 min — umbral ${TV.part_jump}%`);
+  }
+
+  // part_mean/part_std — Z-score of escrutinio vs configured historical baseline
+  if(TE.part_mean&&TV.part_std>0){
+    const z=Math.abs((snap.pct_escrutinio||0)-TV.part_mean)/TV.part_std;
+    d._partZ=+z.toFixed(2);
+    flag('part_zscore',z>3,'WARN',
+      `Participación z=${z.toFixed(2)}σ vs histórico (μ=${TV.part_mean}%, σ=${TV.part_std}%)`);
+  }
+
+  // incons_crit
+  if(TE.incons_crit&&snap.actas_divulgadas>0){
+    const ip=(snap.inconsistentes||0)/snap.actas_divulgadas*100;
+    d._inconsPct=+ip.toFixed(2);
+    flag('incons_crit',ip>TV.incons_crit,'CRITICAL',
+      `Inconsistencias: ${ip.toFixed(1)}% de actas — umbral ${TV.incons_crit}%`);
+  }
+
+  // incons_delta — escalation rate between consecutive snaps
+  if(TE.incons_delta&&prev&&prev.actas_divulgadas>0&&snap.actas_divulgadas>0){
+    const r1=(snap.inconsistentes||0)/snap.actas_divulgadas*100;
+    const r0=(prev.inconsistentes||0)/prev.actas_divulgadas*100;
+    flag('incons_delta',r1-r0>TV.incons_delta,'WARN',
+      `Escalada inconsistencias: +${(r1-r0).toFixed(2)}% — umbral Δ${TV.incons_delta}%`);
+  }
+
+  // reversal_min — candidate vote count drops
+  if(TE.reversal_min&&prev?.partidos&&snap.partidos){
+    snap.partidos.forEach((p,i)=>{
+      const loss=(prev.partidos[i]?.votos||0)-p.votos;
+      if(loss>=TV.reversal_min){
+        (d.reversals=d.reversals||[]).push({abbrev:p.abbrev,loss});
+        flag('reversal_'+p.abbrev,true,'CRITICAL',
+          `Reversión ${p.abbrev}: −${loss.toLocaleString()} votos — umbral ${TV.reversal_min}`);
+      }
+    });
+  }
+
+  // delta_pct — candidate % shift per snap
+  if(TE.delta_pct&&prev?.partidos&&snap.partidos){
+    snap.partidos.forEach((p,i)=>{
+      const delta=Math.abs(p.pct-(prev.partidos[i]?.pct||0));
+      if(delta>TV.delta_pct){
+        d.delta_pct=true;
+        flag('delta_pct_'+p.abbrev,true,'WARN',
+          `Delta porcentual ${p.abbrev}: Δ${delta.toFixed(2)}% en 5 min — umbral ${TV.delta_pct}%`);
+      }
+    });
+  }
+
+  // vote_change — relative vote count change
+  if(TE.vote_change&&prev?.partidos&&snap.partidos){
+    snap.partidos.forEach((p,i)=>{
+      const pv=prev.partidos[i]?.votos||0;
+      if(pv>0){
+        const rel=Math.abs(p.votos-pv)/pv*100;
+        if(rel>TV.vote_change){
+          d.vote_change=true;
+          flag('vote_chg_'+p.abbrev,true,'WARN',
+            `Cambio relativo ${p.abbrev}: ${rel.toFixed(1)}% — umbral ${TV.vote_change}%`);
+        }
+      }
+    });
+  }
+
+  // Track running history for expensive checks
+  if(snap.partidos?.length){
+    const leader=snap.partidos.reduce((a,b)=>b.votos>a.votos?b:a);
+    historyLeader.push(leader.abbrev);
+    historyLeadPct.push(leader.pct);
+    if(historyLeader.length>288)historyLeader.shift();
+    if(historyLeadPct.length>288)historyLeadPct.shift();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1206,11 +1374,18 @@ function renderSimFrame(idx){
     snap._sig_invalid?'firma inválida':
     chainOk?'cadena íntegra':'cadena comprometida';
 
-  if(fastMode && SIM.state==='playing' && idx%144!==0)return; // throttle: render every ~12h sim-time during fast play
+  // Cheap rule evaluation — runs every tick regardless of speed
+  evaluateCheapRules(snap,idx);
+
+  if(fastMode && SIM.state==='playing' && idx%144!==0)return;
 
   const depts=getDeptData(snap);
   const benf=computeBenford(historyBenford);
   const lastd=computeLastDigit(historyBenford);
+  const mad=computeBenfordMAD(benf);
+  const runs=computeRunsTest(historyLeader.slice());
+  const trend=computeTrendDev(historyLeadPct.slice(-20),historyLeadPct[historyLeadPct.length-1]||0);
+  const llnz=computeLLNZ(historyBenford);
 
   renderCandidates(snap);
   renderTimeline();
@@ -1219,8 +1394,8 @@ function renderSimFrame(idx){
   renderZScore(depts);
   renderParticipation(depts);
   renderNullBlank(depts);
-  renderForensics(snap,benf,lastd,last10);
-  emitEngineEvents(snap,idx,benf,lastd);
+  renderForensics(snap,benf,lastd,last10,{mad,runs,trend,llnz,depts});
+  emitEngineEvents(snap,idx,benf,lastd,{mad,runs,trend,llnz});
 }
 
 const CHART_OPT={animation:false,responsive:true,
@@ -1335,56 +1510,189 @@ function renderNullBlank(depts){
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'},stacked:true}}}});
 }
 
-function renderForensics(snap,benf,lastd,last10){
-  const verdicts=[
-    {id:'prog',label:'Inyección Progresiva de Ventaja',
-     detected:snap._inversion||activeInjections.some(i=>i.id==='C1'),
-     detail:'Monitorea si un partido gana ventaja sistemática entre snapshots consecutivos.'},
-    {id:'vel',label:'Anomalía de Velocidad',
-     detected:snap._nocturnal||snap._throttled===false,
-     detail:`Máx actas/15min: ${TV.speed_max}. Actual: ${((snap.actas_divulgadas||0)-(SIM.snapshots[Math.max(0,SIM.idx-3)]?.actas_divulgadas||0)).toFixed(0)}`},
-    {id:'asym',label:'Beneficio Asimétrico',
-     detected:snap._chain_broken_pct>50||snap._inversion,
-     detail:'Evalúa si un candidato concentra desproporcionadamente las actas nuevas.'},
-    {id:'hold',label:'Hold-and-Release',
-     detected:activeInjections.some(i=>i.id==='A4'),
-     detail:'Detecta períodos de estancamiento seguidos de liberaciones masivas.'},
-    {id:'benf',label:'Benford (1er dígito)',
-     detected:benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue,
-     detail:benf.N<15?'Datos insuficientes':`χ²=${benf.chi2.toFixed(2)} p=${benf.pval.toFixed(3)} umbral=${TV.benford_chi_pvalue}`},
-    {id:'zsc',label:'Z-score',
-     detected:snap._concentration||snap._geo_blackout,
-     detail:`Umbral configurado: ${TV.zscore_thr}σ`},
-    {id:'blk',label:'Apagón / Blackout',
-     detected:snap.blackout||snap._geo_blackout,
-     detail:snap.blackout?'Blackout activo detectado':'Sin blackout en snapshot actual'},
-  ];
-  const container=document.getElementById('s-forensic-list');
-  container.innerHTML=verdicts.map(v=>{
-    const cls=v.detected?'b-bad':'b-ok';
-    const lbl=v.detected?'ALERTA':'OK';
-    return `<div class="forensic-card">
-      <div class="forensic-hdr" onclick="this.nextElementSibling.classList.toggle('open')">
-        <span class="forensic-title">${v.label}</span>
-        <span class="badge ${cls}">${lbl}</span>
-      </div>
-      <div class="forensic-body">${v.detail}</div>
-    </div>`;
-  }).join('');
+function renderForensics(snap,benf,lastd,last10,ext){
+  const cd=snap._cd||{};
+  const {mad,runs,trend,llnz,depts}=ext||{};
+  // geo_cv from dept data
+  const geoZs=depts?depts.map(d=>d.zscore).filter(z=>isFinite(z)):[];
+  const geoMean=geoZs.length?geoZs.reduce((a,b)=>a+b,0)/geoZs.length:0;
+  const geoStd=geoZs.length?Math.sqrt(geoZs.reduce((a,z)=>a+(z-geoMean)**2,0)/geoZs.length):0;
+  const geoCv=geoMean?Math.abs(geoStd/geoMean):0;
+  // corr_r: participation vs winner pct across depts (simplified)
+  const corrR=depts&&depts.length>3?(()=>{
+    const xs=depts.map(d=>d.pct),ys=depts.map(d=>d.zscore);
+    const xm=xs.reduce((a,b)=>a+b,0)/xs.length,ym=ys.reduce((a,b)=>a+b,0)/ys.length;
+    let num=0,dx=0,dy=0;
+    xs.forEach((x,i)=>{num+=(x-xm)*(ys[i]-ym);dx+=(x-xm)**2;dy+=(ys[i]-ym)**2;});
+    return dx&&dy?num/Math.sqrt(dx*dy):0;
+  })():0;
+
+  const ok='<span class="badge b-ok">OK</span>';
+  const warn='<span class="badge b-warn">ALERTA</span>';
+  const crit='<span class="badge b-bad">CRÍTICO</span>';
+  const na='<span class="badge b-na">N/A</span>';
+  function badge(level){return level==='CRITICAL'?crit:level==='WARN'?warn:ok;}
+  function card(label,status,detail){
+    return`<div class="forensic-card"><div class="forensic-hdr" onclick="this.nextElementSibling.classList.toggle('open')"><span class="forensic-title">${label}</span>${status}</div><div class="forensic-body">${detail}</div></div>`;
+  }
+  const verdicts=[];
+
+  // 1. Benford — chi² p-value
+  const bfViol=benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue;
+  verdicts.push(card('Benford — chi² candidatos',badge(bfViol?'WARN':'OK'),
+    benf.N<15?`Datos insuficientes (n=${benf.N})`:`χ²=${benf.chi2.toFixed(2)} | p=${benf.pval.toFixed(4)} | umbral p<${TV.benford_chi_pvalue} | n=${benf.N}`));
+
+  // 2. Benford — MAD
+  const madWarn=mad!=null&&TE.benford_mad_warning&&mad>TV.benford_mad_warning;
+  const madCrit=mad!=null&&TE.benford_mad_critical&&mad>TV.benford_mad_critical;
+  verdicts.push(card('Benford — MAD (1er dígito)',badge(madCrit?'CRITICAL':madWarn?'WARN':'OK'),
+    mad==null?'Datos insuficientes':`MAD=${mad.toFixed(4)} | warn>${TV.benford_mad_warning} | crit>${TV.benford_mad_critical}`));
+
+  // 3. Último dígito
+  const ldViol=lastd.N>=20&&lastd.pval<TV.lastdigit_chi&&TE.lastdigit_chi;
+  verdicts.push(card('Uniformidad último dígito',badge(ldViol?'WARN':'OK'),
+    lastd.N<20?`Datos insuficientes (n=${lastd.N})`:`χ²=${lastd.chi2.toFixed(2)} | p=${lastd.pval.toFixed(4)} | umbral p<${TV.lastdigit_chi}`));
+
+  // 4. Salto de snapshot
+  const sjCD=cd.snap_jump_pct;
+  verdicts.push(card('Salto de snapshot',badge(sjCD?.level||'OK'),
+    sjCD?sjCD.msg:`Sin saltos anómalos — umbral ${TV.snap_jump_pct}% del total de actas`));
+
+  // 5. Velocidad de procesamiento
+  const spCD=cd.speed_max;
+  verdicts.push(card('Velocidad procesamiento',badge(spCD?.level||'OK'),
+    `Actual 15 min: ${(cd._speed15||0).toLocaleString()} actas | límite ${TV.speed_max}`));
+
+  // 6. Nulos y Blancos
+  const ncCD=cd.null_crit||cd.null_warn;
+  verdicts.push(card('Nulos y Blancos',badge(cd.null_crit?'CRITICAL':cd.null_warn?'WARN':'OK'),
+    `Tasa nulos: ${(cd._nullPct||0).toFixed(1)}% | warn>${TV.null_warn}% | crit>${TV.null_crit}%`));
+
+  // 7. Salto de participación
+  const pjCD=cd.part_jump;
+  verdicts.push(card('Salto de participación',badge(pjCD?.level||'OK'),
+    pjCD?pjCD.msg:`Sin saltos — umbral ${TV.part_jump}% por snap | escrutinio actual ${fmtPct(snap.pct_escrutinio)}`));
+
+  // 8. Participación vs histórico
+  verdicts.push(card('Participación vs histórico',badge(cd.part_zscore?'WARN':'OK'),
+    `z=${cd._partZ??'—'}σ | μ=${TV.part_mean}% σ=${TV.part_std}% | escrutinio=${fmtPct(snap.pct_escrutinio)}`));
+
+  // 9. Inconsistencias
+  verdicts.push(card('Tasa de inconsistencias',badge(cd.incons_crit?'CRITICAL':cd.incons_delta?'WARN':'OK'),
+    `${(cd._inconsPct||0).toFixed(2)}% de actas inconsistentes | umbral crit ${TV.incons_crit}% | Δ umbral ${TV.incons_delta}%`));
+
+  // 10. Reversión de votos
+  const revs=cd.reversals||[];
+  verdicts.push(card('Reversión de votos',badge(revs.length?'CRITICAL':'OK'),
+    revs.length?revs.map(r=>`${r.abbrev} −${r.abbrev.toLocaleString?r.abbrev:''}${r.loss.toLocaleString()} votos`).join(', '):`Sin reversiones — umbral ${TV.reversal_min} votos`));
+
+  // 11. Delta porcentual candidatos
+  verdicts.push(card('Delta % candidatos',badge(cd.delta_pct?'WARN':'OK'),
+    cd.delta_pct?`Cambio > ${TV.delta_pct}% en candidato detectado`:`Sin saltos > ${TV.delta_pct}% en último snap`));
+
+  // 12. Cambio relativo de votos
+  verdicts.push(card('Cambio relativo de votos',badge(cd.vote_change?'WARN':'OK'),
+    cd.vote_change?`Cambio relativo > ${TV.vote_change}%`:`Sin cambios relativos > ${TV.vote_change}%`));
+
+  // 13. Z-score geográfico
+  const geoViol=TE.zscore_thr&&geoZs.some(z=>Math.abs(z)>TV.zscore_thr);
+  verdicts.push(card('Z-score geográfico',badge(geoViol?'WARN':'OK'),
+    `CV departamental: ${geoCv.toFixed(3)} | umbral z>${TV.zscore_thr}σ | ${geoViol?'anomalía detectada en ≥1 dpto':'distribución normal'}`));
+
+  // 14. Correlación participación–voto
+  const corrViol=TE.corr_r&&Math.abs(corrR)>TV.corr_r;
+  verdicts.push(card('Correlación part.–resultado',badge(corrViol?'WARN':'OK'),
+    `R=${corrR.toFixed(3)} | umbral |R|>${TV.corr_r}`));
+
+  // 15. Dispersión geográfica (CV)
+  const cvViol=TE.geo_cv&&geoCv>TV.geo_cv;
+  verdicts.push(card('Dispersión geográfica (CV)',badge(cvViol?'WARN':'OK'),
+    `CV=${geoCv.toFixed(3)} | umbral ${TV.geo_cv}`));
+
+  // 16. Test de corridas (runs)
+  const runsViol=runs&&TE.runs_pval&&runs.pval<TV.runs_pval;
+  verdicts.push(card('Test de corridas (aleatoriedad)',badge(runsViol?'WARN':'OK'),
+    runs?`Corridas=${runs.runs} | z=${runs.z.toFixed(2)} | p=${runs.pval.toFixed(4)} | umbral p<${TV.runs_pval} | n=${runs.n}`:'Historial insuficiente (min 20 snaps)'));
+
+  // 17. Desviación de tendencia
+  const trendViol=trend&&TE.trend_pct&&trend.dev>TV.trend_pct;
+  verdicts.push(card('Desviación de tendencia',badge(trendViol?'WARN':'OK'),
+    trend?`Desv=${trend.dev.toFixed(2)}% vs tendencia ${trend.predicted.toFixed(2)}% | umbral ${TV.trend_pct}%`:'Datos insuficientes'));
+
+  // 18. Ley de Grandes Números (LLN)
+  const llnViol=llnz&&TE.lln_z&&Math.abs(llnz.z)>TV.lln_z;
+  verdicts.push(card('Ley de Grandes Números',badge(llnViol?'WARN':'OK'),
+    llnz?`z=${llnz.z.toFixed(2)} | umbral ${TV.lln_z}σ | n=${llnz.N}`:'Datos insuficientes (min 50 obs)'));
+
+  // 19. Apagón / Blackout
+  verdicts.push(card('Apagón / Blackout',badge((snap.blackout||snap._geo_blackout)?'CRITICAL':'OK'),
+    snap.blackout?'Blackout de sistema activo':snap._geo_blackout?`Blackout geográfico: ${snap._geo_blackout_dept||'depto desconocido'}`:'Sin blackout en snapshot actual'));
+
+  // 20. Hold-and-Release
+  const holdDetected=activeInjections.some(i=>i.id==='A4')||snap._hold_release;
+  verdicts.push(card('Hold-and-Release',badge(holdDetected?'WARN':'OK'),
+    holdDetected?'Patrón hold-and-release activo o detectado':'Sin stagnación seguida de liberación masiva'));
+
+  // 21. Integridad de cadena
+  const chainOk2=!snap._chain_broken_pct&&!snap._false_hash&&!snap._sig_invalid&&!snap._chain_fork;
+  verdicts.push(card('Integridad de cadena',badge(chainOk2?'OK':'CRITICAL'),
+    chainOk2?`Hash SHA-256 íntegro — ${fakeHash(snap.idx||0).slice(0,16)}…`:
+    `⚠ ${snap._chain_fork?'fork detectado':snap._sig_invalid?'firma inválida':snap._false_hash?'hash adulterado':'cadena rota'}`));
+
+  // 22. Conteo imposible
+  const imp=snap.actas_divulgadas>snap.actas_totales||snap._mesa_fantasma;
+  verdicts.push(card('Conteo imposible / Mesa fantasma',badge(imp?'CRITICAL':'OK'),
+    imp?`${snap.actas_divulgadas} actas > ${snap.actas_totales} total — ${snap._mesa_fantasma?'mesa fantasma detectada':'conteo imposible'}`:'Conteo dentro de límites'));
+
+  // 23. Reversión de datos (rollback)
+  verdicts.push(card('Rollback de datos',badge(snap._rollback?'CRITICAL':'OK'),
+    snap._rollback?'actas_divulgadas retrocedió — timestamp no monótono':'Sin regresión temporal detectada'));
+
+  // 24. Uniformidad sospechosa
+  verdicts.push(card('Uniformidad sospechosa',badge(snap._uniformidad_sospechosa?'WARN':'OK'),
+    snap._uniformidad_sospechosa?'Distribución de votos perfectamente teórica — posible fabricación':'Varianza normal en distribución de votos'));
+
+  // 25. Endpoints desconectados
+  verdicts.push(card('Endpoints / Conectividad',badge(snap._ep_disc?'WARN':'OK'),
+    snap._ep_disc?`${snap._ep_disc} endpoints desconectados`:'Todos los endpoints activos'));
+
+  document.getElementById('s-forensic-list').innerHTML=verdicts.join('');
 }
 
-function emitEngineEvents(snap,idx,benf,lastd){
-  if(idx%6===0)logE('INFO',`SHA-256 verificado ✓ snap ${idx} — hash=${fakeHash(idx).slice(0,12)}...`);
-  if(snap.blackout||snap._geo_blackout)logE('CRITICAL',`Apagón detectado en snapshot ${idx}`);
-  if(benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue)
-    logE('WARN',`Benford χ²=${benf.chi2.toFixed(2)} p=${benf.pval.toFixed(3)} → umbral violado`);
-  if(lastd.N>=20&&lastd.pval<TV.lastdigit_chi&&TE.lastdigit_chi)
-    logE('WARN',`Último dígito chi²=${lastd.chi2.toFixed(2)} p=${lastd.pval.toFixed(3)} → uniformidad rota`);
-  if(snap._rollback)logE('CRITICAL','Reversión de datos detectada — actas_divulgadas retrocedió');
-  if(snap._uniformidad)logE('WARN','Uniformidad sospechosa: distribución de votos perfectamente teórica');
-  if(snap._mesa_fantasma||snap.actas_divulgadas>snap.actas_totales)
+function emitEngineEvents(snap,idx,benf,lastd,ext){
+  const {mad,runs,trend,llnz}=ext||{};
+  if(idx%6===0)logE('INFO',`SHA-256 verificado ✓ snap ${idx} — hash=${fakeHash(idx).slice(0,12)}…`);
+  if(snap.blackout||snap._geo_blackout)logE('CRITICAL',`Apagón detectado — snap ${idx}`);
+  if(benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue){
+    const k='benford_chi';const last=_alertLast[k]||0;
+    if(idx-last>=_COOLDOWN){_alertLast[k]=idx;
+      logE('WARN',`Benford χ²=${benf.chi2.toFixed(2)} p=${benf.pval.toFixed(4)} → umbral violado`);}}
+  if(mad!=null&&TE.benford_mad_critical&&mad>TV.benford_mad_critical){
+    const k='benford_mad';const last=_alertLast[k]||0;
+    if(idx-last>=_COOLDOWN){_alertLast[k]=idx;
+      logE('CRITICAL',`Benford MAD=${mad.toFixed(4)} → supera umbral crítico ${TV.benford_mad_critical}`);}}
+  if(lastd.N>=20&&lastd.pval<TV.lastdigit_chi&&TE.lastdigit_chi){
+    const k='lastdigit';const last=_alertLast[k]||0;
+    if(idx-last>=_COOLDOWN){_alertLast[k]=idx;
+      logE('WARN',`Último dígito chi²=${lastd.chi2.toFixed(2)} p=${lastd.pval.toFixed(4)} → uniformidad rota`);}}
+  if(runs&&TE.runs_pval&&runs.pval<TV.runs_pval){
+    const k='runs';const last=_alertLast[k]||0;
+    if(idx-last>=_COOLDOWN){_alertLast[k]=idx;
+      logE('WARN',`Test de corridas: z=${runs.z.toFixed(2)} p=${runs.pval.toFixed(4)} → aleatoriedad comprometida`);}}
+  if(trend&&TE.trend_pct&&trend.dev>TV.trend_pct){
+    const k='trend';const last=_alertLast[k]||0;
+    if(idx-last>=_COOLDOWN){_alertLast[k]=idx;
+      logE('WARN',`Tendencia: desviación ${trend.dev.toFixed(1)}% vs predicción ${trend.predicted.toFixed(1)}%`);}}
+  if(llnz&&TE.lln_z&&Math.abs(llnz.z)>TV.lln_z){
+    const k='llnz';const last=_alertLast[k]||0;
+    if(idx-last>=_COOLDOWN){_alertLast[k]=idx;
+      logE('WARN',`LLN: z=${llnz.z.toFixed(2)}σ → convergencia anómala (n=${llnz.N})`);}}
+  if(snap._rollback)logE('CRITICAL','Rollback: actas_divulgadas retrocedió — timestamp no monótono');
+  if(snap._uniformidad_sospechosa)logE('WARN','Uniformidad sospechosa: distribución perfectamente teórica');
+  if(snap.actas_divulgadas>snap.actas_totales||snap._mesa_fantasma)
     logE('CRITICAL',`Conteo imposible: ${snap.actas_divulgadas} > ${snap.actas_totales} actas`);
-  if(snap._ep_disc)logE('WARN',`${snap._ep_disc} endpoints desconectados — blackout perimetral`);
+  if(snap._ep_disc)logE('WARN',`${snap._ep_disc} endpoints desconectados`);
+  if(snap._resultado_invertido)logE('CRITICAL','Inversión de resultados detectada post-apagón');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
