@@ -392,8 +392,9 @@ body.auth-pending{visibility:hidden}
     Registra tu hipótesis antes de ajustar los umbrales. Una vez bloqueada, no se puede modificar (previene p-hacking).
   </div>
   <textarea id="thresh-prereg-text" placeholder="Hipótesis de investigación: ej. 'Si se reduce el umbral de Benford MAD a 0.005, el motor detectará la anomalía de ballot stuffing antes del snapshot 100 en la serie anómala.'"></textarea>
-  <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+  <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
     <button class="lock-btn" id="thresh-lock-btn" onclick="lockThresholds()">Bloquear hipótesis y habilitar sliders</button>
+    <button class="lock-btn" id="thresh-unlock-btn" onclick="unlockThresholds()" style="display:none;background:transparent;border-color:var(--muted);color:var(--muted)">Desbloquear y borrar hipótesis</button>
     <span id="thresh-lock-stat"></span>
   </div>
 </div>
@@ -1304,11 +1305,24 @@ function lockThresholds(){
   if(!txt){alert('Escribe tu hipótesis primero.');return;}
   threshLocked=true;
   document.getElementById('thresh-prereg-text').setAttribute('readonly','');
-  document.getElementById('thresh-lock-btn').disabled=true;
+  document.getElementById('thresh-lock-btn').style.display='none';
+  document.getElementById('thresh-unlock-btn').style.display='';
   document.getElementById('thresh-lock-stat').innerHTML='<span class="badge b-ok">hipótesis bloqueada</span>';
   document.getElementById('thresh-sliders').classList.add('unlocked');
   localStorage.setItem('centinel_acad_prereg',JSON.stringify({txt,ts:new Date().toISOString()}));
   logE('INFO','Pre-registro de umbrales bloqueado por investigador');
+}
+function unlockThresholds(){
+  if(!confirm('¿Borrar la hipótesis y deshabilitar los sliders? Esta acción no se puede deshacer.'))return;
+  threshLocked=false;
+  const ta=document.getElementById('thresh-prereg-text');
+  ta.value='';ta.removeAttribute('readonly');
+  document.getElementById('thresh-lock-btn').style.display='';
+  document.getElementById('thresh-unlock-btn').style.display='none';
+  document.getElementById('thresh-lock-stat').innerHTML='';
+  document.getElementById('thresh-sliders').classList.remove('unlocked');
+  localStorage.removeItem('centinel_acad_prereg');
+  logE('INFO','Pre-registro de umbrales cancelado — sliders bloqueados');
 }
 function resetThresholds(){RULES_DEFS.forEach(r=>{TV[r.id]=r.def;
   const sl=document.getElementById('sl-'+r.id);if(sl)sl.value=r.def;
