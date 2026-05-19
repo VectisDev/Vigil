@@ -204,6 +204,22 @@ body.auth-pending{visibility:hidden}
 }
 .inj-tag.sched{background:rgba(212,176,102,.1);border-color:rgba(212,176,102,.3);color:var(--warn)}
 .inj-tag button{background:none;border:none;color:inherit;cursor:pointer;font-size:12px;padding:0 1px;line-height:1}
+/* ── ACTIVE INJECTIONS TOPBAR ── */
+#inj-topbar{max-width:1400px;margin:0 auto;padding:5px 24px;
+  display:flex;align-items:center;flex-wrap:wrap;gap:5px;
+  background:rgba(223,107,134,.06);border-bottom:1px solid rgba(223,107,134,.18)}
+#inj-topbar-label{color:var(--muted);font-weight:700;font-size:9px;
+  letter-spacing:.07em;flex-shrink:0;margin-right:2px;text-transform:uppercase}
+.inj-tag-top{display:inline-flex;align-items:center;gap:4px;
+  background:rgba(223,107,134,.1);border:1px solid rgba(223,107,134,.3);
+  color:var(--bad);border-radius:4px;padding:2px 7px;font-size:9.5px;font-weight:600}
+.inj-tag-top.sched{background:rgba(212,176,102,.1);border-color:rgba(212,176,102,.3);color:var(--warn)}
+.inj-tag-top button{background:none;border:none;color:inherit;cursor:pointer;
+  font-size:11px;padding:0 1px;line-height:1;opacity:.7}
+.inj-tag-top button:hover{opacity:1}
+.inj-count-badge{display:inline-block;background:rgba(223,107,134,.2);
+  color:var(--bad);border-radius:999px;font-size:9px;font-weight:700;
+  padding:1px 6px;margin-left:6px;vertical-align:middle}
 
 /* ── TELEMETRY ── */
 .telem-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -251,7 +267,7 @@ body.auth-pending{visibility:hidden}
 @media print{
   #breadcrumb,#sim-control-bar,.section-title,
   #thresh-section,#inj-section,#telem-section,
-  .thresh-lock-panel,#inj-active-list,#anom-marker-row{display:none!important}
+  .thresh-lock-panel,#inj-active-list,#anom-marker-row,#inj-topbar{display:none!important}
   body{background:#0f1115!important;color:#e7e9ec!important}
   .page{padding:0!important}
   .card{background:#15171c!important;border-color:#24272e!important;break-inside:avoid}
@@ -312,6 +328,9 @@ body.auth-pending{visibility:hidden}
     <option value="../data/sim_eleccion_anomala_5min.json">Simulación referencia (anomalías embebidas — ground truth)</option>
   </select>
 </div>
+
+<!-- Active injections quick-bar — appears only when injections are active -->
+<div id="inj-topbar" style="display:none"></div>
 
 <div class="page">
 
@@ -404,7 +423,7 @@ body.auth-pending{visibility:hidden}
 </div>
 
 <!-- ══ SECTION 4 — INJECTION MATRIX ══════════════════════════════════════════ -->
-<div class="section-title">Matriz de Inyección de Eventos<button class="section-dl" onclick="downloadMatrizPNG()">↓ PNG</button></div>
+<div class="section-title">Matriz de Inyección de Eventos<span id="matriz-title-badge" class="inj-count-badge" style="display:none"></span><button class="section-dl" onclick="downloadMatrizPNG()">↓ PNG</button></div>
 
 <div class="inj-mode-bar">
   <button class="inj-mode-btn on" id="btn-inj-instant" onclick="setInjMode('instant')">Inmediata</button>
@@ -1394,13 +1413,28 @@ function cancelInjection(i){
 function renderActiveInjections(){
   const el=document.getElementById('inj-active-list');
   const empty=document.getElementById('inj-active-empty');
-  if(!activeInjections.length){el.innerHTML='';el.appendChild(empty);return;}
-  el.innerHTML=activeInjections.map((inj,i)=>`
-    <span class="inj-tag ${inj.mode==='programada'?'sched':''}">
-      ${inj.id}: ${inj.label.split(' ').slice(0,3).join(' ')}
-      ${inj.mode==='programada'?` @${inj.atIdx}`:''}
-      <button onclick="cancelInjection(${i})" title="Cancelar">×</button>
-    </span>`).join('');
+  const topbar=document.getElementById('inj-topbar');
+  const n=activeInjections.length;
+  // Update Matriz section title badge count
+  const matrizTitle=document.getElementById('matriz-title-badge');
+  if(matrizTitle){matrizTitle.textContent=n>0?n:'';matrizTitle.style.display=n>0?'':'none';}
+  if(!n){
+    el.innerHTML='';el.appendChild(empty);
+    topbar.style.display='none';topbar.innerHTML='';
+    return;
+  }
+  const mkBadge=(cls,mini)=>activeInjections.map((inj,i)=>{
+    const schedCls=inj.mode==='programada'?'sched':'';
+    const shortLabel=inj.id+' · '+inj.label.split(' ').slice(0,3).join(' ')+(inj.mode==='programada'?` @snap${inj.atIdx+1}`:'');
+    return mini
+      ?`<span class="inj-tag-top ${schedCls}">${shortLabel}<button onclick="cancelInjection(${i})" title="Cancelar inyección">×</button></span>`
+      :`<span class="inj-tag ${schedCls}">${inj.id}: ${inj.label.split(' ').slice(0,3).join(' ')}${inj.mode==='programada'?` @snap${inj.atIdx+1}`:''}<button onclick="cancelInjection(${i})" title="Cancelar">×</button></span>`;
+  }).join('');
+  // Full list in Matriz panel
+  el.innerHTML=mkBadge('inj-tag',false);
+  // Mini topbar
+  topbar.style.display='flex';
+  topbar.innerHTML=`<span id="inj-topbar-label">Inyecciones activas (${n}):</span>`+mkBadge('inj-tag-top',true);
 }
 
 function renderInjGrid(gridId,block){
