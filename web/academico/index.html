@@ -193,8 +193,8 @@ body.auth-pending{visibility:hidden}
   color:var(--bad);border-radius:4px;padding:1px 5px;white-space:nowrap}
 
 /* ── ACTIVE INJECTIONS ── */
-.inj-active-block{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.inj-active-block:empty{display:none}
+.inj-active-block{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:10px}
+.inj-active-block:empty{display:none;margin:0}
 .inj-tag{
   display:inline-flex;align-items:center;gap:5px;
   background:rgba(223,107,134,.1);border:1px solid rgba(223,107,134,.3);
@@ -481,8 +481,8 @@ body.auth-pending{visibility:hidden}
     <span class="badge b-bad">A</span> Anomalías del Sitio Origen — Vectores del Scraper
     <span style="font-size:10px;color:var(--muted)">Fallos extrínsecos de la infraestructura de datos</span>
   </div>
-  <div class="inj-grid" id="inj-grid-a"></div>
   <div class="inj-active-block" id="inj-active-block-a"></div>
+  <div class="inj-grid" id="inj-grid-a"></div>
 </div>
 
 <!-- Bloque B -->
@@ -491,8 +491,8 @@ body.auth-pending{visibility:hidden}
     <span class="badge b-warn">B</span> Escenario Red Team — Ataques a CENTINEL
     <span style="font-size:10px;color:var(--muted)">Una defensa por tarjeta · escala hasta el punto de quiebre</span>
   </div>
-  <div class="inj-grid" id="inj-grid-b"></div>
   <div class="inj-active-block" id="inj-active-block-b"></div>
+  <div class="inj-grid" id="inj-grid-b"></div>
 </div>
 
 <!-- Bloque C -->
@@ -501,8 +501,8 @@ body.auth-pending{visibility:hidden}
     <span class="badge b-pur">C</span> Anomalías Electorales Estadísticas
     <span style="font-size:10px;color:var(--muted)">Patrones de fraude/error para evaluar mecanismos de detección</span>
   </div>
-  <div class="inj-grid" id="inj-grid-c"></div>
   <div class="inj-active-block" id="inj-active-block-c"></div>
+  <div class="inj-grid" id="inj-grid-c"></div>
 </div>
 
 <!-- ══ SECTION 5 — DUAL TELEMETRY ════════════════════════════════════════════ -->
