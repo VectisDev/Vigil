@@ -15,6 +15,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-size:14px;min-height:100vh}
+body.auth-pending{visibility:hidden}
 
 /* ── NAV ── */
 #breadcrumb{padding:10px 24px;background:var(--panel);border-bottom:1px solid var(--border);
@@ -464,8 +465,10 @@ const _sb = supabase.createClient(
   window.CENTINEL_SUPABASE_ANON || ''
 );
 (async()=>{
+  document.body.classList.add('auth-pending');
   const {data:{session}} = await _sb.auth.getSession();
   if(!session){window.location.replace('login.html');return;}
+  document.body.classList.remove('auth-pending');
   const email = session.user.email || '';
   const el = document.getElementById('user-email');
   if(el) el.textContent = email;
