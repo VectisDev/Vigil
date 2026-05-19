@@ -1,4 +1,4 @@
-# requirements-prod.txt — Production dependencies for Fly.io deployment
+# requirements-prod.txt — Production dependencies
 # Excludes test, dev, and heavy scraping dependencies not needed at runtime.
 
 # API server
