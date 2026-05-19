@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CENTINEL — Sandbox Forense Académico</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<script src="../../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{
@@ -260,6 +262,8 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   <div id="dl-btn">
     <button class="dl-pill" onclick="downloadPNG()">↓ PNG</button>
     <button class="dl-pill" onclick="downloadPDF()">↓ PDF</button>
+    <span id="user-email" style="font-size:11px;color:var(--muted);padding:0 4px"></span>
+    <button class="dl-pill" id="btn-logout" onclick="doLogout()" style="border-color:rgba(223,107,134,.4);color:var(--bad)">Salir</button>
   </div>
 </div>
 
@@ -451,6 +455,26 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 
 <script>
 "use strict";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH GATE
+// ═══════════════════════════════════════════════════════════════════════════
+const _sb = supabase.createClient(
+  window.CENTINEL_SUPABASE_URL  || '',
+  window.CENTINEL_SUPABASE_ANON || ''
+);
+(async()=>{
+  const {data:{session}} = await _sb.auth.getSession();
+  if(!session){window.location.replace('login.html');return;}
+  const email = session.user.email || '';
+  const el = document.getElementById('user-email');
+  if(el) el.textContent = email;
+})();
+
+async function doLogout(){
+  await _sb.auth.signOut();
+  window.location.replace('login.html');
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STATE
