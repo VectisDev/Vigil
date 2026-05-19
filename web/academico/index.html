@@ -285,6 +285,7 @@ body.auth-pending{visibility:hidden}
   <button class="sim-transport-btn" id="btn-play" onclick="simPlay()" title="Play">▶</button>
   <button class="sim-transport-btn" id="btn-pause" onclick="simPause()" title="Pausa">⏸</button>
   <button class="sim-transport-btn" onclick="simStop()" title="Stop">⏹</button>
+  <button class="sim-transport-btn" id="btn-loop" onclick="toggleLoop()" title="Loop">⟳</button>
 
   <div class="speed-group" id="speed-group">
     <button class="speed-pill on" data-s="1"  onclick="setSpeed(1)">1×</button>
@@ -500,6 +501,7 @@ let SIM = {
   speed: 1,
   state: 'stopped', // 'playing' | 'paused' | 'stopped'
   timer: null,
+  loop: false,
 };
 const TICK_MS = { 1: 1500, 5: 300, 10: 150, 60: 25 };
 
@@ -987,9 +989,22 @@ function simStop(){
   logE('INFO','Simulación detenida y reiniciada');
 }
 function simTick(){
-  if(SIM.idx>=SIM.snapshots.length-1){simPause();logE('OK','Simulación completada');return;}
+  if(SIM.idx>=SIM.snapshots.length-1){
+    if(SIM.loop){
+      SIM.idx=0;SIM.snapshots=deepClone(SERIES.snapshots);
+      logE('INFO','Loop — reiniciando desde snapshot 1');
+    }else{simPause();logE('OK','Simulación completada');return;}
+  }
   SIM.idx++;applyScheduledInjections(SIM.idx);
   updateScrubber();renderSimFrame(SIM.idx);
+}
+function toggleLoop(){
+  SIM.loop=!SIM.loop;
+  const btn=document.getElementById('btn-loop');
+  btn.classList.toggle('active',SIM.loop);
+  btn.style.color=SIM.loop?'var(--purple)':'';
+  btn.style.borderColor=SIM.loop?'var(--purple)':'';
+  logE('INFO',`Loop ${SIM.loop?'activado':'desactivado'}`);
 }
 function simJumpTo(val){
   SIM.idx=parseInt(val);updateScrubber();
