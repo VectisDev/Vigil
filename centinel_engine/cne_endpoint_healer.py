@@ -60,6 +60,32 @@ EXPECTED_DEPARTMENTS = [
     "YORO",
 ]
 
+# CNE Honduras assigns numeric codes 01–18 alphabetically to departments.
+# Code "00" means national aggregate (no department).
+# This map is only used when a URL contains the /NN-/ pattern — it is never
+# applied to URLs that don't match, so non-CNE sources are unaffected.
+DEPARTMENT_CODE_MAP: dict[str, str] = {
+    "00": "NACIONAL",
+    "01": "ATLANTIDA",
+    "02": "CHOLUTECA",
+    "03": "COLON",
+    "04": "COMAYAGUA",
+    "05": "COPAN",
+    "06": "CORTES",
+    "07": "EL PARAISO",
+    "08": "FRANCISCO MORAZAN",
+    "09": "GRACIAS A DIOS",
+    "10": "INTIBUCA",
+    "11": "ISLAS DE LA BAHIA",
+    "12": "LA PAZ",
+    "13": "LEMPIRA",
+    "14": "OCOTEPEQUE",
+    "15": "OLANCHO",
+    "16": "SANTA BARBARA",
+    "17": "VALLE",
+    "18": "YORO",
+}
+
 PRESIDENTIAL_HINT_KEYS = {
     "nivel",
     "tipo",
@@ -745,20 +771,41 @@ class CNEEndpointHealer:
     @staticmethod
     def _infer_level(url: str, keys: set[str], values: list[str]) -> str:
         """English: Infer endpoint level (national/departmental) by URL and JSON tokens.
+              Recognises CNE Honduras code "00" as the national aggregate.
         Español: Infiere nivel del endpoint (nacional/departamental) por URL y tokens JSON.
+              Reconoce el código CNE "00" como el agregado nacional.
         """
 
+        # CNE Honduras marks national endpoints with the /00-/ prefix.
+        if re.search(r"[/\-_\.]00[/\-_\.]", url):
+            return "NACIONAL"
         corpus = " ".join([url.upper(), " ".join(values), " ".join(k.upper() for k in keys)])
-        if "NACIONAL" in corpus or "PRESIDENCIAL" in corpus:
+        if "NACIONAL" in corpus or "PRESIDENCIAL" in corpus or "TODOS" in corpus:
             return "NACIONAL"
         return "DEPARTAMENTAL"
 
     @staticmethod
     def _infer_department(url: str, values: list[str]) -> str | None:
         """English: Infer Honduras department from URL or payload scalar values.
+              Also checks for CNE-style numeric prefix (e.g. /01-ATLANTIDA/) as an
+              additional signal — only applied when the pattern is present, so
+              non-CNE-Honduras URLs are unaffected.
         Español: Infiere departamento de Honduras desde URL o valores escalares del payload.
+              También verifica prefijo numérico estilo CNE (ej: /01-ATLANTIDA/) como señal
+              adicional — solo se aplica si el patrón está presente, sin afectar otras fuentes.
         """
 
+        # CNE Honduras uses /NN-DEPARTAMENTO/ numeric codes in URLs (01-18).
+        # If present, this is the most authoritative signal — the code unambiguously
+        # identifies the department regardless of what else appears in the URL.
+        code_match = re.search(r"[/\-_\.]0*([1-9][0-9]?)[/\-_\.]", url)
+        if code_match:
+            code = code_match.group(1).zfill(2)
+            dept = DEPARTMENT_CODE_MAP.get(code)
+            if dept:
+                return dept
+
+        # Fallback: name-based inference from URL tokens and payload values.
         corpus = f"{CNEEndpointHealer._normalize_token(url)} {' '.join(values)}"
         for department in EXPECTED_DEPARTMENTS:
             if department in corpus:

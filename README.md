@@ -41,6 +41,8 @@ En menos de 10 minutos, sin instalar nada.
 
 **4. Re-ejecutar el wizard**
 → Usa el link del Issue, o directamente: **[Setup Wizard](../../actions/workflows/setup-wizard.yml)** → "Run workflow"
+↳ *En el formulario: pega la URL de la autoridad electoral a auditar (ej: `https://resultados2029.cne.hn/`)*
+↳ *El wizard detecta los endpoints automáticamente — si Angular los oculta, usa Playwright como fallback.*
 ↳ *Automático: crea centinel-data, activa GitHub Pages, despliega el panel.*
 ↳ *Automático: actualiza este README con los links reales, cierra el Issue.*
 
