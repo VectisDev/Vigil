@@ -61,10 +61,13 @@ jobs:
               title: '⚙️ Acción requerida: conectar repositorio de datos',
               labels: ['centinel-setup'],
               body: [
-                '## Un solo paso para activar el repositorio de datos',
+                '> 📍 **Estás en el paso 3** de la guía de despliegue en tu README.',
+                '> Cuando termines los dos pasos de abajo, usa el link del final para continuar con el **paso 4**.',
                 '',
-                'El sistema está listo pero necesita un token para crear y gestionar el repositorio de datos.',
-                'Este es el único paso que GitHub no permite automatizar por razones de seguridad.',
+                '## Crear y conectar el token de acceso',
+                '',
+                'El sistema necesita un token para crear y gestionar el repositorio de datos.',
+                'Es el único paso que GitHub no permite automatizar por razones de seguridad.',
                 '',
                 '### Paso 1 — Crear el token (30 segundos)',
                 '',
@@ -307,18 +310,38 @@ jobs:
           PAGES_LINK="[Panel →](https://${REPO_OWNER}.github.io/${REPO_NAME}/)"
           sed -i "s|<!-- CENTINEL_PAGES_URL -->.*<!-- /CENTINEL_PAGES_URL -->|<!-- CENTINEL_PAGES_URL -->${PAGES_LINK}<!-- /CENTINEL_PAGES_URL -->|" README.md
 
-          # In forks: update CI badge to point to this fork, remove fork-setup section
+          # In forks: update CI badge + replace INSTANCE-STATUS with live status
           ORIGINAL_OWNER="userf8a2c4"
           ORIGINAL_REPO="centinel-engine"
           if [ "$REPO_OWNER" != "$ORIGINAL_OWNER" ] || [ "$REPO_NAME" != "$ORIGINAL_REPO" ]; then
             sed -i "s|github.com/${ORIGINAL_OWNER}/${ORIGINAL_REPO}/actions|github.com/${REPO_OWNER}/${REPO_NAME}/actions|g" README.md
-            sed -i '/<!-- FORK-SETUP-START -->/,/<!-- FORK-SETUP-END -->/d' README.md
+            python3 - "$REPO_OWNER" "$REPO_NAME" <<'PYEOF'
+import re, sys
+owner, repo = sys.argv[1:]
+with open('README.md') as f:
+    content = f.read()
+status = f"""<!-- INSTANCE-STATUS-START -->
+---
+
+## ✅ Esta instancia está operativa
+
+**Repositorio de datos:** [centinel-data →](https://github.com/{owner}/centinel-data)
+**Panel de visualización:** [Panel →](https://{owner}.github.io/{repo}/)
+
+<!-- INSTANCE-STATUS-END -->"""
+content = re.sub(
+    r'<!-- INSTANCE-STATUS-START -->.*?<!-- INSTANCE-STATUS-END -->',
+    status, content, flags=re.DOTALL
+)
+with open('README.md', 'w') as f:
+    f.write(content)
+PYEOF
           fi
 
           git config user.name "centinel-bot"
           git config user.email "bot@centinel.app"
           git add README.md
-          git diff --cached --quiet || git commit -m "setup: link repos, update badges, remove fork instructions"
+          git diff --cached --quiet || git commit -m "setup: activate instance, transform guide to live status"
           git push
 
           # Trigger panel deployment so it's live without needing a manual push
