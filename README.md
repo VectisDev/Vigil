@@ -1,4 +1,7 @@
-# Centinel
+# Proyecto CENTINEL
+Centinela Electrónico Neutral Técnico Integro Nacional Electoral Libre
+
+---
 
 [![CI](https://github.com/userf8a2c4/centinel-engine/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/userf8a2c4/centinel-engine/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-2b6cb0.svg)](LICENSE)
