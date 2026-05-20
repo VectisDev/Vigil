@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      election_url:
+        description: 'URL de la autoridad electoral a auditar (ej: https://resultados2029.cne.hn/)'
+        required: false
+        type: string
   schedule:
     - cron: '0 * * * *'  # hourly mientras haya un issue de setup abierto
 
@@ -89,9 +94,11 @@ jobs:
                 '',
                 '**✅ Cuando termines los dos pasos, vuelve aquí y haz clic:**',
                 `**[→ Re-ejecutar el Setup Wizard](https://github.com/${owner}/${repo}/actions/workflows/setup-wizard.yml)**`,
-                '→ Clic en **"Run workflow"** → **"Run workflow"**',
+                '→ Clic en **"Run workflow"** → aparece un formulario:',
+                '  - **"URL de la autoridad electoral"** → pega la URL de la web oficial (ej: `https://resultados2029.cne.hn/`)',
+                '  - Clic en **"Run workflow"**',
                 '',
-                'El wizard completará el setup automáticamente sin que tengas que hacer nada más.',
+                'El wizard detectará los endpoints automáticamente desde esa URL y completará el setup.',
               ].join('\n')
             });
 
@@ -295,6 +302,47 @@ jobs:
                 '> Para personalizar credenciales (Supabase) o dominio propio: [docs/PAGES-GUIDE.md](https://github.com/' + owner + '/' + repo + '/blob/main/docs/PAGES-GUIDE.md)',
               ].join('\n')
             });
+
+      - name: Save election URL to config
+        if: github.event.inputs.election_url != ''
+        env:
+          ELECTION_URL: ${{ github.event.inputs.election_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          # Write URL to config/prod/endpoints.yaml (the healer reads this as main_url)
+          python3 - <<'PYEOF'
+import yaml, os
+from pathlib import Path
+url = os.environ["ELECTION_URL"].strip()
+p = Path("config/prod/endpoints.yaml")
+cfg = yaml.safe_load(p.read_text()) if p.exists() else {}
+cfg.setdefault("cne", {})
+cfg["cne"]["main_url"] = url
+cfg["cne"]["presidential_endpoints"] = []  # force re-discovery with new URL
+p.parent.mkdir(parents=True, exist_ok=True)
+p.write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True))
+print(f"Election URL saved: {url}")
+PYEOF
+
+          # Also save as repo Actions variable so workflows can read it without checking out code
+          curl -sS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"ELECTION_URL\",\"value\":\"$ELECTION_URL\"}" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/variables" 2>/dev/null || \
+          curl -sS -X PATCH \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"value\":\"$ELECTION_URL\"}" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/variables/ELECTION_URL" 2>/dev/null || true
+
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add config/prod/endpoints.yaml
+          git diff --cached --quiet || git commit -m "config: set election URL to $ELECTION_URL"
+          git push
 
       - name: Finalize README and deploy panel
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
