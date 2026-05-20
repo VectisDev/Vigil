@@ -188,6 +188,60 @@ docker logs centinel-engine --tail 50  # recent logs (if using Docker)
 | Missing snapshot | Check `data/snapshots/`; restore from last checkpoint in `data/temp/checkpoint.json` |
 | Alerts storm | Verify if election data source changed; check `logs/anchors/` for chain continuity |
 
+---
+
+## GitHub Actions caído — Fallback local
+
+Si GitHub Actions no está disponible (incidencia de GitHub, límite de minutos agotado, o cuenta bloqueada), el sistema puede capturar datos localmente con cualquiera de estas tres alternativas. Los datos quedan en disco y se sincronizan a centinel-data cuando Actions vuelva a funcionar.
+
+### Opción 1 — Docker Compose (recomendado si tienes Docker)
+
+```bash
+git clone https://github.com/TU_USUARIO/centinel-engine.git
+cd centinel-engine
+cp config/secrets/.env.example config/secrets/.env  # añade DATA_REPO_TOKEN si lo tienes
+docker-compose up -d centinel-engine centinel-watchdog
+```
+
+El servicio captura automáticamente cada 15 minutos con las mismas garantías que en GitHub Actions. Los datos quedan en `data/`. Para ver logs: `docker-compose logs -f centinel-engine`.
+
+### Opción 2 — Python directo con cron del sistema
+
+```bash
+git clone https://github.com/TU_USUARIO/centinel-engine.git
+cd centinel-engine
+pip install -r requirements.txt
+
+# Ejecución puntual:
+python -m scripts.download_and_hash
+
+# Captura continua cada 15 min con cron:
+echo "*/15 * * * * cd $(pwd) && python -m scripts.download_and_hash >> /tmp/centinel.log 2>&1" | crontab -
+```
+
+No requiere configuración adicional. Verifica con `tail -f /tmp/centinel.log`.
+
+### Opción 3 — CLI de centinel (si tienes Poetry)
+
+```bash
+git clone https://github.com/TU_USUARIO/centinel-engine.git
+cd centinel-engine
+poetry install
+poetry run centinel cron --interval 15m
+```
+
+### Noche electoral: cambiar cadencia de audit.yml
+
+Si GitHub Actions sí funciona pero necesitas capturas más frecuentes que cada 3 horas:
+
+1. Abre `.github/workflows/audit.yml`
+2. Cambia `cron: '0 */3 * * *'` por `cron: '*/30 * * * *'`
+3. Haz commit + push — entra en efecto inmediatamente
+
+O usa el modo manual: **[Actions → Vigilante Electoral → Run workflow](../../actions/workflows/audit.yml)** con `election_mode: true` para una ejecución puntual inmediata.
+
+---
+
 ### Key Contacts
 
 Fill before deployment:
