@@ -399,6 +399,58 @@ Si el repositorio está en una organización, el token debe pertenecer a un miem
 
 ---
 
+## 9. Endpoints con autenticación
+
+Algunas autoridades electorales protegen sus endpoints con autenticación (sesión, Basic Auth, o tokens de sesión). Este escenario es detectable pero no resoluble en su totalidad de forma automatizada sin credenciales.
+
+### Síntoma
+
+- El healer ejecuta correctamente y Playwright carga la web
+- La web muestra datos pero el healer retorna 0 endpoints válidos
+- Las peticiones capturadas por Playwright devuelven HTTP 401 o 302 (redirect a login)
+- El log muestra: `0 candidates after validation`
+
+### Diagnóstico manual
+
+1. Abre la URL en un browser con DevTools → pestaña Network
+2. Filtra por XHR/Fetch
+3. Navega a la sección de resultados — DevTools mostrará los endpoints reales
+4. Observa si alguna petición incluye cabeceras `Authorization`, `Cookie` o similar
+
+### Solución
+
+**Opción A — Endpoint manual (recomendada para elecciones en curso):**
+
+Si identificaste el endpoint en DevTools, agrégalo directamente al config:
+
+```bash
+# config/prod/endpoints.yaml
+cne:
+  presidential_endpoints:
+    - https://resultados.cne.hn/api/v1/resultados?nivel=nacional
+    - https://resultados.cne.hn/api/v1/resultados?nivel=departamental&depto=01
+    # ... resto de departamentos
+```
+
+**Opción B — Credenciales como secrets:**
+
+Si la API acepta usuario/contraseña:
+
+1. Añade los secrets en **Settings → Secrets → Actions**:
+   - `CNE_USERNAME` — usuario o email
+   - `CNE_PASSWORD` — contraseña
+
+2. El healer Playwright los usará automáticamente si están presentes (soporte completo en v0.2).
+
+> **Nota:** Los endpoints descubiertos con sesión autenticada pueden cambiar con cada login. Si el sistema pierde la sesión, el healer fallará silenciosamente hasta la próxima re-autenticación.
+
+### Recursos
+
+- [OPERATOR-RUNBOOKS.md](OPERATOR-RUNBOOKS.md) — Sección "Descubrimiento manual de endpoints"
+- [EMERGENCY-PROCEDURES.md](EMERGENCY-PROCEDURES.md) — Procedimientos para noche electoral
+
+---
+
 ## Referencias
 
 - [DATA-REPOS.md](DATA-REPOS.md) — Arquitectura de separación código/datos
