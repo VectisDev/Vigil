@@ -9,6 +9,11 @@ on:
         description: 'URL de la autoridad electoral a auditar (ej: https://resultados2029.cne.hn/)'
         required: false
         type: string
+      ots_enabled:
+        description: 'Habilitar anclaje Bitcoin OTS (recomendado: true)'
+        required: false
+        type: boolean
+        default: true
   schedule:
     - cron: '0 * * * *'  # hourly mientras haya un issue de setup abierto
 
@@ -457,6 +462,52 @@ PYEOF
             -H "Content-Type: application/json" \
             -d "{\"ref\":\"main\"}" \
             "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/pages.yml/dispatches" || true
+
+      - name: OTS anchoring — setup info
+        if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const issues = await github.rest.issues.listForRepo({
+              owner, repo, labels: 'centinel-setup', state: 'open'
+            });
+            for (const issue of issues.data) {
+              const comments = await github.rest.issues.listComments({
+                owner, repo, issue_number: issue.number
+              });
+              const alreadyPosted = comments.data.some(c =>
+                c.body && c.body.includes('⛓ Anclaje Bitcoin'));
+              if (!alreadyPosted) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: issue.number,
+                  body: [
+                    '⛓ **Anclaje Bitcoin (OpenTimestamps) — activo por defecto**',
+                    '',
+                    'El sistema ancla automáticamente cada Merkle root en Bitcoin sin configuración adicional:',
+                    '- ✅ Zero-cost — usa 4 calendarios públicos gratuitos',
+                    '- ✅ Zero-secrets — no requiere clave privada ni API key',
+                    '- ✅ Non-blocking — si el calendario no está disponible, los snapshots continúan normalmente',
+                    '',
+                    '**Para deshabilitar OTS** (no recomendado), añade en tu repositorio:',
+                    '`Settings → Secrets and variables → Actions → Variables → New repository variable`',
+                    '```',
+                    'Name:  OTS_ENABLED',
+                    'Value: false',
+                    '```',
+                    '',
+                    '**Para verificar una prueba OTS** como auditor externo:',
+                    '```bash',
+                    'pip install opentimestamps-client',
+                    'ots verify archivo.ots  # el archivo .ots viene en cada checkpoint',
+                    '```',
+                    '',
+                    `📖 [Documentación técnica completa](https://github.com/${owner}/${repo}/blob/main/docs/EXTERNAL-ANCHOR.md)`,
+                  ].join('\n')
+                });
+              }
+            }
 
       - name: Close setup issue
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
