@@ -356,6 +356,19 @@ footer a{color:var(--accent);text-decoration:none}
     · Prueba de Inmutabilidad mediante OpenTimestamps (OTS) anclada a la red de Bitcoin.
   </div>
 </footer>
+<script>
+(function(){
+  function openAdmin(){window.location.href='../admin/';}
+  document.querySelector('footer').innerHTML =
+    document.querySelector('footer').innerHTML.replace(
+      '· Prueba de',
+      '<span id="adm-dot" style="cursor:default">·</span> Prueba de');
+  document.getElementById('adm-dot')?.addEventListener('click', openAdmin);
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey&&e.shiftKey&&e.key==='A'){e.preventDefault();openAdmin();}
+  });
+})();
+</script>
 
 <script>
 // ── CONFIG: reemplazar con valores del proyecto Supabase ──
