@@ -15,6 +15,7 @@
 | [THEORY_OF_CHANGE.md](THEORY_OF_CHANGE.md) | Why this system reduces fraud risk / Por qué reduce el riesgo de fraude |
 | [METHODOLOGY.md](METHODOLOGY.md) | Technical description of 24+ statistical detectors / Descripción de los detectores |
 | [GOVERNANCE.md](GOVERNANCE.md) | Decision structure, AGPL license, sustainability / Estructura de gobernanza |
+| [AUTONOMOUS-OPERATIONS.md](AUTONOMOUS-OPERATIONS.md) | Full autonomous capability map — what runs without humans, what doesn't, and why |
 | [BUDGET_NARRATIVE.md](BUDGET_NARRATIVE.md) | OTF grant budget narrative — $95K / 12 months |
 | [INSTITUTIONAL_READINESS.md](INSTITUTIONAL_READINESS.md) | Readiness for multilateral observer engagement |
 | [FALSE_POSITIVE_ANALYSIS.md](FALSE_POSITIVE_ANALYSIS.md) | False alarm rate analysis per detector |
