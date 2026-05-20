@@ -2,12 +2,74 @@
 
 ## Índice
 
-1. [Startup & Daily Operations](#startup--daily-operations)
-2. [Procedimiento si AMARILLO](#procedimiento-si-amarillo)
-3. [Procedimiento si ROJO](#procedimiento-si-rojo)
-4. [Troubleshooting](#troubleshooting)
-5. [Noche Electoral](#noche-electoral)
-6. [Post-Elección](#post-elección)
+1. [Alertas fuera de banda (ntfy.sh)](#alertas-fuera-de-banda-ntfysh)
+2. [Issues automáticos del sistema](#issues-automáticos-del-sistema)
+3. [Startup & Daily Operations](#startup--daily-operations)
+4. [Procedimiento si AMARILLO](#procedimiento-si-amarillo)
+5. [Procedimiento si ROJO](#procedimiento-si-rojo)
+6. [Troubleshooting](#troubleshooting)
+7. [Noche Electoral](#noche-electoral)
+8. [Post-Elección](#post-elección)
+
+---
+
+## Alertas fuera de banda (ntfy.sh)
+
+El sistema puede enviar alertas push a tu teléfono cuando detecta problemas críticos. Es completamente gratuito, sin cuenta y sin registro.
+
+### Configuración (3 pasos, 5 minutos)
+
+**Paso 1 — Instalar la app en tu teléfono:**
+- Android: [ntfy en Play Store](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
+- iOS: [ntfy en App Store](https://apps.apple.com/us/app/ntfy/id1625396347)
+- Web: [ntfy.sh](https://ntfy.sh) (sin instalar nada)
+
+**Paso 2 — Elige un topic (cualquier string único):**
+
+```
+centinel-hn-2029-alertas
+```
+
+El topic es como un canal. No lo compartas públicamente si no quieres que otros vean tus alertas.
+
+**Paso 3 — Añade el secret en tu repo:**
+
+Settings → Secrets → Actions → New repository secret:
+- **Name:** `CENTINEL_NTFY_TOPIC`
+- **Value:** tu topic (ej: `centinel-hn-2029-alertas`)
+
+**En el teléfono:** abre la app ntfy → "+" → escribe el mismo topic → Subscribe.
+
+### Alertas que envía el sistema
+
+| Evento | Prioridad | Cuándo |
+|--------|-----------|--------|
+| Token `DATA_REPO_TOKEN` expirado | 🔴 Urgente | wizard detecta 401/403 |
+| `git push` falló 3 veces | 🟡 Alta | audit.yml no puede sincronizar |
+| Circuit breaker abierto | 🟡 Alta | endpoint no responde 4+ veces |
+
+### Prueba manual
+
+```bash
+curl -d "Prueba de alerta Centinel" ntfy.sh/TU_TOPIC
+```
+
+---
+
+## Issues automáticos del sistema
+
+El sistema abre Issues de GitHub cuando necesita intervención humana. Cada Issue incluye enlaces directos a la página exacta donde actuar — no requiere navegar.
+
+| Label | Cuándo se abre | Cuándo se cierra |
+|-------|----------------|-----------------|
+| `centinel-setup` | Falta `DATA_REPO_TOKEN` | Token verificado en el próximo ciclo |
+| `centinel-token-error` | Token expirado o inválido (401/403) | Token renovado verificado |
+| `centinel-pages` | GitHub Pages no se activó automáticamente | Activación manual confirmada |
+| `centinel-git-error` | `git push` falló 3 veces en audit | Push exitoso en ciclo siguiente |
+
+**Principio:** el sistema nunca abre el mismo Issue dos veces. Si el Issue ya existe y está abierto, el wizard lo detecta y no duplica. El Issue se cierra solo cuando el problema se resuelve.
+
+---
 
 ---
 
