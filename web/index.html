@@ -57,9 +57,21 @@
         estadísticos electorales. Ajuste de umbrales de las 23 reglas.</p>
     </a>
   </div>
-  <footer>
+  <footer id="main-footer">
     AGPL-3.0 · <code>github.com/userf8a2c4/centinel-engine</code><br>
     Verificación criptográfica independiente. Abierta a cualquier ciudadano, en cualquier país.
   </footer>
+<script>
+(function(){
+  function openAdmin(){window.location.href='admin/';}
+  document.getElementById('main-footer').innerHTML =
+    document.getElementById('main-footer').innerHTML.replace('·',
+      '<span id="adm-dot" style="cursor:default">·</span>');
+  document.getElementById('adm-dot')?.addEventListener('click', openAdmin);
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey&&e.shiftKey&&e.key==='A'){e.preventDefault();openAdmin();}
+  });
+})();
+</script>
 </body>
 </html>

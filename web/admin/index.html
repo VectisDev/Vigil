@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>CENTINEL Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script src="../config.js"></script>
+<style>
+:root{
+  --bg:#0f1115;--panel:#15171c;--panel2:#1a1d23;--border:#24272e;--fg:#e7e9ec;
+  --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;--warn:#d4b066;
+  --purple:#b08cf0;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --sidebar:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  line-height:1.6;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px}
+.auth-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:36px 40px;width:100%;max-width:380px}
+.auth-card .logo{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;
+  text-transform:uppercase;margin-bottom:6px}
+.auth-card h1{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.auth-card .sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.auth-card label{display:block;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.auth-card input{width:100%;background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;color:var(--fg);font-size:14px;outline:none;
+  transition:.15s;margin-bottom:16px}
+.auth-card input:focus{border-color:var(--accent)}
+.auth-card input::placeholder{color:var(--muted)}
+.auth-card button.btn-primary{width:100%;background:var(--accent);color:#0f1115;border:none;
+  border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;
+  transition:.15s;margin-top:4px}
+.auth-card button.btn-primary:hover{opacity:.88}
+.auth-card button.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.auth-err{font-size:12px;color:var(--bad);margin-top:12px;min-height:18px;text-align:center}
+
+/* ── HEADER ── */
+#admin-header{position:sticky;top:0;z-index:200;background:var(--panel);
+  border-bottom:1px solid var(--border);padding:10px 20px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#admin-header .hdr-brand{font-size:13px;font-weight:700;letter-spacing:.04em;
+  color:var(--muted);text-transform:uppercase;white-space:nowrap}
+#admin-header .hdr-user{font-size:12px;color:var(--muted);margin-right:auto}
+.hdr-btn{background:transparent;border:1px solid var(--border);border-radius:7px;
+  padding:5px 12px;color:var(--fg);font-size:12px;cursor:pointer;transition:.1s}
+.hdr-btn:hover{background:var(--panel2);border-color:#3a3f49}
+.hdr-btn.primary{background:var(--accent);color:#0f1115;border-color:var(--accent);font-weight:700}
+.hdr-btn.primary:hover{opacity:.88}
+.hdr-btn.primary:disabled{opacity:.4;cursor:not-allowed}
+.mode-toggle{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.mode-toggle button{border:none;background:transparent;color:var(--muted);padding:5px 14px;
+  font-size:12px;cursor:pointer;transition:.1s}
+.mode-toggle button.active{background:var(--panel2);color:var(--fg);font-weight:600}
+
+/* ── LAYOUT ── */
+#admin-shell{display:none;flex-direction:column;min-height:100vh}
+#admin-content{display:flex;flex:1}
+#sidebar{width:var(--sidebar);flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);
+  position:sticky;top:53px;height:calc(100vh - 53px);overflow-y:auto;padding:16px 0}
+#sidebar a{display:block;padding:7px 20px;font-size:12px;color:var(--muted);text-decoration:none;
+  transition:.1s;border-left:2px solid transparent;line-height:1.4}
+#sidebar a:hover{color:var(--fg);background:rgba(255,255,255,.03)}
+#sidebar a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(110,168,254,.05)}
+#sidebar .sec-header{padding:14px 20px 4px;font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em}
+#main-area{flex:1;padding:24px;max-width:1100px;overflow-x:hidden}
+
+/* ── SECTIONS ── */
+.section{margin-bottom:48px}
+.section-title{font-size:18px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px;
+  display:flex;align-items:center;gap:10px}
+.section-sep{border:none;border-top:1px solid var(--border);margin:12px 0 24px}
+.section-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+/* ── CARDS GRID ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-card .sc-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.stat-card .sc-val{font-size:22px;font-weight:700;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.stat-card .sc-detail{font-size:12px;color:var(--muted);margin-bottom:10px}
+.stat-card .sc-bar{background:rgba(255,255,255,.06);border-radius:999px;height:4px;overflow:hidden;margin-bottom:12px}
+.stat-card .sc-bar-fill{height:100%;border-radius:999px;transition:.4s}
+.stat-card .sc-age{font-size:11px;color:var(--muted)}
+.val-ok{color:var(--ok)}
+.val-warn{color:var(--warn)}
+.val-bad{color:var(--bad)}
+.val-neutral{color:var(--fg)}
+
+/* ── MAP ── */
+#map-section svg{width:100%;max-width:640px;height:auto;display:block;cursor:default}
+.dept-dot{transition:.15s;cursor:pointer}
+.dept-dot:hover{opacity:.8}
+.dept-label{font-size:9px;fill:var(--muted);pointer-events:none;text-anchor:middle;font-family:inherit}
+.map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--muted)}
+.map-legend span{display:flex;align-items:center;gap:6px}
+.map-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* ── MAP POPUP ── */
+#map-popup{display:none;position:absolute;background:var(--panel2);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;min-width:280px;z-index:300;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+#map-popup .mp-title{font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+#map-popup input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:7px 10px;color:var(--fg);font-size:12px;font-family:var(--mono);outline:none;margin:6px 0 8px;transition:.15s}
+#map-popup input:focus{border-color:var(--accent)}
+#map-popup .mp-status{font-size:11px;color:var(--muted);margin-bottom:10px}
+#map-popup .mp-btns{display:flex;gap:8px;flex-wrap:wrap}
+#map-popup .mp-btns button{padding:5px 10px;border-radius:6px;border:1px solid var(--border);
+  background:var(--panel);color:var(--fg);font-size:11px;cursor:pointer;transition:.1s}
+#map-popup .mp-btns button:hover{background:var(--panel2)}
+#map-popup .mp-btns button.save{background:var(--accent);color:#0f1115;border-color:var(--accent);font-weight:700}
+#map-popup-wrap{position:relative;max-width:640px}
+
+/* ── CONFIG SLIDERS ── */
+.ctrl-row{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.ctrl-row label{font-size:12px;font-weight:600;display:flex;align-items:center;
+  justify-content:space-between;gap:10px}
+.ctrl-row label span{font-size:11px;color:var(--muted);font-weight:400}
+.ctrl-row input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4px}
+.ctrl-row input[type=text],.ctrl-row input[type=number]{background:var(--bg);border:1px solid var(--border);
+  border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;outline:none;width:100%;transition:.15s}
+.ctrl-row input[type=text]:focus,.ctrl-row input[type=number]:focus{border-color:var(--accent)}
+.ctrl-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+.ctrl-section h3{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:16px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.toggle-row label{font-size:13px}
+.toggle{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#2a2e37;border-radius:999px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+.val-badge{background:var(--panel2);border:1px solid var(--border);border-radius:6px;
+  padding:2px 8px;font-size:12px;font-family:var(--mono);color:var(--fg);min-width:50px;text-align:center}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0;overflow-x:auto}
+.tabs button{background:transparent;border:none;border-bottom:2px solid transparent;
+  padding:10px 18px;color:var(--muted);font-size:13px;cursor:pointer;white-space:nowrap;transition:.1s;margin-bottom:-1px}
+.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tabs button:hover{color:var(--fg)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ── PRESETS ── */
+.presets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.preset-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:.15s}
+.preset-card:hover{border-color:#3a3f49;background:var(--panel2)}
+.preset-card.active-preset{border-color:var(--accent);background:rgba(110,168,254,.05)}
+.preset-card .pc-name{font-weight:700;font-size:13px;margin-bottom:4px}
+.preset-card .pc-desc{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* ── TERMINALS ── */
+.terminal{background:#0a0c0f;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.terminal-hdr{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel);
+  border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px}
+.terminal-hdr span{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-right:auto}
+.terminal-hdr select,.terminal-hdr button{background:var(--panel2);border:1px solid var(--border);
+  border-radius:5px;padding:3px 8px;color:var(--fg);font-size:11px;cursor:pointer}
+.terminal-hdr button:hover{background:rgba(255,255,255,.06)}
+.log-pre{font-family:var(--mono);font-size:11px;line-height:1.7;padding:14px;max-height:300px;
+  overflow-y:auto;color:#b8c0cc;white-space:pre-wrap;word-break:break-all}
+.log-pre .lvl-info{color:var(--accent)}
+.log-pre .lvl-warn{color:var(--warn)}
+.log-pre .lvl-crit{color:var(--bad)}
+.log-pre .lvl-panic{color:#ff6b6b;font-weight:700}
+.log-footer{padding:6px 14px;display:flex;gap:8px;border-top:1px solid var(--border)}
+.log-footer button{background:transparent;border:1px solid var(--border);border-radius:5px;
+  padding:3px 10px;color:var(--muted);font-size:11px;cursor:pointer;transition:.1s}
+.log-footer button:hover{color:var(--fg);border-color:#3a3f49}
+
+/* ── STATUS BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:.03em}
+.badge-ok{background:rgba(87,192,141,.1);color:var(--ok);border:1px solid rgba(87,192,141,.2)}
+.badge-warn{background:rgba(212,176,102,.1);color:var(--warn);border:1px solid rgba(212,176,102,.2)}
+.badge-bad{background:rgba(223,107,134,.1);color:var(--bad);border:1px solid rgba(223,107,134,.2)}
+.badge-neutral{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border)}
+
+/* ── TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{text-align:left;padding:8px 12px;color:var(--muted);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+.data-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table td input{background:transparent;border:none;color:var(--fg);font-size:12px;
+  font-family:var(--mono);width:100%;outline:none;border-bottom:1px solid transparent;transition:.15s;padding:2px 0}
+.data-table td input:focus{border-bottom-color:var(--accent)}
+.data-table td button{background:transparent;border:1px solid var(--border);border-radius:5px;
+  padding:2px 8px;color:var(--muted);font-size:11px;cursor:pointer;transition:.1s;white-space:nowrap}
+.data-table td button:hover{color:var(--fg)}
+
+/* ── TOOLTIPS ── */
+[data-tip]{position:relative;cursor:help}
+[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;
+  transform:translateX(-50%);background:#1e222a;color:var(--fg);font-size:11px;padding:6px 10px;
+  border-radius:6px;width:240px;white-space:normal;pointer-events:none;opacity:0;transition:.15s;
+  z-index:999;line-height:1.5;border:1px solid var(--border)}
+[data-tip]:hover::after{opacity:1}
+
+/* ── DIFF MODAL ── */
+#diff-modal,#pat-modal,#result-modal{display:none;position:fixed;inset:0;z-index:500;
+  align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
+#diff-modal.open,#pat-modal.open,#result-modal.open{display:flex}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:28px 32px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto}
+.modal-box h2{font-size:16px;font-weight:700;margin-bottom:16px}
+.diff-block{background:var(--bg);border-radius:8px;padding:12px 14px;font-family:var(--mono);
+  font-size:12px;margin-bottom:14px;max-height:300px;overflow-y:auto;line-height:1.6}
+.diff-add{color:var(--ok)}.diff-rem{color:var(--bad)}.diff-ctx{color:var(--muted)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+
+/* ── 409 BANNER ── */
+#banner-409{display:none;background:rgba(212,176,102,.1);border:1px solid rgba(212,176,102,.3);
+  border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warn);margin-bottom:16px;align-items:center;gap:10px}
+#banner-409.show{display:flex}
+#banner-409 button{background:var(--warn);color:#0f1115;border:none;border-radius:5px;padding:4px 10px;
+  font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+
+/* ── PRINT (PDF terminal) ── */
+@media print{
+  body>*:not(#print-target){display:none!important}
+  #print-target{display:block!important;background:#fff;color:#000;font-family:monospace;
+    font-size:10pt;white-space:pre-wrap;padding:20px}
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  #sidebar{display:none}
+  .cards-grid{grid-template-columns:1fr 1fr}
+  #main-area{padding:16px}
+}
+@media(max-width:480px){
+  .cards-grid{grid-template-columns:1fr}
+}
+
+/* ── MISC ── */
+.dirty-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);
+  margin-left:6px;vertical-align:middle}
+.section-badge{font-size:11px;font-weight:400;color:var(--muted);font-family:var(--mono);
+  background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:2px 8px}
+details summary{cursor:pointer;font-weight:600;padding:10px 0;list-style:none;
+  display:flex;align-items:center;gap:8px}
+details summary::-webkit-details-marker{display:none}
+details[open] summary::before{content:'▼ '}
+details:not([open]) summary::before{content:'▶ '}
+details .details-body{padding:12px 0 4px}
+.info-box{background:rgba(110,168,254,.06);border:1px solid rgba(110,168,254,.15);border-radius:8px;
+  padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:16px}
+.status-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ AUTH SCREEN ════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="logo">CENTINEL Electoral</div>
+    <h1>Administración</h1>
+    <p class="sub">Acceso restringido — operadores autorizados</p>
+    <label for="adm-email">Correo electrónico</label>
+    <input type="email" id="adm-email" placeholder="tu@correo.com" autocomplete="email">
+    <label for="adm-pass">Contraseña</label>
+    <input type="password" id="adm-pass" placeholder="••••••••" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <button class="btn-primary" id="btn-login" onclick="doAdminLogin()">Entrar</button>
+    <div class="auth-err" id="auth-err"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ ADMIN SHELL ════════════════════ -->
+<div id="admin-shell">
+  <!-- HEADER -->
+  <div id="admin-header">
+    <span class="hdr-brand">CENTINEL Admin</span>
+    <span class="hdr-user" id="hdr-user">—</span>
+    <div class="mode-toggle">
+      <button onclick="setMode('easy')" id="btn-easy" class="active">Modo Fácil</button>
+      <button onclick="setMode('full')" id="btn-full">Modo Completo</button>
+    </div>
+    <button class="hdr-btn" onclick="reloadConfig()">↻ Recargar</button>
+    <button class="hdr-btn primary" id="btn-apply" onclick="applyChanges()" disabled
+      data-tip="Sin cambios pendientes">Aplicar cambios</button>
+    <button class="hdr-btn" onclick="doLogout()">Salir</button>
+  </div>
+
+  <!-- LAYOUT -->
+  <div id="admin-content">
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+      <div class="sec-header">Panel</div>
+      <a href="#s1" onclick="scrollTo('s1')">§1 Estado del sistema</a>
+      <a href="#s2" onclick="scrollTo('s2')">§2 Mapa de endpoints</a>
+      <div class="sec-header">Configuración</div>
+      <a href="#s3" onclick="scrollTo('s3')">§3 Configuración</a>
+      <a href="#s4" onclick="scrollTo('s4')">§4 Presets</a>
+      <div class="sec-header">Logs</div>
+      <a href="#s5" onclick="scrollTo('s5')">§5 Logs y terminales</a>
+      <div class="sec-header">Ayuda</div>
+      <a href="#s6" onclick="scrollTo('s6')">§6 Manual</a>
+    </nav>
+
+    <!-- MAIN -->
+    <main id="main-area">
+
+      <!-- ── §1 ESTADO DEL SISTEMA ── -->
+      <div class="section" id="s1">
+        <div class="section-title">§1 Estado del sistema <span class="section-badge" id="snap-age">—</span></div>
+        <hr class="section-sep">
+        <div class="cards-grid" id="sensor-cards">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- ── §2 MAPA DE ENDPOINTS ── -->
+      <div class="section" id="s2">
+        <div class="section-title">§2 Mapa de endpoints</div>
+        <hr class="section-sep">
+        <p class="section-sub">Estado en tiempo real de los endpoints por departamento. Click en un punto para editar.</p>
+        <div id="map-popup-wrap" style="position:relative">
+          <svg id="dept-map" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg"
+               style="background:rgba(255,255,255,.02);border-radius:10px;border:1px solid var(--border)">
+            <!-- dept circles filled by JS -->
+          </svg>
+          <div id="map-popup">
+            <div class="mp-title">
+              <span id="mp-dept-name">—</span>
+              <button onclick="closeMapPopup()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1">×</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Endpoint URL</div>
+            <input type="text" id="mp-url-input" placeholder="https://...">
+            <div class="mp-status" id="mp-status">—</div>
+            <div class="mp-btns">
+              <button onclick="testEndpoint()">Probar ahora</button>
+              <button onclick="closeMapPopup()">Cancelar</button>
+              <button class="save" onclick="saveEndpointFromPopup()">Guardar cambio</button>
+            </div>
+          </div>
+        </div>
+        <div class="map-legend">
+          <span><span class="dot" style="background:#57c08d"></span> OK (< 20 min)</span>
+          <span><span class="dot" style="background:#d4b066"></span> Tardío (20–60 min)</span>
+          <span><span class="dot" style="background:#df6b86"></span> Caído / Error</span>
+          <span><span class="dot" style="background:#3a3f49"></span> Sin configurar</span>
+        </div>
+        <div class="status-row" style="margin-top:16px">
+          <span class="badge" id="badge-animal">ANIMAL MODE</span>
+          <span class="badge" id="badge-safemode">SAFE MODE</span>
+          <span class="badge" id="badge-circuit">CIRCUIT BREAKER</span>
+          <span class="badge" id="badge-election">ELECTION MODE</span>
+        </div>
+      </div>
+
+      <!-- ── §3 CONFIGURACIÓN ── -->
+      <div class="section" id="s3">
+        <div class="section-title">§3 Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
+        <hr class="section-sep">
+        <div id="banner-409">
+          ⚠ La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.
+          <button onclick="reloadShaAndReapply()">Recargar SHA y re-aplicar</button>
+          <button onclick="discardEdits()" style="background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:4px">Descartar</button>
+        </div>
+
+        <!-- EASY MODE -->
+        <div id="easy-mode">
+          <div class="ctrl-section">
+            <h3>Parámetros principales</h3>
+            <div class="ctrl-row">
+              <label>Intervalo de captura (min)
+                <span data-tip="Frecuencia con que el sistema escanea endpoints. Reducir aumenta la carga sobre el servidor.">ⓘ</span>
+              </label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-interval" min="5" max="60" step="1" value="30" oninput="syncSlider('interval',this.value)">
+                <span class="val-badge" id="vb-interval">30</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Requests por hora
+                <span data-tip="Límite de peticiones por hora. Reducir si el servidor bloquea por exceso de llamadas.">ⓘ</span>
+              </label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-rph" min="60" max="360" step="10" value="180" oninput="syncSlider('rph',this.value)">
+                <span class="val-badge" id="vb-rph">180</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Umbral Benford χ²
+                <span data-tip="Sensibilidad del detector Benford. Valores bajos = más alertas, más falsos positivos. 5.99 = 95% confianza.">ⓘ</span>
+              </label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-benford" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+                <span class="val-badge" id="vb-benford">5.99</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Umbral Z-score (σ)
+                <span data-tip="Desviaciones estándar para activar alerta. 3.0 = 99.7% de confianza estadística.">ⓘ</span>
+              </label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-zscore" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+                <span class="val-badge" id="vb-zscore">3.0</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Topic ntfy (alertas push)
+                <span data-tip="Canal de alertas. Instala la app ntfy y suscríbete a este topic. Ej: mi-centinel-2029">ⓘ</span>
+              </label>
+              <input type="text" id="inp-ntfy" placeholder="mi-centinel-2029" oninput="markDirty()">
+            </div>
+          </div>
+          <div class="ctrl-section">
+            <h3>Modos de operación</h3>
+            <div class="toggle-row">
+              <label data-tip="Modo electoral: incrementa frecuencia y activa detectores adicionales.">Election mode ⓘ</label>
+              <label class="toggle"><input type="checkbox" id="tog-election" onchange="markDirty()"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <label data-tip="Safe mode: operación mínima ante condiciones adversas. Reduce peticiones al máximo.">Safe mode ⓘ</label>
+              <label class="toggle"><input type="checkbox" id="tog-safe" onchange="markDirty()"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- FULL MODE -->
+        <div id="full-mode" style="display:none">
+          <div class="tabs" id="cfg-tabs">
+            <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
+            <button onclick="showTab('t-capture')">Captura</button>
+            <button onclick="showTab('t-alerts')">Alertas</button>
+            <button onclick="showTab('t-network')">Red</button>
+            <button onclick="showTab('t-rules')">Reglas</button>
+          </div>
+
+          <!-- Tab: Endpoints -->
+          <div id="t-endpoints" class="tab-pane active">
+            <div class="ctrl-section">
+              <h3>URL principal</h3>
+              <div class="ctrl-row">
+                <label>CNE Main URL</label>
+                <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()">
+              </div>
+            </div>
+            <div class="ctrl-section" style="overflow-x:auto">
+              <h3>Endpoints departamentales</h3>
+              <table class="data-table" id="endpoints-table">
+                <thead><tr>
+                  <th>Depto</th><th>Código</th><th>URL endpoint</th>
+                  <th>Estado</th><th>Último OK</th><th>Acciones</th>
+                </tr></thead>
+                <tbody id="endpoints-tbody"><!-- filled by JS --></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab: Captura -->
+          <div id="t-capture" class="tab-pane">
+            <div class="ctrl-section">
+              <h3>Watchdog</h3>
+              <div class="ctrl-row">
+                <label>Intervalo de captura (min)
+                  <span data-tip="Igual que el slider en modo fácil. Ambos sincronizan.">ⓘ</span>
+                </label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-interval2" min="5" max="60" step="1" value="30" oninput="syncSlider('interval',this.value)">
+                  <span class="val-badge" id="vb-interval2">30</span>
+                </div>
+              </div>
+              <div class="ctrl-row">
+                <label>Check interval watchdog (min)
+                  <span data-tip="Con qué frecuencia el watchdog verifica si el servicio principal sigue corriendo.">ⓘ</span>
+                </label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-wdcheck" min="1" max="15" step="1" value="3" oninput="syncSlider('wdcheck',this.value)">
+                  <span class="val-badge" id="vb-wdcheck">3</span>
+                </div>
+              </div>
+              <div class="ctrl-row">
+                <label>Límite CPU (%)
+                  <span data-tip="El watchdog pausa capturas si el CPU supera este porcentaje.">ⓘ</span>
+                </label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-cpu" min="50" max="95" step="1" value="80" oninput="syncSlider('cpu',this.value)">
+                  <span class="val-badge" id="vb-cpu">80</span>
+                </div>
+              </div>
+              <div class="ctrl-row">
+                <label>Límite RAM (%)
+                  <span data-tip="El watchdog pausa capturas si la memoria supera este porcentaje.">ⓘ</span>
+                </label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-ram" min="50" max="95" step="1" value="90" oninput="syncSlider('ram',this.value)">
+                  <span class="val-badge" id="vb-ram">90</span>
+                </div>
+              </div>
+            </div>
+            <div class="ctrl-section">
+              <h3>Rate limiter</h3>
+              <div class="ctrl-row">
+                <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-rph2" min="60" max="360" step="10" value="180" oninput="syncSlider('rph',this.value)">
+                  <span class="val-badge" id="vb-rph2">180</span>
+                </div>
+              </div>
+              <div class="ctrl-row">
+                <label>Capacidad de ráfaga <span data-tip="Número de requests permitidos en ráfaga antes de aplicar el rate limiter.">ⓘ</span></label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-capacity" min="1" max="10" step="1" value="3" oninput="syncSlider('capacity',this.value)">
+                  <span class="val-badge" id="vb-capacity">3</span>
+                </div>
+              </div>
+              <div class="ctrl-row">
+                <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-timeout" min="10" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
+                  <span class="val-badge" id="vb-timeout">30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab: Alertas -->
+          <div id="t-alerts" class="tab-pane">
+            <div class="ctrl-section">
+              <h3>Notificaciones</h3>
+              <div class="ctrl-row">
+                <label>Topic ntfy <span data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic.">ⓘ</span></label>
+                <input type="text" id="inp-ntfy2" placeholder="mi-centinel-2029" oninput="syncText('ntfy',this.value)">
+              </div>
+              <div class="ctrl-row">
+                <label>Nivel mínimo de alerta</label>
+                <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
+                  <option value="INFO">INFO</option>
+                  <option value="WARNING" selected>WARNING</option>
+                  <option value="CRITICAL">CRITICAL</option>
+                  <option value="PANIC">PANIC</option>
+                </select>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Crear Issue automático en GitHub ante fallos críticos de git push.">Auto-Issue en fallos de git ⓘ</label>
+                <label class="toggle"><input type="checkbox" id="tog-autoissue" onchange="markDirty()"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab: Red -->
+          <div id="t-network" class="tab-pane">
+            <div class="ctrl-section">
+              <h3>Retry por código HTTP</h3>
+              <table class="data-table">
+                <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
+                <tbody>
+                  <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
+                  <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
+                  <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
+                  <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab: Reglas -->
+          <div id="t-rules" class="tab-pane">
+            <div class="ctrl-section">
+              <h3>Detectores estadísticos</h3>
+              <div class="toggle-row">
+                <label data-tip="Detecta desviaciones del patrón de Benford en el primer dígito de los votos.">R-01 Benford primer dígito ⓘ</label>
+                <label class="toggle"><input type="checkbox" id="rule-benford" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Verifica distribución estadística de actas mediante chi-cuadrado.">R-02 Chi-cuadrado distribución ⓘ</label>
+                <label class="toggle"><input type="checkbox" id="rule-chi2" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Detecta valores extremos mediante Z-score.">R-03 Z-score outliers ⓘ</label>
+                <label class="toggle"><input type="checkbox" id="rule-zscore" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Alerta si el número de actas totales cambia inesperadamente entre snapshots.">R-04 Actas totales ⓘ</label>
+                <label class="toggle"><input type="checkbox" id="rule-actas" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Verifica que suma de votos por candidato no supere total de actas procesadas.">R-05 Suma de votos ⓘ</label>
+                <label class="toggle"><input type="checkbox" id="rule-sum" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+              </div>
+              <hr style="border-color:var(--border);margin:12px 0">
+              <div class="ctrl-row">
+                <label>Umbral Benford χ² <span data-tip="Igual que en Modo Fácil. Sincronizan.">ⓘ</span></label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-benford2" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+                  <span class="val-badge" id="vb-benford2">5.99</span>
+                </div>
+              </div>
+              <div class="ctrl-row">
+                <label>Umbral Z-score (σ) <span data-tip="Igual que en Modo Fácil. Sincronizan.">ⓘ</span></label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="sl-zscore2" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+                  <span class="val-badge" id="vb-zscore2">3.0</span>
+                </div>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Habilita reglas experimentales para investigación académica.">Reglas de investigación ⓘ</label>
+                <label class="toggle"><input type="checkbox" id="tog-research" onchange="markDirty()"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── §4 PRESETS ── -->
+      <div class="section" id="s4">
+        <div class="section-title">§4 Presets</div>
+        <hr class="section-sep">
+        <p class="section-sub">Plantillas de configuración predefinidas. "Cargar" rellena los controles. "Guardar estado actual" guarda en Supabase sin hacer commit.</p>
+        <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="preset-name" placeholder="Nombre del preset…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
+          <button class="hdr-btn" onclick="saveCustomPreset()">Guardar estado actual como preset</button>
+        </div>
+      </div>
+
+      <!-- ── §5 LOGS ── -->
+      <div class="section" id="s5">
+        <div class="section-title">§5 Logs y terminales</div>
+        <hr class="section-sep">
+
+        <!-- Log General -->
+        <div class="terminal">
+          <div class="terminal-hdr">
+            <span>Log general (alerts.json)</span>
+            <select id="log-lines" onchange="renderLog()">
+              <option value="50">50 líneas</option>
+              <option value="100">100 líneas</option>
+              <option value="500">500 líneas</option>
+              <option value="0">Todas</option>
+            </select>
+            <button onclick="fetchLog()">↻</button>
+            <button onclick="toggleTimestamp()">🕐</button>
+          </div>
+          <div class="log-pre" id="log-general">Cargando…</div>
+          <div class="log-footer">
+            <button onclick="downloadTxt('log-general','alerts.txt')">↓ TXT</button>
+            <button onclick="downloadPdf('log-general')">↓ PDF</button>
+            <button onclick="copyLog('log-general')">⎘ Copiar</button>
+          </div>
+        </div>
+
+        <!-- Attack Log -->
+        <div class="terminal">
+          <div class="terminal-hdr">
+            <span>Attack logger (attack_log.jsonl)</span>
+            <select id="attack-filter" onchange="renderAttackLog()">
+              <option value="">Todos</option>
+              <option value="HONEYPOT">HONEYPOT</option>
+              <option value="RATE_LIMIT">RATE_LIMIT</option>
+              <option value="AUTH_FAIL">AUTH_FAIL</option>
+              <option value="INTEGRITY">INTEGRITY</option>
+              <option value="CIRCUIT">CIRCUIT</option>
+            </select>
+            <button onclick="fetchAttackLog()">↻</button>
+          </div>
+          <div class="log-pre" id="log-attacks">Cargando…</div>
+          <div class="log-footer">
+            <button onclick="downloadTxt('log-attacks','attacks.txt')">↓ TXT</button>
+            <button onclick="downloadPdf('log-attacks')">↓ PDF</button>
+            <button onclick="copyLog('log-attacks')">⎘ Copiar</button>
+            <button onclick="generateIncidentReport()">⚠ Reporte de incidente</button>
+          </div>
+        </div>
+
+        <!-- Audit Trail -->
+        <div class="terminal">
+          <div class="terminal-hdr">
+            <span>Audit trail (commits de configuración)</span>
+            <button onclick="fetchAuditTrail()">↻</button>
+          </div>
+          <div class="log-pre" id="log-audit">Requiere PAT para cargar.</div>
+          <div class="log-footer">
+            <button onclick="downloadTxt('log-audit','audit.txt')">↓ TXT</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── §6 MANUAL ── -->
+      <div class="section" id="s6">
+        <div class="section-title">§6 Manual</div>
+        <hr class="section-sep">
+        <details id="mini-manual">
+          <summary>Guía rápida del panel de administración</summary>
+          <div class="details-body">
+            <div class="ctrl-section">
+              <h3>Modo Fácil vs Modo Completo</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                <strong>Modo Fácil</strong> expone los 4 parámetros más importantes: intervalo de captura, requests/hora, umbrales Benford y Z-score, y el topic de ntfy. Ideal para operación diaria.<br><br>
+                <strong>Modo Completo</strong> habilita 5 tabs con acceso a todos los parámetros: endpoints individuales, watchdog, rate limiter, red, y reglas de detección.
+              </p>
+              <h3>El mapa de endpoints</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.<br><br>
+                Los cambios desde el popup quedan pendientes (dirty) hasta que hagas clic en "Aplicar cambios".
+              </p>
+              <h3>Cómo se guardan los cambios</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                1. Modifica cualquier control — el botón "Aplicar cambios" se activa.<br>
+                2. Click en "Aplicar" → modal con diff de todos los cambios pendientes.<br>
+                3. Confirma → se te pide el GitHub PAT (solo en sessionStorage, desaparece al cerrar el browser).<br>
+                4. El sistema hace commit a <code>config/prod/</code> vía GitHub API.<br>
+                5. Los cambios toman efecto en el próximo ciclo (~15 min).
+              </p>
+              <h3>Animal mode</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                <strong>NORMAL</strong>: operación estándar.<br>
+                <strong>CAUTION</strong>: el sistema detectó condiciones adversas, reduce agresividad.<br>
+                <strong>SURVIVAL</strong>: modo mínimo, solo captura esencial, máxima resiliencia.
+              </p>
+              <h3>Qué hacer si un endpoint queda rojo</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                1. Click en el punto en el mapa → "Probar ahora" para verificar si responde.<br>
+                2. Si no responde: verifica la URL con el proveedor CNE.<br>
+                3. Actualiza la URL en el popup → "Guardar cambio" → "Aplicar cambios".<br>
+                4. Si es un fallo temporal, el circuit breaker se recupera automáticamente.
+              </p>
+              <h3>Recuperar configuración anterior</h3>
+              <p style="font-size:13px;color:var(--muted)">
+                Todo cambio es un commit en <code>config/prod/</code>. Para revertir: ve a GitHub → <code>config/prod/endpoints.yaml</code> → History → elige el commit anterior → "Revert" o copia el contenido manualmente.
+              </p>
+            </div>
+          </div>
+        </details>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ════ PAT MODAL ════ -->
+<div id="pat-modal">
+  <div class="modal-box" style="max-width:400px">
+    <h2>GitHub PAT requerido</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+      Para aplicar cambios en el repositorio se necesita un Personal Access Token (Classic) con scope <code>repo</code>. Se guarda solo en sessionStorage y desaparece al cerrar el browser.
+    </p>
+    <div class="ctrl-row">
+      <label>GitHub PAT</label>
+      <input type="password" id="pat-input" placeholder="ghp_…" autocomplete="off">
+    </div>
+    <div class="auth-err" id="pat-err"></div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closePatModal()">Cancelar</button>
+      <button class="hdr-btn primary" onclick="confirmPat()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DIFF MODAL ════ -->
+<div id="diff-modal">
+  <div class="modal-box">
+    <h2>Cambios pendientes</h2>
+    <div id="diff-content"></div>
+    <div class="info-box" style="margin-top:12px">
+      Los cambios toman efecto en el próximo ciclo de captura (~15 min).
+    </div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeDiffModal()">Cancelar</button>
+      <button class="hdr-btn primary" onclick="confirmApply()">Confirmar y aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ RESULT MODAL ════ -->
+<div id="result-modal">
+  <div class="modal-box" style="max-width:420px;text-align:center">
+    <div id="result-content"></div>
+    <div class="modal-btns" style="justify-content:center;margin-top:20px">
+      <button class="hdr-btn primary" onclick="closeResultModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- hidden print target -->
+<div id="print-target" style="display:none"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// GLOBALS
+// ══════════════════════════════════════════════════════════
+const SUPABASE_URL  = window.CENTINEL_SUPABASE_URL  || '';
+const SUPABASE_ANON = window.CENTINEL_SUPABASE_ANON || '';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// These are filled from config.js at runtime via GitHub Pages
+const REPO_OWNER = (()=>{
+  try{ const u=new URL(location.href); return u.hostname.split('.')[0]; }catch{return '';}
+})();
+const REPO_NAME = 'centinel-engine';
+const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
+const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+let currentUser = null;
+let adminMode = 'easy'; // 'easy' | 'full'
+let isDirty = false;
+let currentConfig = {};   // loaded from GitHub raw
+let localConfig   = {};   // edited state (mirrors currentConfig, modified by controls)
+let configShas    = {};   // file path → sha (needed for GitHub PUT)
+let snapshotData  = null;
+let endpointsData = [];   // array of {code, name, url, status, lastOk, failures}
+let logData       = [];   // raw alerts.json array
+let attackData    = [];   // raw attack_log.jsonl lines
+let relTimestamps = true;
+let currentPopupCode = null; // dept code open in popup
+
+// ══════════════════════════════════════════════════════════
+// DEPARTMENTS (geographic positions on 600×300 SVG)
+// ══════════════════════════════════════════════════════════
+const DEPTS = [
+  {code:'00',name:'NACIONAL',   x:304,y:150,star:true},
+  {code:'01',name:'Atlántida',  x:219,y: 93},
+  {code:'02',name:'Choluteca',  x:219,y:238},
+  {code:'03',name:'Colón',      x:364,y: 93},
+  {code:'04',name:'Comayagua',  x:177,y:169},
+  {code:'05',name:'Copán',      x: 84,y:150},
+  {code:'06',name:'Cortés',     x:151,y:112},
+  {code:'07',name:'El Paraíso', x:279,y:207},
+  {code:'08',name:'Fco. Morazán',x:219,y:194},
+  {code:'09',name:'Gracias a Dios',x:432,y:106},
+  {code:'10',name:'Intibucá',   x:143,y:182},
+  {code:'11',name:'I. de la Bahía',x:279,y:56},
+  {code:'12',name:'La Paz',     x:177,y:194},
+  {code:'13',name:'Lempira',    x:109,y:175},
+  {code:'14',name:'Ocotepeque', x: 66,y:175},
+  {code:'15',name:'Olancho',    x:321,y:150},
+  {code:'16',name:'Santa Bárbara',x:134,y:137},
+  {code:'17',name:'Valle',      x:194,y:238},
+  {code:'18',name:'Yoro',       x:228,y:131},
+];
+
+// ══════════════════════════════════════════════════════════
+// PRESETS
+// ══════════════════════════════════════════════════════════
+const FACTORY_PRESETS = [
+  {id:'normal',   name:'Operación normal',  desc:'Producción estándar',
+   cfg:{interval:30, rph:180, benford:5.99, zscore:3.0, election:false, safe:false}},
+  {id:'election', name:'Noche electoral',   desc:'Máxima frecuencia y sensibilidad',
+   cfg:{interval:10, rph:360, benford:4.5,  zscore:2.5, election:true,  safe:false}},
+  {id:'conserv',  name:'Modo conservador',  desc:'Servidores sensibles',
+   cfg:{interval:60, rph:60,  benford:7.0,  zscore:3.5, election:false, safe:false}},
+  {id:'research', name:'Investigación',     desc:'Research rules activas, sensibilidad alta',
+   cfg:{interval:30, rph:180, benford:3.84, zscore:2.0, election:false, safe:false}},
+  {id:'emergency',name:'Emergencia',        desc:'Máxima resiliencia, modo mínimo',
+   cfg:{interval:10, rph:120, benford:5.99, zscore:3.0, election:false, safe:true}},
+];
+let customPresets = [];
+let activePresetId = null;
+
+// ══════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════
+sb.auth.getSession().then(({data:{session}})=>{
+  if(session){ currentUser=session.user; showAdminShell(); }
+});
+
+async function doAdminLogin(){
+  const email = document.getElementById('adm-email').value.trim();
+  const pass  = document.getElementById('adm-pass').value;
+  const btn   = document.getElementById('btn-login');
+  const err   = document.getElementById('auth-err');
+  if(!email||!pass){err.textContent='Completa los dos campos.';return;}
+  btn.disabled=true; btn.textContent='Verificando…'; err.textContent='';
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+  if(error){
+    err.textContent = error.message==='Invalid login credentials'
+      ? 'Credenciales incorrectas.' : error.message;
+    btn.disabled=false; btn.textContent='Entrar'; return;
+  }
+  // Check admin role
+  const role = data.user?.user_metadata?.role;
+  if(role && role !== 'admin'){
+    err.textContent = 'Acceso denegado: rol insuficiente.';
+    await sb.auth.signOut();
+    btn.disabled=false; btn.textContent='Entrar'; return;
+  }
+  currentUser = data.user;
+  showAdminShell();
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+function showAdminShell(){
+  document.getElementById('auth-screen').style.display='none';
+  const shell = document.getElementById('admin-shell');
+  shell.style.display='flex';
+  const email = currentUser?.email || '—';
+  document.getElementById('hdr-user').textContent = email;
+  loadCustomPresets();
+  initAll();
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+async function initAll(){
+  buildSensorCards();
+  buildMap();
+  buildPresetsGrid();
+  await Promise.all([
+    loadSnapshot(),
+    loadConfig(),
+  ]);
+  fetchLog();
+  fetchAttackLog();
+}
+
+// ══════════════════════════════════════════════════════════
+// CONFIG LOAD
+// ══════════════════════════════════════════════════════════
+async function loadConfig(){
+  const files = ['config/prod/endpoints.yaml','config/prod/watchdog.yaml',
+                 'config/prod/rate_limiter.yaml','config/prod/retry_config.yaml',
+                 'config/prod/rules.yaml'];
+  await Promise.all(files.map(f => fetchConfigFile(f)));
+  populateControls();
+}
+
+async function fetchConfigFile(path){
+  try{
+    const r = await fetch(`${RAW_BASE}/${path}?t=${Date.now()}`);
+    if(!r.ok) return;
+    const txt = await r.text();
+    currentConfig[path] = jsyaml.load(txt);
+    localConfig[path]   = jsyaml.load(txt); // deep clone via re-parse
+    // also grab sha via API for later writes
+    fetchSha(path);
+  }catch(e){console.warn('fetchConfigFile',path,e);}
+}
+
+async function fetchSha(path){
+  const pat = sessionStorage.getItem('gh-pat');
+  const headers = pat ? {Authorization:`Bearer ${pat}`} : {};
+  try{
+    const r = await fetch(`${API_BASE}/contents/${path}`,{headers});
+    if(!r.ok) return;
+    const j = await r.json();
+    configShas[path] = j.sha;
+  }catch(e){console.warn('fetchSha',path,e);}
+}
+
+function populateControls(){
+  const ep = localConfig['config/prod/endpoints.yaml'] || {};
+  const wd = localConfig['config/prod/watchdog.yaml'] || {};
+  const rl = localConfig['config/prod/rate_limiter.yaml'] || {};
+  const rc = localConfig['config/prod/retry_config.yaml'] || {};
+
+  const interval = ep?.healing?.interval_minutes ?? 30;
+  const rph      = rl?.max_requests_per_hour ?? 180;
+  const capacity = rl?.capacity ?? 3;
+  const cpu      = wd?.max_cpu_percent ?? 80;
+  const ram      = wd?.max_mem_percent ?? 90;
+  const wdcheck  = wd?.check_interval_minutes ?? 3;
+  const timeout  = rl?.timeout_seconds ?? 30;
+  const benford  = 5.99;
+  const zscore   = 3.0;
+  const safe     = ep?.healing?.safe_mode_active ?? false;
+  const mainUrl  = ep?.cne?.main_url ?? '';
+  const ntfy     = '';
+
+  syncSlider('interval', interval);
+  syncSlider('rph', rph);
+  syncSlider('benford', benford);
+  syncSlider('zscore', zscore);
+  syncSlider('wdcheck', wdcheck);
+  syncSlider('cpu', cpu);
+  syncSlider('ram', ram);
+  syncSlider('capacity', capacity);
+  syncSlider('timeout', timeout);
+
+  const togSafe = document.getElementById('tog-safe');
+  if(togSafe) togSafe.checked = !!safe;
+
+  const inpMainUrl = document.getElementById('inp-main-url');
+  if(inpMainUrl) inpMainUrl.value = mainUrl;
+
+  // Retry table
+  const ps = rc?.per_status || {};
+  setValue('retry-429', ps['429']?.max_attempts ?? 5);
+  setValue('retry-5xx', ps['5xx']?.max_attempts ?? 5);
+  setValue('retry-403', ps['403']?.max_attempts ?? 3);
+  setValue('retry-404', ps['404']?.max_attempts ?? 2);
+
+  // Endpoints table
+  buildEndpointsTable();
+
+  isDirty = false;
+  updateDirtyState();
+}
+
+function setValue(id, v){
+  const el = document.getElementById(id);
+  if(el) el.value = v;
+}
+
+function buildEndpointsTable(){
+  const ep = localConfig['config/prod/endpoints.yaml'] || {};
+  const eps = ep?.cne?.presidential_endpoints || [];
+  const tbody = document.getElementById('endpoints-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  DEPTS.filter(d=>d.code!=='00').forEach(dept=>{
+    const found = eps.find(e=>(e.department_code||'').toString().padStart(2,'0')===dept.code);
+    const url = found?.url || '';
+    const status = getEndpointStatus(dept.code);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${dept.name}</td>
+      <td style="color:var(--muted);font-family:var(--mono)">${dept.code}</td>
+      <td><input type="text" value="${escHtml(url)}" data-code="${dept.code}" oninput="updateEndpointUrl('${dept.code}',this.value)"></td>
+      <td>${statusBadge(status.cls, status.label)}</td>
+      <td style="color:var(--muted);font-size:11px">${status.lastOk}</td>
+      <td><button onclick="testEndpointCode('${dept.code}')">Probar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function getEndpointStatus(code){
+  if(!snapshotData) return {cls:'neutral',label:'—',lastOk:'—'};
+  const eps = snapshotData?.endpoints_status || {};
+  const ep = eps[code];
+  if(!ep) return {cls:'neutral',label:'Sin datos',lastOk:'—'};
+  if(ep.ok) return {cls:'ok',label:'✓ OK',lastOk:relTime(ep.last_ok)};
+  if(ep.failures>0) return {cls:'bad',label:`✗ Caído (${ep.failures}f)`,lastOk:relTime(ep.last_ok)};
+  return {cls:'warn',label:'⚠ Advertencia',lastOk:relTime(ep.last_ok)};
+}
+
+function statusBadge(cls, label){
+  return `<span class="badge badge-${cls}">${label}</span>`;
+}
+
+function updateEndpointUrl(code, url){
+  const ep = localConfig['config/prod/endpoints.yaml'];
+  if(!ep?.cne?.presidential_endpoints) return;
+  const arr = ep.cne.presidential_endpoints;
+  const idx = arr.findIndex(e=>(e.department_code||'').toString().padStart(2,'0')===code);
+  if(idx>=0) arr[idx].url = url;
+  else arr.push({department_code:parseInt(code,10), url});
+  markDirty();
+}
+
+// ══════════════════════════════════════════════════════════
+// SNAPSHOT LOAD
+// ══════════════════════════════════════════════════════════
+async function loadSnapshot(){
+  try{
+    const r = await fetch(`${RAW_BASE}/web/data/snapshot.json?t=${Date.now()}`);
+    if(!r.ok) return;
+    snapshotData = await r.json();
+    updateSensorCards();
+    updateMapColors();
+    updateStatusBadges();
+    const age = snapshotData?.timestamp ? relTime(snapshotData.timestamp) : '—';
+    document.getElementById('snap-age').textContent = `actualizado ${age}`;
+  }catch(e){console.warn('loadSnapshot',e);}
+}
+
+// ══════════════════════════════════════════════════════════
+// SENSOR CARDS
+// ══════════════════════════════════════════════════════════
+const CARD_DEFS = [
+  {id:'sha',    label:'Cadena SHA-256',      icon:'🔗'},
+  {id:'cb',     label:'Circuit Breaker',     icon:'⚡'},
+  {id:'animal', label:'Animal Mode',         icon:'🦡'},
+  {id:'benford',label:'Benford 1er dígito',  icon:'📊', hasSlider:'benford', min:3, max:15, step:0.1},
+  {id:'zscore', label:'Z-Score máximo',      icon:'📉', hasSlider:'zscore',  min:1.5,max:5,step:0.1},
+  {id:'ots',    label:'OTS Bitcoin',         icon:'⛓'},
+  {id:'cpu',    label:'CPU Watchdog',        icon:'🖥', hasSlider:'cpu',     min:50,max:95,step:1},
+  {id:'ram',    label:'Memoria',             icon:'💾', hasSlider:'ram',     min:50,max:95,step:1},
+  {id:'attacks',label:'Ataques detectados',  icon:'🛡'},
+  {id:'endpoints',label:'Endpoints activos', icon:'🌐'},
+];
+
+function buildSensorCards(){
+  const grid = document.getElementById('sensor-cards');
+  if(!grid) return;
+  grid.innerHTML = CARD_DEFS.map(def=>`
+    <div class="stat-card" id="sc-${def.id}">
+      <div class="sc-label">
+        <span>${def.icon} ${def.label}</span>
+        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con §3" style="font-size:10px;cursor:help">ⓘ</span>`:''}
+      </div>
+      <div class="sc-val val-neutral" id="scv-${def.id}">—</div>
+      <div class="sc-detail" id="scd-${def.id}">—</div>
+      <div class="sc-bar"><div class="sc-bar-fill" id="scb-${def.id}" style="width:0%;background:var(--muted)"></div></div>
+      ${def.hasSlider?`
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+        <input type="range" min="${def.min}" max="${def.max}" step="${def.step}" value="${def.min}"
+          id="sc-sl-${def.hasSlider}" style="flex:1;accent-color:var(--accent);cursor:pointer;height:4px"
+          oninput="syncSlider('${def.hasSlider}',this.value)">
+        <span class="val-badge" id="sc-vb-${def.hasSlider}" style="font-size:10px">—</span>
+      </div>`:''}
+      <div class="sc-age" id="sca-${def.id}"></div>
+    </div>
+  `).join('');
+}
+
+function updateSensorCards(){
+  if(!snapshotData) return;
+  const s = snapshotData;
+  const chain  = s?.chain || {};
+  const cne    = s?.cne_status || {};
+  const ep     = localConfig['config/prod/endpoints.yaml'] || {};
+  const wd     = localConfig['config/prod/watchdog.yaml'] || {};
+
+  // SHA chain
+  const hashOk = chain.integrity !== false;
+  const hashStr = chain.latest_hash ? chain.latest_hash.slice(-8) : '—';
+  setCard('sha', hashOk?'ÍNTEGRA':'ROTA', hashStr, hashOk?100:0, hashOk?'ok':'bad');
+
+  // Circuit Breaker
+  const cbOpen = cne.consecutive_failures >= 3;
+  const cbFail = cne.consecutive_failures || 0;
+  setCard('cb', cbOpen?'ABIERTO':'CERRADO', `${cbFail} fallos consecutivos`, cbOpen?100:0, cbOpen?'bad':'ok');
+
+  // Animal mode
+  const animal = ep?.healing?.animal_mode || 'normal';
+  const animalCls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
+  setCard('animal', animal.toUpperCase(), '', 0, animalCls, false);
+
+  // OTS
+  const ots = chain.ots_status || 'unknown';
+  const otsCls = {confirmed:'ok',pending:'warn',error:'bad'}[ots]||'neutral';
+  setCard('ots', ots.toUpperCase(), chain.last_anchor ? `Último: ${relTime(chain.last_anchor)}` : '', 0, otsCls, false);
+
+  // Attacks
+  const alerts = s?.alerts || [];
+  const critical = alerts.filter(a=>a.level==='CRITICAL').length;
+  const warnings = alerts.filter(a=>a.level==='WARNING').length;
+  setCard('attacks', alerts.length+' eventos', `${warnings} WARNING · ${critical} CRITICAL`, critical>0?100:warnings>0?50:0, critical>0?'bad':warnings>0?'warn':'ok');
+
+  // Endpoints
+  const eps = Object.values(s?.endpoints_status||{});
+  const okEps = eps.filter(e=>e.ok).length;
+  const total = DEPTS.length - 1;
+  setCard('endpoints', `${okEps}/${total}`, `${total-okEps} fallando`, okEps/total*100, okEps===total?'ok':okEps>total*0.8?'warn':'bad');
+
+  // CPU/RAM — use watchdog limits as context
+  const cpuLimit = wd?.max_cpu_percent || 80;
+  const ramLimit = wd?.max_mem_percent || 90;
+  // synthetic values (real values would come from a health endpoint)
+  setCard('cpu', cpuLimit+'% límite', 'Dato en tiempo real no disponible en Pages', 0, 'neutral', false);
+  setCard('ram', ramLimit+'% límite', 'Dato en tiempo real no disponible en Pages', 0, 'neutral', false);
+}
+
+function setCard(id, val, detail, barPct, cls, showBar=true){
+  const el = v=>document.getElementById(v);
+  const clsMap = {ok:'val-ok',warn:'val-warn',bad:'val-bad',neutral:'val-neutral'};
+  if(el(`scv-${id}`)){
+    el(`scv-${id}`).textContent = val;
+    el(`scv-${id}`).className = `sc-val ${clsMap[cls]||'val-neutral'}`;
+  }
+  if(el(`scd-${id}`)) el(`scd-${id}`).textContent = detail;
+  if(el(`scb-${id}`)){
+    const fillCls = {ok:'var(--ok)',warn:'var(--warn)',bad:'var(--bad)',neutral:'var(--muted)'}[cls];
+    el(`scb-${id}`).style.width = (showBar?barPct:0)+'%';
+    el(`scb-${id}`).style.background = fillCls||'var(--muted)';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// MAP
+// ══════════════════════════════════════════════════════════
+function buildMap(){
+  const svg = document.getElementById('dept-map');
+  if(!svg) return;
+  // Background grid lines (subtle)
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('stroke','rgba(255,255,255,.04)');
+  g.setAttribute('stroke-width','1');
+  for(let x=60;x<600;x+=60){
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x); l.setAttribute('y1',0); l.setAttribute('x2',x); l.setAttribute('y2',300);
+    g.appendChild(l);
+  }
+  svg.appendChild(g);
+
+  DEPTS.forEach(dept=>{
+    // Line from Islas de la Bahía to mainland
+    if(dept.code==='11'){
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',dept.x); line.setAttribute('y1',dept.y+10);
+      line.setAttribute('x2',228); line.setAttribute('y2',115);
+      line.setAttribute('stroke','rgba(255,255,255,.1)');
+      line.setAttribute('stroke-width','1');
+      line.setAttribute('stroke-dasharray','4,4');
+      svg.appendChild(line);
+    }
+
+    const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+    group.setAttribute('class','dept-dot');
+    group.setAttribute('id',`dept-${dept.code}`);
+    group.setAttribute('data-code',dept.code);
+    group.addEventListener('click',()=>openMapPopup(dept.code));
+
+    if(dept.star){
+      // Diamond shape for NACIONAL
+      const diamond = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      const r=10;
+      diamond.setAttribute('points',`${dept.x},${dept.y-r} ${dept.x+r},${dept.y} ${dept.x},${dept.y+r} ${dept.x-r},${dept.y}`);
+      diamond.setAttribute('fill','#3a3f49');
+      diamond.setAttribute('stroke','rgba(255,255,255,.2)');
+      diamond.setAttribute('stroke-width','1');
+      group.appendChild(diamond);
+    } else {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx',dept.x); circle.setAttribute('cy',dept.y); circle.setAttribute('r',9);
+      circle.setAttribute('fill','#3a3f49');
+      circle.setAttribute('stroke','rgba(255,255,255,.15)'); circle.setAttribute('stroke-width','1');
+      group.appendChild(circle);
+    }
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x',dept.x); text.setAttribute('y',dept.y+(dept.star?20:19));
+    text.setAttribute('class','dept-label');
+    text.setAttribute('font-size','8');
+    text.textContent = dept.code==='11' ? 'IB' : dept.name.split(' ')[0].slice(0,6);
+    group.appendChild(text);
+
+    svg.appendChild(group);
+  });
+
+  // Add title/subtitle
+  const title = document.createElementNS('http://www.w3.org/2000/svg','text');
+  title.setAttribute('x','300'); title.setAttribute('y','292');
+  title.setAttribute('text-anchor','middle'); title.setAttribute('fill','rgba(139,146,156,.4)');
+  title.setAttribute('font-size','9'); title.textContent='Honduras · Endpoints departamentales';
+  svg.appendChild(title);
+}
+
+function updateMapColors(){
+  if(!snapshotData) return;
+  const eps = snapshotData?.endpoints_status || {};
+  DEPTS.forEach(dept=>{
+    const ep = eps[dept.code];
+    let color = '#3a3f49'; // unconfigured
+    if(ep){
+      if(ep.ok) color = '#57c08d';
+      else if(ep.failures>0) color = '#df6b86';
+      else color = '#d4b066';
+    }
+    const group = document.getElementById(`dept-${dept.code}`);
+    if(!group) return;
+    const shape = group.querySelector('circle,polygon');
+    if(shape) shape.setAttribute('fill', color);
+  });
+}
+
+function updateStatusBadges(){
+  const ep = localConfig['config/prod/endpoints.yaml'] || {};
+  const animal = ep?.healing?.animal_mode || 'normal';
+  const safe   = ep?.healing?.safe_mode_active || false;
+  const cne    = snapshotData?.cne_status || {};
+  const cbOpen = (cne.consecutive_failures||0) >= 3;
+
+  const bAnimal = document.getElementById('badge-animal');
+  if(bAnimal){
+    const cls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
+    bAnimal.className = `badge badge-${cls}`;
+    bAnimal.textContent = `ANIMAL: ${animal.toUpperCase()}`;
+  }
+  const bSafe = document.getElementById('badge-safemode');
+  if(bSafe){
+    bSafe.className = `badge badge-${safe?'warn':'neutral'}`;
+    bSafe.textContent = `SAFE MODE: ${safe?'ON':'OFF'}`;
+  }
+  const bCb = document.getElementById('badge-circuit');
+  if(bCb){
+    bCb.className = `badge badge-${cbOpen?'bad':'ok'}`;
+    bCb.textContent = `CIRCUIT: ${cbOpen?'ABIERTO':'CERRADO'}`;
+  }
+  const bEl = document.getElementById('badge-election');
+  if(bEl){
+    const elMode = document.getElementById('tog-election')?.checked || false;
+    bEl.className = `badge badge-${elMode?'warn':'neutral'}`;
+    bEl.textContent = `ELECTION MODE: ${elMode?'ON':'OFF'}`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// MAP POPUP
+// ══════════════════════════════════════════════════════════
+function openMapPopup(code){
+  currentPopupCode = code;
+  const dept = DEPTS.find(d=>d.code===code);
+  if(!dept) return;
+  const ep = localConfig['config/prod/endpoints.yaml'] || {};
+  const eps = ep?.cne?.presidential_endpoints || [];
+  const found = eps.find(e=>(e.department_code||'').toString().padStart(2,'0')===code);
+  const url = found?.url || '';
+  const status = getEndpointStatus(code);
+
+  document.getElementById('mp-dept-name').textContent = `${dept.name} (${code})`;
+  document.getElementById('mp-url-input').value = url;
+  document.getElementById('mp-status').textContent =
+    `Estado: ${status.label} · Último OK: ${status.lastOk}`;
+
+  const popup = document.getElementById('map-popup');
+  const wrap  = document.getElementById('map-popup-wrap');
+  const rect  = wrap.getBoundingClientRect();
+  // Position popup relative to wrap
+  const svgEl = document.getElementById('dept-map');
+  const svgW  = svgEl.clientWidth;
+  const svgH  = svgEl.clientHeight;
+  const scaleX = svgW / 600;
+  const scaleY = svgH / 300;
+  let px = dept.x * scaleX;
+  let py = dept.y * scaleY;
+  // clamp so popup stays in view
+  if(px + 290 > svgW) px = svgW - 295;
+  if(px < 0) px = 0;
+  popup.style.left = px+'px';
+  popup.style.top  = (py+20)+'px';
+  popup.style.display = 'block';
+}
+
+function closeMapPopup(){
+  document.getElementById('map-popup').style.display='none';
+  currentPopupCode = null;
+}
+
+function saveEndpointFromPopup(){
+  if(!currentPopupCode) return;
+  const url = document.getElementById('mp-url-input').value.trim();
+  updateEndpointUrl(currentPopupCode, url);
+  closeMapPopup();
+}
+
+async function testEndpoint(){
+  if(!currentPopupCode) return;
+  const url = document.getElementById('mp-url-input').value.trim();
+  if(!url){document.getElementById('mp-status').textContent='Sin URL configurada.';return;}
+  document.getElementById('mp-status').textContent='Probando…';
+  try{
+    const r = await fetch(url,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(8000)});
+    document.getElementById('mp-status').textContent='Respuesta recibida (puede ser ok).';
+  }catch(e){
+    document.getElementById('mp-status').textContent='No responde o CORS bloqueado: '+e.message;
+  }
+}
+
+async function testEndpointCode(code){
+  const ep = localConfig['config/prod/endpoints.yaml']?.cne?.presidential_endpoints||[];
+  const found = ep.find(e=>(e.department_code||'').toString().padStart(2,'0')===code);
+  const url = found?.url||'';
+  if(!url){alert('Sin URL configurada para este endpoint.');return;}
+  try{
+    await fetch(url,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(8000)});
+    alert('Respuesta recibida (OK o CORS).');
+  }catch(e){alert('No responde: '+e.message);}
+}
+
+// ══════════════════════════════════════════════════════════
+// SLIDERS SYNC (bidirectional: easy↔full↔cards)
+// ══════════════════════════════════════════════════════════
+const SLIDER_IDS = {
+  interval:['sl-interval','sl-interval2','sc-sl-interval'],
+  rph:     ['sl-rph','sl-rph2'],
+  benford: ['sl-benford','sl-benford2','sc-sl-benford'],
+  zscore:  ['sl-zscore','sl-zscore2','sc-sl-zscore'],
+  wdcheck: ['sl-wdcheck'],
+  cpu:     ['sl-cpu','sc-sl-cpu'],
+  ram:     ['sl-ram','sc-sl-ram'],
+  capacity:['sl-capacity'],
+  timeout: ['sl-timeout'],
+};
+const BADGE_IDS = {
+  interval:['vb-interval','vb-interval2','sc-vb-interval'],
+  rph:     ['vb-rph','vb-rph2'],
+  benford: ['vb-benford','vb-benford2','sc-vb-benford'],
+  zscore:  ['vb-zscore','vb-zscore2','sc-vb-zscore'],
+  wdcheck: ['vb-wdcheck'],
+  cpu:     ['vb-cpu','sc-vb-cpu'],
+  ram:     ['vb-ram','sc-vb-ram'],
+  capacity:['vb-capacity'],
+  timeout: ['vb-timeout'],
+};
+
+function syncSlider(key, val){
+  const v = parseFloat(val);
+  const display = Number.isInteger(v) ? v : v.toFixed(2);
+  (SLIDER_IDS[key]||[]).forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && parseFloat(el.value)!==v) el.value = v;
+  });
+  (BADGE_IDS[key]||[]).forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = display;
+  });
+  // update Benford/zscore sensor card values
+  if(key==='benford'){
+    const sv = document.getElementById('scv-benford');
+    const sd = document.getElementById('scd-benford');
+    if(sv) sv.textContent = `χ²=${v}`;
+    if(sd) sd.textContent = `Umbral: ${display}`;
+  }
+  if(key==='zscore'){
+    const sv = document.getElementById('scv-zscore');
+    if(sv) sv.textContent = `${v}σ umbral`;
+  }
+  markDirty();
+}
+
+function syncText(key, val){
+  const ids = {ntfy:['inp-ntfy','inp-ntfy2']};
+  (ids[key]||[]).forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.value!==val) el.value=val;
+  });
+  markDirty();
+}
+
+// ══════════════════════════════════════════════════════════
+// DIRTY STATE
+// ══════════════════════════════════════════════════════════
+function markDirty(){
+  isDirty = true;
+  updateDirtyState();
+}
+
+function updateDirtyState(){
+  const dot = document.getElementById('dirty-dot');
+  const btn = document.getElementById('btn-apply');
+  if(dot) dot.style.display = isDirty ? 'inline-block' : 'none';
+  if(btn){
+    btn.disabled = !isDirty;
+    btn.dataset.tip = isDirty ? '' : 'Sin cambios pendientes';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// MODE TOGGLE
+// ══════════════════════════════════════════════════════════
+function setMode(m){
+  adminMode = m;
+  document.getElementById('btn-easy').className = m==='easy' ? 'active' : '';
+  document.getElementById('btn-full').className = m==='full' ? 'active' : '';
+  document.getElementById('easy-mode').style.display = m==='easy' ? 'block' : 'none';
+  document.getElementById('full-mode').style.display = m==='full' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════
+function showTab(id){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#cfg-tabs button').forEach((b,i)=>{
+    const panes=['t-endpoints','t-capture','t-alerts','t-network','t-rules'];
+    b.className = panes[i]===id ? 'active' : '';
+  });
+  const pane = document.getElementById(id);
+  if(pane) pane.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════
+// PRESETS
+// ══════════════════════════════════════════════════════════
+async function loadCustomPresets(){
+  const {data:{user}} = await sb.auth.getUser();
+  customPresets = user?.user_metadata?.custom_presets || [];
+  buildPresetsGrid();
+}
+
+function buildPresetsGrid(){
+  const grid = document.getElementById('presets-grid');
+  if(!grid) return;
+  const all = [...FACTORY_PRESETS, ...customPresets];
+  grid.innerHTML = all.map(p=>`
+    <div class="preset-card ${activePresetId===p.id?'active-preset':''}" onclick="loadPreset('${p.id}')">
+      <div class="pc-name">${escHtml(p.name)}</div>
+      <div class="pc-desc">${escHtml(p.desc||'')}</div>
+    </div>
+  `).join('');
+}
+
+function loadPreset(id){
+  const all = [...FACTORY_PRESETS, ...customPresets];
+  const p = all.find(x=>x.id===id);
+  if(!p) return;
+  activePresetId = id;
+  const c = p.cfg;
+  if(c.interval !== undefined) syncSlider('interval', c.interval);
+  if(c.rph      !== undefined) syncSlider('rph',      c.rph);
+  if(c.benford  !== undefined) syncSlider('benford',  c.benford);
+  if(c.zscore   !== undefined) syncSlider('zscore',   c.zscore);
+  const togEl  = document.getElementById('tog-election');
+  const togSafe= document.getElementById('tog-safe');
+  if(togEl  && c.election!==undefined) togEl.checked  = c.election;
+  if(togSafe && c.safe!==undefined)    togSafe.checked = c.safe;
+  buildPresetsGrid();
+}
+
+async function saveCustomPreset(){
+  const name = document.getElementById('preset-name').value.trim();
+  if(!name){alert('Escribe un nombre para el preset.');return;}
+  const cfg = getCurrentCfg();
+  const preset = {id:'custom-'+Date.now(), name, desc:'Guardado el '+new Date().toLocaleString(), cfg};
+  customPresets.push(preset);
+  await sb.auth.updateUser({data:{custom_presets: customPresets}});
+  document.getElementById('preset-name').value='';
+  buildPresetsGrid();
+}
+
+function getCurrentCfg(){
+  return {
+    interval: parseFloat(document.getElementById('sl-interval')?.value||30),
+    rph:      parseFloat(document.getElementById('sl-rph')?.value||180),
+    benford:  parseFloat(document.getElementById('sl-benford')?.value||5.99),
+    zscore:   parseFloat(document.getElementById('sl-zscore')?.value||3),
+    election: document.getElementById('tog-election')?.checked||false,
+    safe:     document.getElementById('tog-safe')?.checked||false,
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// APPLY CHANGES
+// ══════════════════════════════════════════════════════════
+async function applyChanges(){
+  if(!isDirty) return;
+  // Build diff
+  const newEp = buildNewEndpointsYaml();
+  const newWd = buildNewWatchdogYaml();
+  const newRl = buildNewRateLimiterYaml();
+  const changes = buildDiff(newEp, newWd, newRl);
+  if(!changes.length){
+    isDirty=false; updateDirtyState(); return;
+  }
+  showDiffModal(changes, {newEp, newWd, newRl});
+}
+
+function buildNewEndpointsYaml(){
+  const base = deepClone(currentConfig['config/prod/endpoints.yaml']||{});
+  const local = localConfig['config/prod/endpoints.yaml']||{};
+  // interval
+  if(!base.healing) base.healing={};
+  base.healing.interval_minutes = parseInt(document.getElementById('sl-interval')?.value||30);
+  base.healing.safe_mode_active = document.getElementById('tog-safe')?.checked||false;
+  base.healing.animal_mode = base.healing.animal_mode || 'normal';
+  // endpoints
+  if(!base.cne) base.cne={};
+  if(!base.cne.main_url && document.getElementById('inp-main-url'))
+    base.cne.main_url = document.getElementById('inp-main-url').value.trim();
+  base.cne.presidential_endpoints = local?.cne?.presidential_endpoints || base.cne?.presidential_endpoints || [];
+  return base;
+}
+
+function buildNewWatchdogYaml(){
+  const base = deepClone(currentConfig['config/prod/watchdog.yaml']||{});
+  base.check_interval_minutes = parseInt(document.getElementById('sl-wdcheck')?.value||3);
+  base.max_cpu_percent = parseInt(document.getElementById('sl-cpu')?.value||80);
+  base.max_mem_percent = parseInt(document.getElementById('sl-ram')?.value||90);
+  return base;
+}
+
+function buildNewRateLimiterYaml(){
+  const base = deepClone(currentConfig['config/prod/rate_limiter.yaml']||{});
+  base.max_requests_per_hour = parseInt(document.getElementById('sl-rph')?.value||180);
+  base.capacity = parseInt(document.getElementById('sl-capacity')?.value||3);
+  base.timeout_seconds = parseInt(document.getElementById('sl-timeout')?.value||30);
+  return base;
+}
+
+function buildDiff(newEp, newWd, newRl){
+  const changes = [];
+  const pairs = [
+    ['config/prod/endpoints.yaml',   currentConfig['config/prod/endpoints.yaml'],   newEp],
+    ['config/prod/watchdog.yaml',    currentConfig['config/prod/watchdog.yaml'],    newWd],
+    ['config/prod/rate_limiter.yaml',currentConfig['config/prod/rate_limiter.yaml'],newRl],
+  ];
+  for(const [path, orig, updated] of pairs){
+    const origYaml    = jsyaml.dump(orig||{});
+    const updatedYaml = jsyaml.dump(updated||{});
+    if(origYaml !== updatedYaml){
+      changes.push({path, origYaml, updatedYaml});
+    }
+  }
+  return changes;
+}
+
+function showDiffModal(changes, newYamls){
+  const div = document.getElementById('diff-content');
+  div.innerHTML = changes.map(c=>`
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;font-family:var(--mono)">${c.path}</div>
+      <div class="diff-block">${diffLines(c.origYaml, c.updatedYaml)}</div>
+    </div>
+  `).join('');
+  document.getElementById('diff-modal').classList.add('open');
+  // Store for confirmApply
+  document.getElementById('diff-modal')._changes = changes;
+  document.getElementById('diff-modal')._newYamls = newYamls;
+}
+
+function diffLines(a, b){
+  const al = a.split('\n');
+  const bl = b.split('\n');
+  const lines = [];
+  const max = Math.max(al.length, bl.length);
+  for(let i=0; i<max; i++){
+    const la = al[i], lb = bl[i];
+    if(la===lb) lines.push(`<span class="diff-ctx">${escHtml(la||'')}</span>`);
+    else{
+      if(la!==undefined) lines.push(`<span class="diff-rem">- ${escHtml(la)}</span>`);
+      if(lb!==undefined) lines.push(`<span class="diff-add">+ ${escHtml(lb)}</span>`);
+    }
+  }
+  return lines.join('\n');
+}
+
+function closeDiffModal(){ document.getElementById('diff-modal').classList.remove('open'); }
+
+async function confirmApply(){
+  closeDiffModal();
+  const changes   = document.getElementById('diff-modal')._changes;
+  const newYamls  = document.getElementById('diff-modal')._newYamls;
+  // Get PAT
+  let pat = sessionStorage.getItem('gh-pat');
+  if(!pat){
+    const acquired = await requestPat();
+    if(!acquired) return;
+    pat = sessionStorage.getItem('gh-pat');
+  }
+  await writeChanges(changes, newYamls, pat);
+}
+
+function requestPat(){
+  return new Promise(resolve=>{
+    document.getElementById('pat-modal').classList.add('open');
+    document.getElementById('pat-modal')._resolve = resolve;
+  });
+}
+
+function confirmPat(){
+  const input = document.getElementById('pat-input');
+  const pat = input.value.trim();
+  input.value = ''; // clear immediately
+  if(!pat){document.getElementById('pat-err').textContent='Ingresa el PAT.';return;}
+  sessionStorage.setItem('gh-pat', pat);
+  document.getElementById('pat-modal').classList.remove('open');
+  const resolve = document.getElementById('pat-modal')._resolve;
+  if(resolve) resolve(true);
+}
+
+function closePatModal(){
+  document.getElementById('pat-modal').classList.remove('open');
+  document.getElementById('pat-input').value='';
+  const resolve = document.getElementById('pat-modal')._resolve;
+  if(resolve) resolve(false);
+}
+
+async function writeChanges(changes, newYamls, pat){
+  const pathMap = {
+    'config/prod/endpoints.yaml':    jsyaml.dump(newYamls.newEp),
+    'config/prod/watchdog.yaml':     jsyaml.dump(newYamls.newWd),
+    'config/prod/rate_limiter.yaml': jsyaml.dump(newYamls.newRl),
+  };
+  const results = [];
+  let anyError = false;
+  for(const {path} of changes){
+    const content = pathMap[path];
+    if(!content) continue;
+    try{
+      // Refresh SHA
+      await fetchSha(path);
+      const sha = configShas[path];
+      const encoded = btoa(unescape(encodeURIComponent(content)));
+      const r = await fetch(`${API_BASE}/contents/${path}`,{
+        method:'PUT',
+        headers:{Authorization:`Bearer ${pat}`,'Content-Type':'application/json'},
+        body: JSON.stringify({message:'admin: config update via panel', content:encoded, sha}),
+      });
+      if(r.status===409){
+        show409Banner(); return;
+      }
+      if(!r.ok){
+        const j = await r.json().catch(()=>({}));
+        results.push(`❌ ${path}: ${j.message||r.status}`);
+        anyError=true;
+      } else {
+        const j = await r.json();
+        results.push(`✓ ${path} — commit ${(j.commit?.sha||'').slice(0,7)}`);
+        // Update SHA for future writes
+        configShas[path] = j.content?.sha;
+        currentConfig[path] = jsyaml.load(content);
+        localConfig[path]   = jsyaml.load(content);
+      }
+    }catch(e){
+      results.push(`❌ ${path}: ${e.message}`);
+      anyError=true;
+    }
+  }
+  if(!anyError){ isDirty=false; updateDirtyState(); }
+  showResultModal(results, anyError);
+}
+
+function show409Banner(){
+  const b = document.getElementById('banner-409');
+  if(b) b.classList.add('show');
+}
+
+async function reloadShaAndReapply(){
+  document.getElementById('banner-409').classList.remove('show');
+  await loadConfig();
+  applyChanges();
+}
+
+function discardEdits(){
+  document.getElementById('banner-409').classList.remove('show');
+  loadConfig();
+}
+
+function showResultModal(lines, isError){
+  const div = document.getElementById('result-content');
+  div.innerHTML = `
+    <div style="font-size:32px;margin-bottom:12px">${isError?'⚠️':'✅'}</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:12px">${isError?'Errores al aplicar':'Cambios aplicados'}</div>
+    ${lines.map(l=>`<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:left;margin-bottom:4px">${escHtml(l)}</div>`).join('')}
+    ${!isError?'<div style="font-size:12px;color:var(--muted);margin-top:12px">Los cambios tomarán efecto en el próximo ciclo (~15 min)</div>':''}
+  `;
+  document.getElementById('result-modal').classList.add('open');
+}
+
+function closeResultModal(){ document.getElementById('result-modal').classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════════
+// LOGS
+// ══════════════════════════════════════════════════════════
+async function fetchLog(){
+  try{
+    const r = await fetch(`${RAW_BASE}/data/alerts.json?t=${Date.now()}`);
+    if(r.ok) logData = await r.json();
+  }catch{}
+  renderLog();
+}
+
+function renderLog(){
+  const n = parseInt(document.getElementById('log-lines')?.value||50);
+  const el = document.getElementById('log-general');
+  if(!el) return;
+  if(!logData.length){el.innerHTML='Sin datos de log.';return;}
+  const slice = n===0 ? logData : logData.slice(-n);
+  el.innerHTML = slice.map(entry=>{
+    const lvl  = (entry.level||'INFO').toUpperCase();
+    const cls  = {INFO:'lvl-info',WARNING:'lvl-warn',CRITICAL:'lvl-crit',PANIC:'lvl-panic'}[lvl]||'';
+    const ts   = relTimestamps ? relTime(entry.timestamp) : (entry.timestamp||'—');
+    const msg  = escHtml(entry.message||JSON.stringify(entry));
+    return `<span class="${cls}">[${lvl}]</span> ${ts}  ${msg}`;
+  }).join('\n');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function fetchAttackLog(){
+  try{
+    const r = await fetch(`${RAW_BASE}/hashes/attack_log.jsonl?t=${Date.now()}`);
+    if(r.ok){
+      const txt = await r.text();
+      attackData = txt.split('\n').filter(l=>l.trim()).map(l=>{try{return JSON.parse(l);}catch{return {raw:l};}});
+    }
+  }catch{}
+  renderAttackLog();
+}
+
+function renderAttackLog(){
+  const filter = document.getElementById('attack-filter')?.value||'';
+  const el = document.getElementById('log-attacks');
+  if(!el) return;
+  if(!attackData.length){el.innerHTML='Sin eventos de ataque registrados.';return;}
+  const filtered = filter ? attackData.filter(e=>(e.type||e.event||e.raw||'').includes(filter)) : attackData;
+  el.innerHTML = filtered.map(e=>{
+    const type = e.type||e.event||'EVENT';
+    const ts   = relTimestamps ? relTime(e.timestamp) : (e.timestamp||'—');
+    const detail = Object.entries(e).filter(([k])=>!['type','event','timestamp'].includes(k))
+      .map(([k,v])=>`  ${k}: ${escHtml(String(v))}`).join('\n');
+    return `<span class="lvl-warn">[${escHtml(type)}]</span> ${ts}\n${detail}`;
+  }).join('\n\n');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function fetchAuditTrail(){
+  const pat = sessionStorage.getItem('gh-pat');
+  if(!pat){
+    document.getElementById('log-audit').textContent='PAT requerido. Haz clic en "Aplicar cambios" primero para ingresar tu PAT.';
+    return;
+  }
+  try{
+    const r = await fetch(`${API_BASE}/commits?path=config/prod/&per_page=30`,{
+      headers:{Authorization:`Bearer ${pat}`}
+    });
+    if(!r.ok){document.getElementById('log-audit').textContent='Error: '+r.status;return;}
+    const commits = await r.json();
+    const el = document.getElementById('log-audit');
+    el.innerHTML = commits.map(c=>{
+      const sha = c.sha.slice(0,7);
+      const msg = escHtml(c.commit.message.split('\n')[0]);
+      const ts  = relTime(c.commit.author.date);
+      return `${sha}  ${ts}  ${msg}`;
+    }).join('\n');
+  }catch(e){
+    document.getElementById('log-audit').textContent='Error: '+e.message;
+  }
+}
+
+function toggleTimestamp(){
+  relTimestamps = !relTimestamps;
+  renderLog();
+  renderAttackLog();
+}
+
+// ══════════════════════════════════════════════════════════
+// DOWNLOADS
+// ══════════════════════════════════════════════════════════
+function downloadTxt(id, filename){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const content = `# CENTINEL Admin — ${filename}\n# Downloaded: ${new Date().toISOString()}\n\n`
+    + el.innerText;
+  const blob = new Blob([content],{type:'text/plain'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadPdf(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const target = document.getElementById('print-target');
+  target.style.display='block';
+  target.innerHTML = `CENTINEL Admin — Log\nDescargado: ${new Date().toISOString()}\n${'─'.repeat(60)}\n\n${el.innerText}`;
+  document.body.dataset.printing = id;
+  window.print();
+  delete document.body.dataset.printing;
+  target.style.display='none';
+  target.innerHTML='';
+}
+
+function copyLog(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  navigator.clipboard.writeText(el.innerText).then(()=>{
+    // brief visual feedback
+    const old = el.style.outline;
+    el.style.outline='1px solid var(--ok)';
+    setTimeout(()=>el.style.outline=old,600);
+  });
+}
+
+function generateIncidentReport(){
+  const lines = attackData.map(e=>JSON.stringify(e)).join('\n');
+  const report = `CENTINEL — Reporte de Incidente\nGenerado: ${new Date().toISOString()}\nRepo: ${REPO_OWNER}/${REPO_NAME}\n${'─'.repeat(60)}\n\n${lines}`;
+  const blob = new Blob([report],{type:'text/plain'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`centinel-incident-${Date.now()}.txt`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════
+function relTime(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  if(isNaN(d)) return ts;
+  const s = Math.floor((Date.now()-d)/1000);
+  if(s<60) return `hace ${s}s`;
+  if(s<3600) return `hace ${Math.floor(s/60)}m`;
+  if(s<86400) return `hace ${Math.floor(s/3600)}h`;
+  return `hace ${Math.floor(s/86400)}d`;
+}
+
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+
+async function reloadConfig(){
+  await loadConfig();
+  await loadSnapshot();
+  isDirty=false; updateDirtyState();
+}
+
+// Sidebar scroll
+function scrollTo(id){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('#sidebar a').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href')==='#'+id);
+  });
+}
+
+// Active sidebar on scroll
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('#sidebar a').forEach(a=>{
+        a.classList.toggle('active', a.getAttribute('href')==='#'+e.target.id);
+      });
+    }
+  });
+},{threshold:.3});
+['s1','s2','s3','s4','s5','s6'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) observer.observe(el);
+});
+
+// Keyboard shortcut to open this panel (also registered in parent pages)
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeDiffModal(); closePatModal(); closeResultModal(); closeMapPopup();
+  }
+});
+</script>
+</body>
+</html>
