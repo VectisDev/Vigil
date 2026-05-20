@@ -345,17 +345,16 @@ class CNEEndpointHealer:
 
     def _discover_endpoint_candidates(self, main_url: str) -> list[str]:
         """English: Parse main page and Angular bundles to collect JSON endpoint candidates.
+              Falls back to Playwright browser interception if static scan finds nothing.
         Español: Analiza página principal y bundles Angular para detectar endpoints JSON candidatos.
+              Recurre a intercepción Playwright si el escaneo estático no encuentra nada.
         """
 
         html = self._http_get_text(main_url)
 
         bundles: list[str] = []
         try:
-            # English: Prefer BeautifulSoup when available for robust HTML parsing.
-            # Español: Preferir BeautifulSoup cuando está disponible para parseo HTML robusto.
             from bs4 import BeautifulSoup
-
             soup = BeautifulSoup(html, "html.parser")
             for script in soup.select("script[src]"):
                 src = script.get("src", "").strip()
@@ -363,8 +362,6 @@ class CNEEndpointHealer:
                     continue
                 bundles.append(urljoin(main_url, src))
         except ImportError:
-            # English: Fallback parser keeps auto-discovery operational without extra dependency.
-            # Español: Parser fallback mantiene autodescubrimiento operativo sin dependencia extra.
             for src in self._extract_script_srcs(html):
                 bundles.append(urljoin(main_url, src))
 
@@ -378,8 +375,54 @@ class CNEEndpointHealer:
             raw_matches.update(JSON_URL_PATTERN.findall(bundle_text))
 
         candidates = sorted({self._normalize_url(main_url, value) for value in raw_matches if value})
-        self.logger.info("📦 Candidate JSON endpoints discovered: %s", len(candidates))
+        self.logger.info("📦 Static scan found %s candidate JSON endpoints", len(candidates))
+
+        if not candidates:
+            self.logger.warning("⚠️ Static scan found nothing — escalating to Playwright browser intercept")
+            candidates = self._discover_via_playwright(main_url)
+
         return candidates
+
+    def _discover_via_playwright(self, main_url: str) -> list[str]:
+        """English: Launch headless browser, intercept all XHR/fetch responses, return URLs of
+              JSON payloads that look like presidential election data.
+        Español: Lanza browser headless, intercepta todas las respuestas XHR/fetch, devuelve URLs
+              de payloads JSON que parecen datos electorales presidenciales.
+        """
+
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            self.logger.error("Playwright not installed — cannot perform browser-based discovery")
+            return []
+
+        captured: list[str] = []
+
+        def _on_response(response: Any) -> None:
+            ct = response.headers.get("content-type", "")
+            if "json" not in ct:
+                return
+            try:
+                payload = response.json()
+                if self._looks_presidential(payload):
+                    captured.append(response.url)
+                    self.logger.info("🎭 Playwright intercepted electoral JSON: %s", response.url)
+            except Exception:
+                pass
+
+        try:
+            with sync_playwright() as pw:
+                browser = pw.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.on("response", _on_response)
+                page.goto(main_url, wait_until="networkidle", timeout=30_000)
+                page.wait_for_timeout(4_000)
+                browser.close()
+        except Exception as exc:
+            self.logger.error("Playwright discovery failed: %s", exc)
+
+        self.logger.info("🎭 Playwright captured %s electoral JSON endpoints", len(captured))
+        return captured
 
     def _validate_candidates(self, candidates: list[str]) -> tuple[EndpointRecord | None, dict[str, EndpointRecord]]:
         """English: Validate discovered candidates and return individual healthy endpoint matches.
@@ -404,7 +447,21 @@ class CNEEndpointHealer:
 
             keys, values = self._collect_schema_tokens(payload)
             level = self._infer_level(candidate, keys, values)
-            department = self._infer_department(candidate, values)
+            url_department = self._infer_department(candidate, values)
+            payload_department = self._extract_payload_department(payload)
+
+            # Content cross-check: if the payload explicitly reports a department,
+            # it must match what the URL implies. A mismatch means the healer
+            # would assign Atlántida data to Islas de la Bahía or vice-versa.
+            if payload_department and url_department and payload_department != url_department:
+                self.logger.warning(
+                    "⚠️ Department content mismatch for %s: URL implies %s but payload reports %s — skipping",
+                    candidate, url_department, payload_department,
+                )
+                continue
+
+            department = payload_department or url_department
+
             record = EndpointRecord(
                 url=candidate,
                 level=level,
@@ -707,6 +764,38 @@ class CNEEndpointHealer:
             if department in corpus:
                 return department
         return None
+
+    @staticmethod
+    def _extract_payload_department(payload: Any) -> str | None:
+        """English: Read the department field from JSON payload and map it to a known department.
+              Used to cross-check URL-inferred department against what the data actually reports,
+              preventing a healer scan from assigning Atlántida data to Islas de la Bahía.
+        Español: Lee el campo departamento del payload JSON y lo mapea a un departamento conocido.
+              Se usa para cruzar el departamento inferido por URL contra lo que el dato reporta.
+        """
+
+        DEPT_FIELD_KEYS = {"departamento", "department", "dept", "depto", "region"}
+
+        def _search(node: Any) -> str | None:
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if CNEEndpointHealer._normalize_token(str(key)).lower() in DEPT_FIELD_KEYS:
+                        if isinstance(value, str):
+                            normalized = CNEEndpointHealer._normalize_token(value)
+                            for dept in EXPECTED_DEPARTMENTS:
+                                if dept in normalized:
+                                    return dept
+                    result = _search(value)
+                    if result:
+                        return result
+            elif isinstance(node, list):
+                for item in node:
+                    result = _search(item)
+                    if result:
+                        return result
+            return None
+
+        return _search(payload)
 
     @staticmethod
     def _endpoint_signature(endpoints: list[dict[str, Any]]) -> str:
