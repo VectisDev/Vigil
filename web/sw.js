@@ -1,5 +1,5 @@
 const CACHE = 'centinel-v1';
-const STATIC = ['/panel/', '/panel/index.html'];
+const STATIC = ['/monitor/', '/monitor/index.html'];
 
 self.addEventListener('install', e =>
   e.waitUntil(
