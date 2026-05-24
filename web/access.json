@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "algo": "PBKDF2-SHA256",
+  "salt": "centinel-admin-salt-v1",
+  "iterations": 600000,
+  "seeds": {
+    "S1-A": "2ba61ad191e825dd808dab23beb37a5ed0e314bedb9f5a7d4a15fdd73dc8f52c",
+    "S1-B": "a4773415b3defdc4fe593a0a5448cbd712e2422dfb54b0b2da7e91d6ad6aea6c",
+    "S1-C": "5f080f46c17db57a62fc2300ab6b3f0a3861725a8bdc1a73bcae053328a48d36",
+    "S1-D": "fabbbfca37957716829bf8c5b03efa9f4bab157f6eba77d077aed8db4acadcec",
+    "S1-E": "c791b1f4dabb76d926cefd5953607599fb585e04359b873723265b22e309f48e",
+    "S1-F": "95db3158451d3b595a8c1121761da81e3f1a78aaf7394f76bd6fb081c3e4630e",
+    "S1-G": "6cc9ce548a8bfec07c9eb4f7ad0cf0ef21b940ce630d2fdee8f576774a9bbbae",
+    "S1-H": "6057dfe12d5ca2ed839641c4a12cf1ba8a56cfbf1546533c843af1c29aab4eec",
+    "S1-I": "34bb1d468b49a27fb97b33633e7e1d99944529cf70db20e1c213e13361126f4a",
+    "S1-J": "8237826ac38f037d0814e2529db84b1e6756a69323e60c10f7ae75ccfd26002d",
+    "S1-K": "4f09f69f4d9a02fc9e2d479555617be97f8f8b85f7521ddc0dc16734dad97e62",
+    "S1-L": "c01fc0096dd848504556170829e1f42ede0e86e5c6590e943f880eed84f92e03"
+  }
+}

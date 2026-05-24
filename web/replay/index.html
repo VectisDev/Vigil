@@ -6,7 +6,6 @@
 <title>CENTINEL — REPLAY Noviembre 2025</title>
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root{
   --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
@@ -76,9 +75,8 @@ footer a{color:var(--accent);text-decoration:none}
   <div class="login-box">
     <h1>📂 REPLAY 2025</h1>
     <p>Acceso restringido a investigadores autorizados.<br>
-       Los datos históricos están protegidos y no son públicos.</p>
-    <input id="login-email" class="login-field" type="email" placeholder="Correo institucional" autocomplete="email">
-    <input id="login-pass"  class="login-field" type="password" placeholder="Contraseña" autocomplete="current-password">
+       Ingresa tu Seed de acceso (S1-A … S1-L).</p>
+    <input id="login-pass"  class="login-field" type="password" placeholder="Seed de 24 caracteres" autocomplete="current-password">
     <button class="login-btn" onclick="doLogin()">Ingresar al REPLAY</button>
     <div id="login-error"></div>
   </div>
@@ -104,7 +102,7 @@ footer a{color:var(--accent);text-decoration:none}
 <!-- ── MAIN CONTENT ── -->
 <div id="loading">Cargando snapshots históricos…</div>
 <div id="no-data">No se encontraron snapshots en <code>replay_snapshots</code>.<br>
-  Ejecuta <code>python scripts/import_pilot_to_supabase.py</code> primero.</div>
+  Genera los datos con <code>python scripts/gen_sim_series.py</code> primero.</div>
 
 <main id="replay-main" style="display:none">
 
@@ -185,60 +183,62 @@ footer a{color:var(--accent);text-decoration:none}
 </footer>
 
 <script>
-const SUPABASE_URL  = window.CENTINEL_SUPABASE_URL  || 'https://PROYECTO.supabase.co';
-const SUPABASE_ANON = window.CENTINEL_SUPABASE_ANON || 'ANON_KEY';
-const isDemo = SUPABASE_URL.includes('PROYECTO');
+const REPLAY_SALT  = 'centinel-replay-salt-v1';
+const REPLAY_ITERS = 600_000;
 
-let sb = null;
 let sbUser = null;
 let allSnapshots = [];
 let charts = {};
 
-if(!isDemo && window.supabase){
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+// ── PBKDF2 helpers ──
+async function pbkdf2Key(password, salt, iterations){
+  const enc = new TextEncoder();
+  const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'},
+    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']);
+}
+
+async function pbkdf2Hex(password, salt, iterations){
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
 // ── AUTH ──
 async function checkAuth(){
-  if(isDemo || !sb){
+  const tok = sessionStorage.getItem('centinel_replay_tok');
+  const exp = parseInt(sessionStorage.getItem('centinel_replay_exp')||'0',10);
+  if(tok && Date.now() < exp){
+    sbUser = {seed: tok};
     document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('replay-user').textContent = 'Demo — sin Supabase';
-    loadSnapshots();
-    return;
-  }
-  const {data:{user}} = await sb.auth.getUser();
-  if(user){
-    sbUser = user;
-    document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('replay-user').textContent = user.email;
+    document.getElementById('replay-user').textContent = tok;
     loadSnapshots();
   }
 }
 
 async function doLogin(){
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
+  const pass  = document.getElementById('login-pass').value.trim();
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
-  if(!email||!pass){errEl.textContent='Ingresa email y contraseña.';return;}
-  if(!sb){errEl.textContent='Supabase no configurado.';return;}
+  if(!pass){errEl.textContent='Ingresa el seed de acceso.';return;}
   try{
-    const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
-    if(error) throw error;
-    // verify member access
-    const {data:member,error:me} = await sb.from('upnfm_members')
-      .select('id,access_level').eq('user_id', data.user.id).single();
-    if(me||!member){
-      await sb.auth.signOut();
-      errEl.textContent='Acceso no autorizado. Contacta al operador.';
-      return;
-    }
-    sbUser = data.user;
+    const accessUrl = new URL('../access.json', location.href).href;
+    const ac = await fetch(accessUrl+'?t='+Date.now()).then(r=>r.json());
+    const candidate = await pbkdf2Hex(pass, ac.salt||'centinel-admin-salt-v1', ac.iterations||REPLAY_ITERS);
+    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
+    if(!matched){errEl.textContent='Seed incorrecto.';return;}
+    const seedId = matched[0];
+    sessionStorage.setItem('centinel_replay_tok', seedId);
+    sessionStorage.setItem('centinel_replay_exp', String(Date.now()+8*3600*1000));
+    sbUser = {seed: seedId};
     document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('replay-user').textContent = data.user.email + ' · ' + (member.access_level||'researcher');
+    document.getElementById('replay-user').textContent = seedId;
     loadSnapshots();
   }catch(e){
-    errEl.textContent = e.message||'Error de autenticación';
+    errEl.textContent = 'Error: '+e.message;
   }
 }
 document.getElementById('login-pass').addEventListener('keydown', e=>{if(e.key==='Enter')doLogin();});
@@ -247,22 +247,12 @@ document.getElementById('login-pass').addEventListener('keydown', e=>{if(e.key==
 async function loadSnapshots(){
   document.getElementById('loading').style.display = 'block';
   let snaps = [];
-
-  if(isDemo || !sb){
-    // demo data
-    snaps = _demoSnapshots();
-  } else {
-    try{
-      const {data,error} = await sb.from('replay_snapshots')
-        .select('id,captured_at,dept_code,raw_json,source')
-        .order('captured_at',{ascending:true})
-        .limit(500);
-      if(error) throw error;
-      snaps = data||[];
-    }catch(e){
-      console.error('replay load error', e);
-    }
-  }
+  // Load static JSON data (no server dependency)
+  try{
+    const r = await fetch('../data/replay_snapshots.json?t='+Date.now());
+    if(r.ok) snaps = await r.json();
+  }catch{}
+  if(!snaps.length) snaps = _demoSnapshots();
 
   document.getElementById('loading').style.display = 'none';
 
