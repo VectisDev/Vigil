@@ -13,6 +13,11 @@
     display:flex;flex-direction:column;align-items:center;
     justify-content:center;padding:40px 24px;line-height:1.65;
     -webkit-font-smoothing:antialiased}
+  #topbar{position:fixed;top:0;right:0;padding:14px 20px;z-index:99}
+  #topbar a{font-size:11px;font-weight:700;color:var(--muted);text-decoration:none;
+    letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;
+    border:1px solid var(--border);border-radius:6px;transition:.15s}
+  #topbar a:hover{color:var(--fg);border-color:#3a3f49}
   h1{font-size:34px;margin:0 0 10px;font-weight:600;letter-spacing:-.03em}
   .sub{color:var(--muted);max-width:600px;text-align:center;margin:0 0 44px;
     font-size:15px}
@@ -24,7 +29,7 @@
   a.card:hover{border-color:#3a3f49;transform:translateY(-3px)}
   .card h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
   .card p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.6}
-  .tag{display:inline-block;font-size:11px;font-weight:600;
+  .tag{display:inline-block;font-size:11px;font-weight:700;
     padding:4px 11px;border-radius:999px;margin-bottom:14px;
     letter-spacing:.04em}
   .t-pub{background:rgba(110,168,254,.12);color:var(--accent)}
@@ -39,39 +44,31 @@
 </style>
 </head>
 <body>
+  <div id="topbar">
+    <a href="ops/">OPS ↗</a>
+  </div>
+
   <h1>CENTINEL Electoral Honduras</h1>
   <p class="sub">Auditoría criptográfica independiente del proceso electoral.
     Anclado en Bitcoin. Costo cero. Reproducible por cualquiera.</p>
   <div class="cards">
-    <a class="card" href="panel/">
+    <a class="card" href="monitor/">
       <span class="tag t-pub">PÚBLICO · tiempo real</span>
-      <h2>Panel de monitoreo</h2>
+      <h2>Monitor electoral</h2>
       <p>Mapa de Honduras en vivo, candidatos, gráfica Benford, 7 detectores forenses,
         cadena criptográfica, verificador offline y descarga de informe PDF. Sin login.</p>
     </a>
-    <a class="card" href="academico/">
+    <a class="card" href="lab/">
       <span class="tag t-upnfm">ACADÉMICO · simulación forense</span>
-      <h2>Sandbox para académicos</h2>
+      <h2>Lab forense</h2>
       <p>Consola de Reproducción Forense con datos reales HND-2025 y series de simulación
         de 576 snapshots. Inyección de anomalías de origen, ataques al sistema y patrones
         estadísticos electorales. Ajuste de umbrales de las 23 reglas.</p>
     </a>
   </div>
-  <footer id="main-footer">
-    AGPL-3.0 · <code>github.com/userf8a2c4/centinel-engine</code><br>
+  <footer>
+    AGPL-3.0 · <code>github.com/VectisDev/centinel</code><br>
     Verificación criptográfica independiente. Abierta a cualquier ciudadano, en cualquier país.
   </footer>
-<script>
-(function(){
-  function openAdmin(){window.location.href='admin/';}
-  document.getElementById('main-footer').innerHTML =
-    document.getElementById('main-footer').innerHTML.replace('·',
-      '<span id="adm-dot" style="cursor:default">·</span>');
-  document.getElementById('adm-dot')?.addEventListener('click', openAdmin);
-  document.addEventListener('keydown',function(e){
-    if(e.ctrlKey&&e.shiftKey&&e.key==='A'){e.preventDefault();openAdmin();}
-  });
-})();
-</script>
 </body>
 </html>
