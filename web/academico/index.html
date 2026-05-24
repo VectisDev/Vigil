@@ -14,7 +14,6 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-size:14px;min-height:100vh}
-body.auth-pending{visibility:hidden}
 
 /* ── NAV ── */
 #breadcrumb{padding:10px 24px;background:var(--panel);border-bottom:1px solid var(--border);
@@ -335,9 +334,7 @@ body.auth-pending{visibility:hidden}
   <div id="dl-btn">
     <button class="dl-pill" onclick="downloadFullPNG()">↓ PNG</button>
     <button class="dl-pill" onclick="downloadPDF()">↓ PDF</button>
-    <span id="user-email" style="font-size:11px;color:var(--muted);padding:0 4px"></span>
-    <button class="dl-pill" onclick="openSettings()" title="Configuración de cuenta" style="font-size:14px;padding:3px 9px">⚙</button>
-    <button class="dl-pill" id="btn-logout" onclick="doLogout()" style="border-color:rgba(223,107,134,.4);color:var(--bad)">Salir</button>
+    <button class="dl-pill" onclick="openSettings()" title="Configuración" style="font-size:14px;padding:3px 9px">⚙</button>
   </div>
 </div>
 
@@ -542,23 +539,7 @@ body.auth-pending{visibility:hidden}
 "use strict";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AUTH GATE
-// ═══════════════════════════════════════════════════════════════════════════
-// Auth gate — PBKDF2 via sessionStorage (no server deps)
-(function(){
-  const tok = sessionStorage.getItem('centinel_acad_tok');
-  const exp = parseInt(sessionStorage.getItem('centinel_acad_exp')||'0',10);
-  if(!tok || Date.now() >= exp){ window.location.replace('login.html'); return; }
-  document.body.classList.remove('auth-pending');
-  const el = document.getElementById('user-email');
-  if(el) el.textContent = tok;
-})();
-
-function doLogout(){
-  sessionStorage.removeItem('centinel_acad_tok');
-  sessionStorage.removeItem('centinel_acad_exp');
-  window.location.replace('login.html');
-}
+// Acceso académico abierto — sin autenticación requerida
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STATE
@@ -2271,8 +2252,7 @@ function downloadPDF(){
 // ═══════════════════════════════════════════════════════════════════════════
 function openSettings(){
   document.getElementById('settings-overlay').classList.add('open');
-  document.getElementById('settings-email-val').textContent=
-    document.getElementById('user-email').textContent.trim()||'—';
+  document.getElementById('settings-email-val').textContent='Acceso abierto';
 }
 function closeSettings(){
   document.getElementById('settings-overlay').classList.remove('open');
@@ -2283,9 +2263,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings();});
 function sendFeedback(){
   const msg=document.getElementById('cfg-feedback-msg').value.trim();
   if(!msg){document.getElementById('cfg-feedback-msg').focus();return;}
-  const email=document.getElementById('user-email').textContent.trim();
   const ds=document.getElementById('dataset-select')?.options[document.getElementById('dataset-select').selectedIndex]?.text||'—';
-  const body=`**Mensaje:**\n${msg}\n\n---\n**Usuario:** ${email}  \n**Snap:** ${SIM.idx+1}/${SIM.snapshots.length}  \n**Dataset:** ${ds}  \n**Fecha:** ${new Date().toISOString()}`;
+  const body=`**Mensaje:**\n${msg}\n\n---\n**Snap:** ${SIM.idx+1}/${SIM.snapshots.length}  \n**Dataset:** ${ds}  \n**Fecha:** ${new Date().toISOString()}`;
   const url='https://github.com/VectisDev/centinel/issues/new'
     +'?labels=sandbox-feedback'
     +'&title='+encodeURIComponent('[Sandbox] Comentario de usuario')

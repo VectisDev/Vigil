@@ -2,93 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./">
 <title>CENTINEL — Acceso Académico</title>
-<style>
-:root{--bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
-  --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;--purple:#b08cf0}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;
-  min-height:100vh;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:24px;-webkit-font-smoothing:antialiased}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;
-  padding:36px 40px;width:100%;max-width:380px}
-.logo{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.08em;
-  text-transform:uppercase;margin-bottom:6px}
-h1{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
-.sub{font-size:13px;color:var(--muted);margin-bottom:28px}
-label{display:block;font-size:11px;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-input{width:100%;background:var(--bg);border:1px solid var(--border);
-  border-radius:8px;padding:10px 14px;color:var(--fg);font-size:14px;
-  outline:none;transition:.15s;margin-bottom:16px}
-input:focus{border-color:var(--accent)}
-input::placeholder{color:var(--muted)}
-button{width:100%;background:var(--accent);color:#0f1115;border:none;
-  border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;
-  transition:.15s;margin-top:4px}
-button:hover{opacity:.88}
-button:disabled{opacity:.5;cursor:not-allowed}
-.err{font-size:12px;color:var(--bad);margin-top:12px;min-height:18px;text-align:center}
-.back{margin-top:20px;text-align:center;font-size:12px;color:var(--muted)}
-.back a{color:var(--muted);text-decoration:none}
-.back a:hover{color:var(--fg)}
-</style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">CENTINEL Electoral</div>
-  <h1>Acceso académico</h1>
-  <p class="sub">Simulación Forense — Ingresa tu Seed de acceso (S1-A … S1-L)</p>
-
-  <label for="pass">Seed de acceso</label>
-  <input type="password" id="pass" placeholder="seed de 24 caracteres" autocomplete="current-password"
-         onkeydown="if(event.key==='Enter')doLogin()">
-
-  <button id="btn-login" onclick="doLogin()">Entrar</button>
-  <div class="err" id="err-msg"></div>
-
-  <div class="back"><a href="../">← Volver al inicio</a></div>
-</div>
-
-<script>
-// Sesión activa → ir directo al sandbox
-(function(){
-  const tok = sessionStorage.getItem('centinel_acad_tok');
-  const exp = parseInt(sessionStorage.getItem('centinel_acad_exp')||'0',10);
-  if(tok && Date.now() < exp) window.location.replace('./');
-})();
-
-async function pbkdf2Hex(password, salt, iterations){
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, key, 256);
-  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function doLogin(){
-  const pass = document.getElementById('pass').value.trim();
-  const btn  = document.getElementById('btn-login');
-  const err  = document.getElementById('err-msg');
-  if(!pass){err.textContent='Ingresa el seed de acceso.';return;}
-  btn.disabled=true;btn.textContent='Verificando…';err.textContent='';
-  try{
-    const ac = await fetch('../access.json?t='+Date.now()).then(r=>r.json());
-    const candidate = await pbkdf2Hex(pass, ac.salt||'centinel-admin-salt-v1', ac.iterations||600000);
-    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
-    if(!matched){
-      err.textContent='Seed incorrecto.';
-      btn.disabled=false;btn.textContent='Entrar';return;
-    }
-    sessionStorage.setItem('centinel_acad_tok', matched[0]);
-    sessionStorage.setItem('centinel_acad_exp', String(Date.now()+8*3600*1000));
-    window.location.replace('./');
-  }catch(e){
-    err.textContent='Error: '+e.message;
-    btn.disabled=false;btn.textContent='Entrar';
-  }
-}
-</script>
+<script>window.location.replace('./');</script>
 </body>
 </html>
