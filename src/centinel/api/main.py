@@ -124,8 +124,10 @@ logger = logging.getLogger(__name__)
 # Mount /audit/* router for independent third-party verification.
 # Read-only, no-auth endpoints intentional: see docs/architecture.md.
 from .audit import router as audit_router  # noqa: E402
+from .routes.setup import router as setup_router  # noqa: E402
 
 app.include_router(audit_router)
+app.include_router(setup_router)
 
 
 def _load_cors_origins() -> list[str]:
@@ -899,6 +901,17 @@ def departments_status(request: Request) -> list[dict]:
 
 DASHBOARD_BUILD_DIR = BASE_DIR / "static" / "dashboard"
 DASHBOARD_HTML_PATH = BASE_DIR / "templates" / "dashboard.html"
+SETUP_DIR = BASE_DIR / "web" / "setup"
+
+
+@app.get("/setup/", response_class=HTMLResponse)
+@app.get("/setup", response_class=HTMLResponse)
+def setup_page():
+    """Sirve el wizard de configuración inicial."""
+    setup_html = SETUP_DIR / "index.html"
+    if setup_html.exists():
+        return FileResponse(setup_html, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Setup wizard not found.")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -913,10 +926,11 @@ def dashboard():
     raise HTTPException(status_code=500, detail="Dashboard template not found.")
 
 
-# Mount React build assets (JS/CSS bundles) under /assets.
-# Must be registered after explicit routes to avoid shadowing API endpoints.
+# Mount static directories. Must be after explicit routes to avoid shadowing API endpoints.
 if DASHBOARD_BUILD_DIR.exists():
     app.mount("/assets", StaticFiles(directory=DASHBOARD_BUILD_DIR / "assets"), name="dashboard-assets")
+if SETUP_DIR.exists():
+    app.mount("/setup/static", StaticFiles(directory=SETUP_DIR), name="setup-static")
 
 
 # EN: Log build info at startup for deploy verification.
