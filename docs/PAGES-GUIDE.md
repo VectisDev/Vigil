@@ -38,36 +38,19 @@ El panel estará disponible en `https://{tu-usuario}.github.io/centinel-engine/`
 
 ---
 
-## Credenciales de acceso — Supabase (opcional) / Access credentials — Supabase (optional)
+## Credenciales de acceso — PBKDF2 (sin servidor) / Access credentials — PBKDF2 (serverless)
 
-El panel funciona completamente sin Supabase. Los datos electorales son públicos y se cargan desde `snapshot.json`.
+El panel y el sandbox académico funcionan completamente sin dependencias externas. La autenticación es cliente-local: PBKDF2-SHA256 contra `web/access.json` (solo hashes, nunca contraseñas en texto plano).
 
-Supabase solo se usa para el área de login de `/academico/` (sandbox de simulación). Si no lo configuras, esa sección muestra los datos de simulación incluidos directamente, sin autenticación.
+Para generar nuevos seeds de acceso:
 
-Si quieres autenticación real para el sandbox académico:
+```bash
+make wizard   # o: python scripts/setup_wizard.py
+```
 
-<details>
-<summary>Configurar Supabase (3 pasos)</summary>
+El wizard genera 12 seeds aleatorios (S1-A … S1-L), almacena solo los hashes en `web/access.json`, y muestra los seeds en pantalla una sola vez. **Guárdalos en un lugar seguro — no se pueden recuperar.**
 
-**Paso 1** — Crea un proyecto gratuito:
-→ [https://supabase.com](https://supabase.com) → New project
-
-**Paso 2** — Obtén las credenciales:
-→ En tu proyecto Supabase: **Settings → API**
-- Copia **Project URL** (`https://xxx.supabase.co`)
-- Copia **anon/public key** (empieza con `eyJ...`)
-
-**Paso 3** — Guárdalas en el repositorio:
-→ [Settings → Secrets → Actions → New secret](../../settings/secrets/actions/new)
-
-| Name | Value |
-|------|-------|
-| `SUPABASE_URL` | La Project URL copiada |
-| `SUPABASE_ANON_KEY` | La anon key copiada |
-
-Luego actualiza `web/config.js` con esos valores y haz push. El workflow redespliega automáticamente.
-
-</details>
+No se requiere ningún servicio externo ni cuenta de terceros.
 
 ---
 

@@ -990,11 +990,6 @@ def main() -> None:
         action="store_true",
         help="Write SHA-256 of the PDF to a companion .sha256 file.",
     )
-    parser.add_argument(
-        "--upload",
-        action="store_true",
-        help="Upload PDF to Supabase Storage bucket 'reports' and print the public URL.",
-    )
     args = parser.parse_args()
 
     snapshots = load_snapshot_files(Path(args.source_dir))
@@ -1100,44 +1095,6 @@ def main() -> None:
         print(f"SHA-256: {pdf_hash}")
         print(f"Signature written to: {sig_path}")
 
-    if args.upload:
-        _upload_to_supabase(pdf_bytes, output_path.name)
-
-
-def _upload_to_supabase(pdf_bytes: bytes, filename: str) -> str | None:
-    """Upload PDF to Supabase Storage bucket 'reports'. Returns public URL or None."""
-    import os
-
-    supabase_url = os.environ.get("SUPABASE_URL", "")
-    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-    if not supabase_url or not service_key or "PROYECTO" in supabase_url:
-        print("UPLOAD SKIPPED: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set.")
-        return None
-    try:
-        import urllib.request
-
-        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        object_path = f"reports/{ts}_{filename}"
-        upload_url = f"{supabase_url}/storage/v1/object/{object_path}"
-        req = urllib.request.Request(
-            upload_url,
-            data=pdf_bytes,
-            headers={
-                "Authorization": f"Bearer {service_key}",
-                "apikey": service_key,
-                "Content-Type": "application/pdf",
-                "x-upsert": "true",
-            },
-            method="POST",
-        )
-        with urllib.request.urlopen(req) as resp:  # nosec B310
-            resp.read()
-        public_url = f"{supabase_url}/storage/v1/object/public/{object_path}"
-        print(f"PDF uploaded: {public_url}")
-        return public_url
-    except Exception as exc:
-        print(f"Upload failed: {exc}")
-        return None
 
 
 if __name__ == "__main__":
