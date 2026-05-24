@@ -319,6 +319,7 @@ details .details-body{padding:12px 0 4px}
       <a href="#s5" onclick="scrollTo('s5')">§5 Logs y terminales</a>
       <div class="sec-header">Ayuda</div>
       <a href="#s6" onclick="scrollTo('s6')">§6 Manual</a>
+      <a href="#s7" onclick="scrollTo('s7')">§7 Acceso y Seeds</a>
     </nav>
 
     <!-- MAIN -->
@@ -887,6 +888,43 @@ details .details-body{padding:12px 0 4px}
         </details>
       </div>
 
+      <!-- ── §7 Acceso y Seeds ── -->
+      <div class="section" id="s7">
+        <div class="section-title">§7 Acceso y Seeds</div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          Gestión de los 12 seeds de acceso administrativo (S1-A … S1-L).
+          Los seeds reales nunca se almacenan — solo sus hashes PBKDF2-SHA256.
+          El PDF generado es el único registro.
+        </p>
+
+        <div class="ctrl-section">
+          <h3>Estado actual</h3>
+          <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;">
+            Cargando…
+          </div>
+        </div>
+
+        <div class="ctrl-section">
+          <h3 style="color:var(--bad)">Regenerar seeds</h3>
+          <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">
+            Genera 12 seeds completamente nuevos y descarga el PDF actualizado.
+            <strong style="color:var(--warn)">Todos los seeds anteriores quedan invalidados permanentemente.</strong>
+          </p>
+          <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
+            <strong>¿Confirmas la regeneración?</strong><br>
+            Esta acción no se puede deshacer. Los 12 seeds actuales dejarán de funcionar.
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='none'">Cancelar</button>
+              <button class="hdr-btn primary" style="background:var(--bad);border-color:var(--bad)" onclick="doRegenerate()">Sí, regenerar ahora</button>
+            </div>
+          </div>
+          <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='block'" id="btn-regen">
+            Regenerar seeds y descargar nuevo PDF
+          </button>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -1084,6 +1122,7 @@ async function initAll(){
   fetchLog();
   fetchAttackLog();
   loadOtsStatus();
+  loadSeedStatus();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2135,6 +2174,71 @@ function relTime(ts){
 
 function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 
+// ── §7 Acceso y Seeds ──────────────────────────────────────────────────────
+async function loadSeedStatus() {
+  const el = document.getElementById('seed-status');
+  if (!el) return;
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
+    const s = await r.json();
+    if (s.configured) {
+      const since = s.configured_at ? new Date(s.configured_at).toLocaleString() : '—';
+      const regen = s.last_regenerated_at ? new Date(s.last_regenerated_at).toLocaleString() : 'Nunca';
+      el.innerHTML = `
+        <span style="color:var(--ok)">✓ Sistema configurado</span><br>
+        País: <strong>${s.country_name || s.country_code || '—'}</strong><br>
+        Configurado: ${since}<br>
+        Última regeneración: ${regen}<br>
+        Seeds activos: <strong>12 (S1-A … S1-L)</strong>
+      `;
+    } else {
+      el.innerHTML = '<span style="color:var(--warn)">⚠ Sistema no configurado aún. Ejecuta el wizard de inicio.</span>';
+      document.getElementById('btn-regen').disabled = true;
+    }
+  } catch(e) {
+    el.innerHTML = '<span style="color:var(--muted)">No se pudo cargar el estado.</span>';
+  }
+}
+
+async function doRegenerate() {
+  const btn = document.querySelector('#regen-confirm button[onclick="doRegenerate()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
+  document.getElementById('regen-confirm').style.display = 'none';
+
+  try {
+    const statusR = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
+    const status = await statusR.json();
+
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/regenerate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country_code: status.country_code || null }),
+    });
+
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({}));
+      alert('Error al regenerar: ' + (err.detail || r.status));
+      return;
+    }
+
+    // Descargar PDF automáticamente
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `centinel-seeds-nuevos-${Date.now()}.pdf`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+    await loadSeedStatus();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Sí, regenerar ahora'; }
+  }
+}
+
+
 async function reloadConfig(){
   await loadConfig();
   await loadSnapshot();
@@ -2160,7 +2264,7 @@ const observer = new IntersectionObserver(entries=>{
     }
   });
 },{threshold:.3});
-['s1','s2','s3','s4','s5','s6'].forEach(id=>{
+['s1','s2','s3','s4','s5','s6','s7'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) observer.observe(el);
 });
