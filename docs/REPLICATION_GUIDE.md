@@ -131,29 +131,29 @@ data_adapter: "centinel.sync.adapters.guatemala_adapter"
 
 ---
 
-### Paso 4: Configurar Supabase (o base de datos alternativa)
+### Paso 4: Configurar sincronización a GitHub Pages (opcional)
 
-1. Crear nuevo proyecto en supabase.com
-2. Ejecutar las migraciones del esquema:
+Para publicar snapshots y alertas en tiempo real a la web pública:
+
+1. En GitHub → **Settings → Secrets → Actions**, crear:
+   - `GITHUB_TOKEN` (ya disponible automáticamente en Actions)
+   - O un PAT con permiso `contents:write` si se ejecuta fuera de Actions
+2. Las variables de entorno relevantes:
    ```bash
-   supabase db push  # o aplicar manualmente los archivos en supabase/migrations/
+   GITHUB_REPOSITORY=VectisDev/centinel   # automático en Actions
+   GITHUB_PAGES_BRANCH=main               # rama donde vive web/data/
    ```
-3. Copiar `.env.example` a `.env` y configurar:
-   ```bash
-   SUPABASE_URL=https://[tu-proyecto].supabase.co
-   SUPABASE_SERVICE_ROLE_KEY=[tu-key-privada]  # NUNCA en el repositorio
-   SUPABASE_ANON_KEY=[tu-anon-key]
-   ```
+
+> Sin estas variables, el motor sigue funcionando localmente. SQLite es siempre la fuente de verdad.
 
 ---
 
 ### Paso 5: Variables de entorno mínimas
 
 ```bash
-# Obligatorias
-SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...
-SUPABASE_ANON_KEY=...
+# Opcionales — sync a GitHub Pages
+GITHUB_TOKEN=...                  # PAT o token de Actions
+GITHUB_PAGES_BRANCH=main         # rama de publicación (default: main)
 
 # Opcionales con defaults
 CENTINEL_POLL_INTERVAL=120        # segundos entre capturas (default: 120)
@@ -170,7 +170,7 @@ LOG_LEVEL=INFO
 # Instalar dependencias
 pip install -e ".[dev]"
 
-# Correr una captura de prueba (dry-run sin escribir a Supabase)
+# Correr una captura de prueba (dry-run)
 python scripts/run_pipeline.py --dry-run --once
 
 # Verificar que el formato del snapshot sea correcto
@@ -184,12 +184,11 @@ python scripts/validate_snapshot.py --snapshot output/latest_snapshot.json
 En `web/panel/index.html`:
 
 1. Cambiar el título y descripción en el `<head>` y `<header>`
-2. Actualizar la URL de Supabase en la sección de configuración JS:
+2. Actualizar `web/config.js` con la URL de GitHub Pages del nuevo repositorio:
    ```javascript
-   const SUPABASE_URL = "https://[tu-proyecto].supabase.co";
-   const SUPABASE_ANON_KEY = "[tu-anon-key]";
+   const CENTINEL_PAGES_URL = 'https://[tu-org].github.io/[tu-repo]';
    ```
-3. Actualizar la URL de GitHub Pages en `web/panel/` si se deploya en otro repositorio
+3. Regenerar seeds de acceso con `make wizard` (genera nuevos hashes en `web/access.json`)
 
 ---
 
@@ -257,10 +256,9 @@ process than the Honduran presidential election).
 ### Minimum environment variables
 
 ```bash
-# Required
-SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...  # NEVER in the repository
-SUPABASE_ANON_KEY=...
+# Optional — sync to GitHub Pages
+GITHUB_TOKEN=...                  # PAT or Actions token
+GITHUB_PAGES_BRANCH=main         # publication branch (default: main)
 
 # Optional with defaults
 CENTINEL_POLL_INTERVAL=120        # seconds between captures

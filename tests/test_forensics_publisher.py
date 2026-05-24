@@ -121,19 +121,19 @@ def test_run_and_publish_emits_coverage_alerts(monkeypatch, tmp_path: Path) -> N
         )
 
     alerts: list[dict] = []
-    monkeypatch.setattr(fp.supabase_sync, "is_configured", lambda: True)
+    monkeypatch.setattr(fp.github_sync, "is_configured", lambda: True)
     monkeypatch.setattr(
-        fp.supabase_sync,
+        fp.github_sync,
         "push_snapshot",
-        lambda **kw: 42,
+        lambda **kw: True,
     )
     monkeypatch.setattr(
-        fp.supabase_sync,
+        fp.github_sync,
         "push_alert",
-        lambda **kw: alerts.append(kw) or 1,
+        lambda **kw: alerts.append(kw) or True,
     )
 
-    snapshot_id = fp.run_and_publish(
+    fp.run_and_publish(
         sorted(snap_dir.glob("snapshot_*.json")),
         captured_at=base.isoformat(),
         chain_hash="deadbeef",
@@ -142,5 +142,4 @@ def test_run_and_publish_emits_coverage_alerts(monkeypatch, tmp_path: Path) -> N
         target_cadence_minutes=5.0,
     )
 
-    assert snapshot_id == 42
     assert any(a["kind"] == "capture_gap" for a in alerts)

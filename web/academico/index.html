@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CENTINEL — Sandbox Forense Académico</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -545,22 +544,19 @@ body.auth-pending{visibility:hidden}
 // ═══════════════════════════════════════════════════════════════════════════
 // AUTH GATE
 // ═══════════════════════════════════════════════════════════════════════════
-const _sb = supabase.createClient(
-  window.CENTINEL_SUPABASE_URL  || '',
-  window.CENTINEL_SUPABASE_ANON || ''
-);
-(async()=>{
-  document.body.classList.add('auth-pending');
-  const {data:{session}} = await _sb.auth.getSession();
-  if(!session){window.location.replace('login.html');return;}
+// Auth gate — PBKDF2 via sessionStorage (no server deps)
+(function(){
+  const tok = sessionStorage.getItem('centinel_acad_tok');
+  const exp = parseInt(sessionStorage.getItem('centinel_acad_exp')||'0',10);
+  if(!tok || Date.now() >= exp){ window.location.replace('login.html'); return; }
   document.body.classList.remove('auth-pending');
-  const email = session.user.email || '';
   const el = document.getElementById('user-email');
-  if(el) el.textContent = email;
+  if(el) el.textContent = tok;
 })();
 
-async function doLogout(){
-  await _sb.auth.signOut();
+function doLogout(){
+  sessionStorage.removeItem('centinel_acad_tok');
+  sessionStorage.removeItem('centinel_acad_exp');
   window.location.replace('login.html');
 }
 
@@ -2277,89 +2273,12 @@ function openSettings(){
   document.getElementById('settings-overlay').classList.add('open');
   document.getElementById('settings-email-val').textContent=
     document.getElementById('user-email').textContent.trim()||'—';
-  document.getElementById('cfg-pw1').value='';
-  document.getElementById('cfg-pw2').value='';
-  document.getElementById('cfg-pw-msg').textContent='';
-  load2FAStatus();
 }
 function closeSettings(){
   document.getElementById('settings-overlay').classList.remove('open');
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings();});
 
-async function changePassword(){
-  const p1=document.getElementById('cfg-pw1').value;
-  const p2=document.getElementById('cfg-pw2').value;
-  const msg=document.getElementById('cfg-pw-msg');
-  msg.className='cfg-msg';
-  if(!p1||p1.length<8){msg.className='cfg-msg err';msg.textContent='Mínimo 8 caracteres.';return;}
-  if(p1!==p2){msg.className='cfg-msg err';msg.textContent='Las contraseñas no coinciden.';return;}
-  msg.textContent='Actualizando…';
-  const{error}=await _sb.auth.updateUser({password:p1});
-  if(error){msg.className='cfg-msg err';msg.textContent='Error: '+error.message;}
-  else{msg.className='cfg-msg ok';msg.textContent='Contraseña actualizada correctamente.';
-    document.getElementById('cfg-pw1').value='';document.getElementById('cfg-pw2').value='';}
-}
-
-async function load2FAStatus(){
-  const status=document.getElementById('cfg-2fa-status');
-  const panel=document.getElementById('cfg-2fa-panel');
-  status.textContent='Consultando…';panel.innerHTML='';
-  try{
-    const{data,error}=await _sb.auth.mfa.listFactors();
-    if(error)throw error;
-    const verified=(data.totp||[]).filter(f=>f.status==='verified');
-    if(verified.length){
-      status.innerHTML='<span style="color:var(--ok)">● Activado</span>';
-      panel.innerHTML=`<button class="cfg-btn danger" onclick="disable2FA('${verified[0].id}')">Desactivar 2FA</button>`;
-    }else{
-      status.innerHTML='<span style="color:var(--muted)">● Desactivado</span>';
-      panel.innerHTML=`<button class="cfg-btn" onclick="enroll2FA()">Activar verificación en dos pasos</button>`;
-    }
-  }catch(e){
-    status.innerHTML='<span style="color:var(--muted)">No disponible en este plan de Supabase</span>';
-  }
-}
-
-async function enroll2FA(){
-  const panel=document.getElementById('cfg-2fa-panel');
-  panel.innerHTML='<span style="color:var(--muted);font-size:11px">Generando QR…</span>';
-  const{data,error}=await _sb.auth.mfa.enroll({factorType:'totp',friendlyName:'CENTINEL'});
-  if(error){panel.innerHTML=`<span style="color:var(--bad);font-size:11px">Error: ${error.message}</span>`;return;}
-  const{id:factorId,totp:{qr_code,secret}}=data;
-  panel.innerHTML=`
-    <div id="cfg-qr-wrap"><img src="${qr_code}" alt="QR 2FA"></div>
-    <span class="cfg-secret">${secret}</span>
-    <div style="font-size:10px;color:var(--muted);margin-bottom:10px">
-      Escanea el QR con Google Authenticator, Authy o similar.<br>
-      O ingresa la clave manualmente.
-    </div>
-    <input id="cfg-totp-code" class="cfg-input" type="text" inputmode="numeric"
-      maxlength="6" placeholder="Código de 6 dígitos del autenticador">
-    <button class="cfg-btn" onclick="verify2FA('${factorId}')">Verificar y activar</button>
-    <div id="cfg-totp-msg" class="cfg-msg"></div>`;
-}
-
-async function verify2FA(factorId){
-  const code=document.getElementById('cfg-totp-code').value.trim();
-  const msg=document.getElementById('cfg-totp-msg');
-  msg.className='cfg-msg';
-  if(code.length!==6){msg.className='cfg-msg err';msg.textContent='Ingresa exactamente 6 dígitos.';return;}
-  msg.textContent='Verificando…';
-  const{data:chal,error:e1}=await _sb.auth.mfa.challenge({factorId});
-  if(e1){msg.className='cfg-msg err';msg.textContent='Error: '+e1.message;return;}
-  const{error:e2}=await _sb.auth.mfa.verify({factorId,challengeId:chal.id,code});
-  if(e2){msg.className='cfg-msg err';msg.textContent='Código incorrecto o expirado.';return;}
-  msg.className='cfg-msg ok';msg.textContent='2FA activado correctamente.';
-  setTimeout(()=>load2FAStatus(),1500);
-}
-
-async function disable2FA(factorId){
-  if(!confirm('¿Desactivar la verificación en dos pasos?'))return;
-  const{error}=await _sb.auth.mfa.unenroll({factorId});
-  if(error){alert('Error: '+error.message);return;}
-  load2FAStatus();
-}
 
 function sendFeedback(){
   const msg=document.getElementById('cfg-feedback-msg').value.trim();
@@ -2367,7 +2286,7 @@ function sendFeedback(){
   const email=document.getElementById('user-email').textContent.trim();
   const ds=document.getElementById('dataset-select')?.options[document.getElementById('dataset-select').selectedIndex]?.text||'—';
   const body=`**Mensaje:**\n${msg}\n\n---\n**Usuario:** ${email}  \n**Snap:** ${SIM.idx+1}/${SIM.snapshots.length}  \n**Dataset:** ${ds}  \n**Fecha:** ${new Date().toISOString()}`;
-  const url='https://github.com/userf8a2c4/centinel-engine/issues/new'
+  const url='https://github.com/VectisDev/centinel/issues/new'
     +'?labels=sandbox-feedback'
     +'&title='+encodeURIComponent('[Sandbox] Comentario de usuario')
     +'&body='+encodeURIComponent(body);
@@ -2387,23 +2306,13 @@ function sendFeedback(){
     </div>
     <div class="cfg-email">Sesión activa como <strong id="settings-email-val"></strong></div>
 
-    <!-- CAMBIAR CONTRASEÑA -->
+    <!-- ACCESO -->
     <div class="cfg-section">
-      <div class="cfg-section-title">Cambiar contraseña</div>
-      <input id="cfg-pw1" class="cfg-input" type="password" placeholder="Nueva contraseña (mín. 8 caracteres)" autocomplete="new-password">
-      <input id="cfg-pw2" class="cfg-input" type="password" placeholder="Confirmar nueva contraseña" autocomplete="new-password">
-      <button class="cfg-btn" onclick="changePassword()">Actualizar contraseña</button>
-      <div id="cfg-pw-msg" class="cfg-msg"></div>
-    </div>
-
-    <!-- VERIFICACIÓN EN DOS PASOS -->
-    <div class="cfg-section">
-      <div class="cfg-section-title">Verificación en dos pasos (TOTP)</div>
-      <div class="cfg-2fa-row">
-        <span class="cfg-2fa-status">Estado:</span>
-        <span id="cfg-2fa-status" style="font-size:12px">…</span>
+      <div class="cfg-section-title">Seed de acceso</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6">
+        Los seeds de acceso se gestionan desde el servidor con <code style="background:var(--bg);padding:1px 4px;border-radius:3px">make wizard</code>.<br>
+        No se almacenan datos de usuario — solo hashes PBKDF2 locales.
       </div>
-      <div id="cfg-2fa-panel"></div>
     </div>
 
     <!-- COMENTARIOS Y CONTACTO -->

@@ -6,8 +6,6 @@
 <title>Proyecto CENTINEL — Panel HN</title>
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<!-- supabase-js: auth fallback only — public traffic served from static snapshot.json -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <style>
 :root{
   --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
@@ -371,13 +369,6 @@ footer a{color:var(--accent);text-decoration:none}
 </script>
 
 <script>
-// ── CONFIG: reemplazar con valores del proyecto Supabase ──
-const SUPABASE_URL  = window.CENTINEL_SUPABASE_URL  || 'https://PROYECTO.supabase.co';
-const SUPABASE_ANON = window.CENTINEL_SUPABASE_ANON || 'ANON_KEY';
-
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-
 // ── DEMO DATA (usado si Supabase no está configurado) ──
 const DEMO = {
   snapshots: [
@@ -419,7 +410,7 @@ const DEMO = {
   }
 };
 
-const isDemo = SUPABASE_URL.includes('PROYECTO');
+const isDemo = true; // datos desde snapshot.json estático
 let globalData = null;
 let charts = {};
 
@@ -969,38 +960,10 @@ async function loadData(){
     if(r.ok){const snap=await r.json();_applySnapshot(snap);return;}
   }catch(_){}
 
-  // 2. Supabase fallback (authenticated/rich history)
-  let data;
-  if(isDemo){
-    data=DEMO.dashboard;
-    data._snapshots=DEMO.snapshots;
-    data._alerts=DEMO.alerts;
-  } else {
-    try{
-      const [snap,alert]=await Promise.all([
-        sb.from('snapshots_public').select('*').order('captured_at',{ascending:false}).limit(50),
-        sb.from('alerts_public').select('*').order('created_at',{ascending:false}).limit(20),
-      ]);
-      const snaps=snap.data||[];
-      const latest=snaps[0]||{};
-      const meta=latest.raw_meta||{};
-      const EMPTY_FORENSICS={progressive_injection:{detected:false},velocity_anomaly:{detected:false,max_rate:0,threshold:10},asymmetric_benefit:{detected:false},hold_and_release:{detected:false},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]},inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]}};
-      data={
-        alertState:latest.alert_state||'normal',
-        national:{actasTotal:0,actasEscrutadas:snaps.length,totalVotes:0,integrityPercent:100,turnoutPercent:0,candidates:[]},
-        departments:{},
-        forensics:meta.forensics||EMPTY_FORENSICS,
-        coverage:meta.coverage||null,
-        endpoint_health:meta.endpoint_health||null,
-        chain_records:snaps.slice(0,20).map(s=>({...s,hash:s.chain_hash,ots:s.ots_proof?'confirmado':'pendiente'})),
-        _snapshots:snaps,
-        _alerts:alert.data||[],
-      };
-    }catch(e){
-      console.warn('Supabase load failed, using demo',e);
-      data=DEMO.dashboard;data._snapshots=DEMO.snapshots;data._alerts=DEMO.alerts;
-    }
-  }
+  // 2. Demo/offline fallback
+  let data=DEMO.dashboard;
+  data._snapshots=DEMO.snapshots;
+  data._alerts=DEMO.alerts;
   globalData=data;
   _renderAll(data,null);
 }

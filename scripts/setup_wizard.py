@@ -328,22 +328,6 @@ def main() -> None:
     print("  These services enhance the system but are not required.")
     print()
 
-    # Supabase
-    has_supabase = bool(env.get("SUPABASE_URL", "").strip("https://PROYECTO.supabase.co"))
-    if _ask_yn("¿Configurar Supabase (base de datos en la nube)?", default=has_supabase):
-        url_s = _ask("SUPABASE_URL", default=env.get("SUPABASE_URL", ""))
-        key_s = _ask("SUPABASE_SERVICE_ROLE_KEY", default=env.get("SUPABASE_SERVICE_ROLE_KEY", ""))
-        anon_s = _ask("SUPABASE_ANON_KEY", default=env.get("SUPABASE_ANON_KEY", ""))
-        if url_s:
-            env["SUPABASE_URL"] = url_s
-        if key_s:
-            env["SUPABASE_SERVICE_ROLE_KEY"] = key_s
-        if anon_s:
-            env["SUPABASE_ANON_KEY"] = anon_s
-        _ok("Supabase configurado")
-    else:
-        _note("Supabase omitido — el análisis local funciona sin él.")
-
     # GitHub token
     has_gh = bool(env.get("GITHUB_TOKEN", "").strip("ghp_..."))
     if _ask_yn("¿Configurar GitHub token (para publicación de emergencia)?", default=has_gh):

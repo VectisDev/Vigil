@@ -27,7 +27,7 @@ import yaml
 
 from auditor.inconsistent_acts import Anomaly, InconsistentActsTracker
 
-from . import supabase_sync
+from . import github_sync
 
 logger = logging.getLogger(__name__)
 
@@ -351,8 +351,8 @@ def run_and_publish(
 
     Returns the inserted snapshot row id (or None).
     """
-    if not supabase_sync.is_configured():
-        logger.info("forensics_publish_skipped supabase_not_configured")
+    if not github_sync.is_configured():
+        logger.info("forensics_publish_skipped github_sync_not_configured")
         return None
 
     try:
@@ -373,7 +373,7 @@ def run_and_publish(
     if extra_meta:
         raw_meta.update(extra_meta)
 
-    snapshot_id = supabase_sync.push_snapshot(
+    github_sync.push_snapshot(
         captured_at=captured_at,
         chain_hash=chain_hash,
         merkle_root=merkle_root,
@@ -387,19 +387,18 @@ def run_and_publish(
     for anomaly in anomalies:
         if anomaly.severity != "critical":
             continue
-        supabase_sync.push_alert(
+        github_sync.push_alert(
             created_at=anomaly.timestamp.isoformat(),
             severity="CRITICAL",
             description=anomaly.message,
             kind=anomaly.kind,
             dept_code=dept_code,
-            snapshot_id=snapshot_id,
         )
 
     # The hole itself is the alert: every uncovered window is reported even
     # when no trend shift follows it.
     for gap in coverage["gaps"]:
-        supabase_sync.push_alert(
+        github_sync.push_alert(
             created_at=gap["gap_end"],
             severity="HIGH",
             description=(
@@ -409,10 +408,9 @@ def run_and_publish(
             ),
             kind="capture_gap",
             dept_code=dept_code,
-            snapshot_id=snapshot_id,
         )
     if coverage["open_gap_minutes"] > 0.0:
-        supabase_sync.push_alert(
+        github_sync.push_alert(
             created_at=datetime.now(timezone.utc).isoformat(),
             severity="HIGH",
             description=(
@@ -421,13 +419,11 @@ def run_and_publish(
             ),
             kind="capture_gap_open",
             dept_code=dept_code,
-            snapshot_id=snapshot_id,
         )
 
     logger.info(
-        "forensics_published id=%s coverage=%.1f anomalies=%d",
-        snapshot_id,
+        "forensics_published coverage=%.1f anomalies=%d",
         coverage["coverage_pct"],
         len(anomalies),
     )
-    return snapshot_id
+    return None

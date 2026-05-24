@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CENTINEL — Acceso Académico</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-<script src="../config.js"></script>
 <style>
 :root{--bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
   --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;--purple:#b08cf0}
@@ -41,13 +39,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div class="card">
   <div class="logo">CENTINEL Electoral</div>
   <h1>Acceso académico</h1>
-  <p class="sub">Simulación Forense — uso restringido a investigadores</p>
+  <p class="sub">Simulación Forense — Ingresa tu Seed de acceso (S1-A … S1-L)</p>
 
-  <label for="email">Correo electrónico</label>
-  <input type="email" id="email" placeholder="tu@correo.com" autocomplete="email">
-
-  <label for="pass">Contraseña</label>
-  <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password"
+  <label for="pass">Seed de acceso</label>
+  <input type="password" id="pass" placeholder="seed de 24 caracteres" autocomplete="current-password"
          onkeydown="if(event.key==='Enter')doLogin()">
 
   <button id="btn-login" onclick="doLogin()">Entrar</button>
@@ -57,29 +52,41 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </div>
 
 <script>
-const SUPABASE_URL  = window.CENTINEL_SUPABASE_URL  || '';
-const SUPABASE_ANON = window.CENTINEL_SUPABASE_ANON || '';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+// Sesión activa → ir directo al sandbox
+(function(){
+  const tok = sessionStorage.getItem('centinel_acad_tok');
+  const exp = parseInt(sessionStorage.getItem('centinel_acad_exp')||'0',10);
+  if(tok && Date.now() < exp) window.location.replace('./');
+})();
 
-// Si ya hay sesión activa, ir directo al sandbox
-sb.auth.getSession().then(({data:{session}})=>{
-  if(session) window.location.replace('./');
-});
+async function pbkdf2Hex(password, salt, iterations){
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 async function doLogin(){
-  const email = document.getElementById('email').value.trim();
-  const pass  = document.getElementById('pass').value;
-  const btn   = document.getElementById('btn-login');
-  const err   = document.getElementById('err-msg');
-  if(!email||!pass){err.textContent='Completa los dos campos.';return;}
+  const pass = document.getElementById('pass').value.trim();
+  const btn  = document.getElementById('btn-login');
+  const err  = document.getElementById('err-msg');
+  if(!pass){err.textContent='Ingresa el seed de acceso.';return;}
   btn.disabled=true;btn.textContent='Verificando…';err.textContent='';
-  const {error} = await sb.auth.signInWithPassword({email,password:pass});
-  if(error){
-    err.textContent = error.message==='Invalid login credentials'
-      ? 'Credenciales incorrectas.' : error.message;
-    btn.disabled=false;btn.textContent='Entrar';
-  } else {
+  try{
+    const ac = await fetch('../access.json?t='+Date.now()).then(r=>r.json());
+    const candidate = await pbkdf2Hex(pass, ac.salt||'centinel-admin-salt-v1', ac.iterations||600000);
+    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
+    if(!matched){
+      err.textContent='Seed incorrecto.';
+      btn.disabled=false;btn.textContent='Entrar';return;
+    }
+    sessionStorage.setItem('centinel_acad_tok', matched[0]);
+    sessionStorage.setItem('centinel_acad_exp', String(Date.now()+8*3600*1000));
     window.location.replace('./');
+  }catch(e){
+    err.textContent='Error: '+e.message;
+    btn.disabled=false;btn.textContent='Entrar';
   }
 }
 </script>
