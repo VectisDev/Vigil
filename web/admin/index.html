@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>CENTINEL Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script src="../config.js"></script>
 <style>
@@ -281,11 +280,9 @@ details .details-body{padding:12px 0 4px}
   <div class="auth-card">
     <div class="logo">CENTINEL Electoral</div>
     <h1>Administración</h1>
-    <p class="sub">Acceso restringido — operadores autorizados</p>
-    <label for="adm-email">Correo electrónico</label>
-    <input type="email" id="adm-email" placeholder="tu@correo.com" autocomplete="email">
-    <label for="adm-pass">Contraseña</label>
-    <input type="password" id="adm-pass" placeholder="••••••••" autocomplete="current-password"
+    <p class="sub">Acceso restringido — operadores autorizados<br><small style="opacity:.6">Ingresa un Seed de acceso (S1-A … S1-L)</small></p>
+    <label for="adm-pass">Seed de acceso</label>
+    <input type="password" id="adm-pass" placeholder="seed de 24 caracteres" autocomplete="current-password"
            onkeydown="if(event.key==='Enter')doAdminLogin()">
     <button class="btn-primary" id="btn-login" onclick="doAdminLogin()">Entrar</button>
     <div class="auth-err" id="auth-err"></div>
@@ -945,15 +942,23 @@ details .details-body{padding:12px 0 4px}
 // ══════════════════════════════════════════════════════════
 // GLOBALS
 // ══════════════════════════════════════════════════════════
-const SUPABASE_URL  = window.CENTINEL_SUPABASE_URL  || '';
-const SUPABASE_ANON = window.CENTINEL_SUPABASE_ANON || '';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+// ── PBKDF2 Auth (no server-side deps) ──
+const ADMIN_SALT   = 'centinel-admin-salt-v1';
+const ADMIN_ITERS  = 600_000;
+
+async function pbkdf2Hex(password, salt, iterations){
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 // These are filled from config.js at runtime via GitHub Pages
 const REPO_OWNER = (()=>{
   try{ const u=new URL(location.href); return u.hostname.split('.')[0]; }catch{return '';}
 })();
-const REPO_NAME = 'centinel-engine';
+const REPO_NAME = 'centinel';
 const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
 const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
@@ -1016,36 +1021,42 @@ let activePresetId = null;
 // ══════════════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════════════
-sb.auth.getSession().then(({data:{session}})=>{
-  if(session){ currentUser=session.user; showAdminShell(); }
-});
+// Check session token stored in sessionStorage
+(function(){
+  const tok = sessionStorage.getItem('centinel_admin_tok');
+  const exp = parseInt(sessionStorage.getItem('centinel_admin_exp')||'0',10);
+  if(tok && Date.now() < exp){ currentUser = {seed: tok}; showAdminShell(); }
+})();
 
 async function doAdminLogin(){
-  const email = document.getElementById('adm-email').value.trim();
-  const pass  = document.getElementById('adm-pass').value;
-  const btn   = document.getElementById('btn-login');
-  const err   = document.getElementById('auth-err');
-  if(!email||!pass){err.textContent='Completa los dos campos.';return;}
+  const pass = document.getElementById('adm-pass').value.trim();
+  const btn  = document.getElementById('btn-login');
+  const err  = document.getElementById('auth-err');
+  if(!pass){err.textContent='Ingresa el seed de acceso.';return;}
   btn.disabled=true; btn.textContent='Verificando…'; err.textContent='';
-  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
-  if(error){
-    err.textContent = error.message==='Invalid login credentials'
-      ? 'Credenciales incorrectas.' : error.message;
-    btn.disabled=false; btn.textContent='Entrar'; return;
+  try{
+    const accessUrl = new URL('../access.json', location.href).href;
+    const ac = await fetch(accessUrl+'?t='+Date.now()).then(r=>r.json());
+    const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
+    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
+    if(!matched){
+      err.textContent='Seed incorrecto.';
+      btn.disabled=false; btn.textContent='Entrar'; return;
+    }
+    const seedId = matched[0];
+    sessionStorage.setItem('centinel_admin_tok', seedId);
+    sessionStorage.setItem('centinel_admin_exp', String(Date.now()+8*3600*1000));
+    currentUser = {seed: seedId};
+    showAdminShell();
+  }catch(e){
+    err.textContent='Error al verificar: '+e.message;
+    btn.disabled=false; btn.textContent='Entrar';
   }
-  // Check admin role
-  const role = data.user?.user_metadata?.role;
-  if(role && role !== 'admin'){
-    err.textContent = 'Acceso denegado: rol insuficiente.';
-    await sb.auth.signOut();
-    btn.disabled=false; btn.textContent='Entrar'; return;
-  }
-  currentUser = data.user;
-  showAdminShell();
 }
 
-async function doLogout(){
-  await sb.auth.signOut();
+function doLogout(){
+  sessionStorage.removeItem('centinel_admin_tok');
+  sessionStorage.removeItem('centinel_admin_exp');
   location.reload();
 }
 
@@ -1053,8 +1064,8 @@ function showAdminShell(){
   document.getElementById('auth-screen').style.display='none';
   const shell = document.getElementById('admin-shell');
   shell.style.display='flex';
-  const email = currentUser?.email || '—';
-  document.getElementById('hdr-user').textContent = email;
+  const seedId = currentUser?.seed || '—';
+  document.getElementById('hdr-user').textContent = seedId;
   loadCustomPresets();
   initAll();
 }
@@ -1609,9 +1620,9 @@ function showTab(id){
 // ══════════════════════════════════════════════════════════
 // PRESETS
 // ══════════════════════════════════════════════════════════
-async function loadCustomPresets(){
-  const {data:{user}} = await sb.auth.getUser();
-  customPresets = user?.user_metadata?.custom_presets || [];
+function loadCustomPresets(){
+  try{ customPresets = JSON.parse(localStorage.getItem('centinel_custom_presets')||'[]'); }
+  catch{ customPresets = []; }
   buildPresetsGrid();
 }
 
@@ -1661,7 +1672,7 @@ async function saveCustomPreset(){
   const cfg = getCurrentCfg();
   const preset = {id:'custom-'+Date.now(), name, desc:'Guardado el '+new Date().toLocaleString(), cfg};
   customPresets.push(preset);
-  await sb.auth.updateUser({data:{custom_presets: customPresets}});
+  localStorage.setItem('centinel_custom_presets', JSON.stringify(customPresets));
   document.getElementById('preset-name').value='';
   buildPresetsGrid();
 }

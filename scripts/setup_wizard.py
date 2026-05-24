@@ -9,15 +9,24 @@ Uso / Usage:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
+import secrets
+import string
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT   = Path(__file__).resolve().parent.parent
 CONFIG_YAML = REPO_ROOT / "command_center" / "config.yaml"
-ENV_FILE = REPO_ROOT / ".env"
+ENV_FILE    = REPO_ROOT / ".env"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
+ACCESS_JSON = REPO_ROOT / "web" / "access.json"
+
+SEED1_SALT   = "centinel-admin-salt-v1"
+SEED1_ITERS  = 600_000
+SEED1_LABELS = list("ABCDEFGHIJKL")
 
 # ── Terminal helpers ──────────────────────────────────────────────────────────
 
@@ -154,6 +163,60 @@ def _save_env(path: Path, env: dict[str, str], example: Path) -> None:
     else:
         lines = [f"{k}={v}" for k, v in env.items()]
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+# ── Seed 1 generation ────────────────────────────────────────────────────────
+
+
+def _generate_seed1() -> None:
+    """Generate Seed 1 (S1-A … S1-L) and write web/access.json."""
+    _header("SEED 1 — Generación de accesos de administrador")
+    print("  Se generarán 12 seeds de acceso (S1-A … S1-L).")
+    print("  Cada seed tiene 24 caracteres alfanuméricos.")
+    print("  Los hashes PBKDF2-SHA256 se guardan en web/access.json.")
+    print("  LOS SEEDS REALES no se guardan en el repo — cópialos ahora.")
+    print()
+
+    if ACCESS_JSON.exists():
+        if not _ask_yn("¿Regenerar access.json existente? (esto invalida seeds anteriores)", default=False):
+            _note("Generación de Seed 1 omitida.")
+            return
+
+    alphabet = string.ascii_letters + string.digits
+    seeds: dict[str, str] = {}
+    hashes: dict[str, str] = {}
+
+    for label in SEED1_LABELS:
+        seed = "".join(secrets.choice(alphabet) for _ in range(24))
+        dk = hashlib.pbkdf2_hmac("sha256", seed.encode(), SEED1_SALT.encode(), SEED1_ITERS)
+        key = f"S1-{label}"
+        seeds[key] = seed
+        hashes[key] = dk.hex()
+
+    width = 58
+    print()
+    print(_c(BOLD, "  " + "═" * width))
+    print(_c(BOLD, "  ▶  SEEDS — COPIA ESTO EN UN LUGAR SEGURO (no se guarda)"))
+    print(_c(BOLD, "  " + "═" * width))
+    for k, v in seeds.items():
+        print(f"  {_c(CYAN, k)}  {v}")
+    print(_c(BOLD, "  " + "═" * width))
+    print()
+
+    access = {
+        "version": 1,
+        "algo": "PBKDF2-SHA256",
+        "salt": SEED1_SALT,
+        "iterations": SEED1_ITERS,
+        "seeds": hashes,
+    }
+    ACCESS_JSON.parent.mkdir(parents=True, exist_ok=True)
+    ACCESS_JSON.write_text(json.dumps(access, indent=2) + "\n", encoding="utf-8")
+    _ok(f"web/access.json escrito con {len(hashes)} hashes.")
+    print()
+    print("  El archivo web/access.json se commitea al repo (solo hashes).")
+    print("  Después del commit haz 'git push' para publicarlo en Pages.")
+    print()
 
 
 # ── Main wizard ───────────────────────────────────────────────────────────────
@@ -306,6 +369,16 @@ def main() -> None:
     else:
         env["OTS_ENABLED"] = "false"
         _note("OpenTimestamps desactivado.")
+
+    # ── PASO 7: Seed 1 (admin passwords) ─────────────────────────────────────
+    _header("PASO 7 / STEP 7: Accesos de administrador (Seed 1)")
+    print("  Genera o regenera los 12 seeds de acceso al panel de administración.")
+    print("  Solo se guardan los hashes en web/access.json (los seeds reales no se commitean).")
+    print()
+    if _ask_yn("¿Generar Seed 1 ahora?", default=not ACCESS_JSON.exists()):
+        _generate_seed1()
+    else:
+        _note("Seed 1 omitido.")
 
     # ── Guardar cambios ───────────────────────────────────────────────────────
     _header("Guardando configuración / Saving configuration")
