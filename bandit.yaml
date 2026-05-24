@@ -11,6 +11,9 @@ skips:
   # English/Spanish: asserts are acceptable in tests and controlled internal checks.
   # asserts son aceptables en pruebas y validaciones internas controladas.
   - B101
+  # B310: urllib.request.urlopen — URLs are constructed from a known HTTPS base (_API)
+  # in github_sync.py; the scheme is always https, never file:// or custom.
+  - B310
 
 # Keep medium/high findings visible, but CI workflow can downgrade on dev branches.
 # Mantiene hallazgos medium/high visibles; el workflow puede degradar en ramas dev.
