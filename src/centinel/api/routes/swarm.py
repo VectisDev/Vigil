@@ -304,6 +304,61 @@ async def swarm_attacks(
     return {"findings": items, "stats": _attack_log.stats()}
 
 
+@router.post("/api/swarm/report_scrape")
+async def report_scrape(request: Request) -> dict:
+    """Local pipeline reports a successful scrape. Engine signs and gossips it to peers.
+
+    Body: {"source_id": "06_cortes", "content_hash": "<sha256hex>"}
+    When swarm is not running returns accepted=False (non-fatal — pipeline continues).
+    """
+    if _engine is None:
+        return {"accepted": False, "reason": "swarm_not_running"}
+
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+
+    source_id = str(body.get("source_id", "")).strip()
+    content_hash = str(body.get("content_hash", "")).strip()
+    if not source_id:
+        raise HTTPException(status_code=400, detail="source_id required.")
+
+    await _engine.report_scrape_done(source_id, content_hash)
+    return {"accepted": True, "source_id": source_id}
+
+
+@router.post("/api/swarm/scrape_result")
+async def receive_scrape_result(request: Request) -> dict:
+    """Accept a ScrapeResultPayload from a peer and fan it out."""
+    if _engine is None:
+        raise HTTPException(status_code=503, detail="Swarm not running.")
+
+    try:
+        payload_dict = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+
+    accepted = await _engine.receive_scrape_result(payload_dict)
+    return {"accepted": accepted}
+
+
+@router.get("/api/swarm/last_scraped")
+async def last_scraped(
+    source_id: str = Query(..., description="Source ID to check (e.g. '06_cortes', 'NACIONAL')"),
+) -> dict:
+    """Return the most recent scrape timestamp for a source as known to this node.
+
+    Pipeline calls this before scraping to skip if another swarm node did it recently.
+    Returns scraped_at_utc=null when swarm is offline or source has never been reported.
+    """
+    if _engine is None:
+        return {"source_id": source_id, "scraped_at_utc": None}
+
+    scraped_at = _engine.last_scraped_at(source_id)
+    return {"source_id": source_id, "scraped_at_utc": scraped_at}
+
+
 async def auto_start(country_code: Optional[str] = None) -> None:
     """Called on startup when CENTINEL_AUTOCONNECT=1."""
     global _engine, _engine_task

@@ -140,6 +140,42 @@ def _make_finding_id(node_id: str, timestamp_utc: str, rule_key: str) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
+@dataclass
+class ScrapeResultPayload:
+    """Positive gossip: a node reports a successful scrape so others can skip it.
+
+    Guarantees ≤1 HTTP request per source per TTL window across the whole
+    swarm — protecting the CNE endpoint from collective overload regardless
+    of how many nodes are running.
+    """
+
+    result_id: str       # sha256(node_id + source_id + scraped_at_utc)[:16]
+    node_id: str         # sha256(public_key_hex)[:16] of the scraping node
+    source_id: str       # e.g. "NACIONAL", "06_cortes"
+    content_hash: str    # SHA256 of raw response (proof something was actually fetched)
+    scraped_at_utc: str  # ISO 8601
+    signature: str       # Ed25519 over canonical JSON (excludes this field)
+    version: int = 1
+
+    def canonical_bytes(self) -> bytes:
+        d = asdict(self)
+        d.pop("signature", None)
+        return json.dumps(d, sort_keys=True, separators=(",", ":")).encode()
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "ScrapeResultPayload":
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+
+def _make_result_id(node_id: str, source_id: str, scraped_at_utc: str) -> str:
+    """Deterministic dedup key for a scrape result."""
+    raw = f"{node_id}:{source_id}:{scraped_at_utc}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
@@ -402,6 +438,13 @@ class GossipEngine:
         # EN: Optional callback to propagate source throttles from remote nodes.
         # Signature: (source_id: str, until_utc: str) -> None
         self._throttle_callback: Optional[object] = None
+
+        # ES: Registro cooperativo — un nodo comparte que ya raspó una fuente para
+        #     que los demás la salten. Garantiza ≤1 req/fuente/TTL en todo el enjambre.
+        # EN: Cooperative registry — a node shares that it scraped a source so others
+        #     skip it. Guarantees ≤1 req/source/TTL across the whole swarm.
+        self._scrape_registry: dict[str, ScrapeResultPayload] = {}
+        self._scrape_lock = threading.Lock()
 
         self._peers: dict[str, str] = {}   # node_id → base_url
         self._known: dict[str, NodePayload] = {}  # node_id → latest payload
@@ -690,6 +733,79 @@ class GossipEngine:
             payload.signature = _sign_payload(payload, self._key_path)
         return payload.to_dict()
 
+    # ── cooperative scraping ───────────────────────────────────────────────────
+
+    def last_scraped_at(self, source_id: str) -> Optional[str]:
+        """Return ISO timestamp of the most recent known scrape for source_id, or None."""
+        with self._scrape_lock:
+            result = self._scrape_registry.get(source_id)
+            return result.scraped_at_utc if result else None
+
+    async def report_scrape_done(self, source_id: str, content_hash: str) -> None:
+        """Sign and gossip a successful scrape result to all known peers."""
+        if not self._node_id or not self._key_path:
+            return
+        from centinel.core.custody import sign_snapshot
+
+        now = datetime.now(timezone.utc).isoformat()
+        result = ScrapeResultPayload(
+            result_id=_make_result_id(self._node_id, source_id, now),
+            node_id=self._node_id,
+            source_id=source_id,
+            content_hash=content_hash,
+            scraped_at_utc=now,
+            signature="",
+        )
+        result.signature = sign_snapshot(result.canonical_bytes(), key_path=self._key_path).signature_hex
+
+        with self._scrape_lock:
+            self._scrape_registry[source_id] = result
+
+        targets = list(self._peers.values())
+        random.shuffle(targets)
+        for url in targets[:_FAN_OUT * 2]:
+            asyncio.create_task(self._push_scrape_result(url, result))
+
+        logger.info("scrape_result_broadcast source=%s peers=%d", source_id, min(len(targets), _FAN_OUT * 2))
+
+    async def receive_scrape_result(self, payload_dict: dict) -> bool:
+        """Accept a ScrapeResultPayload from a peer, verify signature, and fan out."""
+        try:
+            result = ScrapeResultPayload.from_dict(payload_dict)
+        except (TypeError, KeyError) as exc:
+            logger.debug("scrape_result_recv_bad_payload error=%s", exc)
+            return False
+
+        pub_hex = self._pubkey_cache.get(result.node_id)
+        if not pub_hex:
+            logger.debug("scrape_result_recv_unknown_node node_id=%s", result.node_id)
+            return False
+
+        try:
+            from centinel.core.custody import verify_snapshot_signature
+            if not verify_snapshot_signature(result.canonical_bytes(), result.signature, public_key_hex=pub_hex):
+                logger.debug("scrape_result_recv_invalid_sig node_id=%s source=%s", result.node_id, result.source_id)
+                return False
+        except Exception:
+            return False
+
+        with self._scrape_lock:
+            existing = self._scrape_registry.get(result.source_id)
+            if existing and existing.scraped_at_utc >= result.scraped_at_utc:
+                return True  # Already have an equal or more recent result
+            self._scrape_registry[result.source_id] = result
+
+        logger.info(
+            "scrape_result_accepted source=%s node=%s at=%s",
+            result.source_id, result.node_id, result.scraped_at_utc,
+        )
+
+        candidates = [u for nid, u in self._peers.items() if nid != result.node_id]
+        for url in random.sample(candidates, min(_FAN_OUT, len(candidates))):
+            asyncio.create_task(self._push_scrape_result(url, result))
+
+        return True
+
     # ── internals ──────────────────────────────────────────────────────────────
 
     async def _loop(self) -> None:
@@ -747,6 +863,19 @@ class GossipEngine:
                 return r.status_code == 200
         except Exception as exc:
             logger.debug("finding_push_failed url=%s error=%s", base_url, exc)
+            return False
+
+    async def _push_scrape_result(self, base_url: str, result: ScrapeResultPayload) -> bool:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                r = await client.post(
+                    f"{base_url}/api/swarm/scrape_result",
+                    json=result.to_dict(),
+                    headers={"Content-Type": "application/json"},
+                )
+                return r.status_code == 200
+        except Exception as exc:
+            logger.debug("scrape_result_push_failed url=%s error=%s", base_url, exc)
             return False
 
     async def _fetch_checkpoint(self, base_url: str) -> None:

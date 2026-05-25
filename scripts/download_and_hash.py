@@ -137,6 +137,15 @@ DEFAULT_RETRY_CONFIG_PATH = "config/prod/retry_config.yaml"
 _THROTTLE_DIR = Path("data") / ".throttle"
 _THROTTLE_MINUTES = int(os.getenv("CENTINEL_THROTTLE_MINUTES", "30"))
 
+# ES: URL de la API local del nodo para coordinación cooperativa.
+#     CENTINEL_SCRAPE_TTL_MINUTES: si otro nodo del enjambre raspó esta fuente
+#     hace menos de TTL minutos, este nodo la salta (protege el endpoint CNE).
+# EN: Local node API URL for cooperative coordination.
+#     CENTINEL_SCRAPE_TTL_MINUTES: if another swarm node scraped this source
+#     less than TTL minutes ago, this node skips it (protects CNE endpoint).
+_CENTINEL_API_URL = os.getenv("CENTINEL_API_URL", "http://localhost:8080").rstrip("/")
+_SCRAPE_TTL_MINUTES = int(os.getenv("CENTINEL_SCRAPE_TTL_MINUTES", "55"))
+
 
 def _is_throttled(source_id: str) -> bool:
     """True si hay un throttle activo no expirado para esta fuente.
@@ -164,6 +173,41 @@ def _write_throttle(source_id: str, reason: str = "429") -> None:
         "source_throttled source=%s until=%s reason=%s minutes=%d",
         source_id, until.isoformat(), reason, _THROTTLE_MINUTES,
     )
+
+
+def _is_recently_scraped_by_swarm(source_id: str) -> bool:
+    """True se otro nodo ya raspó esta fuente dentro del TTL. / True if another node scraped within TTL.
+
+    Fail-open: any network or API error returns False so this node scrapes normally.
+    """
+    try:
+        resp = requests.get(
+            f"{_CENTINEL_API_URL}/api/swarm/last_scraped",
+            params={"source_id": source_id},
+            timeout=2,
+        )
+        if resp.status_code != 200:
+            return False
+        scraped_at_str = resp.json().get("scraped_at_utc")
+        if not scraped_at_str:
+            return False
+        scraped_at = datetime.fromisoformat(scraped_at_str)
+        age_minutes = (datetime.now(timezone.utc) - scraped_at).total_seconds() / 60
+        return age_minutes < _SCRAPE_TTL_MINUTES
+    except Exception:
+        return False
+
+
+def _report_scrape_to_swarm(source_id: str, content_hash: str) -> None:
+    """Best-effort: notify the local swarm engine that this node scraped source_id."""
+    try:
+        requests.post(
+            f"{_CENTINEL_API_URL}/api/swarm/report_scrape",
+            json={"source_id": source_id, "content_hash": content_hash},
+            timeout=2,
+        )
+    except Exception:
+        pass  # Non-critical; the snapshot is already persisted
 
 
 def resolve_config_path(config_path_override: str | None = None) -> str:
@@ -572,6 +616,18 @@ def process_sources(
                 logger.info("source_throttle_active source=%s — skipping until throttle expires", source_id)
                 continue
 
+            # ES: Salto cooperativo — si otro nodo del enjambre ya raspó esta fuente
+            #     dentro del TTL, la saltamos para no golpear el endpoint CNE dos veces.
+            #     Fail-open: si el swarm no está corriendo o la API no responde, raspamos normal.
+            # EN: Cooperative skip — if another swarm node already scraped this source
+            #     within the TTL window, skip to avoid hitting the CNE endpoint twice.
+            #     Fail-open: if swarm not running or API unreachable, scrape normally.
+            if _is_recently_scraped_by_swarm(source_id):
+                logger.info("cooperative_skip source=%s — recently scraped by swarm node, skipping", source_id)
+                processed_sources.add(source_label)
+                _save_checkpoint(previous_hash, processed_sources)
+                continue
+
             # ES: Jitter entre fuentes — suaviza la ráfaga intra-nodo (default 0.8-1.2s por fuente).
             # EN: Inter-source jitter — smooths intra-node burst (default 0.8-1.2s per source).
             _inter_jitter = float(config.get("inter_source_jitter_seconds", 1.0))
@@ -729,6 +785,9 @@ def process_sources(
                 chained_hash,
                 source_label,
             )
+            # ES: Notificar al enjambre que esta fuente ya fue raspada exitosamente.
+            # EN: Notify swarm that this source was successfully scraped.
+            _report_scrape_to_swarm(source_id, current_hash)
     finally:
         session.close()
 
