@@ -3,7 +3,7 @@
 # NOTA: pyproject.toml es la fuente canónica; este archivo es para entornos sin Poetry.
 
 # Core y scraping
-requests>=2.34.2,<3.0.0        # Peticiones HTTP (CVE-2024-35195/47081, CVE-2026-25645)
+requests[socks]>=2.34.2,<3.0.0 # Peticiones HTTP + SOCKS5/Tor (CVE-2024-35195/47081, CVE-2026-25645)
 urllib3>=2.7.0,<3.0.0          # Transitiva endurecida (CVE-2026-44431/44432)
 aiohttp>=3.13.5,<4.0.0         # Transitiva endurecida (CVE-2026-22815/34513..34525)
 pygments>=2.20.0,<3.0.0        # Transitiva endurecida (CVE-2026-4539, ReDoS)

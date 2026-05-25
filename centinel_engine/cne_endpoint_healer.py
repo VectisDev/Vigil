@@ -165,6 +165,19 @@ class CNEEndpointHealer:
         self.session.headers.update(DEFAULT_HEADERS)
         self.logger = logging.getLogger(f"cne_endpoint_healer.{self.env_name}")
 
+        # Privacy / proxy routing — wire proxy manager for per-request rotation.
+        # Tor: set CENTINEL_TOR_ENABLED=true (routes via socks5h://127.0.0.1:9050).
+        # Proxy list: set PROXY_LIST=url1,url2 and CENTINEL_PRIVACY_MODE=true.
+        from centinel_engine.proxy_manager import get_proxy_ua_manager
+        self._proxy_mgr = get_proxy_ua_manager()
+        _proxy_mode = self._proxy_mgr.stats["proxy_mode"]
+        self.logger.info("cne_proxy_mode mode=%s", _proxy_mode)
+        if _proxy_mode == "direct":
+            self.logger.warning(
+                "cne_proxy_inactive — node real IP is exposed to CNE endpoints. "
+                "Set CENTINEL_TOR_ENABLED=true or configure PROXY_LIST to anonymize."
+            )
+
         # Certificate pinning for CNE endpoints. A single env var keeps the
         # control intuitive: set CENTINEL_CNE_CERT_SHA256 to the expected
         # peer-cert SHA-256 to harden against state-level MITM. Unset =
@@ -676,12 +689,33 @@ class CNEEndpointHealer:
         self.logger.info("🔐 Hash-chain record written to %s", history_path)
         return history_path
 
+    def _do_get(self, url: str) -> requests.Response:
+        """Perform a GET request with per-request proxy rotation and UA randomization.
+
+        Feeds 403/429 status codes back to the proxy manager so bad proxies are
+        quarantined and rotation is triggered on the next call.
+
+        Bilingual: Realiza GET con rotación de proxy por request y UA aleatorio.
+        """
+        proxy_dict, ua = self._proxy_mgr.rotate_proxy_and_ua()
+        headers = self._proxy_mgr.build_request_headers(ua)
+        resp = self.session.get(
+            url,
+            proxies=proxy_dict or {},
+            headers=headers,
+            timeout=self.timeout,
+        )
+        if resp.status_code in (403, 429):
+            self._proxy_mgr.notify_response(resp.status_code)
+            self._proxy_mgr.mark_proxy_bad(proxy_dict)
+        return resp
+
     def _http_get_text(self, url: str) -> str:
         """English: Fetch URL as text with strict timeout and clear exception context.
         Español: Descarga URL como texto con timeout estricto y contexto claro de excepción.
         """
 
-        response = self.session.get(url, timeout=self.timeout)
+        response = self._do_get(url)
         response.raise_for_status()
         return response.text
 
@@ -690,7 +724,7 @@ class CNEEndpointHealer:
         Español: Descarga URL como JSON con timeout estricto y parseo neutral al esquema.
         """
 
-        response = self.session.get(url, timeout=self.timeout)
+        response = self._do_get(url)
         response.raise_for_status()
         return response.json()
 

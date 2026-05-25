@@ -16,6 +16,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 import random
 import socket
 import struct
@@ -220,6 +221,12 @@ class GossipEngine:
     ) -> None:
         self.country_code = country_code.upper()
         self.my_url = my_url
+        # Privacy mode: suppress my_url so this node's address is never broadcast
+        # in gossip attestations. The node remains a full gossip participant
+        # (receives/forwards payloads) but is not discoverable by URL via peers.
+        if my_url and os.getenv("CENTINEL_PRIVACY_MODE", "").strip().lower() in ("1", "true", "yes"):
+            logger.info("gossip_privacy_mode_active my_url_suppressed")
+            self.my_url = None
         self.broadcast_interval = broadcast_interval
         self.max_peers = max_peers
 

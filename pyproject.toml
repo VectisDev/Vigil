@@ -21,7 +21,7 @@ packages = [{ include = "centinel", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-requests = ">=2.33.0"
+requests = {version = ">=2.33.0", extras = ["socks"]}
 urllib3 = ">=2.7.0"
 playwright = ">=1.49.0"
 playwright-stealth = ">=1.0.6"

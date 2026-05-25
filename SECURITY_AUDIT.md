@@ -132,6 +132,8 @@
 - **RT-19**: `/snapshots/latest` y `/snapshots/{snapshot_id}` tienen `@limiter.limit()` + `Request`; el segundo añade validación de formato SHA-256 (hex 64 chars).
 - **RT-20**: pendiente de acción operativa — regenerar `web/access.json` con 1 000 000 iteraciones.
 
+| RT-21 | IP de nodos expuesta en requests CNE y en gossip P2P | `centinel_engine/cne_endpoint_healer.py:164` + `src/centinel/federation/gossip.py:343` | **ALTO** | `requests.Session()` sin proxy → IP real visible en todos los requests al CNE. `my_url` se difunde a todos los peers en gossip. | Durante 30 días de monitoreo continuo, el CNE (o un actor con acceso a sus logs) puede identificar y bloquear la IP del nodo. En la red P2P, cualquier peer aprende la URL pública del nodo. | ✅ Corregido — proxy manager conectado a `cne_endpoint_healer` vía `_do_get()`; `CENTINEL_TOR_ENABLED=true` enruta via `socks5h://127.0.0.1:9050`; `CENTINEL_PRIVACY_MODE=true` suprime `my_url` en gossip. |
+
 ### Recomendaciones operativas para período de 30 días
 
 1. **Antes de iniciar monitoreo**: configurar `CENTINEL_BACKUP_KEY`, `CENTINEL_CNE_CERT_SHA256` y `CENTINEL_PANIC_TOKEN`. Verificar logs de arranque en busca de mensajes CRITICAL.
