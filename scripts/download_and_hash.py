@@ -574,6 +574,7 @@ def process_sources(
     hash_root.mkdir(exist_ok=True)
 
     health_state = get_health_state()
+    _force_full = os.getenv("CENTINEL_FORCE_FULL_CYCLE", "0") == "1"
     retry_payload = resolve_retry_policy(config)
     retry_config = retry_payload["retry_config"]
     structured_logger = StructuredLogger("centinel.download")
@@ -611,18 +612,18 @@ def process_sources(
                 continue
 
             # ES: Back-off por fuente — salta si el CNE respondió con 429/503 recientemente.
+            #     Deshabilitado en cierre electoral (necesitamos raspar todo igualmente).
             # EN: Per-source back-off — skip if CNE responded with 429/503 recently.
-            if _is_throttled(source_id):
+            #     Disabled during election close (we must scrape everything regardless).
+            if not _force_full and _is_throttled(source_id):
                 logger.info("source_throttle_active source=%s — skipping until throttle expires", source_id)
                 continue
 
-            # ES: Salto cooperativo — si otro nodo del enjambre ya raspó esta fuente
-            #     dentro del TTL, la saltamos para no golpear el endpoint CNE dos veces.
-            #     Fail-open: si el swarm no está corriendo o la API no responde, raspamos normal.
-            # EN: Cooperative skip — if another swarm node already scraped this source
-            #     within the TTL window, skip to avoid hitting the CNE endpoint twice.
-            #     Fail-open: if swarm not running or API unreachable, scrape normally.
-            if _is_recently_scraped_by_swarm(source_id):
+            # ES: Salto cooperativo — deshabilitado en cierre electoral (cada nodo
+            #     produce su propio raspe final independiente como evidencia adicional).
+            # EN: Cooperative skip — disabled during election close (each node produces
+            #     its own independent final scrape as additional evidence).
+            if not _force_full and _is_recently_scraped_by_swarm(source_id):
                 logger.info("cooperative_skip source=%s — recently scraped by swarm node, skipping", source_id)
                 processed_sources.add(source_label)
                 _save_checkpoint(previous_hash, processed_sources)
@@ -1136,6 +1137,12 @@ def main() -> None:
         action="store_true",
         help="Modo mock para CI - no intenta fetch real",
     )
+    parser.add_argument(
+        "--force-full-cycle",
+        action="store_true",
+        dest="force_full_cycle",
+        help="Ciclo forzado: borra checkpoint, ignora throttle y salto cooperativo. Usado en cierre electoral.",
+    )
     args = parser.parse_args()
 
     config = load_config()
@@ -1155,6 +1162,16 @@ def main() -> None:
         log_event(logger, logging.INFO, "download_complete")
         return
 
+    if args.force_full_cycle:
+        # ES: Cierre electoral — ciclo completo forzado. Borra checkpoint para empezar
+        #     desde cero, e indica a process_sources que ignore throttle y salto cooperativo.
+        # EN: Election close — forced full cycle. Clears checkpoint to start fresh,
+        #     and tells process_sources to bypass throttle and cooperative skip.
+        _clear_checkpoint()
+        os.environ["CENTINEL_FORCE_FULL_CYCLE"] = "1"
+        logger.info("force_full_cycle_start: checkpoint cleared, throttle+cooperative skip disabled")
+        log_event(logger, logging.INFO, "election_finalize_start")
+
     logger.info("Modo real activado - procediendo con fetch al CNE")
     sources = config.get("sources", [])
     if not sources:
@@ -1162,10 +1179,10 @@ def main() -> None:
         health_state.record_failure(critical=True)
         raise ValueError("No sources defined in command_center/config.yaml")
 
-    # ES: Jitter de inicio de ciclo — distribuye los nodos en el tiempo para evitar burst coordinado.
-    # EN: Cycle jitter — staggers node start times to prevent coordinated bursts.
+    # ES: Jitter de inicio de ciclo — omitido en cierre electoral (necesitamos velocidad).
+    # EN: Cycle jitter — skipped during forced full cycle (we need speed).
     _cycle_jitter = float(os.getenv("CENTINEL_SCRAPE_JITTER_SECONDS", "30"))
-    if _cycle_jitter > 0:
+    if _cycle_jitter > 0 and not args.force_full_cycle:
         _jitter_delay = random.uniform(0.0, _cycle_jitter)
         logger.info("scrape_cycle_jitter delay_s=%.1f max_s=%.1f", _jitter_delay, _cycle_jitter)
         time.sleep(_jitter_delay)
@@ -1194,6 +1211,8 @@ def main() -> None:
     process_sources(sources, endpoints, config)
     logger.info("Proceso completado")
     log_event(logger, logging.INFO, "download_complete")
+    if args.force_full_cycle:
+        log_event(logger, logging.INFO, "election_finalize_complete")
 
 
 if __name__ == "__main__":
