@@ -115,6 +115,9 @@ async def _lifespan(application: FastAPI):  # noqa: ARG001
         globals().get("_build_stamp", "dev"),
         datetime.now(timezone.utc).isoformat(),
     )
+    if os.getenv("CENTINEL_AUTOCONNECT", "").strip() == "1":
+        from .routes.swarm import auto_start as _swarm_auto_start
+        await _swarm_auto_start()
     yield
 
 
@@ -125,9 +128,11 @@ logger = logging.getLogger(__name__)
 # Read-only, no-auth endpoints intentional: see docs/architecture.md.
 from .audit import router as audit_router  # noqa: E402
 from .routes.setup import router as setup_router  # noqa: E402
+from .routes.swarm import router as swarm_router  # noqa: E402
 
 app.include_router(audit_router)
 app.include_router(setup_router)
+app.include_router(swarm_router)
 
 
 def _load_cors_origins() -> list[str]:
@@ -931,6 +936,10 @@ if DASHBOARD_BUILD_DIR.exists():
     app.mount("/assets", StaticFiles(directory=DASHBOARD_BUILD_DIR / "assets"), name="dashboard-assets")
 if SETUP_DIR.exists():
     app.mount("/setup/static", StaticFiles(directory=SETUP_DIR), name="setup-static")
+
+_PEERS_DIR = BASE_DIR / "web" / "peers"
+if _PEERS_DIR.exists():
+    app.mount("/peers", StaticFiles(directory=_PEERS_DIR), name="peers-static")
 
 
 # EN: Log build info at startup for deploy verification.
