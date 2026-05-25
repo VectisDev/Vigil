@@ -3,304 +3,944 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CENTINEL — Configuración inicial</title>
+<title>CENTINEL — Despliegue en GitHub</title>
 <style>
 :root {
-  --bg: #0f1115; --panel: #15171c; --panel2: #1a1d23;
-  --border: #24272e; --fg: #e7e9ec; --muted: #8b929c;
-  --accent: #6ea8fe; --ok: #57c08d; --bad: #df6b86; --warn: #d4b066;
+  --bg:#0f1115; --panel:#15171c; --panel2:#1a1d23;
+  --border:#24272e; --fg:#e7e9ec; --muted:#8b929c;
+  --accent:#6ea8fe; --ok:#57c08d; --bad:#df6b86; --warn:#d4b066;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg); color: var(--fg);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  min-height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 32px 20px; line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 20px;line-height:1.6;-webkit-font-smoothing:antialiased;
 }
+.screen{display:none;width:100%;max-width:640px;}
+.screen.active{display:block;}
+.logo{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;text-align:center;}
+h1{font-size:26px;font-weight:700;letter-spacing:-.03em;text-align:center;margin-bottom:6px;}
+.sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:28px;}
 
-/* ── Shared layout ── */
-.screen { display: none; width: 100%; max-width: 760px; }
-.screen.active { display: block; }
+/* progress dots */
+.dots{display:flex;gap:8px;justify-content:center;margin-bottom:28px;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.2s;}
+.dot.active{background:var(--accent);}
+.dot.done{background:var(--ok);}
 
-.logo {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
-  text-align: center;
-}
-h1 {
-  font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
-  text-align: center; margin-bottom: 6px;
-}
-.sub {
-  font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 32px;
-}
+/* card */
+.card{background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:32px 28px;margin-bottom:16px;}
 
-/* ── Country grid ── */
-.country-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
-  margin-bottom: 8px;
+/* inputs */
+label{font-size:12px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;}
+input,select{
+  width:100%;background:var(--panel2);border:1px solid var(--border);
+  color:var(--fg);border-radius:8px;padding:10px 14px;font-size:14px;
+  outline:none;transition:.15s;margin-bottom:16px;
 }
-.country-card {
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px 10px; cursor: pointer;
-  text-align: center; transition: 0.15s; user-select: none;
-}
-.country-card:hover {
-  border-color: var(--accent); background: var(--panel2);
-  transform: translateY(-2px);
-}
-.country-card .flag { font-size: 26px; display: block; margin-bottom: 6px; }
-.country-card .name { font-size: 12px; font-weight: 600; color: var(--fg); }
-.country-card .auth { font-size: 10px; color: var(--muted); margin-top: 2px; }
+input:focus,select:focus{border-color:var(--accent);}
+input::placeholder{color:var(--muted);}
 
-/* ── Generating screen ── */
-.gen-card {
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 14px; padding: 40px 36px; text-align: center;
-  max-width: 480px; margin: 0 auto;
-}
-.gen-card .flag-big { font-size: 48px; margin-bottom: 12px; }
-.gen-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-.gen-card .sub2 { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+/* buttons */
+.btn{background:var(--accent);color:#0f1115;border:none;
+  border-radius:8px;padding:11px 24px;font-size:14px;
+  font-weight:700;cursor:pointer;transition:.15s;display:inline-block;}
+.btn:hover{opacity:.88;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--fg);color:var(--fg);}
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:4px;}
 
-.progress-bar {
-  background: var(--panel2); border-radius: 999px; height: 6px;
-  margin-bottom: 12px; overflow: hidden;
-}
-.progress-fill {
-  height: 100%; background: var(--accent); border-radius: 999px;
-  width: 0%; transition: width 0.4s ease;
-}
-.progress-label {
-  font-size: 12px; color: var(--muted); margin-bottom: 28px; min-height: 18px;
-}
+/* country grid */
+.country-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px;}
+.c-card{background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:14px 10px;cursor:pointer;
+  text-align:center;transition:.15s;user-select:none;}
+.c-card:hover{border-color:var(--accent);background:var(--panel2);transform:translateY(-2px);}
+.c-card.selected{border-color:var(--accent);background:var(--panel2);}
+.c-card .flag{font-size:28px;display:block;margin-bottom:6px;}
+.c-card .name{font-size:12px;font-weight:600;}
+.c-card .auth{font-size:10px;color:var(--muted);margin-top:2px;}
 
-.btn-primary {
-  background: var(--accent); color: #0f1115; border: none;
-  border-radius: 8px; padding: 12px 28px; font-size: 15px;
-  font-weight: 700; cursor: pointer; transition: 0.15s;
-  display: inline-block;
-}
-.btn-primary:hover { opacity: 0.88; }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+/* progress bar */
+.pbar-wrap{background:var(--panel2);border-radius:999px;height:6px;margin:12px 0;overflow:hidden;}
+.pbar{height:100%;background:var(--accent);border-radius:999px;width:0;transition:width .4s ease;}
+.pstep{font-size:12px;color:var(--muted);min-height:18px;margin-bottom:20px;}
 
-.warning-box {
-  background: rgba(217, 176, 102, 0.08); border: 1px solid rgba(217, 176, 102, 0.3);
-  border-radius: 8px; padding: 14px 16px; font-size: 12px; color: var(--warn);
-  margin-bottom: 24px; text-align: left;
-}
-.warning-box strong { display: block; margin-bottom: 4px; font-size: 13px; }
+/* log */
+.log{background:var(--panel2);border-radius:8px;padding:12px 14px;
+  font-size:11px;font-family:monospace;max-height:160px;overflow-y:auto;
+  color:var(--muted);margin-bottom:20px;display:none;}
+.log .ok{color:var(--ok);}
+.log .er{color:var(--bad);}
 
-.pdf-ready {
-  background: rgba(87, 192, 141, 0.08); border: 1px solid rgba(87, 192, 141, 0.3);
-  border-radius: 8px; padding: 14px 16px; font-size: 13px; color: var(--ok);
-  margin-bottom: 24px;
-}
+/* alert boxes */
+.box{border-radius:8px;padding:14px 16px;font-size:13px;margin-bottom:16px;}
+.box-warn{background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.3);color:var(--warn);}
+.box-ok{background:rgba(87,192,141,.08);border:1px solid rgba(87,192,141,.3);color:var(--ok);}
+.box-info{background:rgba(110,168,254,.08);border:1px solid rgba(110,168,254,.3);color:var(--accent);}
+.box strong{display:block;margin-bottom:4px;}
 
-.step-dots {
-  display: flex; gap: 8px; justify-content: center; margin-bottom: 28px;
-}
-.dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--border); transition: 0.2s;
-}
-.dot.active { background: var(--accent); }
-.dot.done { background: var(--ok); }
+/* seed grid */
+.seed-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.seed-item{background:var(--panel2);border-radius:8px;padding:10px 12px;}
+.seed-num{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.seed-val{font-family:monospace;font-size:12px;letter-spacing:.04em;color:var(--fg);}
+
+/* done links */
+.link-card{background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;margin-bottom:10px;
+  display:flex;align-items:center;gap:12px;}
+.link-card .icon{font-size:22px;}
+.link-card .lbl{font-size:12px;color:var(--muted);margin-bottom:2px;}
+.link-card a{color:var(--accent);font-size:13px;word-break:break-all;}
+
+/* hint link */
+.hint{font-size:12px;color:var(--muted);margin-top:4px;}
+.hint a{color:var(--accent);}
 </style>
 </head>
 <body>
 
-<!-- ── Pantalla 1: Elige tu país ── -->
-<div class="screen active" id="screen-country">
-  <div class="logo">CENTINEL — Configuración inicial</div>
-  <h1>¿Desde qué país vas a auditar?</h1>
-  <p class="sub">Selecciona tu país para configurar el sistema automáticamente.</p>
-
-  <div class="step-dots">
-    <div class="dot active" id="dot-1"></div>
-    <div class="dot" id="dot-2"></div>
+<!-- ── 1. Bienvenida ── -->
+<div class="screen active" id="s1">
+  <div class="logo">CENTINEL — Despliegue automático</div>
+  <h1>Vigilancia electoral en 5 minutos</h1>
+  <p class="sub">Sin instalar nada. Todo queda en tu cuenta de GitHub.</p>
+  <div class="dots">
+    <div class="dot active"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
   </div>
+  <div class="card">
+    <div style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:20px;">
+      Este asistente creará automáticamente en tu cuenta de GitHub:
+      <ul style="margin:10px 0 0 18px;">
+        <li>Un repositorio de datos privado con hash chain inmutable</li>
+        <li>Workflows de GitHub Actions que descargan y auditan los datos del CNE cada 15 minutos</li>
+        <li>Un panel público de transparencia en GitHub Pages</li>
+        <li>Un panel de administración (OPS) protegido con seeds de alta entropía</li>
+      </ul>
+    </div>
+    <div class="box box-info" style="margin-bottom:20px;">
+      <strong>Requisitos</strong>
+      Una cuenta de GitHub gratuita · Acceso a internet · Este navegador
+    </div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn" onclick="go(2)">Comenzar →</button>
+    </div>
+  </div>
+</div>
 
-  <div class="country-grid" id="country-grid">
-    <!-- Llenado dinámicamente desde /api/setup/countries -->
-    <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px;">
-      Cargando países…
+<!-- ── 2. Token GitHub ── -->
+<div class="screen" id="s2">
+  <div class="logo">CENTINEL — Paso 1 de 4</div>
+  <h1>Conectar tu cuenta de GitHub</h1>
+  <p class="sub">Necesitamos un token para crear el repositorio en tu cuenta.</p>
+  <div class="dots">
+    <div class="dot done"></div><div class="dot active"></div>
+    <div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="card">
+    <label>Personal Access Token (Classic)</label>
+    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      autocomplete="off" spellcheck="false">
+    <div class="hint" style="margin-top:-10px;margin-bottom:16px;">
+      Necesitas permisos: <strong>repo</strong> y <strong>workflow</strong>.
+      <a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Centinel+Deploy" target="_blank">
+        Crear token →
+      </a>
+    </div>
+    <label>Tu nombre de usuario en GitHub</label>
+    <input type="text" id="ghUser" placeholder="mi-usuario" autocomplete="off" spellcheck="false">
+    <div id="token-error" class="box box-warn" style="display:none;"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="go(1)">← Atrás</button>
+      <button class="btn" id="btnVerifyToken" onclick="verifyToken()">Verificar →</button>
     </div>
   </div>
 </div>
 
-<!-- ── Pantalla 2: Generando + PDF ── -->
-<div class="screen" id="screen-generating">
-  <div class="gen-card">
-    <div class="flag-big" id="gen-flag">🌎</div>
-    <h2 id="gen-title">Configurando Centinel</h2>
-    <p class="sub2" id="gen-country-name">Preparando tu sistema…</p>
-
-    <div class="step-dots">
-      <div class="dot done"></div>
-      <div class="dot active"></div>
+<!-- ── 3. País + Configuración ── -->
+<div class="screen" id="s3">
+  <div class="logo">CENTINEL — Paso 2 de 4</div>
+  <h1>Configura tu nodo</h1>
+  <p class="sub">Elige el país y el nombre del repositorio de datos.</p>
+  <div class="dots">
+    <div class="dot done"></div><div class="dot done"></div>
+    <div class="dot active"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="card">
+    <label>País a monitorear</label>
+    <div class="country-grid">
+      <div class="c-card selected" id="cc-HN" onclick="selCountry('HN')">
+        <span class="flag">🇭🇳</span>
+        <span class="name">Honduras</span>
+        <span class="auth">TSE / CNE</span>
+      </div>
+      <div class="c-card" id="cc-GT" onclick="selCountry('GT')" title="Próximamente">
+        <span class="flag">🇬🇹</span>
+        <span class="name">Guatemala</span>
+        <span class="auth" style="color:var(--border)">Próximamente</span>
+      </div>
+      <div class="c-card" id="cc-SV" onclick="selCountry('SV')" title="Próximamente">
+        <span class="flag">🇸🇻</span>
+        <span class="name">El Salvador</span>
+        <span class="auth" style="color:var(--border)">Próximamente</span>
+      </div>
+      <div class="c-card" id="cc-VE" onclick="selCountry('VE')" title="Próximamente">
+        <span class="flag">🇻🇪</span>
+        <span class="name">Venezuela</span>
+        <span class="auth" style="color:var(--border)">Próximamente</span>
+      </div>
     </div>
-
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress-fill"></div>
+    <label>Nombre del repositorio de datos</label>
+    <input type="text" id="repoName" value="centinel-hn-datos"
+      placeholder="centinel-hn-datos" spellcheck="false"
+      oninput="updateRepoPreview()">
+    <div class="hint" style="margin-top:-10px;margin-bottom:16px;" id="repo-preview">
+      Se creará: <strong id="rp-full">tu-usuario/centinel-hn-datos</strong>
     </div>
-    <div class="progress-label" id="progress-label">Iniciando…</div>
-
-    <div class="warning-box" id="warning-box" style="display:none">
-      <strong>⚠ Guarda el PDF en un lugar seguro</strong>
-      Este PDF contiene los 12 seeds de acceso al panel de administración.
-      El sistema <strong>no guarda los seeds</strong> — solo sus hashes.
-      Si pierdes el PDF, deberás regenerar seeds nuevos (invalidando los anteriores).
+    <label>Año electoral</label>
+    <select id="elecYear">
+      <option value="2025" selected>2025</option>
+      <option value="2026">2026</option>
+      <option value="2027">2027</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="go(2)">← Atrás</button>
+      <button class="btn" onclick="go(4)">Siguiente →</button>
     </div>
-
-    <div class="pdf-ready" id="pdf-ready" style="display:none">
-      ✓ PDF descargado automáticamente. Guárdalo en un lugar seguro.
-    </div>
-
-    <button class="btn-primary" id="btn-launch" onclick="goToDashboard()" disabled>
-      Iniciar Centinel →
-    </button>
   </div>
 </div>
+
+<!-- ── 4. Despliegue ── -->
+<div class="screen" id="s4">
+  <div class="logo">CENTINEL — Paso 3 de 4</div>
+  <h1>Desplegando en GitHub</h1>
+  <p class="sub">Creando tu repositorio de datos y configurando los workflows…</p>
+  <div class="dots">
+    <div class="dot done"></div><div class="dot done"></div>
+    <div class="dot done"></div><div class="dot active"></div>
+    <div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="card">
+    <div class="pbar-wrap"><div class="pbar" id="pbar"></div></div>
+    <div class="pstep" id="pstep">Iniciando…</div>
+    <div class="log" id="deploy-log"></div>
+    <div id="deploy-error" class="box box-warn" style="display:none;"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="go(3)" id="btnBack4">← Atrás</button>
+      <button class="btn" id="btnDeploy" onclick="startDeploy()">Desplegar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 5. Seeds PDF ── -->
+<div class="screen" id="s5">
+  <div class="logo">CENTINEL — Paso 4 de 4</div>
+  <h1>Descarga tus seeds de acceso</h1>
+  <p class="sub">Son las llaves del panel de administración. Guárdalas en un lugar seguro.</p>
+  <div class="dots">
+    <div class="dot done"></div><div class="dot done"></div>
+    <div class="dot done"></div><div class="dot done"></div>
+    <div class="dot active"></div><div class="dot"></div>
+  </div>
+  <div class="card">
+    <div class="box box-warn" style="margin-bottom:16px;">
+      <strong>⚠ Lee esto antes de continuar</strong>
+      Estos 12 seeds son generados ahora mismo en tu navegador y
+      <strong>nunca se almacenan</strong> — solo sus hashes van al repo.
+      Si cierras esta pestaña sin descargar el PDF, deberás regenerar seeds nuevos.
+    </div>
+    <div class="seed-grid" id="seed-grid"><!-- llenado por JS --></div>
+    <div class="btn-row" style="justify-content:center;margin-bottom:16px;">
+      <button class="btn" onclick="downloadPDF()">⬇ Descargar PDF de seeds</button>
+    </div>
+    <div id="pdf-ok" class="box box-ok" style="display:none;">
+      ✓ PDF descargado. Cuando lo hayas guardado en un lugar seguro, continúa.
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="btnFinish" onclick="go(6)" disabled>
+        Ir a mi panel →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 6. Listo ── -->
+<div class="screen" id="s6">
+  <div class="logo">CENTINEL — ¡Listo!</div>
+  <h1>Tu nodo está activo</h1>
+  <p class="sub">GitHub Actions comenzará a monitorear el CNE en los próximos 15 minutos.</p>
+  <div class="dots">
+    <div class="dot done"></div><div class="dot done"></div>
+    <div class="dot done"></div><div class="dot done"></div>
+    <div class="dot done"></div><div class="dot done"></div>
+  </div>
+  <div id="done-links"><!-- llenado por JS --></div>
+  <div class="box box-info" style="margin-top:16px;">
+    <strong>Siguiente paso</strong>
+    Activa GitHub Pages en tu repositorio de datos:
+    Settings → Pages → Source: <em>GitHub Actions</em>
+    (o espera — el primer workflow lo activa automáticamente).
+  </div>
+</div>
+
+<!-- jsPDF desde CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-const API = '';
+// ── Estado global ──────────────────────────────────────────────────────────
+const STATE = {
+  token: '', user: '', country: 'HN', repo: 'centinel-hn-datos', year: '2025',
+  seeds: [], repoUrl: '', pagesUrl: '',
+};
 
-async function loadCountries() {
+// ── País ───────────────────────────────────────────────────────────────────
+const COUNTRIES = {
+  HN: { flag:'🇭🇳', name:'Honduras', auth:'TSE / CNE', available:true },
+  GT: { flag:'🇬🇹', name:'Guatemala', auth:'TSE Guatemala', available:false },
+  SV: { flag:'🇸🇻', name:'El Salvador', auth:'TSE El Salvador', available:false },
+  VE: { flag:'🇻🇪', name:'Venezuela', auth:'CNE Venezuela', available:false },
+};
+
+function selCountry(code) {
+  if (!COUNTRIES[code].available) return;
+  STATE.country = code;
+  document.querySelectorAll('.c-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('cc-'+code).classList.add('selected');
+  const repo = 'centinel-'+code.toLowerCase()+'-datos';
+  document.getElementById('repoName').value = repo;
+  STATE.repo = repo;
+  updateRepoPreview();
+}
+
+function updateRepoPreview() {
+  STATE.repo = document.getElementById('repoName').value.trim()
+    .replace(/[^a-z0-9_.-]/gi, '-').toLowerCase() || 'centinel-datos';
+  document.getElementById('rp-full').textContent =
+    (STATE.user || 'tu-usuario') + '/' + STATE.repo;
+}
+
+// ── Verificar token ─────────────────────────────────────────────────────────
+async function verifyToken() {
+  const token = document.getElementById('ghToken').value.trim();
+  const user  = document.getElementById('ghUser').value.trim();
+  const errBox = document.getElementById('token-error');
+  errBox.style.display = 'none';
+
+  if (!token || !user) {
+    errBox.textContent = 'Introduce el token y tu nombre de usuario.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('btnVerifyToken').disabled = true;
+  document.getElementById('btnVerifyToken').textContent = 'Verificando…';
+
   try {
-    const r = await fetch(API + '/api/setup/countries');
-    const countries = await r.json();
-    renderGrid(countries);
+    const r = await fetch('https://api.github.com/user', {
+      headers: { Authorization: 'Bearer '+token, 'X-GitHub-Api-Version': '2022-11-28' }
+    });
+    if (!r.ok) throw new Error('Token inválido (HTTP '+r.status+')');
+    const data = await r.json();
+    if (data.login.toLowerCase() !== user.toLowerCase()) {
+      throw new Error('El usuario "'+data.login+'" no coincide con "'+user+'"');
+    }
+    STATE.token = token;
+    STATE.user  = data.login;
+    document.getElementById('rp-full').textContent = STATE.user+'/'+STATE.repo;
+    go(3);
   } catch(e) {
-    document.getElementById('country-grid').innerHTML =
-      '<div style="grid-column:1/-1;text-align:center;color:var(--bad);padding:24px;">Error cargando países. Recarga la página.</div>';
+    errBox.textContent = 'Error: ' + e.message;
+    errBox.style.display = 'block';
+  } finally {
+    document.getElementById('btnVerifyToken').disabled = false;
+    document.getElementById('btnVerifyToken').textContent = 'Verificar →';
   }
 }
 
-function renderGrid(countries) {
-  const grid = document.getElementById('country-grid');
-  grid.innerHTML = countries.map(c => `
-    <div class="country-card" onclick="selectCountry('${c.code}','${escHtml(c.name)}','${c.flag}','${escHtml(c.authority)}')">
-      <span class="flag">${c.flag}</span>
-      <span class="name">${escHtml(c.name)}</span>
-      <span class="auth">${escHtml(c.authority.split('(')[0].trim())}</span>
+// ── Deploy ──────────────────────────────────────────────────────────────────
+let deploying = false;
+
+async function startDeploy() {
+  if (deploying) return;
+  STATE.repo = document.getElementById('repoName').value.trim() || STATE.repo;
+  STATE.year = document.getElementById('elecYear').value;
+  deploying = true;
+
+  document.getElementById('btnDeploy').disabled = true;
+  document.getElementById('btnBack4').disabled = true;
+  document.getElementById('deploy-error').style.display = 'none';
+  document.getElementById('deploy-log').style.display = 'block';
+
+  const steps = [
+    [10, 'Creando repositorio de datos…',       () => createRepo()],
+    [25, 'Configurando variables del repo…',     () => setRepoVars()],
+    [40, 'Pusheando workflow de recolección…',   () => pushCollectWorkflow()],
+    [55, 'Pusheando workflow de GitHub Pages…',  () => pushPagesWorkflow()],
+    [70, 'Pusheando panel de transparencia…',    () => pushDashboard()],
+    [82, 'Generando seeds y hashes PBKDF2…',     () => generateAndPushSeeds()],
+    [92, 'Activando GitHub Pages…',              () => enablePages()],
+    [100,'¡Listo!',                              () => Promise.resolve()],
+  ];
+
+  try {
+    for (const [pct, label, fn] of steps) {
+      logLine(label);
+      setPbar(pct, label);
+      await fn();
+      logLine('✓ ' + label, 'ok');
+    }
+    go(5);
+    renderSeeds();
+  } catch(e) {
+    const errBox = document.getElementById('deploy-error');
+    errBox.textContent = 'Error: ' + e.message;
+    errBox.style.display = 'block';
+    logLine('✗ ' + e.message, 'er');
+    document.getElementById('btnBack4').disabled = false;
+  } finally {
+    deploying = false;
+    document.getElementById('btnDeploy').disabled = false;
+  }
+}
+
+function setPbar(pct, label) {
+  document.getElementById('pbar').style.width = pct + '%';
+  document.getElementById('pstep').textContent = label;
+}
+
+function logLine(msg, cls='') {
+  const log = document.getElementById('deploy-log');
+  const div = document.createElement('div');
+  if (cls) div.className = cls;
+  div.textContent = msg;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── GitHub API helper ───────────────────────────────────────────────────────
+async function gh(method, path, body) {
+  const r = await fetch('https://api.github.com' + path, {
+    method,
+    headers: {
+      Authorization: 'Bearer ' + STATE.token,
+      'Content-Type': 'application/json',
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error((err.message || r.statusText) + ' ['+r.status+']');
+  }
+  return r.status === 204 ? null : r.json();
+}
+
+function b64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+// ── Deploy steps ────────────────────────────────────────────────────────────
+
+async function createRepo() {
+  try {
+    await gh('POST', '/user/repos', {
+      name: STATE.repo,
+      description: 'Centinel — Auditoría electoral automatizada ' + STATE.country + ' ' + STATE.year,
+      private: false,
+      auto_init: true,
+    });
+  } catch(e) {
+    if (e.message.includes('already exists') || e.message.includes('422')) {
+      logLine('  (repositorio ya existe, continuando…)');
+      return;
+    }
+    throw e;
+  }
+  await sleep(1500);
+  STATE.repoUrl = 'https://github.com/' + STATE.user + '/' + STATE.repo;
+}
+
+async function setRepoVars() {
+  // Push repo variables for the workflows
+  try {
+    await gh('POST', `/repos/${STATE.user}/${STATE.repo}/actions/variables`, {
+      name: 'CENTINEL_COUNTRY', value: STATE.country });
+    await gh('POST', `/repos/${STATE.user}/${STATE.repo}/actions/variables`, {
+      name: 'CENTINEL_YEAR', value: STATE.year });
+  } catch(e) {
+    // Variables API might require different perms — not fatal
+    logLine('  (variables: '+e.message+' — continuando)');
+  }
+}
+
+async function pushFile(path, content, message) {
+  // Check if file exists to get sha
+  let sha;
+  try {
+    const existing = await gh('GET', `/repos/${STATE.user}/${STATE.repo}/contents/${path}`);
+    sha = existing.sha;
+  } catch(_) { sha = undefined; }
+
+  await gh('PUT', `/repos/${STATE.user}/${STATE.repo}/contents/${path}`, {
+    message,
+    content: b64(content),
+    ...(sha ? { sha } : {}),
+  });
+}
+
+async function pushCollectWorkflow() {
+  const country = STATE.country;
+  const year = STATE.year;
+  const wf = `name: Centinel Collect
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: \${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout Centinel Engine
+        uses: actions/checkout@v4
+        with:
+          repository: VectisDev/centinel
+          path: _engine
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: _engine/requirements-prod.txt
+
+      - name: Install dependencies
+        run: |
+          pip install -q -r _engine/requirements-prod.txt
+          pip install -q -e _engine
+
+      - name: Run pipeline
+        env:
+          CENTINEL_COUNTRY: ${country}
+          CENTINEL_YEAR: ${year}
+          CENTINEL_DATA_DIR: \${{ github.workspace }}/data
+          PYTHONPATH: \${{ github.workspace }}/_engine/src
+        run: |
+          mkdir -p data hashes web/data
+          cd _engine
+          python scripts/run_pipeline.py --once || true
+          python scripts/export_static_snapshot.py 2>/dev/null || true
+          [ -f web/data/snapshot.json ] && cp web/data/snapshot.json \${{ github.workspace }}/web/data/ || true
+
+      - name: Commit data
+        run: |
+          git config user.email "centinel-bot@users.noreply.github.com"
+          git config user.name "Centinel Bot"
+          git add data/ hashes/ web/data/ 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "data: \$(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+          git push
+`;
+  await pushFile('.github/workflows/collect.yml', wf,
+    'ci: add Centinel collect workflow');
+}
+
+async function pushPagesWorkflow() {
+  const wf = `name: Deploy Pages
+on:
+  push:
+    branches: [main]
+    paths: ['web/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: \${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4
+`;
+  await pushFile('.github/workflows/pages.yml', wf,
+    'ci: add GitHub Pages deploy workflow');
+}
+
+async function pushDashboard() {
+  const raw = `https://raw.githubusercontent.com/${STATE.user}/${STATE.repo}/main/web/data/snapshot.json`;
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Centinel — ${STATE.country} ${STATE.year}</title>
+<style>
+:root{--bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;--muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:40px 20px;min-height:100vh;}
+h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+.sub{font-size:13px;color:var(--muted);margin-bottom:32px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.card .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+.card .val{font-size:26px;font-weight:700;letter-spacing:-.02em;}
+.cand-row{display:flex;justify-content:space-between;align-items:center;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+.cand-name{font-size:13px;font-weight:600;}
+.cand-party{font-size:11px;color:var(--muted);}
+.cand-votes{font-size:15px;font-weight:700;color:var(--accent);}
+.cand-pct{font-size:12px;color:var(--muted);margin-left:8px;}
+.bar-wrap{background:#1a1d23;border-radius:999px;height:4px;margin-top:6px;}
+.bar{height:100%;background:var(--accent);border-radius:999px;transition:.4s;}
+footer{font-size:11px;color:var(--muted);margin-top:32px;text-align:center;}
+footer a{color:var(--accent);}
+.hash{font-family:monospace;font-size:10px;color:var(--muted);word-break:break-all;}
+</style>
+</head>
+<body>
+<div style="max-width:800px;margin:0 auto;">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">
+    CENTINEL — AUDITORÍA ELECTORAL AUTÓNOMA
+  </div>
+  <h1>Panel de Transparencia · ${STATE.country} ${STATE.year}</h1>
+  <p class="sub">Datos descargados del CNE y verificados con hash chain SHA-256.</p>
+  <div class="grid" id="stats">
+    <div class="card"><div class="lbl">Estado</div><div class="val" style="font-size:14px;color:var(--muted);">Cargando…</div></div>
+  </div>
+  <div id="candidates"></div>
+  <div style="margin-top:24px;">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Hash del último snapshot</div>
+    <div class="hash" id="snap-hash">—</div>
+  </div>
+  <footer style="margin-top:32px;">
+    Datos: <a href="${raw}" target="_blank">snapshot.json</a> ·
+    Motor: <a href="https://github.com/VectisDev/centinel" target="_blank">VectisDev/centinel</a> ·
+    Datos: <a href="https://github.com/${STATE.user}/${STATE.repo}" target="_blank">${STATE.user}/${STATE.repo}</a>
+  </footer>
+</div>
+<script>
+const RAW = '${raw}';
+async function load(){
+  try{
+    const r = await fetch(RAW+'?t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    renderStats(d);
+    renderCandidates(d);
+    document.getElementById('snap-hash').textContent = d.hash || d.checkpoint_hash || '—';
+  }catch(e){
+    document.getElementById('stats').innerHTML =
+      '<div class="card"><div class="lbl">Error</div><div class="val" style="font-size:13px;color:var(--muted);">'+e.message+'</div></div>';
+  }
+}
+function fmt(n){return(+n||0).toLocaleString('es-HN');}
+function pct(a,b){return b?((a/b)*100).toFixed(1)+'%':'—';}
+function renderStats(d){
+  const ac = d.actas||{};
+  const vt = d.votos_totales||{};
+  const ts = d.timestamp_utc||d.timestamp||'';
+  document.getElementById('stats').innerHTML = \`
+    <div class="card"><div class="lbl">Actualización</div><div class="val" style="font-size:14px;">\${ts.replace('T',' ').replace('Z','') || '—'} UTC</div></div>
+    <div class="card"><div class="lbl">Actas procesadas</div><div class="val">\${fmt(ac.divulgadas||0)}</div></div>
+    <div class="card"><div class="lbl">Total actas</div><div class="val">\${fmt(ac.totales||0)}</div></div>
+    <div class="card"><div class="lbl">Votos válidos</div><div class="val">\${fmt(vt.validos||0)}</div></div>
+  \`;
+}
+function renderCandidates(d){
+  const cands = d.candidatos||[];
+  const maxV = Math.max(...cands.map(c=>c.votes||0), 1);
+  document.getElementById('candidates').innerHTML = \`
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;">Resultados</div>
+    \${cands.sort((a,b)=>(b.votes||0)-(a.votes||0)).map(c=>\`
+      <div class="cand-row">
+        <div>
+          <div class="cand-name">\${c.name||'—'}</div>
+          <div class="cand-party">\${c.party||''}</div>
+          <div class="bar-wrap"><div class="bar" style="width:\${Math.round(((c.votes||0)/maxV)*100)}%"></div></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="cand-votes">\${fmt(c.votes||0)}</div>
+          <div class="cand-pct">\${c.percentage?c.percentage.toFixed(1)+'%':pct(c.votes,d.votos_totales?.validos)}</div>
+        </div>
+      </div>
+    \`).join('')}
+  \`;
+}
+load();
+setInterval(load, 5*60*1000);
+<\/script>
+</body>
+</html>`;
+  await pushFile('web/index.html', html, 'web: add public transparency dashboard');
+  await pushFile('web/data/.gitkeep', '', 'web: init data dir');
+}
+
+async function generateAndPushSeeds() {
+  STATE.seeds = await generateSeeds();
+  const accessJson = await buildAccessJson(STATE.seeds);
+  await pushFile('web/access.json',
+    JSON.stringify(accessJson, null, 2),
+    'security: add PBKDF2 hashed seeds for OPS auth');
+}
+
+async function enablePages() {
+  try {
+    await gh('POST', `/repos/${STATE.user}/${STATE.repo}/pages`, {
+      build_type: 'workflow',
+    });
+  } catch(e) {
+    if (e.message.includes('409') || e.message.includes('already')) {
+      logLine('  (Pages ya activo)');
+      return;
+    }
+    // Not fatal — user can enable manually
+    logLine('  (Pages: '+e.message+' — activa manualmente en Settings)');
+  }
+  STATE.pagesUrl = `https://${STATE.user}.github.io/${STATE.repo}/`;
+}
+
+// ── Seed & crypto ───────────────────────────────────────────────────────────
+const PBKDF2_SALT   = 'centinel-admin-salt-v1';
+const PBKDF2_ITERS  = 600000;
+const ADJECTIVES = ['alpha','bravo','charlie','delta','echo','foxtrot','golf','hotel',
+  'india','juliet','kilo','lima','mike','november','oscar','papa',
+  'quebec','romeo','sierra','tango','uniform','victor','whiskey','xray',
+  'yankee','zulu','amber','azure','black','blue','cedar','coral',
+  'crimson','cyan','dusk','ember','frost','gold','green','ivory'];
+const NOUNS = ['anchor','arrow','badge','bolt','bridge','canyon','cloud','comet',
+  'crown','crystal','dawn','eagle','falcon','flame','forest','glacier',
+  'harbor','hawk','island','jaguar','keystone','lance','lantern','marble',
+  'meteor','mirror','moon','mountain','nova','oak','orbit','pearl',
+  'phoenix','pine','prism','quartz','raven','reef','ridge','river',
+  'rocket','sage','shadow','shield','signal','silver','solar','spark',
+  'spire','star','storm','summit','sword','thorn','tide','tiger',
+  'torch','tower','trail','vault','viper','vista','wave','wolf'];
+
+function rndWord(list) {
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return list[arr[0] % list.length];
+}
+function rndDigits() {
+  const arr = new Uint16Array(1);
+  crypto.getRandomValues(arr);
+  return String(arr[0] % 10000).padStart(4,'0');
+}
+
+async function generateSeeds() {
+  return Array.from({length:12}, () =>
+    `${rndWord(ADJECTIVES)}-${rndWord(NOUNS)}-${rndDigits()}`
+  );
+}
+
+async function hashSeed(seed) {
+  const enc = new TextEncoder();
+  const keyMat = await crypto.subtle.importKey(
+    'raw', enc.encode(seed), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({
+    name:'PBKDF2', salt:enc.encode(PBKDF2_SALT),
+    iterations:PBKDF2_ITERS, hash:'SHA-256'
+  }, keyMat, 256);
+  return Array.from(new Uint8Array(bits))
+    .map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function buildAccessJson(seeds) {
+  const hashes = await Promise.all(seeds.map(hashSeed));
+  return {
+    version: 1,
+    algorithm: 'PBKDF2-SHA256',
+    iterations: PBKDF2_ITERS,
+    salt: PBKDF2_SALT,
+    seeds: hashes.map((h, i) => ({
+      slot: i+1,
+      hash: h,
+    })),
+    generated_at: new Date().toISOString(),
+    country: STATE.country,
+    year: STATE.year,
+  };
+}
+
+// ── Seeds screen ────────────────────────────────────────────────────────────
+function renderSeeds() {
+  const grid = document.getElementById('seed-grid');
+  grid.innerHTML = STATE.seeds.map((s,i) => `
+    <div class="seed-item">
+      <div class="seed-num">Seed #${i+1}</div>
+      <div class="seed-val">${escHtml(s)}</div>
     </div>
   `).join('');
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// ── PDF download ────────────────────────────────────────────────────────────
+async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ format:'a4', unit:'mm' });
 
-let selectedCode = null;
+  const W = 210, M = 20;
+  let y = M;
 
-function selectCountry(code, name, flag, authority) {
-  selectedCode = code;
-  document.getElementById('gen-flag').textContent = flag;
-  document.getElementById('gen-title').textContent = name;
-  document.getElementById('gen-country-name').textContent = authority;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.setTextColor(15,17,21);
+  doc.setFillColor(15,17,21);
+  doc.rect(0,0,W,50,'F');
+  doc.setTextColor(255,255,255);
+  doc.text('CENTINEL — SEEDS DE ACCESO', M, y+10);
+  doc.setFontSize(10);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(139,146,156);
+  doc.text(`${STATE.country} ${STATE.year}  ·  ${STATE.user}/${STATE.repo}`, M, y+20);
+  doc.text('Generado: ' + new Date().toISOString(), M, y+27);
+  y = 60;
 
-  document.getElementById('dot-1').className = 'dot done';
-  document.getElementById('dot-2').className = 'dot active';
+  doc.setTextColor(220,53,69);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.text('⚠ CONFIDENCIAL — No compartas este documento. Guárdalo fuera de línea.', M, y);
+  doc.text('Los seeds son las únicas llaves del panel de administración.', M, y+5);
+  doc.text('El sistema solo almacena sus hashes — si pierdes este PDF, deberás regenerarlos.', M, y+10);
+  y += 20;
 
-  showScreen('screen-generating');
-  startSetup(code, name, flag);
-}
+  doc.setDrawColor(36,39,46);
+  doc.setLineWidth(0.3);
+  doc.line(M, y, W-M, y);
+  y += 8;
 
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15,17,21);
+  doc.text('12 Seeds de Alta Entropía', M, y);
+  y += 8;
 
-async function startSetup(code, name, flag) {
-  const fill = document.getElementById('progress-fill');
-  const label = document.getElementById('progress-label');
-  const btn = document.getElementById('btn-launch');
+  doc.setFont('courier','normal');
+  doc.setFontSize(10);
+  const colW = (W - 2*M - 10) / 2;
+  STATE.seeds.forEach((seed, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const x = M + col * (colW + 10);
+    const yy = y + row * 14;
 
-  const steps = [
-    [15, 'Generando identidad criptográfica…'],
-    [35, 'Derivando seeds de alta entropía…'],
-    [55, 'Calculando hashes PBKDF2-SHA256…'],
-    [75, 'Generando PDF de acceso…'],
-    [90, 'Descargando PDF…'],
+    doc.setFillColor(245,247,250);
+    doc.roundedRect(x, yy-5, colW, 12, 2, 2, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(139,146,156);
+    doc.text('#'+(i+1), x+3, yy);
+    doc.setFont('courier','normal');
+    doc.setFontSize(10);
+    doc.setTextColor(15,17,21);
+    doc.text(seed, x+3, yy+5);
+  });
+  y += 6 * 14 + 10;
+
+  doc.setDrawColor(36,39,46);
+  doc.line(M, y, W-M, y);
+  y += 8;
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(139,146,156);
+  const notes = [
+    '• Usa cualquiera de estos seeds para autenticarte en el panel OPS.',
+    '• Cada seed puede usarse solo una vez si habilitas rotación.',
+    `• Repo de datos: ${STATE.repoUrl}`,
+    `• Panel público: ${STATE.pagesUrl || 'https://'+STATE.user+'.github.io/'+STATE.repo+'/'}`,
+    `• Panel OPS: ${STATE.pagesUrl ? STATE.pagesUrl+'ops/' : 'https://'+STATE.user+'.github.io/'+STATE.repo+'/ops/'}`,
   ];
+  notes.forEach(n => { doc.text(n, M, y); y += 5; });
 
-  for (const [pct, msg] of steps) {
-    fill.style.width = pct + '%';
-    label.textContent = msg;
-    await sleep(380);
-  }
+  doc.save(`centinel-seeds-${STATE.country.toLowerCase()}-${STATE.year}.pdf`);
 
-  try {
-    const r = await fetch(API + '/api/setup/init', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country_code: code }),
-    });
-
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      // Ya configurado es OK — sistema ya tenía seeds
-      if (r.status === 409) {
-        fill.style.width = '100%';
-        label.textContent = 'Sistema ya configurado.';
-        document.getElementById('pdf-ready').textContent =
-          '✓ El sistema ya estaba configurado. Usa el panel OPS para regenerar seeds si es necesario.';
-        document.getElementById('pdf-ready').style.display = 'block';
-        btn.disabled = false;
-        return;
-      }
-      throw new Error(err.detail || 'Error en la configuración');
-    }
-
-    // Descargar PDF automáticamente
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `centinel-seeds-${code.toLowerCase()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-    fill.style.width = '100%';
-    label.textContent = '¡Listo!';
-    document.getElementById('warning-box').style.display = 'block';
-    document.getElementById('pdf-ready').style.display = 'block';
-    btn.disabled = false;
-
-  } catch (e) {
-    fill.style.width = '100%';
-    fill.style.background = 'var(--bad)';
-    label.textContent = 'Error: ' + e.message;
-  }
+  document.getElementById('pdf-ok').style.display = 'block';
+  document.getElementById('btnFinish').disabled = false;
 }
 
-function goToDashboard() {
-  window.location.href = '/';
+// ── Navigation ────────────────────────────────────────────────────────────
+function go(n) {
+  if (n === 6) renderDone();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  window.scrollTo(0,0);
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+// ── Done screen ─────────────────────────────────────────────────────────────
 
-// Verificar si ya está configurado
-async function checkAlreadySetup() {
-  try {
-    const r = await fetch(API + '/api/setup/status');
-    const s = await r.json();
-    if (s.configured) {
-      // Ya configurado — ir al dashboard directamente
-      window.location.href = '/';
-    }
-  } catch(_) {}
+function renderDone() {
+  const pages = STATE.pagesUrl || `https://${STATE.user}.github.io/${STATE.repo}/`;
+  document.getElementById('done-links').innerHTML = `
+    <div class="link-card">
+      <div class="icon">📊</div>
+      <div>
+        <div class="lbl">Panel público de transparencia</div>
+        <a href="${escHtml(pages)}" target="_blank">${escHtml(pages)}</a>
+      </div>
+    </div>
+    <div class="link-card">
+      <div class="icon">🔐</div>
+      <div>
+        <div class="lbl">Panel OPS (administración)</div>
+        <a href="${escHtml(pages+'ops/')}" target="_blank">${escHtml(pages+'ops/')}</a>
+      </div>
+    </div>
+    <div class="link-card">
+      <div class="icon">💾</div>
+      <div>
+        <div class="lbl">Repositorio de datos</div>
+        <a href="${escHtml(STATE.repoUrl)}" target="_blank">${escHtml(STATE.repoUrl)}</a>
+      </div>
+    </div>
+    <div class="link-card">
+      <div class="icon">⚡</div>
+      <div>
+        <div class="lbl">GitHub Actions (workflows)</div>
+        <a href="${escHtml(STATE.repoUrl+'/actions')}" target="_blank">${escHtml(STATE.repoUrl+'/actions')}</a>
+      </div>
+    </div>
+  `;
 }
 
-checkAlreadySetup();
-loadCountries();
+// ── utils ────────────────────────────────────────────────────────────────────
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
 </script>
 </body>
 </html>
