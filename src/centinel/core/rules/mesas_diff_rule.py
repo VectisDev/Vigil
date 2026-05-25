@@ -77,6 +77,7 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     Returns:
         Lista de alertas en formato estándar.
 
+
     English:
         Compares polling tables between consecutive snapshots.
 
@@ -94,6 +95,8 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     del config
 
     alerts: List[dict] = []
+    if not extract_mesas(current_data):
+        return alerts
     if not previous_data:
         return alerts
 

@@ -385,7 +385,19 @@ def _extract_payload_timestamp(payload: Any) -> Optional[datetime]:
         or payload.get("fecha")
         or payload.get("fecha_hora")
         or payload.get("hora_actualizacion")
+        or payload.get("updated_at")
+        or payload.get("ultima_actualizacion")
+        or payload.get("last_update")
+        or payload.get("actualizacion")
+        or payload.get("corte")
+        or payload.get("hora_corte")
+        or payload.get("procesado_en")
+        or payload.get("fecha_proceso")
+        or payload.get("fecha_generacion")
+        or payload.get("generado_en")
         or meta.get("timestamp_utc")
+        or meta.get("updated_at")
+        or meta.get("actualizacion")
     )
     if not raw_ts:
         return None
@@ -442,25 +454,34 @@ def _is_cne_endpoint(endpoint: str, config: dict[str, Any]) -> bool:
 
 def _validate_real_payload(payload: Any, endpoint: str, config: dict[str, Any]) -> bool:
     """/** Valida payload real del CNE. / Validate real CNE payload. **"""
+    country = config.get("centinel", {}).get("country", "HN")
+
     if not _is_cne_endpoint(endpoint, config):
         logger.error("Endpoint rechazado (no allowlist / no IP publica): %s", endpoint)
         return False
 
     timestamp = _extract_payload_timestamp(payload)
     if not timestamp:
-        logger.error("Payload sin timestamp real: %s", endpoint)
-        return False
+        # For non-HN countries the timestamp field may be missing or use non-standard key.
+        # Accept the payload but log a warning — hash chain still captures the data.
+        if country != "HN":
+            logger.warning("Payload sin timestamp explícito (no-HN) en %s — aceptando", endpoint)
+        else:
+            logger.error("Payload sin timestamp real: %s", endpoint)
+            return False
 
-    max_age_hours = float(config.get("timestamp_max_age_hours", 24))
-    now = datetime.now(timezone.utc)
-    age_hours = (now - timestamp).total_seconds() / 3600
-    if age_hours < -1:
-        logger.error("Timestamp en el futuro detectado: %s", timestamp.isoformat())
-        return False
-    if age_hours > max_age_hours:
-        logger.error("Timestamp demasiado antiguo (%.1f h) para %s", age_hours, endpoint)
-        return False
-    if not _payload_has_cne_source(payload):
+    if timestamp:
+        max_age_hours = float(config.get("timestamp_max_age_hours", 24))
+        now = datetime.now(timezone.utc)
+        age_hours = (now - timestamp).total_seconds() / 3600
+        if age_hours < -1:
+            logger.error("Timestamp en el futuro detectado: %s", timestamp.isoformat())
+            return False
+        if age_hours > max_age_hours:
+            logger.error("Timestamp demasiado antiguo (%.1f h) para %s", age_hours, endpoint)
+            return False
+
+    if country == "HN" and not _payload_has_cne_source(payload):
         logger.warning("Payload sin fuente CNE explícita: %s", endpoint)
     return True
 
@@ -549,6 +570,35 @@ def process_sources(
                     _save_checkpoint(previous_hash, processed_sources)
                 health_state.record_failure()
                 had_errors = True
+                continue
+
+            monitoring_mode = config.get("cne", {}).get("monitoring_mode", "json")
+            if monitoring_mode == "html_table":
+                try:
+                    html_response = session.get(endpoint, timeout=float(config.get("timeout", 15)))
+                    html_response.raise_for_status()
+                    payload = {"html_content": html_response.text, "source_url": endpoint}
+                    snapshot_payload = {
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "source": source_id,
+                        "source_url": endpoint,
+                        "html_content": html_response.text,
+                    }
+                    (chained_hash, current_hash, snapshot_file) = _persist_snapshot_payload(
+                        snapshot_payload, source_id=source_id, data_dir=data_dir,
+                        hash_dir=hash_dir, previous_hash=previous_hash,
+                    )
+                    previous_hash = chained_hash
+                    logger.info("HTML snapshot capturado y hasheado para %s", source_label)
+                    health_state.record_success()
+                    breaker.record_success(now)
+                    _persist_breaker_state(breaker)
+                    processed_sources.add(source_label)
+                    _save_checkpoint(previous_hash, processed_sources)
+                except Exception as e:
+                    logger.error("Fallo al descargar HTML %s: %s", endpoint, e)
+                    health_state.record_failure()
+                    had_errors = True
                 continue
 
             try:

@@ -2086,11 +2086,76 @@ async function loadOtsStatus(){
 
 function buildNewConfigYaml(){
   const base = deepClone(currentConfig['config/prod/config.yaml'] || {});
+
+  // OTS settings
   if(!base.opentimestamps) base.opentimestamps = {};
   base.opentimestamps.enabled = document.getElementById('tog-ots')?.checked ?? true;
   const server = document.getElementById('inp-ots-server')?.value.trim();
   if(server) base.opentimestamps.primary_server = server;
   else delete base.opentimestamps.primary_server;
+
+  // Rule toggles → rules.{rule}.enabled
+  const RULE_IDS = [
+    'benford_first_digit','last_digit_uniformity','granular_anomaly','mesa_impossibility',
+    'mesa_reconciliation','mesas_diff','snapshot_jump','participation_vote_correlation',
+    'geographic_dispersion','null_blank_votes','table_consistency','inconsistency_rate',
+    'runs_test','participation_anomaly_advanced','basic_diff','irreversibility',
+    'participation_anomaly','processing_speed','trend_shift','benford_law',
+    'large_numbers_convergence','ml_outliers','turnout_impossible','late_mesa',
+    'apply_benford_law','check_distribution_chi2',
+  ];
+  if(!base.rules) base.rules = {};
+  RULE_IDS.forEach(rule => {
+    const tog = document.getElementById(`r-${rule}`);
+    if(!tog) return;
+    if(!base.rules[rule]) base.rules[rule] = {};
+    base.rules[rule].enabled = tog.checked;
+  });
+
+  // Rule threshold params → country_overrides.{country}.{rule}.{yaml_key}
+  // Maps HTML display name → YAML param key
+  const PARAM_KEY_MAP = {
+    'max_change_%': 'max_change_pct',
+    'critical_%':   'critical_pct',
+    'change_%':     'change_pct',
+    'jump_%':       'jump_pct',
+    'threshold_%':  'threshold_pct',
+    'max_actas/15m':'max_actas_per_15m',
+  };
+  // rule_id → yaml param key (from HTML label text after input)
+  const RULE_PARAMS = {
+    benford_first_digit:           'mad_critical',
+    last_digit_uniformity:         'chi_pvalue',
+    granular_anomaly:              'zscore_threshold',
+    snapshot_jump:                 'max_change_pct',
+    participation_vote_correlation:'critical_r',
+    geographic_dispersion:         'critical_cv',
+    null_blank_votes:              'critical_pct',
+    table_consistency:             'tolerance',
+    inconsistency_rate:            'critical_pct',
+    runs_test:                     'critical_p',
+    participation_anomaly_advanced:'hist_mean',
+    basic_diff:                    'change_pct',
+    irreversibility:               'hist_turnout',
+    participation_anomaly:         'jump_pct',
+    processing_speed:              'max_actas_per_15m',
+    trend_shift:                   'threshold_pct',
+    benford_law:                   'chi_threshold',
+    large_numbers_convergence:     'z_threshold',
+    ml_outliers:                   'contamination',
+  };
+  const country = base.centinel?.country || 'HN';
+  if(!base.country_overrides) base.country_overrides = {};
+  if(!base.country_overrides[country]) base.country_overrides[country] = {};
+  Object.entries(RULE_PARAMS).forEach(([rule, yamlKey]) => {
+    const inp = document.getElementById(`rp-${rule}`);
+    if(!inp) return;
+    const val = parseFloat(inp.value);
+    if(isNaN(val)) return;
+    if(!base.country_overrides[country][rule]) base.country_overrides[country][rule] = {};
+    base.country_overrides[country][rule][yamlKey] = val;
+  });
+
   return base;
 }
 

@@ -335,6 +335,9 @@ def normalize_snapshot(
     scope: str = "DEPARTMENT",
     department_code: str | None = None,
     field_map: Dict[str, List[str]] | None = None,
+    country_code: str = "HN",
+    authority_code: str = "CNE",
+    dept_code_map: Dict[str, str] | None = None,
 ) -> Snapshot | None:
     """/** Convierte JSON crudo en Snapshot canónico inmutable. / Convert raw JSON into an immutable canonical Snapshot. **/"""
     payload_hash = _compute_payload_hash(raw)
@@ -345,12 +348,13 @@ def normalize_snapshot(
         return None
     if not _validate_presidential_acta(raw, payload_hash):
         return None
-    resolved_department_code = department_code or DEPARTMENT_CODES.get(department_name, "00")
+    code_map = dept_code_map if dept_code_map is not None else DEPARTMENT_CODES
+    resolved_department_code = department_code or code_map.get(department_name, "00")
 
     meta = Meta(
-        election="HN-PRESIDENTIAL",
+        election=f"{country_code}-PRESIDENTIAL",
         year=year,
-        source="CNE",
+        source=authority_code,
         scope=scope,
         department_code=resolved_department_code,
         timestamp_utc=timestamp_utc,

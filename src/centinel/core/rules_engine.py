@@ -157,6 +157,7 @@ class RulesEngine:
 
         English:
             Get rule-specific config, resolving aliases when necessary.
+            Country-level overrides in country_overrides[country][rule_key] are merged on top.
         """
         rules_config = self.config.get("rules", {})
         rule_config = rules_config.get(rule.config_key)
@@ -164,7 +165,14 @@ class RulesEngine:
             alias = RULE_CONFIG_ALIASES.get(rule.config_key)
             if alias:
                 rule_config = rules_config.get(alias)
-        return rule_config if rule_config is not None else {}
+        base = rule_config if rule_config is not None else {}
+        # Merge country-specific threshold overrides
+        country = self.config.get("centinel", {}).get("country", "HN")
+        overrides = self.config.get("country_overrides", {}).get(country, {})
+        country_rule_override = overrides.get(rule.config_key, {})
+        if country_rule_override:
+            return {**base, **country_rule_override}
+        return base
 
     def _rule_enabled(self, rule: RuleDefinition) -> bool:
         """Determina si una regla está habilitada según la configuración.

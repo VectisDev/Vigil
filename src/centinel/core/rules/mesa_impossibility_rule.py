@@ -49,6 +49,8 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
         Apply per-table impossibility checks to the current snapshot.
     """
     del previous_data
+    if not collect_all_mesas(current_data):
+        return []
     max_listed = int((config or {}).get("max_listed", 25))
 
     violations: List[dict] = []

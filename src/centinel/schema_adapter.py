@@ -227,6 +227,161 @@ def adapt_hn_json(path: Path) -> AdaptedSnapshot:
     )
 
 
+def adapt_hn_payload(raw: dict, dept_code: str = "00", timestamp_utc: str = "") -> AdaptedSnapshot:
+    """In-memory variant of adapt_hn_json — accepts a dict instead of a file path."""
+    if dept_code == "00":
+        dept_name = "TODOS"
+        scope = "nacional"
+    else:
+        try:
+            from centinel.countries import LATAM_COUNTRIES
+            cne_map = LATAM_COUNTRIES["HN"].build_cne_map()
+            dept_name = cne_map.get(dept_code, f"Departamento {dept_code}")
+        except Exception:
+            dept_name = f"Departamento {dept_code}"
+        scope = "departamental"
+
+    resultados = raw.get("resultados", [])
+    stats = raw.get("estadisticas", {})
+
+    candidates = []
+    for r in resultados:
+        candidates.append({
+            "name": (r.get("candidato") or "").strip().title(),
+            "party": (r.get("partido") or "").strip(),
+            "votes": _parse_int(r.get("votos")),
+            "percentage": _parse_float(r.get("porcentaje")),
+        })
+
+    actas = stats.get("totalizacion_actas", {})
+    dist = stats.get("distribucion_votos", {})
+    estado = stats.get("estado_actas_divulgadas", {})
+    votos_validos = _parse_int(dist.get("validos"))
+    votos_nulos = _parse_int(dist.get("nulos"))
+    votos_blancos = _parse_int(dist.get("blancos"))
+
+    return AdaptedSnapshot(
+        timestamp_utc=timestamp_utc,
+        country_code="HN",
+        dept_cne_code=dept_code,
+        dept_name=dept_name,
+        scope=scope,
+        actas_total=_parse_int(actas.get("actas_totales")),
+        actas_divulgadas=_parse_int(actas.get("actas_divulgadas")),
+        actas_correctas=_parse_int(estado.get("actas_correctas")),
+        actas_inconsistentes=_parse_int(estado.get("actas_inconsistentes")),
+        votos_validos=votos_validos,
+        votos_nulos=votos_nulos,
+        votos_blancos=votos_blancos,
+        votos_total_emitidos=votos_validos + votos_nulos + votos_blancos,
+        candidates=candidates,
+        source_filename="",
+    )
+
+
+def adapt_generic_payload(
+    raw: dict,
+    field_map: dict,
+    dept_code: str = "00",
+    dept_name: str = "",
+    timestamp_utc: str = "",
+    country_code: str = "XX",
+    authority_code: str = "TSE",
+) -> AdaptedSnapshot | None:
+    """For non-HN countries with JSON: uses normalize_snapshot(field_map=...) already existing."""
+    from centinel.core.normalize import normalize_snapshot
+
+    snap = normalize_snapshot(
+        raw,
+        department_name=dept_name,
+        timestamp_utc=timestamp_utc,
+        department_code=dept_code,
+        field_map=field_map,
+        country_code=country_code,
+        authority_code=authority_code,
+    )
+    if snap is None:
+        return None
+
+    # Map Snapshot → AdaptedSnapshot for pipeline compatibility
+    total = snap.totals.total_votes if snap.totals else 0
+    valid = snap.totals.valid_votes if snap.totals else 0
+    null = snap.totals.null_votes if snap.totals else 0
+    blank = snap.totals.blank_votes if snap.totals else 0
+    candidates = [
+        {"name": c.name or "", "party": c.party or "", "votes": c.votes, "percentage": 0.0}
+        for c in (snap.candidates or [])
+    ]
+    return AdaptedSnapshot(
+        timestamp_utc=timestamp_utc,
+        country_code=country_code,
+        dept_cne_code=dept_code,
+        dept_name=dept_name,
+        scope="nacional" if dept_code == "00" else "departamental",
+        actas_total=0,
+        actas_divulgadas=0,
+        actas_correctas=0,
+        actas_inconsistentes=0,
+        votos_validos=valid,
+        votos_nulos=null,
+        votos_blancos=blank,
+        votos_total_emitidos=total,
+        candidates=candidates,
+        source_filename="",
+    )
+
+
+def adapt_html_table_payload(
+    html: str,
+    table_selector: str,
+    column_map: dict,
+    dept_code: str = "00",
+    dept_name: str = "",
+    timestamp_utc: str = "",
+    country_code: str = "XX",
+    authority_code: str = "TSE",
+) -> AdaptedSnapshot | None:
+    """For html_table mode: BeautifulSoup extracts rows → dict → adapt_generic_payload."""
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        logger.error("beautifulsoup4 not installed — cannot parse HTML tables")
+        return None
+
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.select_one(table_selector or "table")
+    if not table:
+        return None
+
+    rows = table.find_all("tr")
+    candidate_col = column_map.get("candidate_name", 0)
+    votes_col = column_map.get("votes", 1)
+
+    candidatos = []
+    for row in rows[1:]:  # skip header
+        cells = row.find_all(["td", "th"])
+        if len(cells) <= max(candidate_col, votes_col):
+            continue
+        name = cells[candidate_col].get_text(strip=True)
+        try:
+            votes = int(cells[votes_col].get_text(strip=True).replace(",", "").replace(".", ""))
+        except (ValueError, IndexError):
+            continue
+        if name:
+            candidatos.append({"candidato": name, "votos": votes})
+
+    raw_dict = {"candidatos": candidatos}
+    return adapt_generic_payload(
+        raw_dict,
+        field_map={"candidate_roots": ["candidatos"]},
+        dept_code=dept_code,
+        dept_name=dept_name,
+        timestamp_utc=timestamp_utc,
+        country_code=country_code,
+        authority_code=authority_code,
+    )
+
+
 def adapt_hn_directory(directory: Path) -> List[AdaptedSnapshot]:
     """Parse all HN CNE JSON files in a directory, sorted by filename timestamp."""
     pattern = re.compile(r"^HN\.PRESIDENTE\..+\.json$")

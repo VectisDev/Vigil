@@ -535,3 +535,21 @@ rules:
     enabled: true
     min_turnout_pct: 0
     max_turnout_pct: 100
+
+
+# Country-specific threshold overrides — merged on top of rules: section per country.
+# Edit from /ops/ panel or directly here. Does not affect HN thresholds.
+country_overrides:
+  UY:
+    participation_anomaly_advanced:
+      max_turnout_pct: 92
+  BO:
+    null_blank:
+      warning_pct: 15
+      critical_pct: 22
+  AR:
+    snapshot_jump:
+      max_change_pct: 15
+  VE:
+    participation_anomaly_advanced:
+      max_turnout_pct: 98

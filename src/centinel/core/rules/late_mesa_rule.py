@@ -47,6 +47,8 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     large_batch = int(cfg.get("large_batch", 50))
     max_listed = int(cfg.get("max_listed", 25))
 
+    if not index_mesas(current_data):
+        return []
     if not previous_data:
         return []
 

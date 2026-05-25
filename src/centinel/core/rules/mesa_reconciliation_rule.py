@@ -52,6 +52,8 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     max_listed = int((config or {}).get("max_listed", 25))
 
     alerts: List[dict] = []
+    if not index_mesas(current_data):
+        return alerts
     if not previous_data:
         return alerts
 

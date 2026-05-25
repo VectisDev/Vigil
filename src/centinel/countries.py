@@ -39,6 +39,18 @@ class CountryPreset:
     national_cne_code: str = "00"          # CNE code for the national scope
     national_filename_pattern: Optional[str] = None
     notes: Optional[str] = None
+    # Scanner hint tokens — override per country if needed (defaults cover all Spanish-speaking countries)
+    scanner_hint_keys: frozenset = field(default_factory=lambda: frozenset({
+        "nivel", "tipo", "presidente", "votos", "candidatos",
+        "departamento", "total_votos", "porcentaje",
+    }))
+    scanner_hint_values: frozenset = field(default_factory=lambda: frozenset({
+        "presidencial", "presidente", "presidency", "nacional",
+    }))
+    # "json"       = active scanner + field_map + 24 rules (default)
+    # "html_table" = Playwright/BeautifulSoup table extraction + 24 rules (NI, VE fallback)
+    # "testimony"  = hash-only — no structured data available (CU, HT only)
+    monitoring_mode: str = "json"
 
     @property
     def divisions_count(self) -> int:
@@ -404,6 +416,7 @@ LATAM_COUNTRIES: Dict[str, CountryPreset] = {
         ],
         url_pattern=None,
         notes="Acceso a datos electorales altamente restringido.",
+        monitoring_mode="testimony",
     ),
     "HT": CountryPreset(
         code="HT",
@@ -418,6 +431,7 @@ LATAM_COUNTRIES: Dict[str, CountryPreset] = {
         ],
         url_pattern=None,
         notes="Proceso electoral intermitente. Verificar disponibilidad de datos.",
+        monitoring_mode="testimony",
     ),
 }
 

@@ -11,12 +11,24 @@ on:
         type: choice
         default: 'HN'
         options:
-          - HN   # Honduras — TSE/CNE (implementado)
-          - GT   # Guatemala — TSE (próximamente)
-          - SV   # El Salvador — TSE (próximamente)
-          - VE   # Venezuela — CNE (próximamente)
-          - MX   # México — INE (próximamente)
-          - CO   # Colombia — CNE (próximamente)
+          - HN   # Honduras — CNE
+          - GT   # Guatemala — TSE
+          - SV   # El Salvador — TSE
+          - NI   # Nicaragua — CSE
+          - CR   # Costa Rica — TSE
+          - PA   # Panamá — TE
+          - MX   # México — INE
+          - CO   # Colombia — Registraduría
+          - VE   # Venezuela — CNE
+          - PE   # Perú — JNE/ONPE
+          - EC   # Ecuador — CNE
+          - BO   # Bolivia — TSE
+          - CL   # Chile — SERVEL
+          - AR   # Argentina — CNE
+          - UY   # Uruguay — Corte Electoral
+          - PY   # Paraguay — TSJE
+          - BR   # Brasil — TSE
+          - DO   # República Dominicana — JCE
       election_url:
         description: 'URL de la autoridad electoral (ej: https://resultados2029.cne.hn/)'
         required: false
@@ -426,6 +438,43 @@ PYEOF
             git push
           fi
 
+      - name: Open issue if election_url missing for non-HN country
+        if: |
+          (steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo') &&
+          github.event.inputs.country != '' && github.event.inputs.country != 'HN' &&
+          github.event.inputs.election_url == ''
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const country = '${{ github.event.inputs.country }}';
+            const existing = await github.rest.issues.listForRepo({
+              owner, repo, labels: 'centinel-election-url', state: 'open', per_page: 1
+            });
+            if (existing.data.length > 0) return;
+            await github.rest.issues.create({
+              owner, repo,
+              title: `🌐 Acción requerida: URL del sistema de resultados para ${country}`,
+              labels: ['centinel-election-url'],
+              body: [
+                `## Para activar ${country}, necesitamos la URL del sitio oficial de resultados`,
+                '',
+                'El wizard necesita la URL base del sistema TREP/PREP oficial para descubrir los endpoints automáticamente.',
+                '',
+                '**Ejemplo:** `https://resultados.tse.gob.sv/` (El Salvador)',
+                '',
+                '### Cómo proporcionar la URL',
+                '',
+                `**[→ Re-ejecutar el Setup Wizard](https://github.com/${owner}/${repo}/actions/workflows/setup-wizard.yml)**`,
+                '',
+                '- Clic en **"Run workflow"**',
+                `- **País a auditar:** \`${country}\``,
+                '- **URL de la autoridad electoral:** pega la URL del sitio oficial',
+                '- Clic en **"Run workflow"**',
+              ].join('\n')
+            });
+
       - name: Write country config
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
         env:
@@ -438,8 +487,35 @@ PYEOF
           python3 .github/scripts/wizard_config.py
           git config user.name "centinel-bot"
           git config user.email "bot@centinel.app"
-          git add command_center/config.yaml
+          git add command_center/config.yaml config/prod/endpoints.yaml web/data/departments.json
           git diff --cached --quiet || git commit -m "config: set country=$CENTINEL_COUNTRY via setup wizard"
+
+      - name: Cache Playwright browsers
+        if: |
+          (steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo') &&
+          (github.event.inputs.country != 'HN' || github.event.inputs.election_url != '')
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Discover endpoints via active scanner
+        if: |
+          (steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo') &&
+          (github.event.inputs.country == 'HN' || github.event.inputs.election_url != '')
+        env:
+          CENTINEL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          ELECTION_URL: ${{ github.event.inputs.election_url }}
+        run: |
+          pip install -q pyyaml playwright beautifulsoup4 requests 2>/dev/null || true
+          playwright install chromium --with-deps 2>/dev/null || true
+          python3 .github/scripts/wizard_discover_endpoints.py
+          # Regenerate departments.json with REAL discovered URLs
+          python3 .github/scripts/wizard_config.py
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add config/prod/endpoints.yaml command_center/config.yaml web/data/departments.json
+          git diff --cached --quiet || git commit -m "config: discovered endpoints for $CENTINEL_COUNTRY"
 
       - name: Generate seeds and access.json
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'

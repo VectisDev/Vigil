@@ -127,7 +127,9 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     max_turnout = float(config.get("max_turnout_pct", 90)) / 100
 
     if turnout < min_turnout or turnout > max_turnout:
-        message = "Participación fuera del rango esperado para Honduras 2025."
+        country = (config or {}).get("country", "HN")
+        year = (config or {}).get("year", 2025)
+        message = f"Participación fuera del rango esperado para {country} {year}."
         alerts.append(
             {
                 "type": "Participación Fuera de Rango",

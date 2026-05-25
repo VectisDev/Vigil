@@ -91,6 +91,7 @@ import yaml
 from centinel.core.rules.common import extract_candidate_votes, extract_total_votes
 from centinel.core.rules_engine import RulesEngine
 from centinel.utils.config_loader import CONFIG_PATH, load_config
+from centinel.schema_adapter import adapt_hn_payload, adapt_generic_payload, adapt_html_table_payload
 
 ANALYSIS_DIR = Path("analysis")
 
@@ -236,7 +237,56 @@ def _aggregate_national(entries: list[dict]) -> dict:
     }
 
 
+def _filter_generic_snapshot(snapshot: dict, config: dict) -> dict:
+    """Country-agnostic dispatcher for non-HN JSON and html_table modes."""
+    country = config.get("centinel", {}).get("country", "XX")
+    mode = config.get("cne", {}).get("monitoring_mode", "json")
+    field_map = config.get("field_map", {})
+    authority = config.get("centinel", {}).get("authority_code", "TSE")
+    timestamp = snapshot.get("timestamp", "")
+    source = snapshot.get("source", "")
+    raw_data = snapshot.get("data", snapshot)
+    if isinstance(raw_data, list):
+        raw_data = raw_data[0] if raw_data else {}
+
+    dept_entries = []
+    if mode == "html_table":
+        html = snapshot.get("html_content", "")
+        table_selector = config.get("cne", {}).get("table_selector", "table")
+        column_map = config.get("cne", {}).get("column_map", {})
+        adapted = adapt_html_table_payload(
+            html, table_selector, column_map,
+            timestamp_utc=timestamp, country_code=country, authority_code=authority,
+        )
+        if adapted:
+            dept_entries.append(adapted.to_snapshot_dict())
+    else:
+        adapted = adapt_generic_payload(
+            raw_data, field_map,
+            timestamp_utc=timestamp, country_code=country, authority_code=authority,
+        )
+        if adapted:
+            dept_entries.append(adapted.to_snapshot_dict())
+
+    if dept_entries and not any(
+        str(e.get("dept_name", "")).upper() in ("TODOS", "NACIONAL", "NATIONAL")
+        for e in dept_entries
+    ):
+        dept_entries.append(_aggregate_national(dept_entries))
+
+    return {
+        "timestamp": timestamp,
+        "source": source,
+        "source_url": snapshot.get("source_url"),
+        "departments": dept_entries,
+    }
+
+
 def _filter_presidential_snapshot(snapshot: dict, config: dict) -> dict:
+    country = config.get("centinel", {}).get("country", "HN")
+    if country != "HN":
+        return _filter_generic_snapshot(snapshot, config)
+
     source_map = _build_source_map(config)
     allowed_departments = _allowed_departments(config)
     scope = {scope.lower() for scope in config.get("scope", ["presidential"])}
