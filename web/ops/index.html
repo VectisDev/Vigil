@@ -915,8 +915,22 @@ details .details-body{padding:12px 0 4px}
           <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
             <strong>¿Confirmas la regeneración?</strong><br>
             Esta acción no se puede deshacer. Los 12 seeds actuales dejarán de funcionar.
-            <div style="display:flex;gap:8px;margin-top:12px">
-              <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='none'">Cancelar</button>
+            <p style="margin:10px 0 6px;color:var(--fg)">Introduce uno de tus seeds actuales para autenticar:</p>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+              <select id="regen-seed-label" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px">
+                <option value="S1-A">S1-A</option><option value="S1-B">S1-B</option>
+                <option value="S1-C">S1-C</option><option value="S1-D">S1-D</option>
+                <option value="S1-E">S1-E</option><option value="S1-F">S1-F</option>
+                <option value="S1-G">S1-G</option><option value="S1-H">S1-H</option>
+                <option value="S1-I">S1-I</option><option value="S1-J">S1-J</option>
+                <option value="S1-K">S1-K</option><option value="S1-L">S1-L</option>
+              </select>
+              <input type="password" id="regen-seed-value" placeholder="Seed de 24 caracteres" autocomplete="off"
+                style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px;flex:1;min-width:200px">
+            </div>
+            <div class="auth-err" id="regen-err"></div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='none';document.getElementById('regen-err').textContent=''">Cancelar</button>
               <button class="hdr-btn primary" style="background:var(--bad);border-color:var(--bad)" onclick="doRegenerate()">Sí, regenerar ahora</button>
             </div>
           </div>
@@ -1139,8 +1153,15 @@ async function doAdminLogin(){
   if(!pass){err.textContent='Ingresa el seed de acceso.';return;}
   btn.disabled=true; btn.textContent='Verificando…'; err.textContent='';
   try{
-    const accessUrl = new URL('../access.json', location.href).href;
-    const ac = await fetch(accessUrl+'?t='+Date.now()).then(r=>r.json());
+    // Try local API first (works when running via launch.py); fall back to relative path
+    const localApi = (window.CENTINEL_API_BASE||'') + '/api/setup/access.json';
+    const fallbackUrl = new URL('../access.json', location.href).href;
+    let ac;
+    try {
+      const r = await fetch(localApi + '?t=' + Date.now());
+      if (r.ok) ac = await r.json();
+    } catch(_) {}
+    if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
     const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
     const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
     if(!matched){
@@ -2269,6 +2290,16 @@ async function loadSeedStatus() {
 
 async function doRegenerate() {
   const btn = document.querySelector('#regen-confirm button[onclick="doRegenerate()"]');
+  const errEl = document.getElementById('regen-err');
+  errEl.textContent = '';
+
+  const seedLabel = (document.getElementById('regen-seed-label')||{}).value;
+  const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
+  if (!seedValue) {
+    errEl.textContent = 'Ingresa el valor del seed para autenticar.';
+    return;
+  }
+
   if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
   document.getElementById('regen-confirm').style.display = 'none';
 
@@ -2279,14 +2310,23 @@ async function doRegenerate() {
     const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/regenerate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country_code: status.country_code || null }),
+      body: JSON.stringify({
+        country_code: status.country_code || null,
+        seed_label: seedLabel,
+        seed_value: seedValue,
+      }),
     });
 
     if (!r.ok) {
       const err = await r.json().catch(()=>({}));
-      alert('Error al regenerar: ' + (err.detail || r.status));
+      document.getElementById('regen-confirm').style.display = 'block';
+      errEl.textContent = err.detail || ('Error ' + r.status);
       return;
     }
+
+    // Limpiar campo de seed por seguridad
+    const seedInput = document.getElementById('regen-seed-value');
+    if (seedInput) seedInput.value = '';
 
     // Descargar PDF automáticamente
     const blob = await r.blob();

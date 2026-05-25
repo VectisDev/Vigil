@@ -139,7 +139,7 @@ class FederationCoordinator:
         if consensus_threshold is not None:
             self.consensus_threshold = consensus_threshold
         else:
-            self.consensus_threshold = max(2, len(witness_urls) // 2 + 1)
+            self.consensus_threshold = max(2, int(len(witness_urls) * 0.75) + 1)
         # D13.2: operator public keys for signature verification
         self.operator_public_keys = operator_public_keys or {}
         logger.info(
