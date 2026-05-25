@@ -22,39 +22,49 @@ computadora portátil.
 > dedicated infrastructure, zero operating cost.*
 
 <!-- INSTANCE-STATUS-START -->
+
 ---
 
-## Desplegar esta instancia / Deploy this instance
+## Desplegar en 3 pasos — sin instalar nada
 
-En menos de 10 minutos, sin instalar nada.
+[![Paso 1 — Fork](https://img.shields.io/badge/PASO%201%20→%20Fork%20este%20repo-2b6cb0?style=for-the-badge&logo=github&logoColor=white)](https://github.com/userf8a2c4/centinel-engine/fork)
 
-**1. Habilitar workflows**
-→ Pestaña **[Actions](../../actions)** de tu fork → clic en **"I understand my workflows, go ahead and enable them"**
-↳ *GitHub los desactiva en todos los forks por seguridad — es inevitable, son dos segundos.*
+> Haz clic en el botón de arriba. GitHub creará una copia en tu cuenta.
 
-**2. Ejecutar el Setup Wizard**
-→ **[Actions → Setup Wizard](../../actions/workflows/setup-wizard.yml)** → "Run workflow" → "Run workflow"
-↳ *Si el token ya está configurado, el setup termina aquí — salta al paso 4.*
-↳ *Si falta el token, el wizard abre un Issue — continúa en el paso 3.*
+---
 
-**3. Crear y conectar el token** *(solo si el wizard abrió un Issue)*
-→ Sigue los dos links del Issue: uno abre la página para crear el token, el otro para guardarlo
-↳ *Único paso que GitHub no permite automatizar.*
-↳ *El Issue tiene un link directo para continuar en el paso 4 cuando termines.*
+**Paso 2 — Habilitar Actions** *(en tu fork, una sola vez)*
 
-**4. Re-ejecutar el wizard**
-→ Usa el link del Issue, o directamente: **[Setup Wizard](../../actions/workflows/setup-wizard.yml)** → "Run workflow"
-↳ *En el formulario: pega la URL de la autoridad electoral a auditar (ej: `https://resultados2029.cne.hn/`)*
-↳ *El wizard detecta los endpoints automáticamente — si Angular los oculta, usa Playwright como fallback.*
-↳ *Automático: crea centinel-data, activa GitHub Pages, despliega el panel.*
-↳ *Automático: actualiza este README con los links reales, cierra el Issue.*
+Ve a la pestaña **[Actions](../../actions)** de **tu fork** y haz clic en:
+> **"I understand my workflows, go ahead and enable them"**
+
+*GitHub desactiva los workflows en todos los forks por seguridad. Son dos segundos.*
+
+---
+
+**Paso 3 — Ejecutar el Setup Wizard**
+
+[![Ejecutar Setup Wizard](https://img.shields.io/badge/Ejecutar%20Setup%20Wizard%20→-2f855a?style=for-the-badge&logo=github-actions&logoColor=white)](../../actions/workflows/setup-wizard.yml)
+
+> En tu fork: **Actions → Setup Wizard → "Run workflow" → "Run workflow"**
+
+El wizard hace el resto automáticamente:
+
+- Si necesita un token → **abre un Issue** con instrucciones exactas paso a paso (dos links, dos clics).
+  Cuando termines, el Issue tiene el link para re-ejecutar el wizard.
+- Cuando el token está listo → crea el repo de datos, activa GitHub Pages, despliega el panel, actualiza este README, cierra el Issue.
+
+---
+
+<!-- CENTINEL_DATA_URL --><!-- /CENTINEL_DATA_URL -->
+<!-- CENTINEL_PAGES_URL --><!-- /CENTINEL_PAGES_URL -->
 
 <details>
 <summary>¿El panel no aparece después del setup?</summary>
 
 → **[Settings → Pages](../../settings/pages)** → Source: **GitHub Actions** → Save
 
-El panel estará disponible en el siguiente push a `main`.
+Estará disponible en el siguiente push a `main`.
 </details>
 
 <!-- INSTANCE-STATUS-END -->
