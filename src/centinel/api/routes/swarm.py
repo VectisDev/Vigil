@@ -1,0 +1,197 @@
+"""
+Swarm API endpoints for Centinel gossip network.
+
+Provides:
+  GET  /api/checkpoint    — This node's signed attestation (for peers to pull)
+  POST /api/swarm/attest  — Receive a NodePayload from a peer
+  GET  /api/swarm/status  — Swarm connection state and peer table
+  POST /api/swarm/connect — Start the GossipEngine (idempotent)
+  POST /api/swarm/disconnect — Stop the GossipEngine
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+import os
+from pathlib import Path
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Request
+
+from centinel.federation.gossip import GossipEngine
+
+logger = logging.getLogger("centinel.api.swarm")
+
+router = APIRouter(tags=["swarm"])
+
+_BASE = Path(__file__).resolve().parents[4]
+_SETUP_MARKER = _BASE / ".centinel-setup.json"
+
+_engine: Optional[GossipEngine] = None
+_engine_task: Optional[asyncio.Task] = None
+
+
+def _read_setup() -> dict:
+    if not _SETUP_MARKER.exists():
+        return {}
+    try:
+        return json.loads(_SETUP_MARKER.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _get_country() -> str:
+    return _read_setup().get("country_code", "HN")
+
+
+# ── Endpoints ─────────────────────────────────────────────────────────────────
+
+
+@router.get("/api/checkpoint")
+async def get_checkpoint() -> dict:
+    """Return this node's latest signed attestation.
+
+    Peers call this endpoint to pull our current Merkle root and chain state.
+    Works even when the swarm is not running (returns unsigned, chain_length=0).
+    """
+    if _engine is not None:
+        return _engine.build_my_attestation()
+
+    # Minimal unsigned response when engine not started
+    from centinel.federation.gossip import (
+        _load_or_generate_keypair,
+        _current_merkle_root,
+        _derive_node_id,
+        NodePayload,
+    )
+    from datetime import datetime, timezone
+
+    try:
+        pub_hex, node_id, _ = _load_or_generate_keypair()
+    except Exception:
+        pub_hex, node_id = "", "unknown"
+
+    merkle_root, chain_length = _current_merkle_root()
+    return NodePayload(
+        node_id=node_id,
+        public_key_hex=pub_hex,
+        country_code=_get_country(),
+        merkle_root=merkle_root,
+        chain_length=chain_length,
+        timestamp_utc=datetime.now(timezone.utc).isoformat(),
+        my_url=None,
+        signature="",
+    ).to_dict()
+
+
+@router.post("/api/swarm/attest")
+async def receive_attest(request: Request) -> dict:
+    """Accept a NodePayload from a peer and fan it out to 2 random peers."""
+    if _engine is None:
+        raise HTTPException(status_code=503, detail="Swarm not running. POST /api/swarm/connect first.")
+
+    try:
+        payload_dict = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+
+    accepted = await _engine.receive_attestation(payload_dict)
+    return {"accepted": accepted}
+
+
+@router.get("/api/swarm/status")
+async def swarm_status() -> dict:
+    """Return current swarm state: running, peer count, consensus, peer list."""
+    if _engine is None:
+        # Return minimal offline status — still expose node_id so OPS can display it
+        from centinel.federation.gossip import _load_or_generate_keypair, _derive_node_id
+        try:
+            pub_hex, node_id, _ = _load_or_generate_keypair()
+        except Exception:
+            pub_hex, node_id = "", "unknown"
+        return {
+            "running": False,
+            "node_id": node_id,
+            "public_key_hex": pub_hex,
+            "my_url": None,
+            "country_code": _get_country(),
+            "connected_peers": 0,
+            "consensus_root": None,
+            "consensus_count": 0,
+            "consensus_reached": False,
+            "last_broadcast_utc": None,
+            "peers": [],
+        }
+    return _engine.get_status()
+
+
+@router.post("/api/swarm/connect")
+async def swarm_connect(request: Request) -> dict:
+    """Start the GossipEngine. Idempotent — safe to call multiple times."""
+    global _engine, _engine_task
+
+    if _engine is not None and _engine._running:
+        return {"status": "already_running", "node_id": _engine._node_id}
+
+    body: dict = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+
+    my_url: Optional[str] = body.get("my_url") or os.getenv("CENTINEL_MY_URL")
+    broadcast_interval = float(body.get("broadcast_interval", 60.0))
+    country = _get_country()
+
+    _engine = GossipEngine(
+        country_code=country,
+        my_url=my_url,
+        broadcast_interval=broadcast_interval,
+    )
+
+    _engine_task = asyncio.create_task(_engine.start())
+
+    # Wait a moment for bootstrap to complete
+    try:
+        await asyncio.wait_for(asyncio.shield(_engine_task), timeout=0.1)
+    except (asyncio.TimeoutError, asyncio.CancelledError):
+        pass
+
+    logger.info("swarm_connect country=%s my_url=%s", country, my_url)
+    return {"status": "connecting", "node_id": _engine._node_id, "country_code": country}
+
+
+@router.post("/api/swarm/disconnect")
+async def swarm_disconnect() -> dict:
+    """Stop the GossipEngine and clear peer state."""
+    global _engine, _engine_task
+
+    if _engine is None:
+        return {"status": "not_running"}
+
+    node_id = _engine._node_id
+    await _engine.stop()
+    _engine = None
+    if _engine_task:
+        _engine_task.cancel()
+        _engine_task = None
+
+    logger.info("swarm_disconnect node_id=%s", node_id)
+    return {"status": "disconnected", "node_id": node_id}
+
+
+async def auto_start(country_code: Optional[str] = None) -> None:
+    """Called on startup when CENTINEL_AUTOCONNECT=1."""
+    global _engine, _engine_task
+    if _engine is not None:
+        return
+    country = country_code or _get_country()
+    my_url = os.getenv("CENTINEL_MY_URL")
+    _engine = GossipEngine(
+        country_code=country,
+        my_url=my_url,
+    )
+    _engine_task = asyncio.create_task(_engine.start())
+    logger.info("swarm_autostart country=%s", country)
