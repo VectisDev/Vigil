@@ -23,6 +23,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from centinel.federation.gossip import GossipEngine
 from centinel.federation.findings_log import FederationAnomalyLog
 from centinel.federation.attack_log import FederationAttackLog
+from centinel.api.rate_limit import RateLimiter, RateLimitConfig
 
 logger = logging.getLogger("centinel.api.swarm")
 
@@ -30,6 +31,12 @@ router = APIRouter(tags=["swarm"])
 
 _BASE = Path(__file__).resolve().parents[4]
 _SETUP_MARKER = _BASE / ".centinel-setup.json"
+
+# Rate limiters for gossip endpoints (independent of the global API limiter)
+# Gossip nodes legitimately send 1 attestation/60s — 200/min = 200× headroom
+_attest_limiter = RateLimiter(RateLimitConfig(limit=200, window_seconds=60))
+# Peers send up to 10 findings/min — 100/min = 10× headroom against abuse
+_finding_limiter = RateLimiter(RateLimitConfig(limit=100, window_seconds=60))
 
 _engine: Optional[GossipEngine] = None
 _engine_task: Optional[asyncio.Task] = None
@@ -101,6 +108,10 @@ async def get_checkpoint() -> dict:
 @router.post("/api/swarm/attest")
 async def receive_attest(request: Request) -> dict:
     """Accept a NodePayload from a peer and fan it out to 2 random peers."""
+    client_ip = request.client.host if request.client else "unknown"
+    if not _attest_limiter.allow(client_ip):
+        raise HTTPException(status_code=429, detail="Too many attestations from this IP.")
+
     if _engine is None:
         raise HTTPException(status_code=503, detail="Swarm not running. POST /api/swarm/connect first.")
 
@@ -241,6 +252,10 @@ async def local_broadcast(request: Request) -> dict:
 @router.post("/api/swarm/finding")
 async def receive_finding(request: Request) -> dict:
     """Accept a FindingPayload from a peer and fan it out to 2 random peers."""
+    client_ip = request.client.host if request.client else "unknown"
+    if not _finding_limiter.allow(client_ip):
+        raise HTTPException(status_code=429, detail="Too many findings from this IP.")
+
     if _engine is None:
         raise HTTPException(status_code=503, detail="Swarm not running. POST /api/swarm/connect first.")
 

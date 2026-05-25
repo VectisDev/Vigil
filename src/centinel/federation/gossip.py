@@ -3,11 +3,13 @@ Gossip protocol engine for Centinel P2P node network.
 
 Each node broadcasts its signed attestation (NodePayload) to known peers
 via HTTP POST. When a node receives a new attestation it fans out to 2
-random peers (epidemic propagation). Peer discovery uses three zero-cost
-bootstrap layers in order:
+random peers (epidemic propagation). Peer discovery uses four zero-cost
+bootstrap layers tried in parallel:
   1. GitHub Pages peer list (country-specific JSON)
-  2. mDNS UDP multicast on local network
-  3. Hardcoded project bootstrap seeds
+  2. Raw GitHub fallback (raw.githubusercontent.com)
+  3. DNS-over-HTTPS TXT records (Cloudflare)
+  4. mDNS UDP multicast on local network
+  5. Hardcoded project bootstrap seeds
 """
 
 from __future__ import annotations
@@ -20,7 +22,9 @@ import os
 import random
 import socket
 import struct
+import threading
 import time
+from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,9 +40,15 @@ _KEYS_DIR = _REPO_ROOT / "keys"
 _BOOTSTRAP_URL_TEMPLATE = (
     "https://vectisdev.github.io/centinel/peers/{country}.json"
 )
+_BOOTSTRAP_BACKUP_TEMPLATE = (
+    "https://raw.githubusercontent.com/vectisdev/centinel/main/peers/{country}.json"
+)
+_DNS_BOOTSTRAP_DOMAIN = "peers-{country}.centinel.vectisdev.com"
 
 _HARDCODED_SEEDS: list[str] = [
-    # Well-known project bootstrap nodes — add public URLs here as the network grows
+    # Add well-known bootstrap node URLs here as the network grows, e.g.:
+    # "https://node1.centinel.vectisdev.com",
+    # "https://node2.centinel.vectisdev.com",
 ]
 
 _MDNS_ADDR = "224.0.0.251"
@@ -52,6 +62,7 @@ _FINDING_VERSION = 1
 _FINDING_RATE_LIMIT = 10       # max findings broadcast per minute per node
 _FINDING_RATE_WINDOW = 60.0    # sliding window in seconds
 _BROADCAST_SEVERITIES = {"HIGH", "CRITICAL"}
+_LRU_PUBKEY_CACHE_SIZE = 10_000
 
 
 # ── Data structures ───────────────────────────────────────────────────────────
@@ -70,6 +81,7 @@ class NodePayload:
     my_url: Optional[str]  # Public base URL if node is reachable, else None
     signature: str         # Ed25519(sha256(canonical JSON without this field))
     version: int = _GOSSIP_VERSION
+    epoch: int = 0  # Incremented when a fork/rollback in chain is detected locally
 
     def canonical_bytes(self) -> bytes:
         """Serialise deterministically for signing/verification (excludes signature)."""
@@ -106,10 +118,12 @@ class FindingPayload:
     timestamp_utc: str     # ISO 8601
     signature: str         # Ed25519 over canonical JSON (excludes this field)
     version: int = _FINDING_VERSION
+    ttl_hops: int = 8  # Decremented on each fan-out hop; 0 = store locally, no forward
 
     def canonical_bytes(self) -> bytes:
         d = asdict(self)
         d.pop("signature", None)
+        d.pop("ttl_hops", None)  # transport field, not part of the signed payload
         return json.dumps(d, sort_keys=True, separators=(",", ":")).encode()
 
     def to_dict(self) -> dict:
@@ -237,6 +251,50 @@ async def _bootstrap_from_github(country: str) -> list[str]:
         return []
 
 
+async def _bootstrap_from_raw_github(country: str) -> list[str]:
+    """Fallback: fetch peers from raw.githubusercontent.com when GitHub Pages is down."""
+    url = _BOOTSTRAP_BACKUP_TEMPLATE.format(country=country.upper())
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.get(url)
+            if r.status_code != 200:
+                return []
+            data = r.json()
+            peers = data.get("peers", [])
+            return [p["url"] for p in peers if p.get("url")]
+    except Exception as exc:
+        logger.debug("raw_github_bootstrap_failed url=%s error=%s", url, exc)
+        return []
+
+
+async def _bootstrap_from_dns_over_https(country: str) -> list[str]:
+    """Fetch peer URLs from DNS TXT record via Cloudflare DNS-over-HTTPS.
+
+    Record format: one URL per TXT value at peers-{country}.centinel.vectisdev.com
+    """
+    domain = _DNS_BOOTSTRAP_DOMAIN.format(country=country.lower())
+    try:
+        async with httpx.AsyncClient(timeout=6.0) as client:
+            r = await client.get(
+                "https://cloudflare-dns.com/dns-query",
+                params={"name": domain, "type": "TXT"},
+                headers={"Accept": "application/dns-json"},
+            )
+            if r.status_code != 200:
+                return []
+            data = r.json()
+            peers = []
+            for answer in data.get("Answer", []):
+                if answer.get("type") == 16:  # TXT
+                    txt = answer.get("data", "").strip('"').strip()
+                    if txt.startswith(("https://", "http://")):
+                        peers.append(txt)
+            return peers
+    except Exception as exc:
+        logger.debug("dns_over_https_bootstrap_failed domain=%s error=%s", domain, exc)
+        return []
+
+
 def _bootstrap_from_mdns() -> list[str]:
     """Discover local Centinel nodes via UDP multicast. Returns list of base URLs."""
     urls: list[str] = []
@@ -266,6 +324,43 @@ def _bootstrap_from_mdns() -> list[str]:
     except Exception as exc:
         logger.debug("mdns_discovery_failed error=%s", exc)
     return urls
+
+
+# ── LRU pubkey cache ──────────────────────────────────────────────────────────
+
+
+class _LRUPubkeyCache:
+    """Thread-safe LRU cache for node_id → public_key_hex.
+
+    Separate from the peer routing table (max_peers=50). Holds up to
+    _LRU_PUBKEY_CACHE_SIZE entries so findings from any previously-seen
+    node can be verified even when it's not in the active routing table.
+    """
+
+    def __init__(self, maxsize: int) -> None:
+        self._store: OrderedDict[str, str] = OrderedDict()
+        self._maxsize = maxsize
+        self._lock = threading.Lock()
+
+    def put(self, node_id: str, pub_hex: str) -> None:
+        with self._lock:
+            if node_id in self._store:
+                self._store.move_to_end(node_id)
+            else:
+                self._store[node_id] = pub_hex
+                while len(self._store) > self._maxsize:
+                    self._store.popitem(last=False)
+
+    def get(self, node_id: str) -> Optional[str]:
+        with self._lock:
+            if node_id not in self._store:
+                return None
+            self._store.move_to_end(node_id)
+            return self._store[node_id]
+
+    def __len__(self) -> int:
+        with self._lock:
+            return len(self._store)
 
 
 # ── Gossip Engine ─────────────────────────────────────────────────────────────
@@ -305,7 +400,8 @@ class GossipEngine:
 
         self._peers: dict[str, str] = {}   # node_id → base_url
         self._known: dict[str, NodePayload] = {}  # node_id → latest payload
-        self._known_pubkeys: dict[str, str] = {}  # node_id → public_key_hex (for finding sig verification)
+        # Pubkey cache: all nodes ever seen (LRU, max 10k). Independent of routing table.
+        self._pubkey_cache = _LRUPubkeyCache(_LRU_PUBKEY_CACHE_SIZE)
         self._pub_hex: str = ""
         self._node_id: str = ""
         self._key_path: Optional[Path] = None
@@ -313,8 +409,9 @@ class GossipEngine:
         self._task: Optional[asyncio.Task] = None
         self._last_broadcast: Optional[float] = None
 
-        # Rate limiter for outbound finding broadcasts (sliding window)
-        self._finding_rate_timestamps: list[float] = []
+        # Per-sender inbound finding rate tracking (keyed by node_id after sig verify)
+        self._inbound_node_rate: dict[str, deque] = {}
+        self._inbound_rate_lock = threading.Lock()
 
     # ── lifecycle ──────────────────────────────────────────────────────────────
 
@@ -324,13 +421,24 @@ class GossipEngine:
         self._pub_hex, self._node_id, self._key_path = _load_or_generate_keypair()
         logger.info("gossip_start node_id=%s country=%s", self._node_id, self.country_code)
 
-        # Bootstrap peer discovery
+        # Bootstrap peer discovery — try all sources in parallel
+        results = await asyncio.gather(
+            _bootstrap_from_github(self.country_code),
+            _bootstrap_from_raw_github(self.country_code),
+            _bootstrap_from_dns_over_https(self.country_code),
+            return_exceptions=True,
+        )
         peer_urls: list[str] = []
-        peer_urls.extend(await _bootstrap_from_github(self.country_code))
+        for r in results:
+            if isinstance(r, list):
+                peer_urls.extend(r)
         peer_urls.extend(_bootstrap_from_mdns())
         peer_urls.extend(_HARDCODED_SEEDS)
+        # Deduplicate while preserving order
+        seen: set[str] = set()
+        unique_urls = [u for u in peer_urls if not (u in seen or seen.add(u))]  # type: ignore[func-returns-value]
 
-        for url in peer_urls:
+        for url in unique_urls:
             await self._fetch_checkpoint(url)
 
         self._running = True
@@ -367,7 +475,7 @@ class GossipEngine:
 
         self._known[node_id] = payload
         # Cache public key for later finding signature verification
-        self._known_pubkeys[node_id] = payload.public_key_hex
+        self._pubkey_cache.put(node_id, payload.public_key_hex)
         if payload.my_url:
             self._peers[node_id] = payload.my_url.rstrip("/")
             if len(self._peers) > self.max_peers:
@@ -389,25 +497,19 @@ class GossipEngine:
     async def broadcast_finding(self, finding: FindingPayload) -> int:
         """Sign and broadcast a finding to known peers. Returns number of ACKs.
 
-        Only broadcasts HIGH/CRITICAL findings. Rate-limited to
-        _FINDING_RATE_LIMIT findings per _FINDING_RATE_WINDOW seconds.
+        Only broadcasts HIGH/CRITICAL findings. Rate-limited per verified node_id.
         """
         if finding.severity not in _BROADCAST_SEVERITIES:
             logger.debug("finding_broadcast_skipped severity=%s below threshold", finding.severity)
             return 0
 
-        # Rate limit check (sliding window)
-        now = time.monotonic()
-        self._finding_rate_timestamps = [
-            t for t in self._finding_rate_timestamps if now - t < _FINDING_RATE_WINDOW
-        ]
-        if len(self._finding_rate_timestamps) >= _FINDING_RATE_LIMIT:
+        # Rate limit check using per-node approach (self._node_id for outbound)
+        if not self._check_inbound_finding_rate(self._node_id):
             logger.warning(
                 "finding_broadcast_rate_limited node=%s rate=%d/%ds",
                 self._node_id, _FINDING_RATE_LIMIT, int(_FINDING_RATE_WINDOW),
             )
             return 0
-        self._finding_rate_timestamps.append(now)
 
         # Sign if not yet signed
         if not finding.signature and self._key_path:
@@ -449,7 +551,7 @@ class GossipEngine:
             return False
 
         # Verify signature using cached public key for this node_id
-        pub_hex = self._known_pubkeys.get(finding.node_id)
+        pub_hex = self._pubkey_cache.get(finding.node_id)
         if not pub_hex:
             logger.debug("finding_recv_unknown_node node_id=%s", finding.node_id)
             # Accept without verification only if this is a self-finding (local node)
@@ -461,6 +563,14 @@ class GossipEngine:
             logger.debug("finding_recv_invalid_sig node_id=%s", finding.node_id)
             return False
 
+        # Rate limit per verified node_id (checked after sig verification)
+        if not self._check_inbound_finding_rate(finding.node_id):
+            logger.warning(
+                "finding_recv_rate_limited node_id=%s rule=%s",
+                finding.node_id, finding.rule_key,
+            )
+            return False
+
         # Dedup + store
         if not self._store_finding(finding, source="remote"):
             return True  # Already known — still valid, just not new
@@ -470,10 +580,14 @@ class GossipEngine:
             finding.finding_id, finding.rule_key, finding.severity, finding.node_id,
         )
 
-        # Fan-out to 2 random peers (exclude sender)
-        candidates = [u for nid, u in self._peers.items() if nid != finding.node_id]
-        for url in random.sample(candidates, min(_FAN_OUT, len(candidates))):
-            asyncio.create_task(self._push_finding(url, finding))
+        # Fan-out to 2 random peers (exclude sender) — only if TTL allows
+        if finding.ttl_hops > 0:
+            fwd = FindingPayload(**{**asdict(finding), "ttl_hops": finding.ttl_hops - 1})
+            candidates = [u for nid, u in self._peers.items() if nid != finding.node_id]
+            for url in random.sample(candidates, min(_FAN_OUT, len(candidates))):
+                asyncio.create_task(self._push_finding(url, fwd))
+        else:
+            logger.debug("finding_ttl_expired finding_id=%s — stored locally, no fan-out", finding.finding_id)
 
         return True
 
@@ -488,9 +602,30 @@ class GossipEngine:
                 return self._anomaly_log.add(finding, source=source)
             return True
 
+    def _check_inbound_finding_rate(self, node_id: str) -> bool:
+        """Return True if node_id is within inbound finding rate limits.
+
+        Checked AFTER signature verification so node_id is authentic.
+        Prevents a Sybil with many node_ids from flooding: each identity
+        is limited independently, and the check is on verified node_ids only.
+        """
+        now = time.monotonic()
+        with self._inbound_rate_lock:
+            ts = self._inbound_node_rate.get(node_id)
+            if ts is None:
+                ts = deque()
+                self._inbound_node_rate[node_id] = ts
+            while ts and now - ts[0] > _FINDING_RATE_WINDOW:
+                ts.popleft()
+            if len(ts) >= _FINDING_RATE_LIMIT:
+                return False
+            ts.append(now)
+            return True
+
     def get_status(self) -> dict:
         peers = list(self._known.values())
-        consensus_root, consensus_count = self._compute_consensus(peers)
+        consensus_root, consensus_count, consensus_epoch = self._compute_consensus(peers)
+        local_reached = consensus_count >= max(2, int(len(peers) * 0.75))
         return {
             "running": self._running,
             "node_id": self._node_id,
@@ -498,9 +633,13 @@ class GossipEngine:
             "my_url": self.my_url,
             "country_code": self.country_code,
             "connected_peers": len(self._known),
+            "pubkey_cache_size": len(self._pubkey_cache),
+            # Local consensus (based on up-to-50-peer view — not network-wide)
             "consensus_root": consensus_root,
             "consensus_count": consensus_count,
-            "consensus_reached": consensus_count >= max(2, int(len(peers) * 0.75)),
+            "consensus_epoch": consensus_epoch,
+            "consensus_reached": local_reached,
+            "consensus_scope": "local_50_peer_view",
             "last_broadcast_utc": (
                 datetime.fromtimestamp(self._last_broadcast, tz=timezone.utc).isoformat()
                 if self._last_broadcast else None
@@ -511,6 +650,7 @@ class GossipEngine:
                     "country_code": p.country_code,
                     "chain_length": p.chain_length,
                     "merkle_root": p.merkle_root,
+                    "epoch": getattr(p, "epoch", 0),
                     "timestamp_utc": p.timestamp_utc,
                     "url": p.my_url,
                 }
@@ -604,11 +744,13 @@ class GossipEngine:
             logger.debug("gossip_fetch_checkpoint_failed url=%s error=%s", base_url, exc)
 
     @staticmethod
-    def _compute_consensus(peers: list[NodePayload]) -> tuple[Optional[str], int]:
+    def _compute_consensus(peers: list[NodePayload]) -> tuple[Optional[str], int, int]:
+        """Returns (best_merkle_root, vote_count, best_epoch)."""
         if not peers:
-            return None, 0
-        counts: dict[str, int] = {}
+            return None, 0, 0
+        counts: dict[tuple[int, str], int] = {}
         for p in peers:
-            counts[p.merkle_root] = counts.get(p.merkle_root, 0) + 1
-        best_root = max(counts, key=lambda r: counts[r])
-        return best_root, counts[best_root]
+            key = (getattr(p, "epoch", 0), p.merkle_root)
+            counts[key] = counts.get(key, 0) + 1
+        best_key = max(counts, key=lambda k: counts[k])
+        return best_key[1], counts[best_key], best_key[0]
