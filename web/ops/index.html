@@ -319,6 +319,8 @@ details .details-body{padding:12px 0 4px}
       <a href="#s5" onclick="scrollTo('s5')">§5 Logs y terminales</a>
       <div class="sec-header">Ayuda</div>
       <a href="#s6" onclick="scrollTo('s6')">§6 Manual</a>
+      <a href="#s7" onclick="scrollTo('s7')">§7 Acceso y Seeds</a>
+      <a href="#s8" onclick="scrollTo('s8')">§8 Red de Nodos</a>
     </nav>
 
     <!-- MAIN -->
@@ -887,6 +889,122 @@ details .details-body{padding:12px 0 4px}
         </details>
       </div>
 
+      <!-- ── §7 Acceso y Seeds ── -->
+      <div class="section" id="s7">
+        <div class="section-title">§7 Acceso y Seeds</div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          Gestión de los 12 seeds de acceso administrativo (S1-A … S1-L).
+          Los seeds reales nunca se almacenan — solo sus hashes PBKDF2-SHA256.
+          El PDF generado es el único registro.
+        </p>
+
+        <div class="ctrl-section">
+          <h3>Estado actual</h3>
+          <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;">
+            Cargando…
+          </div>
+        </div>
+
+        <div class="ctrl-section">
+          <h3 style="color:var(--bad)">Regenerar seeds</h3>
+          <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">
+            Genera 12 seeds completamente nuevos y descarga el PDF actualizado.
+            <strong style="color:var(--warn)">Todos los seeds anteriores quedan invalidados permanentemente.</strong>
+          </p>
+          <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
+            <strong>¿Confirmas la regeneración?</strong><br>
+            Esta acción no se puede deshacer. Los 12 seeds actuales dejarán de funcionar.
+            <p style="margin:10px 0 6px;color:var(--fg)">Introduce uno de tus seeds actuales para autenticar:</p>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+              <select id="regen-seed-label" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px">
+                <option value="S1-A">S1-A</option><option value="S1-B">S1-B</option>
+                <option value="S1-C">S1-C</option><option value="S1-D">S1-D</option>
+                <option value="S1-E">S1-E</option><option value="S1-F">S1-F</option>
+                <option value="S1-G">S1-G</option><option value="S1-H">S1-H</option>
+                <option value="S1-I">S1-I</option><option value="S1-J">S1-J</option>
+                <option value="S1-K">S1-K</option><option value="S1-L">S1-L</option>
+              </select>
+              <input type="password" id="regen-seed-value" placeholder="Seed de 24 caracteres" autocomplete="off"
+                style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px;flex:1;min-width:200px">
+            </div>
+            <div class="auth-err" id="regen-err"></div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='none';document.getElementById('regen-err').textContent=''">Cancelar</button>
+              <button class="hdr-btn primary" style="background:var(--bad);border-color:var(--bad)" onclick="doRegenerate()">Sí, regenerar ahora</button>
+            </div>
+          </div>
+          <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='block'" id="btn-regen">
+            Regenerar seeds y descargar nuevo PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- ── §8 Red de Nodos ── -->
+      <div class="section" id="s8">
+        <div class="section-title">§8 Red de Nodos</div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          Protocolo gossip P2P — el nodo transmite su atestación firmada al enjambre y compara el
+          Merkle root con otros observadores para detectar manipulaciones en tiempo real.
+        </p>
+
+        <div class="ctrl-section">
+          <h3>Estado de conexión</h3>
+          <div id="swarm-status-row" style="display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap">
+            <span id="swarm-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted)"></span>
+            <span id="swarm-label" style="font-size:14px;font-weight:600;color:var(--muted)">DESCONECTADO</span>
+          </div>
+          <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:8px;display:none">
+            <span id="swarm-node-id"></span>
+            <span id="swarm-consensus-row" style="display:none">
+              &nbsp;·&nbsp;Consenso: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
+            </span>
+            <br>Último broadcast: <span id="swarm-last-bcast">—</span>
+          </div>
+        </div>
+
+        <div class="ctrl-section">
+          <h3>Control</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+            <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()">
+              Conectar a la red
+            </button>
+            <button class="hdr-btn" id="btn-disconnect" onclick="doSwarmDisconnect()" style="display:none">
+              Desconectar
+            </button>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-top:10px">
+            Opcional: ingresa tu URL pública si el nodo es accesible desde internet
+            (ej. <code>https://mi-nodo.example.com</code>). Déjalo vacío si estás detrás de NAT.
+          </p>
+          <div class="ctrl-row" style="margin-top:10px">
+            <label>URL pública del nodo (opcional)</label>
+            <input type="text" id="swarm-my-url" placeholder="https://…" style="width:100%;max-width:380px">
+          </div>
+        </div>
+
+        <div class="ctrl-section" id="swarm-peers-section" style="display:none">
+          <h3>Nodos conectados (<span id="swarm-peer-count">0</span>)</h3>
+          <div id="swarm-consensus-banner" style="display:none;margin:10px 0;padding:10px 14px;border-radius:8px;font-size:13px"></div>
+          <div style="overflow-x:auto;margin-top:12px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
+                  <th style="padding:6px 10px">Node ID</th>
+                  <th style="padding:6px 10px">País</th>
+                  <th style="padding:6px 10px">Snapshots</th>
+                  <th style="padding:6px 10px">Merkle Root</th>
+                  <th style="padding:6px 10px">Sincronía</th>
+                  <th style="padding:6px 10px">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="swarm-peers-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -1035,8 +1153,15 @@ async function doAdminLogin(){
   if(!pass){err.textContent='Ingresa el seed de acceso.';return;}
   btn.disabled=true; btn.textContent='Verificando…'; err.textContent='';
   try{
-    const accessUrl = new URL('../access.json', location.href).href;
-    const ac = await fetch(accessUrl+'?t='+Date.now()).then(r=>r.json());
+    // Try local API first (works when running via launch.py); fall back to relative path
+    const localApi = (window.CENTINEL_API_BASE||'') + '/api/setup/access.json';
+    const fallbackUrl = new URL('../access.json', location.href).href;
+    let ac;
+    try {
+      const r = await fetch(localApi + '?t=' + Date.now());
+      if (r.ok) ac = await r.json();
+    } catch(_) {}
+    if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
     const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
     const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
     if(!matched){
@@ -1084,6 +1209,8 @@ async function initAll(){
   fetchLog();
   fetchAttackLog();
   loadOtsStatus();
+  loadSeedStatus();
+  loadSwarmStatus();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2135,6 +2262,90 @@ function relTime(ts){
 
 function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 
+// ── §7 Acceso y Seeds ──────────────────────────────────────────────────────
+async function loadSeedStatus() {
+  const el = document.getElementById('seed-status');
+  if (!el) return;
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
+    const s = await r.json();
+    if (s.configured) {
+      const since = s.configured_at ? new Date(s.configured_at).toLocaleString() : '—';
+      const regen = s.last_regenerated_at ? new Date(s.last_regenerated_at).toLocaleString() : 'Nunca';
+      el.innerHTML = `
+        <span style="color:var(--ok)">✓ Sistema configurado</span><br>
+        País: <strong>${s.country_name || s.country_code || '—'}</strong><br>
+        Configurado: ${since}<br>
+        Última regeneración: ${regen}<br>
+        Seeds activos: <strong>12 (S1-A … S1-L)</strong>
+      `;
+    } else {
+      el.innerHTML = '<span style="color:var(--warn)">⚠ Sistema no configurado aún. Ejecuta el wizard de inicio.</span>';
+      document.getElementById('btn-regen').disabled = true;
+    }
+  } catch(e) {
+    el.innerHTML = '<span style="color:var(--muted)">No se pudo cargar el estado.</span>';
+  }
+}
+
+async function doRegenerate() {
+  const btn = document.querySelector('#regen-confirm button[onclick="doRegenerate()"]');
+  const errEl = document.getElementById('regen-err');
+  errEl.textContent = '';
+
+  const seedLabel = (document.getElementById('regen-seed-label')||{}).value;
+  const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
+  if (!seedValue) {
+    errEl.textContent = 'Ingresa el valor del seed para autenticar.';
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
+  document.getElementById('regen-confirm').style.display = 'none';
+
+  try {
+    const statusR = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
+    const status = await statusR.json();
+
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/regenerate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        country_code: status.country_code || null,
+        seed_label: seedLabel,
+        seed_value: seedValue,
+      }),
+    });
+
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({}));
+      document.getElementById('regen-confirm').style.display = 'block';
+      errEl.textContent = err.detail || ('Error ' + r.status);
+      return;
+    }
+
+    // Limpiar campo de seed por seguridad
+    const seedInput = document.getElementById('regen-seed-value');
+    if (seedInput) seedInput.value = '';
+
+    // Descargar PDF automáticamente
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `centinel-seeds-nuevos-${Date.now()}.pdf`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+    await loadSeedStatus();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Sí, regenerar ahora'; }
+  }
+}
+
+
 async function reloadConfig(){
   await loadConfig();
   await loadSnapshot();
@@ -2160,10 +2371,152 @@ const observer = new IntersectionObserver(entries=>{
     }
   });
 },{threshold:.3});
-['s1','s2','s3','s4','s5','s6'].forEach(id=>{
+['s1','s2','s3','s4','s5','s6','s7','s8'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) observer.observe(el);
 });
+
+// ── §8 Red de Nodos ────────────────────────────────────────────────────────────
+let _swarmPollTimer = null;
+
+async function loadSwarmStatus() {
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status');
+    if (!r.ok) return;
+    const s = await r.json();
+    _renderSwarmStatus(s);
+  } catch(_) {}
+}
+
+function _renderSwarmStatus(s) {
+  const dot   = document.getElementById('swarm-dot');
+  const label = document.getElementById('swarm-label');
+  const meta  = document.getElementById('swarm-meta');
+  const nodeIdEl = document.getElementById('swarm-node-id');
+  const lastBcast = document.getElementById('swarm-last-bcast');
+  const consensusRow = document.getElementById('swarm-consensus-row');
+  const consensusVal = document.getElementById('swarm-consensus-val');
+  const btnConnect = document.getElementById('btn-connect');
+  const btnDisconn = document.getElementById('btn-disconnect');
+  const peersSection = document.getElementById('swarm-peers-section');
+  const peerCount = document.getElementById('swarm-peer-count');
+  const tbody = document.getElementById('swarm-peers-tbody');
+  const banner = document.getElementById('swarm-consensus-banner');
+
+  if (s.running && s.connected_peers > 0) {
+    dot.style.background = 'var(--ok)';
+    label.style.color = 'var(--ok)';
+    label.textContent = `EN RED  ·  ${s.connected_peers} nodo${s.connected_peers!==1?'s':''} activo${s.connected_peers!==1?'s':''}`;
+    _stopSwarmPoll();
+  } else if (s.running) {
+    dot.style.background = 'var(--warn)';
+    label.style.color = 'var(--warn)';
+    label.textContent = 'CONECTANDO…';
+  } else {
+    dot.style.background = 'var(--muted)';
+    label.style.color = 'var(--muted)';
+    label.textContent = 'DESCONECTADO';
+  }
+
+  meta.style.display = s.node_id && s.node_id !== 'unknown' ? '' : 'none';
+  if (nodeIdEl) nodeIdEl.textContent = `Node ID: ${s.node_id || '—'}`;
+  if (lastBcast) lastBcast.textContent = s.last_broadcast_utc ? relTime(s.last_broadcast_utc) : '—';
+
+  if (s.consensus_reached && s.consensus_root) {
+    consensusRow.style.display = '';
+    consensusVal.textContent = `${s.consensus_count}/${s.connected_peers}  ·  ${s.consensus_root.slice(0,12)}…`;
+    banner.style.display = '';
+    banner.style.background = 'rgba(87,192,141,.08)';
+    banner.style.border = '1px solid rgba(87,192,141,.3)';
+    banner.style.color = 'var(--ok)';
+    banner.innerHTML = `✓ Consenso alcanzado — <strong>${s.consensus_count} de ${s.connected_peers} nodos</strong> comparten el mismo Merkle root (<code>${s.consensus_root.slice(0,16)}…</code>). Los datos del CNE son consistentes en la red.`;
+  } else if (s.connected_peers > 0) {
+    consensusRow.style.display = 'none';
+    banner.style.display = '';
+    banner.style.background = 'rgba(212,176,102,.08)';
+    banner.style.border = '1px solid rgba(212,176,102,.3)';
+    banner.style.color = 'var(--warn)';
+    banner.innerHTML = `⚠ Sin consenso aún — esperando que más nodos sincronicen (${s.consensus_count || 0}/${s.connected_peers} coinciden).`;
+  } else {
+    consensusRow.style.display = 'none';
+    banner.style.display = 'none';
+  }
+
+  btnConnect.style.display = s.running ? 'none' : '';
+  btnDisconn.style.display = s.running ? '' : 'none';
+
+  peersSection.style.display = (s.peers && s.peers.length) ? '' : 'none';
+  if (peerCount) peerCount.textContent = s.connected_peers || 0;
+
+  if (tbody && s.peers) {
+    tbody.innerHTML = s.peers.map(p => {
+      const inSync = s.consensus_root && p.merkle_root === s.consensus_root;
+      const syncBadge = inSync
+        ? `<span style="color:var(--ok)">✓ en sync</span>`
+        : `<span style="color:var(--warn)">≠ diverge</span>`;
+      const ts = p.timestamp_utc ? relTime(p.timestamp_utc) : '—';
+      const flagMap = {HN:'🇭🇳',GT:'🇬🇹',SV:'🇸🇻',NI:'🇳🇮',CR:'🇨🇷',PA:'🇵🇦',MX:'🇲🇽',CO:'🇨🇴',VE:'🇻🇪',PE:'🇵🇪',EC:'🇪🇨',BO:'🇧🇴',PY:'🇵🇾',UY:'🇺🇾',AR:'🇦🇷',CL:'🇨🇱',BR:'🇧🇷',DO:'🇩🇴',CU:'🇨🇺',PR:'🇵🇷'};
+      const flag = flagMap[p.country_code] || '🌎';
+      return `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${p.node_id}</td>
+        <td style="padding:7px 10px">${flag} ${p.country_code}</td>
+        <td style="padding:7px 10px">${p.chain_length ?? '—'}</td>
+        <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${(p.merkle_root||'').slice(0,12)}…</td>
+        <td style="padding:7px 10px">${syncBadge}</td>
+        <td style="padding:7px 10px;color:var(--muted)">${ts}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+async function doSwarmConnect() {
+  const btn = document.getElementById('btn-connect');
+  if (btn) { btn.disabled = true; btn.textContent = 'Conectando…'; }
+
+  const myUrl = (document.getElementById('swarm-my-url')||{}).value || undefined;
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/connect', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ my_url: myUrl || null }),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({}));
+      alert('Error al conectar: ' + (err.detail || r.status));
+      if (btn) { btn.disabled = false; btn.textContent = 'Conectar a la red'; }
+      return;
+    }
+    await loadSwarmStatus();
+    _startSwarmPoll();
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Conectar a la red'; }
+  }
+}
+
+async function doSwarmDisconnect() {
+  const btn = document.getElementById('btn-disconnect');
+  if (btn) { btn.disabled = true; btn.textContent = 'Desconectando…'; }
+  _stopSwarmPoll();
+  try {
+    await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
+    await loadSwarmStatus();
+  } catch(_) {}
+  if (btn) { btn.disabled = false; btn.textContent = 'Desconectar'; }
+}
+
+function _startSwarmPoll() {
+  if (_swarmPollTimer) return;
+  _swarmPollTimer = setInterval(loadSwarmStatus, 5000);
+}
+
+function _stopSwarmPoll() {
+  if (_swarmPollTimer) { clearInterval(_swarmPollTimer); _swarmPollTimer = null; }
+  // Once connected, switch to slow polling
+  setTimeout(() => {
+    _swarmPollTimer = setInterval(loadSwarmStatus, 30000);
+  }, 100);
+}
 
 // Keyboard shortcut to open this panel (also registered in parent pages)
 document.addEventListener('keydown',e=>{
