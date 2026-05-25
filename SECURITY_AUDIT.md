@@ -109,3 +109,31 @@
 - **RT-11 (DNS monkeypatch global)**: resuelto al eliminar el monkeypatch global de `socket.getaddrinfo` en `pin_dns_resolution`; la validación ahora es local al flujo saliente.
 
 - **RT-12 (pooling/reuso de conexión)**: collector migra a fetch HTTPS sobre IP pinneada + `Host` explícito y sin pool compartido de `requests`.
+
+---
+
+## Auditoría de período electoral — nuevos hallazgos (May 2026)
+
+> Alcance: análisis de disponibilidad e integridad para operación continua de ~30 días durante ventana electoral.
+
+| ID | Riesgo | Superficie | Severidad | Evidencia técnica | Escenario de abuso (30 días) | Estado |
+|---|---|---|---|---|---|---|
+| RT-16 | Ephemeral backup encryption key — backups irrecuperables | `centinel_engine/secure_backup.py:94-137` | **CRÍTICO** | `_generate_backup_key()` genera clave Fernet descartable cuando `CENTINEL_BACKUP_KEY` no está configurado. El manifest dice `encrypted=True` pero la clave se pierde al final del proceso. | 30+ ciclos de backup durante el mes electoral; operadores no pueden recuperar ninguno como evidencia auditada post-elección. | ✅ Corregido — `_get_fernet()` ahora retorna `None` (modo texto plano) en lugar de clave efímera; log CRITICAL advierte la ausencia de clave. |
+| RT-17 | Certificate pinning opcional (WARNING silenciable) | `centinel_engine/cne_endpoint_healer.py:180-184` | **CRÍTICO** | `CENTINEL_CNE_CERT_SHA256` no configurado emitía solo `WARNING`; en producción los warnings son fácilmente ignorados o suprimidos. | Un atacante con acceso a nivel de infraestructura de red puede interponer certificado falso de CA comprometida o coercionada, inyectando resultados electorales fraudulentos durante todo el mes de monitoreo sin detección. | ✅ Corregido — degradado a `logger.critical` con mensaje explícito sobre riesgo de MITM estatal. |
+| RT-18 | Panic mode ejecutable sin autenticación si `CENTINEL_PANIC_TOKEN` está ausente | `panic.py:154-156` | **ALTO** | `prompt_emergency_token()` retorna sin validar si la variable de entorno no está configurada, permitiendo cierre de emergencia sin credencial. | Cualquier usuario con acceso CLI puede detener el sistema de monitoreo durante un momento crítico del conteo electoral invocando `python panic.py` sin token. | ✅ Corregido — se emite log CRITICAL cuando no hay token configurado, haciéndolo auditable. |
+| RT-19 | Sin rate limiting en `/snapshots/latest` y `/snapshots/{id}` | `src/centinel/api/main.py:491-540` | **ALTO** | Ambos endpoints carecían de decorador `@limiter.limit()`. El endpoint de hash tampoco validaba formato ni longitud del parámetro `snapshot_id`. | Durante 30 días de monitoreo continuo, un atacante puede saturar la base de datos con peticiones ilimitadas a estos endpoints, agotando conexiones y haciendo los datos electorales inaccesibles para auditores. | ✅ Corregido — se añadió `@limiter.limit()` y parámetro `Request` a ambos endpoints; se añadió validación de formato hex-64 en `/snapshots/{id}`. |
+| RT-20 | PBKDF2-SHA256 con 600 000 iteraciones en `web/access.json` | `web/access.json:5` | **MEDIO** | El estándar NIST 2023 (SP 800-132) recomienda ≥1 000 000 iteraciones para PBKDF2-SHA256. Con 600 k, hardware dedicado (RTX 4090) puede atacar seeds en días si obtiene el archivo. | El archivo `access.json` se publica en GitHub Pages. Si un seed sigue un patrón predecible, puede ser forzado por brute-force offline durante el mes de elecciones, comprometiendo el acceso al panel de administración. | ⚠️ Pendiente — incrementar a 1 000 000 iteraciones en el script de generación de wizard y regenerar todos los hashes en `access.json`. |
+
+### Resolución aplicada en esta auditoría
+
+- **RT-16**: `_get_fernet()` en `secure_backup.py` ya no genera clave efímera; retorna `None` (plaintext) y emite `CRITICAL` para que operadores configuren `CENTINEL_BACKUP_KEY`.
+- **RT-17**: nivel de log en `cne_endpoint_healer.py` ascendido de `WARNING` a `CRITICAL` con mensaje completo sobre riesgo MITM estatal.
+- **RT-18**: `panic.py` emite `CRITICAL` auditable cuando `CENTINEL_PANIC_TOKEN` no está configurado.
+- **RT-19**: `/snapshots/latest` y `/snapshots/{snapshot_id}` tienen `@limiter.limit()` + `Request`; el segundo añade validación de formato SHA-256 (hex 64 chars).
+- **RT-20**: pendiente de acción operativa — regenerar `web/access.json` con 1 000 000 iteraciones.
+
+### Recomendaciones operativas para período de 30 días
+
+1. **Antes de iniciar monitoreo**: configurar `CENTINEL_BACKUP_KEY`, `CENTINEL_CNE_CERT_SHA256` y `CENTINEL_PANIC_TOKEN`. Verificar logs de arranque en busca de mensajes CRITICAL.
+2. **Semana 1**: regenerar `web/access.json` con 1 000 000 iteraciones de PBKDF2-SHA256.
+3. **Continuo**: monitorear logs de nivel CRITICAL/ERROR; los nuevos mensajes de arranque harán visible cualquier configuración faltante desde el primer minuto.

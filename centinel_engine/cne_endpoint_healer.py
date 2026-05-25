@@ -178,9 +178,11 @@ class CNEEndpointHealer:
                 "cne_cert_pinning_active fingerprint_prefix=%s", cert_pin[:12]
             )
         else:
-            self.logger.warning(
-                "cne_cert_pinning_INACTIVE — set CENTINEL_CNE_CERT_SHA256 "
-                "before an election to defend against state-level MITM"
+            self.logger.critical(
+                "SECURITY: cne_cert_pinning_INACTIVE — CENTINEL_CNE_CERT_SHA256 is not set. "
+                "ALL CNE endpoint traffic is vulnerable to state-level MITM certificate forgery. "
+                "Set this variable to the SHA-256 fingerprint of the CNE server certificate "
+                "before starting any electoral monitoring session."
             )
 
     def heal(self) -> dict[str, Any]:
