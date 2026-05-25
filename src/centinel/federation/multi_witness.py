@@ -117,6 +117,7 @@ class FederationCoordinator:
         enable_logging: bool = True,
         consensus_threshold: Optional[int] = None,
         operator_public_keys: Optional[dict[str, bytes]] = None,
+        election_mode: bool = False,
     ) -> None:
         """Initialize federation coordinator.
 
@@ -124,18 +125,20 @@ class FederationCoordinator:
             witness_urls: List of witness base URLs
             timeout: HTTP request timeout (seconds)
             enable_logging: Enable forensic logging
-            consensus_threshold: Min witnesses that must agree (default:
-                majority = n//2 + 1). Allows 2/3, 3/4, etc.
+            consensus_threshold: Min witnesses that must agree (default 75%).
             operator_public_keys: dict witness_id → Ed25519 public key bytes
                 (32 raw bytes). If provided, attestation signatures are
                 verified before counting toward consensus.
+            election_mode: If True, signatures are MANDATORY — unsigned
+                attestations are rejected, not ignored silently.
         """
         self.witness_urls = witness_urls
         self.timeout = timeout
         self.enable_logging = enable_logging
+        self.election_mode = election_mode
         self.attestations: dict[str, WitnessAttestation] = {}
         self.comparisons: list[MerkleComparison] = []
-        # D13.3: configurable threshold (default majority, min 2)
+        # D13.3: 75% threshold (min 2)
         if consensus_threshold is not None:
             self.consensus_threshold = consensus_threshold
         else:
@@ -143,9 +146,10 @@ class FederationCoordinator:
         # D13.2: operator public keys for signature verification
         self.operator_public_keys = operator_public_keys or {}
         logger.info(
-            "federation_init witnesses=%d threshold=%d sig_verify=%s",
+            "federation_init witnesses=%d threshold=%d election_mode=%s sig_verify=%s",
             len(witness_urls),
             self.consensus_threshold,
+            election_mode,
             bool(self.operator_public_keys),
         )
 
@@ -154,26 +158,36 @@ class FederationCoordinator:
 
         ES: Verifica firma Ed25519 del operador sobre la atestación.
 
-        Message signed: "{merkle_root}:{timestamp}". Returns True if no
-        public key is configured for the witness (signature optional,
-        non-fatal) OR if the signature is valid. Returns False only if a
-        key IS configured and the signature is missing/invalid.
+        In election_mode, an unsigned attestation is ALWAYS rejected
+        (returns False) regardless of whether a public key is configured.
+        Outside election_mode, an unsigned attestation is accepted if no
+        public key is configured for that witness.
         """
         pubkey_bytes = self.operator_public_keys.get(attestation.witness_id)
-        if pubkey_bytes is None:
-            # No key configured → signature optional (non-fatal)
-            return True
-
-        if not _CRYPTO_AVAILABLE:
-            logger.warning("signature_verify_skipped reason=cryptography_unavailable")
-            return True
 
         if not attestation.operator_signature:
+            if self.election_mode:
+                logger.error(
+                    "signature_missing_election_mode witness=%s — rejected",
+                    attestation.witness_id,
+                )
+                return False
+            if pubkey_bytes is None:
+                # Outside election mode, unsigned is tolerated when no key configured
+                return True
             logger.error(
                 "signature_missing witness=%s (key configured but no signature)",
                 attestation.witness_id,
             )
             return False
+
+        if pubkey_bytes is None:
+            # Signature present but no key to verify against → accept (can't reject)
+            return True
+
+        if not _CRYPTO_AVAILABLE:
+            logger.warning("signature_verify_skipped reason=cryptography_unavailable")
+            return True
 
         try:
             pubkey = Ed25519PublicKey.from_public_bytes(pubkey_bytes)
