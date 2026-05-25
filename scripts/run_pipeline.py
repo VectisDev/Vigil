@@ -548,6 +548,62 @@ def build_alerts(anomalies, *, severity: str = "HIGH"):
     ]
 
 
+def _swarm_local_url() -> str:
+    return os.getenv("CENTINEL_MY_URL", "http://localhost:8080").rstrip("/")
+
+
+def _broadcast_anomaly_findings(
+    critical_anomalies: list[dict[str, Any]],
+    *,
+    run_id: str,
+    snapshot_id: str,
+) -> None:
+    """POST critical anomalies to the local swarm API for federation broadcast."""
+    if not critical_anomalies:
+        return
+    endpoint = f"{_swarm_local_url()}/api/swarm/broadcast"
+    for anomaly in critical_anomalies:
+        rule = str(anomaly.get("type", "anomaly")).lower()
+        payload = {
+            "finding_type": "rule_violation",
+            "severity": "CRITICAL",
+            "rule_key": rule,
+            "summary": str(anomaly.get("description", ""))[:200],
+            "snapshot_id": snapshot_id,
+        }
+        try:
+            requests.post(endpoint, json=payload, timeout=2)
+        except Exception:
+            pass
+
+
+def _make_swarm_attack_hook() -> Any:
+    """Return a callback for AttackLogConfig.finding_broadcast_hook.
+
+    The hook converts an attack event dict to a FindingPayload and POSTs it to
+    the local swarm broadcast endpoint so the gossip engine signs and fans it out.
+    """
+    endpoint = f"{_swarm_local_url()}/api/swarm/broadcast"
+
+    def hook(event: dict[str, Any]) -> None:
+        payload = {
+            "finding_type": "swarm_attack",
+            "severity": "HIGH",
+            "rule_key": event.get("classification", "unknown"),
+            "summary": (
+                f"{event.get('classification')} ip={event.get('ip','?')} "
+                f"route={event.get('route','?')}"
+            )[:200],
+            "snapshot_id": "",
+        }
+        try:
+            requests.post(endpoint, json=payload, timeout=2)
+        except Exception:
+            pass
+
+    return hook
+
+
 def emit_critical_alerts(
     critical_anomalies: list[dict[str, Any]],
     config: dict[str, Any],
@@ -985,6 +1041,11 @@ def run_pipeline(config: dict[str, Any]) -> None:
         alerts = build_alerts(critical_anomalies, severity="CRITICAL")
         (ANALYSIS_DIR / "alerts.json").write_text(json.dumps(alerts, indent=2), encoding="utf-8")
         emit_critical_alerts(critical_anomalies, config, run_id=run_id)
+        _broadcast_anomaly_findings(
+            critical_anomalies,
+            run_id=run_id,
+            snapshot_id=content_hash or "",
+        )
         if critical_anomalies:
             _trigger_emergency_publish(reason="critical_anomaly")
 
@@ -1409,6 +1470,7 @@ def main():
     args = parser.parse_args()
     config = load_pipeline_config()
     attack_config = AttackLogConfig.from_yaml(ATTACK_CONFIG_PATH)
+    attack_config.finding_broadcast_hook = _make_swarm_attack_hook()
     attack_logbook = AttackForensicsLogbook(attack_config)
     attack_logbook.start()
     honeypot = HoneypotServer(attack_config, attack_logbook)

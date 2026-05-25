@@ -18,9 +18,11 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from centinel.federation.gossip import GossipEngine
+from centinel.federation.findings_log import FederationAnomalyLog
+from centinel.federation.attack_log import FederationAttackLog
 
 logger = logging.getLogger("centinel.api.swarm")
 
@@ -31,6 +33,16 @@ _SETUP_MARKER = _BASE / ".centinel-setup.json"
 
 _engine: Optional[GossipEngine] = None
 _engine_task: Optional[asyncio.Task] = None
+
+# Federation finding logs — instantiated once, shared across engine restarts
+_anomaly_log = FederationAnomalyLog(
+    max_findings=500,
+    log_path=_BASE / "logs" / "federation_anomalies.jsonl",
+)
+_attack_log = FederationAttackLog(
+    max_findings=300,
+    log_path=_BASE / "logs" / "federation_attacks.jsonl",
+)
 
 
 def _read_setup() -> dict:
@@ -149,6 +161,8 @@ async def swarm_connect(request: Request) -> dict:
         country_code=country,
         my_url=my_url,
         broadcast_interval=broadcast_interval,
+        anomaly_log=_anomaly_log,
+        attack_log=_attack_log,
     )
 
     _engine_task = asyncio.create_task(_engine.start())
@@ -182,6 +196,99 @@ async def swarm_disconnect() -> dict:
     return {"status": "disconnected", "node_id": node_id}
 
 
+@router.post("/api/swarm/broadcast")
+async def local_broadcast(request: Request) -> dict:
+    """Sign and broadcast a local finding to the swarm.
+
+    Called by the pipeline process to submit anomaly/attack findings.
+    The engine fills node_id, signs with its Ed25519 key, and fans out.
+    Body: partial FindingPayload dict (finding_type, severity, rule_key,
+          summary, snapshot_id required; finding_id optional).
+    """
+    if _engine is None:
+        raise HTTPException(status_code=503, detail="Swarm not running. POST /api/swarm/connect first.")
+
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+
+    from centinel.federation.gossip import FindingPayload, _make_finding_id
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc).isoformat()
+    node_id = _engine._node_id
+    rule_key = str(body.get("rule_key", "unknown"))[:64]
+    finding_id = body.get("finding_id") or _make_finding_id(node_id, now, rule_key)
+
+    finding = FindingPayload(
+        finding_id=finding_id,
+        node_id=node_id,
+        country_code=_get_country(),
+        finding_type=str(body.get("finding_type", "anomaly")),
+        severity=str(body.get("severity", "HIGH")).upper(),
+        rule_key=rule_key,
+        summary=str(body.get("summary", ""))[:200],
+        snapshot_id=str(body.get("snapshot_id", "")),
+        timestamp_utc=now,
+        signature="",
+    )
+
+    acks = await _engine.broadcast_finding(finding)
+    return {"finding_id": finding.finding_id, "acks": acks}
+
+
+@router.post("/api/swarm/finding")
+async def receive_finding(request: Request) -> dict:
+    """Accept a FindingPayload from a peer and fan it out to 2 random peers."""
+    if _engine is None:
+        raise HTTPException(status_code=503, detail="Swarm not running. POST /api/swarm/connect first.")
+
+    try:
+        payload_dict = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+
+    accepted = await _engine.receive_finding(payload_dict)
+    return {"accepted": accepted}
+
+
+@router.get("/api/swarm/anomalies")
+async def swarm_anomalies(
+    since: Optional[str] = Query(None, description="ISO 8601 lower bound"),
+    severity: Optional[str] = Query(None, description="HIGH or CRITICAL"),
+    rule_key: Optional[str] = Query(None),
+    node_id: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=500),
+) -> dict:
+    """Query cross-node electoral anomalies stored in FederationAnomalyLog."""
+    items = _anomaly_log.query(
+        since_utc=since,
+        severity=severity,
+        rule_key=rule_key,
+        node_id=node_id,
+        limit=limit,
+    )
+    return {"findings": items, "stats": _anomaly_log.stats()}
+
+
+@router.get("/api/swarm/attacks")
+async def swarm_attacks(
+    since: Optional[str] = Query(None, description="ISO 8601 lower bound"),
+    node_id: Optional[str] = Query(None),
+    rule_key: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=500),
+) -> dict:
+    """Query cross-node swarm-targeted attacks stored in FederationAttackLog."""
+    items = _attack_log.query(
+        since_utc=since,
+        node_id=node_id,
+        rule_key=rule_key,
+        limit=limit,
+    )
+    return {"findings": items, "stats": _attack_log.stats()}
+
+
 async def auto_start(country_code: Optional[str] = None) -> None:
     """Called on startup when CENTINEL_AUTOCONNECT=1."""
     global _engine, _engine_task
@@ -192,6 +299,8 @@ async def auto_start(country_code: Optional[str] = None) -> None:
     _engine = GossipEngine(
         country_code=country,
         my_url=my_url,
+        anomaly_log=_anomaly_log,
+        attack_log=_attack_log,
     )
     _engine_task = asyncio.create_task(_engine.start())
     logger.info("swarm_autostart country=%s", country)

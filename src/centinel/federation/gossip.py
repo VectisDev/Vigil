@@ -48,6 +48,10 @@ _CENTINEL_MDNS_SERVICE = b"_centinel._tcp.local"
 
 _FAN_OUT = 2
 _GOSSIP_VERSION = 1
+_FINDING_VERSION = 1
+_FINDING_RATE_LIMIT = 10       # max findings broadcast per minute per node
+_FINDING_RATE_WINDOW = 60.0    # sliding window in seconds
+_BROADCAST_SEVERITIES = {"HIGH", "CRITICAL"}
 
 
 # ── Data structures ───────────────────────────────────────────────────────────
@@ -79,6 +83,47 @@ class NodePayload:
     @classmethod
     def from_dict(cls, d: dict) -> "NodePayload":
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+
+@dataclass
+class FindingPayload:
+    """Signed anomaly/attack finding broadcast by a Centinel node.
+
+    finding_type values:
+      "rule_violation" — fired by the rules engine (late_mesa, hold_and_release, …)
+      "anomaly"        — fired by the anomaly detector (Benford, z-score, …)
+      "swarm_attack"   — infrastructure attack directed at Centinel endpoints
+    """
+
+    finding_id: str        # sha256(node_id+timestamp+rule_key)[:16] — dedup key
+    node_id: str           # sha256(public_key_hex)[:16] of the detecting node
+    country_code: str      # ISO-2, e.g. "HN"
+    finding_type: str      # "rule_violation" | "anomaly" | "swarm_attack"
+    severity: str          # "HIGH" | "CRITICAL" — only these are broadcast
+    rule_key: str          # Rule/detector name: "late_mesa", "hold_and_release", "flood", …
+    summary: str           # ≤200 chars human description
+    snapshot_id: str       # Related snapshot hash, or "" for attack events
+    timestamp_utc: str     # ISO 8601
+    signature: str         # Ed25519 over canonical JSON (excludes this field)
+    version: int = _FINDING_VERSION
+
+    def canonical_bytes(self) -> bytes:
+        d = asdict(self)
+        d.pop("signature", None)
+        return json.dumps(d, sort_keys=True, separators=(",", ":")).encode()
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "FindingPayload":
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+
+def _make_finding_id(node_id: str, timestamp_utc: str, rule_key: str) -> str:
+    """Deterministic dedup key for a finding."""
+    raw = f"{node_id}:{timestamp_utc}:{rule_key}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -126,6 +171,28 @@ def _verify_payload_sig(payload: NodePayload) -> bool:
             payload.canonical_bytes(),
             payload.signature,
             public_key_hex=payload.public_key_hex,
+        )
+    except Exception:
+        return False
+
+
+def _sign_finding(finding: FindingPayload, key_path: Path) -> str:
+    """Return hex Ed25519 signature over canonical bytes of a FindingPayload."""
+    from centinel.core.custody import sign_snapshot
+
+    result = sign_snapshot(finding.canonical_bytes(), key_path=key_path)
+    return result.signature_hex
+
+
+def _verify_finding_sig(finding: FindingPayload, public_key_hex: str) -> bool:
+    """Return True if the finding's signature is valid against the given public key."""
+    from centinel.core.custody import verify_snapshot_signature
+
+    try:
+        return verify_snapshot_signature(
+            finding.canonical_bytes(),
+            finding.signature,
+            public_key_hex=public_key_hex,
         )
     except Exception:
         return False
@@ -218,6 +285,8 @@ class GossipEngine:
         my_url: Optional[str] = None,
         broadcast_interval: float = 60.0,
         max_peers: int = 50,
+        anomaly_log: Optional[object] = None,
+        attack_log: Optional[object] = None,
     ) -> None:
         self.country_code = country_code.upper()
         self.my_url = my_url
@@ -230,14 +299,22 @@ class GossipEngine:
         self.broadcast_interval = broadcast_interval
         self.max_peers = max_peers
 
+        # Federation finding logs (optional — gossip still works without them)
+        self._anomaly_log = anomaly_log  # FederationAnomalyLog
+        self._attack_log = attack_log    # FederationAttackLog
+
         self._peers: dict[str, str] = {}   # node_id → base_url
         self._known: dict[str, NodePayload] = {}  # node_id → latest payload
+        self._known_pubkeys: dict[str, str] = {}  # node_id → public_key_hex (for finding sig verification)
         self._pub_hex: str = ""
         self._node_id: str = ""
         self._key_path: Optional[Path] = None
         self._running = False
         self._task: Optional[asyncio.Task] = None
         self._last_broadcast: Optional[float] = None
+
+        # Rate limiter for outbound finding broadcasts (sliding window)
+        self._finding_rate_timestamps: list[float] = []
 
     # ── lifecycle ──────────────────────────────────────────────────────────────
 
@@ -289,6 +366,8 @@ class GossipEngine:
             return True  # Already up to date
 
         self._known[node_id] = payload
+        # Cache public key for later finding signature verification
+        self._known_pubkeys[node_id] = payload.public_key_hex
         if payload.my_url:
             self._peers[node_id] = payload.my_url.rstrip("/")
             if len(self._peers) > self.max_peers:
@@ -306,6 +385,108 @@ class GossipEngine:
             asyncio.create_task(self._push_payload(url, payload))
 
         return True
+
+    async def broadcast_finding(self, finding: FindingPayload) -> int:
+        """Sign and broadcast a finding to known peers. Returns number of ACKs.
+
+        Only broadcasts HIGH/CRITICAL findings. Rate-limited to
+        _FINDING_RATE_LIMIT findings per _FINDING_RATE_WINDOW seconds.
+        """
+        if finding.severity not in _BROADCAST_SEVERITIES:
+            logger.debug("finding_broadcast_skipped severity=%s below threshold", finding.severity)
+            return 0
+
+        # Rate limit check (sliding window)
+        now = time.monotonic()
+        self._finding_rate_timestamps = [
+            t for t in self._finding_rate_timestamps if now - t < _FINDING_RATE_WINDOW
+        ]
+        if len(self._finding_rate_timestamps) >= _FINDING_RATE_LIMIT:
+            logger.warning(
+                "finding_broadcast_rate_limited node=%s rate=%d/%ds",
+                self._node_id, _FINDING_RATE_LIMIT, int(_FINDING_RATE_WINDOW),
+            )
+            return 0
+        self._finding_rate_timestamps.append(now)
+
+        # Sign if not yet signed
+        if not finding.signature and self._key_path:
+            finding.signature = _sign_finding(finding, self._key_path)
+
+        # Store locally
+        self._store_finding(finding, source="local")
+
+        # Fan-out to peers
+        targets = list(self._peers.values())
+        random.shuffle(targets)
+        targets = targets[:10]
+
+        acks = 0
+        for url in targets:
+            ok = await self._push_finding(url, finding)
+            if ok:
+                acks += 1
+
+        logger.info(
+            "finding_broadcast sent=%d acked=%d rule=%s severity=%s",
+            len(targets), acks, finding.rule_key, finding.severity,
+        )
+        return acks
+
+    async def receive_finding(self, payload_dict: dict) -> bool:
+        """Accept a FindingPayload from a peer, verify signature, store and fan-out.
+
+        Returns True if the finding was new and accepted.
+        """
+        try:
+            finding = FindingPayload.from_dict(payload_dict)
+        except (TypeError, KeyError) as exc:
+            logger.debug("finding_recv_bad_payload error=%s", exc)
+            return False
+
+        if finding.severity not in _BROADCAST_SEVERITIES:
+            logger.debug("finding_recv_low_severity severity=%s", finding.severity)
+            return False
+
+        # Verify signature using cached public key for this node_id
+        pub_hex = self._known_pubkeys.get(finding.node_id)
+        if not pub_hex:
+            logger.debug("finding_recv_unknown_node node_id=%s", finding.node_id)
+            # Accept without verification only if this is a self-finding (local node)
+            if finding.node_id != self._node_id:
+                return False
+            pub_hex = self._pub_hex
+
+        if finding.signature and not _verify_finding_sig(finding, pub_hex):
+            logger.debug("finding_recv_invalid_sig node_id=%s", finding.node_id)
+            return False
+
+        # Dedup + store
+        if not self._store_finding(finding, source="remote"):
+            return True  # Already known — still valid, just not new
+
+        logger.info(
+            "finding_recv_accepted finding_id=%s rule=%s severity=%s from=%s",
+            finding.finding_id, finding.rule_key, finding.severity, finding.node_id,
+        )
+
+        # Fan-out to 2 random peers (exclude sender)
+        candidates = [u for nid, u in self._peers.items() if nid != finding.node_id]
+        for url in random.sample(candidates, min(_FAN_OUT, len(candidates))):
+            asyncio.create_task(self._push_finding(url, finding))
+
+        return True
+
+    def _store_finding(self, finding: FindingPayload, source: str) -> bool:
+        """Route finding to the correct log. Returns True if new."""
+        if finding.finding_type == "swarm_attack":
+            if self._attack_log is not None:
+                return self._attack_log.add(finding, source=source)
+            return True  # No log configured — accept but don't store
+        else:
+            if self._anomaly_log is not None:
+                return self._anomaly_log.add(finding, source=source)
+            return True
 
     def get_status(self) -> dict:
         peers = list(self._known.values())
@@ -398,6 +579,19 @@ class GossipEngine:
                 return r.status_code == 200
         except Exception as exc:
             logger.debug("gossip_push_failed url=%s error=%s", base_url, exc)
+            return False
+
+    async def _push_finding(self, base_url: str, finding: FindingPayload) -> bool:
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                r = await client.post(
+                    f"{base_url}/api/swarm/finding",
+                    json=finding.to_dict(),
+                    headers={"Content-Type": "application/json"},
+                )
+                return r.status_code == 200
+        except Exception as exc:
+            logger.debug("finding_push_failed url=%s error=%s", base_url, exc)
             return False
 
     async def _fetch_checkpoint(self, base_url: str) -> None:
