@@ -90,7 +90,7 @@ import logging
 import os
 import random
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
@@ -129,6 +129,41 @@ TEMP_DIR = Path("data") / "temp"
 CHECKPOINT_PATH = TEMP_DIR / "download_checkpoint.json"
 BREAKER_STATE_PATH = TEMP_DIR / "circuit_breaker_state.json"
 DEFAULT_RETRY_CONFIG_PATH = "config/prod/retry_config.yaml"
+
+# ES: Directorio de throttle por fuente. Los archivos aquí bloquean el scraping de
+#     esa fuente hasta que expire el timestamp, protegiendo el endpoint CNE.
+# EN: Per-source throttle directory. Files here block scraping of that source
+#     until the timestamp expires, protecting the CNE endpoint.
+_THROTTLE_DIR = Path("data") / ".throttle"
+_THROTTLE_MINUTES = int(os.getenv("CENTINEL_THROTTLE_MINUTES", "30"))
+
+
+def _is_throttled(source_id: str) -> bool:
+    """True si hay un throttle activo no expirado para esta fuente.
+    EN: True if a non-expired throttle marker exists for this source."""
+    path = _THROTTLE_DIR / f"{source_id}.json"
+    if not path.exists():
+        return False
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        until = datetime.fromisoformat(data["until_utc"])
+        return datetime.now(timezone.utc) < until
+    except Exception:
+        return False
+
+
+def _write_throttle(source_id: str, reason: str = "429") -> None:
+    """Escribe marker de throttle por fuente. / Writes per-source throttle marker."""
+    _THROTTLE_DIR.mkdir(parents=True, exist_ok=True)
+    until = datetime.now(timezone.utc) + timedelta(minutes=_THROTTLE_MINUTES)
+    (_THROTTLE_DIR / f"{source_id}.json").write_text(
+        json.dumps({"source_id": source_id, "until_utc": until.isoformat(), "reason": reason}),
+        encoding="utf-8",
+    )
+    logger.warning(
+        "source_throttled source=%s until=%s reason=%s minutes=%d",
+        source_id, until.isoformat(), reason, _THROTTLE_MINUTES,
+    )
 
 
 def resolve_config_path(config_path_override: str | None = None) -> str:
@@ -531,6 +566,12 @@ def process_sources(
                 logger.info("Snapshot reciente detectado, se omite descarga: %s", source_label)
                 continue
 
+            # ES: Back-off por fuente — salta si el CNE respondió con 429/503 recientemente.
+            # EN: Per-source back-off — skip if CNE responded with 429/503 recently.
+            if _is_throttled(source_id):
+                logger.info("source_throttle_active source=%s — skipping until throttle expires", source_id)
+                continue
+
             # ES: Jitter entre fuentes — suaviza la ráfaga intra-nodo (default 0.8-1.2s por fuente).
             # EN: Inter-source jitter — smooths intra-node burst (default 0.8-1.2s per source).
             _inter_jitter = float(config.get("inter_source_jitter_seconds", 1.0))
@@ -569,6 +610,11 @@ def process_sources(
                 )
             except Exception as e:
                 logger.error("Fallo al descargar %s: %s", endpoint, e)
+                # ES: Si el CNE responde 429/503, escribir throttle por fuente para no sobrecargarla.
+                # EN: If CNE responds 429/503, write per-source throttle to avoid overloading it.
+                _err = str(e)
+                if "429" in _err or "503" in _err or "Too Many" in _err:
+                    _write_throttle(source_id, reason="429" if "429" in _err else "503")
                 # Distinguish "the authority is down" from "someone is
                 # cutting us": diagnose the failure mode and record a
                 # signed, append-only degradation event. Best-effort and
@@ -633,6 +679,23 @@ def process_sources(
                 health_state.record_failure()
                 had_errors = True
                 continue
+
+            # ES: Validación de schema CNE antes de persistir — detecta respuestas envenenadas
+            #     o cambios de API. CENTINEL_STRICT_VALIDATION=1 rechaza; default solo advierte.
+            # EN: CNE schema validation before persisting — detects poisoned responses or API
+            #     changes. CENTINEL_STRICT_VALIDATION=1 rejects; default warns only.
+            try:
+                from centinel.core.normalize import validate_cne_response as _validate_cne
+                _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
+                if isinstance(_raw_for_validation, dict):
+                    _cne_errors = _validate_cne(_raw_for_validation, source_id)
+                    if _cne_errors and os.getenv("CENTINEL_STRICT_VALIDATION", "0") == "1":
+                        logger.error("suspect_response_rejected source=%s errors=%s",
+                                     source_id, _cne_errors)
+                        had_errors = True
+                        continue
+            except Exception as _val_exc:
+                logger.debug("cne_validation_skipped source=%s error=%s", source_id, _val_exc)
 
             normalized_payload = payload if isinstance(payload, list) else [payload]
             snapshot_payload = {

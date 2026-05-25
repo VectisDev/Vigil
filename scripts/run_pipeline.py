@@ -577,6 +577,39 @@ def _broadcast_anomaly_findings(
             pass
 
 
+def _broadcast_throttle_findings() -> None:
+    """Broadcast active per-source throttle markers as source_throttle findings.
+
+    ES: Escanea data/.throttle/ y notifica al enjambre de cada fuente activamente
+        throttleada, para que otros nodos también pausen esa fuente.
+    EN: Scans data/.throttle/ and notifies the swarm of each actively throttled
+        source so other nodes also pause scraping it.
+    """
+    throttle_dir = Path("data") / ".throttle"
+    if not throttle_dir.exists():
+        return
+    endpoint = f"{_swarm_local_url()}/api/swarm/broadcast"
+    now = datetime.now(timezone.utc)
+    for f in throttle_dir.glob("*.json"):
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            until = datetime.fromisoformat(data["until_utc"])
+            if now >= until:
+                continue  # throttle expired — skip
+            requests.post(endpoint, json={
+                "finding_type": "source_throttle",
+                "severity": "HIGH",
+                "rule_key": data["source_id"],
+                "summary": (
+                    f"Source throttled until {data['until_utc']} "
+                    f"(reason: {data.get('reason', '?')})"
+                )[:200],
+                "snapshot_id": "",
+            }, timeout=3)
+        except Exception:
+            pass
+
+
 def _make_swarm_attack_hook() -> Any:
     """Return a callback for AttackLogConfig.finding_broadcast_hook.
 
@@ -1046,6 +1079,7 @@ def run_pipeline(config: dict[str, Any]) -> None:
             run_id=run_id,
             snapshot_id=content_hash or "",
         )
+        _broadcast_throttle_findings()
         if critical_anomalies:
             _trigger_emergency_publish(reason="critical_anomaly")
 

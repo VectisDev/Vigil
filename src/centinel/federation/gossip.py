@@ -398,6 +398,11 @@ class GossipEngine:
         self._anomaly_log = anomaly_log  # FederationAnomalyLog
         self._attack_log = attack_log    # FederationAttackLog
 
+        # ES: Callback opcional para propagar throttles de fuente a otros nodos.
+        # EN: Optional callback to propagate source throttles from remote nodes.
+        # Signature: (source_id: str, until_utc: str) -> None
+        self._throttle_callback: Optional[object] = None
+
         self._peers: dict[str, str] = {}   # node_id → base_url
         self._known: dict[str, NodePayload] = {}  # node_id → latest payload
         # Pubkey cache: all nodes ever seen (LRU, max 10k). Independent of routing table.
@@ -579,6 +584,16 @@ class GossipEngine:
             "finding_recv_accepted finding_id=%s rule=%s severity=%s from=%s",
             finding.finding_id, finding.rule_key, finding.severity, finding.node_id,
         )
+
+        # ES: Si es un throttle de fuente, notificar al pipeline local para que
+        #     pause el scraping de esa fuente durante el período indicado.
+        # EN: If this is a source throttle signal, notify the local pipeline so
+        #     it pauses scraping that source for the indicated period.
+        if finding.finding_type == "source_throttle" and self._throttle_callback is not None:
+            try:
+                self._throttle_callback(finding.rule_key, finding.timestamp_utc)  # type: ignore[call-arg]
+            except Exception as _cb_exc:
+                logger.debug("throttle_callback_error source=%s error=%s", finding.rule_key, _cb_exc)
 
         # Fan-out to 2 random peers (exclude sender) — only if TTL allows
         if finding.ttl_hops > 0:
