@@ -5,17 +5,18 @@ Initial setup and seed regeneration endpoints.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
 from centinel.countries import LATAM_COUNTRIES, list_countries
-from centinel.seed_pdf import generate_seeds, hash_seeds, generate_pdf
+from centinel.seed_pdf import generate_seeds, hash_seeds, generate_pdf, SEED1_SALT, SEED1_ITERS
 
 logger = logging.getLogger("centinel.api.setup")
 
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/api/setup", tags=["setup"])
 _BASE = Path(__file__).resolve().parents[4]
 _ACCESS_JSON = _BASE / "web" / "access.json"
 _SETUP_MARKER = _BASE / ".centinel-setup.json"
+_CONFIG_YAML = _BASE / "command_center" / "config.yaml"
 
 
 def _read_setup() -> dict:
@@ -35,16 +37,39 @@ def _read_setup() -> dict:
         return {}
 
 
+def _read_access() -> dict:
+    if not _ACCESS_JSON.exists():
+        return {}
+    try:
+        return json.loads(_ACCESS_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
 def _write_access(hashes: dict[str, str]) -> None:
     payload = {
         "version": 1,
         "algo": "PBKDF2-SHA256",
-        "salt": "centinel-admin-salt-v1",
-        "iterations": 600_000,
+        "salt": SEED1_SALT,
+        "iterations": SEED1_ITERS,
         "seeds": hashes,
     }
     _ACCESS_JSON.parent.mkdir(parents=True, exist_ok=True)
     _ACCESS_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def _verify_seed(seed_label: str, seed_value: str) -> bool:
+    """Verify a plaintext seed against the stored PBKDF2 hash."""
+    access = _read_access()
+    stored_hashes = access.get("seeds", {})
+    expected = stored_hashes.get(seed_label)
+    if not expected:
+        return False
+    actual = hashlib.pbkdf2_hmac(
+        "sha256", seed_value.encode(), SEED1_SALT.encode(), SEED1_ITERS
+    ).hex()
+    # Constant-time comparison
+    return hashlib.compare_digest(actual, expected)
 
 
 def _pdf_response(seeds: dict, country_name: str, country_flag: str, code: str) -> Response:
@@ -57,6 +82,39 @@ def _pdf_response(seeds: dict, country_name: str, country_flag: str, code: str) 
     )
 
 
+def _update_config_yaml(code: str) -> None:
+    """Patch command_center/config.yaml with the selected country's CNE domain."""
+    if not _CONFIG_YAML.exists():
+        return
+    try:
+        import yaml
+        text = _CONFIG_YAML.read_text(encoding="utf-8")
+        cfg = yaml.safe_load(text) or {}
+
+        country = LATAM_COUNTRIES[code]
+        # Extract domain from url_pattern if available
+        domain = None
+        if country.url_pattern:
+            from urllib.parse import urlparse
+            domain = urlparse(country.url_pattern).netloc
+        if not domain:
+            # Fallback: derive from authority abbreviation
+            code_lower = code.lower()
+            domain = f"cne.{code_lower}"
+
+        cfg["cne_domains"] = [domain]
+        cfg["country_code"] = code
+        cfg["country_name"] = country.name
+
+        _CONFIG_YAML.write_text(
+            yaml.dump(cfg, allow_unicode=True, default_flow_style=False),
+            encoding="utf-8",
+        )
+        logger.info("config_yaml_updated country=%s domain=%s", code, domain)
+    except Exception as exc:
+        logger.warning("config_yaml_update_failed country=%s error=%s", code, exc)
+
+
 # ── Request models ────────────────────────────────────────────────────────────
 
 
@@ -66,6 +124,8 @@ class InitRequest(BaseModel):
 
 class RegenerateRequest(BaseModel):
     country_code: str | None = None
+    seed_label: str          # e.g. "S1-A"
+    seed_value: str          # plaintext seed to authenticate
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -80,6 +140,7 @@ def setup_status() -> dict:
         "country_code": setup.get("country_code"),
         "country_name": setup.get("country_name"),
         "configured_at": setup.get("configured_at"),
+        "last_regenerated_at": setup.get("last_regenerated_at"),
     }
 
 
@@ -97,6 +158,14 @@ def get_countries() -> list[dict]:
         }
         for c in list_countries()
     ]
+
+
+@router.get("/access.json")
+def get_access_json():
+    """Sirve web/access.json para que el panel OPS pueda verificar seeds localmente."""
+    if not _ACCESS_JSON.exists():
+        raise HTTPException(status_code=404, detail="access.json not found. Run setup first.")
+    return FileResponse(_ACCESS_JSON, media_type="application/json")
 
 
 @router.post("/init")
@@ -135,6 +204,8 @@ def setup_init(req: InitRequest) -> Response:
         encoding="utf-8",
     )
 
+    _update_config_yaml(code)
+
     logger.info("setup_complete country=%s", code)
     return _pdf_response(seeds, country.name, country.flag, code)
 
@@ -143,12 +214,15 @@ def setup_init(req: InitRequest) -> Response:
 def regenerate_seeds(req: RegenerateRequest) -> Response:
     """
     Regenera seeds nuevos (invalida todos los anteriores).
-    Requiere que el sistema ya esté configurado.
-    La autenticación se valida a nivel de middleware/sesión del panel OPS.
+    Requiere autenticación: uno de los 12 seeds actuales (seed_label + seed_value).
     """
     setup = _read_setup()
     if not setup:
         raise HTTPException(status_code=400, detail="Sistema no configurado aún.")
+
+    if not _verify_seed(req.seed_label, req.seed_value):
+        logger.warning("regenerate_auth_failed label=%s", req.seed_label)
+        raise HTTPException(status_code=401, detail="Seed de autenticación inválido.")
 
     code = (req.country_code or setup.get("country_code", "HN")).upper().strip()
     if code not in LATAM_COUNTRIES:
