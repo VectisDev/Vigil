@@ -1,4 +1,4 @@
-.PHONY: help quickstart wizard setup install start stop restart status logs \
+.PHONY: help quickstart launch wizard setup install start stop restart status logs \
         init snapshot collect audit analyze summary pipeline report calibrate \
         security test-stress security-scan test lint \
         test-security test-security-chaos test-security-all
@@ -15,19 +15,21 @@ help: ## Muestra esta ayuda / Show this help
 	@awk 'BEGIN{FS=":.*##"} /^[a-zA-Z_-]+:.*##/ { printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@printf '\n\033[1mEjemplo de inicio rápido / Quick start example:\033[0m\n'
 	@printf '  make install   # instalar dependencias\n'
-	@printf '  make wizard    # configurar el sistema\n'
-	@printf '  make start     # arrancar el pipeline\n\n'
+	@printf '  make launch    # abrir Centinel en el navegador\n'
+	@printf '  make start     # arrancar el pipeline en background\n\n'
 
-quickstart: ## Todo en uno: instalar + configurar + iniciar / All-in-one: install + configure + start
+quickstart: ## Todo en uno: instalar + abrir en navegador / All-in-one: install + open browser
 	@./scripts/bootstrap.sh
-	@$(PYTHON_COMMAND) scripts/setup_wizard.py
-	@bash $(SERVICE) start
+	@$(PYTHON_COMMAND) scripts/launch.py
+
+launch: ## Abrir Centinel en el navegador (instalar si es necesario) / Open Centinel in browser
+	@$(PYTHON_COMMAND) scripts/launch.py
 
 install: ## Instalar dependencias (Poetry o pip) / Install dependencies
 	@./scripts/bootstrap.sh
 
-wizard: ## Asistente de configuración interactivo / Interactive configuration wizard
-	@$(PYTHON_COMMAND) scripts/setup_wizard.py
+wizard: ## Abrir el wizard de configuración en el navegador / Open setup wizard in browser
+	@$(PYTHON_COMMAND) scripts/launch.py
 
 setup: wizard ## Alias de wizard / Alias for wizard
 

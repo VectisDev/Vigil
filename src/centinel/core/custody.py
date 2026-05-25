@@ -96,6 +96,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 from cryptography.hazmat.primitives.serialization import (
+    BestAvailableEncryption,
     Encoding,
     NoEncryption,
     PrivateFormat,
@@ -515,7 +516,18 @@ def verify_anchor_from_log(anchor_log_path: Path) -> AnchorVerificationResult:
 
 _OPERATOR_KEY_PATH_ENV = "CENTINEL_OPERATOR_KEY_PATH"
 _OPERATOR_ID_ENV = "CENTINEL_OPERATOR_ID"
+_KEY_PASSPHRASE_ENV = "CENTINEL_KEY_PASSPHRASE"
 _DEFAULT_KEY_DIR = Path("keys")
+
+
+def _get_key_passphrase() -> Optional[bytes]:
+    """Return the private-key passphrase as bytes, or None if not configured.
+
+    Set CENTINEL_KEY_PASSPHRASE in the environment (or .env file) to enable
+    at-rest encryption of the operator private key with AES-256-CBC.
+    """
+    raw = os.getenv(_KEY_PASSPHRASE_ENV, "").strip()
+    return raw.encode() if raw else None
 
 
 def generate_operator_keypair(
@@ -536,7 +548,11 @@ def generate_operator_keypair(
     private_key = Ed25519PrivateKey.generate()
     public_key = private_key.public_key()
 
-    private_pem = private_key.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, NoEncryption())
+    _passphrase = _get_key_passphrase()
+    encryption = (
+        BestAvailableEncryption(_passphrase) if _passphrase else NoEncryption()
+    )
+    private_pem = private_key.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, encryption)
     public_pem = public_key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo)
 
     private_path = key_dir / "operator_private.pem"
@@ -581,7 +597,12 @@ def _load_operator_private_key(key_path: Optional[Path] = None) -> Ed25519Privat
         )
 
     pem_data = key_path.read_bytes()
-    private_key = load_pem_private_key(pem_data, password=None)
+    _passphrase = _get_key_passphrase()
+    try:
+        private_key = load_pem_private_key(pem_data, password=_passphrase)
+    except (ValueError, TypeError):
+        # Backward-compat: try without passphrase if passphrase attempt failed
+        private_key = load_pem_private_key(pem_data, password=None)
     if not isinstance(private_key, Ed25519PrivateKey):
         raise TypeError("La clave cargada no es Ed25519. / Loaded key is not Ed25519.")
     return private_key

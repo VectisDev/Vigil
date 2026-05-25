@@ -5,8 +5,20 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      country:
+        description: 'País a auditar'
+        required: false
+        type: choice
+        default: 'HN'
+        options:
+          - HN   # Honduras — TSE/CNE (implementado)
+          - GT   # Guatemala — TSE (próximamente)
+          - SV   # El Salvador — TSE (próximamente)
+          - VE   # Venezuela — CNE (próximamente)
+          - MX   # México — INE (próximamente)
+          - CO   # Colombia — CNE (próximamente)
       election_url:
-        description: 'URL de la autoridad electoral a auditar (ej: https://resultados2029.cne.hn/)'
+        description: 'URL de la autoridad electoral (ej: https://resultados2029.cne.hn/)'
         required: false
         type: string
       ots_enabled:
@@ -99,11 +111,14 @@ jobs:
                 '',
                 '**✅ Cuando termines los dos pasos, vuelve aquí y haz clic:**',
                 `**[→ Re-ejecutar el Setup Wizard](https://github.com/${owner}/${repo}/actions/workflows/setup-wizard.yml)**`,
-                '→ Clic en **"Run workflow"** → aparece un formulario:',
-                '  - **"URL de la autoridad electoral"** → pega la URL de la web oficial (ej: `https://resultados2029.cne.hn/`)',
+                '→ Clic en **"Run workflow"** → aparece un formulario con estas opciones:',
+                '  - **País a auditar** → selecciona tu país (ej: `HN` para Honduras)',
+                '  - **URL de la autoridad electoral** → pega la URL oficial (ej: `https://resultados2029.cne.hn/`)',
                 '  - Clic en **"Run workflow"**',
                 '',
-                'El wizard detectará los endpoints automáticamente desde esa URL y completará el setup.',
+                'El wizard detectará los endpoints automáticamente, generará los seeds de acceso y completará el setup.',
+                '',
+                '> Los seeds se subirán como artifact descargable en el propio run — el link aparecerá en este Issue al finalizar.',
               ].join('\n')
             });
 
@@ -411,6 +426,44 @@ PYEOF
             git push
           fi
 
+      - name: Write country config
+        if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
+        env:
+          CENTINEL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          pip install -q pyyaml 2>/dev/null || true
+          python3 .github/scripts/wizard_config.py
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add command_center/config.yaml
+          git diff --cached --quiet || git commit -m "config: set country=$CENTINEL_COUNTRY via setup wizard"
+
+      - name: Generate seeds and access.json
+        if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
+        id: seeds
+        env:
+          CENTINEL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 .github/scripts/wizard_seeds.py
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add web/access.json
+          git diff --cached --quiet || git commit -m "security: generate seeds hashes (PBKDF2-SHA256 x600K)"
+
+      - name: Upload seeds artifact (expires 24h — download immediately)
+        if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
+        uses: actions/upload-artifact@v4
+        with:
+          name: centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA
+          path: /tmp/centinel-seeds.txt
+          retention-days: 1
+
       - name: Finalize README and deploy panel
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
         env:
@@ -528,14 +581,21 @@ PYEOF
               owner, repo, labels: 'centinel-setup', state: 'open'
             });
             for (const issue of setupIssues.data) {
+              const runId = context.runId;
               await github.rest.issues.createComment({
                 owner, repo,
                 issue_number: issue.number,
                 body: [
                   '✅ **Setup completado.**',
                   '',
-                  `- Repositorio de datos: https://github.com/${owner}/centinel-data`,
-                  `- Panel: https://${owner}.github.io/${repo}/`,
+                  `**🔐 Seeds de acceso (artifact):**`,
+                  `→ [Descargar seeds — expira en 24h](https://github.com/${owner}/${repo}/actions/runs/${runId})`,
+                  `  Abre el link, baja hasta "Artifacts" y descarga \`centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA\`.`,
+                  `  Guárdalo offline. El sistema solo conserva los hashes — si lo pierdes, regenera desde el panel OPS.`,
+                  '',
+                  `**📊 Panel público:** https://${owner}.github.io/${repo}/`,
+                  `**🔧 Panel OPS:** https://${owner}.github.io/${repo}/ops/`,
+                  `**💾 Repositorio de datos:** https://github.com/${owner}/centinel-data`,
                   '',
                   'El panel se está desplegando ahora — estará disponible en unos minutos.',
                 ].join('\n')

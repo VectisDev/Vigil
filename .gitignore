@@ -44,6 +44,11 @@ node_modules/
 *.key
 secrets.yaml
 
+# Centinel runtime state (never commit)
+.centinel-setup.json
+keys/
+web/access.json
+
 # Config secrets / Secretos de configuracion
 config/secrets/*
 !config/secrets/.gitkeep
