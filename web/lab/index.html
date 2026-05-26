@@ -439,7 +439,6 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 /* Injection grid extras */
 .inj-dur-sel{background:var(--bg);border:1px solid var(--border);color:var(--txt);border-radius:4px;padding:2px 5px;font-size:10px;margin-left:4px}
-.breach-badge{display:none;font-size:9px;color:#dc2626;font-weight:700;margin-left:4px;letter-spacing:.03em}
 
 @media print{
   #breadcrumb,#sim-control-bar,.section-title,
@@ -2170,7 +2169,6 @@ function _updateSliderColor(input, detectAt, breachAt) {
   const mn = +input.min, mx = +input.max, v = +input.value;
   const norm = x => Math.max(0, Math.min(100, (x - mn) / (mx - mn) * 100));
   const pct = norm(v);
-  const badge = input.parentElement?.querySelector('.breach-badge');
   if (detectAt == null) {
     input.style.background = `linear-gradient(to right,var(--accent) 0%,var(--accent) ${pct}%,#333 ${pct}%,#333 100%)`;
     return;
@@ -2178,14 +2176,11 @@ function _updateSliderColor(input, detectAt, breachAt) {
   const dPct = norm(detectAt);
   const bPct = breachAt != null ? norm(breachAt) : null;
   if (bPct != null && v >= breachAt) {
-    input.style.background = `linear-gradient(to right,#555 0%,#555 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${bPct}%,#dc2626 ${bPct}%,#dc2626 ${pct}%,#333 ${pct}%,#333 100%)`;
-    if (badge) badge.style.display = 'inline';
+    input.style.background = `linear-gradient(to right,#444 0%,#444 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${bPct}%,#dc2626 ${bPct}%,#dc2626 ${pct}%,#333 ${pct}%,#333 100%)`;
   } else if (v >= detectAt) {
-    input.style.background = `linear-gradient(to right,#555 0%,#555 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${pct}%,#333 ${pct}%,#333 100%)`;
-    if (badge) badge.style.display = 'none';
+    input.style.background = `linear-gradient(to right,#444 0%,#444 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${pct}%,#333 ${pct}%,#333 100%)`;
   } else {
-    input.style.background = `linear-gradient(to right,#555 0%,#555 ${pct}%,#333 ${pct}%,#333 100%)`;
-    if (badge) badge.style.display = 'none';
+    input.style.background = `linear-gradient(to right,#444 0%,#444 ${pct}%,#333 ${pct}%,#333 100%)`;
   }
 }
 
@@ -2207,7 +2202,6 @@ function renderInjGrid(gridId,block){
           data-detect="${ev.param.detectAt??''}" data-breach="${ev.param.breachAt??''}"
           oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}';_updateSliderColor(this,${ev.param.detectAt??null},${ev.param.breachAt??null})">
         <span class="inj-param-val">${ev.param.def}${ev.param.unit||''}</span>
-        <span class="breach-badge">⚠ ZONA MORTAL</span>
       </div>`:'';
     const durHtml=`<div style="display:flex;align-items:center;gap:4px;margin-top:4px">
         <span style="font-size:9px;color:var(--txt-dim)">Duración:</span>
