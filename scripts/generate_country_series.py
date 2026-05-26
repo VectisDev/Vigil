@@ -1,12 +1,21 @@
-"""Genera web/data/hnd_2025_series.json desde tests/fixtures/hnd_2025/*.json."""
+"""Generate web/data/{country}_{year}_series.json from fixture snapshots.
+
+Defaults to Honduras 2025 (tests/fixtures/hnd_2025/) for backward compatibility.
+Override with environment variables: CENTINEL_COUNTRY and CENTINEL_YEAR.
+"""
 import json
+import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-FIXTURE_DIR = Path("tests/fixtures/hnd_2025")
-OUT = Path("web/data/hnd_2025_series.json")
-CALIB = Path("web/data/calibration_hnd_2025.json")
+_COUNTRY = os.environ.get("CENTINEL_COUNTRY", "HN").lower()
+_YEAR = os.environ.get("CENTINEL_YEAR", "2025")
+_SLUG = f"{_COUNTRY}_{_YEAR}"
+
+FIXTURE_DIR = Path(f"tests/fixtures/{_SLUG}")
+OUT = Path(f"web/data/{_SLUG}_series.json")
+CALIB = Path(f"web/data/calibration_{_SLUG}.json")
 
 ABBREV = {
     "PARTIDO LIBERAL DE HONDURAS": "PLH",
