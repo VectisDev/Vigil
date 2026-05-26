@@ -196,11 +196,16 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   color:var(--bad);border-radius:4px;padding:1px 5px;white-space:nowrap}
 .inj-real-label{font-size:9px;color:var(--muted);margin-top:3px;font-style:italic}
 
+/* ── INFO TIP ── */
+.info-tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  border-radius:50%;background:rgba(139,146,156,.12);color:var(--muted);font-size:9px;font-weight:700;
+  cursor:help;margin-left:7px;position:relative;vertical-align:middle;flex-shrink:0;user-select:none}
+
 /* ── DEPT STATUS GRID ── */
-.lab-dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:5px;margin-top:8px}
-.lab-dept-cell{border-radius:6px;padding:5px 3px;text-align:center;font-size:10px;font-weight:700;
-  cursor:default;transition:background .35s;color:#fff;position:relative;letter-spacing:.03em}
-.lab-dept-cell[title]{cursor:help}
+.lab-dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px;margin-top:10px}
+.lab-dept-cell{background:var(--border);border-radius:6px;padding:6px 4px;text-align:center;
+  font-size:10px;font-weight:600;cursor:help;transition:background .35s;color:#fff;position:relative}
+.lab-dept-cell:hover{opacity:.8}
 
 /* ── ACTIVE INJECTIONS ── */
 .inj-active-block{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:10px}
@@ -570,15 +575,11 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <div id="anom-marker-row" class="anom-marker-row" style="margin-top:12px;display:none"></div>
 
 <!-- ══ ENDPOINT STATUS MATRIX ═══════════════════════════════════════════════ -->
-<div class="section-title" style="margin-top:18px">Estado de Endpoints
-  <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:8px">
-    <span style="color:#57c08d">■</span> Normal
-    <span style="color:#d4b066;margin-left:6px">■</span> Anomalía
-    <span style="color:#df6b86;margin-left:6px">■</span> Cadena rota
-    <span style="color:#374151;margin-left:6px">■</span> Sin datos
-  </span>
-</div>
-<div class="card" style="padding:12px 14px;margin-bottom:14px">
+<div class="card" style="margin-top:14px;margin-bottom:14px">
+  <h2 style="margin:0 0 0 0;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--accent)">
+    Estado por Departamento
+    <span class="info-tip" title="Verde = íntegro, amarillo = anomalía estadística, rojo = cadena rota, oscuro = sin datos / offline. Se actualiza en cada tick de la simulación.">i</span>
+  </h2>
   <div class="lab-dept-grid" id="lab-dept-grid"></div>
 </div>
 
