@@ -6,17 +6,17 @@ on:
   workflow_dispatch:
     inputs:
       country:
-        description: 'País a auditar'
+        description: 'País a auditar / Country to audit'
         required: false
         type: choice
         default: 'HN'
         options:
-          - HN   # Honduras — TSE/CNE (implementado)
-          - GT   # Guatemala — TSE (próximamente)
-          - SV   # El Salvador — TSE (próximamente)
-          - VE   # Venezuela — CNE (próximamente)
-          - MX   # México — INE (próximamente)
-          - CO   # Colombia — CNE (próximamente)
+          - HN   # Honduras — CNE (production-ready, piloted 2025)
+          - GT   # Guatemala — TSE (configured)
+          - SV   # El Salvador — TSE (configured)
+          - NI   # Nicaragua — CSE (configured)
+          - MX   # México — INE (configured)
+          - CO   # Colombia — Registraduría (configured)
       election_url:
         description: 'URL de la autoridad electoral (ej: https://resultados2029.cne.hn/)'
         required: false

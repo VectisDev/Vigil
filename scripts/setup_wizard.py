@@ -247,15 +247,60 @@ def main() -> None:
     yaml_content = CONFIG_YAML.read_text(encoding="utf-8") if CONFIG_YAML.exists() else ""
     env = _load_env(ENV_FILE) if ENV_FILE.exists() else _load_env(ENV_EXAMPLE)
 
-    # ── PASO 1: Endpoints CNE ─────────────────────────────────────────────────
-    _header("PASO 1 / STEP 1: Endpoint principal del CNE")
-    print("  La URL base para el API de resultados electorales.")
-    print("  Base URL for the electoral results API.")
+    # ── PASO 0: País / Country ────────────────────────────────────────────────
+    _header("PASO 0 / STEP 0: País a auditar / Country to audit")
+    print("  Selecciona el país. El wizard cargará los endpoints y departamentos.")
+    print("  Select the country. The wizard will load the correct endpoints and divisions.")
     print()
 
-    # Extract current base_url from YAML
+    _COUNTRY_LABELS = {
+        "HN": "Honduras        (CNE — production-ready)",
+        "GT": "Guatemala       (TSE — configured)",
+        "SV": "El Salvador     (TSE — configured)",
+        "NI": "Nicaragua       (CSE — configured)",
+        "MX": "Mexico          (INE — configured)",
+        "CO": "Colombia        (Registraduría — configured)",
+    }
+    _DEFAULT_URLS = {
+        "HN": "https://resultadosgenerales2025.cne.hn",
+        "GT": "https://resultados.tse.org.gt",
+        "SV": "https://resultados.tse.gob.sv",
+        "NI": "https://resultados.cse.gob.ni",
+        "MX": "https://prep2024.ine.mx",
+        "CO": "https://resultados.registraduria.gov.co",
+    }
+    for code, label in _COUNTRY_LABELS.items():
+        marker = _c(GREEN, "◉") if code == env.get("CENTINEL_COUNTRY", "HN") else "○"
+        print(f"    {marker}  {code}  {label}")
+    print()
+
+    current_country = env.get("CENTINEL_COUNTRY", "HN")
+    new_country = _ask(
+        "Código de país / Country code (HN/GT/SV/NI/MX/CO)",
+        default=current_country,
+        required=True,
+    ).upper()
+    if new_country not in _COUNTRY_LABELS:
+        _note(f"País desconocido '{new_country}' — usando HN como fallback.")
+        new_country = "HN"
+    env["CENTINEL_COUNTRY"] = new_country
+    _ok(f"CENTINEL_COUNTRY={new_country}  ({_COUNTRY_LABELS[new_country].strip()})")
+
+    # Auto-set election year if not set
+    if not env.get("CENTINEL_YEAR"):
+        import datetime
+        env["CENTINEL_YEAR"] = str(datetime.date.today().year)
+        _note(f"CENTINEL_YEAR={env['CENTINEL_YEAR']} (auto-set)")
+
+    # ── PASO 1: Endpoints ─────────────────────────────────────────────────────
+    _header("PASO 1 / STEP 1: Endpoint de la autoridad electoral / Electoral authority endpoint")
+    print("  URL base del API de resultados. El wizard propone el default del país seleccionado.")
+    print("  Base URL for the results API. Defaults to the selected country's known endpoint.")
+    print()
+
+    # Extract current base_url from YAML, fall back to country default
     m = re.search(r'^base_url:\s*"?([^"\n#]+)"?', yaml_content, re.MULTILINE)
-    current_url = m.group(1).strip() if m else "https://resultadosgenerales2025.cne.hn"
+    current_url = m.group(1).strip() if m else _DEFAULT_URLS.get(new_country, "")
 
     new_url = _ask("URL base / Base URL", default=current_url, required=True)
     if new_url != current_url:
@@ -290,6 +335,15 @@ def main() -> None:
     current_interval = env.get("CENTINEL_POLL_INTERVAL", "120")
     new_interval = _ask("Intervalo en segundos / Interval in seconds", default=current_interval)
     if new_interval.isdigit():
+        interval_int = int(new_interval)
+        if interval_int < 60:
+            _note(
+                f"⚠  Intervalo {interval_int}s es muy agresivo — puede sobrecargar la fuente. "
+                "Mínimo recomendado: 60s."
+            )
+            if not _ask_yn("¿Continuar de todas formas?", default=False):
+                new_interval = "120"
+                _note("Usando 120s como valor seguro.")
         env["CENTINEL_POLL_INTERVAL"] = new_interval
         _ok(f"CENTINEL_POLL_INTERVAL={new_interval}s")
     else:
@@ -344,15 +398,25 @@ def main() -> None:
     else:
         _note("GitHub token omitido — la publicación de emergencia no estará disponible.")
 
-    # OTS
-    ots_raw = env.get("OTS_ENABLED", "false").lower()
+    # OTS — default ON (free, no registration, no API key needed)
+    ots_raw = env.get("OTS_ENABLED", "true").lower()
     ots_on = ots_raw in ("true", "1", "yes")
-    if _ask_yn("¿Activar anclaje Bitcoin/OpenTimestamps (prueba criptográfica de tiempo)?", default=ots_on):
+    print("  OpenTimestamps ancla cada snapshot al blockchain de Bitcoin — gratis, sin registro.")
+    print("  OpenTimestamps anchors each snapshot to the Bitcoin blockchain — free, no sign-up.")
+    print("  En una swarm, si un nodo ya tiene el .ots, los demás lo reutilizan.")
+    print()
+    if _ask_yn("¿Activar anclaje Bitcoin/OpenTimestamps?", default=True):
         env["OTS_ENABLED"] = "true"
-        _ok("OpenTimestamps activado")
+        ots_mode = _ask_choice(
+            "¿Red? / Network?",
+            choices=["mainnet", "testnet"],
+            default="mainnet",
+        )
+        env["OTS_NETWORK"] = ots_mode
+        _ok(f"OpenTimestamps activado — {ots_mode}")
     else:
         env["OTS_ENABLED"] = "false"
-        _note("OpenTimestamps desactivado.")
+        _note("OpenTimestamps desactivado — los snapshots no tendrán anclaje temporal externo.")
 
     # ── PASO 7: Seed 1 (admin passwords) ─────────────────────────────────────
     _header("PASO 7 / STEP 7: Accesos de administrador (Seed 1)")
