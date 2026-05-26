@@ -71,6 +71,8 @@ def main() -> None:
         # from rate_limiter.yaml
         "max_requests_per_hour": cfg_rl.get("max_requests_per_hour", 240),
         "burst": cfg_rl.get("capacity", cfg_rl.get("burst", 5)),
+        # derived: HN has 19 endpoints (nacional + 18 departments)
+        "endpoint_count": len(cfg_main.get("sources", [])) or 19,
     }
 
     THRESHOLDS: dict[str, dict] = {
