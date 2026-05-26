@@ -498,7 +498,32 @@ def _update_env_file(path: Path, updates: dict[str, str]) -> None:
     for key, value in remaining.items():
         updated_lines.append(f"{key}={value}")
 
-    path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
+    content = "\n".join(updated_lines) + "\n"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    tmp_path.write_text(content, encoding="utf-8")
+    os.chmod(tmp_path, 0o600)
+    os.replace(tmp_path, path)
+    os.chmod(path, 0o600)
+
+
+def _build_env_secrets_fernet() -> Fernet:
+    """Build Fernet instance for encrypting sensitive values persisted to .env."""
+
+    master_key = os.getenv("CENTINEL_MASTER_KEY")
+    if not master_key:
+        raise RuntimeError("CENTINEL_MASTER_KEY no está configurada; no se pueden cifrar secretos de .env.")
+    try:
+        return Fernet(master_key.encode("utf-8"))
+    except Exception as exc:  # pragma: no cover - defensive
+        raise RuntimeError("CENTINEL_MASTER_KEY inválida; debe ser una clave Fernet válida.") from exc
+
+
+def _encrypt_env_secret(value: str) -> str:
+    """Encrypt a secret value before persisting it in .env."""
+
+    token = _build_env_secrets_fernet().encrypt(value.encode("utf-8")).decode("utf-8")
+    return f"ENC({token})"
 
 
 def command_rotate_keys(runtime: RuntimeConfig, logger: logging.Logger) -> None:
@@ -519,8 +544,8 @@ def command_rotate_keys(runtime: RuntimeConfig, logger: logging.Logger) -> None:
     _update_env_file(
         env_path,
         {
-            "CENTINEL_CHECKPOINT_SECRET": new_secret,
-            "CENTINEL_CHECKPOINT_SALT": new_salt,
+            "CENTINEL_CHECKPOINT_SECRET": _encrypt_env_secret(new_secret),
+            "CENTINEL_CHECKPOINT_SALT": _encrypt_env_secret(new_salt),
         },
     )
 
