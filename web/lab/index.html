@@ -6,11 +6,13 @@
 <title>CENTINEL — Sandbox Forense Académico</title>
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 :root{
   --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
   --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;
   --warn:#d4b066;--purple:#b08cf0;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --txt:#e7e9ec;--txt-dim:#8b929c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-size:14px;min-height:100vh}
@@ -304,6 +306,126 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   .grid4{grid-template-columns:1fr}
   #sim-control-bar{gap:8px}
 }
+/* ── ACADEMIC TOOLS ── */
+.acad-session-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.acad-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.acad-val{font-size:20px;font-weight:800;color:var(--accent);font-family:var(--mono);margin-bottom:4px;letter-spacing:.04em}
+.acad-hint{font-size:11px;color:var(--muted);line-height:1.55;max-width:520px;margin-top:2px}
+.acad-prereq-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.acad-muted{font-size:11px;color:var(--muted)}
+.acad-pill{background:rgba(110,168,254,.08)!important;border-color:rgba(110,168,254,.35)!important;color:var(--accent)!important}
+.acad-pill:hover{background:rgba(110,168,254,.18)!important;border-color:var(--accent)!important}
+
+/* ── CITATION MODAL ── */
+#cite-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px}
+#cite-overlay.open{display:flex}
+#cite-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;padding:28px}
+#cite-card::-webkit-scrollbar{width:4px}
+#cite-card::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.cite-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cite-hdr h3{font-size:16px;font-weight:700;color:var(--fg);margin:0}
+.cite-hdr button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:2px 6px;border-radius:4px}
+.cite-hdr button:hover{color:var(--fg)}
+.cite-session-meta{font-size:11px;color:var(--muted);line-height:1.8;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px}
+.cite-format-tab{display:flex;gap:8px;margin-bottom:16px}
+.cite-tab-btn{background:var(--bg);border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.cite-tab-btn.on{border-color:var(--purple);color:var(--purple);background:rgba(176,140,240,.1)}
+.cite-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 14px 12px;margin-bottom:10px;position:relative}
+.cite-block-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.cite-text{font-family:var(--mono);font-size:11.5px;color:var(--fg);line-height:1.75;white-space:pre-wrap;word-break:break-word;padding-right:70px}
+.cite-copy-btn{position:absolute;top:10px;right:10px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer;transition:.15s}
+.cite-copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cite-copy-btn.copied{border-color:var(--ok);color:var(--ok)}
+.cite-section-title{font-size:10px;font-weight:700;color:var(--purple);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.cite-dl-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ── METHODOLOGY DRAWER ── */
+#meth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2500;display:none}
+#meth-overlay.open{display:block}
+#meth-drawer{position:fixed;top:0;right:-490px;width:460px;height:100vh;background:var(--panel);border-left:1px solid var(--border);z-index:2501;overflow-y:auto;padding:28px;transition:right .28s cubic-bezier(.4,0,.2,1)}
+#meth-drawer.open{right:0}
+#meth-drawer::-webkit-scrollbar{width:4px}
+#meth-drawer::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.meth-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.meth-hdr h3{font-size:15px;font-weight:700;margin:0}
+.meth-hdr button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:2px 6px;border-radius:4px}
+.meth-hdr button:hover{color:var(--fg)}
+.meth-section{margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid var(--border)}
+.meth-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.meth-section-title{font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.meth-p{font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 8px}
+.meth-code{display:block;font-family:var(--mono);font-size:11px;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 10px;margin:8px 0}
+.meth-list{font-size:12px;color:var(--muted);line-height:1.7;padding-left:16px;margin:0}
+.meth-theorem{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:7px}
+.meth-theorem-id{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.meth-theorem-text{font-size:11px;color:var(--muted);line-height:1.55}
+.meth-link{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(36,39,46,.4);text-decoration:none;color:var(--fg);transition:.15s}
+.meth-link:last-child{border-bottom:none}
+.meth-link:hover .meth-link-title{color:var(--accent)}
+.meth-link-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.meth-link-title{font-size:12px;font-weight:600;margin-bottom:2px}
+.meth-link-desc{font-size:10px;color:var(--muted);line-height:1.5}
+.meth-contact{margin-top:14px;padding:12px;background:rgba(110,168,254,.06);border:1px solid rgba(110,168,254,.2);border-radius:8px}
+.meth-contact-title{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px}
+.meth-contact-body{font-size:11px;color:var(--muted);line-height:1.6}
+code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--fg);font-family:var(--mono);font-size:10.5px}
+
+/* ===== BUILDER OVERLAY ===== */
+#builder-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:4000;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+#builder-overlay.open{display:flex}
+#builder-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:100%;max-width:960px;overflow:hidden}
+.bld-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.bld-hdr h2{margin:0;font-size:16px;color:var(--txt)}
+.bld-close{background:none;border:none;color:var(--txt-dim);font-size:20px;cursor:pointer;padding:4px 8px}
+.bld-tabs{display:flex;border-bottom:1px solid var(--border)}
+.bld-tab{flex:1;padding:10px;background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:13px;border-bottom:2px solid transparent}
+.bld-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.bld-step{display:none;padding:20px}
+.bld-step.active{display:block}
+.bld-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin-bottom:14px}
+.bld-form-row.full{grid-template-columns:1fr}
+.bld-field{display:flex;flex-direction:column;gap:4px}
+.bld-field label{font-size:11px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:.04em}
+.bld-field input[type=text],.bld-field input[type=date],.bld-field select{background:var(--bg);border:1px solid var(--border);color:var(--txt);border-radius:6px;padding:6px 8px;font-size:13px}
+.bld-radio-row{display:flex;flex-wrap:wrap;gap:6px}
+.bld-radio-row label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--txt);cursor:pointer}
+.bld-snap-info{font-size:11px;color:var(--accent);margin-top:4px}
+.bld-scrut-val{font-size:12px;color:var(--txt);margin-left:8px}
+.bld-event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:10px}
+.bld-ev-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:4px}
+.bld-ev-card .ev-code{font-size:10px;color:var(--txt-dim);font-family:monospace}
+.bld-ev-card .ev-lbl{font-size:11px;color:var(--txt);line-height:1.3}
+.bld-ev-btn{margin-top:auto;background:var(--accent);border:none;color:#000;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer}
+.bld-inj-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.bld-inj-table th{text-align:left;padding:4px 8px;color:var(--txt-dim);border-bottom:1px solid var(--border);font-weight:500}
+.bld-inj-table td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.bld-inj-table td select,.bld-inj-table td input{background:var(--bg);border:1px solid var(--border);color:var(--txt);border-radius:4px;padding:2px 4px;font-size:11px}
+.bld-rmv{background:none;border:none;color:#dc2626;cursor:pointer;font-size:14px;padding:2px 6px}
+.bld-timeline{height:32px;background:var(--bg);border:1px solid var(--border);border-radius:6px;position:relative;overflow:hidden;margin-top:10px}
+.bld-tl-mark{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;opacity:.8}
+.bld-tl-dur{position:absolute;top:0;bottom:0;opacity:.25}
+.bld-actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;border-top:1px solid var(--border)}
+.bld-btn{padding:8px 18px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600}
+.bld-btn.primary{background:var(--accent);color:#000}
+.bld-btn.secondary{background:var(--border);color:var(--txt)}
+.bld-summary{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;color:var(--txt-dim);margin-bottom:12px}
+.bld-summary strong{color:var(--txt)}
+
+/* Save session name modal */
+#save-session-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:5000;display:none;align-items:center;justify-content:center}
+#save-session-overlay.open{display:flex}
+#save-session-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;width:340px;display:flex;flex-direction:column;gap:12px}
+#save-session-card h3{margin:0;font-size:14px;color:var(--txt)}
+#save-session-card input{background:var(--bg);border:1px solid var(--border);color:var(--txt);border-radius:6px;padding:8px;font-size:13px}
+#save-session-card .ss-actions{display:flex;gap:8px;justify-content:flex-end}
+#save-session-card .ss-actions button{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px}
+.ss-ok{background:var(--accent);color:#000;font-weight:600}
+.ss-cancel{background:var(--border);color:var(--txt)}
+
+/* Injection grid extras */
+.inj-dur-sel{background:var(--bg);border:1px solid var(--border);color:var(--txt);border-radius:4px;padding:2px 5px;font-size:10px;margin-left:4px}
+.breach-badge{display:none;font-size:9px;color:#dc2626;font-weight:700;margin-left:4px;letter-spacing:.03em}
+
 @media print{
   #breadcrumb,#sim-control-bar,.section-title,
   #thresh-section,#inj-section,#telem-section,
@@ -334,6 +456,9 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   <div id="dl-btn">
     <button class="dl-pill" onclick="downloadFullPNG()">↓ PNG</button>
     <button class="dl-pill" onclick="downloadPDF()">↓ PDF</button>
+    <button class="dl-pill acad-pill" onclick="openCitationModal()" title="Citar en APA / BibTeX / ISO">📚 Citar</button>
+    <button class="dl-pill acad-pill" onclick="downloadReproZip()" title="Descargar paquete reproducible ZIP">⬇ ZIP</button>
+    <button class="dl-pill acad-pill" onclick="openMethodologySidebar()" title="Metodología y referencias">📖</button>
     <button class="dl-pill" onclick="openSettings()" title="Configuración" style="font-size:14px;padding:3px 9px">⚙</button>
   </div>
 </div>
@@ -342,6 +467,7 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 <div id="sim-control-bar">
   <span class="dataset-label">Dataset</span>
   <select class="dataset-select" id="dataset-select" onchange="loadDataset(this.value)">
+    <optgroup label="Mis datasets" id="custom-datasets-group" style="display:none"></optgroup>
     <optgroup label="Datos reales">
       <option value="../data/hnd_2025_series.json">HN 2025 · 30 nov 2025 · 64 snaps</option>
     </optgroup>
@@ -354,6 +480,14 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
       <option value="../data/sim_mes_adversarial_anomala_5min.json">Calibrada — con anomalías [GT]</option>
     </optgroup>
   </select>
+
+  <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
+  <button class="dl-pill" onclick="openBuilder()" title="Construir dataset personalizado">🔧 Construir</button>
+  <button class="dl-pill" onclick="saveLabSession()" title="Guardar configuración completa de esta sesión">💾 Sesión</button>
+  <label class="dl-pill" style="cursor:pointer;margin:0" title="Cargar sesión guardada">
+    📂 Cargar
+    <input type="file" accept=".json" style="display:none" onchange="loadLabSession(this)">
+  </label>
 
   <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
 
@@ -532,6 +666,59 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   </div>
 </div>
 
+<!-- ══ SECTION 6 — HERRAMIENTAS ACADÉMICAS ════════════════════════════════════ -->
+<div class="section-title" id="acad-section">
+  Herramientas Académicas
+  <button class="section-dl" onclick="downloadCSV()">↓ CSV estadísticas</button>
+  <button class="section-dl" onclick="downloadBib()">↓ .bib</button>
+  <button class="section-dl" onclick="openMethodologySidebar()">📖 Metodología</button>
+</div>
+
+<div class="card">
+  <div class="acad-session-row">
+    <div style="flex:1;min-width:260px">
+      <div class="acad-label">ID de Sesión</div>
+      <div class="acad-val" id="acad-session-id">—</div>
+      <div class="acad-hint">
+        SHA-256 de dataset · snapshot · umbrales · hipótesis · tiempo.<br>
+        Estable, reproducible y citable en apéndices de tesis o <em>supplementary material</em>.
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="openCitationModal()">📚 Cita APA / BibTeX / ISO 690</button>
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadCSV()">⬇ CSV — estadísticas y alertas</button>
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadReproZip()">⬇ ZIP — paquete reproducible</button>
+      <button class="dl-pill" style="width:220px;text-align:center" onclick="openMethodologySidebar()">📖 Referencias y metodología</button>
+    </div>
+  </div>
+  <div id="acad-prereq-row" class="acad-prereq-row" style="display:none">
+    <span class="badge b-ok">✓ Hipótesis pre-registrada</span>
+    <span class="acad-muted" id="acad-prereq-ts"></span>
+  </div>
+  <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="acad-label">Dataset activo</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-dataset-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Snapshot</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-snap-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Alertas totales</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-alerts-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Alertas CRITICAL</div>
+      <div style="font-size:12px;color:var(--bad);margin-top:2px" id="acad-crit-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Umbrales activos</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-thresh-label">—</div>
+    </div>
+  </div>
+</div>
+
 <div style="height:60px"></div>
 </div><!-- /page -->
 
@@ -617,7 +804,7 @@ const EVENTS = {
   A1:{block:'A',label:'Desconexión de Endpoints',
     desc:'Apaga selectivamente endpoints de datos; detiene el incremento de actas.',
     breakpoint:'Sin datos nuevos → blackout activado',
-    param:{label:'Endpoints',min:1,max:19,def:5,unit:''},
+    param:{label:'Endpoints',min:1,max:19,def:5,unit:'',detectAt:6,breachAt:13},
     apply(s,p){s.blackout=true;s._ep_disc=p;
       logE('WARN',`Inyección A1: ${p} endpoints desconectados — blackout activado`);
       logA('ALERT','10.0.0.1','Endpoint kill','Mitigated · Rerouted');}
@@ -625,7 +812,7 @@ const EVENTS = {
   A2:{block:'A',label:'Rollback de Datos',
     desc:'Revierte actas_divulgadas y votos a un estado anterior (timestamp no monótono).',
     breakpoint:'Snapshot_jump negativo → Benford gap → alerta de reversión',
-    param:{label:'Snapshots atrás',min:1,max:20,def:5,unit:''},
+    param:{label:'Snapshots atrás',min:1,max:20,def:5,unit:'',detectAt:7,breachAt:13},
     apply(s,p,idx){
       const t=Math.max(0,idx-p); const old=SIM.snapshots[t];
       s.actas_divulgadas=old.actas_divulgadas; s.validos=old.validos;
@@ -644,7 +831,7 @@ const EVENTS = {
   A4:{block:'A',label:'Hold-and-Release Masivo',
     desc:'Congela el flujo de actas y luego las libera todas de golpe (burst masivo).',
     breakpoint:'Spike de velocidad → processing_speed alerta → snapshot_jump crítico',
-    param:{label:'Actas retenidas',min:200,max:5000,def:1200,unit:''},
+    param:{label:'Actas retenidas',min:200,max:5000,def:1200,unit:'',detectAt:1400,breachAt:3000},
     apply(s,p,idx){
       if(!this._hc)this._hc=0; this._hc++;
       if(this._hc<5){s.actas_divulgadas=SIM.snapshots[Math.max(0,idx-1)].actas_divulgadas;
@@ -657,7 +844,7 @@ const EVENTS = {
   A5:{block:'A',label:'Apagón Geográfico',
     desc:'Todas las actas de un departamento dejan de llegar simultáneamente.',
     breakpoint:'CV geográfico spike → dispersión crítica',
-    param:{label:'Intensidad',min:1,max:5,def:1,unit:'×'},
+    param:{label:'Intensidad',min:1,max:5,def:1,unit:'×',detectAt:2,breachAt:4},
     apply(s,p){s._geo_blackout=true;s._geo_factor=p;
       pushAlert('HIGH','GeoBlackout','Francisco Morazán: sin datos');
       logE('CRITICAL','Apagón geográfico: Francisco Morazán sin actas');}
@@ -665,7 +852,7 @@ const EVENTS = {
   A6:{block:'A',label:'Desincronización de Timestamps',
     desc:'Timestamps consecutivos no monótonos o con salto al futuro.',
     breakpoint:'Trend analysis colapsado → timeline inconsistente',
-    param:{label:'Drift (min)',min:5,max:180,def:45,unit:''},
+    param:{label:'Drift (min)',min:5,max:180,def:45,unit:'',detectAt:55,breachAt:115},
     apply(s,p){const d=new Date(s.ts);d.setMinutes(d.getMinutes()+p);s.ts=d.toISOString();
       s._ts_drift=p;
       logE('WARN',`Desincronización: timestamp +${p}min — monotonía rota`);}
@@ -673,7 +860,7 @@ const EVENTS = {
   A7:{block:'A',label:'Duplicación de Actas',
     desc:'Mismo lote de actas repetido con votos distintos (detección de duplicados).',
     breakpoint:'Votos inflados → Benford violation → mesa_reconciliation alerta',
-    param:{label:'Actas duplicadas',min:10,max:500,def:80,unit:''},
+    param:{label:'Actas duplicadas',min:10,max:500,def:80,unit:'',detectAt:155,breachAt:310},
     apply(s,p){const bonus=p*150;s.validos+=bonus;
       s.partidos.forEach(pt=>{pt.votos+=Math.round(bonus*(pt.pct/100));});
       s._duplication=p;
@@ -683,7 +870,7 @@ const EVENTS = {
   A8:{block:'A',label:'Datos Parciales / Truncados',
     desc:'Payloads JSON con campos críticos nulos o ausentes.',
     breakpoint:'basic_diff alerta → table_consistency violation',
-    param:{label:'Probabilidad %',min:10,max:80,def:30,unit:'%'},
+    param:{label:'Probabilidad %',min:10,max:80,def:30,unit:'%',detectAt:32,breachAt:52},
     apply(s,p){const pr=p/100;
       if(Math.random()<pr)s.validos=null;
       if(Math.random()<pr)s.nulos=null;
@@ -694,7 +881,7 @@ const EVENTS = {
   A9:{block:'A',label:'Throttling Artificial del CNE',
     desc:'Solo 1 actualización de actas cada N ticks (cadencia artificialmente reducida).',
     breakpoint:'Participation anomaly → latency detectada',
-    param:{label:'Ticks entre updates',min:2,max:8,def:3,unit:''},
+    param:{label:'Ticks entre updates',min:2,max:8,def:3,unit:'',detectAt:4,breachAt:6},
     apply(s,p,idx){if(idx%p!==0){s.actas_divulgadas=SIM.snapshots[Math.max(0,idx-1)].actas_divulgadas;
       s._throttled=true;} logE('WARN',`Throttling: actualización cada ${p} ticks`);}
   },
@@ -703,7 +890,7 @@ const EVENTS = {
   B1:{block:'B',label:'DDoS Sostenido',
     desc:'Simula carga masiva de solicitudes. Evalúa rate limiting y arquitectura Static-First.',
     breakpoint:'> 100k req/s → Rate limiter exhausto → logs muestran "503 flooding"',
-    param:{label:'Intensidad (req/s)',min:100,max:200000,def:5000,unit:''},
+    param:{label:'Intensidad (req/s)',min:100,max:200000,def:5000,unit:'',detectAt:60000,breachAt:130000},
     apply(s,p){s._ddos=p;
       for(let i=0;i<Math.min(4,1+Math.floor(p/10000));i++){
         logA('CRITICAL',`${rndIP()}`,'DDoS HTTP flood',
@@ -714,7 +901,7 @@ const EVENTS = {
   B2:{block:'B',label:'Activación de Honeypots',
     desc:'Peticiones a rutas trampa (/admin, /debug, /.git). Evalúa detección perimetral.',
     breakpoint:'Sin escalada → "Honeypot muted" (falso negativo)',
-    param:{label:'Intentos por tick',min:1,max:50,def:5,unit:''},
+    param:{label:'Intentos por tick',min:1,max:50,def:5,unit:'',detectAt:16,breachAt:32},
     apply(s,p){const routes=['/admin','/debug','/.git','/.env','/api/internal','/metrics'];
       for(let i=0;i<Math.min(p,6);i++){
         logA('WARN',rndIP(),`Honeypot trigger → ${routes[i%routes.length]}`,
@@ -724,7 +911,7 @@ const EVENTS = {
   B3:{block:'B',label:'Tampering / Alteración en Tránsito',
     desc:'Inyecta votos alterados y hash SHA-256 incorrecto. Evalúa integridad de cadena.',
     breakpoint:'100% alteración → integridad 0% → cadena "ROTA"',
-    param:{label:'% actas alteradas',min:1,max:100,def:10,unit:'%'},
+    param:{label:'% actas alteradas',min:1,max:100,def:10,unit:'%',detectAt:30,breachAt:65},
     apply(s,p){const f=p/100;
       if(s.partidos&&s.partidos.length>=2){const d=Math.round(s.partidos[1].votos*f*0.1);
         s.partidos[0].votos+=d;s.partidos[1].votos-=d;}
@@ -746,7 +933,7 @@ const EVENTS = {
   B5:{block:'B',label:'Contaminación de Espejo CDN',
     desc:'Uno o más espejos sirven datos modificados. Evalúa consenso multi-espejo.',
     breakpoint:'≥50% contaminados → consenso imposible → modo offline',
-    param:{label:'Espejos comprometidos',min:1,max:5,def:1,unit:' de 5'},
+    param:{label:'Espejos comprometidos',min:1,max:5,def:1,unit:' de 5',detectAt:2,breachAt:4},
     apply(s,p){s._cdn_mirrors_poisoned=p;
       if(p>=3)pushAlert('CRITICAL','CDNPoison',`${p}/5 espejos contaminados — consenso imposible`);
       logE(p>=3?'CRITICAL':'WARN',`CDN: ${p}/5 espejos contaminados — ${p>=3?'CONSENSO IMPOSIBLE':'divergencia detectada'}`);
@@ -756,7 +943,7 @@ const EVENTS = {
   B6:{block:'B',label:'Envenenamiento de Caché',
     desc:'TTL falso: datos obsoletos servidos durante N ticks. Evalúa frescura de datos.',
     breakpoint:'TTL > 60min → divergencia >25% del origen real → alerta de consistencia',
-    param:{label:'TTL falso (min)',min:5,max:240,def:30,unit:'min'},
+    param:{label:'TTL falso (min)',min:5,max:240,def:30,unit:'min',detectAt:75,breachAt:155},
     apply(s,p){s._cache_stale=p;
       if(p>60)pushAlert('HIGH','CachePoison',`Caché venenoso: TTL=${p}min → datos obsoletos`);
       logE(p>60?'CRITICAL':'WARN',`Caché: TTL=${p}min — ${p>60?'divergencia crítica':'monitoreo activo'}`);
@@ -765,7 +952,7 @@ const EVENTS = {
   B7:{block:'B',label:'Ataque de Sincronización Temporal',
     desc:'Manipula timestamps para crear falsa estabilidad en el análisis de tendencias.',
     breakpoint:'Todos timestamps iguales → trend analysis colapsado',
-    param:{label:'Distorsión (min)',min:1,max:120,def:15,unit:'min'},
+    param:{label:'Distorsión (min)',min:1,max:120,def:15,unit:'min',detectAt:38,breachAt:77},
     apply(s,p){if(SIM.idx<SIM.snapshots.length-1){
       s.ts=SIM.snapshots[Math.min(SIM.idx+1,SIM.snapshots.length-1)].ts;}
       s._time_distorted=p;
@@ -792,7 +979,7 @@ const EVENTS = {
   B10:{block:'B',label:'Tampering del Binario (Auto-audit)',
     desc:'Simula hash de binario diferente al baseline. Evalúa auto-auditoría de integridad.',
     breakpoint:'Auto-audit falla → todos los semáforos rojos → modo cuarentena',
-    param:{label:'Módulos comprometidos',min:1,max:5,def:2,unit:''},
+    param:{label:'Módulos comprometidos',min:1,max:5,def:2,unit:'',detectAt:2,breachAt:4},
     apply(s,p){s._binary_tampered=p;
       pushAlert('CRITICAL','BinaryTamper',`Auto-audit: ${p} módulos con hash diferente al baseline`);
       logE('CRITICAL',`Binary integrity: ${p} módulos comprometidos → AUTO-AUDIT FALLA → cuarentena`);
@@ -801,7 +988,7 @@ const EVENTS = {
   B11:{block:'B',label:'Bypass de Zero-Trust Middleware',
     desc:'Peticiones con cabeceras forjadas (X-Forwarded-For, Origin falso). Evalúa middleware.',
     breakpoint:'Middleware no filtra → "ZT bypass" en log → datos no autorizados',
-    param:{label:'Cabeceras forjadas',min:1,max:10,def:3,unit:''},
+    param:{label:'Cabeceras forjadas',min:1,max:10,def:3,unit:'',detectAt:3,breachAt:7},
     apply(s,p){s._zt_bypass_attempt=p;
       for(let i=0;i<Math.min(p,5);i++){
         logA(p>=5?'CRITICAL':'WARN',rndIP(),
@@ -812,7 +999,7 @@ const EVENTS = {
   B12:{block:'B',label:'Colapso Cascada de Espejos',
     desc:'Contamina espejos 1→2→3 en ticks consecutivos hasta consenso imposible.',
     breakpoint:'3er espejo contaminado → sistema entra en modo solo-local',
-    param:{label:'Velocidad cascada (ticks)',min:1,max:10,def:3,unit:''},
+    param:{label:'Velocidad cascada (ticks)',min:1,max:10,def:3,unit:'',detectAt:3,breachAt:7},
     apply(s,p){if(!this._cascade)this._cascade=0;this._cascade++;
       s._cdn_mirrors_poisoned=Math.min(this._cascade,5);
       const msg=this._cascade>=3?'⚠ MODO SOLO-LOCAL ACTIVADO':'Escalando...';
@@ -834,7 +1021,7 @@ const EVENTS = {
   C1:{block:'C',label:'Inyección Progresiva de Ventaja',
     desc:'Un candidato gana votos adicionales por snapshot de forma sistemática.',
     breakpoint:'Asymmetric benefit detector → CRITICAL tras N snapshots',
-    param:{label:'Votos extra / snap',min:50,max:3000,def:400,unit:''},
+    param:{label:'Votos extra / snap',min:50,max:3000,def:400,unit:'',detectAt:950,breachAt:1900},
     apply(s,p){const acc=activeInjections.filter(i=>i.id==='C1').length*p;
       if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=acc;s.validos+=acc;}
       logE('CRITICAL',`Inyección progresiva: partido[0] acumula +${acc.toLocaleString()} votos`);}
@@ -842,7 +1029,7 @@ const EVENTS = {
   C2:{block:'C',label:'Votos Redondeados (Ballot Stuffing)',
     desc:'Totales redondeados al múltiplo de N → viola Benford y uniformidad de último dígito.',
     breakpoint:'Benford MAD spike → último dígito chi² → CRITICAL',
-    param:{label:'Redondeo a múltiplo de',min:100,max:1000,def:500,unit:''},
+    param:{label:'Redondeo a múltiplo de',min:100,max:1000,def:500,unit:'',detectAt:325,breachAt:625},
     apply(s,p){if(s.partidos)s.partidos.forEach(pt=>{pt.votos=Math.round(pt.votos/p)*p;});
       s._benford_biased=true;
       logE('WARN',`Votos redondeados a ×${p} — violación Benford y último dígito inminente`);}
@@ -850,7 +1037,7 @@ const EVENTS = {
   C3:{block:'C',label:'Abstención Anormal por Zona',
     desc:'Un departamento salta a participación imposible en un tick.',
     breakpoint:'Participation_anomaly_advanced z-score > 3σ → CRITICAL',
-    param:{label:'Participación forzada %',min:50,max:100,def:97,unit:'%'},
+    param:{label:'Participación forzada %',min:50,max:100,def:97,unit:'%',detectAt:65,breachAt:80},
     apply(s,p){const implied=Math.round(s.actas_totales*p/100);
       s.actas_divulgadas=Math.max(s.actas_divulgadas,implied);
       s._forced_part=p;
@@ -860,7 +1047,7 @@ const EVENTS = {
   C4:{block:'C',label:'Concentración Extrema de Votos',
     desc:'Un candidato obtiene >90% de todas las actas nuevas de una zona.',
     breakpoint:'Z-score departamental extremo → geographic_dispersion CRITICAL',
-    param:{label:'Mesas afectadas',min:10,max:300,def:80,unit:''},
+    param:{label:'Mesas afectadas',min:10,max:300,def:80,unit:'',detectAt:100,breachAt:195},
     apply(s,p){const tv=p*150,p0=Math.round(tv*0.93);
       if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=p0;s.validos+=tv;}
       s._concentration=p;
@@ -870,7 +1057,7 @@ const EVENTS = {
   C5:{block:'C',label:'Campaña de Votos Nulos',
     desc:'Spike sistemático de nulos en zonas de oposición.',
     breakpoint:'null_blank_votes: critical_pct superado → CRITICAL',
-    param:{label:'Factor multiplicador',min:1.5,max:10,def:3.5,unit:'×'},
+    param:{label:'Factor multiplicador',min:1.5,max:10,def:3.5,unit:'×',detectAt:4,breachAt:7},
     apply(s,p){s.nulos=Math.round((s.nulos||0)*p);
       pushAlert('HIGH','NullCampaign',`Votos nulos ×${p} — campaña de nulización detectada`);
       logE('WARN',`Campaña de nulos: ×${p} — umbral null_blank_critical superado`);}
@@ -878,7 +1065,7 @@ const EVENTS = {
   C6:{block:'C',label:'Aceleración Nocturna (2–4 AM)',
     desc:'40% de las actas pendientes llegan en un solo tick de madrugada.',
     breakpoint:'processing_speed: max_actas_per_15min superado → CRITICAL',
-    param:{label:'Actas madrugada',min:200,max:3000,def:900,unit:''},
+    param:{label:'Actas madrugada',min:200,max:3000,def:900,unit:'',detectAt:900,breachAt:1800},
     apply(s,p){s.actas_divulgadas=Math.min(s.actas_divulgadas+p,s.actas_totales);
       s.validos+=(p*165);s._nocturnal=true;
       pushAlert('CRITICAL','NocturnalAccel',`+${p} actas a las 2–4 AM → velocidad 8× la normal`);
@@ -910,7 +1097,7 @@ const EVENTS = {
   C9:{block:'C',label:'Arrastre Coordinado de Partido',
     desc:'Exactamente +N% para un partido en todos los departamentos simultáneamente.',
     breakpoint:'geographic_dispersion: demasiado uniforme → runs_test → CRITICAL',
-    param:{label:'Votos coordinados / snap',min:100,max:2000,def:500,unit:''},
+    param:{label:'Votos coordinados / snap',min:100,max:2000,def:500,unit:'',detectAt:600,breachAt:1250},
     apply(s,p){if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=p;s.validos+=p;}
       s._coordinated=true;
       logE('WARN',`Arrastre coordinado: +${p} votos uniformes para partido[0] en todos los dptos`);}
@@ -918,7 +1105,7 @@ const EVENTS = {
   C10:{block:'C',label:'Mesa Fantasma / Conteo Imposible',
     desc:'actas_divulgadas supera actas_totales — mesas que no existen.',
     breakpoint:'turnout_impossible rule → CRITICAL inmediato',
-    param:{label:'Actas fantasma',min:10,max:1000,def:300,unit:''},
+    param:{label:'Actas fantasma',min:10,max:1000,def:300,unit:'',detectAt:320,breachAt:640},
     apply(s,p){s.actas_divulgadas=(s.actas_totales||19167)+p;
       pushAlert('CRITICAL','GhostMesas',`Conteo imposible: ${s.actas_divulgadas} > ${s.actas_totales} actas`);
       logE('CRITICAL',`Mesa fantasma: actas_divulgadas=${s.actas_divulgadas} > totales=${s.actas_totales} → CRITICAL`);}
@@ -990,8 +1177,27 @@ function renderAlerts(){
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA LOADING
 // ═══════════════════════════════════════════════════════════════════════════
-async function loadDataset(url){
+async function loadDataset(url, rawData=null){
   simStop();
+  if (rawData !== null || (typeof url === 'string' && url.startsWith('__custom__'))) {
+    const data = rawData !== null ? rawData : _CUSTOM_DATASETS[url];
+    if (!data) { logE('CRITICAL','Dataset no encontrado: '+url); return; }
+    SERIES = data;
+    SIM.snapshots=deepClone(SERIES.snapshots);
+    document.getElementById('sim-scrubber').max=String(SIM.snapshots.length-1);
+    const markerRow=document.getElementById('anom-marker-row');
+    if(SERIES.meta?.anomalias_embebidas?.length){
+      markerRow.style.display='flex';
+      markerRow.innerHTML='<span style="font-size:10px;color:var(--muted);margin-right:4px">Anomalías embebidas:</span>'+
+        SERIES.meta.anomalias_embebidas.map(a=>
+          `<span class="anom-marker" title="${a.descripcion}">idx=${a.snapshot_idx} · ${a.tipo.replace(/_/g,' ')}</span>`
+        ).join('');
+    }else{markerRow.style.display='none';}
+    renderSimFrame(0);
+    logE('OK',`Dataset listo: ${SIM.snapshots.length} snapshots cargados`);
+    _updateAcadPanel();
+    return;
+  }
   logE('INFO','Cargando dataset: '+url);
   try{
     const r=await fetch(url);
@@ -1010,6 +1216,7 @@ async function loadDataset(url){
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
     logE('OK',`Dataset listo: ${SIM.snapshots.length} snapshots cargados`);
+    _updateAcadPanel();
   }catch(e){logE('CRITICAL','Error cargando dataset: '+e.message);}
 }
 
@@ -1050,6 +1257,7 @@ function simStop(){
   updateBadge();updateScrubber();
   if(SERIES)renderSimFrame(0);
   document.getElementById('vis-overlay').classList.remove('show');
+  _updateAcadPanel();
   logE('INFO','Simulación detenida y reiniciada');
 }
 function simTick(){
@@ -1061,6 +1269,7 @@ function simTick(){
   }
   SIM.idx++;applyScheduledInjections(SIM.idx);
   updateScrubber();renderSimFrame(SIM.idx);
+  if(SIM.idx%10===0)_updateAcadPanel();
 }
 function toggleLoop(){
   SIM.loop=!SIM.loop;
@@ -1939,19 +2148,55 @@ function renderActiveInjections(){
     }).join('');
 }
 
+const INJ_DURATIONS = {};
+
+function _updateSliderColor(input, detectAt, breachAt) {
+  const mn = +input.min, mx = +input.max, v = +input.value;
+  const norm = x => Math.max(0, Math.min(100, (x - mn) / (mx - mn) * 100));
+  const pct = norm(v);
+  const badge = input.parentElement?.querySelector('.breach-badge');
+  if (detectAt == null) {
+    input.style.background = `linear-gradient(to right,var(--accent) 0%,var(--accent) ${pct}%,#333 ${pct}%,#333 100%)`;
+    return;
+  }
+  const dPct = norm(detectAt);
+  const bPct = breachAt != null ? norm(breachAt) : null;
+  if (bPct != null && v >= breachAt) {
+    input.style.background = `linear-gradient(to right,#555 0%,#555 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${bPct}%,#dc2626 ${bPct}%,#dc2626 ${pct}%,#333 ${pct}%,#333 100%)`;
+    if (badge) badge.style.display = 'inline';
+  } else if (v >= detectAt) {
+    input.style.background = `linear-gradient(to right,#555 0%,#555 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${pct}%,#333 ${pct}%,#333 100%)`;
+    if (badge) badge.style.display = 'none';
+  } else {
+    input.style.background = `linear-gradient(to right,#555 0%,#555 ${pct}%,#333 ${pct}%,#333 100%)`;
+    if (badge) badge.style.display = 'none';
+  }
+}
+
 function renderInjGrid(gridId,block){
   const container=document.getElementById(gridId);
   const evs=Object.entries(EVENTS).filter(([,e])=>e.block===block);
   container.innerHTML=evs.map(([id,ev])=>{
     const btnCls=block==='B'?'b':block==='C'?'c':'';
+    const durOpts=[
+      {v:'instant',l:'Instantáneo'},{v:1,l:'1 snap'},{v:3,l:'3 snaps'},
+      {v:6,l:'6 snaps'},{v:12,l:'12 snaps'},{v:24,l:'24 snaps'}
+    ].map(o=>`<option value="${o.v}"${o.v==='instant'?' selected':''}>${o.l}</option>`).join('');
     const paramHtml=ev.param?`
       <div class="inj-param-row">
         <span style="flex:0;white-space:nowrap;font-size:9px">${ev.param.label}</span>
         <input type="range" class="inj-param-range"
           min="${ev.param.min}" max="${ev.param.max}" value="${ev.param.def}"
-          oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}'">
+          data-ev="${id}"
+          data-detect="${ev.param.detectAt??''}" data-breach="${ev.param.breachAt??''}"
+          oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}';_updateSliderColor(this,${ev.param.detectAt??null},${ev.param.breachAt??null})">
         <span class="inj-param-val">${ev.param.def}${ev.param.unit||''}</span>
+        <span class="breach-badge">⚠ ZONA MORTAL</span>
       </div>`:'';
+    const durHtml=`<div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+        <span style="font-size:9px;color:var(--txt-dim)">Duración:</span>
+        <select class="inj-dur-sel" id="inj-dur-${id}">${durOpts}</select>
+      </div>`;
     return `<div class="inj-card" data-ev="${id}">
       <div style="display:flex;align-items:center;gap:6px">
         <span class="inj-card-label">${id}: ${ev.label}</span>
@@ -1959,9 +2204,16 @@ function renderInjGrid(gridId,block){
       <div class="inj-card-desc">${ev.desc}</div>
       <div class="breaking-badge">⚡ ${ev.breakpoint}</div>
       ${paramHtml}
+      ${durHtml}
       <button class="inj-btn ${btnCls}" onclick="injectEvent('${id}')">Inyectar</button>
     </div>`;
   }).join('');
+  // Init slider colors after DOM insertion
+  container.querySelectorAll('input[type=range][data-ev]').forEach(inp=>{
+    const detect=inp.dataset.detect!==''?+inp.dataset.detect:null;
+    const breach=inp.dataset.breach!==''?+inp.dataset.breach:null;
+    _updateSliderColor(inp,detect,breach);
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2072,7 +2324,7 @@ function downloadPNG(){
   const detCards=document.querySelectorAll('#s-forensic-list .forensic-card').length;
   const detH=detCards>0?26+detCards*38+6:0;
   const alertsH=26+(simAlerts.length?18+Math.min(30,simAlerts.length)*17+8:24);
-  const totalH=PAD+36+chartsH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD;
+  const totalH=PAD+36+chartsH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD+22;
   const out=document.createElement('canvas');
   out.width=(W+PAD*2)*S;out.height=totalH*S;
   const ctx=out.getContext('2d');
@@ -2092,6 +2344,7 @@ function downloadPNG(){
   y+=4;
   if(detCards>0){y=_drawDetectorsOnCtx(ctx,PAD,y,W);y+=GAP;}
   y=_drawAlertsOnCtx(ctx,PAD,y,W);
+  _addWatermark(ctx,W+PAD*2,totalH-22);
   try{
     const a=document.createElement('a');
     a.href=out.toDataURL('image/png');
@@ -2116,7 +2369,7 @@ function downloadFullPNG(){
   const alertsH=26+(simAlerts.length?18+Math.min(30,simAlerts.length)*17+8:24);
   const kpiH=26+42;
   const chartsSecH=26+chartsH;
-  const totalH=PAD+36+kpiH+GAP+chartsSecH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD;
+  const totalH=PAD+36+kpiH+GAP+chartsSecH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD+22;
   const out=document.createElement('canvas');
   out.width=(W+PAD*2)*S;out.height=totalH*S;
   const ctx=out.getContext('2d');
@@ -2160,6 +2413,7 @@ function downloadFullPNG(){
   y+=4;
   if(detCards>0){y=_drawDetectorsOnCtx(ctx,PAD,y,W);y+=GAP;}
   y=_drawAlertsOnCtx(ctx,PAD,y,W);
+  _addWatermark(ctx,W+PAD*2,totalH-22);
   try{
     const a=document.createElement('a');
     a.href=out.toDataURL('image/png');
@@ -2248,6 +2502,677 @@ function downloadPDF(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ACADEMIC TOOLS — Citation, CSV, ZIP, Watermark
+// ═══════════════════════════════════════════════════════════════════════════
+
+let _sessionId = null;
+
+async function _sha256short(str){
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,8);
+  }catch(e){return Math.random().toString(36).slice(2,10);}
+}
+
+async function _ensureSessionId(){
+  const ds=document.getElementById('dataset-select')?.value||'unknown';
+  const snap=SIM.idx;
+  const threshStr=JSON.stringify(TV)+JSON.stringify(TE);
+  const hyp=document.getElementById('thresh-prereg-text')?.value||'';
+  _sessionId=await _sha256short(`${ds}|${snap}|${threshStr}|${hyp}`);
+  const el=document.getElementById('acad-session-id');
+  if(el)el.textContent=_sessionId;
+  return _sessionId;
+}
+
+function _updateAcadPanel(){
+  const ds=_getDatasetLabel();
+  const snap=SIM.idx+1;const total=SIM.snapshots.length;
+  const crit=simAlerts.filter(a=>a.sev==='CRITICAL').length;
+  const activeThresh=Object.values(TE).filter(v=>v!==false).length;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('acad-dataset-label',ds||'—');
+  set('acad-snap-label',total?`${snap} / ${total}`:'—');
+  set('acad-alerts-label',simAlerts.length);
+  set('acad-crit-label',crit);
+  set('acad-thresh-label',`${activeThresh} / ${RULES_DEFS.length}`);
+  const preregRow=document.getElementById('acad-prereq-row');
+  if(preregRow){
+    const stored=localStorage.getItem('centinel_acad_prereg');
+    if(stored){
+      try{
+        const obj=JSON.parse(stored);
+        preregRow.style.display='flex';
+        const tsEl=document.getElementById('acad-prereq-ts');
+        if(tsEl)tsEl.textContent=`Registrada: ${new Date(obj.ts).toLocaleString('es-HN')}`;
+      }catch(e){}
+    }else{preregRow.style.display='none';}
+  }
+  _ensureSessionId();
+}
+
+function _getDatasetLabel(){
+  const sel=document.getElementById('dataset-select');
+  return sel?sel.options[sel.selectedIndex]?.text||sel.value:'Desconocido';
+}
+
+// ── Citation text builders ────────────────────────────────────────────────
+
+function _buildAPASoftware(){
+  return `VectisDev. (2025). CENTINEL: Trustless electoral integrity verification [Software]. GitHub. https://github.com/vectisdev/centinel`;
+}
+function _buildAPASession(sid){
+  const ds=_getDatasetLabel();
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('es-HN',{year:'numeric',month:'long',day:'numeric'});
+  const snap=SIM.idx+1;const total=SIM.snapshots.length;
+  return `CENTINEL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`;
+}
+function _buildAPAData(){
+  const ds=_getDatasetLabel();
+  if(ds.includes('HN 2025')||ds.includes('hnd'))
+    return `Tribunal Supremo Electoral de Honduras. (2025). Resultados electorales — Elecciones Generales Honduras 2025 [Conjunto de datos]. TSE. https://cne.hn/`;
+  return `VectisDev. (2025). Datos simulados de integridad electoral [Conjunto de datos sintéticos]. GitHub. https://github.com/vectisdev/centinel`;
+}
+function _buildBibSoftware(){
+  return `@software{centinel2025,
+  author    = {{VectisDev}},
+  title     = {{CENTINEL}: Trustless Electoral Integrity Verification},
+  year      = {2025},
+  url       = {https://github.com/vectisdev/centinel},
+  license   = {AGPL-3.0},
+  version   = {0.4.0},
+  note      = {Sistema de auditoría electoral criptográfica para América Latina}
+}`;
+}
+function _buildBibSession(sid){
+  const ds=_getDatasetLabel();
+  const snap=SIM.idx+1;const total=SIM.snapshots.length;
+  const now=new Date();
+  return `@misc{centinel_session_${sid},
+  title     = {{CENTINEL} Forensic Lab --- Análisis forense electoral},
+  author    = {{CENTINEL Forensic Lab}},
+  year      = {${now.getFullYear()}},
+  month     = {${now.getMonth()+1}},
+  note      = {Dataset: ${ds}; Snapshot: ${snap}/${total}; ID de sesión: ${sid}; Alertas: ${simAlerts.length}},
+  url       = {https://vectisdev.github.io/centinel/lab/},
+  urldate   = {${now.toISOString().slice(0,10)}}
+}`;
+}
+function _buildBibData(){
+  const ds=_getDatasetLabel();
+  if(ds.includes('HN 2025')||ds.includes('hnd'))
+    return `@dataset{tse_hn2025,
+  author    = {{Tribunal Supremo Electoral de Honduras}},
+  title     = {Resultados Electorales --- Elecciones Generales 2025},
+  year      = {2025},
+  url       = {https://cne.hn/},
+  note      = {Datos procesados por CENTINEL Engine v0.4.0}
+}`;
+  return `@dataset{centinel_sim2025,
+  author    = {{VectisDev}},
+  title     = {Datos Simulados de Integridad Electoral},
+  year      = {2025},
+  url       = {https://github.com/vectisdev/centinel},
+  note      = {Serie temporal sintética con anomalías embebidas para evaluación de detectores}
+}`;
+}
+function _buildISOSoftware(){
+  return `VECTISDEV. CENTINEL: Trustless Electoral Integrity Verification [software]. 2025. Disponible en: <https://github.com/vectisdev/centinel> [consulta: ${new Date().toISOString().slice(0,10)}]`;
+}
+function _buildISOSession(sid){
+  const ds=_getDatasetLabel();
+  const snap=SIM.idx+1;
+  return `CENTINEL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/centinel/lab/>`;
+}
+
+function _populateCiteTexts(sid){
+  const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
+  set('cite-apa-software',_buildAPASoftware());
+  set('cite-apa-session',_buildAPASession(sid));
+  set('cite-apa-data',_buildAPAData());
+  set('cite-bib-software',_buildBibSoftware());
+  set('cite-bib-session',_buildBibSession(sid));
+  set('cite-bib-data',_buildBibData());
+  set('cite-iso-software',_buildISOSoftware());
+  set('cite-iso-session',_buildISOSession(sid));
+  const meta=document.getElementById('cite-session-meta');
+  if(meta){
+    const crit=simAlerts.filter(a=>a.sev==='CRITICAL').length;
+    meta.innerHTML=`<strong style="color:var(--fg)">Session ID:</strong> <code style="font-family:var(--mono);color:var(--accent);font-size:13px">${sid}</code> &nbsp;·&nbsp; `
+      +`<strong style="color:var(--fg)">Dataset:</strong> ${_getDatasetLabel()} &nbsp;·&nbsp; `
+      +`<strong style="color:var(--fg)">Snap:</strong> ${SIM.idx+1}/${SIM.snapshots.length} &nbsp;·&nbsp; `
+      +`<strong style="color:var(--fg)">Alertas CRITICAL:</strong> <span style="color:var(--bad)">${crit}</span>`;
+  }
+}
+
+let _citeFormat='apa';
+function showCiteFormat(fmt){
+  _citeFormat=fmt;
+  ['apa','bibtex','iso'].forEach(f=>{
+    const p=document.getElementById(`cite-panel-${f}`);if(p)p.style.display=f===fmt?'block':'none';
+    const t=document.getElementById(`cite-tab-${f}`);if(t)t.classList.toggle('on',f===fmt);
+  });
+}
+
+async function openCitationModal(){
+  const sid=await _ensureSessionId();
+  _populateCiteTexts(sid);
+  document.getElementById('cite-overlay').classList.add('open');
+}
+function closeCitationModal(){document.getElementById('cite-overlay').classList.remove('open');}
+
+function copyCite(blockId){
+  const el=document.getElementById(`cite-${blockId}`);if(!el)return;
+  const text=el.textContent;
+  const btn=el.closest('.cite-block')?.querySelector('.cite-copy-btn');
+  const flash=()=>{if(btn){const o=btn.textContent;btn.textContent='✓ Copiado';btn.classList.add('copied');setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},2000);}};
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(flash).catch(()=>{});}
+  else{const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');flash();}
+}
+
+async function downloadBib(){
+  const sid=await _ensureSessionId();
+  const content=[
+    '% CENTINEL Forensic Lab — BibTeX citation package',
+    `% Session ID : ${sid}`,
+    `% Generated  : ${new Date().toISOString()}`,
+    '% URL        : https://vectisdev.github.io/centinel/lab/',
+    '',
+    _buildBibSoftware(),'',
+    _buildBibSession(sid),'',
+    _buildBibData(),
+  ].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:'text/plain;charset=utf-8'}));
+  a.download=`centinel-${sid}.bib`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  logE('OK',`BibTeX descargado: centinel-${sid}.bib`);
+}
+
+async function downloadCSV(){
+  if(!SIM.snapshots.length){logE('WARN','Inicia la simulación para exportar estadísticas');return;}
+  const sid=await _ensureSessionId();
+  const ds=_getDatasetLabel();const snap=SIM.idx+1;const ts=new Date().toISOString();
+  const esc=s=>{const v=String(s);return v.includes(',')||v.includes('"')||v.includes('\n')?'"'+v.replace(/"/g,'""')+'"':v;};
+  const rows=[];
+  rows.push(['# CENTINEL Forensic Lab — Exportación de estadísticas']);
+  rows.push(['# Session ID',sid]);rows.push(['# Dataset',ds]);
+  rows.push(['# Snapshot',`${snap}/${SIM.snapshots.length}`]);rows.push(['# Generado',ts]);
+  rows.push(['# URL','https://vectisdev.github.io/centinel/lab/']);rows.push([]);
+  // Indicators
+  rows.push(['## INDICADORES (SNAPSHOT ACTUAL)']);
+  rows.push(['indicador','valor']);
+  [['actas_divulgadas','k-actas'],['votos_validos','k-votos'],['escrutinio_pct','k-pct'],['integridad_cadena','k-int']]
+    .forEach(([k,id])=>rows.push([k,document.getElementById(id)?.textContent||'']));
+  rows.push([]);
+  // Thresholds
+  rows.push(['## UMBRALES DE SENSIBILIDAD (24 reglas)']);
+  rows.push(['rule_id','grupo','etiqueta','valor','unidad','habilitado','min','max','default']);
+  RULES_DEFS.forEach(r=>rows.push([r.id,r.grp,r.label,TV[r.id]??r.def,r.unit||'',TE[r.id]!==false?'TRUE':'FALSE',r.min,r.max,r.def]));
+  rows.push([]);
+  // Alerts
+  rows.push(['## ALERTAS REGISTRADAS']);
+  rows.push(['timestamp','tipo','severidad','descripcion','snapshot_num']);
+  if(simAlerts.length)simAlerts.forEach(a=>rows.push([a.ts||'',a.tipo||'',a.sev||'',a.desc||'',SIM.idx+1]));
+  else rows.push(['(sin alertas)']);
+  rows.push([]);
+  // Injections
+  rows.push(['## INYECCIONES ACTIVAS']);
+  rows.push(['id','etiqueta','modo','snapshot']);
+  if(activeInjections.length)activeInjections.forEach(inj=>rows.push([inj.id,inj.label,inj.mode,inj.atIdx+1]));
+  else rows.push(['(ninguna)']);
+  const csv=rows.map(r=>r.map(c=>esc(c)).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`centinel-estadisticas-${sid}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  logE('OK',`CSV descargado (${simAlerts.length} alertas · 24 umbrales)`);
+}
+
+async function downloadReproZip(){
+  if(!SIM.snapshots.length){logE('WARN','Inicia la simulación primero');return;}
+  const sid=await _ensureSessionId();
+  const ds=_getDatasetLabel();const ts=new Date().toISOString();const snap=SIM.idx+1;
+  if(typeof JSZip==='undefined'){
+    logE('WARN','JSZip no disponible — descargando CSV y BibTeX por separado');
+    downloadCSV();downloadBib();return;
+  }
+  const zip=new JSZip();
+  const hyp=document.getElementById('thresh-prereg-text')?.value||'';
+  // README
+  zip.file('README.txt',[
+    'CENTINEL Forensic Lab — Paquete de Reproducibilidad',
+    '='.repeat(54),'',
+    `Session ID : ${sid}`,`Dataset    : ${ds}`,
+    `Snapshot   : ${snap}/${SIM.snapshots.length}`,`Generado   : ${ts}`,
+    `URL        : https://vectisdev.github.io/centinel/lab/`,'',
+    'CONTENIDO DEL PAQUETE','-'.repeat(40),
+    'session.json   — Metadatos completos (dataset, snapshot, umbrales, alertas)',
+    'thresholds.csv — 24 umbrales de sensibilidad con valores y estado',
+    'alerts.csv     — Todas las alertas emitidas durante la simulación',
+    'injections.json— Eventos inyectados (activos y programados)',
+    'citation.bib   — Referencias BibTeX listas para LaTeX / Overleaf / Zotero','',
+    'PARA REPRODUCIR ESTE ANÁLISIS','-'.repeat(40),
+    '1. Abre https://vectisdev.github.io/centinel/lab/',
+    `2. Selecciona el mismo dataset: ${ds}`,
+    '3. Carga los umbrales desde thresholds.csv en el panel de sensibilidad',
+    '4. Si había hipótesis pre-registrada, ingrésala ANTES de ajustar umbrales',
+    '5. Aplica las inyecciones de injections.json si las hubiera',
+    `6. Navega al snapshot nº ${snap}`,'',
+    'CITAR ESTE SOFTWARE (APA 7ª ed.)','-'.repeat(40),
+    _buildAPASoftware(),'',
+    'LICENCIA','-'.repeat(40),
+    'CENTINEL — AGPL-3.0 · https://github.com/vectisdev/centinel',
+    'Datos electorales: propiedad del TSE de Honduras (uso académico).',
+  ].join('\n'));
+  // session.json
+  const stored=localStorage.getItem('centinel_acad_prereg');
+  let preregObj=null;try{preregObj=stored?JSON.parse(stored):null;}catch(e){}
+  zip.file('session.json',JSON.stringify({
+    schema:'centinel-session/1.0',session_id:sid,generated_at:ts,
+    dataset:ds,dataset_url:document.getElementById('dataset-select')?.value||'',
+    snapshot_index:SIM.idx,snapshot_total:SIM.snapshots.length,playback_speed:SIM.speed,
+    lab_url:'https://vectisdev.github.io/centinel/lab/',
+    hypothesis_preregistered:threshLocked?hyp:null,
+    hypothesis_locked_at:preregObj?.ts||null,
+    thresholds:Object.fromEntries(RULES_DEFS.map(r=>[r.id,{value:TV[r.id]??r.def,enabled:TE[r.id]!==false}])),
+    active_injections:activeInjections.map(i=>({id:i.id,label:i.label,mode:i.mode,snapshot:i.atIdx+1})),
+    scheduled_injections:scheduledInjections.map(s=>({id:s.id,snapshot:s.atIdx+1,param:s.paramVal})),
+    alert_summary:{total:simAlerts.length,critical:simAlerts.filter(a=>a.sev==='CRITICAL').length,high:simAlerts.filter(a=>a.sev==='HIGH').length},
+    software:{name:'CENTINEL',version:'0.4.0',license:'AGPL-3.0',url:'https://github.com/vectisdev/centinel'},
+  },null,2));
+  // thresholds.csv
+  const thHdr='rule_id,grupo,etiqueta,valor,unidad,habilitado,min,max,default';
+  const thRows=RULES_DEFS.map(r=>[r.id,`"${r.grp}"`,`"${r.label}"`,TV[r.id]??r.def,r.unit||'',TE[r.id]!==false,r.min,r.max,r.def].join(','));
+  zip.file('thresholds.csv','﻿'+[thHdr,...thRows].join('\n'));
+  // alerts.csv
+  const alHdr='timestamp,tipo,severidad,descripcion';
+  const alRows=simAlerts.map(a=>[a.ts||'',a.tipo||'',a.sev||'',`"${(a.desc||'').replace(/"/g,'""')}"`].join(','));
+  zip.file('alerts.csv','﻿'+[alHdr,...(alRows.length?alRows:['(sin alertas)'])].join('\n'));
+  // injections.json
+  zip.file('injections.json',JSON.stringify({active:activeInjections,scheduled:scheduledInjections},null,2));
+  // citation.bib
+  zip.file('citation.bib',[
+    '% CENTINEL Forensic Lab — BibTeX citation package',
+    `% Session ID : ${sid}`,`% Generated  : ${ts}`,'',
+    _buildBibSoftware(),'',_buildBibSession(sid),'',_buildBibData(),
+  ].join('\n'));
+  zip.generateAsync({type:'blob',compression:'DEFLATE'}).then(blob=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download=`centinel-repro-${sid}.zip`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    logE('OK',`ZIP reproducible descargado: centinel-repro-${sid}.zip (${(blob.size/1024).toFixed(1)} KB)`);
+  });
+}
+
+function openMethodologySidebar(){
+  document.getElementById('meth-overlay').classList.add('open');
+  document.getElementById('meth-drawer').classList.add('open');
+}
+function closeMethodologySidebar(){
+  document.getElementById('meth-overlay').classList.remove('open');
+  document.getElementById('meth-drawer').classList.remove('open');
+}
+
+function _addWatermark(ctx,W,y0){
+  ctx.fillStyle='rgba(15,17,21,0.96)';
+  ctx.fillRect(0,y0,W,22);
+  ctx.strokeStyle='#24272e';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(0,y0);ctx.lineTo(W,y0);ctx.stroke();
+  ctx.fillStyle='#8b929c';ctx.font='9px system-ui';
+  const sid=_sessionId||'—';const ds=_getDatasetLabel().slice(0,35);
+  const snap=SIM.idx+1;
+  const wt=`CENTINEL Forensic Lab · Session ${sid} · ${ds} · Snap ${snap} · vectisdev.github.io/centinel/lab/`;
+  ctx.fillText(wt.slice(0,120),10,y0+14);
+}
+
+// ===================== CUSTOM DATASETS =====================
+const _CUSTOM_DATASETS = {};
+let _BLD_INJECTIONS = [];   // [{eventId, dayOffset, hour, minute, durationMin, param}]
+let _BLD_LAST_CONFIG = null;
+
+const BUILDER_COUNTRIES = {
+  HN:{label:'Honduras 🇭🇳',actas:19167,parties:[
+    {nombre:'PARTIDO NACIONAL',abbrev:'PN',color:'#0D3B99',base_pct:38},
+    {nombre:'PARTIDO LIBERAL',abbrev:'PLH',color:'#E63329',base_pct:31},
+    {nombre:'LIBRE',abbrev:'LIB',color:'#6B21A8',base_pct:23},
+    {nombre:'PINU',abbrev:'PIN',color:'#15803D',base_pct:5},
+    {nombre:'DC',abbrev:'DC',color:'#CA8A04',base_pct:3}]},
+  GT:{label:'Guatemala 🇬🇹',actas:22000,parties:[
+    {nombre:'UNE',abbrev:'UNE',color:'#F97316',base_pct:42},
+    {nombre:'VAMOS',abbrev:'VAM',color:'#3B82F6',base_pct:35},
+    {nombre:'CREO',abbrev:'CRE',color:'#10B981',base_pct:14},
+    {nombre:'UCN',abbrev:'UCN',color:'#A855F7',base_pct:9}]},
+  SV:{label:'El Salvador 🇸🇻',actas:10500,parties:[
+    {nombre:'NUEVAS IDEAS',abbrev:'NI',color:'#06B6D4',base_pct:56},
+    {nombre:'ARENA',abbrev:'ARE',color:'#EF4444',base_pct:28},
+    {nombre:'FMLN',abbrev:'FML',color:'#EAB308',base_pct:16}]},
+  NI:{label:'Nicaragua 🇳🇮',actas:13000,parties:[
+    {nombre:'FSLN',abbrev:'FSL',color:'#EF4444',base_pct:62},
+    {nombre:'OTROS',abbrev:'OTR',color:'#6B7280',base_pct:38}]},
+  MX:{label:'México 🇲🇽',actas:170000,parties:[
+    {nombre:'MORENA',abbrev:'MOR',color:'#7C3AED',base_pct:45},
+    {nombre:'PAN',abbrev:'PAN',color:'#2563EB',base_pct:28},
+    {nombre:'PRI',abbrev:'PRI',color:'#DC2626',base_pct:16},
+    {nombre:'MC',abbrev:'MC',color:'#F97316',base_pct:11}]},
+  CO:{label:'Colombia 🇨🇴',actas:110000,parties:[
+    {nombre:'PACTO HISTÓRICO',abbrev:'PH',color:'#7C3AED',base_pct:44},
+    {nombre:'TEAM COLOMBIA',abbrev:'TC',color:'#EF4444',base_pct:36},
+    {nombre:'CENTRO D.',abbrev:'CD',color:'#F97316',base_pct:12},
+    {nombre:'OTROS',abbrev:'OTR',color:'#6B7280',base_pct:8}]}
+};
+
+function _bldSigmoid(x){const r=1/(1+Math.exp(-10*(x-0.4)));const r0=1/(1+Math.exp(4));return(r-r0)/(1-r0);}
+function _bldRnd(mn,mx){return Math.round(mn+Math.random()*(mx-mn));}
+function _bldMakeSnap(i,ts,progress,country){
+  const total=Math.round(country.actas*progress);
+  const divulgadas=Math.round(total*(0.98+Math.random()*0.04));
+  const parties=country.parties.map(p=>{
+    const noise=(Math.random()-0.5)*0.02;
+    const votos=Math.round((total*1800/country.actas)*(p.base_pct/100+noise));
+    return{nombre:p.nombre,abbrev:p.abbrev,color:p.color,votos,pct:0};
+  });
+  const totalVotos=parties.reduce((a,p)=>a+p.votos,0)||1;
+  parties.forEach(p=>p.pct=parseFloat((p.votos/totalVotos*100).toFixed(2)));
+  const validos=totalVotos;
+  const nulos=Math.round(validos*(_bldRnd(30,45)/1000));
+  const blancos=Math.round(validos*(_bldRnd(15,25)/1000));
+  return{idx:i,ts:ts.toISOString(),actas_totales:country.actas,actas_divulgadas:divulgadas,
+    pct_escrutinio:parseFloat((progress*100).toFixed(2)),
+    validos,nulos,blancos,inconsistentes:_bldRnd(0,Math.max(1,Math.round(total*0.001))),
+    correctas:divulgadas,blackout:false,partidos:parties};
+}
+function _buildDataset(cfg){
+  const totalSnaps=Math.floor(cfg.durationHours*60/cfg.intervalMin);
+  const country=BUILDER_COUNTRIES[cfg.country];
+  const snapshots=[];
+  for(let i=0;i<totalSnaps;i++){
+    const ts=new Date(cfg.startDate.getTime()+i*cfg.intervalMin*60000);
+    const progress=Math.min(1,_bldSigmoid(i/totalSnaps)*cfg.scrutinyPct/100);
+    snapshots.push(_bldMakeSnap(i,ts,progress,country));
+  }
+  cfg.injections.forEach(inj=>{
+    const startIdx=Math.min(
+      Math.floor((inj.dayOffset*1440+inj.hour*60+inj.minute)/cfg.intervalMin),
+      totalSnaps-1
+    );
+    const durSnaps=inj.durationMin>0?Math.max(1,Math.round(inj.durationMin/cfg.intervalMin)):1;
+    const evt=EVENTS[inj.eventId];
+    if(evt?.apply){
+      for(let s=startIdx;s<Math.min(startIdx+durSnaps,totalSnaps);s++){
+        try{evt.apply(snapshots[s],inj.param??evt.param?.def,s);}catch(e){}
+      }
+    }
+  });
+  const meta={
+    label:cfg.label,country:cfg.country,
+    start_ts:cfg.startDate.toISOString(),
+    interval_min:cfg.intervalMin,
+    total_snaps:totalSnaps,
+    scrutiny_pct:cfg.scrutinyPct,
+    builder_version:1
+  };
+  return{meta,snapshots};
+}
+function _bldGetConfig(){
+  const durRad=document.querySelector('input[name="bld-dur"]:checked');
+  let durationHours;
+  if(durRad.value==='custom'){
+    const days=parseInt(document.getElementById('bld-custom-days').value)||1;
+    const hrs=parseInt(document.getElementById('bld-custom-hours').value)||0;
+    durationHours=days*24+hrs;
+  } else {
+    durationHours=parseInt(durRad.value);
+  }
+  const intRad=document.querySelector('input[name="bld-int"]:checked');
+  return{
+    country:document.getElementById('bld-country').value,
+    startDate:new Date(document.getElementById('bld-start-date').value+'T00:00:00'),
+    durationHours,
+    intervalMin:parseInt(intRad.value),
+    scrutinyPct:parseInt(document.getElementById('bld-scrutiny').value),
+    label:document.getElementById('bld-label').value||'Mi dataset',
+    injections:_BLD_INJECTIONS.map(inj=>({...inj}))
+  };
+}
+function bldUpdateSnaps(){
+  try{
+    const cfg=_bldGetConfig();
+    const n=Math.floor(cfg.durationHours*60/cfg.intervalMin);
+    const mb=(n*0.6/1000).toFixed(1);
+    document.getElementById('bld-snap-info').textContent=n+' snapshots · ~'+mb+' MB';
+  }catch(e){}
+  _bldRenderTimeline();
+}
+function bldDurChange(){
+  const v=document.querySelector('input[name="bld-dur"]:checked')?.value;
+  const cd=document.getElementById('bld-custom-dur');
+  if(cd) cd.style.display=v==='custom'?'flex':'none';
+  bldUpdateSnaps();
+}
+function openBuilder(){
+  _bldRenderEventGrid();
+  bldUpdateSnaps();
+  document.getElementById('builder-overlay').classList.add('open');
+}
+function closeBuilder(){document.getElementById('builder-overlay').classList.remove('open');}
+function bldTab(n){
+  document.querySelectorAll('.bld-tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.bld-step').forEach((s,i)=>s.classList.toggle('active',i===n));
+  if(n===2) _bldRenderSummary();
+}
+function _bldRenderEventGrid(){
+  const grid=document.getElementById('bld-event-grid');
+  if(!grid||grid.children.length>0) return;
+  Object.entries(EVENTS).forEach(([id,ev])=>{
+    const card=document.createElement('div');
+    card.className='bld-ev-card';
+    card.innerHTML=`<span class="ev-code">${id}</span><span class="ev-lbl">${ev.label}</span>
+      <button class="bld-ev-btn" onclick="bldAddEvent('${id}')">+ Añadir</button>`;
+    grid.appendChild(card);
+  });
+}
+function bldAddEvent(id){
+  const evt=EVENTS[id];
+  _BLD_INJECTIONS.push({eventId:id,dayOffset:0,hour:12,minute:0,durationMin:0,param:evt.param?.def??null});
+  _bldRenderInjTable();
+  _bldRenderTimeline();
+}
+function bldRemoveEvent(i){
+  _BLD_INJECTIONS.splice(i,1);
+  _bldRenderInjTable();
+  _bldRenderTimeline();
+}
+function _bldRenderInjTable(){
+  const empty=document.getElementById('bld-inj-empty');
+  const table=document.getElementById('bld-inj-table');
+  const tbody=document.getElementById('bld-inj-body');
+  if(!_BLD_INJECTIONS.length){
+    empty.style.display='';table.style.display='none';return;
+  }
+  empty.style.display='none';table.style.display='';
+  tbody.innerHTML='';
+  _BLD_INJECTIONS.forEach((inj,i)=>{
+    const ev=EVENTS[inj.eventId];
+    const cfg=_bldGetConfig();
+    const totalDays=Math.max(1,Math.ceil(cfg.durationHours/24));
+    let dayOpts='';for(let d=0;d<totalDays;d++) dayOpts+=`<option value="${d}"${inj.dayOffset===d?' selected':''}>Día ${d+1}</option>`;
+    let hrOpts='';for(let h=0;h<24;h++) hrOpts+=`<option value="${h}"${inj.hour===h?' selected':''}>${String(h).padStart(2,'0')}:00</option>`;
+    const durOptions=[
+      {v:0,l:'Puntual'},{v:30,l:'30 min'},{v:60,l:'1 h'},{v:180,l:'3 h'},
+      {v:360,l:'6 h'},{v:720,l:'12 h'},{v:-1,l:'Personalizado'}
+    ];
+    let durOpts=durOptions.map(o=>`<option value="${o.v}"${inj.durationMin===o.v?' selected':''}>${o.l}</option>`).join('');
+    const paramHtml=ev.param?`<input type="range" min="${ev.param.min}" max="${ev.param.max}" step="${ev.param.step||1}" value="${inj.param??ev.param.def}" style="width:80px" oninput="_BLD_INJECTIONS[${i}].param=+this.value">`:'—';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><code style="font-size:11px">${inj.eventId}</code></td>
+      <td>${ev.label}</td>
+      <td><select onchange="_BLD_INJECTIONS[${i}].dayOffset=+this.value;_bldRenderTimeline()">${dayOpts}</select></td>
+      <td><select onchange="_BLD_INJECTIONS[${i}].hour=+this.value;_bldRenderTimeline()">${hrOpts}</select></td>
+      <td><select onchange="_BLD_INJECTIONS[${i}].durationMin=+this.value;_bldRenderTimeline()">${durOpts}</select></td>
+      <td>${paramHtml}</td>
+      <td><button class="bld-rmv" onclick="bldRemoveEvent(${i})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function _bldRenderTimeline(){
+  const tl=document.getElementById('bld-timeline');
+  if(!tl) return;
+  tl.innerHTML='';
+  try{
+    const cfg=_bldGetConfig();
+    const totalMin=cfg.durationHours*60;
+    _BLD_INJECTIONS.forEach(inj=>{
+      const startMin=inj.dayOffset*1440+inj.hour*60+inj.minute;
+      const pct=Math.min(99,startMin/totalMin*100);
+      const color=inj.eventId.startsWith('A')?'#3b82f6':inj.eventId.startsWith('B')?'#ef4444':'#f97316';
+      const mark=document.createElement('div');
+      mark.className='bld-tl-mark';
+      mark.style.cssText=`left:${pct}%;background:${color}`;
+      tl.appendChild(mark);
+      if(inj.durationMin>0){
+        const durPct=Math.min(100-pct,inj.durationMin/totalMin*100);
+        const dur=document.createElement('div');
+        dur.className='bld-tl-dur';
+        dur.style.cssText=`left:${pct}%;width:${durPct}%;background:${color}`;
+        tl.appendChild(dur);
+      }
+    });
+  }catch(e){}
+}
+function _bldRenderSummary(){
+  const el=document.getElementById('bld-summary');
+  if(!el) return;
+  try{
+    const cfg=_bldGetConfig();
+    const n=Math.floor(cfg.durationHours*60/cfg.intervalMin);
+    el.innerHTML=`<strong>${cfg.label}</strong> · ${BUILDER_COUNTRIES[cfg.country].label} ·
+      ${cfg.durationHours}h · cada ${cfg.intervalMin} min · <strong>${n} snapshots</strong> ·
+      escrutinio final ${cfg.scrutinyPct}% · ${_BLD_INJECTIONS.length} anomalías`;
+  }catch(e){el.textContent='Error al calcular resumen.';}
+}
+function _addToDatasetSelector(label,data){
+  const sel=document.getElementById('dataset-select');
+  let grp=document.getElementById('custom-datasets-group');
+  if(!grp){
+    grp=document.createElement('optgroup');
+    grp.label='Mis datasets';
+    grp.id='custom-datasets-group';
+    sel.insertBefore(grp,sel.firstChild);
+  }
+  grp.style.display='';
+  const key='__custom__'+Date.now();
+  _CUSTOM_DATASETS[key]=data;
+  const opt=new Option(label,key);
+  grp.appendChild(opt);
+  sel.value=key;
+}
+function bldUseInLab(){
+  try{
+    const cfg=_bldGetConfig();
+    _BLD_LAST_CONFIG=cfg;
+    const ds=_buildDataset(cfg);
+    _addToDatasetSelector(cfg.label,ds);
+    loadDataset('__custom__:inline',ds);
+    closeBuilder();
+    logE('OK',`Dataset "${cfg.label}" cargado — ${ds.snapshots.length} snapshots`);
+  }catch(e){alert('Error generando dataset: '+e.message);}
+}
+function bldDownloadDataset(){
+  try{
+    const cfg=_bldGetConfig();
+    const ds=_buildDataset(cfg);
+    const name=(cfg.label.replace(/[^a-z0-9\-_ ]/gi,'').trim()||'dataset')+'.json';
+    _blobDownload(JSON.stringify(ds,null,2),name,'application/json');
+  }catch(e){alert('Error: '+e.message);}
+}
+function bldDownloadSession(){
+  _BLD_LAST_CONFIG=_bldGetConfig();
+  saveLabSession();
+}
+
+// ===================== SAVE / LOAD SESSION =====================
+function saveLabSession(){
+  document.getElementById('save-session-name').value='';
+  document.getElementById('save-session-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('save-session-name').focus(),50);
+}
+function closeSaveSessionModal(){document.getElementById('save-session-overlay').classList.remove('open');}
+function confirmSaveSession(){
+  const name=document.getElementById('save-session-name').value.trim()||'sesion';
+  const session={
+    version:1,
+    saved_at:new Date().toISOString(),
+    label:name,
+    builder_config:_BLD_LAST_CONFIG??null,
+    dataset:SERIES,
+    thresholds:_exportThresholds(),
+    hypothesis:_getHypothesis?.()??null,
+    hypothesis_hash:_getHypothesisHash?.()??null
+  };
+  const filename=name.replace(/[^a-z0-9\-_ ]/gi,'').trim()||'sesion';
+  _blobDownload(JSON.stringify(session,null,2),filename+'.centinel-session.json','application/json');
+  closeSaveSessionModal();
+}
+function loadLabSession(input){
+  const file=input.files[0];if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const session=JSON.parse(e.target.result);
+      if(!session.version||!session.dataset) throw new Error('Formato inválido');
+      _BLD_LAST_CONFIG=session.builder_config??null;
+      _addToDatasetSelector(session.label??file.name,session.dataset);
+      loadDataset('__custom__:inline',session.dataset);
+      if(session.thresholds) _importThresholds(session.thresholds);
+      if(session.hypothesis&&typeof _restoreHypothesis==='function')
+        _restoreHypothesis(session.hypothesis,session.hypothesis_hash);
+      logE('OK',`Sesión cargada: ${session.label??file.name}`);
+    }catch(err){logE('CRITICAL','Error cargando sesión: '+err.message);}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+function _exportThresholds(){
+  const out={};
+  if(typeof TV!=='undefined') Object.assign(out,TV);
+  return out;
+}
+function _importThresholds(th){
+  if(typeof TV==='undefined'||typeof RULES_DEFS==='undefined') return;
+  RULES_DEFS.forEach(r=>{
+    if(th[r.id]!==undefined) TV[r.id]=th[r.id];
+  });
+  if(typeof renderThresholdSliders==='function') renderThresholdSliders();
+}
+function _getHypothesis(){
+  const el=document.getElementById('hypothesis-text');
+  return el?el.value:null;
+}
+function _getHypothesisHash(){
+  const h=_getHypothesis();
+  if(!h) return null;
+  let hash=0;
+  for(let i=0;i<h.length;i++){hash=(hash<<5)-hash+h.charCodeAt(i);hash|=0;}
+  return hash.toString(16);
+}
+function _restoreHypothesis(text){
+  const el=document.getElementById('hypothesis-text');
+  if(el) el.value=text;
+}
+function _blobDownload(content,filename,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
 // ═══════════════════════════════════════════════════════════════════════════
 function openSettings(){
@@ -2276,6 +3201,162 @@ function sendFeedback(){
 }
 </script>
 
+<!-- ══ CITATION MODAL ════════════════════════════════════════════════════════ -->
+<div id="cite-overlay" onclick="if(event.target===this)closeCitationModal()">
+  <div id="cite-card">
+    <div class="cite-hdr">
+      <h3>📚 Citar análisis — CENTINEL Lab</h3>
+      <button onclick="closeCitationModal()">✕</button>
+    </div>
+    <div class="cite-session-meta" id="cite-session-meta"></div>
+    <div class="cite-format-tab">
+      <button class="cite-tab-btn on" id="cite-tab-apa" onclick="showCiteFormat('apa')">APA 7ª ed.</button>
+      <button class="cite-tab-btn" id="cite-tab-bibtex" onclick="showCiteFormat('bibtex')">BibTeX</button>
+      <button class="cite-tab-btn" id="cite-tab-iso" onclick="showCiteFormat('iso')">ISO 690</button>
+    </div>
+
+    <div id="cite-panel-apa">
+      <div class="cite-section-title">Software</div>
+      <div class="cite-block">
+        <div class="cite-block-label">APA 7ª edición</div>
+        <div class="cite-text" id="cite-apa-software"></div>
+        <button class="cite-copy-btn" onclick="copyCite('apa-software')">Copiar</button>
+      </div>
+      <div class="cite-section-title">Esta sesión de análisis</div>
+      <div class="cite-block">
+        <div class="cite-block-label">APA 7ª edición — sesión específica</div>
+        <div class="cite-text" id="cite-apa-session"></div>
+        <button class="cite-copy-btn" onclick="copyCite('apa-session')">Copiar</button>
+      </div>
+      <div class="cite-section-title">Datos electorales</div>
+      <div class="cite-block">
+        <div class="cite-block-label">APA 7ª edición — dataset</div>
+        <div class="cite-text" id="cite-apa-data"></div>
+        <button class="cite-copy-btn" onclick="copyCite('apa-data')">Copiar</button>
+      </div>
+    </div>
+
+    <div id="cite-panel-bibtex" style="display:none">
+      <div class="cite-block">
+        <div class="cite-block-label">BibTeX — software</div>
+        <div class="cite-text" id="cite-bib-software"></div>
+        <button class="cite-copy-btn" onclick="copyCite('bib-software')">Copiar</button>
+      </div>
+      <div class="cite-block">
+        <div class="cite-block-label">BibTeX — sesión</div>
+        <div class="cite-text" id="cite-bib-session"></div>
+        <button class="cite-copy-btn" onclick="copyCite('bib-session')">Copiar</button>
+      </div>
+      <div class="cite-block">
+        <div class="cite-block-label">BibTeX — datos</div>
+        <div class="cite-text" id="cite-bib-data"></div>
+        <button class="cite-copy-btn" onclick="copyCite('bib-data')">Copiar</button>
+      </div>
+    </div>
+
+    <div id="cite-panel-iso" style="display:none">
+      <div class="cite-block">
+        <div class="cite-block-label">ISO 690:2021 — software</div>
+        <div class="cite-text" id="cite-iso-software"></div>
+        <button class="cite-copy-btn" onclick="copyCite('iso-software')">Copiar</button>
+      </div>
+      <div class="cite-block">
+        <div class="cite-block-label">ISO 690:2021 — sesión</div>
+        <div class="cite-text" id="cite-iso-session"></div>
+        <button class="cite-copy-btn" onclick="copyCite('iso-session')">Copiar</button>
+      </div>
+    </div>
+
+    <div class="cite-dl-row">
+      <button class="dl-pill" onclick="downloadBib()">⬇ .bib completo</button>
+      <button class="dl-pill" onclick="downloadCSV()">⬇ CSV estadísticas</button>
+      <button class="dl-pill" onclick="downloadReproZip()">⬇ ZIP reproducible</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ METHODOLOGY DRAWER ═══════════════════════════════════════════════════ -->
+<div id="meth-overlay" onclick="closeMethodologySidebar()"></div>
+<div id="meth-drawer">
+  <div class="meth-hdr">
+    <h3>📖 Metodología científica</h3>
+    <button onclick="closeMethodologySidebar()">✕</button>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Fundamento matemático</div>
+    <p class="meth-p">CENTINEL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T1 — Integridad de cadena</div>
+    <p class="meth-p">Cada snapshot incluye el SHA-256 del anterior. Una modificación retroactiva invalida toda la cadena posterior — detectable offline sin acceso a la fuente original.</p>
+    <code class="meth-code">H_n = SHA256(data_n ‖ H_{n-1})</code>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T2 — Ley de Benford</div>
+    <p class="meth-p">Los primeros dígitos de datos electorales orgánicos siguen la distribución logarítmica de Benford. La desviación χ² &gt; umbral indica manipulación numérica sistemática.</p>
+    <code class="meth-code">P(d) = log₁₀(1 + 1/d),  d ∈ {1,…,9}</code>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T3 — Inconsistencia de participación</div>
+    <p class="meth-p">La participación acumulada es monótonamente no-decreciente. Una caída indica actas retiradas — evento imposible en un escrutinio legítimo.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T4 — Anclaje temporal Bitcoin</div>
+    <p class="meth-p">La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en CENTINEL.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Detectores implementados</div>
+    <ul class="meth-list">
+      <li>Ley de Benford (primeros dígitos, χ²)</li>
+      <li>Participación imposible (&gt;100%)</li>
+      <li>Turno out delta anómalo</li>
+      <li>Consistencia de cadena de hash</li>
+      <li>Estancamiento de datos (throttling)</li>
+      <li>Última hora surge (madrugada)</li>
+      <li>Empate estadístico imposible</li>
+      <li>Cascada de espejos</li>
+      <li>Participación bimodal anormal</li>
+      <li>Volatilidad de liderazgo</li>
+      <li>Datos idénticos multi-tick</li>
+      <li>14 detectores adicionales configurables</li>
+    </ul>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Validación académica</div>
+    <p class="meth-p">Validación de 500 corridas publicada. Análisis de falsos positivos activo. Colaboración en curso con la <strong>Universidad Pedagógica Nacional Francisco Morazán (UPNFM)</strong>, Honduras.</p>
+    <p class="meth-p">Piloto de producción: <strong>Elecciones generales Honduras 2025</strong>.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Referencias</div>
+    <ul class="meth-list">
+      <li>Benford, F. (1938). The law of anomalous numbers. <em>Proceedings of the American Philosophical Society</em>, 78(4), 551–572.</li>
+      <li>Nakamoto, S. (2008). Bitcoin: A peer-to-peer electronic cash system.</li>
+      <li>Merkle, R. C. (1988). A digital signature based on a conventional encryption function. <em>CRYPTO</em>.</li>
+      <li>OpenTimestamps: <em>opentimestamps.org</em></li>
+      <li>CENTINEL Methodology: <em>docs/research/METHODOLOGY.md</em></li>
+    </ul>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Reproducibilidad</div>
+    <p class="meth-p">Toda sesión genera un ZIP reproducible: configuración de umbrales, alertas, inyecciones activas, metadatos y cita bibliográfica. Cualquier investigador puede reproducir el análisis exacto a partir del ZIP.</p>
+    <button class="dl-pill" style="margin-top:8px" onclick="downloadReproZip()">⬇ Descargar paquete de reproducibilidad</button>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Contacto académico</div>
+    <p class="meth-p">Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.</p>
+  </div>
+</div>
+
 <!-- ══ SETTINGS MODAL ════════════════════════════════════════════════════════ -->
 <div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
   <div id="settings-card">
@@ -2303,6 +3384,134 @@ function sendFeedback(){
       <textarea id="cfg-feedback-msg" class="cfg-textarea" placeholder="Tu comentario, sugerencia o reporte de problema…"></textarea>
       <button class="cfg-btn" onclick="sendFeedback()">Abrir issue en GitHub →</button>
       <div id="cfg-feedback-stat" class="cfg-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BUILDER OVERLAY ===== -->
+<div id="builder-overlay" onclick="if(event.target===this)closeBuilder()">
+  <div id="builder-card">
+    <div class="bld-hdr">
+      <h2>🔧 Construir dataset personalizado</h2>
+      <button class="bld-close" onclick="closeBuilder()">✕</button>
+    </div>
+    <div class="bld-tabs">
+      <button class="bld-tab active" onclick="bldTab(0)">1 · Parámetros</button>
+      <button class="bld-tab" onclick="bldTab(1)">2 · Anomalías</button>
+      <button class="bld-tab" onclick="bldTab(2)">3 · Vista previa</button>
+    </div>
+
+    <!-- PASO 1 -->
+    <div class="bld-step active" id="bld-step-0">
+      <div class="bld-form-row">
+        <div class="bld-field">
+          <label>País / elección</label>
+          <select id="bld-country" onchange="bldUpdateSnaps()">
+            <option value="HN">Honduras 🇭🇳 (19 167 actas)</option>
+            <option value="GT">Guatemala 🇬🇹 (22 000 actas)</option>
+            <option value="SV">El Salvador 🇸🇻 (10 500 actas)</option>
+            <option value="NI">Nicaragua 🇳🇮 (13 000 actas)</option>
+            <option value="MX">México 🇲🇽 (170 000 actas)</option>
+            <option value="CO">Colombia 🇨🇴 (110 000 actas)</option>
+          </select>
+        </div>
+        <div class="bld-field">
+          <label>Fecha de inicio del conteo</label>
+          <input type="date" id="bld-start-date" value="2025-11-30">
+        </div>
+      </div>
+      <div class="bld-form-row full">
+        <div class="bld-field">
+          <label>Duración del proceso</label>
+          <div class="bld-radio-row" id="bld-dur-radios">
+            <label><input type="radio" name="bld-dur" value="12" onchange="bldDurChange()"> 12 h</label>
+            <label><input type="radio" name="bld-dur" value="24" onchange="bldDurChange()" checked> 24 h</label>
+            <label><input type="radio" name="bld-dur" value="48" onchange="bldDurChange()"> 48 h</label>
+            <label><input type="radio" name="bld-dur" value="168" onchange="bldDurChange()"> 7 días</label>
+            <label><input type="radio" name="bld-dur" value="672" onchange="bldDurChange()"> 28 días</label>
+            <label><input type="radio" name="bld-dur" value="custom" onchange="bldDurChange()"> Personalizado</label>
+          </div>
+          <div id="bld-custom-dur" style="display:none;margin-top:8px;display:flex;gap:8px;align-items:center">
+            <span style="font-size:12px;color:var(--txt-dim)">Días:</span>
+            <input type="number" id="bld-custom-days" min="1" max="90" value="3" style="width:60px" oninput="bldUpdateSnaps()">
+            <span style="font-size:12px;color:var(--txt-dim)">Horas adicionales:</span>
+            <input type="number" id="bld-custom-hours" min="0" max="23" value="0" style="width:60px" oninput="bldUpdateSnaps()">
+          </div>
+        </div>
+      </div>
+      <div class="bld-form-row">
+        <div class="bld-field">
+          <label>Intervalo entre snapshots</label>
+          <div class="bld-radio-row">
+            <label><input type="radio" name="bld-int" value="5" onchange="bldUpdateSnaps()" checked> 5 min</label>
+            <label><input type="radio" name="bld-int" value="10" onchange="bldUpdateSnaps()"> 10 min</label>
+            <label><input type="radio" name="bld-int" value="15" onchange="bldUpdateSnaps()"> 15 min</label>
+            <label><input type="radio" name="bld-int" value="30" onchange="bldUpdateSnaps()"> 30 min</label>
+          </div>
+          <div class="bld-snap-info" id="bld-snap-info">288 snapshots · ~0.8 MB</div>
+        </div>
+        <div class="bld-field">
+          <label>Escrutinio final <span class="bld-scrut-val" id="bld-scrut-val">85%</span></label>
+          <input type="range" id="bld-scrutiny" min="0" max="100" value="85" oninput="document.getElementById('bld-scrut-val').textContent=this.value+'%'">
+        </div>
+      </div>
+      <div class="bld-form-row full">
+        <div class="bld-field">
+          <label>Etiqueta del dataset</label>
+          <input type="text" id="bld-label" value="Mi elección" placeholder="Nombre para identificar este dataset">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;padding-top:8px">
+        <button class="bld-btn primary" onclick="bldTab(1)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="bld-step" id="bld-step-1">
+      <p style="font-size:12px;color:var(--txt-dim);margin:0 0 10px">Haz clic en + para añadir un ataque/anomalía al dataset. Puedes configurar cuándo y cuánto dura.</p>
+      <div class="bld-event-grid" id="bld-event-grid"></div>
+      <div id="bld-inj-wrap" style="margin-top:14px">
+        <div id="bld-inj-empty" style="font-size:12px;color:var(--txt-dim);text-align:center;padding:12px">Sin anomalías — dataset limpio</div>
+        <table class="bld-inj-table" id="bld-inj-table" style="display:none">
+          <thead><tr>
+            <th>Código</th><th>Nombre</th><th>Día inicio</th><th>Hora inicio</th>
+            <th>Duración</th><th>Intensidad</th><th></th>
+          </tr></thead>
+          <tbody id="bld-inj-body"></tbody>
+        </table>
+      </div>
+      <div class="bld-timeline" id="bld-timeline" style="margin-top:12px" title="Timeline de anomalías"></div>
+      <div style="display:flex;justify-content:space-between;padding-top:12px">
+        <button class="bld-btn secondary" onclick="bldTab(0)">← Anterior</button>
+        <button class="bld-btn primary" onclick="bldTab(2)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="bld-step" id="bld-step-2">
+      <div class="bld-summary" id="bld-summary">Calculando…</div>
+      <div style="display:flex;justify-content:space-between;padding-top:8px;margin-bottom:8px">
+        <button class="bld-btn secondary" onclick="bldTab(1)">← Anterior</button>
+      </div>
+    </div>
+
+    <div class="bld-actions">
+      <button class="bld-btn primary" onclick="bldUseInLab()">▶ Usar en Lab</button>
+      <button class="bld-btn secondary" onclick="bldDownloadDataset()">⬇ Dataset .json</button>
+      <button class="bld-btn secondary" onclick="bldDownloadSession()">💾 Sesión completa</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SAVE SESSION NAME MODAL ===== -->
+<div id="save-session-overlay" onclick="if(event.target===this)closeSaveSessionModal()">
+  <div id="save-session-card">
+    <h3>💾 Guardar sesión</h3>
+    <p style="margin:0;font-size:12px;color:var(--txt-dim)">Escribe un nombre para identificar esta sesión. El archivo descargado podrá recargarse en cualquier momento para restaurar el estado exacto del lab.</p>
+    <input type="text" id="save-session-name" placeholder="Ej: HN 2025 escenario C6" maxlength="80">
+    <div class="ss-actions">
+      <button class="ss-cancel" onclick="closeSaveSessionModal()">Cancelar</button>
+      <button class="ss-ok" onclick="confirmSaveSession()">Descargar</button>
     </div>
   </div>
 </div>
