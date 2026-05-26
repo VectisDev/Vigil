@@ -12,6 +12,7 @@
   --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
   --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;
   --warn:#d4b066;--purple:#b08cf0;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --txt:#e7e9ec;--txt-dim:#8b929c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-size:14px;min-height:100vh}
@@ -803,7 +804,7 @@ const EVENTS = {
   A1:{block:'A',label:'Desconexión de Endpoints',
     desc:'Apaga selectivamente endpoints de datos; detiene el incremento de actas.',
     breakpoint:'Sin datos nuevos → blackout activado',
-    param:{label:'Endpoints',min:1,max:19,def:5,unit:''},
+    param:{label:'Endpoints',min:1,max:19,def:5,unit:'',detectAt:6,breachAt:13},
     apply(s,p){s.blackout=true;s._ep_disc=p;
       logE('WARN',`Inyección A1: ${p} endpoints desconectados — blackout activado`);
       logA('ALERT','10.0.0.1','Endpoint kill','Mitigated · Rerouted');}
@@ -811,7 +812,7 @@ const EVENTS = {
   A2:{block:'A',label:'Rollback de Datos',
     desc:'Revierte actas_divulgadas y votos a un estado anterior (timestamp no monótono).',
     breakpoint:'Snapshot_jump negativo → Benford gap → alerta de reversión',
-    param:{label:'Snapshots atrás',min:1,max:20,def:5,unit:''},
+    param:{label:'Snapshots atrás',min:1,max:20,def:5,unit:'',detectAt:7,breachAt:13},
     apply(s,p,idx){
       const t=Math.max(0,idx-p); const old=SIM.snapshots[t];
       s.actas_divulgadas=old.actas_divulgadas; s.validos=old.validos;
@@ -830,7 +831,7 @@ const EVENTS = {
   A4:{block:'A',label:'Hold-and-Release Masivo',
     desc:'Congela el flujo de actas y luego las libera todas de golpe (burst masivo).',
     breakpoint:'Spike de velocidad → processing_speed alerta → snapshot_jump crítico',
-    param:{label:'Actas retenidas',min:200,max:5000,def:1200,unit:''},
+    param:{label:'Actas retenidas',min:200,max:5000,def:1200,unit:'',detectAt:1400,breachAt:3000},
     apply(s,p,idx){
       if(!this._hc)this._hc=0; this._hc++;
       if(this._hc<5){s.actas_divulgadas=SIM.snapshots[Math.max(0,idx-1)].actas_divulgadas;
@@ -843,7 +844,7 @@ const EVENTS = {
   A5:{block:'A',label:'Apagón Geográfico',
     desc:'Todas las actas de un departamento dejan de llegar simultáneamente.',
     breakpoint:'CV geográfico spike → dispersión crítica',
-    param:{label:'Intensidad',min:1,max:5,def:1,unit:'×'},
+    param:{label:'Intensidad',min:1,max:5,def:1,unit:'×',detectAt:2,breachAt:4},
     apply(s,p){s._geo_blackout=true;s._geo_factor=p;
       pushAlert('HIGH','GeoBlackout','Francisco Morazán: sin datos');
       logE('CRITICAL','Apagón geográfico: Francisco Morazán sin actas');}
@@ -851,7 +852,7 @@ const EVENTS = {
   A6:{block:'A',label:'Desincronización de Timestamps',
     desc:'Timestamps consecutivos no monótonos o con salto al futuro.',
     breakpoint:'Trend analysis colapsado → timeline inconsistente',
-    param:{label:'Drift (min)',min:5,max:180,def:45,unit:''},
+    param:{label:'Drift (min)',min:5,max:180,def:45,unit:'',detectAt:55,breachAt:115},
     apply(s,p){const d=new Date(s.ts);d.setMinutes(d.getMinutes()+p);s.ts=d.toISOString();
       s._ts_drift=p;
       logE('WARN',`Desincronización: timestamp +${p}min — monotonía rota`);}
@@ -859,7 +860,7 @@ const EVENTS = {
   A7:{block:'A',label:'Duplicación de Actas',
     desc:'Mismo lote de actas repetido con votos distintos (detección de duplicados).',
     breakpoint:'Votos inflados → Benford violation → mesa_reconciliation alerta',
-    param:{label:'Actas duplicadas',min:10,max:500,def:80,unit:''},
+    param:{label:'Actas duplicadas',min:10,max:500,def:80,unit:'',detectAt:155,breachAt:310},
     apply(s,p){const bonus=p*150;s.validos+=bonus;
       s.partidos.forEach(pt=>{pt.votos+=Math.round(bonus*(pt.pct/100));});
       s._duplication=p;
@@ -869,7 +870,7 @@ const EVENTS = {
   A8:{block:'A',label:'Datos Parciales / Truncados',
     desc:'Payloads JSON con campos críticos nulos o ausentes.',
     breakpoint:'basic_diff alerta → table_consistency violation',
-    param:{label:'Probabilidad %',min:10,max:80,def:30,unit:'%'},
+    param:{label:'Probabilidad %',min:10,max:80,def:30,unit:'%',detectAt:32,breachAt:52},
     apply(s,p){const pr=p/100;
       if(Math.random()<pr)s.validos=null;
       if(Math.random()<pr)s.nulos=null;
@@ -880,7 +881,7 @@ const EVENTS = {
   A9:{block:'A',label:'Throttling Artificial del CNE',
     desc:'Solo 1 actualización de actas cada N ticks (cadencia artificialmente reducida).',
     breakpoint:'Participation anomaly → latency detectada',
-    param:{label:'Ticks entre updates',min:2,max:8,def:3,unit:''},
+    param:{label:'Ticks entre updates',min:2,max:8,def:3,unit:'',detectAt:4,breachAt:6},
     apply(s,p,idx){if(idx%p!==0){s.actas_divulgadas=SIM.snapshots[Math.max(0,idx-1)].actas_divulgadas;
       s._throttled=true;} logE('WARN',`Throttling: actualización cada ${p} ticks`);}
   },
@@ -889,7 +890,7 @@ const EVENTS = {
   B1:{block:'B',label:'DDoS Sostenido',
     desc:'Simula carga masiva de solicitudes. Evalúa rate limiting y arquitectura Static-First.',
     breakpoint:'> 100k req/s → Rate limiter exhausto → logs muestran "503 flooding"',
-    param:{label:'Intensidad (req/s)',min:100,max:200000,def:5000,unit:''},
+    param:{label:'Intensidad (req/s)',min:100,max:200000,def:5000,unit:'',detectAt:60000,breachAt:130000},
     apply(s,p){s._ddos=p;
       for(let i=0;i<Math.min(4,1+Math.floor(p/10000));i++){
         logA('CRITICAL',`${rndIP()}`,'DDoS HTTP flood',
@@ -900,7 +901,7 @@ const EVENTS = {
   B2:{block:'B',label:'Activación de Honeypots',
     desc:'Peticiones a rutas trampa (/admin, /debug, /.git). Evalúa detección perimetral.',
     breakpoint:'Sin escalada → "Honeypot muted" (falso negativo)',
-    param:{label:'Intentos por tick',min:1,max:50,def:5,unit:''},
+    param:{label:'Intentos por tick',min:1,max:50,def:5,unit:'',detectAt:16,breachAt:32},
     apply(s,p){const routes=['/admin','/debug','/.git','/.env','/api/internal','/metrics'];
       for(let i=0;i<Math.min(p,6);i++){
         logA('WARN',rndIP(),`Honeypot trigger → ${routes[i%routes.length]}`,
@@ -910,7 +911,7 @@ const EVENTS = {
   B3:{block:'B',label:'Tampering / Alteración en Tránsito',
     desc:'Inyecta votos alterados y hash SHA-256 incorrecto. Evalúa integridad de cadena.',
     breakpoint:'100% alteración → integridad 0% → cadena "ROTA"',
-    param:{label:'% actas alteradas',min:1,max:100,def:10,unit:'%'},
+    param:{label:'% actas alteradas',min:1,max:100,def:10,unit:'%',detectAt:30,breachAt:65},
     apply(s,p){const f=p/100;
       if(s.partidos&&s.partidos.length>=2){const d=Math.round(s.partidos[1].votos*f*0.1);
         s.partidos[0].votos+=d;s.partidos[1].votos-=d;}
@@ -932,7 +933,7 @@ const EVENTS = {
   B5:{block:'B',label:'Contaminación de Espejo CDN',
     desc:'Uno o más espejos sirven datos modificados. Evalúa consenso multi-espejo.',
     breakpoint:'≥50% contaminados → consenso imposible → modo offline',
-    param:{label:'Espejos comprometidos',min:1,max:5,def:1,unit:' de 5'},
+    param:{label:'Espejos comprometidos',min:1,max:5,def:1,unit:' de 5',detectAt:2,breachAt:4},
     apply(s,p){s._cdn_mirrors_poisoned=p;
       if(p>=3)pushAlert('CRITICAL','CDNPoison',`${p}/5 espejos contaminados — consenso imposible`);
       logE(p>=3?'CRITICAL':'WARN',`CDN: ${p}/5 espejos contaminados — ${p>=3?'CONSENSO IMPOSIBLE':'divergencia detectada'}`);
@@ -942,7 +943,7 @@ const EVENTS = {
   B6:{block:'B',label:'Envenenamiento de Caché',
     desc:'TTL falso: datos obsoletos servidos durante N ticks. Evalúa frescura de datos.',
     breakpoint:'TTL > 60min → divergencia >25% del origen real → alerta de consistencia',
-    param:{label:'TTL falso (min)',min:5,max:240,def:30,unit:'min'},
+    param:{label:'TTL falso (min)',min:5,max:240,def:30,unit:'min',detectAt:75,breachAt:155},
     apply(s,p){s._cache_stale=p;
       if(p>60)pushAlert('HIGH','CachePoison',`Caché venenoso: TTL=${p}min → datos obsoletos`);
       logE(p>60?'CRITICAL':'WARN',`Caché: TTL=${p}min — ${p>60?'divergencia crítica':'monitoreo activo'}`);
@@ -951,7 +952,7 @@ const EVENTS = {
   B7:{block:'B',label:'Ataque de Sincronización Temporal',
     desc:'Manipula timestamps para crear falsa estabilidad en el análisis de tendencias.',
     breakpoint:'Todos timestamps iguales → trend analysis colapsado',
-    param:{label:'Distorsión (min)',min:1,max:120,def:15,unit:'min'},
+    param:{label:'Distorsión (min)',min:1,max:120,def:15,unit:'min',detectAt:38,breachAt:77},
     apply(s,p){if(SIM.idx<SIM.snapshots.length-1){
       s.ts=SIM.snapshots[Math.min(SIM.idx+1,SIM.snapshots.length-1)].ts;}
       s._time_distorted=p;
@@ -978,7 +979,7 @@ const EVENTS = {
   B10:{block:'B',label:'Tampering del Binario (Auto-audit)',
     desc:'Simula hash de binario diferente al baseline. Evalúa auto-auditoría de integridad.',
     breakpoint:'Auto-audit falla → todos los semáforos rojos → modo cuarentena',
-    param:{label:'Módulos comprometidos',min:1,max:5,def:2,unit:''},
+    param:{label:'Módulos comprometidos',min:1,max:5,def:2,unit:'',detectAt:2,breachAt:4},
     apply(s,p){s._binary_tampered=p;
       pushAlert('CRITICAL','BinaryTamper',`Auto-audit: ${p} módulos con hash diferente al baseline`);
       logE('CRITICAL',`Binary integrity: ${p} módulos comprometidos → AUTO-AUDIT FALLA → cuarentena`);
@@ -987,7 +988,7 @@ const EVENTS = {
   B11:{block:'B',label:'Bypass de Zero-Trust Middleware',
     desc:'Peticiones con cabeceras forjadas (X-Forwarded-For, Origin falso). Evalúa middleware.',
     breakpoint:'Middleware no filtra → "ZT bypass" en log → datos no autorizados',
-    param:{label:'Cabeceras forjadas',min:1,max:10,def:3,unit:''},
+    param:{label:'Cabeceras forjadas',min:1,max:10,def:3,unit:'',detectAt:3,breachAt:7},
     apply(s,p){s._zt_bypass_attempt=p;
       for(let i=0;i<Math.min(p,5);i++){
         logA(p>=5?'CRITICAL':'WARN',rndIP(),
@@ -998,7 +999,7 @@ const EVENTS = {
   B12:{block:'B',label:'Colapso Cascada de Espejos',
     desc:'Contamina espejos 1→2→3 en ticks consecutivos hasta consenso imposible.',
     breakpoint:'3er espejo contaminado → sistema entra en modo solo-local',
-    param:{label:'Velocidad cascada (ticks)',min:1,max:10,def:3,unit:''},
+    param:{label:'Velocidad cascada (ticks)',min:1,max:10,def:3,unit:'',detectAt:3,breachAt:7},
     apply(s,p){if(!this._cascade)this._cascade=0;this._cascade++;
       s._cdn_mirrors_poisoned=Math.min(this._cascade,5);
       const msg=this._cascade>=3?'⚠ MODO SOLO-LOCAL ACTIVADO':'Escalando...';
@@ -1020,7 +1021,7 @@ const EVENTS = {
   C1:{block:'C',label:'Inyección Progresiva de Ventaja',
     desc:'Un candidato gana votos adicionales por snapshot de forma sistemática.',
     breakpoint:'Asymmetric benefit detector → CRITICAL tras N snapshots',
-    param:{label:'Votos extra / snap',min:50,max:3000,def:400,unit:''},
+    param:{label:'Votos extra / snap',min:50,max:3000,def:400,unit:'',detectAt:950,breachAt:1900},
     apply(s,p){const acc=activeInjections.filter(i=>i.id==='C1').length*p;
       if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=acc;s.validos+=acc;}
       logE('CRITICAL',`Inyección progresiva: partido[0] acumula +${acc.toLocaleString()} votos`);}
@@ -1028,7 +1029,7 @@ const EVENTS = {
   C2:{block:'C',label:'Votos Redondeados (Ballot Stuffing)',
     desc:'Totales redondeados al múltiplo de N → viola Benford y uniformidad de último dígito.',
     breakpoint:'Benford MAD spike → último dígito chi² → CRITICAL',
-    param:{label:'Redondeo a múltiplo de',min:100,max:1000,def:500,unit:''},
+    param:{label:'Redondeo a múltiplo de',min:100,max:1000,def:500,unit:'',detectAt:325,breachAt:625},
     apply(s,p){if(s.partidos)s.partidos.forEach(pt=>{pt.votos=Math.round(pt.votos/p)*p;});
       s._benford_biased=true;
       logE('WARN',`Votos redondeados a ×${p} — violación Benford y último dígito inminente`);}
@@ -1036,7 +1037,7 @@ const EVENTS = {
   C3:{block:'C',label:'Abstención Anormal por Zona',
     desc:'Un departamento salta a participación imposible en un tick.',
     breakpoint:'Participation_anomaly_advanced z-score > 3σ → CRITICAL',
-    param:{label:'Participación forzada %',min:50,max:100,def:97,unit:'%'},
+    param:{label:'Participación forzada %',min:50,max:100,def:97,unit:'%',detectAt:65,breachAt:80},
     apply(s,p){const implied=Math.round(s.actas_totales*p/100);
       s.actas_divulgadas=Math.max(s.actas_divulgadas,implied);
       s._forced_part=p;
@@ -1046,7 +1047,7 @@ const EVENTS = {
   C4:{block:'C',label:'Concentración Extrema de Votos',
     desc:'Un candidato obtiene >90% de todas las actas nuevas de una zona.',
     breakpoint:'Z-score departamental extremo → geographic_dispersion CRITICAL',
-    param:{label:'Mesas afectadas',min:10,max:300,def:80,unit:''},
+    param:{label:'Mesas afectadas',min:10,max:300,def:80,unit:'',detectAt:100,breachAt:195},
     apply(s,p){const tv=p*150,p0=Math.round(tv*0.93);
       if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=p0;s.validos+=tv;}
       s._concentration=p;
@@ -1056,7 +1057,7 @@ const EVENTS = {
   C5:{block:'C',label:'Campaña de Votos Nulos',
     desc:'Spike sistemático de nulos en zonas de oposición.',
     breakpoint:'null_blank_votes: critical_pct superado → CRITICAL',
-    param:{label:'Factor multiplicador',min:1.5,max:10,def:3.5,unit:'×'},
+    param:{label:'Factor multiplicador',min:1.5,max:10,def:3.5,unit:'×',detectAt:4,breachAt:7},
     apply(s,p){s.nulos=Math.round((s.nulos||0)*p);
       pushAlert('HIGH','NullCampaign',`Votos nulos ×${p} — campaña de nulización detectada`);
       logE('WARN',`Campaña de nulos: ×${p} — umbral null_blank_critical superado`);}
@@ -1064,7 +1065,7 @@ const EVENTS = {
   C6:{block:'C',label:'Aceleración Nocturna (2–4 AM)',
     desc:'40% de las actas pendientes llegan en un solo tick de madrugada.',
     breakpoint:'processing_speed: max_actas_per_15min superado → CRITICAL',
-    param:{label:'Actas madrugada',min:200,max:3000,def:900,unit:''},
+    param:{label:'Actas madrugada',min:200,max:3000,def:900,unit:'',detectAt:900,breachAt:1800},
     apply(s,p){s.actas_divulgadas=Math.min(s.actas_divulgadas+p,s.actas_totales);
       s.validos+=(p*165);s._nocturnal=true;
       pushAlert('CRITICAL','NocturnalAccel',`+${p} actas a las 2–4 AM → velocidad 8× la normal`);
@@ -1096,7 +1097,7 @@ const EVENTS = {
   C9:{block:'C',label:'Arrastre Coordinado de Partido',
     desc:'Exactamente +N% para un partido en todos los departamentos simultáneamente.',
     breakpoint:'geographic_dispersion: demasiado uniforme → runs_test → CRITICAL',
-    param:{label:'Votos coordinados / snap',min:100,max:2000,def:500,unit:''},
+    param:{label:'Votos coordinados / snap',min:100,max:2000,def:500,unit:'',detectAt:600,breachAt:1250},
     apply(s,p){if(s.partidos&&s.partidos.length>0){s.partidos[0].votos+=p;s.validos+=p;}
       s._coordinated=true;
       logE('WARN',`Arrastre coordinado: +${p} votos uniformes para partido[0] en todos los dptos`);}
@@ -1104,7 +1105,7 @@ const EVENTS = {
   C10:{block:'C',label:'Mesa Fantasma / Conteo Imposible',
     desc:'actas_divulgadas supera actas_totales — mesas que no existen.',
     breakpoint:'turnout_impossible rule → CRITICAL inmediato',
-    param:{label:'Actas fantasma',min:10,max:1000,def:300,unit:''},
+    param:{label:'Actas fantasma',min:10,max:1000,def:300,unit:'',detectAt:320,breachAt:640},
     apply(s,p){s.actas_divulgadas=(s.actas_totales||19167)+p;
       pushAlert('CRITICAL','GhostMesas',`Conteo imposible: ${s.actas_divulgadas} > ${s.actas_totales} actas`);
       logE('CRITICAL',`Mesa fantasma: actas_divulgadas=${s.actas_divulgadas} > totales=${s.actas_totales} → CRITICAL`);}
@@ -1176,8 +1177,27 @@ function renderAlerts(){
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA LOADING
 // ═══════════════════════════════════════════════════════════════════════════
-async function loadDataset(url){
+async function loadDataset(url, rawData=null){
   simStop();
+  if (rawData !== null || (typeof url === 'string' && url.startsWith('__custom__'))) {
+    const data = rawData !== null ? rawData : _CUSTOM_DATASETS[url];
+    if (!data) { logE('CRITICAL','Dataset no encontrado: '+url); return; }
+    SERIES = data;
+    SIM.snapshots=deepClone(SERIES.snapshots);
+    document.getElementById('sim-scrubber').max=String(SIM.snapshots.length-1);
+    const markerRow=document.getElementById('anom-marker-row');
+    if(SERIES.meta?.anomalias_embebidas?.length){
+      markerRow.style.display='flex';
+      markerRow.innerHTML='<span style="font-size:10px;color:var(--muted);margin-right:4px">Anomalías embebidas:</span>'+
+        SERIES.meta.anomalias_embebidas.map(a=>
+          `<span class="anom-marker" title="${a.descripcion}">idx=${a.snapshot_idx} · ${a.tipo.replace(/_/g,' ')}</span>`
+        ).join('');
+    }else{markerRow.style.display='none';}
+    renderSimFrame(0);
+    logE('OK',`Dataset listo: ${SIM.snapshots.length} snapshots cargados`);
+    _updateAcadPanel();
+    return;
+  }
   logE('INFO','Cargando dataset: '+url);
   try{
     const r=await fetch(url);
@@ -2128,19 +2148,55 @@ function renderActiveInjections(){
     }).join('');
 }
 
+const INJ_DURATIONS = {};
+
+function _updateSliderColor(input, detectAt, breachAt) {
+  const mn = +input.min, mx = +input.max, v = +input.value;
+  const norm = x => Math.max(0, Math.min(100, (x - mn) / (mx - mn) * 100));
+  const pct = norm(v);
+  const badge = input.parentElement?.querySelector('.breach-badge');
+  if (detectAt == null) {
+    input.style.background = `linear-gradient(to right,var(--accent) 0%,var(--accent) ${pct}%,#333 ${pct}%,#333 100%)`;
+    return;
+  }
+  const dPct = norm(detectAt);
+  const bPct = breachAt != null ? norm(breachAt) : null;
+  if (bPct != null && v >= breachAt) {
+    input.style.background = `linear-gradient(to right,#555 0%,#555 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${bPct}%,#dc2626 ${bPct}%,#dc2626 ${pct}%,#333 ${pct}%,#333 100%)`;
+    if (badge) badge.style.display = 'inline';
+  } else if (v >= detectAt) {
+    input.style.background = `linear-gradient(to right,#555 0%,#555 ${dPct}%,var(--accent) ${dPct}%,var(--accent) ${pct}%,#333 ${pct}%,#333 100%)`;
+    if (badge) badge.style.display = 'none';
+  } else {
+    input.style.background = `linear-gradient(to right,#555 0%,#555 ${pct}%,#333 ${pct}%,#333 100%)`;
+    if (badge) badge.style.display = 'none';
+  }
+}
+
 function renderInjGrid(gridId,block){
   const container=document.getElementById(gridId);
   const evs=Object.entries(EVENTS).filter(([,e])=>e.block===block);
   container.innerHTML=evs.map(([id,ev])=>{
     const btnCls=block==='B'?'b':block==='C'?'c':'';
+    const durOpts=[
+      {v:'instant',l:'Instantáneo'},{v:1,l:'1 snap'},{v:3,l:'3 snaps'},
+      {v:6,l:'6 snaps'},{v:12,l:'12 snaps'},{v:24,l:'24 snaps'}
+    ].map(o=>`<option value="${o.v}"${o.v==='instant'?' selected':''}>${o.l}</option>`).join('');
     const paramHtml=ev.param?`
       <div class="inj-param-row">
         <span style="flex:0;white-space:nowrap;font-size:9px">${ev.param.label}</span>
         <input type="range" class="inj-param-range"
           min="${ev.param.min}" max="${ev.param.max}" value="${ev.param.def}"
-          oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}'">
+          data-ev="${id}"
+          data-detect="${ev.param.detectAt??''}" data-breach="${ev.param.breachAt??''}"
+          oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}';_updateSliderColor(this,${ev.param.detectAt??null},${ev.param.breachAt??null})">
         <span class="inj-param-val">${ev.param.def}${ev.param.unit||''}</span>
+        <span class="breach-badge">⚠ ZONA MORTAL</span>
       </div>`:'';
+    const durHtml=`<div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+        <span style="font-size:9px;color:var(--txt-dim)">Duración:</span>
+        <select class="inj-dur-sel" id="inj-dur-${id}">${durOpts}</select>
+      </div>`;
     return `<div class="inj-card" data-ev="${id}">
       <div style="display:flex;align-items:center;gap:6px">
         <span class="inj-card-label">${id}: ${ev.label}</span>
@@ -2148,9 +2204,16 @@ function renderInjGrid(gridId,block){
       <div class="inj-card-desc">${ev.desc}</div>
       <div class="breaking-badge">⚡ ${ev.breakpoint}</div>
       ${paramHtml}
+      ${durHtml}
       <button class="inj-btn ${btnCls}" onclick="injectEvent('${id}')">Inyectar</button>
     </div>`;
   }).join('');
+  // Init slider colors after DOM insertion
+  container.querySelectorAll('input[type=range][data-ev]').forEach(inp=>{
+    const detect=inp.dataset.detect!==''?+inp.dataset.detect:null;
+    const breach=inp.dataset.breach!==''?+inp.dataset.breach:null;
+    _updateSliderColor(inp,detect,breach);
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2765,6 +2828,348 @@ function _addWatermark(ctx,W,y0){
   const snap=SIM.idx+1;
   const wt=`CENTINEL Forensic Lab · Session ${sid} · ${ds} · Snap ${snap} · vectisdev.github.io/centinel/lab/`;
   ctx.fillText(wt.slice(0,120),10,y0+14);
+}
+
+// ===================== CUSTOM DATASETS =====================
+const _CUSTOM_DATASETS = {};
+let _BLD_INJECTIONS = [];   // [{eventId, dayOffset, hour, minute, durationMin, param}]
+let _BLD_LAST_CONFIG = null;
+
+const BUILDER_COUNTRIES = {
+  HN:{label:'Honduras 🇭🇳',actas:19167,parties:[
+    {nombre:'PARTIDO NACIONAL',abbrev:'PN',color:'#0D3B99',base_pct:38},
+    {nombre:'PARTIDO LIBERAL',abbrev:'PLH',color:'#E63329',base_pct:31},
+    {nombre:'LIBRE',abbrev:'LIB',color:'#6B21A8',base_pct:23},
+    {nombre:'PINU',abbrev:'PIN',color:'#15803D',base_pct:5},
+    {nombre:'DC',abbrev:'DC',color:'#CA8A04',base_pct:3}]},
+  GT:{label:'Guatemala 🇬🇹',actas:22000,parties:[
+    {nombre:'UNE',abbrev:'UNE',color:'#F97316',base_pct:42},
+    {nombre:'VAMOS',abbrev:'VAM',color:'#3B82F6',base_pct:35},
+    {nombre:'CREO',abbrev:'CRE',color:'#10B981',base_pct:14},
+    {nombre:'UCN',abbrev:'UCN',color:'#A855F7',base_pct:9}]},
+  SV:{label:'El Salvador 🇸🇻',actas:10500,parties:[
+    {nombre:'NUEVAS IDEAS',abbrev:'NI',color:'#06B6D4',base_pct:56},
+    {nombre:'ARENA',abbrev:'ARE',color:'#EF4444',base_pct:28},
+    {nombre:'FMLN',abbrev:'FML',color:'#EAB308',base_pct:16}]},
+  NI:{label:'Nicaragua 🇳🇮',actas:13000,parties:[
+    {nombre:'FSLN',abbrev:'FSL',color:'#EF4444',base_pct:62},
+    {nombre:'OTROS',abbrev:'OTR',color:'#6B7280',base_pct:38}]},
+  MX:{label:'México 🇲🇽',actas:170000,parties:[
+    {nombre:'MORENA',abbrev:'MOR',color:'#7C3AED',base_pct:45},
+    {nombre:'PAN',abbrev:'PAN',color:'#2563EB',base_pct:28},
+    {nombre:'PRI',abbrev:'PRI',color:'#DC2626',base_pct:16},
+    {nombre:'MC',abbrev:'MC',color:'#F97316',base_pct:11}]},
+  CO:{label:'Colombia 🇨🇴',actas:110000,parties:[
+    {nombre:'PACTO HISTÓRICO',abbrev:'PH',color:'#7C3AED',base_pct:44},
+    {nombre:'TEAM COLOMBIA',abbrev:'TC',color:'#EF4444',base_pct:36},
+    {nombre:'CENTRO D.',abbrev:'CD',color:'#F97316',base_pct:12},
+    {nombre:'OTROS',abbrev:'OTR',color:'#6B7280',base_pct:8}]}
+};
+
+function _bldSigmoid(x){const r=1/(1+Math.exp(-10*(x-0.4)));const r0=1/(1+Math.exp(4));return(r-r0)/(1-r0);}
+function _bldRnd(mn,mx){return Math.round(mn+Math.random()*(mx-mn));}
+function _bldMakeSnap(i,ts,progress,country){
+  const total=Math.round(country.actas*progress);
+  const divulgadas=Math.round(total*(0.98+Math.random()*0.04));
+  const parties=country.parties.map(p=>{
+    const noise=(Math.random()-0.5)*0.02;
+    const votos=Math.round((total*1800/country.actas)*(p.base_pct/100+noise));
+    return{nombre:p.nombre,abbrev:p.abbrev,color:p.color,votos,pct:0};
+  });
+  const totalVotos=parties.reduce((a,p)=>a+p.votos,0)||1;
+  parties.forEach(p=>p.pct=parseFloat((p.votos/totalVotos*100).toFixed(2)));
+  const validos=totalVotos;
+  const nulos=Math.round(validos*(_bldRnd(30,45)/1000));
+  const blancos=Math.round(validos*(_bldRnd(15,25)/1000));
+  return{idx:i,ts:ts.toISOString(),actas_totales:country.actas,actas_divulgadas:divulgadas,
+    pct_escrutinio:parseFloat((progress*100).toFixed(2)),
+    validos,nulos,blancos,inconsistentes:_bldRnd(0,Math.max(1,Math.round(total*0.001))),
+    correctas:divulgadas,blackout:false,partidos:parties};
+}
+function _buildDataset(cfg){
+  const totalSnaps=Math.floor(cfg.durationHours*60/cfg.intervalMin);
+  const country=BUILDER_COUNTRIES[cfg.country];
+  const snapshots=[];
+  for(let i=0;i<totalSnaps;i++){
+    const ts=new Date(cfg.startDate.getTime()+i*cfg.intervalMin*60000);
+    const progress=Math.min(1,_bldSigmoid(i/totalSnaps)*cfg.scrutinyPct/100);
+    snapshots.push(_bldMakeSnap(i,ts,progress,country));
+  }
+  cfg.injections.forEach(inj=>{
+    const startIdx=Math.min(
+      Math.floor((inj.dayOffset*1440+inj.hour*60+inj.minute)/cfg.intervalMin),
+      totalSnaps-1
+    );
+    const durSnaps=inj.durationMin>0?Math.max(1,Math.round(inj.durationMin/cfg.intervalMin)):1;
+    const evt=EVENTS[inj.eventId];
+    if(evt?.apply){
+      for(let s=startIdx;s<Math.min(startIdx+durSnaps,totalSnaps);s++){
+        try{evt.apply(snapshots[s],inj.param??evt.param?.def,s);}catch(e){}
+      }
+    }
+  });
+  const meta={
+    label:cfg.label,country:cfg.country,
+    start_ts:cfg.startDate.toISOString(),
+    interval_min:cfg.intervalMin,
+    total_snaps:totalSnaps,
+    scrutiny_pct:cfg.scrutinyPct,
+    builder_version:1
+  };
+  return{meta,snapshots};
+}
+function _bldGetConfig(){
+  const durRad=document.querySelector('input[name="bld-dur"]:checked');
+  let durationHours;
+  if(durRad.value==='custom'){
+    const days=parseInt(document.getElementById('bld-custom-days').value)||1;
+    const hrs=parseInt(document.getElementById('bld-custom-hours').value)||0;
+    durationHours=days*24+hrs;
+  } else {
+    durationHours=parseInt(durRad.value);
+  }
+  const intRad=document.querySelector('input[name="bld-int"]:checked');
+  return{
+    country:document.getElementById('bld-country').value,
+    startDate:new Date(document.getElementById('bld-start-date').value+'T00:00:00'),
+    durationHours,
+    intervalMin:parseInt(intRad.value),
+    scrutinyPct:parseInt(document.getElementById('bld-scrutiny').value),
+    label:document.getElementById('bld-label').value||'Mi dataset',
+    injections:_BLD_INJECTIONS.map(inj=>({...inj}))
+  };
+}
+function bldUpdateSnaps(){
+  try{
+    const cfg=_bldGetConfig();
+    const n=Math.floor(cfg.durationHours*60/cfg.intervalMin);
+    const mb=(n*0.6/1000).toFixed(1);
+    document.getElementById('bld-snap-info').textContent=n+' snapshots · ~'+mb+' MB';
+  }catch(e){}
+  _bldRenderTimeline();
+}
+function bldDurChange(){
+  const v=document.querySelector('input[name="bld-dur"]:checked')?.value;
+  const cd=document.getElementById('bld-custom-dur');
+  if(cd) cd.style.display=v==='custom'?'flex':'none';
+  bldUpdateSnaps();
+}
+function openBuilder(){
+  _bldRenderEventGrid();
+  bldUpdateSnaps();
+  document.getElementById('builder-overlay').classList.add('open');
+}
+function closeBuilder(){document.getElementById('builder-overlay').classList.remove('open');}
+function bldTab(n){
+  document.querySelectorAll('.bld-tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.bld-step').forEach((s,i)=>s.classList.toggle('active',i===n));
+  if(n===2) _bldRenderSummary();
+}
+function _bldRenderEventGrid(){
+  const grid=document.getElementById('bld-event-grid');
+  if(!grid||grid.children.length>0) return;
+  Object.entries(EVENTS).forEach(([id,ev])=>{
+    const card=document.createElement('div');
+    card.className='bld-ev-card';
+    card.innerHTML=`<span class="ev-code">${id}</span><span class="ev-lbl">${ev.label}</span>
+      <button class="bld-ev-btn" onclick="bldAddEvent('${id}')">+ Añadir</button>`;
+    grid.appendChild(card);
+  });
+}
+function bldAddEvent(id){
+  const evt=EVENTS[id];
+  _BLD_INJECTIONS.push({eventId:id,dayOffset:0,hour:12,minute:0,durationMin:0,param:evt.param?.def??null});
+  _bldRenderInjTable();
+  _bldRenderTimeline();
+}
+function bldRemoveEvent(i){
+  _BLD_INJECTIONS.splice(i,1);
+  _bldRenderInjTable();
+  _bldRenderTimeline();
+}
+function _bldRenderInjTable(){
+  const empty=document.getElementById('bld-inj-empty');
+  const table=document.getElementById('bld-inj-table');
+  const tbody=document.getElementById('bld-inj-body');
+  if(!_BLD_INJECTIONS.length){
+    empty.style.display='';table.style.display='none';return;
+  }
+  empty.style.display='none';table.style.display='';
+  tbody.innerHTML='';
+  _BLD_INJECTIONS.forEach((inj,i)=>{
+    const ev=EVENTS[inj.eventId];
+    const cfg=_bldGetConfig();
+    const totalDays=Math.max(1,Math.ceil(cfg.durationHours/24));
+    let dayOpts='';for(let d=0;d<totalDays;d++) dayOpts+=`<option value="${d}"${inj.dayOffset===d?' selected':''}>Día ${d+1}</option>`;
+    let hrOpts='';for(let h=0;h<24;h++) hrOpts+=`<option value="${h}"${inj.hour===h?' selected':''}>${String(h).padStart(2,'0')}:00</option>`;
+    const durOptions=[
+      {v:0,l:'Puntual'},{v:30,l:'30 min'},{v:60,l:'1 h'},{v:180,l:'3 h'},
+      {v:360,l:'6 h'},{v:720,l:'12 h'},{v:-1,l:'Personalizado'}
+    ];
+    let durOpts=durOptions.map(o=>`<option value="${o.v}"${inj.durationMin===o.v?' selected':''}>${o.l}</option>`).join('');
+    const paramHtml=ev.param?`<input type="range" min="${ev.param.min}" max="${ev.param.max}" step="${ev.param.step||1}" value="${inj.param??ev.param.def}" style="width:80px" oninput="_BLD_INJECTIONS[${i}].param=+this.value">`:'—';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><code style="font-size:11px">${inj.eventId}</code></td>
+      <td>${ev.label}</td>
+      <td><select onchange="_BLD_INJECTIONS[${i}].dayOffset=+this.value;_bldRenderTimeline()">${dayOpts}</select></td>
+      <td><select onchange="_BLD_INJECTIONS[${i}].hour=+this.value;_bldRenderTimeline()">${hrOpts}</select></td>
+      <td><select onchange="_BLD_INJECTIONS[${i}].durationMin=+this.value;_bldRenderTimeline()">${durOpts}</select></td>
+      <td>${paramHtml}</td>
+      <td><button class="bld-rmv" onclick="bldRemoveEvent(${i})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function _bldRenderTimeline(){
+  const tl=document.getElementById('bld-timeline');
+  if(!tl) return;
+  tl.innerHTML='';
+  try{
+    const cfg=_bldGetConfig();
+    const totalMin=cfg.durationHours*60;
+    _BLD_INJECTIONS.forEach(inj=>{
+      const startMin=inj.dayOffset*1440+inj.hour*60+inj.minute;
+      const pct=Math.min(99,startMin/totalMin*100);
+      const color=inj.eventId.startsWith('A')?'#3b82f6':inj.eventId.startsWith('B')?'#ef4444':'#f97316';
+      const mark=document.createElement('div');
+      mark.className='bld-tl-mark';
+      mark.style.cssText=`left:${pct}%;background:${color}`;
+      tl.appendChild(mark);
+      if(inj.durationMin>0){
+        const durPct=Math.min(100-pct,inj.durationMin/totalMin*100);
+        const dur=document.createElement('div');
+        dur.className='bld-tl-dur';
+        dur.style.cssText=`left:${pct}%;width:${durPct}%;background:${color}`;
+        tl.appendChild(dur);
+      }
+    });
+  }catch(e){}
+}
+function _bldRenderSummary(){
+  const el=document.getElementById('bld-summary');
+  if(!el) return;
+  try{
+    const cfg=_bldGetConfig();
+    const n=Math.floor(cfg.durationHours*60/cfg.intervalMin);
+    el.innerHTML=`<strong>${cfg.label}</strong> · ${BUILDER_COUNTRIES[cfg.country].label} ·
+      ${cfg.durationHours}h · cada ${cfg.intervalMin} min · <strong>${n} snapshots</strong> ·
+      escrutinio final ${cfg.scrutinyPct}% · ${_BLD_INJECTIONS.length} anomalías`;
+  }catch(e){el.textContent='Error al calcular resumen.';}
+}
+function _addToDatasetSelector(label,data){
+  const sel=document.getElementById('dataset-select');
+  let grp=document.getElementById('custom-datasets-group');
+  if(!grp){
+    grp=document.createElement('optgroup');
+    grp.label='Mis datasets';
+    grp.id='custom-datasets-group';
+    sel.insertBefore(grp,sel.firstChild);
+  }
+  grp.style.display='';
+  const key='__custom__'+Date.now();
+  _CUSTOM_DATASETS[key]=data;
+  const opt=new Option(label,key);
+  grp.appendChild(opt);
+  sel.value=key;
+}
+function bldUseInLab(){
+  try{
+    const cfg=_bldGetConfig();
+    _BLD_LAST_CONFIG=cfg;
+    const ds=_buildDataset(cfg);
+    _addToDatasetSelector(cfg.label,ds);
+    loadDataset('__custom__:inline',ds);
+    closeBuilder();
+    logE('OK',`Dataset "${cfg.label}" cargado — ${ds.snapshots.length} snapshots`);
+  }catch(e){alert('Error generando dataset: '+e.message);}
+}
+function bldDownloadDataset(){
+  try{
+    const cfg=_bldGetConfig();
+    const ds=_buildDataset(cfg);
+    const name=(cfg.label.replace(/[^a-z0-9\-_ ]/gi,'').trim()||'dataset')+'.json';
+    _blobDownload(JSON.stringify(ds,null,2),name,'application/json');
+  }catch(e){alert('Error: '+e.message);}
+}
+function bldDownloadSession(){
+  _BLD_LAST_CONFIG=_bldGetConfig();
+  saveLabSession();
+}
+
+// ===================== SAVE / LOAD SESSION =====================
+function saveLabSession(){
+  document.getElementById('save-session-name').value='';
+  document.getElementById('save-session-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('save-session-name').focus(),50);
+}
+function closeSaveSessionModal(){document.getElementById('save-session-overlay').classList.remove('open');}
+function confirmSaveSession(){
+  const name=document.getElementById('save-session-name').value.trim()||'sesion';
+  const session={
+    version:1,
+    saved_at:new Date().toISOString(),
+    label:name,
+    builder_config:_BLD_LAST_CONFIG??null,
+    dataset:SERIES,
+    thresholds:_exportThresholds(),
+    hypothesis:_getHypothesis?.()??null,
+    hypothesis_hash:_getHypothesisHash?.()??null
+  };
+  const filename=name.replace(/[^a-z0-9\-_ ]/gi,'').trim()||'sesion';
+  _blobDownload(JSON.stringify(session,null,2),filename+'.centinel-session.json','application/json');
+  closeSaveSessionModal();
+}
+function loadLabSession(input){
+  const file=input.files[0];if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const session=JSON.parse(e.target.result);
+      if(!session.version||!session.dataset) throw new Error('Formato inválido');
+      _BLD_LAST_CONFIG=session.builder_config??null;
+      _addToDatasetSelector(session.label??file.name,session.dataset);
+      loadDataset('__custom__:inline',session.dataset);
+      if(session.thresholds) _importThresholds(session.thresholds);
+      if(session.hypothesis&&typeof _restoreHypothesis==='function')
+        _restoreHypothesis(session.hypothesis,session.hypothesis_hash);
+      logE('OK',`Sesión cargada: ${session.label??file.name}`);
+    }catch(err){logE('CRITICAL','Error cargando sesión: '+err.message);}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+function _exportThresholds(){
+  const out={};
+  if(typeof TV!=='undefined') Object.assign(out,TV);
+  return out;
+}
+function _importThresholds(th){
+  if(typeof TV==='undefined'||typeof RULES_DEFS==='undefined') return;
+  RULES_DEFS.forEach(r=>{
+    if(th[r.id]!==undefined) TV[r.id]=th[r.id];
+  });
+  if(typeof renderThresholdSliders==='function') renderThresholdSliders();
+}
+function _getHypothesis(){
+  const el=document.getElementById('hypothesis-text');
+  return el?el.value:null;
+}
+function _getHypothesisHash(){
+  const h=_getHypothesis();
+  if(!h) return null;
+  let hash=0;
+  for(let i=0;i<h.length;i++){hash=(hash<<5)-hash+h.charCodeAt(i);hash|=0;}
+  return hash.toString(16);
+}
+function _restoreHypothesis(text){
+  const el=document.getElementById('hypothesis-text');
+  if(el) el.value=text;
+}
+function _blobDownload(content,filename,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
