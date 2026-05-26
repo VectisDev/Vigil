@@ -5,8 +5,20 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      country:
+        description: 'País a auditar / Country to audit'
+        required: false
+        type: choice
+        default: 'HN'
+        options:
+          - HN   # Honduras — CNE (production-ready, piloted 2025)
+          - GT   # Guatemala — TSE (configured)
+          - SV   # El Salvador — TSE (configured)
+          - NI   # Nicaragua — CSE (configured)
+          - MX   # México — INE (configured)
+          - CO   # Colombia — Registraduría (configured)
       election_url:
-        description: 'URL de la autoridad electoral a auditar (ej: https://resultados2029.cne.hn/)'
+        description: 'URL de la autoridad electoral (ej: https://resultados2029.cne.hn/)'
         required: false
         type: string
       ots_enabled:
@@ -15,7 +27,7 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '0 * * * *'  # hourly mientras haya un issue de setup abierto
+    - cron: '0 */6 * * *'  # cada 6 horas mientras haya un issue de setup abierto
 
 permissions:
   issues: write
@@ -27,7 +39,18 @@ jobs:
   wizard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Verify caller is repo owner
+        run: |
+          if [ "${{ github.actor }}" != "${{ github.repository_owner }}" ]; then
+            echo "❌ Acceso denegado."
+            echo "Solo el propietario del repositorio puede ejecutar el Setup Wizard."
+            echo "Actor:  ${{ github.actor }}"
+            echo "Owner:  ${{ github.repository_owner }}"
+            exit 1
+          fi
+          echo "✅ Verificado: ${{ github.actor }} es el propietario del repositorio."
+
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -54,7 +77,7 @@ jobs:
 
       - name: Open setup issue (token missing)
         if: steps.check.outputs.state == 'needs_token'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
         with:
           script: |
             const owner = context.repo.owner;
@@ -99,11 +122,14 @@ jobs:
                 '',
                 '**✅ Cuando termines los dos pasos, vuelve aquí y haz clic:**',
                 `**[→ Re-ejecutar el Setup Wizard](https://github.com/${owner}/${repo}/actions/workflows/setup-wizard.yml)**`,
-                '→ Clic en **"Run workflow"** → aparece un formulario:',
-                '  - **"URL de la autoridad electoral"** → pega la URL de la web oficial (ej: `https://resultados2029.cne.hn/`)',
+                '→ Clic en **"Run workflow"** → aparece un formulario con estas opciones:',
+                '  - **País a auditar** → selecciona tu país (ej: `HN` para Honduras)',
+                '  - **URL de la autoridad electoral** → pega la URL oficial (ej: `https://resultados2029.cne.hn/`)',
                 '  - Clic en **"Run workflow"**',
                 '',
-                'El wizard detectará los endpoints automáticamente desde esa URL y completará el setup.',
+                'El wizard detectará los endpoints automáticamente, generará los seeds de acceso y completará el setup.',
+                '',
+                '> Los seeds se subirán como artifact descargable en el propio run — el link aparecerá en este Issue al finalizar.',
               ].join('\n')
             });
 
@@ -121,7 +147,7 @@ jobs:
             "https://ntfy.sh/${CENTINEL_NTFY_TOPIC}" || true
       - name: Open token error issue
         if: startsWith(steps.check.outputs.state, 'error_4')
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
         with:
           script: |
             const owner = context.repo.owner;
@@ -180,33 +206,20 @@ jobs:
             -d "{\"name\":\"centinel-data\",\"description\":\"Datos públicos de auditoría electoral — publicados automáticamente por centinel-engine\",\"private\":false,\"auto_init\":true}" \
             "https://api.github.com/user/repos"
 
-          sleep 3  # wait for repo to initialize
-
-          # Push initial structure via GitHub API (tree + commit)
-          BASE_URL="https://api.github.com/repos/$REPO_OWNER/centinel-data"
-          AUTH="-H \"Authorization: Bearer $DATA_REPO_TOKEN\""
-
-          push_file() {
-            local path="$1"
-            local content_b64="$2"
-            curl -sS --fail \
-              -H "Authorization: Bearer $DATA_REPO_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"message\":\"init: $path\",\"content\":\"$content_b64\"}" \
-              "$BASE_URL/contents/$path" > /dev/null
-          }
-
-          # .gitkeep files for directories
-          EMPTY=$(echo -n "" | base64)
-          for dir in snapshots hashes diffs reports observer-packs; do
-            push_file "$dir/.gitkeep" "$EMPTY"
-          done
-
-          # ipfs-manifest.json
-          MANIFEST=$(echo -n '{"snapshots":[],"last_updated":null,"schema_version":"1.0"}' | base64 -w 0)
-          push_file "ipfs-manifest.json" "$MANIFEST"
+          sleep 5  # wait for repo to initialize with its first commit
 
           echo "repo_created=true" >> $GITHUB_OUTPUT
+
+      - name: Create organized department structure in centinel-data
+        if: steps.create_repo.outputs.repo_created == 'true'
+        env:
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          CENTINEL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          CENTINEL_YEAR: "2025"
+        run: |
+          pip install -q pyyaml 2>/dev/null || true
+          python3 .github/scripts/wizard_repo_structure.py
 
       - name: Initialize centinel-data workflows
         if: steps.create_repo.outputs.repo_created == 'true'
@@ -238,7 +251,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Pin to IPFS via Pinata
-        if: ${{ toJSON(secrets.PINATA_JWT) != '"'"'null'"'"' }}
+        if: ${{ secrets.PINATA_JWT != '' }}
         env:
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
         run: |
@@ -332,7 +345,7 @@ jobs:
 
       - name: Open Pages setup issue (if auto-enable failed)
         if: steps.pages.outputs.pages_enabled == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
         with:
           script: |
             const owner = context.repo.owner;
@@ -405,8 +418,50 @@ PYEOF
           git config user.name "centinel-bot"
           git config user.email "bot@centinel.app"
           git add config/prod/endpoints.yaml
-          git diff --cached --quiet || git commit -m "config: set election URL to $ELECTION_URL"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "config: set election URL to $ELECTION_URL"
+            git pull --rebase origin main || true
+            git push
+          fi
+
+      - name: Write country config
+        if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
+        env:
+          CENTINEL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          CENTINEL_YEAR: "2025"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          pip install -q pyyaml 2>/dev/null || true
+          python3 .github/scripts/wizard_config.py
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add command_center/config.yaml config/prod/endpoints.yaml web/data/departments.json
+          git diff --cached --quiet || git commit -m "config: set country=$CENTINEL_COUNTRY — endpoints, sources, departments.json"
+
+      - name: Generate seeds and access.json
+        if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
+        id: seeds
+        env:
+          CENTINEL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 .github/scripts/wizard_seeds.py
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add web/access.json
+          git diff --cached --quiet || git commit -m "security: generate seeds hashes (PBKDF2-SHA256 x600K)"
+
+      - name: Upload seeds artifact (expires 24h — download immediately)
+        if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
+        uses: actions/upload-artifact@v4
+        with:
+          name: centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA
+          path: /tmp/centinel-seeds.txt
+          retention-days: 1
 
       - name: Finalize README and deploy panel
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
@@ -423,8 +478,8 @@ PYEOF
           sed -i "s|<!-- CENTINEL_PAGES_URL -->.*<!-- /CENTINEL_PAGES_URL -->|<!-- CENTINEL_PAGES_URL -->${PAGES_LINK}<!-- /CENTINEL_PAGES_URL -->|" README.md
 
           # In forks: update CI badge + replace INSTANCE-STATUS with live status
-          ORIGINAL_OWNER="userf8a2c4"
-          ORIGINAL_REPO="centinel-engine"
+          ORIGINAL_OWNER="vectisdev"
+          ORIGINAL_REPO="centinel"
           if [ "$REPO_OWNER" != "$ORIGINAL_OWNER" ] || [ "$REPO_NAME" != "$ORIGINAL_REPO" ]; then
             sed -i "s|github.com/${ORIGINAL_OWNER}/${ORIGINAL_REPO}/actions|github.com/${REPO_OWNER}/${REPO_NAME}/actions|g" README.md
             python3 - "$REPO_OWNER" "$REPO_NAME" <<'PYEOF'
@@ -453,8 +508,11 @@ PYEOF
           git config user.name "centinel-bot"
           git config user.email "bot@centinel.app"
           git add README.md
-          git diff --cached --quiet || git commit -m "setup: activate instance, transform guide to live status"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "setup: activate instance, transform guide to live status"
+            git pull --rebase origin main || true
+            git push || true
+          fi
 
           # Trigger panel deployment so it's live without needing a manual push
           curl -sS \
@@ -465,7 +523,7 @@ PYEOF
 
       - name: OTS anchoring — setup info
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
         with:
           script: |
             const owner = context.repo.owner;
@@ -511,7 +569,7 @@ PYEOF
 
       - name: Close setup issue
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
         with:
           script: |
             const owner = context.repo.owner;
@@ -522,14 +580,21 @@ PYEOF
               owner, repo, labels: 'centinel-setup', state: 'open'
             });
             for (const issue of setupIssues.data) {
+              const runId = context.runId;
               await github.rest.issues.createComment({
                 owner, repo,
                 issue_number: issue.number,
                 body: [
                   '✅ **Setup completado.**',
                   '',
-                  `- Repositorio de datos: https://github.com/${owner}/centinel-data`,
-                  `- Panel: https://${owner}.github.io/${repo}/`,
+                  `**🔐 Seeds de acceso (artifact):**`,
+                  `→ [Descargar seeds — expira en 24h](https://github.com/${owner}/${repo}/actions/runs/${runId})`,
+                  `  Abre el link, baja hasta "Artifacts" y descarga \`centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA\`.`,
+                  `  Guárdalo offline. El sistema solo conserva los hashes — si lo pierdes, regenera desde el panel OPS.`,
+                  '',
+                  `**📊 Panel público:** https://${owner}.github.io/${repo}/`,
+                  `**🔧 Panel OPS:** https://${owner}.github.io/${repo}/ops/`,
+                  `**💾 Repositorio de datos:** https://github.com/${owner}/centinel-data`,
                   '',
                   'El panel se está desplegando ahora — estará disponible en unos minutos.',
                 ].join('\n')

@@ -109,7 +109,7 @@ from src.monitoring.strict_health import (
     is_healthy_strict,
 )
 
-from centinel_engine.cne_endpoint_healer import CNEEndpointHealer, run_endpoint_healer
+from centinel_engine.electoral_authority_healer import CNEEndpointHealer, run_endpoint_healer
 
 if importlib.util.find_spec("rich"):
     from rich.console import Console
@@ -498,7 +498,32 @@ def _update_env_file(path: Path, updates: dict[str, str]) -> None:
     for key, value in remaining.items():
         updated_lines.append(f"{key}={value}")
 
-    path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
+    content = "\n".join(updated_lines) + "\n"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    tmp_path.write_text(content, encoding="utf-8")
+    os.chmod(tmp_path, 0o600)
+    os.replace(tmp_path, path)
+    os.chmod(path, 0o600)
+
+
+def _build_env_secrets_fernet() -> Fernet:
+    """Build Fernet instance for encrypting sensitive values persisted to .env."""
+
+    master_key = os.getenv("CENTINEL_MASTER_KEY")
+    if not master_key:
+        raise RuntimeError("CENTINEL_MASTER_KEY no está configurada; no se pueden cifrar secretos de .env.")
+    try:
+        return Fernet(master_key.encode("utf-8"))
+    except Exception as exc:  # pragma: no cover - defensive
+        raise RuntimeError("CENTINEL_MASTER_KEY inválida; debe ser una clave Fernet válida.") from exc
+
+
+def _encrypt_env_secret(value: str) -> str:
+    """Encrypt a secret value before persisting it in .env."""
+
+    token = _build_env_secrets_fernet().encrypt(value.encode("utf-8")).decode("utf-8")
+    return f"ENC({token})"
 
 
 def command_rotate_keys(runtime: RuntimeConfig, logger: logging.Logger) -> None:
@@ -519,8 +544,8 @@ def command_rotate_keys(runtime: RuntimeConfig, logger: logging.Logger) -> None:
     _update_env_file(
         env_path,
         {
-            "CENTINEL_CHECKPOINT_SECRET": new_secret,
-            "CENTINEL_CHECKPOINT_SALT": new_salt,
+            "CENTINEL_CHECKPOINT_SECRET": _encrypt_env_secret(new_secret),
+            "CENTINEL_CHECKPOINT_SALT": _encrypt_env_secret(new_salt),
         },
     )
 
@@ -683,12 +708,10 @@ def ensure_recent_proactive_scan(logger: logging.Logger, max_age_minutes: int = 
     logger.info("🩺 Ejecutando proactive endpoint scan previo a fetch/auditoría")
     result = healer.heal_proactive(force=True)
     logger.info(
-        "🧾 Proactive endpoint scan ejecutado: status=%s mode=%s interval=%s trusted=%s safe_mode=%s",
+        "🧾 Proactive endpoint scan ejecutado: status=%s mode=%s interval=%s",
         result.get("scan_status", "unknown"),
         result.get("animal_mode", "normal"),
         result.get("recommended_interval_minutes", "n/a"),
-        result.get("trusted_for_production", False),
-        result.get("safe_mode_active", False),
     )
     return result
 

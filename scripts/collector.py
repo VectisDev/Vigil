@@ -77,7 +77,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from core.security_utils import is_safe_outbound_url, pin_dns_resolution, resolve_outbound_target
+from centinel.defense.security_utils import is_safe_outbound_url, pin_dns_resolution, resolve_outbound_target
 
 import requests
 import urllib3

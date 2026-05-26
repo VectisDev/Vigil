@@ -530,9 +530,10 @@ def _check_paused_flag() -> dict[str, Any]:
         try:
             content = path.read_text(encoding="utf-8").strip()
         except OSError as exc:
+            logger.exception("paused_flag_read_failed path=%s error=%s", path, exc)
             return {
                 "ok": False,
-                "message": f"paused_flag_read_failed error={exc}",
+                "message": "paused_flag_read_failed",
                 "path": str(path),
             }
         if not content:
@@ -649,7 +650,7 @@ async def _health_response() -> tuple[bool, dict[str, Any]]:
             "healthy": False,
             "timestamp": _now_utc().isoformat().replace("+00:00", "Z"),
             "failures": ["strict_healthcheck_exception"],
-            "checks": {"exception": {"ok": False, "message": str(exc)}},
+            "checks": {"exception": {"ok": False, "message": "internal_error"}},
         }
         _record_diagnostic(diagnostics)
         return False, diagnostics

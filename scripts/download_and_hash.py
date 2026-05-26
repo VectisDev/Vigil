@@ -90,7 +90,7 @@ import logging
 import os
 import random
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
@@ -113,8 +113,8 @@ from centinel.paths import (
     snapshot_filename,
 )
 from scripts.circuit_breaker import CircuitBreaker
-from core.fetcher import build_rotating_request_profile
-from core.hasher import trigger_post_hash_backup
+from centinel.defense.fetcher import build_rotating_request_profile
+from centinel.defense.hasher import trigger_post_hash_backup
 
 from monitoring.health import get_health_state
 from scripts.logging_utils import configure_logging, log_event
@@ -129,6 +129,85 @@ TEMP_DIR = Path("data") / "temp"
 CHECKPOINT_PATH = TEMP_DIR / "download_checkpoint.json"
 BREAKER_STATE_PATH = TEMP_DIR / "circuit_breaker_state.json"
 DEFAULT_RETRY_CONFIG_PATH = "config/prod/retry_config.yaml"
+
+# ES: Directorio de throttle por fuente. Los archivos aquí bloquean el scraping de
+#     esa fuente hasta que expire el timestamp, protegiendo el endpoint CNE.
+# EN: Per-source throttle directory. Files here block scraping of that source
+#     until the timestamp expires, protecting the CNE endpoint.
+_THROTTLE_DIR = Path("data") / ".throttle"
+_THROTTLE_MINUTES = int(os.getenv("CENTINEL_THROTTLE_MINUTES", "30"))
+
+# ES: URL de la API local del nodo para coordinación cooperativa.
+#     CENTINEL_SCRAPE_TTL_MINUTES: si otro nodo del enjambre raspó esta fuente
+#     hace menos de TTL minutos, este nodo la salta (protege el endpoint CNE).
+# EN: Local node API URL for cooperative coordination.
+#     CENTINEL_SCRAPE_TTL_MINUTES: if another swarm node scraped this source
+#     less than TTL minutes ago, this node skips it (protects CNE endpoint).
+_CENTINEL_API_URL = os.getenv("CENTINEL_API_URL", "http://localhost:8080").rstrip("/")
+_SCRAPE_TTL_MINUTES = int(os.getenv("CENTINEL_SCRAPE_TTL_MINUTES", "55"))
+
+
+def _is_throttled(source_id: str) -> bool:
+    """True si hay un throttle activo no expirado para esta fuente.
+    EN: True if a non-expired throttle marker exists for this source."""
+    path = _THROTTLE_DIR / f"{source_id}.json"
+    if not path.exists():
+        return False
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        until = datetime.fromisoformat(data["until_utc"])
+        return datetime.now(timezone.utc) < until
+    except Exception:
+        return False
+
+
+def _write_throttle(source_id: str, reason: str = "429") -> None:
+    """Escribe marker de throttle por fuente. / Writes per-source throttle marker."""
+    _THROTTLE_DIR.mkdir(parents=True, exist_ok=True)
+    until = datetime.now(timezone.utc) + timedelta(minutes=_THROTTLE_MINUTES)
+    (_THROTTLE_DIR / f"{source_id}.json").write_text(
+        json.dumps({"source_id": source_id, "until_utc": until.isoformat(), "reason": reason}),
+        encoding="utf-8",
+    )
+    logger.warning(
+        "source_throttled source=%s until=%s reason=%s minutes=%d",
+        source_id, until.isoformat(), reason, _THROTTLE_MINUTES,
+    )
+
+
+def _is_recently_scraped_by_swarm(source_id: str) -> bool:
+    """True se otro nodo ya raspó esta fuente dentro del TTL. / True if another node scraped within TTL.
+
+    Fail-open: any network or API error returns False so this node scrapes normally.
+    """
+    try:
+        resp = requests.get(
+            f"{_CENTINEL_API_URL}/api/swarm/last_scraped",
+            params={"source_id": source_id},
+            timeout=2,
+        )
+        if resp.status_code != 200:
+            return False
+        scraped_at_str = resp.json().get("scraped_at_utc")
+        if not scraped_at_str:
+            return False
+        scraped_at = datetime.fromisoformat(scraped_at_str)
+        age_minutes = (datetime.now(timezone.utc) - scraped_at).total_seconds() / 60
+        return age_minutes < _SCRAPE_TTL_MINUTES
+    except Exception:
+        return False
+
+
+def _report_scrape_to_swarm(source_id: str, content_hash: str) -> None:
+    """Best-effort: notify the local swarm engine that this node scraped source_id."""
+    try:
+        requests.post(
+            f"{_CENTINEL_API_URL}/api/swarm/report_scrape",
+            json={"source_id": source_id, "content_hash": content_hash},
+            timeout=2,
+        )
+    except Exception:
+        pass  # Non-critical; the snapshot is already persisted
 
 
 def resolve_config_path(config_path_override: str | None = None) -> str:
@@ -426,7 +505,7 @@ def _is_cne_endpoint(endpoint: str, config: dict[str, Any]) -> bool:
     y, opcionalmente, validacion de resolucion a IP publica (mitigando DNS
     rebinding y spoofing por substring).
     """
-    from core.security_utils import is_safe_outbound_url
+    from centinel.defense.security_utils import is_safe_outbound_url
 
     domains = config.get("cne_domains") or ["cne.hn"]
     enforce_public_ip = bool(config.get("enforce_public_ip_resolution", True))
@@ -495,6 +574,7 @@ def process_sources(
     hash_root.mkdir(exist_ok=True)
 
     health_state = get_health_state()
+    _force_full = os.getenv("CENTINEL_FORCE_FULL_CYCLE", "0") == "1"
     retry_payload = resolve_retry_policy(config)
     retry_config = retry_payload["retry_config"]
     structured_logger = StructuredLogger("centinel.download")
@@ -531,6 +611,30 @@ def process_sources(
                 logger.info("Snapshot reciente detectado, se omite descarga: %s", source_label)
                 continue
 
+            # ES: Back-off por fuente — salta si el CNE respondió con 429/503 recientemente.
+            #     Deshabilitado en cierre electoral (necesitamos raspar todo igualmente).
+            # EN: Per-source back-off — skip if CNE responded with 429/503 recently.
+            #     Disabled during election close (we must scrape everything regardless).
+            if not _force_full and _is_throttled(source_id):
+                logger.info("source_throttle_active source=%s — skipping until throttle expires", source_id)
+                continue
+
+            # ES: Salto cooperativo — deshabilitado en cierre electoral (cada nodo
+            #     produce su propio raspe final independiente como evidencia adicional).
+            # EN: Cooperative skip — disabled during election close (each node produces
+            #     its own independent final scrape as additional evidence).
+            if not _force_full and _is_recently_scraped_by_swarm(source_id):
+                logger.info("cooperative_skip source=%s — recently scraped by swarm node, skipping", source_id)
+                processed_sources.add(source_label)
+                _save_checkpoint(previous_hash, processed_sources)
+                continue
+
+            # ES: Jitter entre fuentes — suaviza la ráfaga intra-nodo (default 0.8-1.2s por fuente).
+            # EN: Inter-source jitter — smooths intra-node burst (default 0.8-1.2s per source).
+            _inter_jitter = float(config.get("inter_source_jitter_seconds", 1.0))
+            if _inter_jitter > 0:
+                time.sleep(random.uniform(_inter_jitter * 0.8, _inter_jitter * 1.2))
+
             now = datetime.now(timezone.utc)
             if not breaker.allow_request(now):
                 if breaker.should_log_open_wait(now):
@@ -563,6 +667,11 @@ def process_sources(
                 )
             except Exception as e:
                 logger.error("Fallo al descargar %s: %s", endpoint, e)
+                # ES: Si el CNE responde 429/503, escribir throttle por fuente para no sobrecargarla.
+                # EN: If CNE responds 429/503, write per-source throttle to avoid overloading it.
+                _err = str(e)
+                if "429" in _err or "503" in _err or "Too Many" in _err:
+                    _write_throttle(source_id, reason="429" if "429" in _err else "503")
                 # Distinguish "the authority is down" from "someone is
                 # cutting us": diagnose the failure mode and record a
                 # signed, append-only degradation event. Best-effort and
@@ -628,6 +737,23 @@ def process_sources(
                 had_errors = True
                 continue
 
+            # ES: Validación de schema CNE antes de persistir — detecta respuestas envenenadas
+            #     o cambios de API. CENTINEL_STRICT_VALIDATION=1 rechaza; default solo advierte.
+            # EN: CNE schema validation before persisting — detects poisoned responses or API
+            #     changes. CENTINEL_STRICT_VALIDATION=1 rejects; default warns only.
+            try:
+                from centinel.core.normalize import validate_cne_response as _validate_cne
+                _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
+                if isinstance(_raw_for_validation, dict):
+                    _cne_errors = _validate_cne(_raw_for_validation, source_id)
+                    if _cne_errors and os.getenv("CENTINEL_STRICT_VALIDATION", "0") == "1":
+                        logger.error("suspect_response_rejected source=%s errors=%s",
+                                     source_id, _cne_errors)
+                        had_errors = True
+                        continue
+            except Exception as _val_exc:
+                logger.debug("cne_validation_skipped source=%s error=%s", source_id, _val_exc)
+
             normalized_payload = payload if isinstance(payload, list) else [payload]
             snapshot_payload = {
                 "timestamp": datetime.now().isoformat(),
@@ -660,8 +786,27 @@ def process_sources(
                 chained_hash,
                 source_label,
             )
+            # ES: Notificar al enjambre que esta fuente ya fue raspada exitosamente.
+            # EN: Notify swarm that this source was successfully scraped.
+            _report_scrape_to_swarm(source_id, current_hash)
     finally:
         session.close()
+
+    # ES: Política de cobertura — solo log. Umbrales: <82% CRITICAL, 82-89% ELEVATED, ≥90% HIGH_TRUST.
+    # EN: Coverage policy — logging only. Thresholds: <82% CRITICAL, 82-89% ELEVATED, ≥90% HIGH_TRUST.
+    _total_sources = min(len(sources), max_sources)
+    if _total_sources > 0:
+        _pct = len(processed_sources) / _total_sources * 100
+        if _pct < 82:
+            logger.critical("swarm_coverage pct=%.1f%% status=CRITICAL covered=%d/%d",
+                            _pct, len(processed_sources), _total_sources)
+        elif _pct < 90:
+            logger.warning("swarm_coverage pct=%.1f%% status=ELEVATED covered=%d/%d",
+                           _pct, len(processed_sources), _total_sources)
+        else:
+            logger.info("swarm_coverage pct=%.1f%% status=HIGH_TRUST covered=%d/%d",
+                        _pct, len(processed_sources), _total_sources)
+
     if not had_errors:
         _clear_checkpoint()
 
@@ -992,6 +1137,12 @@ def main() -> None:
         action="store_true",
         help="Modo mock para CI - no intenta fetch real",
     )
+    parser.add_argument(
+        "--force-full-cycle",
+        action="store_true",
+        dest="force_full_cycle",
+        help="Ciclo forzado: borra checkpoint, ignora throttle y salto cooperativo. Usado en cierre electoral.",
+    )
     args = parser.parse_args()
 
     config = load_config()
@@ -1011,6 +1162,16 @@ def main() -> None:
         log_event(logger, logging.INFO, "download_complete")
         return
 
+    if args.force_full_cycle:
+        # ES: Cierre electoral — ciclo completo forzado. Borra checkpoint para empezar
+        #     desde cero, e indica a process_sources que ignore throttle y salto cooperativo.
+        # EN: Election close — forced full cycle. Clears checkpoint to start fresh,
+        #     and tells process_sources to bypass throttle and cooperative skip.
+        _clear_checkpoint()
+        os.environ["CENTINEL_FORCE_FULL_CYCLE"] = "1"
+        logger.info("force_full_cycle_start: checkpoint cleared, throttle+cooperative skip disabled")
+        log_event(logger, logging.INFO, "election_finalize_start")
+
     logger.info("Modo real activado - procediendo con fetch al CNE")
     sources = config.get("sources", [])
     if not sources:
@@ -1018,10 +1179,40 @@ def main() -> None:
         health_state.record_failure(critical=True)
         raise ValueError("No sources defined in command_center/config.yaml")
 
+    # ES: Jitter de inicio de ciclo — omitido en cierre electoral (necesitamos velocidad).
+    # EN: Cycle jitter — skipped during forced full cycle (we need speed).
+    _cycle_jitter = float(os.getenv("CENTINEL_SCRAPE_JITTER_SECONDS", "30"))
+    if _cycle_jitter > 0 and not args.force_full_cycle:
+        _jitter_delay = random.uniform(0.0, _cycle_jitter)
+        logger.info("scrape_cycle_jitter delay_s=%.1f max_s=%.1f", _jitter_delay, _cycle_jitter)
+        time.sleep(_jitter_delay)
+
+    # ES: Filtro de fuentes activas — valida contra source_ids del config. Fail-safe: si todos
+    #     los IDs pedidos son inválidos, raspa todo y emite WARNING.
+    # EN: Active sources filter — validates against config source_ids. Fail-safe: if all
+    #     requested IDs are invalid, scrapes everything and emits WARNING.
+    _active_env = os.getenv("CENTINEL_ACTIVE_SOURCES", "").strip()
+    if _active_env:
+        _known_ids = {resolve_source_id(s) for s in sources}
+        _requested = {sid.strip() for sid in _active_env.split(",") if sid.strip()}
+        _unknown = _requested - _known_ids
+        if _unknown:
+            logger.warning("active_sources_unknown ids=%s — these will be ignored", sorted(_unknown))
+        _active_set = _requested & _known_ids
+        if _active_set:
+            sources = [s for s in sources if resolve_source_id(s) in _active_set]
+            logger.info("active_sources_filter count=%d/%d ids=%s",
+                        len(sources), len(_known_ids), sorted(_active_set))
+        else:
+            logger.warning("active_sources_empty — all requested IDs unknown; scraping all %d sources",
+                           len(sources))
+
     endpoints = config.get("endpoints", {})
     process_sources(sources, endpoints, config)
     logger.info("Proceso completado")
     log_event(logger, logging.INFO, "download_complete")
+    if args.force_full_cycle:
+        log_event(logger, logging.INFO, "election_finalize_complete")
 
 
 if __name__ == "__main__":
