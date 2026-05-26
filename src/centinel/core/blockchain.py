@@ -256,7 +256,7 @@ def _send_payload_to_chain(web3: "Web3", chain_id: int, private_key: str, payloa
     tx["gas"] = web3.eth.estimate_gas(tx)
     tx["gasPrice"] = web3.eth.gas_price
     signed = account.sign_transaction(tx)
-    tx_hash = web3.eth.send_raw_transaction(signed.rawTransaction)
+    tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
     return web3.to_hex(tx_hash)
 
 

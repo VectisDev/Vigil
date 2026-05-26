@@ -80,7 +80,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from centinel_engine.config_loader import load_config
 
-from core import logger as core_logger
+from centinel.defense import logger as core_logger
 
 SENSITIVE_FIELDS = {
     "votos",

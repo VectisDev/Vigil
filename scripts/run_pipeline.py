@@ -96,11 +96,11 @@ import random
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
-from core import logger as core_logger
-from core.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
+from centinel.defense import logger as core_logger
+from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
 from scripts.circuit_breaker import CircuitBreaker
-from core.security import DefensiveSecurityManager, DefensiveShutdown, SecurityConfig
-from core.advanced_security import load_manager
+from centinel.defense.security import DefensiveSecurityManager, DefensiveShutdown, SecurityConfig
+from centinel.defense.advanced_security import load_manager
 from centinel.paths import iter_all_hashes, iter_all_snapshots
 from scripts.download_and_hash import is_master_switch_on, normalize_master_switch
 from scripts.logging_utils import configure_logging, log_event
@@ -548,6 +548,95 @@ def build_alerts(anomalies, *, severity: str = "HIGH"):
     ]
 
 
+def _swarm_local_url() -> str:
+    return os.getenv("CENTINEL_MY_URL", "http://localhost:8080").rstrip("/")
+
+
+def _broadcast_anomaly_findings(
+    critical_anomalies: list[dict[str, Any]],
+    *,
+    run_id: str,
+    snapshot_id: str,
+) -> None:
+    """POST critical anomalies to the local swarm API for federation broadcast."""
+    if not critical_anomalies:
+        return
+    endpoint = f"{_swarm_local_url()}/api/swarm/broadcast"
+    for anomaly in critical_anomalies:
+        rule = str(anomaly.get("type", "anomaly")).lower()
+        payload = {
+            "finding_type": "rule_violation",
+            "severity": "CRITICAL",
+            "rule_key": rule,
+            "summary": str(anomaly.get("description", ""))[:200],
+            "snapshot_id": snapshot_id,
+        }
+        try:
+            requests.post(endpoint, json=payload, timeout=2)
+        except Exception:
+            pass
+
+
+def _broadcast_throttle_findings() -> None:
+    """Broadcast active per-source throttle markers as source_throttle findings.
+
+    ES: Escanea data/.throttle/ y notifica al enjambre de cada fuente activamente
+        throttleada, para que otros nodos también pausen esa fuente.
+    EN: Scans data/.throttle/ and notifies the swarm of each actively throttled
+        source so other nodes also pause scraping it.
+    """
+    throttle_dir = Path("data") / ".throttle"
+    if not throttle_dir.exists():
+        return
+    endpoint = f"{_swarm_local_url()}/api/swarm/broadcast"
+    now = datetime.now(timezone.utc)
+    for f in throttle_dir.glob("*.json"):
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            until = datetime.fromisoformat(data["until_utc"])
+            if now >= until:
+                continue  # throttle expired — skip
+            requests.post(endpoint, json={
+                "finding_type": "source_throttle",
+                "severity": "HIGH",
+                "rule_key": data["source_id"],
+                "summary": (
+                    f"Source throttled until {data['until_utc']} "
+                    f"(reason: {data.get('reason', '?')})"
+                )[:200],
+                "snapshot_id": "",
+            }, timeout=3)
+        except Exception:
+            pass
+
+
+def _make_swarm_attack_hook() -> Any:
+    """Return a callback for AttackLogConfig.finding_broadcast_hook.
+
+    The hook converts an attack event dict to a FindingPayload and POSTs it to
+    the local swarm broadcast endpoint so the gossip engine signs and fans it out.
+    """
+    endpoint = f"{_swarm_local_url()}/api/swarm/broadcast"
+
+    def hook(event: dict[str, Any]) -> None:
+        payload = {
+            "finding_type": "swarm_attack",
+            "severity": "HIGH",
+            "rule_key": event.get("classification", "unknown"),
+            "summary": (
+                f"{event.get('classification')} ip={event.get('ip','?')} "
+                f"route={event.get('route','?')}"
+            )[:200],
+            "snapshot_id": "",
+        }
+        try:
+            requests.post(endpoint, json=payload, timeout=2)
+        except Exception:
+            pass
+
+    return hook
+
+
 def emit_critical_alerts(
     critical_anomalies: list[dict[str, Any]],
     config: dict[str, Any],
@@ -985,6 +1074,12 @@ def run_pipeline(config: dict[str, Any]) -> None:
         alerts = build_alerts(critical_anomalies, severity="CRITICAL")
         (ANALYSIS_DIR / "alerts.json").write_text(json.dumps(alerts, indent=2), encoding="utf-8")
         emit_critical_alerts(critical_anomalies, config, run_id=run_id)
+        _broadcast_anomaly_findings(
+            critical_anomalies,
+            run_id=run_id,
+            snapshot_id=content_hash or "",
+        )
+        _broadcast_throttle_findings()
         if critical_anomalies:
             _trigger_emergency_publish(reason="critical_anomaly")
 
@@ -1409,6 +1504,7 @@ def main():
     args = parser.parse_args()
     config = load_pipeline_config()
     attack_config = AttackLogConfig.from_yaml(ATTACK_CONFIG_PATH)
+    attack_config.finding_broadcast_hook = _make_swarm_attack_hook()
     attack_logbook = AttackForensicsLogbook(attack_config)
     attack_logbook.start()
     honeypot = HoneypotServer(attack_config, attack_logbook)

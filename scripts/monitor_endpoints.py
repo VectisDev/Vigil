@@ -23,7 +23,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from centinel_engine.cne_endpoint_healer import CNEEndpointHealer
+from centinel_engine.electoral_authority_healer import CNEEndpointHealer
 
 
 def build_parser() -> argparse.ArgumentParser:

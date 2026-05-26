@@ -2,11 +2,11 @@ name: Deploy web verifier to GitHub Pages
 
 # El setup-wizard activa Pages automáticamente al hacer fork.
 # Si falla, abre un Issue con un link directo a Settings → Pages.
-# URL: https://<owner>.github.io/centinel-engine/
+# URL: https://vectisdev.github.io/centinel/
 on:
   push:
-    branches: [main, dev-v10, dev-v9]
-    paths: ["web/**", ".github/workflows/pages.yml", "tests/fixtures/hnd_2025/**", "scripts/calibrate_2025.py", "scripts/generate_hnd_2025_series.py"]
+    branches: [main]
+    paths: ["web/**", ".github/workflows/pages.yml", "tests/fixtures/hnd_2025/**", "scripts/calibrate_2025.py", "scripts/generate_country_series.py"]
   workflow_dispatch:
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
         continue-on-error: true  # deploy even if calibration fails (static JSON still in repo)
 
       - name: Generate HND-2025 time-series for panel replay
-        run: python scripts/generate_hnd_2025_series.py
+        run: python scripts/generate_country_series.py
         continue-on-error: true  # deploy even if generation fails (static JSON still in repo)
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5

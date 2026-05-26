@@ -9,6 +9,12 @@ on:
 permissions:
   contents: read
 
+# Cancel any in-progress run before starting a new one.
+# Prevents minute pile-up if a run takes longer than the schedule interval.
+concurrency:
+  group: centinel-pipeline
+  cancel-in-progress: true
+
 jobs:
   collector:
     runs-on: ubuntu-latest
@@ -32,6 +38,13 @@ jobs:
           env | sort | head -n 40
           ls -la
           ls -la data || true
+      - name: Check election closed
+        run: |
+          if [ -f ELECTION_CLOSED ]; then
+            echo "ELECTION_CLOSED marker found — ciclo electoral terminado. Pipeline detenido."
+            exit 0
+          fi
+
       - name: Run collector
         run: |
           if ! poetry run python -m scripts.collector; then

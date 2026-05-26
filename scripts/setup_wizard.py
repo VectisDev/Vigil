@@ -9,8 +9,12 @@ Uso / Usage:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
+import secrets
+import string
 import sys
 from pathlib import Path
 
@@ -18,6 +22,28 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_YAML = REPO_ROOT / "command_center" / "config.yaml"
 ENV_FILE = REPO_ROOT / ".env"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
+ACCESS_JSON = REPO_ROOT / "web" / "access.json"
+
+SEED1_SALT = "centinel-admin-salt-v1"
+SEED1_ITERS = 600_000
+SEED1_LABELS = list("ABCDEFGHIJKL")
+
+_COUNTRY_LABELS = {
+    "HN": "Honduras        (CNE — production-ready)",
+    "GT": "Guatemala       (TSE — configured)",
+    "SV": "El Salvador     (TSE — configured)",
+    "NI": "Nicaragua       (CSE — configured)",
+    "MX": "Mexico          (INE — configured)",
+    "CO": "Colombia        (Registraduría — configured)",
+}
+_DEFAULT_URLS = {
+    "HN": "https://resultadosgenerales2025.cne.hn",
+    "GT": "https://resultados.tse.org.gt",
+    "SV": "https://resultados.tse.gob.sv",
+    "NI": "https://resultados.cse.gob.ni",
+    "MX": "https://prep2024.ine.mx",
+    "CO": "https://resultados.registraduria.gov.co",
+}
 
 # ── Terminal helpers ──────────────────────────────────────────────────────────
 
@@ -80,9 +106,7 @@ def _ask_yn(prompt: str, default: bool = True) -> bool:
 
 
 def _ask_choice(prompt: str, choices: list[str], default: str) -> str:
-    options = " / ".join(
-        _c(BOLD, c) if c == default else c for c in choices
-    )
+    options = " / ".join(_c(BOLD, c) if c == default else c for c in choices)
     print(f"  {prompt}")
     print(f"    Opciones: {options}")
     while True:
@@ -99,10 +123,10 @@ def _ask_choice(prompt: str, choices: list[str], default: str) -> str:
 def _update_yaml_line(content: str, key: str, new_value: str) -> str:
     """Replace a top-level YAML key value, preserving inline comments."""
     pattern = rf'^({re.escape(key)}:\s*)("?[^#\n]*?)(\s*(?:#[^\n]*)?)\s*$'
-    if '"' in new_value or ' ' in new_value:
+    if '"' in new_value or " " in new_value:
         replacement = rf'\g<1>"{new_value}"\g<3>'
     else:
-        replacement = rf'\g<1>{new_value}\g<3>'
+        replacement = rf"\g<1>{new_value}\g<3>"
     updated, count = re.subn(pattern, replacement, content, count=1, flags=re.MULTILINE)
     if count == 0:
         # Key not found — append it
@@ -141,7 +165,7 @@ def _save_env(path: Path, env: dict[str, str], example: Path) -> None:
                     # Preserve inline comment if present
                     comment_part = ""
                     if "#" in stripped:
-                        comment_part = "  " + stripped[stripped.index("#"):]
+                        comment_part = "  " + stripped[stripped.index("#") :]
                     result.append(f"{k}={env[k]}{comment_part}")
                     written.add(k)
                     continue
@@ -156,14 +180,83 @@ def _save_env(path: Path, env: dict[str, str], example: Path) -> None:
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+# ── Seed 1 generation ────────────────────────────────────────────────────────
+
+
+def _generate_seed1() -> None:
+    """Generate Seed 1 (S1-A … S1-L) and write web/access.json."""
+    _header("SEED 1 — Generación de accesos de administrador")
+    print("  Se generarán 12 seeds de acceso (S1-A … S1-L).")
+    print("  Cada seed tiene 24 caracteres alfanuméricos.")
+    print("  Los hashes PBKDF2-SHA256 se guardan en web/access.json.")
+    print("  LOS SEEDS REALES no se guardan en el repo — cópialos ahora.")
+    print()
+
+    if ACCESS_JSON.exists():
+        if not _ask_yn("¿Regenerar access.json existente? (esto invalida seeds anteriores)", default=False):
+            _note("Generación de Seed 1 omitida.")
+            return
+
+    alphabet = string.ascii_letters + string.digits
+    seeds: dict[str, str] = {}
+    hashes: dict[str, str] = {}
+
+    for label in SEED1_LABELS:
+        seed = "".join(secrets.choice(alphabet) for _ in range(24))
+        dk = hashlib.pbkdf2_hmac("sha256", seed.encode(), SEED1_SALT.encode(), SEED1_ITERS)
+        key = f"S1-{label}"
+        seeds[key] = seed
+        hashes[key] = dk.hex()
+
+    width = 58
+    print()
+    print(_c(BOLD, "  " + "═" * width))
+    print(_c(BOLD, "  ▶  SEEDS — COPIA ESTO EN UN LUGAR SEGURO (no se guarda)"))
+    print(_c(BOLD, "  " + "═" * width))
+    for k, v in seeds.items():
+        print(f"  {_c(CYAN, k)}  {v}")
+    print(_c(BOLD, "  " + "═" * width))
+    print()
+
+    access = {
+        "version": 1,
+        "algo": "PBKDF2-SHA256",
+        "salt": SEED1_SALT,
+        "iterations": SEED1_ITERS,
+        "seeds": hashes,
+    }
+    ACCESS_JSON.parent.mkdir(parents=True, exist_ok=True)
+    ACCESS_JSON.write_text(json.dumps(access, indent=2) + "\n", encoding="utf-8")
+    _ok(f"web/access.json escrito con {len(hashes)} hashes.")
+    print()
+    print("  El archivo web/access.json se commitea al repo (solo hashes).")
+    print("  Después del commit haz 'git push' para publicarlo en Pages.")
+    print()
+
+
 # ── Main wizard ───────────────────────────────────────────────────────────────
 
 
 def main() -> None:
+    inner = 60  # visible characters between ║ borders
+
+    def _banner_line(text: str = "") -> None:
+        pad = inner - len(text)
+        left = pad // 2
+        right = pad - left
+        print(_c(CYAN, "║") + " " * left + text + " " * right + _c(CYAN, "║"))
+
     print()
-    print(_c(BOLD, "=" * 62))
-    print(_c(BOLD, "  CENTINEL ENGINE — Asistente de Configuración / Setup Wizard"))
-    print(_c(BOLD, "=" * 62))
+    print(_c(CYAN, "╔" + "═" * inner + "╗"))
+    _banner_line()
+    _banner_line("CENTINEL")
+    _banner_line("Trustless Electoral Integrity Verification")
+    _banner_line("Latin America")
+    _banner_line()
+    _banner_line("Auditoría electoral independiente, reproducible y")
+    _banner_line("verificable por cualquier tercero — costo cero.")
+    _banner_line()
+    print(_c(CYAN, "╚" + "═" * inner + "╝"))
     print()
     print("  Configuración interactiva en ~3 minutos.")
     print("  Interactive setup in ~3 minutes.")
@@ -184,15 +277,45 @@ def main() -> None:
     yaml_content = CONFIG_YAML.read_text(encoding="utf-8") if CONFIG_YAML.exists() else ""
     env = _load_env(ENV_FILE) if ENV_FILE.exists() else _load_env(ENV_EXAMPLE)
 
-    # ── PASO 1: Endpoints CNE ─────────────────────────────────────────────────
-    _header("PASO 1 / STEP 1: Endpoint principal del CNE")
-    print("  La URL base para el API de resultados electorales.")
-    print("  Base URL for the electoral results API.")
+    # ── PASO 0: País / Country ────────────────────────────────────────────────
+    _header("PASO 0 / STEP 0: País a auditar / Country to audit")
+    print("  Selecciona el país. El wizard cargará los endpoints y departamentos.")
+    print("  Select the country. The wizard will load the correct endpoints and divisions.")
     print()
 
-    # Extract current base_url from YAML
+    for code, label in _COUNTRY_LABELS.items():
+        marker = _c(GREEN, "◉") if code == env.get("CENTINEL_COUNTRY", "HN") else "○"
+        print(f"    {marker}  {code}  {label}")
+    print()
+
+    current_country = env.get("CENTINEL_COUNTRY", "HN")
+    new_country = _ask(
+        "Código de país / Country code (HN/GT/SV/NI/MX/CO)",
+        default=current_country,
+        required=True,
+    ).upper()
+    if new_country not in _COUNTRY_LABELS:
+        _note(f"País desconocido '{new_country}' — usando HN como fallback.")
+        new_country = "HN"
+    env["CENTINEL_COUNTRY"] = new_country
+    _ok(f"CENTINEL_COUNTRY={new_country}  ({_COUNTRY_LABELS[new_country].strip()})")
+
+    # Auto-set election year if not set
+    if not env.get("CENTINEL_YEAR"):
+        import datetime
+
+        env["CENTINEL_YEAR"] = str(datetime.date.today().year)
+        _note(f"CENTINEL_YEAR={env['CENTINEL_YEAR']} (auto-set)")
+
+    # ── PASO 1: Endpoints ─────────────────────────────────────────────────────
+    _header("PASO 1 / STEP 1: Endpoint de la autoridad electoral / Electoral authority endpoint")
+    print("  URL base del API de resultados. El wizard propone el default del país seleccionado.")
+    print("  Base URL for the results API. Defaults to the selected country's known endpoint.")
+    print()
+
+    # Extract current base_url from YAML, fall back to country default
     m = re.search(r'^base_url:\s*"?([^"\n#]+)"?', yaml_content, re.MULTILINE)
-    current_url = m.group(1).strip() if m else "https://resultadosgenerales2025.cne.hn"
+    current_url = m.group(1).strip() if m else _DEFAULT_URLS.get(new_country, "")
 
     new_url = _ask("URL base / Base URL", default=current_url, required=True)
     if new_url != current_url:
@@ -219,18 +342,50 @@ def main() -> None:
 
     # ── PASO 3: Intervalo de captura ──────────────────────────────────────────
     _header("PASO 3 / STEP 3: Intervalo de captura / Polling interval")
-    print("  Segundos entre capturas de datos del CNE.")
-    print("  Seconds between CNE data captures.")
-    print("  Recomendado en elecciones: 120 (2 min). Fuera: 300 (5 min).")
+
+    # Load country preset to get the validated election minimum
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "src"))
+        from centinel.countries import get_country_preset as _get_preset  # type: ignore
+
+        _preset = _get_preset(new_country)
+        _election_min = _preset.election_interval_seconds
+    except Exception:
+        _election_min = 300
+
+    _MODE_DEFAULTS = {
+        "election": str(_election_min),
+        "monitoring": "900",
+        "maintenance": "1800",
+    }
+    current_interval = env.get("CENTINEL_POLL_INTERVAL") or _MODE_DEFAULTS.get(new_mode, "900")
+
+    print(
+        f"  Elecciones ({new_country}):  {_election_min}s = {_election_min // 60} min  <- minimo validado / validated minimum"
+    )
+    print("  En swarm: adaptativo — el gossip coordina que nodo captura en cada ventana.")
+    print("            Adaptive in swarm — gossip coordinates which node scrapes each window.")
+    print("  Monitoreo: 900s (15 min)    Mantenimiento: 1800s (30 min)")
     print()
 
-    current_interval = env.get("CENTINEL_POLL_INTERVAL", "120")
     new_interval = _ask("Intervalo en segundos / Interval in seconds", default=current_interval)
     if new_interval.isdigit():
+        interval_int = int(new_interval)
+        if new_mode == "election" and interval_int < _election_min:
+            _note(
+                f"Minimo de integridad electoral para {new_country}: " f"{_election_min}s ({_election_min // 60} min)."
+            )
+            new_interval = str(_election_min)
+            _ok(f"Usando {_election_min}s — minimo validado del preset {new_country}.")
+        elif interval_int < 60:
+            _note(f"Intervalo {interval_int}s puede sobrecargar la fuente. " "Minimo recomendado: 60s.")
+            if not _ask_yn("Continuar de todas formas?", default=False):
+                new_interval = _MODE_DEFAULTS.get(new_mode, "900")
+                _note(f"Usando {new_interval}s.")
         env["CENTINEL_POLL_INTERVAL"] = new_interval
         _ok(f"CENTINEL_POLL_INTERVAL={new_interval}s")
     else:
-        _note("Valor no numérico ignorado / Non-numeric value ignored.")
+        _note("Valor no numerico ignorado / Non-numeric value ignored.")
 
     # ── PASO 4: Master switch ─────────────────────────────────────────────────
     _header("PASO 4 / STEP 4: Interruptor maestro / Master switch")
@@ -265,22 +420,6 @@ def main() -> None:
     print("  These services enhance the system but are not required.")
     print()
 
-    # Supabase
-    has_supabase = bool(env.get("SUPABASE_URL", "").strip("https://PROYECTO.supabase.co"))
-    if _ask_yn("¿Configurar Supabase (base de datos en la nube)?", default=has_supabase):
-        url_s = _ask("SUPABASE_URL", default=env.get("SUPABASE_URL", ""))
-        key_s = _ask("SUPABASE_SERVICE_ROLE_KEY", default=env.get("SUPABASE_SERVICE_ROLE_KEY", ""))
-        anon_s = _ask("SUPABASE_ANON_KEY", default=env.get("SUPABASE_ANON_KEY", ""))
-        if url_s:
-            env["SUPABASE_URL"] = url_s
-        if key_s:
-            env["SUPABASE_SERVICE_ROLE_KEY"] = key_s
-        if anon_s:
-            env["SUPABASE_ANON_KEY"] = anon_s
-        _ok("Supabase configurado")
-    else:
-        _note("Supabase omitido — el análisis local funciona sin él.")
-
     # GitHub token
     has_gh = bool(env.get("GITHUB_TOKEN", "").strip("ghp_..."))
     if _ask_yn("¿Configurar GitHub token (para publicación de emergencia)?", default=has_gh):
@@ -297,15 +436,68 @@ def main() -> None:
     else:
         _note("GitHub token omitido — la publicación de emergencia no estará disponible.")
 
-    # OTS
-    ots_raw = env.get("OTS_ENABLED", "false").lower()
+    # OTS — default ON (free, no registration, no API key needed)
+    ots_raw = env.get("OTS_ENABLED", "true").lower()
     ots_on = ots_raw in ("true", "1", "yes")
-    if _ask_yn("¿Activar anclaje Bitcoin/OpenTimestamps (prueba criptográfica de tiempo)?", default=ots_on):
+    print("  OpenTimestamps (OTS) — Anclaje a Bitcoin")
+    print("  " + "─" * 42)
+    print("  Cada snapshot queda sellado en el blockchain de Bitcoin.")
+    print("  Sin costo. Sin cuenta. Sin API key.")
+    print()
+    print("  Resultado: prueba criptográfica independiente de que los datos")
+    print("  existían en ese momento exacto — imposible de falsificar.")
+    print()
+    print(
+        f"  {_c(GREEN, '✓')} Activado por defecto  "
+        f"{_c(GREEN, '✓')} Gratis para siempre  "
+        f"{_c(GREEN, '✓')} Descentralizado"
+    )
+    print()
+    if _ask_yn("¿Activar anclaje Bitcoin/OpenTimestamps?", default=True):
         env["OTS_ENABLED"] = "true"
-        _ok("OpenTimestamps activado")
+        ots_mode = _ask_choice(
+            "¿Red? / Network?",
+            choices=["mainnet", "testnet"],
+            default="mainnet",
+        )
+        env["OTS_NETWORK"] = ots_mode
+        _ok(f"OpenTimestamps activado — {ots_mode}")
     else:
         env["OTS_ENABLED"] = "false"
-        _note("OpenTimestamps desactivado.")
+        _note("OpenTimestamps desactivado — los snapshots no tendrán anclaje temporal externo.")
+    ots_mode = env.get("OTS_NETWORK", "mainnet")
+
+    # Backup encryption key (optional but strongly recommended)
+    print()
+    print("  Clave de backup cifrado (recomendado)")
+    print("  " + "─" * 38)
+    print("  Cifra tus snapshots para recuperación ante desastres.")
+    print("  Si no la configuras ahora, puedes añadirla luego en .env.")
+    print()
+    backup_key = env.get("CENTINEL_BACKUP_KEY", "")
+    if not backup_key:
+        if _ask_yn("¿Generar clave de backup automáticamente?", default=True):
+            backup_key = secrets.token_urlsafe(32)
+            print()
+            print(_c(BOLD, "  ⚠  COPIA ESTO EN UN LUGAR SEGURO (no se guarda en el repo):"))
+            print(f"  CENTINEL_BACKUP_KEY={_c(CYAN, backup_key)}")
+            print()
+            env["CENTINEL_BACKUP_KEY"] = backup_key
+            _ok("CENTINEL_BACKUP_KEY generada y guardada en .env")
+        else:
+            _note("Backup key omitida — configura CENTINEL_BACKUP_KEY en .env antes de producción.")
+    else:
+        _ok("CENTINEL_BACKUP_KEY ya configurada")
+
+    # ── PASO 7: Seed 1 (admin passwords) ─────────────────────────────────────
+    _header("PASO 7 / STEP 7: Accesos de administrador (Seed 1)")
+    print("  Genera o regenera los 12 seeds de acceso al panel de administración.")
+    print("  Solo se guardan los hashes en web/access.json (los seeds reales no se commitean).")
+    print()
+    if _ask_yn("¿Generar Seed 1 ahora?", default=not ACCESS_JSON.exists()):
+        _generate_seed1()
+    else:
+        _note("Seed 1 omitido.")
 
     # ── Guardar cambios ───────────────────────────────────────────────────────
     _header("Guardando configuración / Saving configuration")
@@ -319,28 +511,48 @@ def main() -> None:
     _ok(f".env guardado / saved: {ENV_FILE.relative_to(REPO_ROOT)}")
 
     # ── Resumen y próximos pasos ──────────────────────────────────────────────
+    country_label = _COUNTRY_LABELS.get(new_country, new_country)
+    has_backup = bool(env.get("CENTINEL_BACKUP_KEY", ""))
+    seeds_status = "✓ generadas" if ACCESS_JSON.exists() else "— omitidas"
+
+    print()
+    print(_c(BOLD, "─" * 62))
+    print(_c(BOLD, "  Configuración guardada / Configuration saved"))
+    print(_c(BOLD, "─" * 62))
+    print(f"  País          {_c(CYAN, new_country)}  {country_label.strip()}")
+    print(f"  Endpoint      {_c(CYAN, new_url)}")
+    print(f"  Modo          {_c(CYAN, new_mode)}")
+    print(f"  Intervalo     {_c(CYAN, new_interval + 's')}")
+    ots_display = f"✓ {ots_mode}" if env.get("OTS_ENABLED") == "true" else "— desactivado"
+    print(f"  OpenTimestamps {_c(GREEN if env.get('OTS_ENABLED') == 'true' else YELLOW, ots_display)}")
+    print(f"  Backup key    {_c(GREEN, '✓ configurada') if has_backup else _c(YELLOW, '— omitida')}")
+    print(f"  Seeds S1      {_c(GREEN, seeds_status)}")
+    print(_c(BOLD, "─" * 62))
     print()
     print(_c(BOLD, "=" * 62))
     print(_c(BOLD, "  PRÓXIMOS PASOS / NEXT STEPS"))
     print(_c(BOLD, "=" * 62))
     print()
     print(f"  {_c(CYAN, 'make start')}     → Iniciar el pipeline (autónomo, cada hora)")
-    print( "                  Start the pipeline (autonomous, every hour)")
+    print("                  Start the pipeline (autonomous, every hour)")
     print()
     print(f"  {_c(CYAN, 'make status')}    → Ver si el pipeline está corriendo")
-    print( "                  Check if the pipeline is running")
+    print("                  Check if the pipeline is running")
     print()
     print(f"  {_c(CYAN, 'make logs')}      → Ver logs en tiempo real")
-    print( "                  View logs in real time")
+    print("                  View logs in real time")
     print()
     print(f"  {_c(CYAN, 'make pipeline')} → Ejecutar UNA vez (manual, sin scheduler)")
-    print( "                  Run ONCE manually (no scheduler)")
+    print("                  Run ONCE manually (no scheduler)")
     print()
     print(f"  {_c(CYAN, 'make stop')}      → Detener el pipeline")
-    print( "                  Stop the pipeline")
+    print("                  Stop the pipeline")
     print()
     print(f"  {_c(CYAN, 'centinel doctor')} → Verificar que todo está listo")
-    print( "                    Verify everything is ready (GO/NO-GO)")
+    print("                    Verify everything is ready (GO/NO-GO)")
+    print()
+    print(_c(GREEN, "  CENTINEL está listo. Tu instancia es completamente independiente"))
+    print(_c(GREEN, "  de cualquier autoridad electoral o institución."))
     print()
     print(_c(GREEN, "  Configuración completada / Configuration complete."))
     print()

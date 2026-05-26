@@ -93,7 +93,7 @@ jobs:
         if: steps.git_push.outputs.pushed == 'failed'
         env:
           CENTINEL_NTFY_TOPIC: ${{ secrets.CENTINEL_NTFY_TOPIC }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
         with:
           script: |
             const owner = context.repo.owner;
@@ -143,7 +143,7 @@ jobs:
 
       - name: Cerrar issue de git si push fue exitoso
         if: steps.git_push.outputs.pushed == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
         with:
           script: |
             const issues = await github.rest.issues.listForRepo({

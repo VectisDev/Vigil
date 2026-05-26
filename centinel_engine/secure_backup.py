@@ -113,18 +113,21 @@ def _generate_backup_key() -> bytes:
 
 
 def _get_fernet() -> Optional[Any]:
-    """Build Fernet encryptor from environment key or ephemeral fallback.
+    """Build Fernet encryptor from environment key, or None (plaintext) if unconfigured.
 
-    Bilingual: Crea cifrador Fernet desde entorno o fallback efímero.
+    Bilingual: Crea cifrador Fernet desde entorno; retorna None si no hay clave configurada.
 
     Args:
         None.
 
     Returns:
-        Optional[Any]: Fernet instance or None if crypto is unavailable.
+        Optional[Any]: Fernet instance or None if crypto is unavailable or key not set.
 
     Raises:
         None.
+
+    Security note: Returns None (plaintext backup) rather than an ephemeral key that would
+    make backups permanently unrecoverable. Operators MUST set CENTINEL_BACKUP_KEY.
     """
     if not _HAS_CRYPTOGRAPHY:
         return None
@@ -133,8 +136,16 @@ def _get_fernet() -> Optional[Any]:
         try:
             return Fernet(key.encode("utf-8"))
         except Exception:  # noqa: BLE001
-            logger.error("backup_key_invalid | ignoring configured key")
-    return Fernet(_generate_backup_key())
+            logger.error("backup_key_invalid | ignoring configured key; backups will be UNENCRYPTED")
+            return None
+    # No key configured: store plaintext so backups remain recoverable.
+    # An ephemeral key would silently produce unrecoverable ciphertext.
+    logger.critical(
+        "backup_key_missing | %s not set — backups stored UNENCRYPTED. "
+        "Generate a key with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"",
+        ENV_BACKUP_KEY,
+    )
+    return None
 
 
 def _encrypt_data(data: bytes, fernet: Optional[Any] = None) -> bytes:
