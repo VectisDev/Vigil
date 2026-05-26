@@ -53,7 +53,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.advanced_security import load_manager
+from centinel.defense.advanced_security import load_manager
 
 
 def build_rotating_request_profile(

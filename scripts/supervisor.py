@@ -72,8 +72,8 @@ from pathlib import Path
 
 import psutil
 
-from core.advanced_security import AlertManager
-from core.security import SecurityConfig, send_admin_alert
+from centinel.defense.advanced_security import AlertManager
+from centinel.defense.security import SecurityConfig, send_admin_alert
 
 DEFAULT_COMMAND = [sys.executable, "scripts/run_pipeline.py"]
 CONFIG_PATH = Path("command_center/security_config.yaml")
