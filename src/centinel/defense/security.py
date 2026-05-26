@@ -83,7 +83,7 @@ from typing import Any, Callable
 from urllib import request
 
 import yaml
-from core.security_utils import (
+from centinel.defense.security_utils import (
     build_strict_tls_context,
     pin_dns_resolution,
     redact_headers,

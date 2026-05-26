@@ -1,21 +1,29 @@
 [tool.poetry]
 name = "centinel-engine"
 version = "0.1.0"
-description = "C.E.N.T.I.N.E.L.: sistema técnico para auditoría continua de datos electorales públicos en Honduras"
+description = "CENTINEL: trustless electoral integrity verification infrastructure for Latin America"
 authors = ["userf8a2c4 <contact@centinel.app>"]
 license = "AGPL-3.0-only"
 readme = "README.md"
 homepage = "https://github.com/userf8a2c4/centinel-engine"
 repository = "https://github.com/userf8a2c4/centinel-engine"
 documentation = "https://github.com/userf8a2c4/centinel-engine#readme"
-keywords = ["auditoria-electoral", "transparencia", "hashchain", "open-data", "civic-tech"]
+keywords = [
+  "electoral-integrity", "election-audit", "civic-tech", "transparency",
+  "hashchain", "open-data", "latin-america", "democracy", "forensics",
+  "trustless", "open-source-intelligence"
+]
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: GNU Affero General Public License v3",
   "Operating System :: OS Independent",
   "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
   "Topic :: Security",
-  "Topic :: Scientific/Engineering :: Information Analysis"
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Sociology",
+  "Natural Language :: English",
+  "Natural Language :: Spanish"
 ]
 packages = [{ include = "centinel", from = "src" }]
 

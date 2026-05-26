@@ -113,8 +113,8 @@ from centinel.paths import (
     snapshot_filename,
 )
 from scripts.circuit_breaker import CircuitBreaker
-from core.fetcher import build_rotating_request_profile
-from core.hasher import trigger_post_hash_backup
+from centinel.defense.fetcher import build_rotating_request_profile
+from centinel.defense.hasher import trigger_post_hash_backup
 
 from monitoring.health import get_health_state
 from scripts.logging_utils import configure_logging, log_event
@@ -505,7 +505,7 @@ def _is_cne_endpoint(endpoint: str, config: dict[str, Any]) -> bool:
     y, opcionalmente, validacion de resolucion a IP publica (mitigando DNS
     rebinding y spoofing por substring).
     """
-    from core.security_utils import is_safe_outbound_url
+    from centinel.defense.security_utils import is_safe_outbound_url
 
     domains = config.get("cne_domains") or ["cne.hn"]
     enforce_public_ip = bool(config.get("enforce_public_ip_resolution", True))

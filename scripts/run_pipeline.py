@@ -96,11 +96,11 @@ import random
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
-from core import logger as core_logger
-from core.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
+from centinel.defense import logger as core_logger
+from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
 from scripts.circuit_breaker import CircuitBreaker
-from core.security import DefensiveSecurityManager, DefensiveShutdown, SecurityConfig
-from core.advanced_security import load_manager
+from centinel.defense.security import DefensiveSecurityManager, DefensiveShutdown, SecurityConfig
+from centinel.defense.advanced_security import load_manager
 from centinel.paths import iter_all_hashes, iter_all_snapshots
 from scripts.download_and_hash import is_master_switch_on, normalize_master_switch
 from scripts.logging_utils import configure_logging, log_event
