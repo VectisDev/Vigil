@@ -905,7 +905,7 @@ const EVENTS = {
   B1:{block:'B',label:'DDoS Sostenido',
     desc:'Simula carga masiva de solicitudes. Evalúa rate limiting y arquitectura Static-First.',
     breakpoint:'> 100k req/s → Rate limiter exhausto → logs muestran "503 flooding"',
-    param:{label:'Intensidad (req/s)',min:100,max:200000,def:5000,unit:'',detectAt:60000,breachAt:130000},
+    param:{label:'Intensidad (req/s)',min:100,max:400000,def:5000,unit:'',detectAt:120000,breachAt:260000},
     apply(s,p){s._ddos=p;
       for(let i=0;i<Math.min(4,1+Math.floor(p/10000));i++){
         logA('CRITICAL',`${rndIP()}`,'DDoS HTTP flood',
@@ -916,7 +916,7 @@ const EVENTS = {
   B2:{block:'B',label:'Activación de Honeypots',
     desc:'Peticiones a rutas trampa (/admin, /debug, /.git). Evalúa detección perimetral.',
     breakpoint:'Sin escalada → "Honeypot muted" (falso negativo)',
-    param:{label:'Intentos por tick',min:1,max:50,def:5,unit:'',detectAt:16,breachAt:32},
+    param:{label:'Intentos por tick',min:1,max:100,def:5,unit:'',detectAt:32,breachAt:64},
     apply(s,p){const routes=['/admin','/debug','/.git','/.env','/api/internal','/metrics'];
       for(let i=0;i<Math.min(p,6);i++){
         logA('WARN',rndIP(),`Honeypot trigger → ${routes[i%routes.length]}`,
@@ -926,7 +926,7 @@ const EVENTS = {
   B3:{block:'B',label:'Tampering / Alteración en Tránsito',
     desc:'Inyecta votos alterados y hash SHA-256 incorrecto. Evalúa integridad de cadena.',
     breakpoint:'100% alteración → integridad 0% → cadena "ROTA"',
-    param:{label:'% actas alteradas',min:1,max:100,def:10,unit:'%',detectAt:30,breachAt:65},
+    param:{label:'% actas alteradas',min:1,max:100,def:10,unit:'%',detectAt:50,breachAt:100},
     apply(s,p){const f=p/100;
       if(s.partidos&&s.partidos.length>=2){const d=Math.round(s.partidos[1].votos*f*0.1);
         s.partidos[0].votos+=d;s.partidos[1].votos-=d;}
@@ -948,7 +948,7 @@ const EVENTS = {
   B5:{block:'B',label:'Contaminación de Espejo CDN',
     desc:'Uno o más espejos sirven datos modificados. Evalúa consenso multi-espejo.',
     breakpoint:'≥50% contaminados → consenso imposible → modo offline',
-    param:{label:'Espejos comprometidos',min:1,max:5,def:1,unit:' de 5',detectAt:2,breachAt:4},
+    param:{label:'Espejos comprometidos',min:1,max:5,def:1,unit:' de 5',detectAt:3,breachAt:5},
     apply(s,p){s._cdn_mirrors_poisoned=p;
       if(p>=3)pushAlert('CRITICAL','CDNPoison',`${p}/5 espejos contaminados — consenso imposible`);
       logE(p>=3?'CRITICAL':'WARN',`CDN: ${p}/5 espejos contaminados — ${p>=3?'CONSENSO IMPOSIBLE':'divergencia detectada'}`);
@@ -958,7 +958,7 @@ const EVENTS = {
   B6:{block:'B',label:'Envenenamiento de Caché',
     desc:'TTL falso: datos obsoletos servidos durante N ticks. Evalúa frescura de datos.',
     breakpoint:'TTL > 60min → divergencia >25% del origen real → alerta de consistencia',
-    param:{label:'TTL falso (min)',min:5,max:240,def:30,unit:'min',detectAt:75,breachAt:155},
+    param:{label:'TTL falso (min)',min:5,max:480,def:30,unit:'min',detectAt:150,breachAt:310},
     apply(s,p){s._cache_stale=p;
       if(p>60)pushAlert('HIGH','CachePoison',`Caché venenoso: TTL=${p}min → datos obsoletos`);
       logE(p>60?'CRITICAL':'WARN',`Caché: TTL=${p}min — ${p>60?'divergencia crítica':'monitoreo activo'}`);
@@ -967,7 +967,7 @@ const EVENTS = {
   B7:{block:'B',label:'Ataque de Sincronización Temporal',
     desc:'Manipula timestamps para crear falsa estabilidad en el análisis de tendencias.',
     breakpoint:'Todos timestamps iguales → trend analysis colapsado',
-    param:{label:'Distorsión (min)',min:1,max:120,def:15,unit:'min',detectAt:38,breachAt:77},
+    param:{label:'Distorsión (min)',min:1,max:240,def:15,unit:'min',detectAt:76,breachAt:154},
     apply(s,p){if(SIM.idx<SIM.snapshots.length-1){
       s.ts=SIM.snapshots[Math.min(SIM.idx+1,SIM.snapshots.length-1)].ts;}
       s._time_distorted=p;
@@ -994,7 +994,7 @@ const EVENTS = {
   B10:{block:'B',label:'Tampering del Binario (Auto-audit)',
     desc:'Simula hash de binario diferente al baseline. Evalúa auto-auditoría de integridad.',
     breakpoint:'Auto-audit falla → todos los semáforos rojos → modo cuarentena',
-    param:{label:'Módulos comprometidos',min:1,max:5,def:2,unit:'',detectAt:2,breachAt:4},
+    param:{label:'Módulos comprometidos',min:1,max:5,def:2,unit:'',detectAt:3,breachAt:5},
     apply(s,p){s._binary_tampered=p;
       pushAlert('CRITICAL','BinaryTamper',`Auto-audit: ${p} módulos con hash diferente al baseline`);
       logE('CRITICAL',`Binary integrity: ${p} módulos comprometidos → AUTO-AUDIT FALLA → cuarentena`);
@@ -1003,7 +1003,7 @@ const EVENTS = {
   B11:{block:'B',label:'Bypass de Zero-Trust Middleware',
     desc:'Peticiones con cabeceras forjadas (X-Forwarded-For, Origin falso). Evalúa middleware.',
     breakpoint:'Middleware no filtra → "ZT bypass" en log → datos no autorizados',
-    param:{label:'Cabeceras forjadas',min:1,max:10,def:3,unit:'',detectAt:3,breachAt:7},
+    param:{label:'Cabeceras forjadas',min:1,max:20,def:3,unit:'',detectAt:6,breachAt:14},
     apply(s,p){s._zt_bypass_attempt=p;
       for(let i=0;i<Math.min(p,5);i++){
         logA(p>=5?'CRITICAL':'WARN',rndIP(),
@@ -1014,7 +1014,7 @@ const EVENTS = {
   B12:{block:'B',label:'Colapso Cascada de Espejos',
     desc:'Contamina espejos 1→2→3 en ticks consecutivos hasta consenso imposible.',
     breakpoint:'3er espejo contaminado → sistema entra en modo solo-local',
-    param:{label:'Velocidad cascada (ticks)',min:1,max:10,def:3,unit:'',detectAt:3,breachAt:7},
+    param:{label:'Velocidad cascada (ticks)',min:1,max:20,def:3,unit:'',detectAt:6,breachAt:14},
     apply(s,p){if(!this._cascade)this._cascade=0;this._cascade++;
       s._cdn_mirrors_poisoned=Math.min(this._cascade,5);
       const msg=this._cascade>=3?'⚠ MODO SOLO-LOCAL ACTIVADO':'Escalando...';
