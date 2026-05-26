@@ -194,6 +194,7 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 .inj-btn.c:hover{background:rgba(176,140,240,.1);border-color:var(--purple)}
 .breaking-badge{font-size:9px;background:rgba(223,107,134,.12);border:1px solid rgba(223,107,134,.3);
   color:var(--bad);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.inj-real-label{font-size:9px;color:var(--muted);margin-top:3px;font-style:italic}
 
 /* ── ACTIVE INJECTIONS ── */
 .inj-active-block{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:10px}
@@ -2193,6 +2194,8 @@ function renderInjGrid(gridId,block){
       {v:'instant',l:'Instantáneo'},{v:1,l:'1 snap'},{v:3,l:'3 snaps'},
       {v:6,l:'6 snaps'},{v:12,l:'12 snaps'},{v:24,l:'24 snaps'}
     ].map(o=>`<option value="${o.v}"${o.v==='instant'?' selected':''}>${o.l}</option>`).join('');
+    const realLabelHtml=ev.param?.realLabel
+      ?`<div class="inj-real-label">⚙ Real: ${ev.param.realLabel}</div>`:'';
     const paramHtml=ev.param?`
       <div class="inj-param-row">
         <span style="flex:0;white-space:nowrap;font-size:9px">${ev.param.label}</span>
@@ -2202,7 +2205,7 @@ function renderInjGrid(gridId,block){
           data-detect="${ev.param.detectAt??''}" data-breach="${ev.param.breachAt??''}"
           oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}';_updateSliderColor(this,${ev.param.detectAt??null},${ev.param.breachAt??null})">
         <span class="inj-param-val">${ev.param.def}${ev.param.unit||''}</span>
-      </div>`:'';
+      </div>${realLabelHtml}`:'';
     const durHtml=`<div style="display:flex;align-items:center;gap:4px;margin-top:4px">
         <span style="font-size:9px;color:var(--txt-dim)">Duración:</span>
         <select class="inj-dur-sel" id="inj-dur-${id}">${durOpts}</select>
@@ -2236,6 +2239,35 @@ function restoreVis(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// LAB THRESHOLDS SYNC (read-only from real config — never writes back)
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadLabThresholds(){
+  try{
+    const res=await fetch('../lab-thresholds.json');
+    if(!res.ok)return;
+    const data=await res.json();
+    let updated=0;
+    Object.entries(data.thresholds||{}).forEach(([id,t])=>{
+      if(!EVENTS[id]?.param)return;
+      if(t.detectAt!=null)EVENTS[id].param.detectAt=t.detectAt;
+      if(t.breachAt!=null)EVENTS[id].param.breachAt=t.breachAt;
+      if(t.sliderMax!=null)EVENTS[id].param.max=t.sliderMax;
+      if(t.realLabel)EVENTS[id].param.realLabel=t.realLabel;
+      updated++;
+    });
+    // Re-render grids with updated thresholds
+    ['inj-grid-a','inj-grid-b','inj-grid-c'].forEach(gid=>{
+      const el=document.getElementById(gid);
+      if(el)el.innerHTML='';
+    });
+    renderInjGrid('inj-grid-a','A');
+    renderInjGrid('inj-grid-b','B');
+    renderInjGrid('inj-grid-c','C');
+    console.info(`Lab thresholds loaded from lab-thresholds.json (${updated} events, generated ${data.generated_at})`);
+  }catch(e){/* silent fallback — default EVENTS values remain */}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════
 (async function init(){
@@ -2250,6 +2282,8 @@ function restoreVis(){
     document.getElementById('thresh-prereg-text').value=txt;lockThresholds();}catch{}}
   // Load default dataset
   await loadDataset('../data/hnd_2025_series.json');
+  // Override EVENTS thresholds with real config values (read-only)
+  await loadLabThresholds();
   logE('OK','Sandbox Forense Académico listo — CENTINEL v1');
   logE('INFO','Selecciona un dataset y presiona ▶ para iniciar la simulación');
 })();
