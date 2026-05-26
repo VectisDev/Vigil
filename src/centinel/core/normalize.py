@@ -120,8 +120,73 @@ DISALLOWED_KEYS = {
 
 CNE_RAW_SCHEMA = {
     "type": "object",
+    "properties": {
+        # ES: Resultados puede ser array (formato CNE real) o objeto (formato interno).
+        #     No se restringe el tipo aquí — validate_cne_response() verifica el contenido.
+        # EN: Resultados can be array (real CNE format) or object (internal format).
+        #     Type not restricted here — validate_cne_response() checks content.
+        "resultados": {},
+        "estadisticas": {
+            "type": "object",
+            "properties": {
+                "distribucion_votos": {
+                    "type": "object",
+                    "properties": {
+                        "total": {}, "validos": {}, "nulos": {}, "blancos": {},
+                    },
+                }
+            },
+        },
+    },
+    # ES: No se usa "required" aquí — este schema valida TODOS los formatos (interno + CNE).
+    #     validate_cne_response() se encarga del mínimo estructural del CNE.
+    # EN: No "required" here — this schema validates ALL formats (internal + CNE).
+    #     validate_cne_response() enforces the CNE structural minimum.
     "additionalProperties": True,
 }
+
+
+def validate_cne_response(raw: dict, source_id: str) -> list[str]:
+    """
+    ES: Valida estructura básica del JSON del CNE antes de persistir.
+        Retorna lista de errores (vacía = OK). No lanza excepciones.
+    EN: Validates basic CNE JSON structure before persisting.
+        Returns list of errors (empty = OK). Never raises.
+    """
+    errors: list[str] = []
+
+    # 1. Schema mínimo: debe tener resultados / Minimum schema: resultados required
+    try:
+        jsonschema.validate(raw, CNE_RAW_SCHEMA)
+    except jsonschema.ValidationError as exc:
+        errors.append(f"schema_error: {exc.message}")
+
+    # 2. Conteos de votos no negativos (CNE usa strings como "1,027,090")
+    # EN: Vote counts must be non-negative (CNE uses comma-formatted strings)
+    if "estadisticas" in raw and isinstance(raw["estadisticas"], dict):
+        dist = raw["estadisticas"].get("distribucion_votos", {})
+        if isinstance(dist, dict):
+            for key in ("total", "validos", "nulos", "blancos"):
+                val = dist.get(key)
+                if val is None:
+                    continue
+                try:
+                    n = int(str(val).replace(",", "").replace(".", "").strip())
+                    if n < 0:
+                        errors.append(f"negative_votes: {key}={val}")
+                except ValueError:
+                    errors.append(f"non_numeric: {key}={val}")
+
+    # 3. resultados no vacío (puede ser array o dict con candidatos)
+    # EN: resultados non-empty (can be array or dict with candidates)
+    resultados = raw.get("resultados")
+    if resultados is None or (isinstance(resultados, (list, dict)) and not resultados):
+        errors.append("empty_resultados")
+
+    if errors:
+        logger.warning("cne_response_suspect source=%s errors=%s", source_id, errors)
+
+    return errors
 
 
 class PresidentialActa(BaseModel):

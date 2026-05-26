@@ -26,3 +26,32 @@ proxies:
   # EN: Format scheme://[user:pass@]ip:port
   - "http://user:pass@ip:port"
   - "socks5://ip:port"
+
+# ── Tor / Modo privacidad ──────────────────────────────────────────────────
+# ES: Para enrutar TODO el tráfico de monitoreo por Tor (recomendado en
+#     jornadas electorales activas), establece en el entorno:
+#
+#   CENTINEL_PRIVACY_MODE=true   # suprime my_url en gossip broadcasts
+#   CENTINEL_TOR_ENABLED=true    # enruta requests CNE a través del daemon Tor local
+#   CENTINEL_TOR_PORT=9050       # opcional; éste es el valor por defecto
+#
+# CRÍTICO: usar socks5h:// (no socks5://) — el sufijo 'h' fuerza la resolución
+# DNS dentro de Tor. Sin él, los nombres de host se resuelven localmente y
+# el destino queda expuesto.
+#
+# Verificación antes de activar:
+#   curl --socks5-hostname 127.0.0.1:9050 https://check.torproject.org/api/ip
+#
+# EN: To route ALL monitoring traffic through Tor (recommended during active
+#     election periods), set in the environment:
+#
+#   CENTINEL_PRIVACY_MODE=true   # suppresses my_url in gossip broadcasts
+#   CENTINEL_TOR_ENABLED=true    # routes CNE requests through local Tor daemon
+#   CENTINEL_TOR_PORT=9050       # optional; this is the default
+#
+# CRITICAL: use socks5h:// (not socks5://) — the 'h' suffix forces DNS
+# resolution inside Tor. Without it, hostnames resolve locally and the
+# destination is leaked.
+#
+# Pre-activation check:
+#   curl --socks5-hostname 127.0.0.1:9050 https://check.torproject.org/api/ip

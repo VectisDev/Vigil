@@ -3,7 +3,7 @@
 # NOTA: pyproject.toml es la fuente canónica; este archivo es para entornos sin Poetry.
 
 # Core y scraping
-requests>=2.34.2,<3.0.0        # Peticiones HTTP (CVE-2024-35195/47081, CVE-2026-25645)
+requests[socks]>=2.34.2,<3.0.0 # Peticiones HTTP + SOCKS5/Tor (CVE-2024-35195/47081, CVE-2026-25645)
 urllib3>=2.7.0,<3.0.0          # Transitiva endurecida (CVE-2026-44431/44432)
 aiohttp>=3.13.5,<4.0.0         # Transitiva endurecida (CVE-2026-22815/34513..34525)
 pygments>=2.20.0,<3.0.0        # Transitiva endurecida (CVE-2026-4539, ReDoS)
@@ -26,12 +26,13 @@ scikit-learn>=1.5.0,<2.0.0     # Detección de outliers (Isolation Forest)
 qrcode[pil]>=7.4.2             # Generación de QR para verificación de hashes
 reportlab>=4.2.5               # Generación de PDFs institucionales
 Jinja2>=3.1.0,<4.0.0           # Renderizado de plantillas HTML para reportes PDF
-WeasyPrint>=68.0,<69.0         # Conversión HTML a PDF (CVE-2025-68616, SSRF bypass)
+WeasyPrint>=68.1,<69.0         # Conversión HTML a PDF (CVE-2025-68616 fixed in 68.1)
 
 # Utilidades generales
 python-dateutil>=2.8.2,<3.0.0  # Manejo robusto de timestamps y fechas
 PyYAML>=6.0.2,<7.0.0           # Configuración en YAML
 python-dotenv>=1.2.2,<2.0.0    # Carga segura de variables (CVE-2026-28684, symlink)
+idna>=3.15                     # Transitiva endurecida (CVE-2026-45409, ReDoS)
 cryptography>=46.0.7,<49.0.0   # Cripto (CVE-2026-26007/34073/39892)
 jsonschema>=4.22.0,<5.0.0      # Validación de esquemas JSON
 rich>=13.7.0,<14.0.0           # Logging bonito en consola durante desarrollo

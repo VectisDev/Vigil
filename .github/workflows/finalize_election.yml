@@ -1,0 +1,62 @@
+name: Cierre Electoral / Election Finalization
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escribe CONFIRMAR para activar el cierre electoral'
+        required: true
+        type: string
+
+# Only one finalization can run at a time. Shares group with data pipeline.
+concurrency:
+  group: centinel-pipeline
+  cancel-in-progress: false  # never cancel a finalization
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    name: Ciclo final + cierre
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: ${{ github.event.inputs.confirm == 'CONFIRMAR' }}
+
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run forced full scrape cycle
+        run: python scripts/download_and_hash.py --force-full-cycle
+
+      - name: Write ELECTION_CLOSED marker
+        run: |
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ELECTION_CLOSED
+          echo "election_closed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create election-final git tag
+        run: |
+          TAG="election-final-$(date -u +%Y%m%dT%H%MZ)"
+          git config user.name  "centinel-bot"
+          git config user.email "bot@centinel.hn"
+          git add ELECTION_CLOSED data/ hashes/ || true
+          git diff --cached --quiet || \
+            git commit -m "data: ciclo final electoral $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]"
+          git tag "$TAG"
+          git push origin HEAD
+          git push origin "$TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "### Ciclo electoral cerrado" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tag: \`$TAG\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Marker: \`ELECTION_CLOSED\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Todos los schedulers se detendrán automáticamente." >> "$GITHUB_STEP_SUMMARY"

@@ -153,6 +153,10 @@ def prompt_emergency_token() -> None:
     """
     token_required = os.getenv("CENTINEL_PANIC_TOKEN") or os.getenv("PANIC_TOKEN")
     if not token_required:
+        logger.critical(
+            "SECURITY: CENTINEL_PANIC_TOKEN is not set — panic mode is UNAUTHENTICATED. "
+            "Any user with CLI access can trigger emergency shutdown without authorization."
+        )
         return
     token = input("Token de emergencia: ").strip()
     if token != token_required:

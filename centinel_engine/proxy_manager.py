@@ -40,10 +40,11 @@ Notes:
 from __future__ import annotations
 
 import logging
+import os
 import secrets
 import threading
 import time
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -267,6 +268,37 @@ class ProxyAndUAManager:
             self._force_rotation = True
 
 
+class _SimpleProxyList:
+    """Minimal proxy list holder compatible with ProxyAndUAManager._extract_proxy_candidates().
+
+    Bilingual: Contenedor mínimo de lista de proxies compatible con _extract_proxy_candidates.
+    """
+
+    def __init__(self, urls: List[str]) -> None:
+        self._proxies: List[str] = urls
+
+
+def _build_env_proxy_list() -> List[str]:
+    """Build proxy list from environment variables.
+
+    Priority: CENTINEL_TOR_ENABLED > PROXY_LIST.
+    Returns empty list when no proxy is configured (direct mode).
+
+    Bilingual: Construye lista de proxies desde variables de entorno.
+    Prioridad: CENTINEL_TOR_ENABLED > PROXY_LIST. Retorna lista vacía en modo directo.
+    """
+    if os.getenv("CENTINEL_TOR_ENABLED", "").strip().lower() in ("1", "true", "yes"):
+        port = os.getenv("CENTINEL_TOR_PORT", "9050").strip()
+        # socks5h:// forces DNS resolution through Tor — prevents DNS leaks.
+        tor_url = f"socks5h://127.0.0.1:{port}"
+        logger.info("privacy_mode_tor_enabled port=%s proxy=%s", port, tor_url)
+        return [tor_url]
+    proxy_list = os.getenv("PROXY_LIST", "").strip()
+    if proxy_list:
+        return [p.strip() for p in proxy_list.split(",") if p.strip()]
+    return []
+
+
 _proxy_ua_manager_singleton: Optional[ProxyAndUAManager] = None
 _proxy_manager_lock = threading.Lock()
 
@@ -276,13 +308,16 @@ def get_proxy_ua_manager(
     rotation_every_n: int = DEFAULT_ROTATION_EVERY_N,
     ua_pool: Optional[Sequence[str]] = None,
 ) -> ProxyAndUAManager:
-    """Return singleton proxy/UA manager.
+    """Return singleton proxy/UA manager, auto-wiring env proxy config on first call.
 
-    Bilingual: Retorna el singleton del gestor de proxy/UA.
+    Bilingual: Retorna el singleton del gestor de proxy/UA, conectando config de env en primera llamada.
     """
     global _proxy_ua_manager_singleton
     with _proxy_manager_lock:
         if _proxy_ua_manager_singleton is None:
+            if proxy_rotator is None:
+                proxy_urls = _build_env_proxy_list()
+                proxy_rotator = _SimpleProxyList(proxy_urls) if proxy_urls else None
             _proxy_ua_manager_singleton = ProxyAndUAManager(
                 proxy_rotator=proxy_rotator,
                 rotation_every_n=rotation_every_n,

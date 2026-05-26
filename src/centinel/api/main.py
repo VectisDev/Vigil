@@ -129,10 +129,12 @@ logger = logging.getLogger(__name__)
 from .audit import router as audit_router  # noqa: E402
 from .routes.setup import router as setup_router  # noqa: E402
 from .routes.swarm import router as swarm_router  # noqa: E402
+from .routes.election import router as election_router  # noqa: E402
 
 app.include_router(audit_router)
 app.include_router(setup_router)
 app.include_router(swarm_router)
+app.include_router(election_router)
 
 
 def _load_cors_origins() -> list[str]:
@@ -489,7 +491,8 @@ def load_summaries_payload() -> dict:
 
 
 @app.get("/snapshots/latest")
-def get_latest_snapshot() -> dict:
+@limiter.limit(f"{rate_limit_per_minute}/minute")
+def get_latest_snapshot(request: Request) -> dict:
     """Endpoint que devuelve el snapshot más reciente.
 
     Returns:
@@ -511,12 +514,16 @@ def get_latest_snapshot() -> dict:
     return payload
 
 
+_HASH_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+
+
 @app.get("/snapshots/{snapshot_id}")
-def get_snapshot(snapshot_id: str) -> dict:
+@limiter.limit(f"{rate_limit_per_minute}/minute")
+def get_snapshot(snapshot_id: str, request: Request) -> dict:
     """Endpoint que devuelve un snapshot por hash.
 
     Args:
-        snapshot_id (str): Hash del snapshot.
+        snapshot_id (str): SHA-256 hash del snapshot (64 hex chars).
 
     Returns:
         dict: Snapshot encontrado.
@@ -525,11 +532,13 @@ def get_snapshot(snapshot_id: str) -> dict:
         Endpoint returning a snapshot by hash.
 
     Args:
-        snapshot_id (str): Snapshot hash.
+        snapshot_id (str): Snapshot SHA-256 hash (64 hex chars).
 
     Returns:
         dict: Snapshot payload.
     """
+    if not _HASH_RE.match(snapshot_id):
+        raise HTTPException(status_code=400, detail="Invalid snapshot ID format.")
     connection = get_connection()
     try:
         payload = fetch_snapshot_by_hash(connection, snapshot_id)

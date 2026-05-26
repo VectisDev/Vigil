@@ -6,7 +6,7 @@ on:
 
 # Cancel any in-progress run before starting a new one.
 concurrency:
-  group: centinel-scheduler
+  group: centinel-pipeline
   cancel-in-progress: true
 
 jobs:
@@ -25,6 +25,13 @@ jobs:
         run: |
           pip install -r requirements.txt
           playwright install chromium --with-deps 2>/dev/null || true
+      - name: Check election closed
+        run: |
+          if [ -f ELECTION_CLOSED ]; then
+            echo "ELECTION_CLOSED marker found — ciclo electoral terminado. Scheduler detenido."
+            exit 0
+          fi
+
       - name: Run collector
         run: python -m scripts.download_and_hash
       - name: Commit data

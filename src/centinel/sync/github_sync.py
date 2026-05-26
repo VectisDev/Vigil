@@ -34,7 +34,7 @@ def _get_file_sha(path: str) -> Optional[str]:
     try:
         import urllib.request
         req = urllib.request.Request(f"{_API}/contents/{path}?ref={_BRANCH}", headers=_headers())
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with urllib.request.urlopen(req, timeout=10) as r:  # nosec B310 — URL always https://api.github.com
             return json.loads(r.read())["sha"]
     except Exception:
         return None
@@ -61,7 +61,7 @@ def _put_file(path: str, content_str: str, message: str) -> bool:
             headers={**_headers(), "Content-Type": "application/json"},
             method="PUT",
         )
-        with urllib.request.urlopen(req, timeout=15) as r:
+        with urllib.request.urlopen(req, timeout=15) as r:  # nosec B310 — URL always https://api.github.com
             r.read()
         return True
     except Exception as exc:

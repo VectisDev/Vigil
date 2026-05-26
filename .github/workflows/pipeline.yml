@@ -38,6 +38,13 @@ jobs:
           env | sort | head -n 40
           ls -la
           ls -la data || true
+      - name: Check election closed
+        run: |
+          if [ -f ELECTION_CLOSED ]; then
+            echo "ELECTION_CLOSED marker found — ciclo electoral terminado. Pipeline detenido."
+            exit 0
+          fi
+
       - name: Run collector
         run: |
           if ! poetry run python -m scripts.collector; then

@@ -147,6 +147,9 @@ class AttackLogConfig:
     # the bound (legacy unbounded behavior — explicit opt-out, no surprise).
     max_event_queue: int = 50_000
     max_tracked_ips: int = 100_000
+    # Optional hook called for swarm-targeted attack events so gossip layer can
+    # broadcast them across the federation. Signature: (event_dict) -> None.
+    finding_broadcast_hook: Callable[[dict], None] | None = field(default=None, repr=False)
 
     @classmethod
     def from_yaml(cls, path: Path) -> "AttackLogConfig":
@@ -552,6 +555,11 @@ class AttackForensicsLogbook:
         self._maybe_send_summary(event)
         if self._event_callback:
             self._event_callback(event)
+        if self.config.finding_broadcast_hook and event.get("classification") in ("flood", "brute", "scan"):
+            try:
+                self.config.finding_broadcast_hook(event)
+            except Exception:
+                pass
         return event
 
     def log_connection_snapshot(self) -> None:
