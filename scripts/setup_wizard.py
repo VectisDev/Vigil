@@ -342,27 +342,51 @@ def main() -> None:
 
     # ── PASO 3: Intervalo de captura ──────────────────────────────────────────
     _header("PASO 3 / STEP 3: Intervalo de captura / Polling interval")
-    print("  Segundos entre capturas de datos del CNE.")
-    print("  Seconds between CNE data captures.")
-    print("  Recomendado en elecciones: 120 (2 min). Fuera: 300 (5 min).")
+
+    # Load country preset to get the validated election minimum
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "src"))
+        from centinel.countries import get_country_preset as _get_preset  # type: ignore
+        _preset = _get_preset(new_country)
+        _election_min = _preset.election_interval_seconds
+    except Exception:
+        _election_min = 300
+
+    _MODE_DEFAULTS = {
+        "election": str(_election_min),
+        "monitoring": "900",
+        "maintenance": "1800",
+    }
+    current_interval = env.get("CENTINEL_POLL_INTERVAL") or _MODE_DEFAULTS.get(new_mode, "900")
+
+    print(f"  Elecciones ({new_country}):  {_election_min}s = {_election_min // 60} min  <- minimo validado / validated minimum")
+    print( "  En swarm: adaptativo — el gossip coordina que nodo captura en cada ventana.")
+    print( "            Adaptive in swarm — gossip coordinates which node scrapes each window.")
+    print( "  Monitoreo: 900s (15 min)    Mantenimiento: 1800s (30 min)")
     print()
 
-    current_interval = env.get("CENTINEL_POLL_INTERVAL", "120")
     new_interval = _ask("Intervalo en segundos / Interval in seconds", default=current_interval)
     if new_interval.isdigit():
         interval_int = int(new_interval)
-        if interval_int < 60:
+        if new_mode == "election" and interval_int < _election_min:
             _note(
-                f"⚠  Intervalo {interval_int}s es muy agresivo — puede sobrecargar la fuente. "
-                "Mínimo recomendado: 60s."
+                f"Minimo de integridad electoral para {new_country}: "
+                f"{_election_min}s ({_election_min // 60} min)."
             )
-            if not _ask_yn("¿Continuar de todas formas?", default=False):
-                new_interval = "120"
-                _note("Usando 120s como valor seguro.")
+            new_interval = str(_election_min)
+            _ok(f"Usando {_election_min}s — minimo validado del preset {new_country}.")
+        elif interval_int < 60:
+            _note(
+                f"Intervalo {interval_int}s puede sobrecargar la fuente. "
+                "Minimo recomendado: 60s."
+            )
+            if not _ask_yn("Continuar de todas formas?", default=False):
+                new_interval = _MODE_DEFAULTS.get(new_mode, "900")
+                _note(f"Usando {new_interval}s.")
         env["CENTINEL_POLL_INTERVAL"] = new_interval
         _ok(f"CENTINEL_POLL_INTERVAL={new_interval}s")
     else:
-        _note("Valor no numérico ignorado / Non-numeric value ignored.")
+        _note("Valor no numerico ignorado / Non-numeric value ignored.")
 
     # ── PASO 4: Master switch ─────────────────────────────────────────────────
     _header("PASO 4 / STEP 4: Interruptor maestro / Master switch")

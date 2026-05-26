@@ -55,7 +55,7 @@ Go to the **[Actions](../../actions)** tab of **your fork** and click:
 The wizard auto-configures everything: data repository, electoral authority endpoints, cryptographic seeds, and the visualization dashboard. Follow the Issue it opens for any remaining manual step.
 
 **What you get after setup:**  
-→ Captures every 30 min · Cryptographic hash chain · Bitcoin-anchored proof · Public verification dashboard · P2P swarm-ready
+→ 2–5 min election captures · Cryptographic hash chain · Bitcoin-anchored proof · Public verification dashboard · P2P swarm-ready
 
 <details>
 <summary>Panel not showing after setup?</summary>
