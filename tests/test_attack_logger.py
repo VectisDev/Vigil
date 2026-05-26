@@ -49,7 +49,7 @@ from pathlib import Path
 
 import pytest
 
-from core.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
+from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
 
 
 def _read_jsonl(path: Path) -> list[dict]:
@@ -121,7 +121,7 @@ def test_honeypot_logs_requests_via_flask_client(
     logbook = AttackForensicsLogbook(cfg)
     honeypot = HoneypotServer(cfg, logbook)
 
-    monkeypatch.setattr("core.attack_logger.random.choice", lambda _opts: 404)
+    monkeypatch.setattr("centinel.defense.attack_logger.random.choice", lambda _opts: 404)
 
     logbook.start()
     client = honeypot.app.test_client()
@@ -163,13 +163,13 @@ def test_external_summary_uses_anonymized_ip(
 
         return _Resp()
 
-    monkeypatch.setattr("core.attack_logger.requests.post", _fake_post)
+    monkeypatch.setattr("centinel.defense.attack_logger.requests.post", _fake_post)
 
     class _Target:
         pass
 
-    monkeypatch.setattr("core.attack_logger.resolve_outbound_target", lambda *a, **k: _Target())
-    monkeypatch.setattr("core.attack_logger.pin_dns_resolution", lambda _target: nullcontext())
+    monkeypatch.setattr("centinel.defense.attack_logger.resolve_outbound_target", lambda *a, **k: _Target())
+    monkeypatch.setattr("centinel.defense.attack_logger.pin_dns_resolution", lambda _target: nullcontext())
 
     logbook.start()
     logbook.log_http_request(

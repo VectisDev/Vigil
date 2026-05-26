@@ -5,7 +5,7 @@ import ssl
 
 import pytest
 
-from core.security_utils import (
+from centinel.defense.security_utils import (
     OutboundTarget,
     build_strict_tls_context,
     pin_dns_resolution,

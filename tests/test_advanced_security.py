@@ -48,7 +48,7 @@ from pathlib import Path
 
 import pytest
 
-from core.advanced_security import (
+from centinel.defense.advanced_security import (
     AdvancedSecurityConfig,
     AdvancedSecurityManager,
     AlertManager,
@@ -110,9 +110,9 @@ def test_adaptive_cpu_ignores_brief_spike(monkeypatch: pytest.MonkeyPatch) -> No
         cpu_threshold_percent=20, cpu_sustain_seconds=60, cpu_spike_grace_seconds=5
     )
     manager = AdvancedSecurityManager(cfg)
-    monkeypatch.setattr("core.advanced_security.psutil.cpu_percent", lambda interval=0.1: 95.0)
+    monkeypatch.setattr("centinel.defense.advanced_security.psutil.cpu_percent", lambda interval=0.1: 95.0)
     monkeypatch.setattr(
-        "core.advanced_security.psutil.virtual_memory", lambda: type("vm", (), {"percent": 10.0})()
+        "centinel.defense.advanced_security.psutil.virtual_memory", lambda: type("vm", (), {"percent": 10.0})()
     )
     monkeypatch.setattr(manager.runtime_security, "detect_hostile_conditions", lambda: [])
 
@@ -150,8 +150,8 @@ def test_honeypot_encrypts_events_file(monkeypatch: pytest.MonkeyPatch, tmp_path
             return b"enc:" + data[::-1]
 
     monkeypatch.setenv("HONEYPOT_LOG_KEY", "unit-test-key")
-    monkeypatch.setattr("core.advanced_security.Fernet", FakeFernet)
-    monkeypatch.setattr("core.advanced_security._HAS_CRYPTOGRAPHY", True)
+    monkeypatch.setattr("centinel.defense.advanced_security.Fernet", FakeFernet)
+    monkeypatch.setattr("centinel.defense.advanced_security._HAS_CRYPTOGRAPHY", True)
 
     cfg = AdvancedSecurityConfig(
         honeypot_enabled=True,
@@ -172,8 +172,8 @@ def test_honeypot_encrypts_events_file(monkeypatch: pytest.MonkeyPatch, tmp_path
 def test_honeypot_encrypt_requires_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     pytest.importorskip("flask")
     monkeypatch.delenv("HONEYPOT_LOG_KEY", raising=False)
-    monkeypatch.setattr("core.advanced_security._HAS_CRYPTOGRAPHY", True)
-    monkeypatch.setattr("core.advanced_security.Fernet", lambda key: None)
+    monkeypatch.setattr("centinel.defense.advanced_security._HAS_CRYPTOGRAPHY", True)
+    monkeypatch.setattr("centinel.defense.advanced_security.Fernet", lambda key: None)
 
     cfg = AdvancedSecurityConfig(
         honeypot_enabled=True,
@@ -193,7 +193,7 @@ def test_air_gap_is_rate_limited(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     manager = AdvancedSecurityManager(cfg)
     calls: list[tuple[int, str]] = []
     monkeypatch.setattr(manager, "verify_integrity", lambda: False)
-    monkeypatch.setattr("core.advanced_security.time.sleep", lambda _s: None)
+    monkeypatch.setattr("centinel.defense.advanced_security.time.sleep", lambda _s: None)
     monkeypatch.setattr(
         manager, "_safe_alert", lambda level, event, metrics: calls.append((level, event))
     )
@@ -220,7 +220,7 @@ def test_backup_github_requires_allowlist(monkeypatch: pytest.MonkeyPatch, tmp_p
         called["run"] += 1
         return None
 
-    monkeypatch.setattr("core.advanced_security.subprocess.run", _fake_run)
+    monkeypatch.setattr("centinel.defense.advanced_security.subprocess.run", _fake_run)
     manager.backups._upload(archive)
     assert called["run"] == 0
 
@@ -236,7 +236,7 @@ def test_backup_github_resolves_remote_url_before_allowlist(
     monkeypatch.setenv("BACKUP_GIT_REPO", "origin")
     monkeypatch.setenv("BACKUP_GIT_REMOTE_ALLOWLIST", "https://github.com/trusted/repo.git")
     monkeypatch.setattr(
-        "core.advanced_security.subprocess.check_output",
+        "centinel.defense.advanced_security.subprocess.check_output",
         lambda *_args, **_kwargs: "https://github.com/trusted/repo.git\n",
     )
 
@@ -246,7 +246,7 @@ def test_backup_github_resolves_remote_url_before_allowlist(
         calls.append(args)
         return None
 
-    monkeypatch.setattr("core.advanced_security.subprocess.run", _fake_run)
+    monkeypatch.setattr("centinel.defense.advanced_security.subprocess.run", _fake_run)
     manager.backups._upload(archive)
 
     assert ["git", "push", "origin"] in calls
@@ -263,7 +263,7 @@ def test_backup_github_blocks_remote_alias_when_url_not_allowlisted(
     monkeypatch.setenv("BACKUP_GIT_REPO", "origin")
     monkeypatch.setenv("BACKUP_GIT_REMOTE_ALLOWLIST", "https://github.com/trusted/repo.git")
     monkeypatch.setattr(
-        "core.advanced_security.subprocess.check_output",
+        "centinel.defense.advanced_security.subprocess.check_output",
         lambda *_args, **_kwargs: "https://evil.example/repo.git\n",
     )
 
@@ -273,7 +273,7 @@ def test_backup_github_blocks_remote_alias_when_url_not_allowlisted(
         called["run"] += 1
         return None
 
-    monkeypatch.setattr("core.advanced_security.subprocess.run", _fake_run)
+    monkeypatch.setattr("centinel.defense.advanced_security.subprocess.run", _fake_run)
     manager.backups._upload(archive)
 
     assert called["run"] == 0
@@ -286,7 +286,7 @@ def test_air_gap_rate_limit_persists_across_restarts(
         deadman_min_interval_seconds=600,
         deadman_state_path=str(tmp_path / "deadman_state.json"),
     )
-    monkeypatch.setattr("core.advanced_security.time.sleep", lambda _s: None)
+    monkeypatch.setattr("centinel.defense.advanced_security.time.sleep", lambda _s: None)
 
     manager = AdvancedSecurityManager(cfg)
     monkeypatch.setattr(manager, "verify_integrity", lambda: False)

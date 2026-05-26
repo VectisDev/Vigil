@@ -49,8 +49,8 @@ import pytest
 
 pytest.importorskip("psutil")
 
-from core import security
-from core.security import DefensiveSecurityManager, DefensiveShutdown, SecurityConfig
+from centinel.defense import security
+from centinel.defense.security import DefensiveSecurityManager, DefensiveShutdown, SecurityConfig
 from scripts import supervisor
 
 
