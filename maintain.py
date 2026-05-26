@@ -109,7 +109,7 @@ from src.monitoring.strict_health import (
     is_healthy_strict,
 )
 
-from centinel_engine.cne_endpoint_healer import CNEEndpointHealer, run_endpoint_healer
+from centinel_engine.electoral_authority_healer import CNEEndpointHealer, run_endpoint_healer
 
 if importlib.util.find_spec("rich"):
     from rich.console import Console
