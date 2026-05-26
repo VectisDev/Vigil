@@ -39,6 +39,10 @@ class CountryPreset:
     national_cne_code: str = "00"          # CNE code for the national scope
     national_filename_pattern: Optional[str] = None
     notes: Optional[str] = None
+    # Minimum polling interval (seconds) during live elections.
+    # HN: 120s (2 min) — production-validated 2025, proven non-DDoS with 19 endpoints.
+    # Other countries: 300s (5 min) — safe default until field-tested.
+    election_interval_seconds: int = 300
 
     @property
     def divisions_count(self) -> int:
@@ -121,6 +125,7 @@ LATAM_COUNTRIES: Dict[str, CountryPreset] = {
         url_pattern="https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/{cne_code}",
         national_url="https://resultadosgenerales2025.cne.hn/api/presidencial/nacional",
         national_filename_pattern=r"(\d{4}-\d{2}-\d{2} \d{2}_\d{2}_\d{2})",
+        election_interval_seconds=120,
     ),
     "GT": CountryPreset(
         code="GT",
