@@ -18,14 +18,14 @@ import string
 import sys
 from pathlib import Path
 
-REPO_ROOT   = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_YAML = REPO_ROOT / "command_center" / "config.yaml"
-ENV_FILE    = REPO_ROOT / ".env"
+ENV_FILE = REPO_ROOT / ".env"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
 ACCESS_JSON = REPO_ROOT / "web" / "access.json"
 
-SEED1_SALT   = "centinel-admin-salt-v1"
-SEED1_ITERS  = 600_000
+SEED1_SALT = "centinel-admin-salt-v1"
+SEED1_ITERS = 600_000
 SEED1_LABELS = list("ABCDEFGHIJKL")
 
 _COUNTRY_LABELS = {
@@ -106,9 +106,7 @@ def _ask_yn(prompt: str, default: bool = True) -> bool:
 
 
 def _ask_choice(prompt: str, choices: list[str], default: str) -> str:
-    options = " / ".join(
-        _c(BOLD, c) if c == default else c for c in choices
-    )
+    options = " / ".join(_c(BOLD, c) if c == default else c for c in choices)
     print(f"  {prompt}")
     print(f"    Opciones: {options}")
     while True:
@@ -125,10 +123,10 @@ def _ask_choice(prompt: str, choices: list[str], default: str) -> str:
 def _update_yaml_line(content: str, key: str, new_value: str) -> str:
     """Replace a top-level YAML key value, preserving inline comments."""
     pattern = rf'^({re.escape(key)}:\s*)("?[^#\n]*?)(\s*(?:#[^\n]*)?)\s*$'
-    if '"' in new_value or ' ' in new_value:
+    if '"' in new_value or " " in new_value:
         replacement = rf'\g<1>"{new_value}"\g<3>'
     else:
-        replacement = rf'\g<1>{new_value}\g<3>'
+        replacement = rf"\g<1>{new_value}\g<3>"
     updated, count = re.subn(pattern, replacement, content, count=1, flags=re.MULTILINE)
     if count == 0:
         # Key not found — append it
@@ -167,7 +165,7 @@ def _save_env(path: Path, env: dict[str, str], example: Path) -> None:
                     # Preserve inline comment if present
                     comment_part = ""
                     if "#" in stripped:
-                        comment_part = "  " + stripped[stripped.index("#"):]
+                        comment_part = "  " + stripped[stripped.index("#") :]
                     result.append(f"{k}={env[k]}{comment_part}")
                     written.add(k)
                     continue
@@ -241,6 +239,7 @@ def _generate_seed1() -> None:
 
 def main() -> None:
     inner = 60  # visible characters between ║ borders
+
     def _banner_line(text: str = "") -> None:
         pad = inner - len(text)
         left = pad // 2
@@ -304,6 +303,7 @@ def main() -> None:
     # Auto-set election year if not set
     if not env.get("CENTINEL_YEAR"):
         import datetime
+
         env["CENTINEL_YEAR"] = str(datetime.date.today().year)
         _note(f"CENTINEL_YEAR={env['CENTINEL_YEAR']} (auto-set)")
 
@@ -342,27 +342,50 @@ def main() -> None:
 
     # ── PASO 3: Intervalo de captura ──────────────────────────────────────────
     _header("PASO 3 / STEP 3: Intervalo de captura / Polling interval")
-    print("  Segundos entre capturas de datos del CNE.")
-    print("  Seconds between CNE data captures.")
-    print("  Recomendado en elecciones: 120 (2 min). Fuera: 300 (5 min).")
+
+    # Load country preset to get the validated election minimum
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "src"))
+        from centinel.countries import get_country_preset as _get_preset  # type: ignore
+
+        _preset = _get_preset(new_country)
+        _election_min = _preset.election_interval_seconds
+    except Exception:
+        _election_min = 300
+
+    _MODE_DEFAULTS = {
+        "election": str(_election_min),
+        "monitoring": "900",
+        "maintenance": "1800",
+    }
+    current_interval = env.get("CENTINEL_POLL_INTERVAL") or _MODE_DEFAULTS.get(new_mode, "900")
+
+    print(
+        f"  Elecciones ({new_country}):  {_election_min}s = {_election_min // 60} min  <- minimo validado / validated minimum"
+    )
+    print("  En swarm: adaptativo — el gossip coordina que nodo captura en cada ventana.")
+    print("            Adaptive in swarm — gossip coordinates which node scrapes each window.")
+    print("  Monitoreo: 900s (15 min)    Mantenimiento: 1800s (30 min)")
     print()
 
-    current_interval = env.get("CENTINEL_POLL_INTERVAL", "120")
     new_interval = _ask("Intervalo en segundos / Interval in seconds", default=current_interval)
     if new_interval.isdigit():
         interval_int = int(new_interval)
-        if interval_int < 60:
+        if new_mode == "election" and interval_int < _election_min:
             _note(
-                f"⚠  Intervalo {interval_int}s es muy agresivo — puede sobrecargar la fuente. "
-                "Mínimo recomendado: 60s."
+                f"Minimo de integridad electoral para {new_country}: " f"{_election_min}s ({_election_min // 60} min)."
             )
-            if not _ask_yn("¿Continuar de todas formas?", default=False):
-                new_interval = "120"
-                _note("Usando 120s como valor seguro.")
+            new_interval = str(_election_min)
+            _ok(f"Usando {_election_min}s — minimo validado del preset {new_country}.")
+        elif interval_int < 60:
+            _note(f"Intervalo {interval_int}s puede sobrecargar la fuente. " "Minimo recomendado: 60s.")
+            if not _ask_yn("Continuar de todas formas?", default=False):
+                new_interval = _MODE_DEFAULTS.get(new_mode, "900")
+                _note(f"Usando {new_interval}s.")
         env["CENTINEL_POLL_INTERVAL"] = new_interval
         _ok(f"CENTINEL_POLL_INTERVAL={new_interval}s")
     else:
-        _note("Valor no numérico ignorado / Non-numeric value ignored.")
+        _note("Valor no numerico ignorado / Non-numeric value ignored.")
 
     # ── PASO 4: Master switch ─────────────────────────────────────────────────
     _header("PASO 4 / STEP 4: Interruptor maestro / Master switch")
@@ -424,9 +447,11 @@ def main() -> None:
     print("  Resultado: prueba criptográfica independiente de que los datos")
     print("  existían en ese momento exacto — imposible de falsificar.")
     print()
-    print(f"  {_c(GREEN, '✓')} Activado por defecto  "
-          f"{_c(GREEN, '✓')} Gratis para siempre  "
-          f"{_c(GREEN, '✓')} Descentralizado")
+    print(
+        f"  {_c(GREEN, '✓')} Activado por defecto  "
+        f"{_c(GREEN, '✓')} Gratis para siempre  "
+        f"{_c(GREEN, '✓')} Descentralizado"
+    )
     print()
     if _ask_yn("¿Activar anclaje Bitcoin/OpenTimestamps?", default=True):
         env["OTS_ENABLED"] = "true"
@@ -498,7 +523,7 @@ def main() -> None:
     print(f"  Endpoint      {_c(CYAN, new_url)}")
     print(f"  Modo          {_c(CYAN, new_mode)}")
     print(f"  Intervalo     {_c(CYAN, new_interval + 's')}")
-    ots_display = f"✓ {ots_mode}" if env.get('OTS_ENABLED') == 'true' else "— desactivado"
+    ots_display = f"✓ {ots_mode}" if env.get("OTS_ENABLED") == "true" else "— desactivado"
     print(f"  OpenTimestamps {_c(GREEN if env.get('OTS_ENABLED') == 'true' else YELLOW, ots_display)}")
     print(f"  Backup key    {_c(GREEN, '✓ configurada') if has_backup else _c(YELLOW, '— omitida')}")
     print(f"  Seeds S1      {_c(GREEN, seeds_status)}")
@@ -509,22 +534,22 @@ def main() -> None:
     print(_c(BOLD, "=" * 62))
     print()
     print(f"  {_c(CYAN, 'make start')}     → Iniciar el pipeline (autónomo, cada hora)")
-    print( "                  Start the pipeline (autonomous, every hour)")
+    print("                  Start the pipeline (autonomous, every hour)")
     print()
     print(f"  {_c(CYAN, 'make status')}    → Ver si el pipeline está corriendo")
-    print( "                  Check if the pipeline is running")
+    print("                  Check if the pipeline is running")
     print()
     print(f"  {_c(CYAN, 'make logs')}      → Ver logs en tiempo real")
-    print( "                  View logs in real time")
+    print("                  View logs in real time")
     print()
     print(f"  {_c(CYAN, 'make pipeline')} → Ejecutar UNA vez (manual, sin scheduler)")
-    print( "                  Run ONCE manually (no scheduler)")
+    print("                  Run ONCE manually (no scheduler)")
     print()
     print(f"  {_c(CYAN, 'make stop')}      → Detener el pipeline")
-    print( "                  Stop the pipeline")
+    print("                  Stop the pipeline")
     print()
     print(f"  {_c(CYAN, 'centinel doctor')} → Verificar que todo está listo")
-    print( "                    Verify everything is ready (GO/NO-GO)")
+    print("                    Verify everything is ready (GO/NO-GO)")
     print()
     print(_c(GREEN, "  CENTINEL está listo. Tu instancia es completamente independiente"))
     print(_c(GREEN, "  de cualquier autoridad electoral o institución."))
