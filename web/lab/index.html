@@ -194,6 +194,13 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 .inj-btn.c:hover{background:rgba(176,140,240,.1);border-color:var(--purple)}
 .breaking-badge{font-size:9px;background:rgba(223,107,134,.12);border:1px solid rgba(223,107,134,.3);
   color:var(--bad);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.inj-real-label{font-size:9px;color:var(--muted);margin-top:3px;font-style:italic}
+
+/* ── DEPT STATUS GRID ── */
+.lab-dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:5px;margin-top:8px}
+.lab-dept-cell{border-radius:6px;padding:5px 3px;text-align:center;font-size:10px;font-weight:700;
+  cursor:default;transition:background .35s;color:#fff;position:relative;letter-spacing:.03em}
+.lab-dept-cell[title]{cursor:help}
 
 /* ── ACTIVE INJECTIONS ── */
 .inj-active-block{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:10px}
@@ -561,6 +568,19 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- Anomaly markers (shown when anomalous dataset) -->
 <div id="anom-marker-row" class="anom-marker-row" style="margin-top:12px;display:none"></div>
+
+<!-- ══ ENDPOINT STATUS MATRIX ═══════════════════════════════════════════════ -->
+<div class="section-title" style="margin-top:18px">Estado de Endpoints
+  <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:8px">
+    <span style="color:#57c08d">■</span> Normal
+    <span style="color:#d4b066;margin-left:6px">■</span> Anomalía
+    <span style="color:#df6b86;margin-left:6px">■</span> Cadena rota
+    <span style="color:#374151;margin-left:6px">■</span> Sin datos
+  </span>
+</div>
+<div class="card" style="padding:12px 14px;margin-bottom:14px">
+  <div class="lab-dept-grid" id="lab-dept-grid"></div>
+</div>
 
 <!-- ══ SECTION 2 — CHARTS ════════════════════════════════════════════════════ -->
 <div class="section-title">Panel de Visualización Forense<button class="section-dl" onclick="downloadPNG()">↓ PNG</button></div>
@@ -1399,6 +1419,7 @@ function seededRng(seed){let s=seed>>>0;return()=>{s=((s*1664525+1013904223)>>>0
 const DEPTS=['Francisco Morazán','Cortés','Yoro','Olancho','Santa Bárbara','Atlántida',
   'Choluteca','Comayagua','El Paraíso','Colón','La Paz','Lempira','Copán',
   'Intibucá','Ocotepeque','Valle','Gracias a Dios','Islas Bahía'];
+const DEPT_ABBR=['FM','CR','YO','OL','SB','AT','CH','CM','EP','CL','LP','LE','CP','IN','OC','VA','GD','IB'];
 const DEPT_W=[.18,.17,.09,.08,.07,.07,.06,.05,.04,.04,.03,.03,.03,.02,.02,.01,.005,.005];
 function getDeptData(snap){
   const r=seededRng((snap.idx||0)*31337+1);
@@ -1411,6 +1432,34 @@ function getDeptData(snap){
            blancos:Math.round((snap.blancos||0)*f),zscore,
            actas:Math.round((snap.actas_divulgadas||0)*f)};
   });
+}
+
+function renderDeptGrid(snap,depts){
+  const grid=document.getElementById('lab-dept-grid');
+  if(!grid)return;
+  const chainBroken=!!(snap._chain_broken_pct||snap._false_hash||snap._chain_fork||snap._sig_invalid);
+  const cascadeLevel=snap._cdn_mirrors_poisoned||0;
+  // NAC chip reflects overall state
+  const nacChainOk=!chainBroken;
+  const nacAnomaly=depts.some(d=>Math.abs(d.zscore)>2.5)||!!(snap._blackout||snap._partial);
+  let nacColor=nacChainOk?(nacAnomaly?'#d4b066':'#57c08d'):'#df6b86';
+  const nacOffline=snap.blackout;
+  if(nacOffline)nacColor='#24272e';
+  const chips=[{abbr:'NAC',name:'Nacional',color:nacColor,tooltip:'Nacional · '+
+    (chainBroken?'Cadena rota':nacOffline?'Sin datos':nacAnomaly?'Anomalía estadística':'OK')}];
+  depts.forEach((d,i)=>{
+    const offline=(snap._geo_blackout&&i===0)||(cascadeLevel>0&&i<cascadeLevel);
+    let color;
+    if(offline)color='#24272e';
+    else if(chainBroken)color='#df6b86';
+    else if(Math.abs(d.zscore)>2.5)color='#d4b066';
+    else color='#57c08d';
+    const status=offline?'Sin datos':chainBroken?'Cadena rota':Math.abs(d.zscore)>2.5?`z=${d.zscore}`:'OK';
+    chips.push({abbr:DEPT_ABBR[i],name:d.name,color,tooltip:`${d.name} · ${status} · actas ${d.actas.toLocaleString()}`});
+  });
+  grid.innerHTML=chips.map(c=>
+    `<div class="lab-dept-cell" style="background:${c.color}" title="${c.tooltip}">${c.abbr}</div>`
+  ).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1677,6 +1726,7 @@ function renderSimFrame(idx){
   renderZScore(depts);
   renderParticipation(depts);
   renderNullBlank(depts);
+  renderDeptGrid(snap,depts);
   renderForensics(snap,benf,lastd,last10,{mad,runs,trend,llnz,depts});
   emitEngineEvents(snap,idx,benf,lastd,{mad,runs,trend,llnz});
 }
@@ -2193,6 +2243,8 @@ function renderInjGrid(gridId,block){
       {v:'instant',l:'Instantáneo'},{v:1,l:'1 snap'},{v:3,l:'3 snaps'},
       {v:6,l:'6 snaps'},{v:12,l:'12 snaps'},{v:24,l:'24 snaps'}
     ].map(o=>`<option value="${o.v}"${o.v==='instant'?' selected':''}>${o.l}</option>`).join('');
+    const realLabelHtml=ev.param?.realLabel
+      ?`<div class="inj-real-label">⚙ Real: ${ev.param.realLabel}</div>`:'';
     const paramHtml=ev.param?`
       <div class="inj-param-row">
         <span style="flex:0;white-space:nowrap;font-size:9px">${ev.param.label}</span>
@@ -2202,7 +2254,7 @@ function renderInjGrid(gridId,block){
           data-detect="${ev.param.detectAt??''}" data-breach="${ev.param.breachAt??''}"
           oninput="this.nextElementSibling.textContent=this.value+'${ev.param.unit||''}';_updateSliderColor(this,${ev.param.detectAt??null},${ev.param.breachAt??null})">
         <span class="inj-param-val">${ev.param.def}${ev.param.unit||''}</span>
-      </div>`:'';
+      </div>${realLabelHtml}`:'';
     const durHtml=`<div style="display:flex;align-items:center;gap:4px;margin-top:4px">
         <span style="font-size:9px;color:var(--txt-dim)">Duración:</span>
         <select class="inj-dur-sel" id="inj-dur-${id}">${durOpts}</select>
@@ -2236,6 +2288,35 @@ function restoreVis(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// LAB THRESHOLDS SYNC (read-only from real config — never writes back)
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadLabThresholds(){
+  try{
+    const res=await fetch('../lab-thresholds.json');
+    if(!res.ok)return;
+    const data=await res.json();
+    let updated=0;
+    Object.entries(data.thresholds||{}).forEach(([id,t])=>{
+      if(!EVENTS[id]?.param)return;
+      if(t.detectAt!=null)EVENTS[id].param.detectAt=t.detectAt;
+      if(t.breachAt!=null)EVENTS[id].param.breachAt=t.breachAt;
+      if(t.sliderMax!=null)EVENTS[id].param.max=t.sliderMax;
+      if(t.realLabel)EVENTS[id].param.realLabel=t.realLabel;
+      updated++;
+    });
+    // Re-render grids with updated thresholds
+    ['inj-grid-a','inj-grid-b','inj-grid-c'].forEach(gid=>{
+      const el=document.getElementById(gid);
+      if(el)el.innerHTML='';
+    });
+    renderInjGrid('inj-grid-a','A');
+    renderInjGrid('inj-grid-b','B');
+    renderInjGrid('inj-grid-c','C');
+    console.info(`Lab thresholds loaded from lab-thresholds.json (${updated} events, generated ${data.generated_at})`);
+  }catch(e){/* silent fallback — default EVENTS values remain */}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════
 (async function init(){
@@ -2250,6 +2331,8 @@ function restoreVis(){
     document.getElementById('thresh-prereg-text').value=txt;lockThresholds();}catch{}}
   // Load default dataset
   await loadDataset('../data/hnd_2025_series.json');
+  // Override EVENTS thresholds with real config values (read-only)
+  await loadLabThresholds();
   logE('OK','Sandbox Forense Académico listo — CENTINEL v1');
   logE('INFO','Selecciona un dataset y presiona ▶ para iniciar la simulación');
 })();
