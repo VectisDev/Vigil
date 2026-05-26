@@ -323,6 +323,8 @@ details .details-body{padding:12px 0 4px}
       <a href="#s6" onclick="scrollTo('s6')">§6 Manual</a>
       <a href="#s7" onclick="scrollTo('s7')">§7 Acceso y Seeds</a>
       <a href="#s8" onclick="scrollTo('s8')">§8 Red de Nodos</a>
+      <div class="sec-header">Operaciones</div>
+      <a href="#s9" onclick="scrollTo('s9')">§9 Cierre Electoral</a>
     </nav>
 
     <!-- MAIN -->
@@ -981,7 +983,97 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
+      <!-- ── §9 CIERRE ELECTORAL ── -->
+      <div class="section" id="s9">
+        <div class="section-title">§9 Cierre Electoral</div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          Secuencia de fin de elección: raspe final forzado de todas las fuentes,
+          publicación del snapshot certificado, y desactivación del scheduler.
+        </p>
+
+        <div class="ctrl-section" id="election-closed-banner" style="display:none;border-color:#3fb950;background:rgba(63,185,80,0.07)">
+          <h3 style="color:#3fb950">Ciclo Electoral Cerrado</h3>
+          <div style="font-size:13px;color:var(--fg);margin-top:8px">
+            <span id="ec-closed-at" style="color:var(--muted)"></span><br>
+            Merkle root final: <code id="ec-merkle" style="font-size:11px"></code><br>
+            Snapshots en cadena: <strong id="ec-chain"></strong>
+          </div>
+        </div>
+
+        <div class="ctrl-section" id="election-open-section">
+          <h3>Estado actual</h3>
+          <div style="display:flex;align-items:center;gap:12px;margin:12px 0">
+            <span id="ec-status-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok)"></span>
+            <span id="ec-status-label" style="font-size:14px;font-weight:600">Cargando…</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="ec-mode-line"></div>
+
+          <div style="background:rgba(248,81,73,0.07);border:1px solid rgba(248,81,73,0.3);border-radius:10px;padding:16px 18px;margin-bottom:16px">
+            <strong style="color:#f85149;font-size:13px">Acción irreversible</strong>
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7">
+              Al cerrar el ciclo electoral:<br>
+              1. Se ejecuta un raspe completo y forzado de las 19 fuentes CNE.<br>
+              2. Se escribe el marker <code>ELECTION_CLOSED</code> en el repositorio.<br>
+              3. <code>CENTINEL_MODE</code> cambia a <code>maintenance</code>.<br>
+              4. Los schedulers de Actions dejan de correr automáticamente.<br>
+              Para reactivar el monitoreo hay que eliminar el marker manualmente.
+            </p>
+          </div>
+
+          <button class="hdr-btn" id="btn-finalize" onclick="openFinalizeModal()"
+            style="border-color:#f85149;color:#f85149;font-weight:700">
+            Cerrar Ciclo Electoral
+          </button>
+
+          <div id="ec-progress" style="display:none;margin-top:16px">
+            <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="ec-progress-msg">Ejecutando raspe final…</div>
+            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+              <div id="ec-progress-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.5s"></div>
+            </div>
+          </div>
+
+          <div id="ec-result" style="display:none;margin-top:16px;padding:14px 16px;background:var(--panel);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:600;color:var(--ok);margin-bottom:8px">Ciclo cerrado correctamente</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.8">
+              Merkle root final: <code id="ec-result-merkle"></code><br>
+              Snapshots: <strong id="ec-result-chain"></strong><br>
+              Cerrado a las: <span id="ec-result-time"></span>
+            </div>
+          </div>
+
+          <div id="ec-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.3);font-size:12px;color:#f85149"></div>
+        </div>
+      </div>
+
     </main>
+  </div>
+</div>
+
+<!-- ════ ELECTION FINALIZE MODAL ════ -->
+<div id="finalize-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:none;align-items:center;justify-content:center">
+  <div class="modal-box" style="max-width:440px;border:1px solid rgba(248,81,73,0.5)">
+    <h2 style="color:#f85149">Confirmar cierre electoral</h2>
+    <p style="font-size:13px;color:var(--muted);margin:12px 0 16px;line-height:1.7">
+      Esta acción lanzará un raspe completo final de todas las fuentes CNE,
+      escribirá el marker <code>ELECTION_CLOSED</code>, cambiará el modo a
+      <code>maintenance</code>, y detendrá los schedulers automáticos.<br><br>
+      <strong style="color:var(--fg)">No se puede deshacer desde esta interfaz.</strong>
+    </p>
+    <div class="ctrl-row" style="margin-bottom:16px">
+      <label style="color:var(--fg)">Escribe <strong>CERRAR</strong> para confirmar</label>
+      <input type="text" id="finalize-confirm-input" placeholder="CERRAR"
+        autocomplete="off" style="border-color:rgba(248,81,73,0.5)"
+        oninput="document.getElementById('btn-finalize-confirm').disabled=this.value!=='CERRAR'">
+    </div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeFinalizeModal()">Cancelar</button>
+      <button class="hdr-btn primary" id="btn-finalize-confirm" disabled
+        onclick="doFinalizeElection()"
+        style="background:#f85149;border-color:#f85149;color:#fff">
+        Cerrar ciclo electoral
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1210,6 +1302,7 @@ async function initAll(){
   loadOtsStatus();
   loadSeedStatus();
   loadSwarmStatus();
+  loadElectionStatus();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2511,10 +2604,122 @@ function _stopSwarmPoll() {
   }, 100);
 }
 
+// ══════════════════════════════════════════════════════════
+// ELECTION FINALIZATION
+// ══════════════════════════════════════════════════════════
+
+async function loadElectionStatus() {
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/election/status');
+    if (!r.ok) return;
+    const d = await r.json();
+    const banner = document.getElementById('election-closed-banner');
+    const openSec = document.getElementById('election-open-section');
+    const dot = document.getElementById('ec-status-dot');
+    const label = document.getElementById('ec-status-label');
+    const modeLine = document.getElementById('ec-mode-line');
+
+    if (d.election_closed) {
+      if (banner) banner.style.display = '';
+      if (openSec) openSec.style.display = 'none';
+      const el = document.getElementById('ec-closed-at');
+      if (el) el.textContent = 'Cerrado: ' + (d.closed_at || '—');
+      const em = document.getElementById('ec-merkle');
+      if (em) em.textContent = d.merkle_root || '—';
+      const ec = document.getElementById('ec-chain');
+      if (ec) ec.textContent = d.chain_length;
+    } else {
+      if (banner) banner.style.display = 'none';
+      if (openSec) openSec.style.display = '';
+      if (dot) dot.style.background = 'var(--ok)';
+      if (label) label.textContent = 'Elección en curso';
+      if (modeLine) modeLine.textContent = 'Modo: ' + (d.centinel_mode || '—') +
+        '  ·  Snapshots: ' + d.chain_length;
+    }
+  } catch(_) {}
+}
+
+function openFinalizeModal() {
+  const m = document.getElementById('finalize-modal');
+  if (m) { m.style.display = 'flex'; }
+  const inp = document.getElementById('finalize-confirm-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+  const btn = document.getElementById('btn-finalize-confirm');
+  if (btn) btn.disabled = true;
+}
+
+function closeFinalizeModal() {
+  const m = document.getElementById('finalize-modal');
+  if (m) m.style.display = 'none';
+}
+
+async function doFinalizeElection() {
+  closeFinalizeModal();
+  const progressDiv = document.getElementById('ec-progress');
+  const progressMsg = document.getElementById('ec-progress-msg');
+  const progressBar = document.getElementById('ec-progress-bar');
+  const resultDiv = document.getElementById('ec-result');
+  const errorDiv = document.getElementById('ec-error');
+  const btnFinalize = document.getElementById('btn-finalize');
+
+  if (progressDiv) progressDiv.style.display = '';
+  if (resultDiv) resultDiv.style.display = 'none';
+  if (errorDiv) errorDiv.style.display = 'none';
+  if (btnFinalize) btnFinalize.disabled = true;
+
+  // Animate progress bar (scrape takes up to ~10 min)
+  let pct = 0;
+  const ticker = setInterval(() => {
+    pct = Math.min(pct + 0.4, 92);
+    if (progressBar) progressBar.style.width = pct + '%';
+    if (progressMsg) {
+      if (pct < 30) progressMsg.textContent = 'Iniciando raspe completo…';
+      else if (pct < 60) progressMsg.textContent = 'Descargando fuentes CNE…';
+      else if (pct < 85) progressMsg.textContent = 'Procesando y hasheando snapshots…';
+      else progressMsg.textContent = 'Finalizando cadena de hash…';
+    }
+  }, 2000);
+
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/election/finalize', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({}),
+    });
+    clearInterval(ticker);
+    if (progressBar) progressBar.style.width = '100%';
+
+    const d = await r.json();
+    if (!r.ok) {
+      throw new Error(d.detail || 'Error desconocido');
+    }
+
+    if (progressDiv) progressDiv.style.display = 'none';
+    if (resultDiv) resultDiv.style.display = '';
+    const rm = document.getElementById('ec-result-merkle');
+    if (rm) rm.textContent = d.merkle_root || '—';
+    const rc = document.getElementById('ec-result-chain');
+    if (rc) rc.textContent = d.chain_length;
+    const rt = document.getElementById('ec-result-time');
+    if (rt) rt.textContent = d.closed_at || '—';
+
+    await loadElectionStatus();
+  } catch(err) {
+    clearInterval(ticker);
+    if (progressDiv) progressDiv.style.display = 'none';
+    if (errorDiv) {
+      errorDiv.style.display = '';
+      errorDiv.textContent = 'Error: ' + err.message;
+    }
+    if (btnFinalize) btnFinalize.disabled = false;
+  }
+}
+
 // Keyboard shortcut to open this panel (also registered in parent pages)
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closeDiffModal(); closePatModal(); closeResultModal(); closeMapPopup();
+    closeFinalizeModal();
   }
 });
 </script>
