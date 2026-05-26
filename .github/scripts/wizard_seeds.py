@@ -28,7 +28,7 @@ if access_path.exists():
         existing = json.loads(access_path.read_text())
         if existing.get("seeds") and len(existing["seeds"]) == 12:
             print("Seeds already exist — skipping generation.")
-            Path("/tmp/centinel-seeds.txt").write_text(
+            Path("/tmp/centinel-seeds.txt").write_text(  # nosec B108 - ephemeral GitHub Actions runner; path used to pass output between steps
                 "Seeds ya configurados en una ejecución anterior.\n"
                 "Usa el panel OPS para regenerarlos si es necesario.\n"
             )
@@ -106,5 +106,5 @@ lines += [
     f"  Run de origen:     {run_url}",
     "=" * 62,
 ]
-Path("/tmp/centinel-seeds.txt").write_text("\n".join(lines) + "\n")
+Path("/tmp/centinel-seeds.txt").write_text("\n".join(lines) + "\n")  # nosec B108 - ephemeral GitHub Actions runner; path used to pass output between steps
 print("Seeds file written to /tmp/centinel-seeds.txt")
