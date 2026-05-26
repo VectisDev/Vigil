@@ -81,17 +81,17 @@ footer a{color:var(--accent);text-decoration:none}
   <span>HND-2025 — Análisis Forense</span>
 </nav>
 <div id="replay-banner">
-  <span>📂 MÁQUINA DEL TIEMPO</span>
+  <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> MÁQUINA DEL TIEMPO</span>
   <span class="pill">64 snapshots · 3–10 dic 2025</span>
   <span class="pill">Datos CNE oficiales</span>
   <span class="pill">83 anomalías detectadas</span>
-  <a href="../monitor/">← Panel en vivo</a>
+  <a href="../monitor/"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Panel en vivo</a>
 </div>
 <div id="scrubber-wrap">
   <div id="scrubber-btns">
-    <button class="sc-btn" onclick="step(-1)">◀</button>
-    <button class="sc-btn" id="play-btn" onclick="togglePlay()">▶ Play</button>
-    <button class="sc-btn" onclick="step(1)">▶</button>
+    <button class="sc-btn" onclick="step(-1)"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px"><polygon points="19 3 5 12 19 21 19 3"/></svg></button>
+    <button class="sc-btn" id="play-btn" onclick="togglePlay()"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Play</button>
+    <button class="sc-btn" onclick="step(1)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="m9 18 6-6-6-6"/></svg></button>
   </div>
   <input type="range" id="time-scrubber" min="0" max="63" value="0" oninput="scrub(+this.value)">
   <span id="scrubber-ts">—</span>
@@ -131,32 +131,32 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 <div class="card">
   <h2>Resultados por Candidato</h2>
-  <div id="blackout-notice">⚠ BLACKOUT DE DATOS — Los votos desaparecieron del servidor CNE en este instante</div>
+  <div id="blackout-notice"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> BLACKOUT DE DATOS — Los votos desaparecieron del servidor CNE en este instante</div>
   <div id="cand-list"></div>
 </div>
 <div class="grid2">
   <div class="card forensic-card" id="fc-incons" onclick="toggleFC('incons')">
-    <div class="forensic-header"><div class="forensic-status" id="fs-incons" style="background:var(--muted)"></div><div class="forensic-title">Tasa de Inconsistencia</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-header"><div class="forensic-status" id="fs-incons" style="background:var(--muted)"></div><div class="forensic-title">Tasa de Inconsistencia</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
     <div class="forensic-body" id="fb-incons"><p>Actas marcadas como inconsistentes por el CNE. Un 14.3% sostenido supera el umbral crítico del 10%.</p><div id="fm-incons" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>inconsistency_rate</code> · Umbral: 10% · 55 alertas</div></div>
   </div>
   <div class="card forensic-card" id="fc-blackout" onclick="toggleFC('blackout')">
-    <div class="forensic-header"><div class="forensic-status" id="fs-blackout" style="background:var(--muted)"></div><div class="forensic-title">Blackout de Datos</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-header"><div class="forensic-status" id="fs-blackout" style="background:var(--muted)"></div><div class="forensic-title">Blackout de Datos</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
     <div class="forensic-body" id="fb-blackout"><p>Períodos donde los votos se vuelven vacíos mientras las actas siguen contando. El servidor CNE dejó de reportar candidatos pero continuó acumulando actas.</p><div id="fm-blackout" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>data_blackout_start/end</code> · 16 alertas · 8 períodos</div></div>
   </div>
   <div class="card forensic-card" id="fc-jump" onclick="toggleFC('jump')">
-    <div class="forensic-header"><div class="forensic-status" id="fs-jump" style="background:var(--muted)"></div><div class="forensic-title">Salto de Snapshot</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-header"><div class="forensic-status" id="fs-jump" style="background:var(--muted)"></div><div class="forensic-title">Salto de Snapshot</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
     <div class="forensic-body" id="fb-jump"><p>Variación abrupta de votos entre dos snapshots consecutivos. Salto del 6.4% (PN) y 6.5% (LIBRE) en 786 minutos el 4 de diciembre.</p><div id="fm-jump" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>snapshot_jump</code> · 2 alertas · 2025-12-04T11:06</div></div>
   </div>
   <div class="card forensic-card" id="fc-universe" onclick="toggleFC('universe')">
-    <div class="forensic-header"><div class="forensic-status" id="fs-universe" style="background:var(--muted)"></div><div class="forensic-title">Mutación del Universo</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-header"><div class="forensic-status" id="fs-universe" style="background:var(--muted)"></div><div class="forensic-title">Mutación del Universo</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
     <div class="forensic-body" id="fb-universe"><p>El universo electoral (actas_totales) cambió de 19,152 → 0 en un snapshot, violando el principio de inmutabilidad del padrón.</p><div id="fm-universe" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>universe_mutation</code> · 1 alerta · 2025-12-04T16:00</div></div>
   </div>
   <div class="card forensic-card" id="fc-reversal" onclick="toggleFC('reversal')">
-    <div class="forensic-header"><div class="forensic-status" id="fs-reversal" style="background:var(--muted)"></div><div class="forensic-title">Reversión Post-Blackout</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-header"><div class="forensic-status" id="fs-reversal" style="background:var(--muted)"></div><div class="forensic-title">Reversión Post-Blackout</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
     <div class="forensic-body" id="fb-reversal"><p>La brecha entre 1.er y 2.o partido aumentó un 69.6% durante el período de opacidad. El partido en segundo lugar mejoró su posición mientras los datos eran invisibles.</p><div id="fm-reversal" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>trend_reversal_at_blackout</code> · 1 alerta</div></div>
   </div>
   <div class="card forensic-card" id="fc-speed" onclick="toggleFC('speed')">
-    <div class="forensic-header"><div class="forensic-status" id="fs-speed" style="background:var(--muted)"></div><div class="forensic-title">Velocidad de Procesamiento</div><span class="forensic-chevron">▶</span></div>
+    <div class="forensic-header"><div class="forensic-status" id="fs-speed" style="background:var(--muted)"></div><div class="forensic-title">Velocidad de Procesamiento</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
     <div class="forensic-body" id="fb-speed"><p>Aceleración anómala en la velocidad de ingreso de actas. El ritmo excedió el límite estadístico para escrutinio manual.</p><div id="fm-speed" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>processing_speed</code> · 1 alerta · severidad HIGH</div></div>
   </div>
 </div>
@@ -245,13 +245,13 @@ function scrub(idx){
 function togglePlay(){
   if(playInterval){
     clearInterval(playInterval);playInterval=null;
-    document.getElementById('play-btn').textContent='▶ Play';
+    document.getElementById('play-btn').innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Play';
   }else{
     if(currentIdx>=series.snapshots.length-1) scrub(0);
     playInterval=setInterval(function(){
       if(currentIdx>=series.snapshots.length-1){
         clearInterval(playInterval);playInterval=null;
-        document.getElementById('play-btn').textContent='▶ Play';return;
+        document.getElementById('play-btn').innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Play';return;
       }
       scrub(currentIdx+1);
     },700);
@@ -260,7 +260,7 @@ function togglePlay(){
 }
 
 function step(dir){
-  if(playInterval){clearInterval(playInterval);playInterval=null;document.getElementById('play-btn').textContent='▶ Play';}
+  if(playInterval){clearInterval(playInterval);playInterval=null;document.getElementById('play-btn').innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Play';}
   scrub(currentIdx+dir);
 }
 
@@ -277,7 +277,7 @@ function updateStatusBadges(snap,idx){
   alertBadge.querySelector('.dot').className=criticals>0?'dot dot-bad':'dot dot-ok';
   document.getElementById('badge-alertas-txt').textContent=criticals+' ALERTAS CRÍTICAS';
   var boBadge=document.getElementById('badge-blackout');
-  if(snap.blackout){boBadge.className='status-card sc-bad';boBadge.querySelector('.dot').className='dot dot-bad';document.getElementById('badge-blackout-txt').textContent='⚠ BLACKOUT ACTIVO';}
+  if(snap.blackout){boBadge.className='status-card sc-bad';boBadge.querySelector('.dot').className='dot dot-bad';document.getElementById('badge-blackout-txt').innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> BLACKOUT ACTIVO';}
   else if(blackoutsUpTo>0){boBadge.className='status-card sc-warn';boBadge.querySelector('.dot').className='dot dot-warn';document.getElementById('badge-blackout-txt').textContent=blackoutsUpTo+' BLACKOUTS VISTOS';}
   else{boBadge.className='status-card sc-ok';boBadge.querySelector('.dot').className='dot dot-ok';document.getElementById('badge-blackout-txt').textContent='SIN BLACKOUT';}
   document.getElementById('badge-escrutinio-txt').textContent='ESCRUTINIO '+snap.pct_escrutinio.toFixed(1)+'%';
