@@ -113,8 +113,8 @@
     </div>
     <div class="row">
       <button id="runBtn" onclick="runAll()" data-i18n="run">Verificar todo</button>
-      <button class="sec" onclick="loadDemo(false)">▶ Demo (sin servidor)</button>
-      <button class="sec" onclick="loadDemo(true)">▶ Demo reescrita</button>
+      <button class="sec" onclick="loadDemo(false)"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Demo (sin servidor)</button>
+      <button class="sec" onclick="loadDemo(true)"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-1px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Demo reescrita</button>
       <button class="sec" onclick="addMirror()" data-i18n="addmir">+ espejo</button>
       <span id="globalStat"></span>
     </div>
@@ -127,7 +127,7 @@
   </div>
 
   <div class="panel crit" id="p-merkle" style="display:none">
-    <h2>★ <span data-i18n="trust">Verificación sin confianza (núcleo)</span></h2>
+    <h2><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <span data-i18n="trust">Verificación sin confianza (núcleo)</span></h2>
     <p class="hint" data-i18n="trust-d">El navegador descarga cada hash de la cadena y
       <b>recomputa la raíz Merkle localmente</b> con el mismo algoritmo del motor
       (SHA-256, Bitcoin-style, duplicar-último). Si la raíz recomputada coincide con
@@ -168,8 +168,8 @@
     <h2>7 · <span data-i18n="data">Datos recolectados</span>
       <span id="dataBadge"></span></h2>
     <div class="row">
-      <button class="sec" onclick="exportData('csv')">⬇ CSV</button>
-      <button class="sec" onclick="exportData('json')">⬇ JSON</button>
+      <button class="sec" onclick="exportData('csv')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg> CSV</button>
+      <button class="sec" onclick="exportData('json')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg> JSON</button>
       <span class="hint" data-i18n="data-d">Exporta el conjunto verificado para
         análisis forense (Benford, distribuciones) — la prueba de custodia respalda
         cada fila.</span>
