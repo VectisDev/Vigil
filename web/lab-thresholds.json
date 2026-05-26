@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-05-26T18:48:56.598982+00:00",
+  "source_files": [
+    "command_center/config.yaml",
+    "command_center/advanced_security_config.yaml",
+    "command_center/attack_config.yaml",
+    "config/prod/rate_limiter.yaml"
+  ],
+  "thresholds": {
+    "B1": {
+      "detectAt": 16667,
+      "breachAt": 240000,
+      "sliderMax": 480000,
+      "realLabel": "20 req/min por IP · 240 req/h total"
+    },
+    "B2": {
+      "detectAt": 10,
+      "breachAt": 20,
+      "sliderMax": 100,
+      "realLabel": "2 hits en 60s"
+    },
+    "B3": {
+      "detectAt": 5,
+      "breachAt": 100,
+      "sliderMax": 100,
+      "realLabel": "Verificación SHA-256 binaria (pass/fail)"
+    },
+    "B5": {
+      "detectAt": 2,
+      "breachAt": 3,
+      "sliderMax": 5,
+      "realLabel": "Consenso ≥75%+1 de witnesses (multi_witness.py)"
+    },
+    "B6": {
+      "detectAt": 30,
+      "breachAt": 120,
+      "sliderMax": 480,
+      "realLabel": "TTL real: 2h de tolerancia"
+    },
+    "B7": {
+      "detectAt": 1,
+      "breachAt": 60,
+      "sliderMax": 240,
+      "realLabel": "Timestamps monotónicos estrictos"
+    },
+    "B10": {
+      "detectAt": 2,
+      "breachAt": 4,
+      "sliderMax": 5,
+      "realLabel": "CPU ≥75% por 90s → cuarentena"
+    },
+    "B11": {
+      "detectAt": 20,
+      "breachAt": 20,
+      "sliderMax": 20,
+      "realLabel": "20 req/min por IP · max body 1024KB"
+    },
+    "B12": {
+      "detectAt": 2,
+      "breachAt": 7,
+      "sliderMax": 20,
+      "realLabel": "Gossip epidémico fan-out=3, 100 peers máx"
+    }
+  }
+}
