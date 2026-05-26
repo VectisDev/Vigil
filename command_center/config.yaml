@@ -4,7 +4,8 @@ scope:
 allow_mock: false
 cne_domains:
 - resultadosgenerales2025.cne.hn
-timestamp_max_age_hours: 24
+timestamp_max_age_hours: 0.5
+max_forward_drift_minutes: 10
 base_url: https://resultadosgenerales2025.cne.hn/api/presidencial/nacional
 endpoints:
   nacional: https://resultadosgenerales2025.cne.hn/api/presidencial/nacional
@@ -170,7 +171,7 @@ alerts:
 security:
   zero_trust: true
   zero_trust_config:
-    rate_limit_rpm: 60
+    rate_limit_rpm: 20
     max_body_bytes: 1048576
     ip_blocklist: []
     trusted_proxy_cidrs: []
