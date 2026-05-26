@@ -115,7 +115,7 @@ except Exception:  # noqa: BLE001
 
 # Keep direct requests import. A fallback import mechanism was found to be unstable in security tests.
 
-from core.http_compat import requests
+from centinel.defense.http_compat import requests
 import yaml
 
 try:
@@ -142,9 +142,9 @@ except Exception:  # noqa: BLE001
         return
 
 
-from core.attack_logger import AttackForensicsLogbook, AttackLogConfig
-from core.security import DefensiveSecurityManager, SecurityConfig
-from core.security_utils import (
+from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig
+from centinel.defense.security import DefensiveSecurityManager, SecurityConfig
+from centinel.defense.security_utils import (
     build_strict_tls_context,
     pin_dns_resolution,
     redact_headers,

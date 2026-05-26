@@ -87,8 +87,8 @@ except Exception:  # noqa: BLE001
 
     # Keep direct requests import. A fallback import mechanism was found to be unstable in security tests.
     psutil = _PsutilFallback()
-from core.http_compat import requests
-from core.security_utils import pin_dns_resolution, resolve_outbound_target, redact_headers
+from centinel.defense.http_compat import requests
+from centinel.defense.security_utils import pin_dns_resolution, resolve_outbound_target, redact_headers
 import yaml
 
 LOGGER = logging.getLogger(__name__)
