@@ -6,6 +6,7 @@
 <title>CENTINEL — Sandbox Forense Académico</title>
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 :root{
   --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
@@ -304,6 +305,70 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   .grid4{grid-template-columns:1fr}
   #sim-control-bar{gap:8px}
 }
+/* ── ACADEMIC TOOLS ── */
+.acad-session-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.acad-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.acad-val{font-size:20px;font-weight:800;color:var(--accent);font-family:var(--mono);margin-bottom:4px;letter-spacing:.04em}
+.acad-hint{font-size:11px;color:var(--muted);line-height:1.55;max-width:520px;margin-top:2px}
+.acad-prereq-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.acad-muted{font-size:11px;color:var(--muted)}
+.acad-pill{background:rgba(110,168,254,.08)!important;border-color:rgba(110,168,254,.35)!important;color:var(--accent)!important}
+.acad-pill:hover{background:rgba(110,168,254,.18)!important;border-color:var(--accent)!important}
+
+/* ── CITATION MODAL ── */
+#cite-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px}
+#cite-overlay.open{display:flex}
+#cite-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;padding:28px}
+#cite-card::-webkit-scrollbar{width:4px}
+#cite-card::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.cite-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cite-hdr h3{font-size:16px;font-weight:700;color:var(--fg);margin:0}
+.cite-hdr button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:2px 6px;border-radius:4px}
+.cite-hdr button:hover{color:var(--fg)}
+.cite-session-meta{font-size:11px;color:var(--muted);line-height:1.8;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px}
+.cite-format-tab{display:flex;gap:8px;margin-bottom:16px}
+.cite-tab-btn{background:var(--bg);border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.cite-tab-btn.on{border-color:var(--purple);color:var(--purple);background:rgba(176,140,240,.1)}
+.cite-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 14px 12px;margin-bottom:10px;position:relative}
+.cite-block-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.cite-text{font-family:var(--mono);font-size:11.5px;color:var(--fg);line-height:1.75;white-space:pre-wrap;word-break:break-word;padding-right:70px}
+.cite-copy-btn{position:absolute;top:10px;right:10px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer;transition:.15s}
+.cite-copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cite-copy-btn.copied{border-color:var(--ok);color:var(--ok)}
+.cite-section-title{font-size:10px;font-weight:700;color:var(--purple);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.cite-dl-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ── METHODOLOGY DRAWER ── */
+#meth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2500;display:none}
+#meth-overlay.open{display:block}
+#meth-drawer{position:fixed;top:0;right:-490px;width:460px;height:100vh;background:var(--panel);border-left:1px solid var(--border);z-index:2501;overflow-y:auto;padding:28px;transition:right .28s cubic-bezier(.4,0,.2,1)}
+#meth-drawer.open{right:0}
+#meth-drawer::-webkit-scrollbar{width:4px}
+#meth-drawer::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.meth-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.meth-hdr h3{font-size:15px;font-weight:700;margin:0}
+.meth-hdr button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:2px 6px;border-radius:4px}
+.meth-hdr button:hover{color:var(--fg)}
+.meth-section{margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid var(--border)}
+.meth-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.meth-section-title{font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.meth-p{font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 8px}
+.meth-code{display:block;font-family:var(--mono);font-size:11px;color:var(--accent);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 10px;margin:8px 0}
+.meth-list{font-size:12px;color:var(--muted);line-height:1.7;padding-left:16px;margin:0}
+.meth-theorem{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:7px}
+.meth-theorem-id{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.meth-theorem-text{font-size:11px;color:var(--muted);line-height:1.55}
+.meth-link{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(36,39,46,.4);text-decoration:none;color:var(--fg);transition:.15s}
+.meth-link:last-child{border-bottom:none}
+.meth-link:hover .meth-link-title{color:var(--accent)}
+.meth-link-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.meth-link-title{font-size:12px;font-weight:600;margin-bottom:2px}
+.meth-link-desc{font-size:10px;color:var(--muted);line-height:1.5}
+.meth-contact{margin-top:14px;padding:12px;background:rgba(110,168,254,.06);border:1px solid rgba(110,168,254,.2);border-radius:8px}
+.meth-contact-title{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px}
+.meth-contact-body{font-size:11px;color:var(--muted);line-height:1.6}
+code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--fg);font-family:var(--mono);font-size:10.5px}
+
 @media print{
   #breadcrumb,#sim-control-bar,.section-title,
   #thresh-section,#inj-section,#telem-section,
@@ -334,6 +399,9 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   <div id="dl-btn">
     <button class="dl-pill" onclick="downloadFullPNG()">↓ PNG</button>
     <button class="dl-pill" onclick="downloadPDF()">↓ PDF</button>
+    <button class="dl-pill acad-pill" onclick="openCitationModal()" title="Citar en APA / BibTeX / ISO">📚 Citar</button>
+    <button class="dl-pill acad-pill" onclick="downloadReproZip()" title="Descargar paquete reproducible ZIP">⬇ ZIP</button>
+    <button class="dl-pill acad-pill" onclick="openMethodologySidebar()" title="Metodología y referencias">📖</button>
     <button class="dl-pill" onclick="openSettings()" title="Configuración" style="font-size:14px;padding:3px 9px">⚙</button>
   </div>
 </div>
@@ -529,6 +597,59 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
       Pantalla 2 — Attack Logger
     </h4>
     <div class="telem-log" id="telem-attack"></div>
+  </div>
+</div>
+
+<!-- ══ SECTION 6 — HERRAMIENTAS ACADÉMICAS ════════════════════════════════════ -->
+<div class="section-title" id="acad-section">
+  Herramientas Académicas
+  <button class="section-dl" onclick="downloadCSV()">↓ CSV estadísticas</button>
+  <button class="section-dl" onclick="downloadBib()">↓ .bib</button>
+  <button class="section-dl" onclick="openMethodologySidebar()">📖 Metodología</button>
+</div>
+
+<div class="card">
+  <div class="acad-session-row">
+    <div style="flex:1;min-width:260px">
+      <div class="acad-label">ID de Sesión</div>
+      <div class="acad-val" id="acad-session-id">—</div>
+      <div class="acad-hint">
+        SHA-256 de dataset · snapshot · umbrales · hipótesis · tiempo.<br>
+        Estable, reproducible y citable en apéndices de tesis o <em>supplementary material</em>.
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="openCitationModal()">📚 Cita APA / BibTeX / ISO 690</button>
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadCSV()">⬇ CSV — estadísticas y alertas</button>
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadReproZip()">⬇ ZIP — paquete reproducible</button>
+      <button class="dl-pill" style="width:220px;text-align:center" onclick="openMethodologySidebar()">📖 Referencias y metodología</button>
+    </div>
+  </div>
+  <div id="acad-prereq-row" class="acad-prereq-row" style="display:none">
+    <span class="badge b-ok">✓ Hipótesis pre-registrada</span>
+    <span class="acad-muted" id="acad-prereq-ts"></span>
+  </div>
+  <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="acad-label">Dataset activo</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-dataset-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Snapshot</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-snap-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Alertas totales</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-alerts-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Alertas CRITICAL</div>
+      <div style="font-size:12px;color:var(--bad);margin-top:2px" id="acad-crit-label">—</div>
+    </div>
+    <div>
+      <div class="acad-label">Umbrales activos</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-thresh-label">—</div>
+    </div>
   </div>
 </div>
 
@@ -1010,6 +1131,7 @@ async function loadDataset(url){
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
     logE('OK',`Dataset listo: ${SIM.snapshots.length} snapshots cargados`);
+    _updateAcadPanel();
   }catch(e){logE('CRITICAL','Error cargando dataset: '+e.message);}
 }
 
@@ -1050,6 +1172,7 @@ function simStop(){
   updateBadge();updateScrubber();
   if(SERIES)renderSimFrame(0);
   document.getElementById('vis-overlay').classList.remove('show');
+  _updateAcadPanel();
   logE('INFO','Simulación detenida y reiniciada');
 }
 function simTick(){
@@ -1061,6 +1184,7 @@ function simTick(){
   }
   SIM.idx++;applyScheduledInjections(SIM.idx);
   updateScrubber();renderSimFrame(SIM.idx);
+  if(SIM.idx%10===0)_updateAcadPanel();
 }
 function toggleLoop(){
   SIM.loop=!SIM.loop;
@@ -2072,7 +2196,7 @@ function downloadPNG(){
   const detCards=document.querySelectorAll('#s-forensic-list .forensic-card').length;
   const detH=detCards>0?26+detCards*38+6:0;
   const alertsH=26+(simAlerts.length?18+Math.min(30,simAlerts.length)*17+8:24);
-  const totalH=PAD+36+chartsH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD;
+  const totalH=PAD+36+chartsH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD+22;
   const out=document.createElement('canvas');
   out.width=(W+PAD*2)*S;out.height=totalH*S;
   const ctx=out.getContext('2d');
@@ -2092,6 +2216,7 @@ function downloadPNG(){
   y+=4;
   if(detCards>0){y=_drawDetectorsOnCtx(ctx,PAD,y,W);y+=GAP;}
   y=_drawAlertsOnCtx(ctx,PAD,y,W);
+  _addWatermark(ctx,W+PAD*2,totalH-22);
   try{
     const a=document.createElement('a');
     a.href=out.toDataURL('image/png');
@@ -2116,7 +2241,7 @@ function downloadFullPNG(){
   const alertsH=26+(simAlerts.length?18+Math.min(30,simAlerts.length)*17+8:24);
   const kpiH=26+42;
   const chartsSecH=26+chartsH;
-  const totalH=PAD+36+kpiH+GAP+chartsSecH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD;
+  const totalH=PAD+36+kpiH+GAP+chartsSecH+GAP+(detH>0?detH+GAP:0)+alertsH+PAD+22;
   const out=document.createElement('canvas');
   out.width=(W+PAD*2)*S;out.height=totalH*S;
   const ctx=out.getContext('2d');
@@ -2160,6 +2285,7 @@ function downloadFullPNG(){
   y+=4;
   if(detCards>0){y=_drawDetectorsOnCtx(ctx,PAD,y,W);y+=GAP;}
   y=_drawAlertsOnCtx(ctx,PAD,y,W);
+  _addWatermark(ctx,W+PAD*2,totalH-22);
   try{
     const a=document.createElement('a');
     a.href=out.toDataURL('image/png');
@@ -2248,6 +2374,335 @@ function downloadPDF(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ACADEMIC TOOLS — Citation, CSV, ZIP, Watermark
+// ═══════════════════════════════════════════════════════════════════════════
+
+let _sessionId = null;
+
+async function _sha256short(str){
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,8);
+  }catch(e){return Math.random().toString(36).slice(2,10);}
+}
+
+async function _ensureSessionId(){
+  const ds=document.getElementById('dataset-select')?.value||'unknown';
+  const snap=SIM.idx;
+  const threshStr=JSON.stringify(TV)+JSON.stringify(TE);
+  const hyp=document.getElementById('thresh-prereg-text')?.value||'';
+  _sessionId=await _sha256short(`${ds}|${snap}|${threshStr}|${hyp}`);
+  const el=document.getElementById('acad-session-id');
+  if(el)el.textContent=_sessionId;
+  return _sessionId;
+}
+
+function _updateAcadPanel(){
+  const ds=_getDatasetLabel();
+  const snap=SIM.idx+1;const total=SIM.snapshots.length;
+  const crit=simAlerts.filter(a=>a.sev==='CRITICAL').length;
+  const activeThresh=Object.values(TE).filter(v=>v!==false).length;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('acad-dataset-label',ds||'—');
+  set('acad-snap-label',total?`${snap} / ${total}`:'—');
+  set('acad-alerts-label',simAlerts.length);
+  set('acad-crit-label',crit);
+  set('acad-thresh-label',`${activeThresh} / ${RULES_DEFS.length}`);
+  const preregRow=document.getElementById('acad-prereq-row');
+  if(preregRow){
+    const stored=localStorage.getItem('centinel_acad_prereg');
+    if(stored){
+      try{
+        const obj=JSON.parse(stored);
+        preregRow.style.display='flex';
+        const tsEl=document.getElementById('acad-prereq-ts');
+        if(tsEl)tsEl.textContent=`Registrada: ${new Date(obj.ts).toLocaleString('es-HN')}`;
+      }catch(e){}
+    }else{preregRow.style.display='none';}
+  }
+  _ensureSessionId();
+}
+
+function _getDatasetLabel(){
+  const sel=document.getElementById('dataset-select');
+  return sel?sel.options[sel.selectedIndex]?.text||sel.value:'Desconocido';
+}
+
+// ── Citation text builders ────────────────────────────────────────────────
+
+function _buildAPASoftware(){
+  return `VectisDev. (2025). CENTINEL: Trustless electoral integrity verification [Software]. GitHub. https://github.com/vectisdev/centinel`;
+}
+function _buildAPASession(sid){
+  const ds=_getDatasetLabel();
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('es-HN',{year:'numeric',month:'long',day:'numeric'});
+  const snap=SIM.idx+1;const total=SIM.snapshots.length;
+  return `CENTINEL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`;
+}
+function _buildAPAData(){
+  const ds=_getDatasetLabel();
+  if(ds.includes('HN 2025')||ds.includes('hnd'))
+    return `Tribunal Supremo Electoral de Honduras. (2025). Resultados electorales — Elecciones Generales Honduras 2025 [Conjunto de datos]. TSE. https://cne.hn/`;
+  return `VectisDev. (2025). Datos simulados de integridad electoral [Conjunto de datos sintéticos]. GitHub. https://github.com/vectisdev/centinel`;
+}
+function _buildBibSoftware(){
+  return `@software{centinel2025,
+  author    = {{VectisDev}},
+  title     = {{CENTINEL}: Trustless Electoral Integrity Verification},
+  year      = {2025},
+  url       = {https://github.com/vectisdev/centinel},
+  license   = {AGPL-3.0},
+  version   = {0.4.0},
+  note      = {Sistema de auditoría electoral criptográfica para América Latina}
+}`;
+}
+function _buildBibSession(sid){
+  const ds=_getDatasetLabel();
+  const snap=SIM.idx+1;const total=SIM.snapshots.length;
+  const now=new Date();
+  return `@misc{centinel_session_${sid},
+  title     = {{CENTINEL} Forensic Lab --- Análisis forense electoral},
+  author    = {{CENTINEL Forensic Lab}},
+  year      = {${now.getFullYear()}},
+  month     = {${now.getMonth()+1}},
+  note      = {Dataset: ${ds}; Snapshot: ${snap}/${total}; ID de sesión: ${sid}; Alertas: ${simAlerts.length}},
+  url       = {https://vectisdev.github.io/centinel/lab/},
+  urldate   = {${now.toISOString().slice(0,10)}}
+}`;
+}
+function _buildBibData(){
+  const ds=_getDatasetLabel();
+  if(ds.includes('HN 2025')||ds.includes('hnd'))
+    return `@dataset{tse_hn2025,
+  author    = {{Tribunal Supremo Electoral de Honduras}},
+  title     = {Resultados Electorales --- Elecciones Generales 2025},
+  year      = {2025},
+  url       = {https://cne.hn/},
+  note      = {Datos procesados por CENTINEL Engine v0.4.0}
+}`;
+  return `@dataset{centinel_sim2025,
+  author    = {{VectisDev}},
+  title     = {Datos Simulados de Integridad Electoral},
+  year      = {2025},
+  url       = {https://github.com/vectisdev/centinel},
+  note      = {Serie temporal sintética con anomalías embebidas para evaluación de detectores}
+}`;
+}
+function _buildISOSoftware(){
+  return `VECTISDEV. CENTINEL: Trustless Electoral Integrity Verification [software]. 2025. Disponible en: <https://github.com/vectisdev/centinel> [consulta: ${new Date().toISOString().slice(0,10)}]`;
+}
+function _buildISOSession(sid){
+  const ds=_getDatasetLabel();
+  const snap=SIM.idx+1;
+  return `CENTINEL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/centinel/lab/>`;
+}
+
+function _populateCiteTexts(sid){
+  const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
+  set('cite-apa-software',_buildAPASoftware());
+  set('cite-apa-session',_buildAPASession(sid));
+  set('cite-apa-data',_buildAPAData());
+  set('cite-bib-software',_buildBibSoftware());
+  set('cite-bib-session',_buildBibSession(sid));
+  set('cite-bib-data',_buildBibData());
+  set('cite-iso-software',_buildISOSoftware());
+  set('cite-iso-session',_buildISOSession(sid));
+  const meta=document.getElementById('cite-session-meta');
+  if(meta){
+    const crit=simAlerts.filter(a=>a.sev==='CRITICAL').length;
+    meta.innerHTML=`<strong style="color:var(--fg)">Session ID:</strong> <code style="font-family:var(--mono);color:var(--accent);font-size:13px">${sid}</code> &nbsp;·&nbsp; `
+      +`<strong style="color:var(--fg)">Dataset:</strong> ${_getDatasetLabel()} &nbsp;·&nbsp; `
+      +`<strong style="color:var(--fg)">Snap:</strong> ${SIM.idx+1}/${SIM.snapshots.length} &nbsp;·&nbsp; `
+      +`<strong style="color:var(--fg)">Alertas CRITICAL:</strong> <span style="color:var(--bad)">${crit}</span>`;
+  }
+}
+
+let _citeFormat='apa';
+function showCiteFormat(fmt){
+  _citeFormat=fmt;
+  ['apa','bibtex','iso'].forEach(f=>{
+    const p=document.getElementById(`cite-panel-${f}`);if(p)p.style.display=f===fmt?'block':'none';
+    const t=document.getElementById(`cite-tab-${f}`);if(t)t.classList.toggle('on',f===fmt);
+  });
+}
+
+async function openCitationModal(){
+  const sid=await _ensureSessionId();
+  _populateCiteTexts(sid);
+  document.getElementById('cite-overlay').classList.add('open');
+}
+function closeCitationModal(){document.getElementById('cite-overlay').classList.remove('open');}
+
+function copyCite(blockId){
+  const el=document.getElementById(`cite-${blockId}`);if(!el)return;
+  const text=el.textContent;
+  const btn=el.closest('.cite-block')?.querySelector('.cite-copy-btn');
+  const flash=()=>{if(btn){const o=btn.textContent;btn.textContent='✓ Copiado';btn.classList.add('copied');setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},2000);}};
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(flash).catch(()=>{});}
+  else{const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');flash();}
+}
+
+async function downloadBib(){
+  const sid=await _ensureSessionId();
+  const content=[
+    '% CENTINEL Forensic Lab — BibTeX citation package',
+    `% Session ID : ${sid}`,
+    `% Generated  : ${new Date().toISOString()}`,
+    '% URL        : https://vectisdev.github.io/centinel/lab/',
+    '',
+    _buildBibSoftware(),'',
+    _buildBibSession(sid),'',
+    _buildBibData(),
+  ].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:'text/plain;charset=utf-8'}));
+  a.download=`centinel-${sid}.bib`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  logE('OK',`BibTeX descargado: centinel-${sid}.bib`);
+}
+
+async function downloadCSV(){
+  if(!SIM.snapshots.length){logE('WARN','Inicia la simulación para exportar estadísticas');return;}
+  const sid=await _ensureSessionId();
+  const ds=_getDatasetLabel();const snap=SIM.idx+1;const ts=new Date().toISOString();
+  const esc=s=>{const v=String(s);return v.includes(',')||v.includes('"')||v.includes('\n')?'"'+v.replace(/"/g,'""')+'"':v;};
+  const rows=[];
+  rows.push(['# CENTINEL Forensic Lab — Exportación de estadísticas']);
+  rows.push(['# Session ID',sid]);rows.push(['# Dataset',ds]);
+  rows.push(['# Snapshot',`${snap}/${SIM.snapshots.length}`]);rows.push(['# Generado',ts]);
+  rows.push(['# URL','https://vectisdev.github.io/centinel/lab/']);rows.push([]);
+  // Indicators
+  rows.push(['## INDICADORES (SNAPSHOT ACTUAL)']);
+  rows.push(['indicador','valor']);
+  [['actas_divulgadas','k-actas'],['votos_validos','k-votos'],['escrutinio_pct','k-pct'],['integridad_cadena','k-int']]
+    .forEach(([k,id])=>rows.push([k,document.getElementById(id)?.textContent||'']));
+  rows.push([]);
+  // Thresholds
+  rows.push(['## UMBRALES DE SENSIBILIDAD (24 reglas)']);
+  rows.push(['rule_id','grupo','etiqueta','valor','unidad','habilitado','min','max','default']);
+  RULES_DEFS.forEach(r=>rows.push([r.id,r.grp,r.label,TV[r.id]??r.def,r.unit||'',TE[r.id]!==false?'TRUE':'FALSE',r.min,r.max,r.def]));
+  rows.push([]);
+  // Alerts
+  rows.push(['## ALERTAS REGISTRADAS']);
+  rows.push(['timestamp','tipo','severidad','descripcion','snapshot_num']);
+  if(simAlerts.length)simAlerts.forEach(a=>rows.push([a.ts||'',a.tipo||'',a.sev||'',a.desc||'',SIM.idx+1]));
+  else rows.push(['(sin alertas)']);
+  rows.push([]);
+  // Injections
+  rows.push(['## INYECCIONES ACTIVAS']);
+  rows.push(['id','etiqueta','modo','snapshot']);
+  if(activeInjections.length)activeInjections.forEach(inj=>rows.push([inj.id,inj.label,inj.mode,inj.atIdx+1]));
+  else rows.push(['(ninguna)']);
+  const csv=rows.map(r=>r.map(c=>esc(c)).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`centinel-estadisticas-${sid}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  logE('OK',`CSV descargado (${simAlerts.length} alertas · 24 umbrales)`);
+}
+
+async function downloadReproZip(){
+  if(!SIM.snapshots.length){logE('WARN','Inicia la simulación primero');return;}
+  const sid=await _ensureSessionId();
+  const ds=_getDatasetLabel();const ts=new Date().toISOString();const snap=SIM.idx+1;
+  if(typeof JSZip==='undefined'){
+    logE('WARN','JSZip no disponible — descargando CSV y BibTeX por separado');
+    downloadCSV();downloadBib();return;
+  }
+  const zip=new JSZip();
+  const hyp=document.getElementById('thresh-prereg-text')?.value||'';
+  // README
+  zip.file('README.txt',[
+    'CENTINEL Forensic Lab — Paquete de Reproducibilidad',
+    '='.repeat(54),'',
+    `Session ID : ${sid}`,`Dataset    : ${ds}`,
+    `Snapshot   : ${snap}/${SIM.snapshots.length}`,`Generado   : ${ts}`,
+    `URL        : https://vectisdev.github.io/centinel/lab/`,'',
+    'CONTENIDO DEL PAQUETE','-'.repeat(40),
+    'session.json   — Metadatos completos (dataset, snapshot, umbrales, alertas)',
+    'thresholds.csv — 24 umbrales de sensibilidad con valores y estado',
+    'alerts.csv     — Todas las alertas emitidas durante la simulación',
+    'injections.json— Eventos inyectados (activos y programados)',
+    'citation.bib   — Referencias BibTeX listas para LaTeX / Overleaf / Zotero','',
+    'PARA REPRODUCIR ESTE ANÁLISIS','-'.repeat(40),
+    '1. Abre https://vectisdev.github.io/centinel/lab/',
+    `2. Selecciona el mismo dataset: ${ds}`,
+    '3. Carga los umbrales desde thresholds.csv en el panel de sensibilidad',
+    '4. Si había hipótesis pre-registrada, ingrésala ANTES de ajustar umbrales',
+    '5. Aplica las inyecciones de injections.json si las hubiera',
+    `6. Navega al snapshot nº ${snap}`,'',
+    'CITAR ESTE SOFTWARE (APA 7ª ed.)','-'.repeat(40),
+    _buildAPASoftware(),'',
+    'LICENCIA','-'.repeat(40),
+    'CENTINEL — AGPL-3.0 · https://github.com/vectisdev/centinel',
+    'Datos electorales: propiedad del TSE de Honduras (uso académico).',
+  ].join('\n'));
+  // session.json
+  const stored=localStorage.getItem('centinel_acad_prereg');
+  let preregObj=null;try{preregObj=stored?JSON.parse(stored):null;}catch(e){}
+  zip.file('session.json',JSON.stringify({
+    schema:'centinel-session/1.0',session_id:sid,generated_at:ts,
+    dataset:ds,dataset_url:document.getElementById('dataset-select')?.value||'',
+    snapshot_index:SIM.idx,snapshot_total:SIM.snapshots.length,playback_speed:SIM.speed,
+    lab_url:'https://vectisdev.github.io/centinel/lab/',
+    hypothesis_preregistered:threshLocked?hyp:null,
+    hypothesis_locked_at:preregObj?.ts||null,
+    thresholds:Object.fromEntries(RULES_DEFS.map(r=>[r.id,{value:TV[r.id]??r.def,enabled:TE[r.id]!==false}])),
+    active_injections:activeInjections.map(i=>({id:i.id,label:i.label,mode:i.mode,snapshot:i.atIdx+1})),
+    scheduled_injections:scheduledInjections.map(s=>({id:s.id,snapshot:s.atIdx+1,param:s.paramVal})),
+    alert_summary:{total:simAlerts.length,critical:simAlerts.filter(a=>a.sev==='CRITICAL').length,high:simAlerts.filter(a=>a.sev==='HIGH').length},
+    software:{name:'CENTINEL',version:'0.4.0',license:'AGPL-3.0',url:'https://github.com/vectisdev/centinel'},
+  },null,2));
+  // thresholds.csv
+  const thHdr='rule_id,grupo,etiqueta,valor,unidad,habilitado,min,max,default';
+  const thRows=RULES_DEFS.map(r=>[r.id,`"${r.grp}"`,`"${r.label}"`,TV[r.id]??r.def,r.unit||'',TE[r.id]!==false,r.min,r.max,r.def].join(','));
+  zip.file('thresholds.csv','﻿'+[thHdr,...thRows].join('\n'));
+  // alerts.csv
+  const alHdr='timestamp,tipo,severidad,descripcion';
+  const alRows=simAlerts.map(a=>[a.ts||'',a.tipo||'',a.sev||'',`"${(a.desc||'').replace(/"/g,'""')}"`].join(','));
+  zip.file('alerts.csv','﻿'+[alHdr,...(alRows.length?alRows:['(sin alertas)'])].join('\n'));
+  // injections.json
+  zip.file('injections.json',JSON.stringify({active:activeInjections,scheduled:scheduledInjections},null,2));
+  // citation.bib
+  zip.file('citation.bib',[
+    '% CENTINEL Forensic Lab — BibTeX citation package',
+    `% Session ID : ${sid}`,`% Generated  : ${ts}`,'',
+    _buildBibSoftware(),'',_buildBibSession(sid),'',_buildBibData(),
+  ].join('\n'));
+  zip.generateAsync({type:'blob',compression:'DEFLATE'}).then(blob=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download=`centinel-repro-${sid}.zip`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    logE('OK',`ZIP reproducible descargado: centinel-repro-${sid}.zip (${(blob.size/1024).toFixed(1)} KB)`);
+  });
+}
+
+function openMethodologySidebar(){
+  document.getElementById('meth-overlay').classList.add('open');
+  document.getElementById('meth-drawer').classList.add('open');
+}
+function closeMethodologySidebar(){
+  document.getElementById('meth-overlay').classList.remove('open');
+  document.getElementById('meth-drawer').classList.remove('open');
+}
+
+function _addWatermark(ctx,W,y0){
+  ctx.fillStyle='rgba(15,17,21,0.96)';
+  ctx.fillRect(0,y0,W,22);
+  ctx.strokeStyle='#24272e';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(0,y0);ctx.lineTo(W,y0);ctx.stroke();
+  ctx.fillStyle='#8b929c';ctx.font='9px system-ui';
+  const sid=_sessionId||'—';const ds=_getDatasetLabel().slice(0,35);
+  const snap=SIM.idx+1;
+  const wt=`CENTINEL Forensic Lab · Session ${sid} · ${ds} · Snap ${snap} · vectisdev.github.io/centinel/lab/`;
+  ctx.fillText(wt.slice(0,120),10,y0+14);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
 // ═══════════════════════════════════════════════════════════════════════════
 function openSettings(){
@@ -2275,6 +2730,162 @@ function sendFeedback(){
   document.getElementById('cfg-feedback-stat').textContent='Issue abierto en GitHub — completa el envío en la pestaña nueva.';
 }
 </script>
+
+<!-- ══ CITATION MODAL ════════════════════════════════════════════════════════ -->
+<div id="cite-overlay" onclick="if(event.target===this)closeCitationModal()">
+  <div id="cite-card">
+    <div class="cite-hdr">
+      <h3>📚 Citar análisis — CENTINEL Lab</h3>
+      <button onclick="closeCitationModal()">✕</button>
+    </div>
+    <div class="cite-session-meta" id="cite-session-meta"></div>
+    <div class="cite-format-tab">
+      <button class="cite-tab-btn on" id="cite-tab-apa" onclick="showCiteFormat('apa')">APA 7ª ed.</button>
+      <button class="cite-tab-btn" id="cite-tab-bibtex" onclick="showCiteFormat('bibtex')">BibTeX</button>
+      <button class="cite-tab-btn" id="cite-tab-iso" onclick="showCiteFormat('iso')">ISO 690</button>
+    </div>
+
+    <div id="cite-panel-apa">
+      <div class="cite-section-title">Software</div>
+      <div class="cite-block">
+        <div class="cite-block-label">APA 7ª edición</div>
+        <div class="cite-text" id="cite-apa-software"></div>
+        <button class="cite-copy-btn" onclick="copyCite('apa-software')">Copiar</button>
+      </div>
+      <div class="cite-section-title">Esta sesión de análisis</div>
+      <div class="cite-block">
+        <div class="cite-block-label">APA 7ª edición — sesión específica</div>
+        <div class="cite-text" id="cite-apa-session"></div>
+        <button class="cite-copy-btn" onclick="copyCite('apa-session')">Copiar</button>
+      </div>
+      <div class="cite-section-title">Datos electorales</div>
+      <div class="cite-block">
+        <div class="cite-block-label">APA 7ª edición — dataset</div>
+        <div class="cite-text" id="cite-apa-data"></div>
+        <button class="cite-copy-btn" onclick="copyCite('apa-data')">Copiar</button>
+      </div>
+    </div>
+
+    <div id="cite-panel-bibtex" style="display:none">
+      <div class="cite-block">
+        <div class="cite-block-label">BibTeX — software</div>
+        <div class="cite-text" id="cite-bib-software"></div>
+        <button class="cite-copy-btn" onclick="copyCite('bib-software')">Copiar</button>
+      </div>
+      <div class="cite-block">
+        <div class="cite-block-label">BibTeX — sesión</div>
+        <div class="cite-text" id="cite-bib-session"></div>
+        <button class="cite-copy-btn" onclick="copyCite('bib-session')">Copiar</button>
+      </div>
+      <div class="cite-block">
+        <div class="cite-block-label">BibTeX — datos</div>
+        <div class="cite-text" id="cite-bib-data"></div>
+        <button class="cite-copy-btn" onclick="copyCite('bib-data')">Copiar</button>
+      </div>
+    </div>
+
+    <div id="cite-panel-iso" style="display:none">
+      <div class="cite-block">
+        <div class="cite-block-label">ISO 690:2021 — software</div>
+        <div class="cite-text" id="cite-iso-software"></div>
+        <button class="cite-copy-btn" onclick="copyCite('iso-software')">Copiar</button>
+      </div>
+      <div class="cite-block">
+        <div class="cite-block-label">ISO 690:2021 — sesión</div>
+        <div class="cite-text" id="cite-iso-session"></div>
+        <button class="cite-copy-btn" onclick="copyCite('iso-session')">Copiar</button>
+      </div>
+    </div>
+
+    <div class="cite-dl-row">
+      <button class="dl-pill" onclick="downloadBib()">⬇ .bib completo</button>
+      <button class="dl-pill" onclick="downloadCSV()">⬇ CSV estadísticas</button>
+      <button class="dl-pill" onclick="downloadReproZip()">⬇ ZIP reproducible</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ METHODOLOGY DRAWER ═══════════════════════════════════════════════════ -->
+<div id="meth-overlay" onclick="closeMethodologySidebar()"></div>
+<div id="meth-drawer">
+  <div class="meth-hdr">
+    <h3>📖 Metodología científica</h3>
+    <button onclick="closeMethodologySidebar()">✕</button>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Fundamento matemático</div>
+    <p class="meth-p">CENTINEL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T1 — Integridad de cadena</div>
+    <p class="meth-p">Cada snapshot incluye el SHA-256 del anterior. Una modificación retroactiva invalida toda la cadena posterior — detectable offline sin acceso a la fuente original.</p>
+    <code class="meth-code">H_n = SHA256(data_n ‖ H_{n-1})</code>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T2 — Ley de Benford</div>
+    <p class="meth-p">Los primeros dígitos de datos electorales orgánicos siguen la distribución logarítmica de Benford. La desviación χ² &gt; umbral indica manipulación numérica sistemática.</p>
+    <code class="meth-code">P(d) = log₁₀(1 + 1/d),  d ∈ {1,…,9}</code>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T3 — Inconsistencia de participación</div>
+    <p class="meth-p">La participación acumulada es monótonamente no-decreciente. Una caída indica actas retiradas — evento imposible en un escrutinio legítimo.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Teorema T4 — Anclaje temporal Bitcoin</div>
+    <p class="meth-p">La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en CENTINEL.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Detectores implementados</div>
+    <ul class="meth-list">
+      <li>Ley de Benford (primeros dígitos, χ²)</li>
+      <li>Participación imposible (&gt;100%)</li>
+      <li>Turno out delta anómalo</li>
+      <li>Consistencia de cadena de hash</li>
+      <li>Estancamiento de datos (throttling)</li>
+      <li>Última hora surge (madrugada)</li>
+      <li>Empate estadístico imposible</li>
+      <li>Cascada de espejos</li>
+      <li>Participación bimodal anormal</li>
+      <li>Volatilidad de liderazgo</li>
+      <li>Datos idénticos multi-tick</li>
+      <li>14 detectores adicionales configurables</li>
+    </ul>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Validación académica</div>
+    <p class="meth-p">Validación de 500 corridas publicada. Análisis de falsos positivos activo. Colaboración en curso con la <strong>Universidad Pedagógica Nacional Francisco Morazán (UPNFM)</strong>, Honduras.</p>
+    <p class="meth-p">Piloto de producción: <strong>Elecciones generales Honduras 2025</strong>.</p>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Referencias</div>
+    <ul class="meth-list">
+      <li>Benford, F. (1938). The law of anomalous numbers. <em>Proceedings of the American Philosophical Society</em>, 78(4), 551–572.</li>
+      <li>Nakamoto, S. (2008). Bitcoin: A peer-to-peer electronic cash system.</li>
+      <li>Merkle, R. C. (1988). A digital signature based on a conventional encryption function. <em>CRYPTO</em>.</li>
+      <li>OpenTimestamps: <em>opentimestamps.org</em></li>
+      <li>CENTINEL Methodology: <em>docs/research/METHODOLOGY.md</em></li>
+    </ul>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Reproducibilidad</div>
+    <p class="meth-p">Toda sesión genera un ZIP reproducible: configuración de umbrales, alertas, inyecciones activas, metadatos y cita bibliográfica. Cualquier investigador puede reproducir el análisis exacto a partir del ZIP.</p>
+    <button class="dl-pill" style="margin-top:8px" onclick="downloadReproZip()">⬇ Descargar paquete de reproducibilidad</button>
+  </div>
+
+  <div class="meth-section">
+    <div class="meth-section-title">Contacto académico</div>
+    <p class="meth-p">Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.</p>
+  </div>
+</div>
 
 <!-- ══ SETTINGS MODAL ════════════════════════════════════════════════════════ -->
 <div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
