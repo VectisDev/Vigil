@@ -1027,11 +1027,40 @@ details .details-body{padding:12px 0 4px}
                   <th style="padding:6px 10px">Snapshots</th>
                   <th style="padding:6px 10px">Merkle Root</th>
                   <th style="padding:6px 10px">Sincronía</th>
+                  <th style="padding:6px 10px">Especialización</th>
                   <th style="padding:6px 10px">Timestamp</th>
                 </tr>
               </thead>
               <tbody id="swarm-peers-tbody"></tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- ── Consenso multi-nodo de hallazgos ── -->
+        <div class="ctrl-section" id="swarm-consensus-findings-section">
+          <h3>Hallazgos con Consenso Multi-Nodo</h3>
+          <p style="font-size:12px;color:var(--muted);margin:6px 0 12px">
+            Anomalías detectadas de forma independiente por ≥2 nodos distintos del enjambre.
+            Fondo ámbar = 2–4 nodos · Fondo rojo = 5+ nodos.
+          </p>
+          <div id="swarm-consensus-findings-wrap">
+            <div style="font-size:12px;color:var(--muted);font-style:italic" id="swarm-consensus-empty">
+              Sin hallazgos con consenso multi-nodo aún.
+            </div>
+            <div style="overflow-x:auto;display:none" id="swarm-consensus-table-wrap">
+              <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <thead>
+                  <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px">Regla</th>
+                    <th style="padding:6px 10px">Snapshot</th>
+                    <th style="padding:6px 10px">Nodos</th>
+                    <th style="padding:6px 10px">Severidad</th>
+                    <th style="padding:6px 10px">Último hallazgo</th>
+                  </tr>
+                </thead>
+                <tbody id="swarm-consensus-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -2660,16 +2689,57 @@ function _renderSwarmStatus(s) {
       const ts = p.timestamp_utc ? relTime(p.timestamp_utc) : '—';
       const flagMap = {HN:'🇭🇳',GT:'🇬🇹',SV:'🇸🇻',NI:'🇳🇮',CR:'🇨🇷',PA:'🇵🇦',MX:'🇲🇽',CO:'🇨🇴',VE:'🇻🇪',PE:'🇵🇪',EC:'🇪🇨',BO:'🇧🇴',PY:'🇵🇾',UY:'🇺🇾',AR:'🇦🇷',CL:'🇨🇱',BR:'🇧🇷',DO:'🇩🇴',CU:'🇨🇺',PR:'🇵🇷'};
       const flag = flagMap[p.country_code] || '🌎';
+      const specIcons = {temporal:'⏱', statistical:'📊', structural:'🔗', general:'⚙️'};
+      const specLabel = p.specialization || 'general';
+      const specBadge = `<span style="font-size:11px;opacity:.8">${specIcons[specLabel]||'⚙️'} ${specLabel}</span>`;
       return `<tr style="border-bottom:1px solid var(--border)">
         <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${p.node_id}</td>
         <td style="padding:7px 10px">${flag} ${p.country_code}</td>
         <td style="padding:7px 10px">${p.chain_length ?? '—'}</td>
         <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${(p.merkle_root||'').slice(0,12)}…</td>
         <td style="padding:7px 10px">${syncBadge}</td>
+        <td style="padding:7px 10px">${specBadge}</td>
         <td style="padding:7px 10px;color:var(--muted)">${ts}</td>
       </tr>`;
     }).join('');
   }
+
+  // Load consensus findings (works even without swarm running)
+  loadSwarmConsensus();
+}
+
+async function loadSwarmConsensus() {
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/consensus_findings?min_nodes=1&limit=20');
+    if (!r.ok) return;
+    const d = await r.json();
+    const items = d.consensus || [];
+    const empty = document.getElementById('swarm-consensus-empty');
+    const tableWrap = document.getElementById('swarm-consensus-table-wrap');
+    const tbody = document.getElementById('swarm-consensus-tbody');
+    if (!empty || !tableWrap || !tbody) return;
+    if (!items.length) {
+      empty.style.display = '';
+      tableWrap.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    tableWrap.style.display = '';
+    const sevColor = s => s === 'CRITICAL' ? 'var(--alert)' : 'var(--warn)';
+    tbody.innerHTML = items.map(c => {
+      const nc = parseInt(c.node_count, 10) || 1;
+      const rowBg = nc >= 5 ? 'rgba(220,50,47,.08)' : nc >= 2 ? 'rgba(212,176,102,.08)' : '';
+      const snap = (c.snapshot_id || '—').slice(0, 8);
+      const ts = c.last_seen ? relTime(c.last_seen) : '—';
+      return `<tr style="border-bottom:1px solid var(--border);background:${rowBg}">
+        <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${c.rule_key}</td>
+        <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${snap}…</td>
+        <td style="padding:7px 10px;font-weight:600">${nc} nodo${nc!==1?'s':''}</td>
+        <td style="padding:7px 10px;color:${sevColor(c.severity)};font-weight:600">${c.severity}</td>
+        <td style="padding:7px 10px;color:var(--muted)">${ts}</td>
+      </tr>`;
+    }).join('');
+  } catch(_) {}
 }
 
 async function doSwarmConnect() {

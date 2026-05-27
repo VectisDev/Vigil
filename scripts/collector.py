@@ -70,6 +70,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import random
 import time
 from datetime import datetime, timezone
@@ -91,6 +92,14 @@ import yaml
 
 LOGGER = logging.getLogger("centinel.collector")
 DEFAULT_CONFIG_PATH = Path("command_center/config.yaml")
+
+# ── Cooperative scraping constants ────────────────────────────────────────────
+# When CENTINEL_SWARM_COOPERATIVE=1, the collector checks whether another swarm
+# node already scraped a source recently and skips the HTTP request if so.
+# This protects the CNE endpoint from collective overload across the swarm.
+_SWARM_COOPERATIVE = os.getenv("CENTINEL_SWARM_COOPERATIVE", "0").strip() == "1"
+_SWARM_PORT = os.getenv("CENTINEL_PORT", "8000")
+_SWARM_FRESHNESS_SECS = int(os.getenv("CENTINEL_SWARM_FRESHNESS_SECS", "240"))  # 4 min default
 DEFAULT_RETRY_PATH = Path("config/prod/retry_config.yaml")
 DEFAULT_OUTPUT_PATH = Path("data/collector_latest.json")
 
@@ -326,6 +335,32 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
         if not endpoint:
             LOGGER.error("collector_source_without_endpoint source=%s", source)
             continue
+
+        # ── Cooperative scraping: skip if swarm peer already has fresh data ──
+        source_id = str(source.get("source_id") or source.get("name") or source.get("department_code") or endpoint)
+        if _SWARM_COOPERATIVE:
+            try:
+                import requests as _req
+                _r = _req.get(
+                    f"http://127.0.0.1:{_SWARM_PORT}/api/swarm/last_scraped",
+                    params={"source_id": source_id},
+                    timeout=0.5,
+                )
+                if _r.ok:
+                    _scraped_at = _r.json().get("scraped_at_utc")
+                    if _scraped_at:
+                        from datetime import timezone as _tz
+                        import dateutil.parser as _dp  # type: ignore[import]
+                        _age = (datetime.now(_tz.utc) - _dp.parse(_scraped_at)).total_seconds()
+                        if _age < _SWARM_FRESHNESS_SECS:
+                            LOGGER.info(
+                                "collector_swarm_coop_skip source_id=%s age_secs=%.0f",
+                                source_id, _age,
+                            )
+                            continue
+            except Exception:
+                pass  # swarm offline or unreachable — proceed normally
+
         proxy_url = rotator.get_proxy_for_request()
         payload = fetch_json_with_retry(
             str(endpoint),
@@ -341,6 +376,20 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
             fetched_payloads.append(payload)
             if proxy_url:
                 rotator.mark_success(proxy_url)
+            # ── Report successful scrape to swarm ──────────────────────────
+            if _SWARM_COOPERATIVE:
+                try:
+                    import hashlib as _hl, requests as _req
+                    _content_hash = _hl.sha256(
+                        json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()
+                    ).hexdigest()
+                    _req.post(
+                        f"http://127.0.0.1:{_SWARM_PORT}/api/swarm/report_scrape",
+                        json={"source_id": source_id, "content_hash": _content_hash},
+                        timeout=0.5,
+                    )
+                except Exception:
+                    pass  # non-fatal
         elif proxy_url:
             rotator.mark_failure(proxy_url, "collector_fetch_failed")
 
