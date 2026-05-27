@@ -1562,9 +1562,14 @@ function updateSensorCards(){
   const wd     = localConfig['config/prod/watchdog.yaml'] || {};
 
   // SHA chain
+  const hasChainData = !!(chain.latest_hash || chain.chain_length > 0);
   const hashOk = chain.integrity !== false;
   const hashStr = chain.latest_hash ? chain.latest_hash.slice(-8) : '—';
-  setCard('sha', hashOk?'ÍNTEGRA':'ROTA', hashStr, hashOk?100:0, hashOk?'ok':'bad');
+  if(!hasChainData){
+    setCard('sha', 'sin datos', 'Pipeline aún no ha ejecutado', 0, 'neutral', false);
+  } else {
+    setCard('sha', hashOk?'ÍNTEGRA':'ROTA', hashStr, hashOk?100:0, hashOk?'ok':'bad');
+  }
 
   // Circuit Breaker
   const cbOpen = cne.consecutive_failures >= 3;
@@ -1587,11 +1592,17 @@ function updateSensorCards(){
   const warnings = alerts.filter(a=>a.level==='WARNING').length;
   setCard('attacks', alerts.length+' eventos', `${warnings} WARNING · ${critical} CRITICAL`, critical>0?100:warnings>0?50:0, critical>0?'bad':warnings>0?'warn':'ok');
 
-  // Endpoints
-  const eps = Object.values(s?.endpoints_status||{});
+  // Endpoints — distinguish "no pipeline data yet" from "active failures"
+  const epsRaw = s?.endpoints_status;
+  const hasEpData = epsRaw && (Array.isArray(epsRaw) ? epsRaw.length > 0 : Object.keys(epsRaw).length > 0);
+  const eps = hasEpData ? Object.values(epsRaw) : [];
   const okEps = eps.filter(e=>e.ok).length;
-  const total = DEPTS.length - 1;
-  setCard('endpoints', `${okEps}/${total}`, `${total-okEps} fallando`, okEps/total*100, okEps===total?'ok':okEps>total*0.8?'warn':'bad');
+  const total = Math.max(1, DEPTS.length - 1);
+  if(!hasEpData){
+    setCard('endpoints', 'sin datos', 'Pipeline aún no ha ejecutado', 0, 'neutral', false);
+  } else {
+    setCard('endpoints', `${okEps}/${total}`, `${total-okEps} fallando`, okEps/total*100, okEps===total?'ok':okEps>total*0.8?'warn':'bad');
+  }
 
   // CPU/RAM — use watchdog limits as context
   const cpuLimit = wd?.max_cpu_percent || 80;
@@ -1651,7 +1662,9 @@ function getEndpointUrl(code){
 
 function updateDeptGrid(){
   if(!snapshotData) return;
-  const eps = snapshotData?.endpoints_status || {};
+  const epsRaw = snapshotData?.endpoints_status;
+  const hasPipelineData = epsRaw && (Array.isArray(epsRaw) ? epsRaw.length > 0 : Object.keys(epsRaw).length > 0);
+  const eps = hasPipelineData && !Array.isArray(epsRaw) ? epsRaw : {};
   const epCfg = localConfig['config/prod/endpoints.yaml'] || {};
   const configured = (epCfg?.cne?.presidential_endpoints || [])
     .map(e => (e.department_code || '').toString().padStart(2,'0'));
@@ -1663,7 +1676,10 @@ function updateDeptGrid(){
     const epStatus = eps[dept.code];
     let color = '#3a3f49', cls = '';
     if(configured.includes(dept.code)){
-      if(epStatus?.ok){ color='#57c08d'; cls='dep-ok'; }
+      if(!hasPipelineData){
+        // Pipeline hasn't run yet — show neutral grey, not warning
+        color = '#3a3f49'; cls = '';
+      } else if(epStatus?.ok){ color='#57c08d'; cls='dep-ok'; }
       else if(epStatus && (epStatus.failures||0)>0){ color='#df6b86'; cls='dep-bad'; }
       else { color='#d4b066'; cls='dep-warn'; }
     }
