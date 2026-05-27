@@ -144,7 +144,19 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
 .ctrl-row input[type=text]:focus,.ctrl-row input[type=number]:focus{border-color:var(--accent)}
 .ctrl-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px}
 .ctrl-section h3{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.05em;margin-bottom:16px}
+  letter-spacing:.05em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+/* OTS network connectivity dot */
+.ots-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .4s}
+.ots-dot-probing{background:var(--muted);animation:ots-pulse 1.4s ease-in-out infinite}
+.ots-dot-ok{background:var(--ok)}
+.ots-dot-warn{background:var(--warn)}
+.ots-dot-bad{background:var(--bad)}
+.ots-dot-off{background:var(--muted);opacity:.4}
+@keyframes ots-pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.ots-net-hint{font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;margin-left:2px}
+.ots-airgap-warn{background:rgba(212,176,102,.07);border:1px solid rgba(212,176,102,.25);
+  border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;
+  color:var(--warn);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .toggle-row label{font-size:13px}
 .toggle{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
@@ -481,7 +493,12 @@ details .details-body{padding:12px 0 4px}
           </div>
           <!-- OTS SECTION (visible in both modes) -->
           <div class="ctrl-section" id="ots-section">
-            <h3>⛓ Anclaje Bitcoin (OpenTimestamps)</h3>
+            <h3>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Anclaje Bitcoin
+              <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
+              <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
+            </h3>
             <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
                 <span id="ots-status-badge" class="badge badge-neutral">CARGANDO…</span>
@@ -490,16 +507,22 @@ details .details-body{padding:12px 0 4px}
               <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
               <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
             </div>
+            <!-- air-gap / offline warning (shown automatically if unreachable + enabled) -->
+            <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el toggle</strong> para evitar esperas innecesarias.</span>
+            </div>
             <div class="toggle-row">
-              <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">Anclaje OTS activo ⓘ</label>
-              <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+              <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">
+                Anclar en Bitcoin
+                <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">(OpenTimestamps) ⓘ</span>
+              </label>
+              <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="onOtsToggle()"><span class="toggle-slider"></span></label>
             </div>
             <div class="ctrl-row">
               <label>Servidor OTS personalizado (opcional) <span class="tip-left" data-tip="Deja vacío para usar los 4 calendarios públicos. Solo especifica si tienes un servidor propio.">ⓘ</span></label>
               <input type="text" id="inp-ots-server" placeholder="https://a.pool.opentimestamps.org" oninput="markDirty()">
             </div>
-            <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-bottom:12px">Probar conectividad OTS</button>
-            <div id="ots-test-result" style="font-size:12px;margin-bottom:12px;display:none"></div>
             <details>
               <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
               <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
@@ -518,6 +541,8 @@ details .details-body{padding:12px 0 4px}
                   <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
                 </ol>
                 <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
+                <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
+                <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
               </div>
             </details>
           </div>
@@ -2145,30 +2170,74 @@ function showResultModal(lines, isError){
 // ══════════════════════════════════════════════════════════
 // OTS — OpenTimestamps Bitcoin Anchoring
 // ══════════════════════════════════════════════════════════
-async function testOtsConnectivity(){
-  const res = document.getElementById('ots-test-result');
-  if(!res) return;
-  res.style.display = 'block';
-  res.textContent = 'Probando…';
-  res.style.color = 'var(--muted)';
+
+// Update the connectivity dot + hint text in the heading
+function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
+  const dot  = document.getElementById('ots-net-dot');
+  const hint = document.getElementById('ots-net-hint');
+  const map  = {
+    probing: ['ots-dot-probing', 'probando red…'],
+    ok:      ['ots-dot-ok',      'calendarios accesibles'],
+    warn:    ['ots-dot-warn',    'acceso parcial'],
+    bad:     ['ots-dot-bad',     'sin acceso (air-gapped?)'],
+    off:     ['ots-dot-off',     'desactivado'],
+  };
+  const [cls, text] = map[state] || map.probing;
+  if(dot)  { dot.className = 'ots-dot ' + cls; dot.title = text; }
+  if(hint) { hint.textContent = text; }
+}
+
+// Silent background probe — returns true if reachable
+async function _probeOtsNetwork(){
   const server = document.getElementById('inp-ots-server')?.value.trim()
     || 'https://alice.btc.calendar.opentimestamps.org';
+  const warn = document.getElementById('ots-airgap-warn');
   try{
     await fetch(server, {method:'HEAD', mode:'no-cors', signal:AbortSignal.timeout(8000)});
-    res.textContent = '✓ Servidor OTS responde (o CORS bloqueado — esto es normal, no indica error).';
-    res.style.color = 'var(--ok)';
+    _setOtsDot('ok');
+    if(warn) warn.style.display = 'none';
+    return true;
   }catch(e){
-    res.textContent = '⚠ Sin respuesta: ' + e.message + ' (puede ser CORS — no indica fallo en el servidor)';
-    res.style.color = 'var(--warn)';
+    const enabled = document.getElementById('tog-ots')?.checked ?? true;
+    _setOtsDot('bad');
+    if(warn) warn.style.display = enabled ? 'flex' : 'none';
+    return false;
+  }
+}
+
+// Called when toggle changes
+function onOtsToggle(){
+  markDirty();
+  const enabled = document.getElementById('tog-ots')?.checked;
+  const warn    = document.getElementById('ots-airgap-warn');
+  if(!enabled){
+    _setOtsDot('off');
+    if(warn) warn.style.display = 'none';
+  } else {
+    _setOtsDot('probing');
+    _probeOtsNetwork();
+  }
+}
+
+// Manual test button (inside <details>) — delegates to probe + shows result text
+async function testOtsConnectivity(){
+  const res = document.getElementById('ots-test-result');
+  if(res){ res.style.display='block'; res.textContent='Probando…'; res.style.color='var(--muted)'; }
+  const ok = await _probeOtsNetwork();
+  if(res){
+    res.textContent = ok
+      ? '✓ Servidor responde (o CORS bloqueado — esto es normal, no indica error).'
+      : '⚠ Sin respuesta. Puede ser CORS o entorno sin internet.';
+    res.style.color = ok ? 'var(--ok)' : 'var(--warn)';
   }
 }
 
 async function loadOtsStatus(){
   if(!snapshotData) return;
-  const ots    = snapshotData?.chain?.ots_status || 'unknown';
-  const last   = snapshotData?.chain?.last_anchor;
+  const ots      = snapshotData?.chain?.ots_status || 'unknown';
+  const last     = snapshotData?.chain?.last_anchor;
   const chainLen = snapshotData?.chain?.chain_length || '?';
-  const badge  = document.getElementById('ots-status-badge');
+  const badge    = document.getElementById('ots-status-badge');
   if(badge){
     const cls = {confirmed:'ok', pending:'warn', error:'bad'}[ots] || 'neutral';
     badge.className = 'badge badge-' + cls;
@@ -2187,7 +2256,7 @@ async function loadOtsStatus(){
       const pendEl = document.getElementById('ots-pending');
       if(pendEl && n > 0){
         pendEl.style.display = 'block';
-        pendEl.textContent = '⚠ ' + n + ' raíz' + (n > 1 ? 'ces' : '') + ' pendiente' + (n > 1 ? 's' : '') + ' de anclaje';
+        pendEl.textContent = n + ' raíz' + (n > 1 ? 'ces' : '') + ' pendiente' + (n > 1 ? 's' : '') + ' de anclaje';
       }
     }
   }catch{}
@@ -2196,6 +2265,10 @@ async function loadOtsStatus(){
   if(togOts) togOts.checked = cfg?.opentimestamps?.enabled ?? true;
   const inpServer = document.getElementById('inp-ots-server');
   if(inpServer) inpServer.value = cfg?.opentimestamps?.primary_server || '';
+  // Auto-probe on load — non-blocking
+  const enabled = togOts?.checked ?? true;
+  if(enabled){ _setOtsDot('probing'); _probeOtsNetwork(); }
+  else { _setOtsDot('off'); }
 }
 
 function buildNewConfigYaml(){
