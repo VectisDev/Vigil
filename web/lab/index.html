@@ -110,7 +110,6 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 /* ── FORENSIC CARDS ── */
 #s-forensic-list{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
 .forensic-card{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:0}
-.forensic-card:has(.forensic-body.open){grid-column:1/-1}
 .forensic-hdr{
   display:flex;align-items:center;justify-content:space-between;padding:7px 10px;
   cursor:pointer;background:var(--panel);
@@ -278,14 +277,37 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   color:var(--bad);border-radius:999px;font-size:9px;font-weight:700;
   padding:1px 6px;margin-left:6px;vertical-align:middle}
 
+/* ── SWARM SIMULATION ── */
+.swarm-node-btns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.swarm-node-btn{padding:4px 14px;border-radius:6px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:700;
+  transition:border-color .15s,color .15s}
+.swarm-node-btn.active{background:rgba(176,140,240,.1);border-color:var(--purple);color:var(--purple)}
+.swarm-node-btn:hover:not(.active){border-color:var(--purple);color:var(--purple)}
+.swarm-kpis{display:flex;gap:20px;flex-wrap:wrap;padding:10px 16px;
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;margin:12px 0}
+.swarm-kpi{display:flex;flex-direction:column;gap:2px}
+.swarm-kpi-val{font-size:17px;font-weight:700;color:var(--purple)}
+.swarm-kpi-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.swarm-viz{display:flex;flex-wrap:wrap;gap:3px;padding:10px 12px;background:var(--bg);
+  border:1px solid var(--border);border-radius:8px;min-height:34px;align-content:flex-start}
+.sn{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:background .35s;flex-shrink:0}
+.sn.ok{background:var(--ok)}.sn.warn{background:var(--warn)}.sn.bad{background:var(--bad)}
+.sn.probe{background:rgba(176,140,240,.5);animation:swarm-probe .7s ease-in-out infinite}
+@keyframes swarm-probe{0%,100%{opacity:.4}50%{opacity:1}}
+
 /* ── TELEMETRY ── */
-.telem-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.telem-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.telem-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.telem-row-label{grid-column:1/-1;display:flex;align-items:center;gap:8px;
+  font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+.telem-row-label:first-child{margin-top:0}
+.telem-row-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.telem-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
 .telem-panel h4{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
   letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .telem-log{
   background:var(--bg);border:1px solid var(--border);border-radius:8px;
-  padding:10px;height:260px;overflow-y:auto;
+  padding:10px;height:220px;overflow-y:auto;
   font-family:var(--mono);font-size:10.5px;line-height:1.65;
 }
 .telem-log div{margin-bottom:1px;word-break:break-all}
@@ -315,11 +337,26 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 @media(max-width:900px){
   .grid4{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}
   .telem-wrap{grid-template-columns:1fr}
+  .telem-row-label{margin-top:8px}
   .inj-grid{grid-template-columns:1fr}
+  .lab-dept-grid{grid-template-columns:repeat(6,1fr)}
+  #s-forensic-list{grid-template-columns:1fr}
+  .swarm-node-btns{gap:4px}
 }
 @media(max-width:600px){
   .grid4{grid-template-columns:1fr}
-  #sim-control-bar{gap:8px}
+  .lab-dept-grid{grid-template-columns:repeat(4,1fr)}
+  #sim-control-bar{gap:6px;flex-wrap:wrap;padding:8px 12px}
+  .dataset-select{width:100%;flex-shrink:0}
+  .bld-form-row{grid-template-columns:1fr!important}
+  #thresh-sliders-container{grid-template-columns:1fr!important}
+  .page{padding:12px 8px}
+  #inj-topbar{padding:5px 12px}
+  .kpi-val{font-size:18px}
+}
+@media(max-width:420px){
+  .lab-dept-grid{grid-template-columns:repeat(3,1fr)}
+  .grid4{grid-template-columns:1fr}
 }
 /* ── ACADEMIC TOOLS ── */
 .acad-session-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -683,22 +720,71 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <div class="inj-grid" id="inj-grid-c"></div>
 </div>
 
-<!-- ══ SECTION 5 — DUAL TELEMETRY ════════════════════════════════════════════ -->
-<div class="section-title">Centro de Telemetría Dual<button class="section-dl" onclick="downloadTelemTxt('engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>Engine TXT</button><button class="section-dl" onclick="downloadTelemTxt('attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>Attack TXT</button></div>
+<!-- ══ SECTION 4.5 — SIMULACRO EN SWARM ═══════════════════════════════════════ -->
+<div class="section-title" id="swarm-section">
+  Simulacro en Swarm
+  <span class="badge b-pur" style="text-transform:none;font-size:9px;letter-spacing:0;padding:2px 8px">gossip · BFT</span>
+  <button class="section-dl" onclick="downloadTelemTxt('swarm-engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>Swarm TXT</button>
+</div>
+<div class="card" style="padding:16px 18px">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px">
+    <span style="font-size:12px;color:var(--muted);font-weight:600">Nodos en la red:</span>
+    <div class="swarm-node-btns">
+      <button class="swarm-node-btn" onclick="setSwarmNodes(10)">10</button>
+      <button class="swarm-node-btn active" onclick="setSwarmNodes(100)">100</button>
+      <button class="swarm-node-btn" onclick="setSwarmNodes(1000)">1 000</button>
+      <button class="swarm-node-btn" onclick="setSwarmNodes(10000)">10 000</button>
+    </div>
+    <span style="font-size:10px;color:var(--purple);font-weight:600" id="swarm-status-label">■ Swarm activo</span>
+  </div>
+  <div class="swarm-kpis">
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-nodes">100</span><span class="swarm-kpi-label">Nodos</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-rounds">5</span><span class="swarm-kpi-label">Rondas gossip</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-bft">33</span><span class="swarm-kpi-label">BFT tolerancia</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-compromised" style="color:var(--ok)">0</span><span class="swarm-kpi-label">Comprometidos</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-msgs">100</span><span class="swarm-kpi-label">Msgs/tick</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-consensus" style="color:var(--ok)">OK</span><span class="swarm-kpi-label">Consenso</span></div>
+  </div>
+  <div id="swarm-viz" class="swarm-viz"></div>
+  <div style="font-size:10px;color:var(--muted);margin-top:8px">
+    Fan-out=3 · Propagación O(log₃ N) · BFT: tolera hasta ⌊(N−1)/3⌋ fallos Byzantine · ≤200 nodos: vista de puntos
+  </div>
+</div>
+
+<!-- ══ SECTION 5 — TELEMETRÍA 4 CANALES ════════════════════════════════════════ -->
+<div class="section-title">Centro de Telemetría
+  <button class="section-dl" onclick="downloadTelemTxt('engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SA Engine</button>
+  <button class="section-dl" onclick="downloadTelemTxt('attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SA Attack</button>
+  <button class="section-dl" onclick="downloadTelemTxt('swarm-engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Engine</button>
+  <button class="section-dl" onclick="downloadTelemTxt('swarm-attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Attack</button>
+</div>
 <div class="telem-wrap">
+  <!-- ─ Row 1: Standalone ─ -->
+  <div class="telem-row-label">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Standalone
+  </div>
   <div class="telem-panel">
-    <h4>
-      <span style="width:8px;height:8px;background:var(--ok);border-radius:50%;display:inline-block"></span>
-      Pantalla 1 — Engine Telemetry
-    </h4>
+    <h4><span style="width:8px;height:8px;background:var(--ok);border-radius:50%;display:inline-block;flex-shrink:0"></span>Engine Telemetry</h4>
     <div class="telem-log" id="telem-engine"></div>
   </div>
   <div class="telem-panel">
-    <h4>
-      <span style="width:8px;height:8px;background:var(--bad);border-radius:50%;display:inline-block"></span>
-      Pantalla 2 — Attack Logger
-    </h4>
+    <h4><span style="width:8px;height:8px;background:var(--bad);border-radius:50%;display:inline-block;flex-shrink:0"></span>Attack Logger</h4>
     <div class="telem-log" id="telem-attack"></div>
+  </div>
+  <!-- ─ Row 2: Swarm ─ -->
+  <div class="telem-row-label">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/><line x1="5" y1="17" x2="19" y2="17"/></svg>
+    Swarm
+    <span id="sw-telem-node-count" style="color:var(--purple);font-weight:700;font-style:normal;text-transform:none;letter-spacing:0">(100 nodos)</span>
+  </div>
+  <div class="telem-panel" style="border-color:rgba(176,140,240,.3)">
+    <h4><span style="width:8px;height:8px;background:var(--purple);border-radius:50%;display:inline-block;flex-shrink:0"></span>Engine Telemetry</h4>
+    <div class="telem-log" id="telem-swarm-engine"></div>
+  </div>
+  <div class="telem-panel" style="border-color:rgba(176,140,240,.3)">
+    <h4><span style="width:8px;height:8px;background:var(--warn);border-radius:50%;display:inline-block;flex-shrink:0"></span>Attack Logger</h4>
+    <div class="telem-log" id="telem-swarm-attack"></div>
   </div>
 </div>
 
@@ -1175,10 +1261,12 @@ const MAX_LOG=250;
 function tsLog(){return new Date().toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function appendLog(id,cls,html){
   const el=document.getElementById(id);
+  if(!el) return;
   const d=document.createElement('div');d.className=cls;d.innerHTML=html;
   el.appendChild(d);while(el.children.length>MAX_LOG)el.removeChild(el.firstChild);
   el.scrollTop=el.scrollHeight;
 }
+// Standalone logs
 function logE(sev,msg){
   const cls={INFO:'tl-muted',WARN:'tl-warn',CRITICAL:'tl-bad',OK:'tl-ok'}[sev]||'tl-muted';
   appendLog('telem-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] ${msg}`);
@@ -1187,6 +1275,120 @@ function logA(sev,ip,vector,cm){
   const cls={ALERT:'tl-bad',CRITICAL:'tl-bad',WARN:'tl-warn',INFO:'tl-muted'}[sev]||'tl-muted';
   const ua=['Mozilla/5.0 (Scrapy)','python-req/2.31','Go-http/2.0','curl/7.88','libwww/6.72'][rnd(0,4)];
   appendLog('telem-attack',cls,`[${tsLog()}] IP=${ip} | ${vector} | UA:${ua} | → ${cm}`);
+}
+// Swarm logs
+function logSE(sev,msg){
+  const cls={INFO:'tl-muted',WARN:'tl-warn',CRITICAL:'tl-bad',OK:'tl-ok'}[sev]||'tl-muted';
+  appendLog('telem-swarm-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] [N:${SWARM.nodes}] ${msg}`);
+}
+function logSA(sev,ip,vector,cm){
+  const cls={ALERT:'tl-bad',CRITICAL:'tl-bad',WARN:'tl-warn',INFO:'tl-muted'}[sev]||'tl-muted';
+  appendLog('telem-swarm-attack',cls,`[${tsLog()}] [N:${SWARM.nodes}] IP=${ip} | ${vector} | → ${cm}`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SWARM SIMULATION
+// ═══════════════════════════════════════════════════════════════════════════
+const SWARM={nodes:100,compromised:0,fanout:3,_tick:0};
+
+function _swarmRounds(N){return Math.ceil(Math.log(Math.max(2,N))/Math.log(SWARM.fanout));}
+function _swarmBFT(N){return Math.floor((N-1)/3);}
+function _swarmMsgs(N){
+  const r=_swarmRounds(N);
+  return Math.min(N,Math.round((Math.pow(SWARM.fanout,r+1)-1)/(SWARM.fanout-1)));
+}
+
+function setSwarmNodes(n){
+  SWARM.nodes=n; SWARM.compromised=0;
+  document.querySelectorAll('.swarm-node-btn').forEach(b=>{
+    const v=parseInt(b.textContent.replace(/\s/g,''));
+    b.classList.toggle('active',v===n);
+  });
+  const lbl=document.getElementById('sw-telem-node-count');
+  if(lbl) lbl.textContent=`(${n.toLocaleString('es-HN')} nodos)`;
+  updateSwarmKpis();
+  renderSwarmViz();
+  logSE('INFO',`Red reconfigurada: ${n.toLocaleString()} nodos · fan-out=${SWARM.fanout} · BFT=${_swarmBFT(n)}`);
+}
+
+function updateSwarmKpis(){
+  const N=SWARM.nodes, c=SWARM.compromised, bft=_swarmBFT(N);
+  const ok=c<=bft;
+  _setText('sw-nodes',N.toLocaleString('es-HN'));
+  _setText('sw-rounds',_swarmRounds(N));
+  _setText('sw-bft',bft.toLocaleString('es-HN'));
+  const cEl=document.getElementById('sw-compromised');
+  if(cEl){cEl.textContent=c;cEl.style.color=c===0?'var(--ok)':c>bft?'var(--bad)':'var(--warn)';}
+  _setText('sw-msgs',_swarmMsgs(N).toLocaleString('es-HN'));
+  const cxEl=document.getElementById('sw-consensus');
+  if(cxEl){cxEl.textContent=ok?'OK':'FALLO';cxEl.style.color=ok?'var(--ok)':'var(--bad)';}
+}
+function _setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+function renderSwarmViz(){
+  const viz=document.getElementById('swarm-viz');
+  if(!viz)return;
+  const N=SWARM.nodes, c=SWARM.compromised;
+  if(N>200){
+    const pct=c?((c/N*100).toFixed(1)+'%'):'0%';
+    viz.innerHTML=`<div style="font-size:11px;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap;width:100%">
+      <span><span style="color:var(--ok)">●</span> ${(N-c).toLocaleString('es-HN')} sanos</span>
+      <span><span style="color:${c>0?'var(--bad)':'var(--muted)'}">●</span> ${c.toLocaleString('es-HN')} comprometidos (${pct})</span>
+      <span><span style="color:var(--purple)">●</span> ${_swarmRounds(N)} saltos para alcanzar ${N.toLocaleString('es-HN')} nodos</span>
+    </div>`;
+    return;
+  }
+  const dots=[];
+  for(let i=0;i<N;i++){
+    const cls=i<c?'bad':'ok';
+    dots.push(`<div class="sn ${cls}" title="Nodo ${i+1}"></div>`);
+  }
+  viz.innerHTML=dots.join('');
+}
+
+// Called from simTick — drive swarm telemetry each tick
+function _tickSwarm(){
+  SWARM._tick++;
+  const N=SWARM.nodes, bft=_swarmBFT(N), t=SWARM._tick;
+
+  // Propagate active injection effects to swarm nodes
+  const activeIds=Object.keys(activeInjections||{});
+  let delta=0;
+  for(const id of activeIds){
+    if(['B1','B5','B11','B12'].includes(id)) delta+=Math.max(1,Math.round(N*0.02));
+    if(['B2','B10'].includes(id))            delta+=Math.max(1,Math.round(N*0.015));
+    if(['B3','B6','B7'].includes(id))        delta+=Math.max(1,Math.round(N*0.01));
+  }
+  if(delta>0){
+    SWARM.compromised=Math.min(N,SWARM.compromised+delta);
+    // Natural recovery when no attacks active
+  } else if(SWARM.compromised>0 && t%5===0){
+    SWARM.compromised=Math.max(0,SWARM.compromised-Math.ceil(SWARM.compromised*0.15));
+  }
+
+  const c=SWARM.compromised, consensusOk=c<=bft;
+
+  // Engine telemetry (every 2 ticks)
+  if(t%2===0){
+    const latency=rnd(2,15);
+    logSE('OK',`Tick ${t} | gossip ${_swarmRounds(N)} rondas | ${N-c}/${N} sanos | ${_swarmMsgs(N).toLocaleString()} msgs | lat ${latency}ms`);
+  }
+  if(c>0){
+    logSE(consensusOk?'WARN':'CRITICAL',
+      `${c}/${N} nodos comprometidos · BFT=${bft} · consenso: ${consensusOk?'AMENAZADO':'FALLO'}`);
+    if(!consensusOk){
+      logSA('CRITICAL',`10.${rnd(0,3)}.${rnd(0,255)}.${rnd(1,254)}`,
+        `Byzantine attack cluster · ${c} nodos`,'CONSENSO BLOQUEADO — fork detectado');
+    }
+  }
+  // Random probe noise
+  if(rnd(0,4)===0){
+    const nodeN=rnd(1,N);
+    logSA('WARN',`${rnd(1,223)}.${rnd(0,254)}.${rnd(0,254)}.${rnd(1,254)}`,
+      `Sondeo gossip nodo ${nodeN}/${N}`,'Rechazado · firewall P2P activo');
+  }
+  updateSwarmKpis();
+  if(N<=200) renderSwarmViz();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1294,6 +1496,9 @@ function simStop(){
   if(SERIES)renderSimFrame(0);
   document.getElementById('vis-overlay').classList.remove('show');
   _updateAcadPanel();
+  SWARM.compromised=0; SWARM._tick=0;
+  updateSwarmKpis(); renderSwarmViz();
+  logSE('INFO','Red Swarm reiniciada — todos los nodos sanos');
   logE('INFO','Simulación detenida y reiniciada');
 }
 function simTick(){
@@ -1301,10 +1506,17 @@ function simTick(){
     if(SIM.loop){
       SIM.idx=0;SIM.snapshots=deepClone(SERIES.snapshots);
       logE('INFO','Loop — reiniciando desde snapshot 1');
-    }else{simPause();logE('OK','Simulación completada');return;}
+      logSE('INFO','Loop — red gossip reiniciada');
+    }else{
+      simPause();
+      logE('OK','Simulación completada');
+      logSE('OK',`Simulación completada · ${SWARM.compromised} nodos comprometidos al cierre`);
+      return;
+    }
   }
   SIM.idx++;applyScheduledInjections(SIM.idx);
   updateScrubber();renderSimFrame(SIM.idx);
+  _tickSwarm();
   if(SIM.idx%10===0)_updateAcadPanel();
 }
 function toggleLoop(){
@@ -2334,6 +2546,11 @@ async function loadLabThresholds(){
   await loadDataset('../data/hnd_2025_series.json');
   // Override EVENTS thresholds with real config values (read-only)
   await loadLabThresholds();
+  // Init swarm panel
+  updateSwarmKpis();
+  renderSwarmViz();
+  logSE('OK','Red Swarm lista — 100 nodos · fan-out=3 · BFT=33');
+  logSE('INFO','Inicia la simulación para observar propagación gossip y detección Byzantine');
   logE('OK','Sandbox Forense Académico listo — CENTINEL v1');
   logE('INFO','Selecciona un dataset y presiona ▶ para iniciar la simulación');
 })();
