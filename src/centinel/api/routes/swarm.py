@@ -398,6 +398,49 @@ async def get_reputation() -> dict:
     return {"nodes": nodes, "ring_counts": counts, "total": len(nodes)}
 
 
+@router.get("/api/swarm/reputation/report")
+async def get_reputation_report() -> dict:
+    """Signed reputation snapshot for external auditors (NDI, Carter Center).
+
+    Returns current trust scores for all nodes plus a SHA-256 digest of the
+    payload. When the node's Ed25519 operator key is available the digest is
+    also signed; otherwise the signature field is an empty string.
+    """
+    import hashlib
+    from datetime import datetime, timezone
+
+    nodes = _reputation.get_all()
+    counts = _reputation.ring_counts()
+    generated_at = datetime.now(timezone.utc).isoformat()
+
+    payload_bytes = json.dumps(
+        {"generated_at": generated_at, "ring_counts": counts, "nodes": nodes},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    digest = hashlib.sha256(payload_bytes).hexdigest()
+
+    signature = ""
+    try:
+        from centinel.federation.gossip import _load_or_generate_keypair
+        from cryptography.hazmat.primitives.serialization import load_pem_private_key
+        _, _, priv_path = _load_or_generate_keypair()
+        if priv_path.exists():
+            privkey = load_pem_private_key(priv_path.read_bytes(), password=None)
+            signature = privkey.sign(payload_bytes).hex()
+    except Exception:
+        pass
+
+    return {
+        "generated_at": generated_at,
+        "node_count": len(nodes),
+        "ring_counts": counts,
+        "nodes": nodes,
+        "sha256": digest,
+        "signature": signature,
+    }
+
+
 @router.get("/api/swarm/reputation/{node_id}")
 async def get_node_reputation(node_id: str) -> dict:
     """Return detailed trust data for a single node."""
@@ -405,6 +448,19 @@ async def get_node_reputation(node_id: str) -> dict:
     if node_id not in nodes:
         raise HTTPException(status_code=404, detail="Node not found.")
     return nodes[node_id]
+
+
+@router.get("/api/swarm/reputation/{node_id}/history")
+async def get_node_reputation_history(
+    node_id: str,
+    limit: int = Query(50, ge=1, le=500),
+) -> dict:
+    """Return forensic event history for a node (ring promotions, betrayals, etc.)."""
+    nodes = {n["node_id"] for n in _reputation.get_all()}
+    if node_id not in nodes:
+        raise HTTPException(status_code=404, detail="Node not found.")
+    events = _reputation.get_history(node_id, limit=limit)
+    return {"node_id": node_id, "events": events, "total": len(events)}
 
 
 @router.get("/api/swarm/tasks")
