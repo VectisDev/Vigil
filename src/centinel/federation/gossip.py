@@ -62,7 +62,8 @@ _FINDING_VERSION = 1
 _FINDING_RATE_LIMIT = 20       # max findings broadcast per minute per node
 _FINDING_RATE_WINDOW = 60.0    # sliding window in seconds
 _BROADCAST_SEVERITIES = {"HIGH", "CRITICAL"}
-_LRU_PUBKEY_CACHE_SIZE = 10_000
+_LRU_PUBKEY_CACHE_SIZE = 50    # bounded by max swarm size; historical buffer
+_MAX_SWARM_PEERS = 12          # hard cap — Centinel operates as a tight, known swarm
 
 
 # ── Data structures ───────────────────────────────────────────────────────────
@@ -423,9 +424,10 @@ class GossipEngine:
         country_code: str,
         my_url: Optional[str] = None,
         broadcast_interval: float = 45.0,
-        max_peers: int = 100,
+        max_peers: int = _MAX_SWARM_PEERS,
         anomaly_log: Optional[object] = None,
         attack_log: Optional[object] = None,
+        reputation: Optional[object] = None,
     ) -> None:
         self.country_code = country_code.upper()
         self.my_url = my_url
@@ -441,6 +443,13 @@ class GossipEngine:
         # Federation finding logs (optional — gossip still works without them)
         self._anomaly_log = anomaly_log  # FederationAnomalyLog
         self._attack_log = attack_log    # FederationAttackLog
+        # Optional ReputationEngine — tracks per-node Bayesian trust scores.
+        self._reputation = reputation    # centinel.federation.reputation.ReputationEngine
+
+        # Arrival-order tracking: first time a node_id is seen gets a monotone index.
+        # This determines deterministic task assignment in the TaskPartitioner.
+        self._arrival_order: dict[str, int] = {}
+        self._arrival_counter: int = 0
 
         # ES: Callback opcional para propagar throttles de fuente a otros nodos.
         # EN: Optional callback to propagate source throttles from remote nodes.
@@ -544,6 +553,28 @@ class GossipEngine:
         self._known[node_id] = payload
         # Cache public key for later finding signature verification
         self._pubkey_cache.put(node_id, payload.public_key_hex)
+
+        # Record arrival order on first sighting
+        if node_id not in self._arrival_order:
+            self._arrival_order[node_id] = self._arrival_counter
+            self._arrival_counter += 1
+            if self._reputation is not None:
+                self._reputation.ensure(node_id, payload.country_code)
+
+        # Update reputation: compare this node's Merkle root against our own.
+        # If they match we reward consistency; if they diverge we penalise.
+        if self._reputation is not None:
+            my_root, _ = _current_merkle_root()
+            if my_root != "0" * 64:  # only compare when we have local data
+                if payload.merkle_root == my_root:
+                    self._reputation.on_consistent(node_id)
+                else:
+                    # Divergence can be legitimate (different chain length) or malicious.
+                    # We record it but only penalise when chain_length is close to ours.
+                    _, my_len = _current_merkle_root()
+                    if abs(payload.chain_length - my_len) <= 2:
+                        self._reputation.on_inconsistent(node_id)
+
         if payload.my_url:
             self._peers[node_id] = payload.my_url.rstrip("/")
             if len(self._peers) > self.max_peers:
@@ -731,9 +762,19 @@ class GossipEngine:
                     "epoch": getattr(p, "epoch", 0),
                     "timestamp_utc": p.timestamp_utc,
                     "url": p.my_url,
+                    "arrival_order": self._arrival_order.get(p.node_id, -1),
+                    "trust_score": (
+                        self._reputation.get_trust(p.node_id)
+                        if self._reputation is not None else None
+                    ),
+                    "ring": (
+                        self._reputation.get_ring(p.node_id)
+                        if self._reputation is not None else None
+                    ),
                 }
                 for p in peers
             ],
+            "max_peers": self.max_peers,
         }
 
     def build_my_attestation(self) -> dict:

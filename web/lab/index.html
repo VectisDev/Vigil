@@ -299,6 +299,29 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   background:rgba(176,140,240,.1);color:var(--purple);cursor:pointer;
   font-size:11px;font-weight:700;transition:.15s}
 .swarm-toggle-btn.off{border-color:var(--border);background:transparent;color:var(--muted)}
+.swarm-outage-btn{padding:4px 13px;border-radius:6px;border:1px solid rgba(212,176,102,.5);
+  background:rgba(212,176,102,.08);color:var(--warn);cursor:pointer;font-size:11px;font-weight:700;transition:.15s}
+.swarm-outage-btn:hover{background:rgba(212,176,102,.15)}
+/* PBTM trust ring node indicators */
+.sn-r0{width:14px;height:14px;border-radius:50%;border:2px solid #d4af37;background:rgba(212,176,55,.18);flex-shrink:0;cursor:default}
+.sn-r1{width:12px;height:12px;border-radius:50%;background:var(--ok);box-shadow:0 0 5px rgba(110,231,183,.45);flex-shrink:0}
+.sn-r2{width:10px;height:10px;border-radius:50%;background:rgba(176,140,240,.55);flex-shrink:0}
+.sn-outage{opacity:.35!important;outline:2px dashed var(--warn);outline-offset:2px}
+.sn-betrayal{background:var(--bad)!important;box-shadow:0 0 7px rgba(252,165,165,.6)!important}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px;padding:2px 0 4px}
+.rep-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.rep-card-id{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:3px;letter-spacing:.02em}
+.rep-card-score{font-size:14px;font-weight:700;margin-bottom:2px}
+.rep-bar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin-bottom:3px}
+.rep-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+.rep-card-meta{font-size:9px;color:var(--muted)}
+.task-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:10px}
+.task-row:last-child{border-bottom:none}
+.task-node-id{font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap;min-width:50px}
+.task-chips{display:flex;flex-wrap:wrap;gap:3px}
+.task-chip{padding:1px 5px;border-radius:4px;background:rgba(176,140,240,.1);
+  border:1px solid rgba(176,140,240,.25);color:var(--purple);font-size:9px;font-family:var(--mono)}
+.task-chip.primary{background:rgba(212,176,55,.12);border-color:rgba(212,176,55,.4);color:#d4af37}
 .telem-section-buttons{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 
 /* ── TELEMETRY ── */
@@ -730,33 +753,65 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- ══ SECTION 4.5 — SIMULACRO EN SWARM ═══════════════════════════════════════ -->
 <div class="section-title" id="swarm-section">
-  Simulacro en Swarm
-  <span class="badge b-pur" style="text-transform:none;font-size:9px;letter-spacing:0;padding:2px 8px">gossip · BFT</span>
+  Simulacro en Swarm — Reputación PBTM
+  <span class="badge b-pur" style="text-transform:none;font-size:9px;letter-spacing:0;padding:2px 8px">gossip · BFT · Beta</span>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>Swarm TXT</button>
 </div>
 <div class="card" style="padding:16px 18px">
+  <!-- Controls row -->
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px">
-    <span style="font-size:12px;color:var(--muted);font-weight:600">Nodos en la red:</span>
+    <span style="font-size:12px;color:var(--muted);font-weight:600">Nodos (máx 12):</span>
     <div class="swarm-node-btns">
+      <button class="swarm-node-btn" onclick="setSwarmNodes(2)">2</button>
+      <button class="swarm-node-btn" onclick="setSwarmNodes(4)">4</button>
+      <button class="swarm-node-btn active" onclick="setSwarmNodes(6)">6</button>
+      <button class="swarm-node-btn" onclick="setSwarmNodes(8)">8</button>
       <button class="swarm-node-btn" onclick="setSwarmNodes(10)">10</button>
-      <button class="swarm-node-btn active" onclick="setSwarmNodes(100)">100</button>
-      <button class="swarm-node-btn" onclick="setSwarmNodes(1000)">1 000</button>
-      <button class="swarm-node-btn" onclick="setSwarmNodes(10000)">10 000</button>
+      <button class="swarm-node-btn" onclick="setSwarmNodes(12)">12</button>
     </div>
     <span style="font-size:10px;color:var(--purple);font-weight:600" id="swarm-status-label">■ Swarm activo</span>
     <button id="swarm-toggle-btn" class="swarm-toggle-btn" onclick="toggleSwarmConnect()">Desconectar</button>
+    <button class="swarm-outage-btn" onclick="simulateOutage()" title="Simula que 1-2 nodos pierden conexión (corte eléctrico, no traición)">⚡ Corte eléctrico</button>
   </div>
+
+  <!-- KPIs -->
   <div class="swarm-kpis">
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-nodes">100</span><span class="swarm-kpi-label">Nodos</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-rounds">5</span><span class="swarm-kpi-label">Rondas gossip</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-bft">33</span><span class="swarm-kpi-label">BFT tolerancia</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-nodes">6</span><span class="swarm-kpi-label">Nodos</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-rounds">2</span><span class="swarm-kpi-label">Rondas gossip</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-bft">1</span><span class="swarm-kpi-label">BFT tolerancia</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-ring0" style="color:#d4af37">1</span><span class="swarm-kpi-label">Ring-0 semilla</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-ring1" style="color:var(--ok)">0</span><span class="swarm-kpi-label">Ring-1 confiable</span></div>
     <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-compromised" style="color:var(--ok)">0</span><span class="swarm-kpi-label">Comprometidos</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-msgs">100</span><span class="swarm-kpi-label">Msgs/tick</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-msgs">6</span><span class="swarm-kpi-label">Msgs/tick</span></div>
     <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-consensus" style="color:var(--ok)">OK</span><span class="swarm-kpi-label">Consenso</span></div>
   </div>
-  <div id="swarm-viz" class="swarm-viz"></div>
-  <div style="font-size:10px;color:var(--muted);margin-top:8px">
-    Fan-out=3 · Propagación O(log₃ N) · BFT: tolera hasta ⌊(N−1)/3⌋ fallos Byzantine · ≤200 nodos: vista de puntos
+
+  <!-- Trust Rings Visualization -->
+  <div style="margin-top:10px">
+    <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:10px">
+      Anillos de Confianza (Modelo Beta Bayesiano)
+      <span style="font-weight:400;text-transform:none;letter-spacing:0;display:flex;gap:10px">
+        <span><span class="sn-r0" style="display:inline-block;vertical-align:middle;margin-right:3px"></span>Ring-0 semilla</span>
+        <span><span class="sn-r1" style="display:inline-block;vertical-align:middle;margin-right:3px"></span>Ring-1 confiable</span>
+        <span><span class="sn-r2" style="display:inline-block;vertical-align:middle;margin-right:3px"></span>Ring-2 observador</span>
+        <span style="color:var(--warn)">⚡ corte</span>
+        <span style="color:var(--bad)">✕ traición</span>
+      </span>
+    </div>
+    <div id="rep-grid" class="rep-grid"></div>
+  </div>
+
+  <!-- Task Assignment -->
+  <div style="margin-top:12px">
+    <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+      Asignación de tareas — CNE Honduras
+      <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">&nbsp;·&nbsp;determinista por orden de llegada · <span style="font-family:var(--mono)">fuente[i] → nodo[i % N]</span></span>
+    </div>
+    <div id="task-table" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px"></div>
+  </div>
+
+  <div style="font-size:10px;color:var(--muted);margin-top:10px">
+    Máx 12 nodos · Fan-out=3 · BFT: tolera ⌊(N−1)/3⌋ fallos Byzantine · Reputación: Trust=(α+1)/(α+β+2) · Half-life α=14d, β=30d
   </div>
 </div>
 
@@ -786,7 +841,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <div class="telem-row-label">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/><line x1="5" y1="17" x2="19" y2="17"/></svg>
     Swarm
-    <span id="sw-telem-node-count" style="color:var(--purple);font-weight:700;font-style:normal;text-transform:none;letter-spacing:0">(100 nodos)</span>
+    <span id="sw-telem-node-count" style="color:var(--purple);font-weight:700;font-style:normal;text-transform:none;letter-spacing:0">(6 nodos)</span>
   </div>
   <div class="telem-panel" style="border-color:rgba(176,140,240,.3)">
     <h4><span style="width:8px;height:8px;background:var(--purple);border-radius:50%;display:inline-block;flex-shrink:0"></span>Engine Telemetry</h4>
@@ -1301,11 +1356,82 @@ function logSA(sev,ip,vector,cm){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SWARM SIMULATION
+// SWARM SIMULATION — PBTM Reputation Engine
 // ═══════════════════════════════════════════════════════════════════════════
-const SWARM={nodes:100,compromised:0,fanout:3,_tick:0,enabled:true};
+const SWARM={nodes:6,compromised:0,fanout:3,_tick:0,enabled:true,_reps:[]};
 
-function _swarmRounds(N){return Math.ceil(Math.log(Math.max(2,N))/Math.log(SWARM.fanout));}
+// Honduras CNE sources (matches task_partitioner.py HN_SOURCES)
+const HN_SOURCES=['NACIONAL','01_atl','02_col','03_com','04_cop','05_cor',
+  '06_ch','07_ep','08_fm','09_gr','10_in','11_iz','12_la_paz',
+  '13_le','14_oc','15_ol','16_sb','17_val','18_yoro'];
+
+function _trustScore(r){return(r.alpha+1)/(r.alpha+r.beta+2);}
+
+function _initReps(n){
+  SWARM._reps=[];
+  for(let i=0;i<n;i++){
+    const id=[...Array(4)].map(()=>'0123456789abcdef'[rnd(0,15)]).join('');
+    SWARM._reps.push({
+      id, alpha:1.0, beta:1.0,
+      ring: i===0 ? 0 : 2,   // first node is Ring-0 seed
+      arrival: i,             // arrival_order
+      status:'ok',            // 'ok' | 'outage' | 'betrayal'
+      outages:0, betrayals:0,
+    });
+  }
+}
+_initReps(SWARM.nodes);
+// Render panels after DOM is ready
+document.addEventListener('DOMContentLoaded',()=>{ renderRepGrid(); renderTaskTable(); updateSwarmKpis(); });
+
+function renderRepGrid(){
+  const el=document.getElementById('rep-grid');
+  if(!el) return;
+  el.innerHTML=SWARM._reps.map(r=>{
+    const ts=_trustScore(r);
+    const pct=Math.round(ts*100);
+    const ringLabel=r.ring===0?'Ring-0 ★':r.ring===1?'Ring-1':'Ring-2';
+    const ringColor=r.ring===0?'#d4af37':r.ring===1?'var(--ok)':'rgba(176,140,240,.8)';
+    const dotCls=r.status==='outage'?'sn-outage':r.status==='betrayal'?'sn-betrayal':'';
+    const dotClass=(r.ring===0?'sn-r0':r.ring===1?'sn-r1':'sn-r2')+' '+(dotCls||'');
+    const barColor=ts>=0.85?'var(--ok)':ts>=0.65?'var(--warn)':ts>=0.40?'rgba(176,140,240,.7)':'var(--bad)';
+    const statusIcon=r.status==='outage'?'⚡ ':r.status==='betrayal'?'✕ ':'';
+    return `<div class="rep-card" style="${r.status==='outage'?'opacity:.65':''}${r.status==='betrayal'?'border-color:rgba(252,165,165,.4)':''}">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+        <div class="${dotClass}" title="${ringLabel}"></div>
+        <span style="font-size:9px;color:${ringColor};font-weight:700">${statusIcon}${ringLabel}</span>
+      </div>
+      <div class="rep-card-id">#${r.id} · arr:${r.arrival}</div>
+      <div class="rep-card-score" style="color:${barColor}">${pct}%</div>
+      <div class="rep-bar"><div class="rep-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div class="rep-card-meta">α=${r.alpha.toFixed(1)} β=${r.beta.toFixed(1)}${r.outages?` · ⚡${r.outages}`:''}${r.betrayals?` · ✕${r.betrayals}`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTaskTable(){
+  const el=document.getElementById('task-table');
+  if(!el) return;
+  const n=SWARM._reps.length;
+  if(n===0){el.innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px">Sin nodos activos</div>';return;}
+  // active nodes: exclude those in outage for display (they still hold their slot)
+  const rows=SWARM._reps.map((r,slot)=>{
+    const sources=HN_SOURCES.filter((_,i)=>i%n===slot);
+    const isOut=r.status==='outage';
+    const covered=isOut?`<span style="color:var(--warn);font-size:9px">⚡ offline — tareas cubiertas por otros nodos</span>`
+      :sources.map((s,i)=>`<span class="task-chip${i===0?' primary':''}">${s}</span>`).join('');
+    return `<div class="task-row" style="${isOut?'opacity:.5':''}">
+      <span style="display:flex;align-items:center;gap:5px;min-width:90px">
+        <span class="${isOut?'sn-r2 sn-outage':r.ring===0?'sn-r0':r.ring===1?'sn-r1':'sn-r2'}" style="display:inline-block"></span>
+        <span class="task-node-id">#${r.id}</span>
+      </span>
+      <div class="task-chips">${covered}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML=rows;
+}
+
+function _swarmRounds(N){return Math.ceil(Math.log(Math.max(2,N))/Math.log(Math.max(2,SWARM.fanout)));}
 function _swarmBFT(N){return Math.floor((N-1)/3);}
 function _swarmMsgs(N){
   const r=_swarmRounds(N);
@@ -1313,16 +1439,59 @@ function _swarmMsgs(N){
 }
 
 function setSwarmNodes(n){
-  SWARM.nodes=n; SWARM.compromised=0;
+  SWARM.nodes=Math.min(12,Math.max(1,n));
+  SWARM.compromised=0;
+  _initReps(SWARM.nodes);
   document.querySelectorAll('.swarm-node-btn').forEach(b=>{
     const v=parseInt(b.textContent.replace(/\s/g,''));
-    b.classList.toggle('active',v===n);
+    b.classList.toggle('active',v===SWARM.nodes);
   });
   const lbl=document.getElementById('sw-telem-node-count');
-  if(lbl) lbl.textContent=`(${n.toLocaleString('es-HN')} nodos)`;
+  if(lbl) lbl.textContent=`(${SWARM.nodes} nodos)`;
   updateSwarmKpis();
   renderSwarmViz();
-  logSE('INFO',`Red reconfigurada: ${n.toLocaleString()} nodos · fan-out=${SWARM.fanout} · BFT=${_swarmBFT(n)}`);
+  renderRepGrid();
+  renderTaskTable();
+  logSE('INFO',`Red reconfigurada: ${SWARM.nodes} nodos · fan-out=${SWARM.fanout} · BFT=${_swarmBFT(SWARM.nodes)}`);
+}
+
+function simulateOutage(){
+  if(!SWARM.enabled) return;
+  const n=SWARM._reps.length;
+  if(n<2) return;
+  // Pick 1 random non-Ring-0, non-already-outaged node
+  const cands=SWARM._reps.filter(r=>r.ring!==0&&r.status==='ok');
+  if(!cands.length) return;
+  const victim=cands[rnd(0,cands.length-1)];
+  victim.status='outage';
+  victim.beta=+(victim.beta+0.1).toFixed(2);
+  victim.outages++;
+  logSE('WARN',`[OUTAGE] Nodo #${victim.id} · arr:${victim.arrival} — corte eléctrico detectado · β+0.1 (reversal pendiente)`);
+  // Schedule restoration in 3-6 ticks (simulated reconnect)
+  const ticks=rnd(3,6);
+  setTimeout(()=>{
+    if(!SWARM._reps.includes(victim)) return; // may have been reinit
+    const isHonest=Math.random()<0.85; // 85% honest nodes return consistent
+    if(isHonest){
+      victim.status='ok';
+      victim.beta=Math.max(1.0,+(victim.beta-0.1).toFixed(2));
+      victim.alpha=+(victim.alpha+1.0).toFixed(2);
+      if(_trustScore(victim)>=0.85&&victim.ring===2) victim.ring=1;
+      logSE('OK',`[RESTORE] Nodo #${victim.id} — datos consistentes con el swarm · β revertido · α+1.0 · trust=${(_trustScore(victim)*100).toFixed(0)}%`);
+    }else{
+      victim.status='betrayal';
+      victim.beta=+(victim.beta+5.0).toFixed(2);
+      victim.betrayals++;
+      if(victim.ring===1) victim.ring=2;
+      logSE('CRITICAL',`[BETRAYAL] Nodo #${victim.id} — retornó con datos DIVERGENTES · reclasificado como traición · β+5.0`);
+    }
+    renderRepGrid();
+    renderTaskTable();
+    updateSwarmKpis();
+  }, ticks*1500);
+  renderRepGrid();
+  renderTaskTable();
+  updateSwarmKpis();
 }
 
 function toggleSwarmConnect(){
@@ -1338,44 +1507,35 @@ function toggleSwarmConnect(){
     if(btn){btn.textContent='Conectar';btn.classList.add('off');}
     if(lbl){lbl.textContent='○ Swarm desconectado';lbl.style.color='var(--muted)';}
     logSE('INFO','Red desconectada — telemetría suspendida');
-    document.querySelectorAll('#swarm-viz .sn').forEach(d=>d.className='sn');
   }
   updateSwarmKpis();
+  renderRepGrid();
+  renderTaskTable();
 }
 
 function updateSwarmKpis(){
   const N=SWARM.nodes, c=SWARM.compromised, bft=_swarmBFT(N);
   const ok=c<=bft;
-  _setText('sw-nodes',N.toLocaleString('es-HN'));
+  _setText('sw-nodes',N);
   _setText('sw-rounds',_swarmRounds(N));
-  _setText('sw-bft',bft.toLocaleString('es-HN'));
+  _setText('sw-bft',bft);
   const cEl=document.getElementById('sw-compromised');
   if(cEl){cEl.textContent=c;cEl.style.color=c===0?'var(--ok)':c>bft?'var(--bad)':'var(--warn)';}
-  _setText('sw-msgs',_swarmMsgs(N).toLocaleString('es-HN'));
+  _setText('sw-msgs',_swarmMsgs(N));
   const cxEl=document.getElementById('sw-consensus');
   if(cxEl){cxEl.textContent=ok?'OK':'FALLO';cxEl.style.color=ok?'var(--ok)':'var(--bad)';}
+  // Ring counts from simulated reps
+  const r0=SWARM._reps.filter(r=>r.ring===0).length;
+  const r1=SWARM._reps.filter(r=>r.ring===1).length;
+  _setText('sw-ring0',r0);
+  _setText('sw-ring1',r1);
 }
 function _setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 
 function renderSwarmViz(){
+  // swarm-viz is no longer used — rep-grid + task-table replace it
   const viz=document.getElementById('swarm-viz');
-  if(!viz)return;
-  const N=SWARM.nodes, c=SWARM.compromised;
-  if(N>200){
-    const pct=c?((c/N*100).toFixed(1)+'%'):'0%';
-    viz.innerHTML=`<div style="font-size:11px;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap;width:100%">
-      <span><span style="color:var(--ok)">●</span> ${(N-c).toLocaleString('es-HN')} sanos</span>
-      <span><span style="color:${c>0?'var(--bad)':'var(--muted)'}">●</span> ${c.toLocaleString('es-HN')} comprometidos (${pct})</span>
-      <span><span style="color:var(--purple)">●</span> ${_swarmRounds(N)} saltos para alcanzar ${N.toLocaleString('es-HN')} nodos</span>
-    </div>`;
-    return;
-  }
-  const dots=[];
-  for(let i=0;i<N;i++){
-    const cls=i<c?'bad':'ok';
-    dots.push(`<div class="sn ${cls}" title="Nodo ${i+1}"></div>`);
-  }
-  viz.innerHTML=dots.join('');
+  if(viz) viz.style.display='none';
 }
 
 // Called from simTick — drive swarm telemetry each tick
@@ -1384,13 +1544,37 @@ function _tickSwarm(){
   SWARM._tick++;
   const N=SWARM.nodes, bft=_swarmBFT(N), t=SWARM._tick;
 
-  // Propagate active injection effects to swarm nodes
+  // Periodically simulate reputation events (Ring promotions)
+  if(t%12===0 && SWARM._reps.length>1){
+    const candidates=SWARM._reps.filter(r=>r.ring===2&&r.status==='ok');
+    if(candidates.length){
+      const r=candidates[t%candidates.length];
+      r.alpha=+(r.alpha+1.0).toFixed(2);
+      const ts=_trustScore(r);
+      if(ts>=0.85){ r.ring=1; logSE('OK',`[PBTM] Nodo #${r.id} promovido a Ring-1 · trust=${(ts*100).toFixed(0)}% · α=${r.alpha}`); }
+      else { logSE('INFO',`[PBTM] Nodo #${r.id} · consistencia acumulada · trust=${(ts*100).toFixed(0)}% · α=${r.alpha}`); }
+    }
+  }
+  // Propagate active injection compromises into rep model
   const activeIds=Object.keys(activeInjections||{});
+  for(const id of activeIds){
+    if(['B3','B4','B5'].includes(id) && t%8===0 && SWARM._reps.length>1){
+      const ring2=SWARM._reps.filter(r=>r.ring!==0&&r.status==='ok');
+      if(ring2.length){
+        const r=ring2[rnd(0,ring2.length-1)];
+        r.beta=+(r.beta+5.0).toFixed(2);r.betrayals++;r.status='betrayal';
+        if(r.ring===1)r.ring=2;
+        logSE('CRITICAL',`[PBTM] Nodo #${r.id} divergencia detectada (${id}) · β+5.0 · trust=${(_trustScore(r)*100).toFixed(0)}%`);
+      }
+    }
+  }
+
+  // Propagate active injection effects to compromised count
   let delta=0;
   for(const id of activeIds){
-    if(['B1','B5','B11','B12'].includes(id)) delta+=Math.max(1,Math.round(N*0.02));
-    if(['B2','B10'].includes(id))            delta+=Math.max(1,Math.round(N*0.015));
-    if(['B3','B6','B7'].includes(id))        delta+=Math.max(1,Math.round(N*0.01));
+    if(['B1','B5','B11','B12'].includes(id)) delta+=Math.max(1,Math.round(N*0.15));
+    if(['B2','B10'].includes(id))            delta+=Math.max(1,Math.round(N*0.10));
+    if(['B3','B6','B7'].includes(id))        delta+=Math.max(1,Math.round(N*0.08));
   }
   if(delta>0){
     SWARM.compromised=Math.min(N,SWARM.compromised+delta);
@@ -1464,7 +1648,7 @@ function _tickSwarm(){
 
   // Consensus — when same finding confirmed by multiple nodes
   if(anomalyIds.length>0 && t%7===0){
-    const confirmedCount=Math.min(N, 2+rnd(0,Math.min(8,Math.floor(N/10))));
+    const confirmedCount=Math.min(N, 2+rnd(0,Math.max(1,Math.floor(N/3))));
     const id=anomalyIds[0];
     const ruleMap2={
       A2:'benford_law',A3:'z_score',A4:'hold_and_release',A6:'timestamp_monotonicity',
@@ -1476,17 +1660,20 @@ function _tickSwarm(){
       `[CONSENSUS] ${confirmedCount} nodos confirmaron ${rk} en snap ${snapHex}… — hallazgo corroborado`);
   }
 
-  // Cooperative scraping — periodically show skip messages when swarm is healthy
-  if(N>50 && t%8===0 && c<bft){
-    const depts=['Miranda','Zulia','Carabobo','Aragua','Bolívar','Lara'];
-    const dept=depts[t%depts.length];
-    const peerHex=[...Array(4)].map(()=>'0123456789abcdef'[rnd(0,15)]).join('');
-    const age=rnd(1,3);
-    logSE('INFO',`[COOP] Skip scrape CNE-${dept} — peer:${peerHex} ya tiene datos frescos (${age}m ago) · carga reducida`);
+  // Cooperative scraping — show task coordination with small swarm
+  if(N>=2 && t%8===0 && c<bft){
+    const activeReps=SWARM._reps.filter(r=>r.status==='ok');
+    if(activeReps.length>=2){
+      const scraper=activeReps[t%activeReps.length];
+      const slot=scraper.arrival%activeReps.length;
+      const src=HN_SOURCES[slot%HN_SOURCES.length];
+      logSE('INFO',`[COOP] #${scraper.id}(arr:${scraper.arrival}) raspando ${src} · otros ${activeReps.length-1} nodos en sus fuentes`);
+    }
   }
 
   updateSwarmKpis();
-  if(N<=200) renderSwarmViz();
+  renderRepGrid();
+  renderTaskTable();
 }
 
 function _FAN_OUT(){return SWARM.fanout||3;}
