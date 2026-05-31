@@ -23,6 +23,8 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from centinel.federation.gossip import GossipEngine
 from centinel.federation.findings_log import FederationAnomalyLog
 from centinel.federation.attack_log import FederationAttackLog
+from centinel.federation.reputation import ReputationEngine
+from centinel.federation.task_partitioner import TaskPartitioner, HN_SOURCES
 from centinel.api.rate_limit import RateLimiter, RateLimitConfig
 
 logger = logging.getLogger("centinel.api.swarm")
@@ -50,6 +52,14 @@ _attack_log = FederationAttackLog(
     max_findings=300,
     log_path=_BASE / "logs" / "federation_attacks.jsonl",
 )
+
+# Reputation engine — persists trust scores across engine restarts
+_reputation = ReputationEngine(
+    db_path=_BASE / "data" / "federation_reputation.db",
+)
+
+# Task partitioner — deterministic source assignment for Honduras
+_partitioner = TaskPartitioner(sources=HN_SOURCES)
 
 
 def _read_setup() -> dict:
@@ -376,6 +386,55 @@ async def last_scraped(
     return {"source_id": source_id, "scraped_at_utc": scraped_at}
 
 
+@router.get("/api/swarm/reputation")
+async def get_reputation() -> dict:
+    """Return Bayesian trust scores for all known swarm nodes.
+
+    Scores are based on fingerprint consistency with Ring-0.
+    ring=0: seed nodes; ring=1: trust≥0.85; ring=2: observers.
+    """
+    nodes = _reputation.get_all()
+    counts = _reputation.ring_counts()
+    return {"nodes": nodes, "ring_counts": counts, "total": len(nodes)}
+
+
+@router.get("/api/swarm/reputation/{node_id}")
+async def get_node_reputation(node_id: str) -> dict:
+    """Return detailed trust data for a single node."""
+    nodes = {n["node_id"]: n for n in _reputation.get_all()}
+    if node_id not in nodes:
+        raise HTTPException(status_code=404, detail="Node not found.")
+    return nodes[node_id]
+
+
+@router.get("/api/swarm/tasks")
+async def get_task_assignment() -> dict:
+    """Return the deterministic CNE source assignment for all active nodes.
+
+    Assignment is based on arrival order: source[i] → node at slot (i % N).
+    When nodes drop offline the survivors automatically cover orphaned sources.
+    """
+    if _engine is None:
+        return {"assignment": [], "total_sources": len(HN_SOURCES), "active_nodes": 0}
+
+    status = _engine.get_status()
+    active_nodes: list[tuple[str, int]] = [
+        (p["node_id"], p.get("arrival_order", idx))
+        for idx, p in enumerate(status.get("peers", []))
+    ]
+    # Include this node itself
+    my_id = status.get("node_id")
+    if my_id and not any(n[0] == my_id for n in active_nodes):
+        active_nodes.append((my_id, -1))
+
+    summary = _partitioner.assignment_summary(active_nodes)
+    return {
+        "assignment": summary,
+        "total_sources": len(HN_SOURCES),
+        "active_nodes": len(active_nodes),
+    }
+
+
 async def auto_start(country_code: Optional[str] = None) -> None:
     """Called on startup when CENTINEL_AUTOCONNECT=1."""
     global _engine, _engine_task
@@ -388,6 +447,7 @@ async def auto_start(country_code: Optional[str] = None) -> None:
         my_url=my_url,
         anomaly_log=_anomaly_log,
         attack_log=_attack_log,
+        reputation=_reputation,
     )
     _engine_task = asyncio.create_task(_engine.start())
     logger.info("swarm_autostart country=%s", country)
