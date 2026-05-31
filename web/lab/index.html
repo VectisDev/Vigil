@@ -694,8 +694,15 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 </div>
 
 <!-- Forensic detector cards -->
-<div class="subsection-label" id="rules-grid-label">Grid de Reglas Activas — Estado de Salud</div>
+<div class="subsection-label" id="rules-grid-label">
+  <button class="section-collapse-btn" id="btn-col-rules" onclick="toggleSection('rules')" title="Colapsar / expandir" style="margin-right:4px">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  Grid de Reglas Activas — Estado de Salud
+</div>
+<div class="section-body" id="sec-body-rules">
 <div id="s-forensic-list" style="margin-bottom:14px"></div>
+</div><!-- /sec-body-rules -->
 
 <!-- Alerts table -->
 <div class="card" style="margin-bottom:14px">
@@ -3849,7 +3856,7 @@ function toggleSection(id){
 }
 
 (function _restoreSectionStates(){
-  ['forense','umbrales','matriz'].forEach(function(id){
+  ['forense','rules','umbrales','matriz'].forEach(function(id){
     try{
       const val=localStorage.getItem('lab-sec-'+id);
       if(val===null)return;
