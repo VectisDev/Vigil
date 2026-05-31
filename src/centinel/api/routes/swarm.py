@@ -220,6 +220,19 @@ async def swarm_disconnect() -> dict:
     return {"status": "disconnected", "node_id": node_id}
 
 
+@router.delete("/api/swarm/peer/{node_id}")
+async def kick_peer(node_id: str) -> dict:
+    """Kick a peer from the swarm. Removes it from routing table and blocks re-admission."""
+    if _engine is None:
+        raise HTTPException(status_code=503, detail="Swarm not running")
+    removed = _engine.kick_peer(node_id)
+    if not removed:
+        raise HTTPException(status_code=404, detail=f"Peer {node_id!r} not found in routing table")
+    _reputation.on_inconsistent(node_id)
+    logger.info("swarm_peer_kicked node_id=%s", node_id)
+    return {"kicked": node_id, "status": "removed"}
+
+
 @router.post("/api/swarm/broadcast")
 async def local_broadcast(request: Request) -> dict:
     """Sign and broadcast a local finding to the swarm.
