@@ -147,7 +147,7 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
   letter-spacing:.05em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
 /* OTS network connectivity dot */
 .ots-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .4s}
-/* ── §8 Swarm extensions ── */
+/* ── 8 Swarm extensions ── */
 .sala-tabs{display:flex;gap:6px;margin-bottom:16px}
 .sala-tab{background:transparent;border:1px solid var(--border);border-radius:6px;padding:5px 14px;
   font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
@@ -398,36 +398,36 @@ details .details-body{padding:12px 0 4px}
     <!-- SIDEBAR -->
     <nav id="sidebar">
       <div class="sec-header">Panel</div>
-      <a href="#s1" onclick="scrollTo('s1')">§1 Estado del sistema</a>
-      <a href="#s2" onclick="scrollTo('s2')">§2 Endpoints</a>
+      <a href="#s1" onclick="scrollTo('s1')">1 Estado del sistema</a>
+      <a href="#s2" onclick="scrollTo('s2')">2 Endpoints</a>
       <div class="sec-header">Configuración</div>
-      <a href="#s3" onclick="scrollTo('s3')">§3 Configuración</a>
-      <a href="#s4" onclick="scrollTo('s4')">§4 Presets</a>
+      <a href="#s3" onclick="scrollTo('s3')">3 Configuración</a>
+      <a href="#s4" onclick="scrollTo('s4')">4 Presets</a>
       <div class="sec-header">Logs</div>
-      <a href="#s5" onclick="scrollTo('s5')">§5 Logs y terminales</a>
+      <a href="#s5" onclick="scrollTo('s5')">5 Logs y terminales</a>
       <div class="sec-header">Ayuda</div>
-      <a href="#s6" onclick="scrollTo('s6')">§6 Manual</a>
-      <a href="#s7" onclick="scrollTo('s7')">§7 Acceso y Seeds</a>
-      <a href="#s8" onclick="scrollTo('s8')">§8 Red de Nodos</a>
+      <a href="#s6" onclick="scrollTo('s6')">6 Manual</a>
+      <a href="#s7" onclick="scrollTo('s7')">7 Acceso y Seeds</a>
+      <a href="#s8" onclick="scrollTo('s8')">8 Red de Nodos</a>
       <div class="sec-header">Operaciones</div>
-      <a href="#s9" onclick="scrollTo('s9')">§9 Cierre Electoral</a>
+      <a href="#s9" onclick="scrollTo('s9')">9 Cierre Electoral</a>
     </nav>
 
     <!-- MAIN -->
     <main id="main-area">
 
-      <!-- ── §1 ESTADO DEL SISTEMA ── -->
+      <!-- ── 1 ESTADO DEL SISTEMA ── -->
       <div class="section" id="s1">
-        <div class="section-title">§1 Estado del sistema <span class="section-badge" id="snap-age">—</span></div>
+        <div class="section-title">1 Estado del sistema <span class="section-badge" id="snap-age">—</span></div>
         <hr class="section-sep">
         <div class="cards-grid" id="sensor-cards">
           <!-- filled by JS -->
         </div>
       </div>
 
-      <!-- ── §2 MAPA DE ENDPOINTS ── -->
+      <!-- ── 2 MAPA DE ENDPOINTS ── -->
       <div class="section" id="s2">
-        <div class="section-title">§2 Endpoints por departamento</div>
+        <div class="section-title">2 Endpoints por departamento</div>
         <hr class="section-sep">
         <p class="section-sub">Estado en tiempo real de cada endpoint. Click en una tarjeta para editar.</p>
         <div id="adm-map-wrap" style="position:relative">
@@ -461,9 +461,9 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── §3 CONFIGURACIÓN ── -->
+      <!-- ── 3 CONFIGURACIÓN ── -->
       <div class="section" id="s3">
-        <div class="section-title">§3 Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
+        <div class="section-title">3 Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
         <hr class="section-sep">
         <div id="banner-409">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.
@@ -494,7 +494,7 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div id="country-change-result" style="margin-top:10px;font-size:13px;display:none;padding:8px 12px;border-radius:6px"></div>
           <div id="country-swarm-warn" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
-            ⚠ El swarm está conectado con el país anterior. Ve a §8 Red de Nodos → Desconectar y vuelve a conectar para que use el nuevo país.
+            ⚠ El swarm está conectado con el país anterior. Ve a 8 Red de Nodos → Desconectar y vuelve a conectar para que use el nuevo país.
           </div>
         </div>
 
@@ -860,9 +860,9 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── §4 PRESETS ── -->
+      <!-- ── 4 PRESETS ── -->
       <div class="section" id="s4">
-        <div class="section-title">§4 Presets</div>
+        <div class="section-title">4 Presets</div>
         <hr class="section-sep">
         <p class="section-sub">Plantillas de configuración predefinidas.</p>
         <div class="info-box" style="margin-bottom:16px">
@@ -877,9 +877,9 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── §5 LOGS ── -->
+      <!-- ── 5 LOGS ── -->
       <div class="section" id="s5">
-        <div class="section-title">§5 Logs y terminales</div>
+        <div class="section-title">5 Logs y terminales</div>
         <hr class="section-sep">
 
         <!-- Log General -->
@@ -945,9 +945,9 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── §6 MANUAL ── -->
+      <!-- ── 6 MANUAL ── -->
       <div class="section" id="s6">
-        <div class="section-title">§6 Manual</div>
+        <div class="section-title">6 Manual</div>
         <hr class="section-sep">
         <details id="mini-manual">
           <summary>Guía rápida del panel de administración</summary>
@@ -993,9 +993,9 @@ details .details-body{padding:12px 0 4px}
         </details>
       </div>
 
-      <!-- ── §7 Acceso y Seeds ── -->
+      <!-- ── 7 Acceso y Seeds ── -->
       <div class="section" id="s7">
-        <div class="section-title">§7 Acceso y Seeds</div>
+        <div class="section-title">7 Acceso y Seeds</div>
         <hr class="section-sep">
         <p class="section-sub">
           Gestión de los 12 seeds de acceso administrativo (S1-A … S1-L).
@@ -1044,9 +1044,9 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── §8 Red de Nodos ── -->
+      <!-- ── 8 Red de Nodos ── -->
       <div class="section" id="s8">
-        <div class="section-title">§8 Red de Nodos</div>
+        <div class="section-title">8 Red de Nodos</div>
         <hr class="section-sep">
         <p class="section-sub">
           Protocolo gossip P2P — el nodo transmite su atestación firmada al enjambre y compara el
@@ -1231,9 +1231,9 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── §9 CIERRE ELECTORAL ── -->
+      <!-- ── 9 CIERRE ELECTORAL ── -->
       <div class="section" id="s9">
-        <div class="section-title">§9 Cierre Electoral</div>
+        <div class="section-title">9 Cierre Electoral</div>
         <hr class="section-sep">
         <p class="section-sub">
           Secuencia de fin de elección: raspe final forzado de todas las fuentes,
@@ -1538,7 +1538,7 @@ function showAdminShell(){
 // ══════════════════════════════════════════════════════════
 async function initAll(){
   // Wrap each synchronous call so a transient error can't abort the whole
-  // init chain and leave later sections (like §2 dept grid) unrendered.
+  // init chain and leave later sections (like 2 dept grid) unrendered.
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
   await loadDepartments();
   try { buildDeptGrid(); }    catch(e){ console.warn('buildDeptGrid',e); }
@@ -1735,7 +1735,7 @@ function buildSensorCards(){
     <div class="stat-card" id="sc-${def.id}">
       <div class="sc-label">
         <span>${def.icon} ${def.label}</span>
-        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con §3" style="font-size:10px;cursor:help">ⓘ</span>`:''}
+        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con 3" style="font-size:10px;cursor:help">ⓘ</span>`:''}
       </div>
       <div class="sc-val val-neutral" id="scv-${def.id}">—</div>
       <div class="sc-detail" id="scd-${def.id}">—</div>
@@ -2671,7 +2671,7 @@ function relTime(ts){
 
 function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 
-// ── §3 País monitoreado ────────────────────────────────────────────────────
+// ── 3 País monitoreado ────────────────────────────────────────────────────
 async function loadCountrySelector() {
   const sel   = document.getElementById('country-select');
   const flag  = document.getElementById('country-current-flag');
@@ -2749,7 +2749,7 @@ async function doChangeCountry() {
         } catch(_) { swWarn.style.display = 'none'; }
       }
 
-      loadSeedStatus();  // refresh §7 country display
+      loadSeedStatus();  // refresh 7 country display
     } else {
       if (res) {
         res.style.display = '';
@@ -2772,7 +2772,7 @@ async function doChangeCountry() {
   }
 }
 
-// ── §7 Acceso y Seeds ──────────────────────────────────────────────────────
+// ── 7 Acceso y Seeds ──────────────────────────────────────────────────────
 async function loadSeedStatus() {
   const el = document.getElementById('seed-status');
   if (!el) return;
@@ -2886,7 +2886,7 @@ const observer = new IntersectionObserver(entries=>{
   if(el) observer.observe(el);
 });
 
-// ── §8 Red de Nodos ────────────────────────────────────────────────────────────
+// ── 8 Red de Nodos ────────────────────────────────────────────────────────────
 let _swarmPollTimer = null;
 
 async function loadSwarmStatus() {
@@ -3070,7 +3070,7 @@ function _stopSwarmPoll() {
   }, 100);
 }
 
-// ── §8 Sala management ───────────────────────────────────────────────────────
+// ── 8 Sala management ───────────────────────────────────────────────────────
 let _salaId = null;
 
 function salaTab(tab) {
