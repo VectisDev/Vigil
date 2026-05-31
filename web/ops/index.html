@@ -359,24 +359,6 @@ details .details-body{padding:12px 0 4px}
 .info-box{background:rgba(110,168,254,.06);border:1px solid rgba(110,168,254,.15);border-radius:8px;
   padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:16px}
 .status-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-
-/* ── MISSION CONTROL ── */
-#mission-control{background:var(--panel);border:1px solid var(--border);border-radius:14px;
-  padding:18px 22px;margin-bottom:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-#mission-control .mc-country{display:flex;align-items:center;gap:10px;flex:1;min-width:180px}
-#mission-control .mc-actions{display:flex;gap:10px;flex-wrap:wrap}
-#mc-country-select{background:var(--bg);border:1px solid var(--border);border-radius:7px;
-  padding:6px 10px;color:var(--fg);font-size:13px;min-width:180px;max-width:280px;cursor:pointer}
-.btn-mc{border-radius:9px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;
-  transition:.15s;letter-spacing:.01em;border:1.5px solid transparent;white-space:nowrap}
-.btn-mc.iniciar{background:var(--ok);color:#061409;border-color:var(--ok)}
-.btn-mc.iniciar:hover{opacity:.85}
-.btn-mc.finalizar{background:transparent;border-color:var(--warn);color:var(--warn)}
-.btn-mc.finalizar:hover{background:rgba(212,176,102,.08)}
-.btn-mc.emergencia{background:transparent;border-color:var(--bad);color:var(--bad)}
-.btn-mc.emergencia:hover{background:rgba(223,107,134,.08)}
-#mc-flag{font-size:22px;line-height:1;flex-shrink:0}
-#mc-result{font-size:12px;padding:5px 10px;border-radius:6px;display:none;margin-top:8px;width:100%}
 </style>
 </head>
 <body>
@@ -433,23 +415,6 @@ details .details-body{padding:12px 0 4px}
 
     <!-- MAIN -->
     <main id="main-area">
-
-      <!-- ── MISSION CONTROL ── -->
-      <div id="mission-control">
-        <div class="mc-country">
-          <span id="mc-flag">🌎</span>
-          <select id="mc-country-select" onchange="onMcCountryChange()">
-            <option value="">Cargando países…</option>
-          </select>
-          <button class="hdr-btn" id="btn-mc-country" onclick="doMcChangeCountry()">Cambiar país</button>
-        </div>
-        <span id="mc-result"></span>
-        <div class="mc-actions">
-          <button class="btn-mc iniciar" onclick="doIniciar()" title="Activa modo electoral y aplica configuración de noche electoral">▶ INICIAR</button>
-          <button class="btn-mc finalizar" onclick="openFinalizeModal()" title="Raspe final, reporte certificado y cierre del scheduler">◼ FINALIZAR</button>
-          <button class="btn-mc emergencia" onclick="doEmergencia()" title="Safe mode ON + máxima resiliencia — acción inmediata">⚠ EMERGENCIA</button>
-        </div>
-      </div>
 
       <!-- ── 1 ESTADO DEL SISTEMA ── -->
       <div class="section" id="s1">
@@ -2728,66 +2693,16 @@ async function loadCountrySelector() {
     const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/countries');
     if (!r.ok) return;
     const countries = await r.json();
-    const optsHtml = countries.map(c =>
+    sel.innerHTML = countries.map(c =>
       `<option value="${c.code}"${c.code === currentCode ? ' selected' : ''}>${c.flag} ${c.name} — ${c.authority}</option>`
     ).join('');
-    sel.innerHTML = optsHtml;
-    const mcSel  = document.getElementById('mc-country-select');
-    const mcFlag = document.getElementById('mc-flag');
-    if (mcSel) { mcSel.innerHTML = optsHtml; mcSel.value = currentCode; }
     const cur = countries.find(c => c.code === currentCode);
     if (cur) {
-      if (flag)   flag.textContent = cur.flag;
-      if (name)   name.textContent = cur.name;
-      if (auth)   auth.textContent = cur.authority;
-      if (mcFlag) mcFlag.textContent = cur.flag;
+      if (flag) flag.textContent = cur.flag;
+      if (name) name.textContent = cur.name;
+      if (auth) auth.textContent = cur.authority;
     }
   } catch(_) {}
-}
-
-// ── Mission Control helpers ───────────────────────────────────────────────────
-function onMcCountryChange() {
-  const mc  = document.getElementById('mc-country-select');
-  const s3  = document.getElementById('country-select');
-  if (s3) s3.value = mc.value;
-  const opt = mc.options[mc.selectedIndex];
-  if (opt) {
-    const flag = opt.textContent.trim().split(' ')[0];
-    const mcFlag = document.getElementById('mc-flag');
-    if (mcFlag && flag) mcFlag.textContent = flag;
-  }
-}
-
-async function doMcChangeCountry() {
-  const mc  = document.getElementById('mc-country-select');
-  const s3  = document.getElementById('country-select');
-  const btn = document.getElementById('btn-mc-country');
-  const res = document.getElementById('mc-result');
-  if (!mc.value) return;
-  if (s3) s3.value = mc.value;
-  if (btn) { btn.disabled = true; btn.textContent = 'Aplicando…'; }
-  await doChangeCountry();
-  if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
-  const srcRes = document.getElementById('country-change-result');
-  if (srcRes && res) {
-    res.style.cssText = srcRes.style.cssText;
-    res.innerHTML = srcRes.innerHTML;
-    res.style.display = '';
-    setTimeout(() => { res.style.display = 'none'; }, 5000);
-  }
-}
-
-function doIniciar() {
-  loadPreset('election');
-  markDirty();
-  applyChanges();
-}
-
-function doEmergencia() {
-  if (!confirm('⚠ PARADA DE EMERGENCIA\n\nActivará Safe Mode y configuración de máxima resiliencia.\n¿Confirmar?')) return;
-  loadPreset('emergency');
-  markDirty();
-  applyChanges();
 }
 
 async function doChangeCountry() {
@@ -2816,8 +2731,6 @@ async function doChangeCountry() {
       if (flag) flag.textContent = d.flag;
       if (name) name.textContent = d.country_name;
       if (auth) auth.textContent = d.authority;
-      const mcFlag = document.getElementById('mc-flag');
-      if (mcFlag) mcFlag.textContent = d.flag;
 
       if (res) {
         res.style.display = '';
