@@ -147,6 +147,52 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
   letter-spacing:.05em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
 /* OTS network connectivity dot */
 .ots-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .4s}
+/* ── §8 Swarm extensions ── */
+.sala-tabs{display:flex;gap:6px;margin-bottom:16px}
+.sala-tab{background:transparent;border:1px solid var(--border);border-radius:6px;padding:5px 14px;
+  font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.sala-tab.on{border-color:var(--accent);color:var(--accent);background:rgba(110,168,254,.07)}
+.sala-code{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:.1em;
+  color:var(--accent);background:rgba(110,168,254,.06);border:1px solid rgba(110,168,254,.2);
+  border-radius:8px;padding:10px 18px;display:inline-block;margin:6px 0}
+.invite-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--muted);
+  white-space:pre;overflow-x:auto;margin:8px 0;max-height:120px}
+.rep-ring-bar{display:flex;gap:0;height:8px;border-radius:4px;overflow:hidden;margin:10px 0 16px}
+.rep-ring-bar div{transition:flex .4s}
+.rep-node-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rep-node-card:hover{border-color:#3a3f49}
+.ring-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0}
+.ring-badge.r0{background:rgba(176,140,240,.15);color:#b08cf0;border:1px solid rgba(176,140,240,.3)}
+.ring-badge.r1{background:rgba(87,192,141,.12);color:var(--ok);border:1px solid rgba(87,192,141,.3)}
+.ring-badge.r2{background:rgba(139,146,156,.1);color:var(--muted);border:1px solid var(--border)}
+.trust-bar-wrap{flex:1;min-width:80px}
+.trust-bar-bg{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.trust-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.rep-node-actions{display:flex;gap:6px;flex-shrink:0}
+.kick-btn{background:transparent;border:1px solid rgba(223,107,134,.4);color:var(--bad);
+  border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.kick-btn:hover{background:rgba(223,107,134,.1);border-color:var(--bad)}
+.hist-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.hist-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* History modal */
+#swarm-hist-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;
+  display:none;align-items:center;justify-content:center}
+#swarm-hist-modal.open{display:flex}
+.hist-modal-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:24px 26px;width:100%;max-width:540px;max-height:80vh;overflow-y:auto}
+.hist-event-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:12px}
+.hist-event-row:last-child{border-bottom:none}
+.hist-evt-type{font-weight:700;min-width:160px;color:var(--accent)}
+.hist-evt-type.bad{color:var(--bad)}.hist-evt-type.warn{color:var(--warn)}.hist-evt-type.ok{color:var(--ok)}
+/* Activity feed */
+.activity-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.activity-time{color:var(--muted);min-width:70px;flex-shrink:0}
 .ots-dot-probing{background:var(--muted);animation:ots-pulse 1.4s ease-in-out infinite}
 .ots-dot-ok{background:var(--ok)}
 .ots-dot-warn{background:var(--warn)}
@@ -1056,6 +1102,7 @@ details .details-body{padding:12px 0 4px}
                   <th style="padding:6px 10px">Sincronía</th>
                   <th style="padding:6px 10px">Especialización</th>
                   <th style="padding:6px 10px">Timestamp</th>
+                  <th style="padding:6px 10px"></th>
                 </tr>
               </thead>
               <tbody id="swarm-peers-tbody"></tbody>
@@ -1089,6 +1136,91 @@ details .details-body{padding:12px 0 4px}
               </table>
             </div>
           </div>
+        </div>
+
+        <!-- ── Sala (crear / unirse / invitar) ── -->
+        <div class="ctrl-section" id="swarm-sala-section">
+          <h3>Sala</h3>
+          <div class="sala-tabs">
+            <button class="sala-tab on" id="tab-crear" onclick="salaTab('crear')">Crear sala</button>
+            <button class="sala-tab" id="tab-unirse" onclick="salaTab('unirse')">Unirse a sala</button>
+          </div>
+          <div id="sala-crear-panel">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px">
+              Genera un código para coordinar tu enjambre. Comparte el JSON de invitación con los demás operadores.
+            </p>
+            <div id="sala-code-wrap" style="display:none">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Código de sala</div>
+              <div class="sala-code" id="sala-code-display">——</div>
+              <div style="font-size:11px;color:var(--muted);margin:12px 0 4px">JSON de invitación</div>
+              <div class="invite-box" id="sala-invite-json"></div>
+              <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+                <button class="hdr-btn" onclick="copyInviteJson()">Copiar JSON</button>
+                <button class="hdr-btn" onclick="createSala()">↻ Regenerar</button>
+              </div>
+            </div>
+            <div id="sala-create-cta"><button class="hdr-btn primary" onclick="createSala()">Crear sala</button></div>
+          </div>
+          <div id="sala-unirse-panel" style="display:none">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px">
+              Pega el JSON de invitación del organizador, o ingresa la URL manualmente.
+            </p>
+            <div class="ctrl-row">
+              <label>JSON de invitación <span>(o déjalo vacío)</span></label>
+              <textarea id="sala-join-json" rows="3" style="background:var(--bg);border:1px solid var(--border);
+                border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--fg);
+                width:100%;max-width:460px;resize:vertical" placeholder='{"sala_id":"abc123","organizer_url":"https://…","node_id":"…"}'></textarea>
+            </div>
+            <div class="ctrl-row">
+              <label>URL del organizador <span>(si no tienes JSON)</span></label>
+              <input type="text" id="sala-join-url" placeholder="https://nodo-organizador.example.com" style="max-width:380px">
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <button class="hdr-btn primary" onclick="joinSala()">Unirse</button>
+              <span id="sala-join-stat" style="font-size:12px;color:var(--muted)"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Reputación PBTM ── -->
+        <div class="ctrl-section">
+          <h3 style="justify-content:space-between">
+            <span>Reputación PBTM</span>
+            <button class="hdr-btn" onclick="loadReputationPanel()" style="font-size:11px;padding:3px 10px">↻</button>
+          </h3>
+          <div id="rep-ring-summary" style="display:none">
+            <div style="display:flex;gap:16px;font-size:12px;margin-bottom:6px;flex-wrap:wrap">
+              <span>Ring-0 <strong id="rep-r0-count" style="color:#b08cf0">—</strong></span>
+              <span>Ring-1 <strong id="rep-r1-count" style="color:var(--ok)">—</strong></span>
+              <span>Ring-2 <strong id="rep-r2-count" style="color:var(--muted)">—</strong></span>
+              <span style="color:var(--muted)">Total <strong id="rep-total" style="color:var(--fg)">—</strong></span>
+            </div>
+            <div class="rep-ring-bar" id="rep-ring-bar"></div>
+          </div>
+          <div id="rep-nodes-list">
+            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin datos — conecta el swarm o recarga.</div>
+          </div>
+        </div>
+
+        <!-- ── Actividad reciente ── -->
+        <div class="ctrl-section" id="swarm-activity-section" style="display:none">
+          <h3>Actividad Reciente</h3>
+          <div id="swarm-activity-list" style="max-height:260px;overflow-y:auto"></div>
+        </div>
+
+      </div>
+
+      <!-- Modal historial de reputación -->
+      <div id="swarm-hist-modal" onclick="if(event.target===this)closeSwarmHist()">
+        <div class="hist-modal-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div>
+              <div style="font-size:13px;font-weight:700" id="hist-modal-title">Historial de reputación</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px" id="hist-modal-node"></div>
+            </div>
+            <button class="hdr-btn" onclick="closeSwarmHist()" style="padding:3px 10px;font-size:12px">✕</button>
+          </div>
+          <div id="hist-modal-body"><div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div></div>
         </div>
       </div>
 
@@ -1414,6 +1546,7 @@ async function initAll(){
   loadSeedStatus();
   loadCountrySelector();
   loadSwarmStatus();
+  loadReputationPanel();
   loadElectionStatus();
 }
 
@@ -2838,6 +2971,7 @@ function _renderSwarmStatus(s) {
         <td style="padding:7px 10px">${syncBadge}</td>
         <td style="padding:7px 10px">${specBadge}</td>
         <td style="padding:7px 10px;color:var(--muted)">${ts}</td>
+        <td style="padding:7px 10px"><button class="kick-btn" onclick="kickPeer('${p.node_id}')">Kick</button></td>
       </tr>`;
     }).join('');
   }
@@ -2927,6 +3061,224 @@ function _stopSwarmPoll() {
   setTimeout(() => {
     _swarmPollTimer = setInterval(loadSwarmStatus, 30000);
   }, 100);
+}
+
+// ── §8 Sala management ───────────────────────────────────────────────────────
+let _salaId = null;
+
+function salaTab(tab) {
+  document.getElementById('tab-crear').classList.toggle('on', tab === 'crear');
+  document.getElementById('tab-unirse').classList.toggle('on', tab === 'unirse');
+  document.getElementById('sala-crear-panel').style.display = tab === 'crear' ? '' : 'none';
+  document.getElementById('sala-unirse-panel').style.display = tab === 'unirse' ? '' : 'none';
+}
+
+async function createSala() {
+  // Generate a 6-char hex room code
+  const arr = new Uint8Array(3);
+  crypto.getRandomValues(arr);
+  _salaId = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // Get our node info from /api/swarm/status
+  let nodeId = '—', myUrl = '';
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/status');
+    if (r.ok) {
+      const s = await r.json();
+      nodeId = s.node_id || '—';
+      myUrl = s.my_url || document.getElementById('swarm-my-url')?.value || '';
+    }
+  } catch(_) {}
+
+  const invite = { sala_id: _salaId, node_id: nodeId, organizer_url: myUrl || '(configura tu URL pública)' };
+  document.getElementById('sala-code-display').textContent = _salaId;
+  document.getElementById('sala-invite-json').textContent = JSON.stringify(invite, null, 2);
+  document.getElementById('sala-code-wrap').style.display = '';
+  document.getElementById('sala-create-cta').style.display = 'none';
+  _addActivity('ok', `Sala creada: ${_salaId}`, 'ahora');
+}
+
+function copyInviteJson() {
+  const txt = document.getElementById('sala-invite-json')?.textContent || '';
+  navigator.clipboard?.writeText(txt).then(() => {
+    const btn = event.target; btn.textContent = '✓ Copiado';
+    setTimeout(() => btn.textContent = 'Copiar JSON', 1800);
+  });
+}
+
+async function joinSala() {
+  const stat = document.getElementById('sala-join-stat');
+  stat.textContent = 'Conectando…'; stat.style.color = 'var(--warn)';
+
+  let targetUrl = document.getElementById('sala-join-url')?.value?.trim();
+  const jsonRaw = document.getElementById('sala-join-json')?.value?.trim();
+  if (jsonRaw) {
+    try {
+      const parsed = JSON.parse(jsonRaw);
+      if (parsed.organizer_url) targetUrl = parsed.organizer_url;
+    } catch(_) {}
+  }
+  if (!targetUrl) { stat.textContent = 'Ingresa una URL o JSON de invitación.'; stat.style.color = 'var(--bad)'; return; }
+
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ my_url: targetUrl }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    stat.textContent = 'Conectado.'; stat.style.color = 'var(--ok)';
+    _addActivity('ok', `Unido a sala (${targetUrl})`, 'ahora');
+    await loadSwarmStatus();
+    _startSwarmPoll();
+  } catch(e) {
+    stat.textContent = 'Error: ' + e.message; stat.style.color = 'var(--bad)';
+  }
+}
+
+// ── Kick peer ────────────────────────────────────────────────────────────────
+async function kickPeer(nodeId) {
+  if (!confirm(`¿Expulsar nodo ${nodeId} del enjambre?\n\nEsto lo bloquea hasta que el engine reinicie.`)) return;
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + `/api/swarm/peer/${nodeId}`, { method: 'DELETE' });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); alert('Error: ' + (e.detail || r.status)); return; }
+    _addActivity('bad', `Nodo expulsado: ${nodeId}`, 'ahora');
+    await loadSwarmStatus();
+    await loadReputationPanel();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Reputation panel ─────────────────────────────────────────────────────────
+let _repPollTimer = null;
+
+async function loadReputationPanel() {
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/reputation');
+    if (!r.ok) return;
+    const d = await r.json();
+    _renderReputationPanel(d);
+  } catch(_) {}
+}
+
+function _renderReputationPanel(d) {
+  const nodes = d.nodes || [];
+  const rc = d.ring_counts || {};
+  const total = d.total || nodes.length;
+
+  // Ring summary bar
+  const sumEl = document.getElementById('rep-ring-summary');
+  if (sumEl) sumEl.style.display = nodes.length ? '' : 'none';
+  const r0 = rc.ring0 || 0, r1 = rc.ring1 || 0, r2 = rc.ring2 || 0;
+  const _set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  _set('rep-r0-count', r0); _set('rep-r1-count', r1); _set('rep-r2-count', r2); _set('rep-total', total);
+  const bar = document.getElementById('rep-ring-bar');
+  if (bar && total > 0) {
+    bar.innerHTML = [
+      `<div style="flex:${r0};background:#b08cf0" title="Ring-0: ${r0}"></div>`,
+      `<div style="flex:${r1};background:var(--ok)" title="Ring-1: ${r1}"></div>`,
+      `<div style="flex:${r2};background:var(--border)" title="Ring-2: ${r2}"></div>`,
+    ].join('');
+  }
+
+  // Node cards
+  const list = document.getElementById('rep-nodes-list');
+  if (!list) return;
+  if (!nodes.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Sin nodos registrados.</div>';
+    return;
+  }
+  const ringCls = r => r === 0 ? 'r0' : r === 1 ? 'r1' : 'r2';
+  const ringLabel = r => r === 0 ? 'Ring-0' : r === 1 ? 'Ring-1' : 'Ring-2';
+  const trustColor = t => t >= 0.85 ? 'var(--ok)' : t >= 0.5 ? 'var(--warn)' : 'var(--bad)';
+  const flagMap = {HN:'🇭🇳',GT:'🇬🇹',SV:'🇸🇻',NI:'🇳🇮',CR:'🇨🇷',PA:'🇵🇦',MX:'🇲🇽',CO:'🇨🇴',VE:'🇻🇪'};
+  list.innerHTML = nodes.map(n => {
+    const t = n.trust_score ?? 0.5;
+    const pct = Math.round(t * 100);
+    const flag = flagMap[n.country_code] || '🌎';
+    const kickBtn = n.ring !== 0 ? `<button class="kick-btn" onclick="kickPeer('${n.node_id}')">Kick</button>` : '';
+    return `<div class="rep-node-card">
+      <span class="ring-badge ${ringCls(n.ring)}">${ringLabel(n.ring)}</span>
+      <span style="font-family:var(--mono);font-size:12px;min-width:80px">${n.node_id}</span>
+      <span style="font-size:11px;color:var(--muted)">${flag} arr:${n.arrival_order ?? '—'}</span>
+      <div class="trust-bar-wrap" title="Trust: ${t}">
+        <div style="font-size:11px;color:${trustColor(t)};margin-bottom:3px;font-weight:600">${pct}%</div>
+        <div class="trust-bar-bg"><div class="trust-bar-fill" style="width:${pct}%;background:${trustColor(t)}"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">α ${n.alpha} · β ${n.beta}</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)">
+        ${n.betrayal_count > 0 ? `<span style="color:var(--bad)">⚠ ${n.betrayal_count} traición${n.betrayal_count!==1?'es':''}</span>` : ''}
+        ${n.outage_count > 0 ? ` · ${n.outage_count} corte${n.outage_count!==1?'s':''}` : ''}
+      </div>
+      <div class="rep-node-actions">
+        <button class="hist-btn" onclick="openSwarmHist('${n.node_id}')">Historial</button>
+        ${kickBtn}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Reputation history modal ──────────────────────────────────────────────────
+async function openSwarmHist(nodeId) {
+  document.getElementById('swarm-hist-modal').classList.add('open');
+  document.getElementById('hist-modal-node').textContent = nodeId;
+  document.getElementById('hist-modal-title').textContent = 'Historial de reputación';
+  document.getElementById('hist-modal-body').innerHTML =
+    '<div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div>';
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + `/api/swarm/reputation/${nodeId}/history?limit=50`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const evts = d.events || [];
+    if (!evts.length) {
+      document.getElementById('hist-modal-body').innerHTML =
+        '<div style="color:var(--muted);font-style:italic;font-size:12px">Sin eventos registrados.</div>';
+      return;
+    }
+    const evtCls = t => t.includes('BETRAY') || t.includes('DEMOTION') ? 'bad' : t.includes('PROMOTE') ? 'ok' : 'warn';
+    document.getElementById('hist-modal-body').innerHTML = evts.map(e => `
+      <div class="hist-event-row">
+        <div class="hist-evt-type ${evtCls(e.event_type)}">${e.event_type}</div>
+        <div style="color:var(--muted);font-size:11px">α ${e.alpha} · β ${e.beta} · trust ${(e.trust_score*100).toFixed(1)}% · Ring-${e.ring}</div>
+        <div style="color:var(--muted);font-size:11px;margin-left:auto">${e.ts ? relTime(e.ts) : '—'}</div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('hist-modal-body').innerHTML =
+      `<div style="color:var(--bad);font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+function closeSwarmHist() {
+  document.getElementById('swarm-hist-modal').classList.remove('open');
+}
+
+// ── Activity feed ────────────────────────────────────────────────────────────
+const _activityFeed = [];
+
+function _addActivity(type, msg, time) {
+  _activityFeed.unshift({ type, msg, time: time || new Date().toLocaleTimeString() });
+  if (_activityFeed.length > 50) _activityFeed.length = 50;
+  const sec = document.getElementById('swarm-activity-section');
+  const list = document.getElementById('swarm-activity-list');
+  if (!sec || !list) return;
+  sec.style.display = '';
+  const dotColor = type === 'ok' ? 'var(--ok)' : type === 'bad' ? 'var(--bad)' : 'var(--warn)';
+  list.innerHTML = _activityFeed.map(a => `
+    <div class="activity-item">
+      <div class="activity-dot" style="background:${a.type === 'ok' ? 'var(--ok)' : a.type === 'bad' ? 'var(--bad)' : 'var(--warn)'}"></div>
+      <div style="flex:1">${a.msg}</div>
+      <div class="activity-time">${a.time}</div>
+    </div>`).join('');
+}
+
+// Hook into swarm connect/disconnect to feed activity
+const _origConnect = doSwarmConnect;
+// (activity entries added directly in joinSala / kickPeer / createSala)
+
+// Auto-load reputation on swarm status change
+const _origRenderSwarmStatus = _renderSwarmStatus;
+function _renderSwarmStatus(s) {
+  _origRenderSwarmStatus(s);
+  if (s.running) loadReputationPanel();
 }
 
 // ══════════════════════════════════════════════════════════
