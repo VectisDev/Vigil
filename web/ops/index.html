@@ -1140,45 +1140,52 @@ details .details-body{padding:12px 0 4px}
 
         <!-- ── Sala (crear / unirse / invitar) ── -->
         <div class="ctrl-section" id="swarm-sala-section">
-          <h3>Sala</h3>
-          <div class="sala-tabs">
-            <button class="sala-tab on" id="tab-crear" onclick="salaTab('crear')">Crear sala</button>
-            <button class="sala-tab" id="tab-unirse" onclick="salaTab('unirse')">Unirse a sala</button>
+          <h3>Coordinar enjambre</h3>
+
+          <!-- Estado: sin acción tomada -->
+          <div id="sala-pick" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="hdr-btn primary" onclick="createSala()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              Quiero invitar a otros →
+            </button>
+            <button class="hdr-btn" onclick="salaTab('unirse')" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              Me invitaron a un enjambre →
+            </button>
           </div>
-          <div id="sala-crear-panel">
-            <p style="font-size:12px;color:var(--muted);margin-bottom:12px">
-              Genera un código para coordinar tu enjambre. Comparte el JSON de invitación con los demás operadores.
+
+          <!-- Panel CREAR (después de generar) -->
+          <div id="sala-crear-panel" style="display:none">
+            <p style="font-size:12px;color:var(--ok);margin-bottom:14px">
+              ✓ Enjambre creado. Comparte esta invitación con los demás operadores — ellos la pegarán al unirse.
             </p>
-            <div id="sala-code-wrap" style="display:none">
-              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Código de sala</div>
-              <div class="sala-code" id="sala-code-display">——</div>
-              <div style="font-size:11px;color:var(--muted);margin:12px 0 4px">JSON de invitación</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Invitación para compartir</div>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input id="sala-invite-text" type="text" readonly
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
+                onclick="this.select()" title="Haz clic para seleccionar todo">
+              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
+              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
+            </div>
+            <div id="sala-tech-details" style="display:none;margin-top:10px">
               <div class="invite-box" id="sala-invite-json"></div>
-              <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-                <button class="hdr-btn" onclick="copyInviteJson()">Copiar JSON</button>
-                <button class="hdr-btn" onclick="createSala()">↻ Regenerar</button>
-              </div>
             </div>
-            <div id="sala-create-cta"><button class="hdr-btn primary" onclick="createSala()">Crear sala</button></div>
           </div>
+
+          <!-- Panel UNIRSE -->
           <div id="sala-unirse-panel" style="display:none">
-            <p style="font-size:12px;color:var(--muted);margin-bottom:12px">
-              Pega el JSON de invitación del organizador, o ingresa la URL manualmente.
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
+              Pega aquí la invitación que te compartieron.
             </p>
-            <div class="ctrl-row">
-              <label>JSON de invitación <span>(o déjalo vacío)</span></label>
-              <textarea id="sala-join-json" rows="3" style="background:var(--bg);border:1px solid var(--border);
-                border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--fg);
-                width:100%;max-width:460px;resize:vertical" placeholder='{"sala_id":"abc123","organizer_url":"https://…","node_id":"…"}'></textarea>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
+              <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
             </div>
-            <div class="ctrl-row">
-              <label>URL del organizador <span>(si no tienes JSON)</span></label>
-              <input type="text" id="sala-join-url" placeholder="https://nodo-organizador.example.com" style="max-width:380px">
-            </div>
-            <div style="display:flex;align-items:center;gap:10px">
-              <button class="hdr-btn primary" onclick="joinSala()">Unirse</button>
-              <span id="sala-join-stat" style="font-size:12px;color:var(--muted)"></span>
-            </div>
+            <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
+            <button class="hdr-btn" onclick="salaTab('crear')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
           </div>
         </div>
 
@@ -3067,68 +3074,80 @@ function _stopSwarmPoll() {
 let _salaId = null;
 
 function salaTab(tab) {
-  document.getElementById('tab-crear').classList.toggle('on', tab === 'crear');
-  document.getElementById('tab-unirse').classList.toggle('on', tab === 'unirse');
+  document.getElementById('sala-pick').style.display = 'none';
   document.getElementById('sala-crear-panel').style.display = tab === 'crear' ? '' : 'none';
   document.getElementById('sala-unirse-panel').style.display = tab === 'unirse' ? '' : 'none';
 }
 
 async function createSala() {
-  // Generate a 6-char hex room code
   const arr = new Uint8Array(3);
   crypto.getRandomValues(arr);
   _salaId = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
 
-  // Get our node info from /api/swarm/status
   let nodeId = '—', myUrl = '';
   try {
     const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/status');
-    if (r.ok) {
-      const s = await r.json();
-      nodeId = s.node_id || '—';
-      myUrl = s.my_url || document.getElementById('swarm-my-url')?.value || '';
-    }
+    if (r.ok) { const s = await r.json(); nodeId = s.node_id || '—'; myUrl = s.my_url || document.getElementById('swarm-my-url')?.value || ''; }
   } catch(_) {}
 
-  const invite = { sala_id: _salaId, node_id: nodeId, organizer_url: myUrl || '(configura tu URL pública)' };
-  document.getElementById('sala-code-display').textContent = _salaId;
-  document.getElementById('sala-invite-json').textContent = JSON.stringify(invite, null, 2);
-  document.getElementById('sala-code-wrap').style.display = '';
-  document.getElementById('sala-create-cta').style.display = 'none';
-  _addActivity('ok', `Sala creada: ${_salaId}`, 'ahora');
+  // Simple invite string: URL if available, else just the code
+  const inviteStr = myUrl ? `${myUrl}#sala=${_salaId}` : _salaId;
+  const inviteObj = { sala_id: _salaId, node_id: nodeId, organizer_url: myUrl || null };
+
+  const inp = document.getElementById('sala-invite-text');
+  if (inp) inp.value = inviteStr;
+  const box = document.getElementById('sala-invite-json');
+  if (box) box.textContent = JSON.stringify(inviteObj, null, 2);
+
+  document.getElementById('sala-pick').style.display = 'none';
+  document.getElementById('sala-unirse-panel').style.display = 'none';
+  document.getElementById('sala-crear-panel').style.display = '';
+  _addActivity('ok', `Enjambre creado — código ${_salaId}`, 'ahora');
 }
 
-function copyInviteJson() {
-  const txt = document.getElementById('sala-invite-json')?.textContent || '';
-  navigator.clipboard?.writeText(txt).then(() => {
-    const btn = event.target; btn.textContent = '✓ Copiado';
-    setTimeout(() => btn.textContent = 'Copiar JSON', 1800);
+function copyInviteText() {
+  const val = document.getElementById('sala-invite-text')?.value || '';
+  navigator.clipboard?.writeText(val).then(() => {
+    const btn = document.getElementById('btn-copy-invite');
+    if (btn) { btn.textContent = '✓ Copiado'; setTimeout(() => btn.textContent = 'Copiar', 1800); }
   });
+}
+
+function _showSalaDetails() {
+  const d = document.getElementById('sala-tech-details');
+  const b = document.getElementById('btn-sala-details');
+  if (!d) return;
+  const shown = d.style.display !== 'none';
+  d.style.display = shown ? 'none' : '';
+  if (b) b.textContent = shown ? 'Ver detalles técnicos' : 'Ocultar detalles';
 }
 
 async function joinSala() {
   const stat = document.getElementById('sala-join-stat');
   stat.textContent = 'Conectando…'; stat.style.color = 'var(--warn)';
 
-  let targetUrl = document.getElementById('sala-join-url')?.value?.trim();
-  const jsonRaw = document.getElementById('sala-join-json')?.value?.trim();
-  if (jsonRaw) {
-    try {
-      const parsed = JSON.parse(jsonRaw);
-      if (parsed.organizer_url) targetUrl = parsed.organizer_url;
-    } catch(_) {}
+  const raw = (document.getElementById('sala-join-input')?.value || '').trim();
+  if (!raw) { stat.textContent = 'Pega la invitación primero.'; stat.style.color = 'var(--bad)'; return; }
+
+  // Extract URL from invite string (may be URL#sala=code, plain URL, or raw JSON)
+  let targetUrl = '';
+  try {
+    const parsed = JSON.parse(raw);
+    targetUrl = parsed.organizer_url || '';
+  } catch(_) {
+    // Try as URL (strip #sala=… fragment)
+    try { targetUrl = new URL(raw).origin + new URL(raw).pathname; } catch(_) { targetUrl = raw; }
   }
-  if (!targetUrl) { stat.textContent = 'Ingresa una URL o JSON de invitación.'; stat.style.color = 'var(--bad)'; return; }
+  if (!targetUrl) { stat.textContent = 'No se pudo leer la invitación.'; stat.style.color = 'var(--bad)'; return; }
 
   try {
     const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/connect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ my_url: targetUrl }),
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    stat.textContent = 'Conectado.'; stat.style.color = 'var(--ok)';
-    _addActivity('ok', `Unido a sala (${targetUrl})`, 'ahora');
+    stat.textContent = '✓ Conectado al enjambre.'; stat.style.color = 'var(--ok)';
+    _addActivity('ok', `Unido al enjambre de ${targetUrl}`, 'ahora');
     await loadSwarmStatus();
     _startSwarmPoll();
   } catch(e) {
