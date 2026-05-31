@@ -359,6 +359,33 @@ details .details-body{padding:12px 0 4px}
 .info-box{background:rgba(110,168,254,.06);border:1px solid rgba(110,168,254,.15);border-radius:8px;
   padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:16px}
 .status-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+
+/* ── PANEL TOP BAR ── */
+#panel-topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:12px;margin-bottom:20px}
+#panel-topbar .section-title{margin-bottom:0}
+#panel-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-op{border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;
+  transition:.15s;border:1.5px solid transparent;letter-spacing:.01em;white-space:nowrap}
+.btn-op.iniciar{background:var(--ok);color:#061409;border-color:var(--ok)}
+.btn-op.iniciar:hover{opacity:.85}
+.btn-op.finalizar{background:transparent;border-color:var(--warn);color:var(--warn)}
+.btn-op.finalizar:hover{background:rgba(212,176,102,.08)}
+.btn-op.emergencia{background:transparent;border-color:var(--bad);color:var(--bad)}
+.btn-op.emergencia:hover{background:rgba(223,107,134,.08)}
+
+/* ── COUNTRY PICKER (inline) ── */
+#country-picker{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;margin-bottom:20px}
+#country-picker-flag{font-size:20px;line-height:1;flex-shrink:0}
+#country-picker-name{font-weight:600;font-size:14px}
+#country-picker-auth{font-size:11px;color:var(--muted)}
+#country-picker select{background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:5px 9px;color:var(--fg);font-size:13px;min-width:200px;cursor:pointer}
+#country-picker-result{font-size:12px;width:100%;padding:5px 0;display:none}
+#dept-section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em;margin:20px 0 10px}
 </style>
 </head>
 <body>
@@ -397,39 +424,57 @@ details .details-body{padding:12px 0 4px}
   <div id="admin-content">
     <!-- SIDEBAR -->
     <nav id="sidebar">
-      <div class="sec-header">Panel</div>
-      <a href="#s1" onclick="scrollTo('s1')">1 Estado del sistema</a>
-      <a href="#s2" onclick="scrollTo('s2')">2 Endpoints</a>
+      <div class="sec-header">Operación</div>
+      <a href="#s1" onclick="scrollTo('s1')">Panel de control</a>
       <div class="sec-header">Configuración</div>
-      <a href="#s3" onclick="scrollTo('s3')">3 Configuración</a>
-      <a href="#s4" onclick="scrollTo('s4')">4 Presets</a>
-      <div class="sec-header">Logs</div>
-      <a href="#s5" onclick="scrollTo('s5')">5 Logs y terminales</a>
-      <div class="sec-header">Ayuda</div>
-      <a href="#s6" onclick="scrollTo('s6')">6 Manual</a>
-      <a href="#s7" onclick="scrollTo('s7')">7 Acceso y Seeds</a>
-      <a href="#s8" onclick="scrollTo('s8')">8 Red de Nodos</a>
-      <div class="sec-header">Operaciones</div>
-      <a href="#s9" onclick="scrollTo('s9')">9 Cierre Electoral</a>
+      <a href="#s3" onclick="scrollTo('s3')">Configuración</a>
+      <a href="#s4" onclick="scrollTo('s4')">Presets</a>
+      <div class="sec-header">Registros</div>
+      <a href="#s5" onclick="scrollTo('s5')">Logs y terminales</a>
+      <div class="sec-header">Avanzado</div>
+      <a href="#s6" onclick="scrollTo('s6')">Manual</a>
+      <a href="#s7" onclick="scrollTo('s7')">Acceso y Seeds</a>
+      <a href="#s8" onclick="scrollTo('s8')">Red de Nodos</a>
+      <a href="#s9" onclick="scrollTo('s9')">Cierre Electoral</a>
     </nav>
 
     <!-- MAIN -->
     <main id="main-area">
 
-      <!-- ── 1 ESTADO DEL SISTEMA ── -->
+      <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
       <div class="section" id="s1">
-        <div class="section-title">1 Estado del sistema <span class="section-badge" id="snap-age">—</span></div>
-        <hr class="section-sep">
-        <div class="cards-grid" id="sensor-cards">
-          <!-- filled by JS -->
-        </div>
-      </div>
 
-      <!-- ── 2 MAPA DE ENDPOINTS ── -->
-      <div class="section" id="s2">
-        <div class="section-title">2 Endpoints por departamento</div>
+        <!-- Título + botones de operación -->
+        <div id="panel-topbar">
+          <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span></div>
+          <div id="panel-actions">
+            <button class="btn-op iniciar" onclick="doIniciar()" title="Inicia el proceso de monitoreo y scraping en modo electoral">▶ Iniciar</button>
+            <button class="btn-op finalizar" onclick="openFinalizeModal()" title="Detiene el proceso, genera reporte final y cierra el ciclo electoral">◼ Finalizar</button>
+            <button class="btn-op emergencia" onclick="doEmergencia()" title="Parada de emergencia inmediata — activa modo seguro">⚠ Emergencia</button>
+          </div>
+        </div>
         <hr class="section-sep">
-        <p class="section-sub">Estado en tiempo real de cada endpoint. Click en una tarjeta para editar.</p>
+
+        <!-- Selector de país -->
+        <div id="country-picker">
+          <span id="country-current-flag">🌎</span>
+          <span id="country-current-name">—</span>
+          <span id="country-current-auth"></span>
+          <select id="country-select" onchange="onCountrySelectChange(this.value)">
+            <option value="">Cargando países…</option>
+          </select>
+          <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Cambiar país</button>
+          <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px"></div>
+        </div>
+        <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
+          ⚠ El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.
+        </div>
+
+        <!-- Tarjetas de estado -->
+        <div class="cards-grid" id="sensor-cards"><!-- filled by JS --></div>
+
+        <!-- Grid de departamentos -->
+        <div id="dept-section-label">Divisiones electorales</div>
         <div id="adm-map-wrap" style="position:relative">
           <div id="dept-ep-grid"></div>
           <div id="map-popup">
@@ -461,6 +506,8 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
+      <!-- s2 eliminado — contenido integrado en s1 -->
+
       <!-- ── 3 CONFIGURACIÓN ── -->
       <div class="section" id="s3">
         <div class="section-title">3 Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
@@ -471,41 +518,17 @@ details .details-body{padding:12px 0 4px}
           <button onclick="discardEdits()" style="background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:4px">Descartar</button>
         </div>
 
-        <!-- País monitoreado -->
-        <div class="ctrl-section" id="country-section">
-          <h3>País monitoreado</h3>
-          <div class="info-box">El país determina los endpoints del CNE, los departamentos y el idioma de los reportes. Cambiar aquí actualiza <code>.centinel-setup.json</code> y <code>config/prod/config.yaml</code> sin regenerar seeds.</div>
-          <div class="ctrl-row" style="align-items:center">
-            <label>País activo</label>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <span id="country-current-flag" style="font-size:24px;line-height:1">🌎</span>
-              <span id="country-current-name" style="font-weight:600;font-size:15px">—</span>
-              <span id="country-current-auth" style="font-size:12px;color:var(--muted)"></span>
-            </div>
-          </div>
-          <div class="ctrl-row">
-            <label>Cambiar país</label>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <select id="country-select" style="min-width:240px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--panel2);color:var(--fg);font-size:13px">
-                <option value="">Cargando países…</option>
-              </select>
-              <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Aplicar</button>
-            </div>
-          </div>
-          <div id="country-change-result" style="margin-top:10px;font-size:13px;display:none;padding:8px 12px;border-radius:6px"></div>
-          <div id="country-swarm-warn" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
-            ⚠ El swarm está conectado con el país anterior. Ve a 8 Red de Nodos → Desconectar y vuelve a conectar para que use el nuevo país.
-          </div>
-        </div>
-
         <!-- EASY MODE -->
         <div id="easy-mode">
           <div class="ctrl-section">
-            <h3>Fuente de datos CNE</h3>
-            <div class="info-box">URL raíz del sitio oficial de resultados electorales. Centinel la usa como base para scrapear los endpoints departamentales. Cambiar aquí actualiza <code>config/prod/endpoints.yaml</code>.</div>
+            <h3>Ente electoral</h3>
+            <div class="info-box">URL raíz del sitio oficial de resultados electorales del país activo. Centinel la usa como base para construir los endpoints departamentales. Cambiar aquí actualiza <code>config/prod/endpoints.yaml</code>.</div>
             <div class="ctrl-row">
-              <label>URL principal CNE <span class="tip-left" data-tip="URL raíz del sitio de resultados. Ej: https://resultados2029.cne.hn/ — todos los endpoints departamentales se derivan de esta base.">ⓘ</span></label>
-              <input type="text" id="inp-main-url-easy" placeholder="https://resultados.cne.hn/" oninput="syncText('mainurl',this.value)">
+              <label>URL del organismo electoral <span class="tip-left" data-tip="URL raíz del sitio de resultados. Ej: https://resultados2029.organismo-electoral.gov/ — todos los endpoints departamentales se derivan de esta base.">ⓘ</span></label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov/" oninput="syncText('mainurl',this.value)" style="flex:1">
+                <button class="hdr-btn primary" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar URL</button>
+              </div>
             </div>
           </div>
           <div class="ctrl-section">
@@ -2673,10 +2696,10 @@ function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 
 // ── 3 País monitoreado ────────────────────────────────────────────────────
 async function loadCountrySelector() {
-  const sel   = document.getElementById('country-select');
-  const flag  = document.getElementById('country-current-flag');
-  const name  = document.getElementById('country-current-name');
-  const auth  = document.getElementById('country-current-auth');
+  const sel  = document.getElementById('country-select');
+  const flag = document.getElementById('country-current-flag');
+  const name = document.getElementById('country-current-name');
+  const auth = document.getElementById('country-current-auth');
   if (!sel) return;
 
   let currentCode = '';
@@ -2685,14 +2708,20 @@ async function loadCountrySelector() {
     if (s.ok) {
       const d = await s.json();
       currentCode = d.country_code || '';
-      if (d.country_name && name) name.textContent = d.country_name;
     }
   } catch(_) {}
 
   try {
     const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/countries');
-    if (!r.ok) return;
+    if (!r.ok) {
+      sel.innerHTML = '<option value="">Error al cargar países</option>';
+      return;
+    }
     const countries = await r.json();
+    if (!countries.length) {
+      sel.innerHTML = '<option value="">Sin países disponibles</option>';
+      return;
+    }
     sel.innerHTML = countries.map(c =>
       `<option value="${c.code}"${c.code === currentCode ? ' selected' : ''}>${c.flag} ${c.name} — ${c.authority}</option>`
     ).join('');
@@ -2702,7 +2731,35 @@ async function loadCountrySelector() {
       if (name) name.textContent = cur.name;
       if (auth) auth.textContent = cur.authority;
     }
-  } catch(_) {}
+  } catch(e) {
+    sel.innerHTML = '<option value="">Error de red al cargar países</option>';
+  }
+}
+
+function onCountrySelectChange(code) {
+  const sel  = document.getElementById('country-select');
+  const flag = document.getElementById('country-current-flag');
+  const opt  = sel.options[sel.selectedIndex];
+  if (opt && flag) flag.textContent = opt.textContent.trim().split(' ')[0];
+}
+
+// ── Operaciones ───────────────────────────────────────────────────────────────
+function doIniciar() {
+  loadPreset('election');
+  markDirty();
+  applyChanges();
+}
+
+function doEmergencia() {
+  if (!confirm('⚠ PARADA DE EMERGENCIA\n\nSe activará el modo seguro de inmediato.\n¿Confirmar?')) return;
+  loadPreset('emergency');
+  markDirty();
+  applyChanges();
+}
+
+function saveElectoralUrl() {
+  markDirty();
+  applyChanges();
 }
 
 async function doChangeCountry() {
@@ -2749,7 +2806,9 @@ async function doChangeCountry() {
         } catch(_) { swWarn.style.display = 'none'; }
       }
 
-      loadSeedStatus();  // refresh 7 country display
+      loadSeedStatus();
+      await loadDepartments();
+      buildDeptGrid();
     } else {
       if (res) {
         res.style.display = '';
@@ -2768,7 +2827,7 @@ async function doChangeCountry() {
       res.textContent = 'Error de red: ' + e.message;
     }
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Aplicar'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
   }
 }
 
