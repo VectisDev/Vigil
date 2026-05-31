@@ -88,6 +88,16 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
   border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;
   letter-spacing:.03em;transition:.15s;white-space:nowrap;text-transform:none}
 .section-dl:hover{border-color:var(--accent);color:var(--accent)}
+.section-collapse-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;
+  padding:0 2px;display:flex;align-items:center;transition:.15s;flex-shrink:0}
+.section-collapse-btn:hover{color:var(--fg)}
+.section-collapse-btn svg{transition:transform .22s ease}
+.section-collapse-btn.collapsed svg{transform:rotate(-90deg)}
+.section-body{overflow:hidden;transition:opacity .2s ease}
+.section-body.collapsed{display:none}
+.subsection-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.07em;margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.subsection-label::after{content:'';flex:1;height:1px;background:rgba(55,65,81,.6)}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
@@ -653,7 +663,14 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 </div>
 
 <!-- ══ SECTION 2 — CHARTS ════════════════════════════════════════════════════ -->
-<div class="section-title">Panel de Visualización Forense<button class="section-dl" onclick="downloadPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button></div>
+<div class="section-title">
+  <button class="section-collapse-btn" id="btn-col-forense" onclick="toggleSection('forense')" title="Colapsar / expandir">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  Panel de Visualización Forense
+  <button class="section-dl" onclick="downloadPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
+</div>
+<div class="section-body" id="sec-body-forense">
 <div class="card" style="margin-bottom:14px">
   <canvas id="s-chart-cand" height="80"></canvas>
 </div>
@@ -677,6 +694,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 </div>
 
 <!-- Forensic detector cards -->
+<div class="subsection-label" id="rules-grid-label">Grid de Reglas Activas — Estado de Salud</div>
 <div id="s-forensic-list" style="margin-bottom:14px"></div>
 
 <!-- Alerts table -->
@@ -690,9 +708,17 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     <tbody id="alerts-tbody"></tbody>
   </table>
 </div>
+</div><!-- /sec-body-forense -->
 
 <!-- ══ SECTION 3 — THRESHOLDS ════════════════════════════════════════════════ -->
-<div class="section-title">Umbrales de Sensibilidad de Reglas<button class="section-dl" onclick="downloadUmbralesPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button></div>
+<div class="section-title">
+  <button class="section-collapse-btn collapsed" id="btn-col-umbrales" onclick="toggleSection('umbrales')" title="Colapsar / expandir">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  Umbrales de Sensibilidad de Reglas
+  <button class="section-dl" onclick="downloadUmbralesPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
+</div>
+<div class="section-body collapsed" id="sec-body-umbrales">
 <div class="thresh-lock-panel">
   <h4>Pre-registro de Hipótesis</h4>
   <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
@@ -708,9 +734,17 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <div class="thresh-sliders" id="thresh-sliders">
   <div id="thresh-sliders-container" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
 </div>
+</div><!-- /sec-body-umbrales -->
 
 <!-- ══ SECTION 4 — INJECTION MATRIX ══════════════════════════════════════════ -->
-<div class="section-title">Matriz de Inyección de Eventos<button class="section-dl" onclick="downloadMatrizPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button></div>
+<div class="section-title">
+  <button class="section-collapse-btn collapsed" id="btn-col-matriz" onclick="toggleSection('matriz')" title="Colapsar / expandir">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  Matriz de Inyección de Eventos
+  <button class="section-dl" onclick="downloadMatrizPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
+</div>
+<div class="section-body collapsed" id="sec-body-matriz">
 
 <div class="inj-mode-bar">
   <button class="inj-mode-btn on" id="btn-inj-instant" onclick="setInjMode('instant')">Inmediata</button>
@@ -750,6 +784,8 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <div class="inj-active-block" id="inj-active-block-c"></div>
   <div class="inj-grid" id="inj-grid-c"></div>
 </div>
+
+</div><!-- /sec-body-matriz -->
 
 <!-- ══ SECTION 4.5 — SIMULACRO EN SWARM ═══════════════════════════════════════ -->
 <div class="section-title" id="swarm-section">
@@ -3802,6 +3838,30 @@ function sendFeedback(){
   document.getElementById('cfg-feedback-stat').className='cfg-msg ok';
   document.getElementById('cfg-feedback-stat').textContent='Issue abierto en GitHub — completa el envío en la pestaña nueva.';
 }
+
+function toggleSection(id){
+  const body=document.getElementById('sec-body-'+id);
+  const btn=document.getElementById('btn-col-'+id);
+  if(!body||!btn)return;
+  const collapsed=body.classList.toggle('collapsed');
+  btn.classList.toggle('collapsed',collapsed);
+  try{localStorage.setItem('lab-sec-'+id,collapsed?'0':'1');}catch(e){}
+}
+
+(function _restoreSectionStates(){
+  ['forense','umbrales','matriz'].forEach(function(id){
+    try{
+      const val=localStorage.getItem('lab-sec-'+id);
+      if(val===null)return;
+      const body=document.getElementById('sec-body-'+id);
+      const btn=document.getElementById('btn-col-'+id);
+      if(!body||!btn)return;
+      const expand=(val==='1');
+      body.classList.toggle('collapsed',!expand);
+      btn.classList.toggle('collapsed',!expand);
+    }catch(e){}
+  });
+})();
 </script>
 
 <!-- ══ CITATION MODAL ════════════════════════════════════════════════════════ -->
