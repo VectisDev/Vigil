@@ -377,6 +377,9 @@ details .details-body{padding:12px 0 4px}
 .btn-mc.emergencia:hover{background:rgba(223,107,134,.08)}
 #mc-flag{font-size:22px;line-height:1;flex-shrink:0}
 #mc-result{font-size:12px;padding:5px 10px;border-radius:6px;display:none;margin-top:8px;width:100%}
+/* ── PROGRESSIVE DISCLOSURE ── */
+.section-advanced{display:none}
+#sidebar .adv-link,#sidebar .adv-header{display:none}
 </style>
 </head>
 <body>
@@ -402,8 +405,8 @@ details .details-body{padding:12px 0 4px}
     <span class="hdr-brand">CENTINEL Admin</span>
     <span class="hdr-user" id="hdr-user">—</span>
     <div class="mode-toggle">
-      <button onclick="setMode('easy')" id="btn-easy" class="active">Modo Fácil</button>
-      <button onclick="setMode('full')" id="btn-full">Modo Completo</button>
+      <button onclick="setMode('easy')" id="btn-easy" class="active">Simple</button>
+      <button onclick="setMode('full')" id="btn-full">Avanzado</button>
     </div>
     <button class="hdr-btn" onclick="reloadConfig()">↻ Recargar</button>
     <button class="hdr-btn primary" id="btn-apply" onclick="applyChanges()" disabled
@@ -415,20 +418,17 @@ details .details-body{padding:12px 0 4px}
   <div id="admin-content">
     <!-- SIDEBAR -->
     <nav id="sidebar">
-      <div class="sec-header">Panel</div>
-      <a href="#s1" onclick="scrollTo('s1')">1 Estado del sistema</a>
-      <a href="#s2" onclick="scrollTo('s2')">2 Endpoints</a>
-      <div class="sec-header">Configuración</div>
-      <a href="#s3" onclick="scrollTo('s3')">3 Configuración</a>
-      <a href="#s4" onclick="scrollTo('s4')">4 Presets</a>
-      <div class="sec-header">Logs</div>
-      <a href="#s5" onclick="scrollTo('s5')">5 Logs y terminales</a>
-      <div class="sec-header">Ayuda</div>
-      <a href="#s6" onclick="scrollTo('s6')">6 Manual</a>
-      <a href="#s7" onclick="scrollTo('s7')">7 Acceso y Seeds</a>
-      <a href="#s8" onclick="scrollTo('s8')">8 Red de Nodos</a>
-      <div class="sec-header">Operaciones</div>
-      <a href="#s9" onclick="scrollTo('s9')">9 Cierre Electoral</a>
+      <div class="sec-header">Operación</div>
+      <a href="#s1" onclick="scrollTo('s1')">Estado</a>
+      <a href="#s2" onclick="scrollTo('s2')">Departamentos</a>
+      <div class="sec-header adv-header">Avanzado</div>
+      <a href="#s3" onclick="scrollTo('s3')" class="adv-link">Configuración</a>
+      <a href="#s4" onclick="scrollTo('s4')" class="adv-link">Presets</a>
+      <a href="#s5" onclick="scrollTo('s5')" class="adv-link">Registros</a>
+      <a href="#s6" onclick="scrollTo('s6')" class="adv-link">Manual</a>
+      <a href="#s7" onclick="scrollTo('s7')" class="adv-link">Acceso y Seeds</a>
+      <a href="#s8" onclick="scrollTo('s8')" class="adv-link">Red de Nodos</a>
+      <a href="#s9" onclick="scrollTo('s9')" class="adv-link">Cierre Electoral</a>
     </nav>
 
     <!-- MAIN -->
@@ -453,7 +453,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 1 ESTADO DEL SISTEMA ── -->
       <div class="section" id="s1">
-        <div class="section-title">1 Estado del sistema <span class="section-badge" id="snap-age">—</span></div>
+        <div class="section-title">Estado del sistema <span class="section-badge" id="snap-age">—</span></div>
         <hr class="section-sep">
         <div class="cards-grid" id="sensor-cards">
           <!-- filled by JS -->
@@ -462,9 +462,9 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 2 MAPA DE ENDPOINTS ── -->
       <div class="section" id="s2">
-        <div class="section-title">2 Endpoints por departamento</div>
+        <div class="section-title">Departamentos</div>
         <hr class="section-sep">
-        <p class="section-sub">Estado en tiempo real de cada endpoint. Click en una tarjeta para editar.</p>
+        <p class="section-sub">Estado en tiempo real de cada departamento. Haz click en uno para editar su endpoint.</p>
         <div id="adm-map-wrap" style="position:relative">
           <div id="dept-ep-grid"></div>
           <div id="map-popup">
@@ -497,8 +497,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 3 CONFIGURACIÓN ── -->
-      <div class="section" id="s3">
-        <div class="section-title">3 Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
+      <div class="section section-advanced" id="s3">
+        <div class="section-title">Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
         <hr class="section-sep">
         <div id="banner-409">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.
@@ -896,8 +896,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 4 PRESETS ── -->
-      <div class="section" id="s4">
-        <div class="section-title">4 Presets</div>
+      <div class="section section-advanced" id="s4">
+        <div class="section-title">Presets</div>
         <hr class="section-sep">
         <p class="section-sub">Plantillas de configuración predefinidas.</p>
         <div class="info-box" style="margin-bottom:16px">
@@ -913,8 +913,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 5 LOGS ── -->
-      <div class="section" id="s5">
-        <div class="section-title">5 Logs y terminales</div>
+      <div class="section section-advanced" id="s5">
+        <div class="section-title">Registros y terminales</div>
         <hr class="section-sep">
 
         <!-- Log General -->
@@ -981,8 +981,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 6 MANUAL ── -->
-      <div class="section" id="s6">
-        <div class="section-title">6 Manual</div>
+      <div class="section section-advanced" id="s6">
+        <div class="section-title">Manual</div>
         <hr class="section-sep">
         <details id="mini-manual">
           <summary>Guía rápida del panel de administración</summary>
@@ -1029,8 +1029,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 7 Acceso y Seeds ── -->
-      <div class="section" id="s7">
-        <div class="section-title">7 Acceso y Seeds</div>
+      <div class="section section-advanced" id="s7">
+        <div class="section-title">Acceso y Seeds</div>
         <hr class="section-sep">
         <p class="section-sub">
           Gestión de los 12 seeds de acceso administrativo (S1-A … S1-L).
@@ -1080,8 +1080,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 8 Red de Nodos ── -->
-      <div class="section" id="s8">
-        <div class="section-title">8 Red de Nodos</div>
+      <div class="section section-advanced" id="s8">
+        <div class="section-title">Red de Nodos</div>
         <hr class="section-sep">
         <p class="section-sub">
           Protocolo gossip P2P — el nodo transmite su atestación firmada al enjambre y compara el
@@ -1267,8 +1267,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
-      <div class="section" id="s9">
-        <div class="section-title">9 Cierre Electoral</div>
+      <div class="section section-advanced" id="s9">
+        <div class="section-title">Cierre Electoral</div>
         <hr class="section-sep">
         <p class="section-sub">
           Secuencia de fin de elección: raspe final forzado de todas las fuentes,
@@ -1939,23 +1939,23 @@ function updateStatusBadges(){
   if(bAnimal){
     const cls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
     bAnimal.className = `badge badge-${cls}`;
-    bAnimal.textContent = `ANIMAL: ${animal.toUpperCase()}`;
+    bAnimal.textContent = animal === 'normal' ? 'Operación: Normal' : animal === 'caution' ? 'Operación: Precaución' : 'Operación: Modo mínimo';
   }
   const bSafe = document.getElementById('badge-safemode');
   if(bSafe){
     bSafe.className = `badge badge-${safe?'warn':'neutral'}`;
-    bSafe.textContent = `SAFE MODE: ${safe?'ON':'OFF'}`;
+    bSafe.textContent = safe ? 'Modo seguro: activo' : 'Sin restricciones';
   }
   const bCb = document.getElementById('badge-circuit');
   if(bCb){
     bCb.className = `badge badge-${cbOpen?'bad':'ok'}`;
-    bCb.textContent = `CIRCUIT: ${cbOpen?'ABIERTO':'CERRADO'}`;
+    bCb.textContent = cbOpen ? 'Circuito: interrumpido' : 'Sistema: operativo';
   }
   const bEl = document.getElementById('badge-election');
   if(bEl){
     const elMode = document.getElementById('tog-election')?.checked || false;
     bEl.className = `badge badge-${elMode?'warn':'neutral'}`;
-    bEl.textContent = `ELECTION MODE: ${elMode?'ON':'OFF'}`;
+    bEl.textContent = elMode ? 'Noche electoral: activa' : 'Monitoreo estándar';
   }
 }
 
@@ -2125,6 +2125,9 @@ function setMode(m){
   document.getElementById('btn-full').className = m==='full' ? 'active' : '';
   document.getElementById('easy-mode').style.display = m==='easy' ? 'block' : 'none';
   document.getElementById('full-mode').style.display = m==='full' ? 'block' : 'none';
+  const isAdv = m === 'full';
+  document.querySelectorAll('.section-advanced').forEach(s => s.style.display = isAdv ? '' : 'none');
+  document.querySelectorAll('#sidebar .adv-link, #sidebar .adv-header').forEach(el => el.style.display = isAdv ? '' : 'none');
 }
 
 // ══════════════════════════════════════════════════════════
