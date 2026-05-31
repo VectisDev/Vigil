@@ -537,6 +537,23 @@ class GossipEngine:
         """Wire a local pipeline handler for source_throttle findings from peers."""
         self._throttle_callback = cb
 
+    def kick_peer(self, node_id: str) -> bool:
+        """Remove a peer from the active routing table and block re-admission.
+
+        Returns True if the node was present and removed, False if unknown.
+        The node_id is added to an in-memory blocklist so it cannot re-join
+        until the engine restarts.
+        """
+        removed = node_id in self._peers
+        self._peers.pop(node_id, None)
+        self._known.pop(node_id, None)
+        if not hasattr(self, "_blocklist"):
+            self._blocklist: set[str] = set()
+        self._blocklist.add(node_id)
+        if removed:
+            logger.info("gossip_peer_kicked node_id=%s", node_id)
+        return removed
+
     async def receive_attestation(self, payload_dict: dict) -> bool:
         """Accept an incoming NodePayload from a peer HTTP POST."""
         try:
@@ -550,6 +567,10 @@ class GossipEngine:
             return False
 
         node_id = payload.node_id
+        if hasattr(self, "_blocklist") and node_id in self._blocklist:
+            logger.debug("gossip_recv_blocked node_id=%s", node_id)
+            return False
+
         existing = self._known.get(node_id)
         if existing and existing.timestamp_utc >= payload.timestamp_utc:
             return True  # Already up to date
