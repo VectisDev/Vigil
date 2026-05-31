@@ -359,6 +359,13 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 #vis-overlay.show{display:flex}
 .overlay-msg{font-size:26px;font-weight:800;color:var(--bad);animation:blink 1s step-start infinite}
 @keyframes blink{50%{opacity:0}}
+@keyframes attack-pulse{0%{box-shadow:0 0 0 0 rgba(252,165,165,.7),0 0 0 0 rgba(252,165,165,.4)}
+  50%{box-shadow:0 0 0 8px rgba(252,165,165,.0),0 0 18px 4px rgba(252,165,165,.25)}
+  100%{box-shadow:0 0 0 0 rgba(252,165,165,0),0 0 0 0 rgba(252,165,165,0)}}
+@keyframes dot-ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.9);opacity:.5}}
+.telem-panel.attack-alert{border-color:rgba(252,165,165,.7)!important;
+  animation:attack-pulse 1.4s ease-out 3}
+.telem-panel.attack-alert h4 .attack-dot{animation:dot-ping .7s ease-in-out 6}
 .overlay-restore{
   background:rgba(223,107,134,.12);border:1px solid var(--bad);color:var(--bad);
   border-radius:8px;padding:8px 20px;cursor:pointer;font-size:13px;font-weight:600;
@@ -870,6 +877,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <button class="section-dl" onclick="downloadTelemTxt('attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SA Attack</button>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Engine</button>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Attack</button>
+  <button class="section-dl" id="btn-attack-sound" onclick="toggleAttackSound()" title="Activar/desactivar beep al detectar ataque" style="margin-left:6px">🔇 Sonido</button>
 </div>
 <div class="telem-wrap">
   <!-- ─ Row 1: Standalone ─ -->
@@ -881,8 +889,8 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     <h4><span style="width:8px;height:8px;background:var(--ok);border-radius:50%;display:inline-block;flex-shrink:0"></span>Engine Telemetry</h4>
     <div class="telem-log" id="telem-engine"></div>
   </div>
-  <div class="telem-panel">
-    <h4><span style="width:8px;height:8px;background:var(--bad);border-radius:50%;display:inline-block;flex-shrink:0"></span>Attack Logger</h4>
+  <div class="telem-panel" id="panel-sa-attack">
+    <h4><span class="attack-dot" style="width:8px;height:8px;background:var(--bad);border-radius:50%;display:inline-block;flex-shrink:0"></span>Attack Logger</h4>
     <div class="telem-log" id="telem-attack"></div>
   </div>
   <!-- ─ Row 2: Swarm ─ -->
@@ -895,8 +903,8 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     <h4><span style="width:8px;height:8px;background:var(--purple);border-radius:50%;display:inline-block;flex-shrink:0"></span>Engine Telemetry</h4>
     <div class="telem-log" id="telem-swarm-engine"></div>
   </div>
-  <div class="telem-panel" style="border-color:rgba(176,140,240,.3)">
-    <h4><span style="width:8px;height:8px;background:var(--warn);border-radius:50%;display:inline-block;flex-shrink:0"></span>Attack Logger</h4>
+  <div class="telem-panel" id="panel-sw-attack" style="border-color:rgba(176,140,240,.3)">
+    <h4><span class="attack-dot" style="width:8px;height:8px;background:var(--warn);border-radius:50%;display:inline-block;flex-shrink:0"></span>Attack Logger</h4>
     <div class="telem-log" id="telem-swarm-attack">
       <div class="tl-muted" style="opacity:.4;font-style:italic" id="telem-swarm-attack-empty">Sin ataques detectados — inyecta B1/B2/B11/B12 para activar</div>
     </div>
@@ -1381,6 +1389,35 @@ function appendLog(id,cls,html){
   el.appendChild(d);while(el.children.length>MAX_LOG)el.removeChild(el.firstChild);
   el.scrollTop=el.scrollHeight;
 }
+// ── Attack alert: pulse panel border + optional beep ─────────────────────────
+let _attackSoundEnabled=false;
+function toggleAttackSound(){
+  _attackSoundEnabled=!_attackSoundEnabled;
+  const btn=document.getElementById('btn-attack-sound');
+  if(btn) btn.textContent=(_attackSoundEnabled?'🔔':'🔇')+' Sonido';
+}
+function _beep(){
+  if(!_attackSoundEnabled) return;
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='square';o.frequency.setValueAtTime(880,ctx.currentTime);
+    g.gain.setValueAtTime(0.08,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.18);
+    o.start();o.stop(ctx.currentTime+0.18);
+  }catch(e){}
+}
+function _triggerAttackAlert(panelId){
+  const p=document.getElementById(panelId);
+  if(!p) return;
+  p.classList.remove('attack-alert');
+  void p.offsetWidth; // reflow to restart animation
+  p.classList.add('attack-alert');
+  p.addEventListener('animationend',()=>p.classList.remove('attack-alert'),{once:true});
+  _beep();
+}
+
 // Standalone logs
 function logE(sev,msg){
   const cls={INFO:'tl-muted',WARN:'tl-warn',CRITICAL:'tl-bad',OK:'tl-ok'}[sev]||'tl-muted';
@@ -1390,6 +1427,7 @@ function logA(sev,ip,vector,cm){
   const cls={ALERT:'tl-bad',CRITICAL:'tl-bad',WARN:'tl-warn',INFO:'tl-muted'}[sev]||'tl-muted';
   const ua=['Mozilla/5.0 (Scrapy)','python-req/2.31','Go-http/2.0','curl/7.88','libwww/6.72'][rnd(0,4)];
   appendLog('telem-attack',cls,`[${tsLog()}] IP=${ip} | ${vector} | UA:${ua} | → ${cm}`);
+  _triggerAttackAlert('panel-sa-attack');
 }
 // Swarm logs
 function logSE(sev,msg){
@@ -1401,6 +1439,7 @@ function logSA(sev,ip,vector,cm){
   if(empty) empty.remove();
   const cls={ALERT:'tl-bad',CRITICAL:'tl-bad',WARN:'tl-warn',INFO:'tl-muted'}[sev]||'tl-muted';
   appendLog('telem-swarm-attack',cls,`[${tsLog()}] [N:${SWARM.nodes}] IP=${ip} | ${vector} | → ${cm}`);
+  _triggerAttackAlert('panel-sw-attack');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
