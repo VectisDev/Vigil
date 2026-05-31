@@ -455,16 +455,23 @@ details .details-body{padding:12px 0 4px}
         </div>
         <hr class="section-sep">
 
-        <!-- Selector de país -->
+        <!-- Selector de país + URL del ente electoral -->
         <div id="country-picker">
-          <span id="country-current-flag">🌎</span>
-          <span id="country-current-name">—</span>
-          <span id="country-current-auth"></span>
-          <select id="country-select" onchange="onCountrySelectChange(this.value)">
-            <option value="">Cargando países…</option>
-          </select>
-          <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Cambiar país</button>
-          <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px"></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%">
+            <span id="country-current-flag">🌎</span>
+            <span id="country-current-name">—</span>
+            <span id="country-current-auth"></span>
+            <select id="country-select" onchange="onCountrySelectChange(this.value)">
+              <option value="">Cargando países…</option>
+            </select>
+            <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Cambiar país</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em">URL del ente electoral</label>
+            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov/" oninput="syncText('mainurl',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+            <button class="hdr-btn primary" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar URL</button>
+          </div>
+          <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
         </div>
         <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
           ⚠ El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.
@@ -520,17 +527,6 @@ details .details-body{padding:12px 0 4px}
 
         <!-- EASY MODE -->
         <div id="easy-mode">
-          <div class="ctrl-section">
-            <h3>Ente electoral</h3>
-            <div class="info-box">URL raíz del sitio oficial de resultados electorales del país activo. Centinel la usa como base para construir los endpoints departamentales. Cambiar aquí actualiza <code>config/prod/endpoints.yaml</code>.</div>
-            <div class="ctrl-row">
-              <label>URL del organismo electoral <span class="tip-left" data-tip="URL raíz del sitio de resultados. Ej: https://resultados2029.organismo-electoral.gov/ — todos los endpoints departamentales se derivan de esta base.">ⓘ</span></label>
-              <div style="display:flex;gap:8px;align-items:center">
-                <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov/" oninput="syncText('mainurl',this.value)" style="flex:1">
-                <button class="hdr-btn primary" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar URL</button>
-              </div>
-            </div>
-          </div>
           <div class="ctrl-section">
             <h3>Parámetros principales</h3>
             <div class="ctrl-row">
@@ -2702,26 +2698,18 @@ async function loadCountrySelector() {
   const auth = document.getElementById('country-current-auth');
   if (!sel) return;
 
+  // Current country from API status (best-effort)
   let currentCode = '';
   try {
     const s = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
-    if (s.ok) {
-      const d = await s.json();
-      currentCode = d.country_code || '';
-    }
+    if (s.ok) { const d = await s.json(); currentCode = d.country_code || ''; }
   } catch(_) {}
 
+  // Countries list from static file (always available, no API dependency)
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/countries');
-    if (!r.ok) {
-      sel.innerHTML = '<option value="">Error al cargar países</option>';
-      return;
-    }
+    const r = await fetch(`${RAW_BASE}/web/data/countries.json?t=${Date.now()}`);
+    if (!r.ok) { sel.innerHTML = '<option value="">Sin conexión al repositorio</option>'; return; }
     const countries = await r.json();
-    if (!countries.length) {
-      sel.innerHTML = '<option value="">Sin países disponibles</option>';
-      return;
-    }
     sel.innerHTML = countries.map(c =>
       `<option value="${c.code}"${c.code === currentCode ? ' selected' : ''}>${c.flag} ${c.name} — ${c.authority}</option>`
     ).join('');
@@ -2732,7 +2720,7 @@ async function loadCountrySelector() {
       if (auth) auth.textContent = cur.authority;
     }
   } catch(e) {
-    sel.innerHTML = '<option value="">Error de red al cargar países</option>';
+    sel.innerHTML = '<option value="">Error al cargar países</option>';
   }
 }
 
