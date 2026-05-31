@@ -100,6 +100,19 @@ class ReputationEngine:
                     betrayal_count INTEGER NOT NULL DEFAULT 0
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS reputation_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    node_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    alpha REAL NOT NULL,
+                    beta REAL NOT NULL,
+                    trust_score REAL NOT NULL,
+                    ring INTEGER NOT NULL,
+                    ts TEXT NOT NULL
+                )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_rep_events_node ON reputation_events(node_id)")
             conn.commit()
 
     def _load_db(self, path: Path) -> None:
@@ -120,6 +133,23 @@ class ReputationEngine:
                 self._nodes[rep.node_id] = rep
                 if rep.arrival_order >= self._counter:
                     self._counter = rep.arrival_order + 1
+        except Exception:
+            pass
+
+    def _record_event(self, rep: NodeReputation, event_type: str, ts: str) -> None:
+        """Append a reputation event row for forensic audit trail."""
+        if not self._db_path:
+            return
+        try:
+            with sqlite3.connect(str(self._db_path)) as conn:
+                conn.execute(
+                    "INSERT INTO reputation_events"
+                    " (node_id, event_type, alpha, beta, trust_score, ring, ts)"
+                    " VALUES (?,?,?,?,?,?,?)",
+                    (rep.node_id, event_type, round(rep.alpha, 4),
+                     round(rep.beta, 4), round(rep.trust_score, 4), rep.ring, ts),
+                )
+                conn.commit()
         except Exception:
             pass
 
@@ -172,11 +202,14 @@ class ReputationEngine:
             rep = self._nodes.get(node_id)
             if rep is None:
                 return self.ensure(node_id)
+            prev_ring = rep.ring
             rep.alpha += _ALPHA_CONSISTENT
             rep.last_seen_utc = now
             rep.last_updated_utc = now
             rep._refresh_ring(self._ring0)
             self._save(rep)
+            if rep.ring != prev_ring:
+                self._record_event(rep, f"RING_PROMOTED_{prev_ring}_TO_{rep.ring}", now)
             return rep
 
     def on_inconsistent(self, node_id: str) -> NodeReputation:
@@ -186,11 +219,15 @@ class ReputationEngine:
             rep = self._nodes.get(node_id)
             if rep is None:
                 return self.ensure(node_id)
+            prev_ring = rep.ring
             rep.beta += _BETA_BETRAYAL
             rep.betrayal_count += 1
             rep.last_updated_utc = now
             rep._refresh_ring(self._ring0)
             self._save(rep)
+            self._record_event(rep, "BETRAYAL", now)
+            if rep.ring != prev_ring:
+                self._record_event(rep, f"RING_DEMOTED_{prev_ring}_TO_{rep.ring}", now)
             return rep
 
     def on_timeout(self, node_id: str) -> NodeReputation:
@@ -235,12 +272,16 @@ class ReputationEngine:
             rep = self._nodes.get(node_id)
             if rep is None:
                 return self.ensure(node_id)
+            prev_ring = rep.ring
             rep._pending_outage_beta = 0.0  # outage β is not reversed; betrayal overrides
             rep.beta += _BETA_BETRAYAL
             rep.betrayal_count += 1
             rep.last_updated_utc = now
             rep._refresh_ring(self._ring0)
             self._save(rep)
+            self._record_event(rep, "RESTORE_BETRAYAL", now)
+            if rep.ring != prev_ring:
+                self._record_event(rep, f"RING_DEMOTED_{prev_ring}_TO_{rep.ring}", now)
             return rep
 
     def decay(self) -> None:
@@ -302,3 +343,23 @@ class ReputationEngine:
             for rep in self._nodes.values():
                 counts[rep.ring] = counts.get(rep.ring, 0) + 1
             return {"ring0": counts[0], "ring1": counts[1], "ring2": counts[2]}
+
+    def get_history(self, node_id: str, limit: int = 100) -> list[dict]:
+        """Return recent reputation events for a node (forensic audit trail)."""
+        if not self._db_path:
+            return []
+        try:
+            with sqlite3.connect(str(self._db_path)) as conn:
+                rows = conn.execute(
+                    "SELECT event_type, alpha, beta, trust_score, ring, ts"
+                    " FROM reputation_events WHERE node_id=?"
+                    " ORDER BY id DESC LIMIT ?",
+                    (node_id, limit),
+                ).fetchall()
+            return [
+                {"event_type": r[0], "alpha": r[1], "beta": r[2],
+                 "trust_score": r[3], "ring": r[4], "ts": r[5]}
+                for r in rows
+            ]
+        except Exception:
+            return []
