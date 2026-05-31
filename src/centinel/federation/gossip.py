@@ -346,11 +346,11 @@ def _bootstrap_from_mdns() -> list[str]:
         # Join multicast group
         group = struct.pack("4sL", socket.inet_aton(_MDNS_ADDR), socket.INADDR_ANY)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, group)
-        # mDNS multicast (RFC 6762) requires INADDR_ANY to receive packets from
-        # peers on any local interface. Operators on multi-homed hosts can pin
-        # to a specific iface via CENTINEL_MDNS_IFACE.
-        _mdns_iface = os.environ.get("CENTINEL_MDNS_IFACE", "0.0.0.0")  # nosec B104
-        sock.bind((_mdns_iface, _MDNS_PORT))  # nosec B104
+        # Bind to loopback by default for safer local discovery. Operators on
+        # multi-homed hosts can pin to a dedicated interface via
+        # CENTINEL_MDNS_IFACE.
+        _mdns_iface = os.environ.get("CENTINEL_MDNS_IFACE", "127.0.0.1")
+        sock.bind((_mdns_iface, _MDNS_PORT))
 
         # Send a simple discovery probe: the service name as UTF-8
         sock.sendto(_CENTINEL_MDNS_SERVICE, (_MDNS_ADDR, _MDNS_PORT))
