@@ -10,6 +10,7 @@ power don't suffer the same penalty as nodes that deliberately lie.
 """
 from __future__ import annotations
 
+import logging
 import math
 import sqlite3
 import threading
@@ -30,6 +31,9 @@ _HALFLIFE_ALPHA_DAYS = 14.0  # positive evidence half-life
 _HALFLIFE_BETA_DAYS  = 30.0  # negative evidence half-life (betrayal remembered longer)
 
 _DB_FILENAME = "federation_reputation.db"
+_DECAY_INTERVAL_SECONDS = 86400.0  # run decay once per 24 hours
+
+logger = logging.getLogger("centinel.federation.reputation")
 
 
 @dataclass
@@ -76,9 +80,33 @@ class ReputationEngine:
         self._counter = 0
         self._lock = threading.Lock()
         self._db_path = db_path
+        self._decay_timer: Optional[threading.Timer] = None
         if db_path:
             self._init_db(db_path)
             self._load_db(db_path)
+            self._schedule_decay()
+
+    # ── decay scheduler ──────────────────────────────────────────────────────
+
+    def _schedule_decay(self) -> None:
+        self._decay_timer = threading.Timer(_DECAY_INTERVAL_SECONDS, self._run_decay)
+        self._decay_timer.daemon = True
+        self._decay_timer.start()
+
+    def _run_decay(self) -> None:
+        try:
+            self.decay()
+            logger.info("reputation_decay_completed nodes=%d", len(self._nodes))
+        except Exception as exc:
+            logger.warning("reputation_decay_error error=%s", exc)
+        finally:
+            self._schedule_decay()
+
+    def stop(self) -> None:
+        """Cancel the background decay scheduler. Call on process shutdown."""
+        if self._decay_timer:
+            self._decay_timer.cancel()
+            self._decay_timer = None
 
     # ── persistence ──────────────────────────────────────────────────────────
 
@@ -133,8 +161,8 @@ class ReputationEngine:
                 self._nodes[rep.node_id] = rep
                 if rep.arrival_order >= self._counter:
                     self._counter = rep.arrival_order + 1
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("reputation_load_rows_error error=%s", exc)
 
     def _record_event(self, rep: NodeReputation, event_type: str, ts: str) -> None:
         """Append a reputation event row for forensic audit trail."""
@@ -150,8 +178,8 @@ class ReputationEngine:
                      round(rep.beta, 4), round(rep.trust_score, 4), rep.ring, ts),
                 )
                 conn.commit()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("reputation_record_event_error node_id=%s error=%s", rep.node_id, exc)
 
     def _save(self, rep: NodeReputation) -> None:
         if not self._db_path:
@@ -175,8 +203,8 @@ class ReputationEngine:
                     rep.outage_count, rep.betrayal_count,
                 ))
                 conn.commit()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("reputation_save_error node_id=%s error=%s", rep.node_id, exc)
 
     # ── public API ────────────────────────────────────────────────────────────
 
@@ -361,5 +389,6 @@ class ReputationEngine:
                  "trust_score": r[3], "ring": r[4], "ts": r[5]}
                 for r in rows
             ]
-        except Exception:
+        except Exception as exc:
+            logger.warning("reputation_get_history_error node_id=%s error=%s", node_id, exc)
             return []

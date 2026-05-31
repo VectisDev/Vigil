@@ -28,7 +28,7 @@ from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import httpx
 
@@ -451,10 +451,10 @@ class GossipEngine:
         self._arrival_order: dict[str, int] = {}
         self._arrival_counter: int = 0
 
-        # ES: Callback opcional para propagar throttles de fuente a otros nodos.
-        # EN: Optional callback to propagate source throttles from remote nodes.
+        # Callback called when a peer reports a source_throttle finding.
         # Signature: (source_id: str, until_utc: str) -> None
-        self._throttle_callback: Optional[object] = None
+        # Set via engine.set_throttle_callback() to wire into the local pipeline.
+        self._throttle_callback: Optional[Callable[[str, str], None]] = None
 
         # ES: Registro cooperativo — un nodo comparte que ya raspó una fuente para
         #     que los demás la salten. Garantiza ≤1 req/fuente/TTL en todo el enjambre.
@@ -532,6 +532,10 @@ class GossipEngine:
         logger.info("gossip_stop node_id=%s peers=%d", self._node_id, len(self._peers))
 
     # ── public API ─────────────────────────────────────────────────────────────
+
+    def set_throttle_callback(self, cb: Callable[[str, str], None]) -> None:
+        """Wire a local pipeline handler for source_throttle findings from peers."""
+        self._throttle_callback = cb
 
     async def receive_attestation(self, payload_dict: dict) -> bool:
         """Accept an incoming NodePayload from a peer HTTP POST."""
