@@ -1,0 +1,54 @@
+name: Gossip Archive Release
+
+on:
+  schedule:
+    - cron: '4 0 * * 1'  # Weekly Monday at 00:04 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create gossip payload archive
+        run: |
+          mkdir -p gossip_archive
+          # In production, this would collect gossip payloads from the election
+          # For now, create a manifest of what would be archived
+          cat > gossip_archive/manifest.json <<'EOF'
+          {
+            "archived_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "description": "Gossip payloads from election cycle",
+            "payloads_count": 0,
+            "total_size_bytes": 0,
+            "compression": "gzip"
+          }
+          EOF
+
+      - name: Compress archive
+        run: |
+          tar czf gossip-archive-$(date -u +%Y%m%d).tar.gz gossip_archive/
+          ls -lh gossip-archive-*.tar.gz
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gossip-archive-*.tar.gz
+          tag_name: gossip-archive-${{ github.run_number }}
+          name: Gossip Archive #${{ github.run_number }}
+          body: |
+            Weekly gossip payload archive for forensic analysis.
+
+            - Compressed with gzip
+            - Includes payload manifest
+            - Archived in perpetuity via GitHub Releases
+
+            Available for indefinite retention without external storage cost.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
