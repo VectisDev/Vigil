@@ -469,8 +469,9 @@ details .details-body{padding:12px 0 4px}
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
             <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em">URL del ente electoral</label>
             <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov/" oninput="syncText('mainurl',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
-            <button class="hdr-btn primary" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar URL</button>
+            <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar y descubrir</button>
           </div>
+          <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
         </div>
         <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
@@ -2758,9 +2759,69 @@ function doEmergencia() {
   applyChanges();
 }
 
-function saveElectoralUrl() {
+async function saveElectoralUrl() {
+  const url = (document.getElementById('inp-main-url-easy')?.value || '').trim();
+  const btn = document.getElementById('btn-discover');
+  const res = document.getElementById('discover-result');
+
+  if (!url) return;
+
+  // Persist locally so the config saves regardless of API availability
+  if (localConfig['config/prod/endpoints.yaml']?.cne) {
+    localConfig['config/prod/endpoints.yaml'].cne.main_url = url;
+  }
   markDirty();
-  applyChanges();
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Buscando…'; }
+  if (res) { res.style.display = ''; res.style.background = 'rgba(212,176,102,.08)'; res.style.border = '1px solid rgba(212,176,102,.25)'; res.style.color = 'var(--warn)'; res.textContent = 'Analizando el sitio del ente electoral…'; }
+
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/setup/discover_endpoints', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ main_url: url, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
+    });
+
+    if (r.ok) {
+      const d = await r.json();
+      const n = d.endpoints_found || 0;
+
+      // Update localConfig with discovered endpoints
+      if (d.endpoints?.length) {
+        if (!localConfig['config/prod/endpoints.yaml']) localConfig['config/prod/endpoints.yaml'] = {};
+        if (!localConfig['config/prod/endpoints.yaml'].cne) localConfig['config/prod/endpoints.yaml'].cne = {};
+        localConfig['config/prod/endpoints.yaml'].cne.main_url = url;
+        localConfig['config/prod/endpoints.yaml'].cne.presidential_endpoints = d.endpoints;
+        buildEndpointsTable();
+      }
+
+      if (res) {
+        res.style.background = 'rgba(87,192,141,.08)';
+        res.style.border = '1px solid rgba(87,192,141,.25)';
+        res.style.color = 'var(--ok)';
+        res.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> ${n} endpoint${n !== 1 ? 's' : ''} descubierto${n !== 1 ? 's' : ''} — tabla actualizada`;
+      }
+    } else {
+      // API error — show message but URL is saved locally
+      const err = await r.json().catch(() => ({}));
+      if (res) {
+        res.style.background = 'rgba(220,50,47,.08)';
+        res.style.border = '1px solid rgba(220,50,47,.25)';
+        res.style.color = 'var(--alert)';
+        res.textContent = err.detail || 'Error al descubrir endpoints. URL guardada localmente.';
+      }
+    }
+  } catch (_) {
+    // Offline / GitHub Pages — URL is already saved locally above
+    if (res) {
+      res.style.background = 'rgba(212,176,102,.08)';
+      res.style.border = '1px solid rgba(212,176,102,.25)';
+      res.style.color = 'var(--warn)';
+      res.textContent = 'Servidor no disponible. URL guardada localmente — el descubrimiento se ejecutará al iniciar Centinel.';
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Guardar y descubrir'; }
+  }
 }
 
 // Populate localConfig endpoints from current DEPTS data (no API required).
