@@ -1,4 +1,5 @@
 """Tests for GitHub-native gossip protocol (zero-cost swarm coordination)."""
+
 import json
 from datetime import datetime, timezone
 
@@ -19,9 +20,7 @@ class TestGitHubGossipQueue:
 
     def test_init_with_token(self):
         """Test initialization with GitHub token."""
-        queue = GitHubGossipQueue(
-            "vectisdev/centinel", "election-2026-06-01", github_token="token123"
-        )
+        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01", github_token="token123")
         assert queue.github_token == "token123"
 
     def test_publish_payload(self):
@@ -103,11 +102,8 @@ class TestGitHubGossipQueue:
         """Test consensus with majority agreement (66% threshold)."""
         queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
         payloads = [
-            {"swarm_id": f"swarm-{i:03d}", "payload": {"fingerprint_hash": "sha256:abc123"}}
-            for i in range(3)
-        ] + [
-            {"swarm_id": "swarm-004", "payload": {"fingerprint_hash": "sha256:def456"}}
-        ]
+            {"swarm_id": f"swarm-{i:03d}", "payload": {"fingerprint_hash": "sha256:abc123"}} for i in range(3)
+        ] + [{"swarm_id": "swarm-004", "payload": {"fingerprint_hash": "sha256:def456"}}]
 
         consensus = queue.compute_consensus(payloads, threshold=0.66)
 
@@ -150,9 +146,7 @@ class TestGossipViaGitHub:
 
     def test_gossip_via_github_single_swarm(self):
         """Test single swarm gossip cycle (local computation)."""
-        result = gossip_via_github(
-            "vectisdev/centinel-data", "election-2026-06-01", "swarm-001"
-        )
+        result = gossip_via_github("vectisdev/centinel-data", "election-2026-06-01", "swarm-001")
 
         assert result["election_id"] == "election-2026-06-01"
         assert result["swarm_id"] == "swarm-001"
@@ -191,12 +185,8 @@ class TestGossipViaGitHub:
 
     def test_gossip_swarm_isolation(self):
         """Test that different swarms can work independently."""
-        result1 = gossip_via_github(
-            "vectisdev/centinel-data", "election-2026-06-01", "swarm-001"
-        )
-        result2 = gossip_via_github(
-            "vectisdev/centinel-data", "election-2026-06-01", "swarm-002"
-        )
+        result1 = gossip_via_github("vectisdev/centinel-data", "election-2026-06-01", "swarm-001")
+        result2 = gossip_via_github("vectisdev/centinel-data", "election-2026-06-01", "swarm-002")
 
         assert result1["swarm_id"] == "swarm-001"
         assert result2["swarm_id"] == "swarm-002"
