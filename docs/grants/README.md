@@ -13,6 +13,7 @@ Materials for grant applications, bounty programs, and institutional partnership
 | [INSTITUTIONAL_READINESS.md](INSTITUTIONAL_READINESS.md) | Institutional readiness assessment |
 | [ROADMAP.md](ROADMAP.md) | Feature roadmap |
 | [DASHBOARD-BLUEPRINT-2029.md](DASHBOARD-BLUEPRINT-2029.md) | Long-term dashboard vision |
+| [REGIONAL-NARRATIVE.md](REGIONAL-NARRATIVE.md) | Why Central America needs Centinel — regional context, country matrix, scaling strategy |
 
 ## Grant & Bounty Targets
 

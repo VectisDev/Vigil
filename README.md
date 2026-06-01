@@ -84,6 +84,35 @@ It will be available on the next push to `main`.
 
 ---
 
+## What we've audited so far
+
+### Honduras 2025 Presidential Election
+
+CENTINEL processed **64 real snapshots** from the CNE (Consejo Nacional Electoral) captured manually between December 3-10, 2025. The forensic engine detected:
+
+| Finding | Detail |
+|---------|--------|
+| **13-hour communication blackout** | Dec 3 22:00 → Dec 4 11:06 — no data published overnight, -0.504pp trend shift |
+| **Physically implausible resolution rate** | 2,346 inconsistent acts resolved at 39.15 actas/min (threshold: 10/min) |
+| **Prolonged stagnation** | 17 events where inconsistent act count froze for 8+ consecutive cycles |
+| **Progressive injection pattern** | 6 consecutive low-delta cycles while >1,000 inconsistent acts remained in backlog |
+| **41 communication gaps** | Including 6 overnight blackouts exceeding 10 hours each |
+
+**Reproduce it yourself:**
+```bash
+make reproduce-2025-audit
+```
+
+> Raw data: `tests/fixtures/hnd_2025/` (64 JSON files from CNE)
+> Forensic script: `scripts/forensic_hnd_2025.py`
+> Detection engine: `src/auditor/inconsistent_acts.py`
+
+*CENTINEL does not assert fraud. It detects statistical anomalies and provides cryptographic proof of data integrity for independent human evaluation.*
+
+*CENTINEL no afirma fraude. Detecta anomalías estadísticas y proporciona prueba criptográfica de integridad de datos para evaluación humana independiente.*
+
+---
+
 ## Supported Countries
 
 | Country | Code | Electoral Authority | Status |
