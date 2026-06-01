@@ -33,6 +33,15 @@ feature-branch
 Si la rama dev más reciente ya contiene los cambios (p.ej. via cherry-pick directo),
 igualmente crear el PR formal para tener trazabilidad y CI en ambas ramas.
 
+### Auto-merge — SIEMPRE hacer merge automáticamente
+
+**Regla crucial:** A MENOS QUE se indique explícitamente lo contrario, **SIEMPRE hacer merge automáticamente** sin esperar confirmación cuando:
+- ✅ CI pasa verde en ambos PRs
+- ✅ No hay conflictos de merge
+- ✅ Todos los checks están "success"
+
+No esperar confirmación del usuario. El merge automático es la norma, no la excepción.
+
 ---
 
 ## Ramas de desarrollo
