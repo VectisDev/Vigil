@@ -32,6 +32,8 @@ from typing import Callable, Optional
 
 import httpx
 
+from centinel.federation.compression import compress_payload
+
 logger = logging.getLogger("centinel.federation.gossip")
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -929,10 +931,11 @@ class GossipEngine:
     async def _push_payload(self, base_url: str, payload: NodePayload) -> bool:
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
+                compressed = compress_payload(payload.to_dict())
                 r = await client.post(
                     f"{base_url}/api/swarm/attest",
-                    json=payload.to_dict(),
-                    headers={"Content-Type": "application/json"},
+                    content=compressed,
+                    headers={"Content-Type": "application/gzip"},
                 )
                 return r.status_code == 200
         except Exception as exc:
@@ -942,10 +945,11 @@ class GossipEngine:
     async def _push_finding(self, base_url: str, finding: FindingPayload) -> bool:
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
+                compressed = compress_payload(finding.to_dict())
                 r = await client.post(
                     f"{base_url}/api/swarm/finding",
-                    json=finding.to_dict(),
-                    headers={"Content-Type": "application/json"},
+                    content=compressed,
+                    headers={"Content-Type": "application/gzip"},
                 )
                 return r.status_code == 200
         except Exception as exc:
@@ -955,10 +959,11 @@ class GossipEngine:
     async def _push_scrape_result(self, base_url: str, result: ScrapeResultPayload) -> bool:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
+                compressed = compress_payload(result.to_dict())
                 r = await client.post(
                     f"{base_url}/api/swarm/scrape_result",
-                    json=result.to_dict(),
-                    headers={"Content-Type": "application/json"},
+                    content=compressed,
+                    headers={"Content-Type": "application/gzip"},
                 )
                 return r.status_code == 200
         except Exception as exc:
