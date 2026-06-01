@@ -7,103 +7,120 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://www.cne-cuba.cu/api/elecciones/nacional"
     },
     {
       "code": "01",
       "name": "Pinar del Río",
       "abbr": "PR",
-      "iso": "CU-PR"
+      "iso": "CU-PR",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/01"
     },
     {
       "code": "02",
       "name": "Artemisa",
       "abbr": "AR",
-      "iso": "CU-AR"
+      "iso": "CU-AR",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/02"
     },
     {
       "code": "03",
       "name": "La Habana",
       "abbr": "LH",
-      "iso": "CU-LH"
+      "iso": "CU-LH",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/03"
     },
     {
       "code": "04",
       "name": "Mayabeque",
       "abbr": "MB",
-      "iso": "CU-MB"
+      "iso": "CU-MB",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/04"
     },
     {
       "code": "05",
       "name": "Matanzas",
       "abbr": "MA",
-      "iso": "CU-MA"
+      "iso": "CU-MA",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/05"
     },
     {
       "code": "06",
       "name": "Cienfuegos",
       "abbr": "CF",
-      "iso": "CU-CF"
+      "iso": "CU-CF",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/06"
     },
     {
       "code": "07",
       "name": "Villa Clara",
       "abbr": "VC",
-      "iso": "CU-VC"
+      "iso": "CU-VC",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/07"
     },
     {
       "code": "08",
       "name": "Sancti Spíritus",
       "abbr": "SS",
-      "iso": "CU-SS"
+      "iso": "CU-SS",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/08"
     },
     {
       "code": "09",
       "name": "Ciego de Ávila",
       "abbr": "CA",
-      "iso": "CU-CA"
+      "iso": "CU-CA",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/09"
     },
     {
       "code": "10",
       "name": "Camagüey",
       "abbr": "CM",
-      "iso": "CU-CM"
+      "iso": "CU-CM",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/10"
     },
     {
       "code": "11",
       "name": "Las Tunas",
       "abbr": "LT",
-      "iso": "CU-LT"
+      "iso": "CU-LT",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/11"
     },
     {
       "code": "12",
       "name": "Holguín",
       "abbr": "HO",
-      "iso": "CU-HO"
+      "iso": "CU-HO",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/12"
     },
     {
       "code": "13",
       "name": "Granma",
       "abbr": "GR",
-      "iso": "CU-GR"
+      "iso": "CU-GR",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/13"
     },
     {
       "code": "14",
       "name": "Santiago de Cuba",
       "abbr": "SC",
-      "iso": "CU-SC"
+      "iso": "CU-SC",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/14"
     },
     {
       "code": "15",
       "name": "Guantánamo",
       "abbr": "GU",
-      "iso": "CU-GU"
+      "iso": "CU-GU",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/15"
     },
     {
       "code": "16",
       "name": "Isla de la Juventud",
       "abbr": "IJ",
-      "iso": "CU-IJ"
+      "iso": "CU-IJ",
+      "url": "https://www.cne-cuba.cu/api/elecciones/provincia/16"
     }
   ]
 }

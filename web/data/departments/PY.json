@@ -7,115 +7,134 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://resultados.tsje.gov.py/api/presidencial/nacional"
     },
     {
       "code": "01",
       "name": "Alto Paraguay",
       "abbr": "AP",
-      "iso": "PY-AP"
+      "iso": "PY-AP",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/01"
     },
     {
       "code": "02",
       "name": "Alto Paraná",
       "abbr": "APA",
-      "iso": "PY-APA"
+      "iso": "PY-APA",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/02"
     },
     {
       "code": "03",
       "name": "Amambay",
       "abbr": "AM",
-      "iso": "PY-AM"
+      "iso": "PY-AM",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/03"
     },
     {
       "code": "04",
       "name": "Boquerón",
       "abbr": "BO",
-      "iso": "PY-BO"
+      "iso": "PY-BO",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/04"
     },
     {
       "code": "05",
       "name": "Caaguazú",
       "abbr": "CG",
-      "iso": "PY-CG"
+      "iso": "PY-CG",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/05"
     },
     {
       "code": "06",
       "name": "Caazapá",
       "abbr": "CA",
-      "iso": "PY-CA"
+      "iso": "PY-CA",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/06"
     },
     {
       "code": "07",
       "name": "Canindeyú",
       "abbr": "CN",
-      "iso": "PY-CN"
+      "iso": "PY-CN",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/07"
     },
     {
       "code": "08",
       "name": "Central",
       "abbr": "CE",
-      "iso": "PY-CE"
+      "iso": "PY-CE",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/08"
     },
     {
       "code": "09",
       "name": "Concepción",
       "abbr": "CO",
-      "iso": "PY-CO"
+      "iso": "PY-CO",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/09"
     },
     {
       "code": "10",
       "name": "Cordillera",
       "abbr": "CR",
-      "iso": "PY-CR"
+      "iso": "PY-CR",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/10"
     },
     {
       "code": "11",
       "name": "Guairá",
       "abbr": "GU",
-      "iso": "PY-GU"
+      "iso": "PY-GU",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/11"
     },
     {
       "code": "12",
       "name": "Itapúa",
       "abbr": "IT",
-      "iso": "PY-IT"
+      "iso": "PY-IT",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/12"
     },
     {
       "code": "13",
       "name": "Misiones",
       "abbr": "MI",
-      "iso": "PY-MI"
+      "iso": "PY-MI",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/13"
     },
     {
       "code": "14",
       "name": "Ñeembucú",
       "abbr": "NE",
-      "iso": "PY-NE"
+      "iso": "PY-NE",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/14"
     },
     {
       "code": "15",
       "name": "Paraguarí",
       "abbr": "PG",
-      "iso": "PY-PG"
+      "iso": "PY-PG",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/15"
     },
     {
       "code": "16",
       "name": "Presidente Hayes",
       "abbr": "PH",
-      "iso": "PY-PH"
+      "iso": "PY-PH",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/16"
     },
     {
       "code": "17",
       "name": "San Pedro",
       "abbr": "SP",
-      "iso": "PY-SP"
+      "iso": "PY-SP",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/17"
     },
     {
       "code": "18",
       "name": "Asunción",
       "abbr": "ASU",
-      "iso": "PY-ASU"
+      "iso": "PY-ASU",
+      "url": "https://resultados.tsje.gov.py/api/presidencial/departamento/18"
     }
   ]
 }
