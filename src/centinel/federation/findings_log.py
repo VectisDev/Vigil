@@ -4,6 +4,7 @@ FederationAnomalyLog — SQLite-backed persistent store for cross-node electoral
 Replaces the in-memory OrderedDict ring buffer with a WAL-mode SQLite database so
 no evidence is lost due to capacity eviction, even at 100k-node scale.
 """
+
 from __future__ import annotations
 
 import json
@@ -79,7 +80,8 @@ class FederationAnomalyLog:
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA synchronous=NORMAL")
                 conn.row_factory = sqlite3.Row
-                conn.execute("""
+                conn.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS findings (
                         finding_id   TEXT PRIMARY KEY,
                         node_id      TEXT,
@@ -94,10 +96,9 @@ class FederationAnomalyLog:
                         received_utc TEXT,
                         payload_json TEXT
                     )
-                """)
-                conn.execute(
-                    "CREATE INDEX IF NOT EXISTS idx_ts ON findings(timestamp_utc DESC)"
+                """
                 )
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_ts ON findings(timestamp_utc DESC)")
                 conn.commit()
             finally:
                 if owned:
@@ -113,13 +114,16 @@ class FederationAnomalyLog:
         count = conn.execute("SELECT COUNT(*) FROM findings").fetchone()[0]
         if count > self._max:
             excess = count - self._max
-            conn.execute("""
+            conn.execute(
+                """
                 DELETE FROM findings WHERE finding_id IN (
                     SELECT finding_id FROM findings
                     ORDER BY timestamp_utc ASC
                     LIMIT ?
                 )
-            """, (excess,))
+            """,
+                (excess,),
+            )
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -143,33 +147,49 @@ class FederationAnomalyLog:
                 if cur.fetchone():
                     return False  # duplicate
 
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT INTO findings (
                         finding_id, node_id, country_code, finding_type,
                         severity, rule_key, summary, snapshot_id,
                         timestamp_utc, source, received_utc, payload_json
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    finding.finding_id, finding.node_id, finding.country_code,
-                    finding.finding_type, finding.severity, finding.rule_key,
-                    finding.summary, finding.snapshot_id, finding.timestamp_utc,
-                    source, received_utc, payload_json,
-                ))
+                """,
+                    (
+                        finding.finding_id,
+                        finding.node_id,
+                        finding.country_code,
+                        finding.finding_type,
+                        finding.severity,
+                        finding.rule_key,
+                        finding.summary,
+                        finding.snapshot_id,
+                        finding.timestamp_utc,
+                        source,
+                        received_utc,
+                        payload_json,
+                    ),
+                )
                 self._evict(conn)
                 conn.commit()
 
                 if self._log_path:
-                    self._append_jsonl({
-                        **finding.to_dict(),
-                        "_source": source,
-                        "_received_utc": received_utc,
-                    })
+                    self._append_jsonl(
+                        {
+                            **finding.to_dict(),
+                            "_source": source,
+                            "_received_utc": received_utc,
+                        }
+                    )
             finally:
                 self._close(conn)
 
         logger.info(
             "federation_anomaly_added finding_id=%s rule=%s severity=%s source=%s",
-            finding.finding_id, finding.rule_key, finding.severity, source,
+            finding.finding_id,
+            finding.rule_key,
+            finding.severity,
+            source,
         )
         return True
 
@@ -222,22 +242,13 @@ class FederationAnomalyLog:
         try:
             total = conn.execute("SELECT COUNT(*) FROM findings").fetchone()[0]
             by_severity = {
-                r[0]: r[1]
-                for r in conn.execute(
-                    "SELECT severity, COUNT(*) FROM findings GROUP BY severity"
-                ).fetchall()
+                r[0]: r[1] for r in conn.execute("SELECT severity, COUNT(*) FROM findings GROUP BY severity").fetchall()
             }
             by_rule = {
-                r[0]: r[1]
-                for r in conn.execute(
-                    "SELECT rule_key, COUNT(*) FROM findings GROUP BY rule_key"
-                ).fetchall()
+                r[0]: r[1] for r in conn.execute("SELECT rule_key, COUNT(*) FROM findings GROUP BY rule_key").fetchall()
             }
             by_node = {
-                r[0]: r[1]
-                for r in conn.execute(
-                    "SELECT node_id, COUNT(*) FROM findings GROUP BY node_id"
-                ).fetchall()
+                r[0]: r[1] for r in conn.execute("SELECT node_id, COUNT(*) FROM findings GROUP BY node_id").fetchall()
             }
         finally:
             self._close(conn)

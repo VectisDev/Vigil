@@ -1,4 +1,5 @@
 """Tests for hash chain export via Git commits (zero-cost immutable storage)."""
+
 import json
 import subprocess
 import tempfile
@@ -64,9 +65,7 @@ class TestSerializeChainSnapshot:
         # Should be parseable as ISO format
         from datetime import datetime
 
-        timestamp = datetime.fromisoformat(
-            snapshot["timestamp"].replace("Z", "+00:00")
-        )
+        timestamp = datetime.fromisoformat(snapshot["timestamp"].replace("Z", "+00:00"))
         assert timestamp is not None
         assert timestamp.tzinfo is not None
 
@@ -122,10 +121,7 @@ class TestCommitToHashChain:
             snapshot_dir = repo_root / "data" / "reputation"
             snapshot_dir.mkdir(parents=True, exist_ok=True)
 
-            snapshot_file = (
-                snapshot_dir
-                / f"snapshot-{snapshot['timestamp'][:10]}.json"
-            )
+            snapshot_file = snapshot_dir / f"snapshot-{snapshot['timestamp'][:10]}.json"
             with open(snapshot_file, "w") as f:
                 json.dump(snapshot, f, indent=2)
 
@@ -134,6 +130,7 @@ class TestCommitToHashChain:
 
     def test_commit_handles_errors_gracefully(self):
         """Test that snapshot creation handles missing data gracefully."""
+
         # Create engine without all expected methods
         class MinimalEngine:
             pass
@@ -155,12 +152,9 @@ class TestCommitToHashChain:
         )
         snapshot = serialize_chain_snapshot(engine)
 
-        ring_summary = " | ".join(
-            f"ring-{k}:{v}" for k, v in snapshot["ring_counts"].items()
-        )
+        ring_summary = " | ".join(f"ring-{k}:{v}" for k, v in snapshot["ring_counts"].items())
         commit_msg = (
-            f"Hash chain snapshot: {snapshot['timestamp']} | {ring_summary} | "
-            f"nodes={len(snapshot['nodes'])}"
+            f"Hash chain snapshot: {snapshot['timestamp']} | {ring_summary} | " f"nodes={len(snapshot['nodes'])}"
         )
 
         assert "Hash chain snapshot:" in commit_msg
@@ -188,9 +182,7 @@ class TestHashChainIntegration:
     def test_multiple_snapshots(self):
         """Test creating multiple snapshots (simulating periodic exports)."""
         engine1 = MockReputationEngine({"node-001": {"trust": 0.85}})
-        engine2 = MockReputationEngine(
-            {"node-001": {"trust": 0.90}, "node-002": {"trust": 0.60}}
-        )
+        engine2 = MockReputationEngine({"node-001": {"trust": 0.90}, "node-002": {"trust": 0.60}})
 
         snapshot1 = serialize_chain_snapshot(engine1)
         snapshot2 = serialize_chain_snapshot(engine2)
