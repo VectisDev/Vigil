@@ -9,7 +9,7 @@ Called by setup-wizard.yml. Environment variables:
   REPO_NAME         — repository name
   GITHUB_RUN_ID     — Actions run ID (for artifact URL in the seeds file)
 """
-import hashlib, secrets, json, os, sys
+import hashlib, secrets, json, os, sys, base64
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -36,29 +36,14 @@ if access_path.exists():
     except Exception:
         pass
 
-ADJECTIVES = [
-    "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel",
-    "india", "juliet", "kilo", "lima", "mike", "november", "oscar", "papa",
-    "quebec", "romeo", "sierra", "tango", "uniform", "victor", "whiskey", "xray",
-    "yankee", "zulu", "amber", "azure", "black", "blue", "cedar", "coral",
-    "crimson", "cyan", "dusk", "ember", "frost", "gold", "green", "ivory",
-]
-NOUNS = [
-    "anchor", "arrow", "badge", "bolt", "bridge", "canyon", "cloud", "comet",
-    "crown", "crystal", "dawn", "eagle", "falcon", "flame", "forest", "glacier",
-    "harbor", "hawk", "island", "jaguar", "keystone", "lance", "lantern", "marble",
-    "meteor", "mirror", "moon", "mountain", "nova", "oak", "orbit", "pearl",
-    "phoenix", "pine", "prism", "quartz", "raven", "reef", "ridge", "river",
-    "rocket", "sage", "shadow", "shield", "signal", "silver", "solar", "spark",
-    "spire", "star", "storm", "summit", "sword", "thorn", "tide", "tiger",
-    "torch", "tower", "trail", "vault", "viper", "vista", "wave", "wolf",
-]
+def generate_base64_seed(entropy_bytes=18):
+    """Generate a base64-style 24-character seed with high entropy."""
+    random_bytes = secrets.token_bytes(entropy_bytes)
+    b64_encoded = base64.urlsafe_b64encode(random_bytes).decode('ascii')
+    return b64_encoded[:24]
 
 LABELS = list("ABCDEFGHIJKL")
-seeds = [
-    f"{secrets.choice(ADJECTIVES)}-{secrets.choice(NOUNS)}-{secrets.randbelow(10000):04d}"
-    for _ in range(12)
-]
+seeds = [generate_base64_seed() for _ in range(12)]
 hashes = {
     f"S1-{LABELS[i]}": hashlib.pbkdf2_hmac("sha256", s.encode(), SALT.encode(), ITERS).hex()
     for i, s in enumerate(seeds)
