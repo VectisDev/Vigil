@@ -87,7 +87,9 @@ def apply_config(req: ApplyConfigRequest) -> dict:
         except Exception:
             pass
 
-    logger.info("config_applied country=%s main_url=%s", req.country_code, req.main_url)
+    safe_country = (req.country_code or "").replace("\n", " ").replace("\r", " ") if req.country_code else None
+    safe_url = (req.main_url or "").replace("\n", " ").replace("\r", " ") if req.main_url else None
+    logger.info("config_applied country=%s main_url=%s", safe_country, safe_url)
     return {"success": True}
 
 
@@ -122,7 +124,8 @@ def pipeline_start(req: ApplyConfigRequest | None = None) -> dict:
         logger.info("pipeline_started pid=%d", proc.pid)
         return {"status": "started", "pid": proc.pid}
     except Exception as exc:
-        logger.error("pipeline_start_failed error=%s", exc)
+        safe_error = str(exc).replace("\n", " ").replace("\r", " ")
+        logger.error("pipeline_start_failed error=%s", safe_error)
         raise HTTPException(status_code=500, detail=f"No se pudo iniciar el pipeline: {exc}")
 
 
