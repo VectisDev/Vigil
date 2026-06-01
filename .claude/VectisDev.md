@@ -1,4 +1,4 @@
-# CLAUDE.md — Instrucciones permanentes para Claude Code
+# VectisDev.md — Instrucciones permanentes de desarrollo
 
 ## Ramas activas
 
