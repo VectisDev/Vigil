@@ -7,199 +7,232 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://prep2024.ine.mx/api/presidencial/nacional"
     },
     {
       "code": "01",
       "name": "Aguascalientes",
       "abbr": "AG",
-      "iso": "MX-AG"
+      "iso": "MX-AG",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/01"
     },
     {
       "code": "02",
       "name": "Baja California",
       "abbr": "BC",
-      "iso": "MX-BC"
+      "iso": "MX-BC",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/02"
     },
     {
       "code": "03",
       "name": "Baja California Sur",
       "abbr": "BS",
-      "iso": "MX-BS"
+      "iso": "MX-BS",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/03"
     },
     {
       "code": "04",
       "name": "Campeche",
       "abbr": "CM",
-      "iso": "MX-CM"
+      "iso": "MX-CM",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/04"
     },
     {
       "code": "05",
       "name": "Chiapas",
       "abbr": "CS",
-      "iso": "MX-CS"
+      "iso": "MX-CS",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/05"
     },
     {
       "code": "06",
       "name": "Chihuahua",
       "abbr": "CH",
-      "iso": "MX-CH"
+      "iso": "MX-CH",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/06"
     },
     {
       "code": "07",
       "name": "Ciudad de México",
       "abbr": "CDMX",
-      "iso": "MX-CDMX"
+      "iso": "MX-CDMX",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/07"
     },
     {
       "code": "08",
       "name": "Coahuila",
       "abbr": "CO",
-      "iso": "MX-CO"
+      "iso": "MX-CO",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/08"
     },
     {
       "code": "09",
       "name": "Colima",
       "abbr": "CL",
-      "iso": "MX-CL"
+      "iso": "MX-CL",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/09"
     },
     {
       "code": "10",
       "name": "Durango",
       "abbr": "DG",
-      "iso": "MX-DG"
+      "iso": "MX-DG",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/10"
     },
     {
       "code": "11",
       "name": "Guanajuato",
       "abbr": "GT",
-      "iso": "MX-GT"
+      "iso": "MX-GT",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/11"
     },
     {
       "code": "12",
       "name": "Guerrero",
       "abbr": "GR",
-      "iso": "MX-GR"
+      "iso": "MX-GR",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/12"
     },
     {
       "code": "13",
       "name": "Hidalgo",
       "abbr": "HG",
-      "iso": "MX-HG"
+      "iso": "MX-HG",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/13"
     },
     {
       "code": "14",
       "name": "Jalisco",
       "abbr": "JA",
-      "iso": "MX-JA"
+      "iso": "MX-JA",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/14"
     },
     {
       "code": "15",
       "name": "México",
       "abbr": "MX",
-      "iso": "MX-MX"
+      "iso": "MX-MX",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/15"
     },
     {
       "code": "16",
       "name": "Michoacán",
       "abbr": "MI",
-      "iso": "MX-MI"
+      "iso": "MX-MI",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/16"
     },
     {
       "code": "17",
       "name": "Morelos",
       "abbr": "MO",
-      "iso": "MX-MO"
+      "iso": "MX-MO",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/17"
     },
     {
       "code": "18",
       "name": "Nayarit",
       "abbr": "NA",
-      "iso": "MX-NA"
+      "iso": "MX-NA",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/18"
     },
     {
       "code": "19",
       "name": "Nuevo León",
       "abbr": "NL",
-      "iso": "MX-NL"
+      "iso": "MX-NL",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/19"
     },
     {
       "code": "20",
       "name": "Oaxaca",
       "abbr": "OA",
-      "iso": "MX-OA"
+      "iso": "MX-OA",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/20"
     },
     {
       "code": "21",
       "name": "Puebla",
       "abbr": "PU",
-      "iso": "MX-PU"
+      "iso": "MX-PU",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/21"
     },
     {
       "code": "22",
       "name": "Querétaro",
       "abbr": "QT",
-      "iso": "MX-QT"
+      "iso": "MX-QT",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/22"
     },
     {
       "code": "23",
       "name": "Quintana Roo",
       "abbr": "QR",
-      "iso": "MX-QR"
+      "iso": "MX-QR",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/23"
     },
     {
       "code": "24",
       "name": "San Luis Potosí",
       "abbr": "SL",
-      "iso": "MX-SL"
+      "iso": "MX-SL",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/24"
     },
     {
       "code": "25",
       "name": "Sinaloa",
       "abbr": "SI",
-      "iso": "MX-SI"
+      "iso": "MX-SI",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/25"
     },
     {
       "code": "26",
       "name": "Sonora",
       "abbr": "SO",
-      "iso": "MX-SO"
+      "iso": "MX-SO",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/26"
     },
     {
       "code": "27",
       "name": "Tabasco",
       "abbr": "TB",
-      "iso": "MX-TB"
+      "iso": "MX-TB",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/27"
     },
     {
       "code": "28",
       "name": "Tamaulipas",
       "abbr": "TM",
-      "iso": "MX-TM"
+      "iso": "MX-TM",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/28"
     },
     {
       "code": "29",
       "name": "Tlaxcala",
       "abbr": "TL",
-      "iso": "MX-TL"
+      "iso": "MX-TL",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/29"
     },
     {
       "code": "30",
       "name": "Veracruz",
       "abbr": "VE",
-      "iso": "MX-VE"
+      "iso": "MX-VE",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/30"
     },
     {
       "code": "31",
       "name": "Yucatán",
       "abbr": "YU",
-      "iso": "MX-YU"
+      "iso": "MX-YU",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/31"
     },
     {
       "code": "32",
       "name": "Zacatecas",
       "abbr": "ZA",
-      "iso": "MX-ZA"
+      "iso": "MX-ZA",
+      "url": "https://prep2024.ine.mx/api/presidencial/entidad/32"
     }
   ]
 }

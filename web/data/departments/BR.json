@@ -7,169 +7,197 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/nacional"
     },
     {
       "code": "01",
       "name": "Acre",
       "abbr": "AC",
-      "iso": "BR-AC"
+      "iso": "BR-AC",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/01"
     },
     {
       "code": "02",
       "name": "Alagoas",
       "abbr": "AL",
-      "iso": "BR-AL"
+      "iso": "BR-AL",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/02"
     },
     {
       "code": "03",
       "name": "Amapá",
       "abbr": "AP",
-      "iso": "BR-AP"
+      "iso": "BR-AP",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/03"
     },
     {
       "code": "04",
       "name": "Amazonas",
       "abbr": "AM",
-      "iso": "BR-AM"
+      "iso": "BR-AM",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/04"
     },
     {
       "code": "05",
       "name": "Bahia",
       "abbr": "BA",
-      "iso": "BR-BA"
+      "iso": "BR-BA",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/05"
     },
     {
       "code": "06",
       "name": "Ceará",
       "abbr": "CE",
-      "iso": "BR-CE"
+      "iso": "BR-CE",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/06"
     },
     {
       "code": "07",
       "name": "Distrito Federal",
       "abbr": "DF",
-      "iso": "BR-DF"
+      "iso": "BR-DF",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/07"
     },
     {
       "code": "08",
       "name": "Espírito Santo",
       "abbr": "ES",
-      "iso": "BR-ES"
+      "iso": "BR-ES",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/08"
     },
     {
       "code": "09",
       "name": "Goiás",
       "abbr": "GO",
-      "iso": "BR-GO"
+      "iso": "BR-GO",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/09"
     },
     {
       "code": "10",
       "name": "Maranhão",
       "abbr": "MA",
-      "iso": "BR-MA"
+      "iso": "BR-MA",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/10"
     },
     {
       "code": "11",
       "name": "Mato Grosso",
       "abbr": "MT",
-      "iso": "BR-MT"
+      "iso": "BR-MT",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/11"
     },
     {
       "code": "12",
       "name": "Mato Grosso do Sul",
       "abbr": "MS",
-      "iso": "BR-MS"
+      "iso": "BR-MS",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/12"
     },
     {
       "code": "13",
       "name": "Minas Gerais",
       "abbr": "MG",
-      "iso": "BR-MG"
+      "iso": "BR-MG",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/13"
     },
     {
       "code": "14",
       "name": "Pará",
       "abbr": "PA",
-      "iso": "BR-PA"
+      "iso": "BR-PA",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/14"
     },
     {
       "code": "15",
       "name": "Paraíba",
       "abbr": "PB",
-      "iso": "BR-PB"
+      "iso": "BR-PB",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/15"
     },
     {
       "code": "16",
       "name": "Paraná",
       "abbr": "PR",
-      "iso": "BR-PR"
+      "iso": "BR-PR",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/16"
     },
     {
       "code": "17",
       "name": "Pernambuco",
       "abbr": "PE",
-      "iso": "BR-PE"
+      "iso": "BR-PE",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/17"
     },
     {
       "code": "18",
       "name": "Piauí",
       "abbr": "PI",
-      "iso": "BR-PI"
+      "iso": "BR-PI",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/18"
     },
     {
       "code": "19",
       "name": "Rio de Janeiro",
       "abbr": "RJ",
-      "iso": "BR-RJ"
+      "iso": "BR-RJ",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/19"
     },
     {
       "code": "20",
       "name": "Rio Grande do Norte",
       "abbr": "RN",
-      "iso": "BR-RN"
+      "iso": "BR-RN",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/20"
     },
     {
       "code": "21",
       "name": "Rio Grande do Sul",
       "abbr": "RS",
-      "iso": "BR-RS"
+      "iso": "BR-RS",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/21"
     },
     {
       "code": "22",
       "name": "Rondônia",
       "abbr": "RO",
-      "iso": "BR-RO"
+      "iso": "BR-RO",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/22"
     },
     {
       "code": "23",
       "name": "Roraima",
       "abbr": "RR",
-      "iso": "BR-RR"
+      "iso": "BR-RR",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/23"
     },
     {
       "code": "24",
       "name": "Santa Catarina",
       "abbr": "SC",
-      "iso": "BR-SC"
+      "iso": "BR-SC",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/24"
     },
     {
       "code": "25",
       "name": "São Paulo",
       "abbr": "SP",
-      "iso": "BR-SP"
+      "iso": "BR-SP",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/25"
     },
     {
       "code": "26",
       "name": "Sergipe",
       "abbr": "SE",
-      "iso": "BR-SE"
+      "iso": "BR-SE",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/26"
     },
     {
       "code": "27",
       "name": "Tocantins",
       "abbr": "TO",
-      "iso": "BR-TO"
+      "iso": "BR-TO",
+      "url": "https://resultados.tse.jus.br/oficial/api/eleicao/resultado/estado/27"
     }
   ]
 }

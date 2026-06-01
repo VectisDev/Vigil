@@ -7,85 +7,99 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/nacional"
     },
     {
       "code": "01",
       "name": "Bocas del Toro",
       "abbr": "BO",
-      "iso": "PA-BO"
+      "iso": "PA-BO",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/01"
     },
     {
       "code": "02",
       "name": "Chiriquí",
       "abbr": "CH",
-      "iso": "PA-CH"
+      "iso": "PA-CH",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/02"
     },
     {
       "code": "03",
       "name": "Coclé",
       "abbr": "CO",
-      "iso": "PA-CO"
+      "iso": "PA-CO",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/03"
     },
     {
       "code": "04",
       "name": "Colón",
       "abbr": "CL",
-      "iso": "PA-CL"
+      "iso": "PA-CL",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/04"
     },
     {
       "code": "05",
       "name": "Darién",
       "abbr": "DA",
-      "iso": "PA-DA"
+      "iso": "PA-DA",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/05"
     },
     {
       "code": "06",
       "name": "Herrera",
       "abbr": "HE",
-      "iso": "PA-HE"
+      "iso": "PA-HE",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/06"
     },
     {
       "code": "07",
       "name": "Los Santos",
       "abbr": "LS",
-      "iso": "PA-LS"
+      "iso": "PA-LS",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/07"
     },
     {
       "code": "08",
       "name": "Panamá",
       "abbr": "PA",
-      "iso": "PA-PA"
+      "iso": "PA-PA",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/08"
     },
     {
       "code": "09",
       "name": "Veraguas",
       "abbr": "VE",
-      "iso": "PA-VE"
+      "iso": "PA-VE",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/09"
     },
     {
       "code": "10",
       "name": "Guna Yala",
       "abbr": "GY",
-      "iso": "PA-GY"
+      "iso": "PA-GY",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/10"
     },
     {
       "code": "11",
       "name": "Emberá",
       "abbr": "EM",
-      "iso": "PA-EM"
+      "iso": "PA-EM",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/11"
     },
     {
       "code": "12",
       "name": "Ngäbe-Buglé",
       "abbr": "NB",
-      "iso": "PA-NB"
+      "iso": "PA-NB",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/12"
     },
     {
       "code": "13",
       "name": "Panamá Oeste",
       "abbr": "PO",
-      "iso": "PA-PO"
+      "iso": "PA-PO",
+      "url": "https://resultados.tribunal-electoral.gob.pa/api/presidencial/provincia/13"
     }
   ]
 }
