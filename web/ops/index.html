@@ -1566,6 +1566,7 @@ async function initAll(){
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
   await loadDepartments(ACTIVE_COUNTRY_CODE);
   try { buildDeptGrid(); }    catch(e){ console.warn('buildDeptGrid',e); }
+  try { syncEndpointsFromDepts(); } catch(e){ console.warn('syncEndpointsFromDepts',e); }
   try { buildPresetsGrid(); } catch(e){ console.warn('buildPresetsGrid',e); }
   await Promise.all([
     loadSnapshot(),
@@ -1679,7 +1680,8 @@ function buildEndpointsTable(){
   tbody.innerHTML = '';
   DEPTS.filter(d=>d.code!=='00').forEach(dept=>{
     const found = eps.find(e=>(e.department_code||'').toString().padStart(2,'0')===dept.code);
-    const url = found?.url || '';
+    // Fall back to URL from country JSON if no explicit config override
+    const url = found?.url || dept.url || '';
     const status = getEndpointStatus(dept.code);
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -1865,6 +1867,12 @@ function buildDeptGrid(){
     grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--muted);padding:12px 0">Cargando departamentos…</div>';
     return;
   }
+
+  // Update section label with live count
+  const lbl = document.getElementById('dept-section-label');
+  const divCount = DEPTS.filter(d => d.code !== '00').length;
+  const divLabel = COUNTRY_META?.divisions_label || 'Divisiones';
+  if (lbl) lbl.textContent = `${divLabel} — ${divCount + 1} endpoints (1 nacional + ${divCount})`;
 
   // NACIONAL card first
   const natCard = document.createElement('div');
@@ -2755,6 +2763,36 @@ function saveElectoralUrl() {
   applyChanges();
 }
 
+// Populate localConfig endpoints from current DEPTS data (no API required).
+// Runs after loadDepartments() so DEPTS is already filled.
+function syncEndpointsFromDepts() {
+  if (!DEPTS || DEPTS.length === 0) return;
+  const nat = DEPTS.find(d => d.code === '00');
+  const divs = DEPTS.filter(d => d.code !== '00');
+
+  if (!localConfig['config/prod/endpoints.yaml']) localConfig['config/prod/endpoints.yaml'] = {};
+  const ep = localConfig['config/prod/endpoints.yaml'];
+  if (!ep.cne) ep.cne = {};
+
+  // Only overwrite main_url if it's empty or belongs to a different country
+  if (!ep.cne.main_url && nat?.url) ep.cne.main_url = nat.url;
+
+  // Replace the endpoints list entirely with the new country's divisions
+  ep.cne.presidential_endpoints = divs.map(d => ({
+    department_code: parseInt(d.code, 10) || d.code,
+    url: d.url || '',
+  }));
+
+  // Update the main-url inputs in the UI
+  const inpMain = document.getElementById('inp-main-url');
+  const inpMainEasy = document.getElementById('inp-main-url-easy');
+  if (inpMain && !inpMain.value && nat?.url) inpMain.value = nat.url;
+  if (inpMainEasy && !inpMainEasy.value && nat?.url) inpMainEasy.value = nat.url;
+
+  markDirty();
+  buildEndpointsTable();
+}
+
 async function doChangeCountry() {
   const sel = document.getElementById('country-select');
   const btn = document.getElementById('btn-change-country');
@@ -2786,6 +2824,9 @@ async function doChangeCountry() {
   // Load country-specific departments and rebuild grid
   await loadDepartments(code);
   buildDeptGrid();
+
+  // Auto-populate endpoints config from the new country's department URLs
+  syncEndpointsFromDepts();
 
   // Best-effort API sync (silent on failure — works offline / GitHub Pages)
   let apiSynced = false;

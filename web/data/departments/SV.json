@@ -7,91 +7,106 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/nacional"
     },
     {
       "code": "01",
       "name": "Ahuachapán",
       "abbr": "AH",
-      "iso": "SV-AH"
+      "iso": "SV-AH",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/01"
     },
     {
       "code": "02",
       "name": "Cabañas",
       "abbr": "CA",
-      "iso": "SV-CA"
+      "iso": "SV-CA",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/02"
     },
     {
       "code": "03",
       "name": "Chalatenango",
       "abbr": "CH",
-      "iso": "SV-CH"
+      "iso": "SV-CH",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/03"
     },
     {
       "code": "04",
       "name": "Cuscatlán",
       "abbr": "CU",
-      "iso": "SV-CU"
+      "iso": "SV-CU",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/04"
     },
     {
       "code": "05",
       "name": "La Libertad",
       "abbr": "LL",
-      "iso": "SV-LL"
+      "iso": "SV-LL",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/05"
     },
     {
       "code": "06",
       "name": "La Paz",
       "abbr": "LP",
-      "iso": "SV-LP"
+      "iso": "SV-LP",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/06"
     },
     {
       "code": "07",
       "name": "La Unión",
       "abbr": "LU",
-      "iso": "SV-LU"
+      "iso": "SV-LU",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/07"
     },
     {
       "code": "08",
       "name": "Morazán",
       "abbr": "MO",
-      "iso": "SV-MO"
+      "iso": "SV-MO",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/08"
     },
     {
       "code": "09",
       "name": "San Miguel",
       "abbr": "SM",
-      "iso": "SV-SM"
+      "iso": "SV-SM",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/09"
     },
     {
       "code": "10",
       "name": "San Salvador",
       "abbr": "SS",
-      "iso": "SV-SS"
+      "iso": "SV-SS",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/10"
     },
     {
       "code": "11",
       "name": "San Vicente",
       "abbr": "SV",
-      "iso": "SV-SV"
+      "iso": "SV-SV",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/11"
     },
     {
       "code": "12",
       "name": "Santa Ana",
       "abbr": "SA",
-      "iso": "SV-SA"
+      "iso": "SV-SA",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/12"
     },
     {
       "code": "13",
       "name": "Sonsonate",
       "abbr": "SO",
-      "iso": "SV-SO"
+      "iso": "SV-SO",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/13"
     },
     {
       "code": "14",
       "name": "Usulután",
       "abbr": "US",
-      "iso": "SV-US"
+      "iso": "SV-US",
+      "url": "https://escrutinio.tse.gob.sv/api/presidencial/departamento/14"
     }
   ]
 }
