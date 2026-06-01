@@ -7,49 +7,57 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://resultados.tse.go.cr/api/presidencial/nacional"
     },
     {
       "code": "01",
       "name": "San José",
       "abbr": "SJ",
-      "iso": "CR-SJ"
+      "iso": "CR-SJ",
+      "url": "https://resultados.tse.go.cr/api/presidencial/provincia/01"
     },
     {
       "code": "02",
       "name": "Alajuela",
       "abbr": "AL",
-      "iso": "CR-AL"
+      "iso": "CR-AL",
+      "url": "https://resultados.tse.go.cr/api/presidencial/provincia/02"
     },
     {
       "code": "03",
       "name": "Cartago",
       "abbr": "CA",
-      "iso": "CR-CA"
+      "iso": "CR-CA",
+      "url": "https://resultados.tse.go.cr/api/presidencial/provincia/03"
     },
     {
       "code": "04",
       "name": "Heredia",
       "abbr": "HE",
-      "iso": "CR-HE"
+      "iso": "CR-HE",
+      "url": "https://resultados.tse.go.cr/api/presidencial/provincia/04"
     },
     {
       "code": "05",
       "name": "Guanacaste",
       "abbr": "GU",
-      "iso": "CR-GU"
+      "iso": "CR-GU",
+      "url": "https://resultados.tse.go.cr/api/presidencial/provincia/05"
     },
     {
       "code": "06",
       "name": "Puntarenas",
       "abbr": "PU",
-      "iso": "CR-PU"
+      "iso": "CR-PU",
+      "url": "https://resultados.tse.go.cr/api/presidencial/provincia/06"
     },
     {
       "code": "07",
       "name": "Limón",
       "abbr": "LI",
-      "iso": "CR-LI"
+      "iso": "CR-LI",
+      "url": "https://resultados.tse.go.cr/api/presidencial/provincia/07"
     }
   ]
 }
