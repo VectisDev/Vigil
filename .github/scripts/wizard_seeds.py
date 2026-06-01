@@ -54,22 +54,23 @@ NOUNS = [
     "torch", "tower", "trail", "vault", "viper", "vista", "wave", "wolf",
 ]
 
+LABELS = list("ABCDEFGHIJKL")
 seeds = [
     f"{secrets.choice(ADJECTIVES)}-{secrets.choice(NOUNS)}-{secrets.randbelow(10000):04d}"
     for _ in range(12)
 ]
-hashes = [
-    hashlib.pbkdf2_hmac("sha256", s.encode(), SALT.encode(), ITERS).hex()
-    for s in seeds
-]
+hashes = {
+    f"S1-{LABELS[i]}": hashlib.pbkdf2_hmac("sha256", s.encode(), SALT.encode(), ITERS).hex()
+    for i, s in enumerate(seeds)
+}
 
 access_path.parent.mkdir(parents=True, exist_ok=True)
 access_path.write_text(json.dumps({
     "version":      1,
-    "algorithm":    "PBKDF2-SHA256",
+    "algo":         "PBKDF2-SHA256",
     "iterations":   ITERS,
     "salt":         SALT,
-    "seeds":        [{"slot": i + 1, "hash": h} for i, h in enumerate(hashes)],
+    "seeds":        hashes,
     "generated_at": datetime.now(timezone.utc).isoformat(),
     "country":      COUNTRY,
 }, indent=2))
@@ -96,8 +97,8 @@ lines = [
     "-" * 62,
     "",
 ]
-for i, s in enumerate(seeds, 1):
-    lines.append(f"  Seed #{i:02d}:  {s}")
+for i, (label, s) in enumerate(zip([f"S1-{l}" for l in LABELS], seeds), 1):
+    lines.append(f"  {label}:  {s}")
 lines += [
     "",
     "=" * 62,
