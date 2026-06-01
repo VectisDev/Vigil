@@ -1,0 +1,73 @@
+{
+  "country": "HT",
+  "country_name": "Haití",
+  "divisions_label": "Departamentos",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null
+    },
+    {
+      "code": "01",
+      "name": "Artibonite",
+      "abbr": "AR",
+      "iso": "HT-AR"
+    },
+    {
+      "code": "02",
+      "name": "Centre",
+      "abbr": "CE",
+      "iso": "HT-CE"
+    },
+    {
+      "code": "03",
+      "name": "Grand'Anse",
+      "abbr": "GA",
+      "iso": "HT-GA"
+    },
+    {
+      "code": "04",
+      "name": "Nippes",
+      "abbr": "NI",
+      "iso": "HT-NI"
+    },
+    {
+      "code": "05",
+      "name": "Nord",
+      "abbr": "NO",
+      "iso": "HT-NO"
+    },
+    {
+      "code": "06",
+      "name": "Nord-Est",
+      "abbr": "NE",
+      "iso": "HT-NE"
+    },
+    {
+      "code": "07",
+      "name": "Nord-Ouest",
+      "abbr": "NW",
+      "iso": "HT-NW"
+    },
+    {
+      "code": "08",
+      "name": "Ouest",
+      "abbr": "OU",
+      "iso": "HT-OU"
+    },
+    {
+      "code": "09",
+      "name": "Sud",
+      "abbr": "SU",
+      "iso": "HT-SU"
+    },
+    {
+      "code": "10",
+      "name": "Sud-Est",
+      "abbr": "SE",
+      "iso": "HT-SE"
+    }
+  ]
+}

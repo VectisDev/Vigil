@@ -229,7 +229,8 @@ async def kick_peer(node_id: str) -> dict:
     if not removed:
         raise HTTPException(status_code=404, detail=f"Peer {node_id!r} not found in routing table")
     _reputation.on_inconsistent(node_id)
-    logger.info("swarm_peer_kicked node_id=%s", node_id)
+    safe_node_id = node_id.replace("\r", "_").replace("\n", "_")
+    logger.info("swarm_peer_kicked node_id=%s", safe_node_id)
     return {"kicked": node_id, "status": "removed"}
 
 
