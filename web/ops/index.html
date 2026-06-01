@@ -1662,12 +1662,19 @@ async function doAdminLogin(){
     } catch(_) {}
     if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
     const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
-    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
-    if(!matched){
+    const rawSeeds = ac.seeds||{};
+    let seedId = null;
+    if(Array.isArray(rawSeeds)){
+      const hit = rawSeeds.find(s=>s.hash===candidate);
+      if(hit) seedId = 'S1-' + 'ABCDEFGHIJKL'[hit.slot-1];
+    } else {
+      const hit = Object.entries(rawSeeds).find(([,h])=>h===candidate);
+      if(hit) seedId = hit[0];
+    }
+    if(!seedId){
       err.textContent='Seed incorrecto.';
       btn.disabled=false; btn.textContent='Entrar'; return;
     }
-    const seedId = matched[0];
     sessionStorage.setItem('centinel_admin_tok', seedId);
     sessionStorage.setItem('centinel_admin_exp', String(Date.now()+8*3600*1000));
     currentUser = {seed: seedId};
