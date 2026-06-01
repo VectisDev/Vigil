@@ -408,3 +408,27 @@ class ReputationEngine:
         except Exception as exc:
             logger.warning("reputation_get_history_error node_id=%s error=%s", node_id, exc)
             return []
+
+    def export_events_json(self) -> dict:
+        """Export all reputation events as JSON for GitHub Release archive."""
+        if not self._db_path:
+            return {"exported_at": datetime.now(timezone.utc).isoformat(), "events": []}
+        try:
+            with sqlite3.connect(str(self._db_path)) as conn:
+                rows = conn.execute(
+                    "SELECT node_id, event_type, alpha, beta, trust_score, ring, ts"
+                    " FROM reputation_events ORDER BY ts ASC"
+                ).fetchall()
+            return {
+                "exported_at": datetime.now(timezone.utc).isoformat(),
+                "event_count": len(rows),
+                "events": [
+                    {"node_id": r[0], "event_type": r[1], "alpha": r[2],
+                     "beta": r[3], "trust_score": r[4], "ring": r[5], "ts": r[6]}
+                    for r in rows
+                ]
+            }
+        except Exception as exc:
+            logger.warning("reputation_export_events_json_error error=%s", exc)
+            return {"exported_at": datetime.now(timezone.utc).isoformat(), "events": [], "error": str(exc)}
+            return []
