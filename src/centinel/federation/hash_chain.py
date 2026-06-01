@@ -1,144 +1,91 @@
 #!/usr/bin/env python3
-"""Hash chain via Git commits — immutable state storage, zero cost.
-
-Each snapshot is committed to git as a JSON file.
-Git provides: immutability (content-addressed), auditability (git log),
-and free storage (GitHub repo). Cost: $0. Storage: unlimited.
-"""
+"""Hash chain export for GitHub commit-based storage."""
 import json
 import logging
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from centinel.federation.reputation import ReputationEngine
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("centinel.hash_chain")
 
 
-def serialize_chain_snapshot(engine) -> dict:
-    """Serialize reputation engine state as JSON snapshot.
-
-    Args:
-        engine: ReputationEngine instance
-
-    Returns:
-        dict with timestamp, nodes data, ring_counts
-    """
+def serialize_chain_snapshot(engine: ReputationEngine) -> dict:
+    """Serialize reputation state as a hash chain snapshot."""
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "nodes": engine.get_all() if hasattr(engine, "get_all") else {},
-        "ring_counts": engine.ring_counts() if hasattr(engine, "ring_counts") else {},
+        "nodes": engine.get_all(),
+        "ring_counts": engine.ring_counts(),
     }
 
 
 def commit_to_hash_chain(
-    repo_root: Path, db_path: Path, branch: str = "data/reputation"
+    repo_root: Path,
+    db_path: Path,
+    branch: str = "data/reputation",
 ) -> bool:
-    """Commit reputation snapshot to git hash chain.
-
-    Creates immutable record via git commits on specified branch.
-    Uses force-with-lease for safety (prevents accidental overwrites).
-
-    Args:
-        repo_root: Path to git repository
-        db_path: Path to reputation.db
-        branch: Git branch for hash chain (default: data/reputation)
-
-    Returns:
-        True if commit succeeded, False otherwise
-    """
+    """Commit reputation snapshot to hash chain branch."""
     try:
-        # Import here to avoid circular dependency
-        from centinel.federation.reputation import ReputationEngine
-
-        # Load current state
         engine = ReputationEngine(db_path=db_path)
         snapshot = serialize_chain_snapshot(engine)
 
-        # Write snapshot to JSON file on data branch
-        snapshot_dir = repo_root / "data" / "reputation"
-        snapshot_dir.mkdir(parents=True, exist_ok=True)
+        chain_file = repo_root / "data" / "reputation" / "snapshot.json"
+        chain_file.parent.mkdir(parents=True, exist_ok=True)
 
-        snapshot_file = snapshot_dir / f"snapshot-{snapshot['timestamp'][:10]}.json"
-        with open(snapshot_file, "w") as f:
+        with open(chain_file, "w") as f:
             json.dump(snapshot, f, indent=2)
 
-        # Commit to git
         subprocess.run(
             ["git", "config", "user.name", "centinel-bot"],
             cwd=repo_root,
             check=True,
-            capture_output=True,
         )
         subprocess.run(
             ["git", "config", "user.email", "bot@centinel.local"],
             cwd=repo_root,
             check=True,
-            capture_output=True,
         )
 
-        # Ensure we're on the right branch
+        subprocess.run(["git", "checkout", "-B", branch], cwd=repo_root, check=True)
+        subprocess.run(["git", "add", str(chain_file)], cwd=repo_root, check=True)
+
+        timestamp = datetime.now(timezone.utc).isoformat()
         subprocess.run(
-            ["git", "checkout", "-B", branch],
+            [
+                "git",
+                "commit",
+                "-m",
+                f"Hash chain snapshot: {timestamp}\n\nNodes: {len(snapshot['nodes'])}\nRing-0: {snapshot['ring_counts']['ring0']}\nRing-1: {snapshot['ring_counts']['ring1']}\nRing-2: {snapshot['ring_counts']['ring2']}",
+            ],
             cwd=repo_root,
             check=True,
-            capture_output=True,
         )
 
-        # Stage and commit
-        subprocess.run(
-            ["git", "add", str(snapshot_file)],
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
             cwd=repo_root,
-            check=True,
             capture_output=True,
-        )
-
-        ring_summary = " | ".join(
-            f"ring-{k}:{v}" for k, v in snapshot["ring_counts"].items()
-        )
-        commit_msg = (
-            f"Hash chain snapshot: {snapshot['timestamp']} | {ring_summary} | "
-            f"nodes={len(snapshot['nodes'])}"
-        )
-
-        subprocess.run(
-            ["git", "commit", "-m", commit_msg],
-            cwd=repo_root,
+            text=True,
             check=True,
-            capture_output=True,
         )
+        commit_sha = result.stdout.strip()
 
-        # Push with force-with-lease (safe force push)
-        subprocess.run(
-            ["git", "push", "origin", branch, "--force-with-lease"],
-            cwd=repo_root,
-            check=True,
-            capture_output=True,
-        )
-
-        logger.info(
-            "hash_chain_commit branch=%s timestamp=%s nodes=%d",
-            branch,
-            snapshot["timestamp"],
-            len(snapshot["nodes"]),
-        )
+        logger.info("hash_chain_commit branch=%s sha=%s nodes=%d", branch, commit_sha, len(snapshot['nodes']))
         return True
 
-    except subprocess.CalledProcessError as e:
-        logger.error(
-            "hash_chain_git_failed error=%s stderr=%s",
-            str(e),
-            e.stderr.decode() if e.stderr else "unknown",
-        )
-        return False
-    except Exception as e:
-        logger.error("hash_chain_commit_failed error=%s", str(e))
+    except Exception as exc:
+        logger.error("hash_chain_commit_failed error=%s", exc)
         return False
 
 
 if __name__ == "__main__":
-    repo_root = Path.cwd()
+    import sys
+
+    repo_root = Path(__file__).parent.parent.parent.parent
     db_path = repo_root / "var" / "federation_reputation.db"
 
-    success = commit_to_hash_chain(repo_root, db_path)
-    print(f"Hash chain commit: {'SUCCESS' if success else 'FAILED'}")
+    if not commit_to_hash_chain(repo_root, db_path):
+        sys.exit(1)
+
+    print("✓ Hash chain snapshot committed")

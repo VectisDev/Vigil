@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""GitHub-native gossip protocol — zero-cost swarm coordination via GitHub Issues.
+"""GitHub-native gossip protocol - replace server-based gossip with GitHub API.
 
-Pull-model: Each swarm publishes findings to shared GitHub Issues.
-Other swarms read for free (no API costs). Consensus computed locally.
-Cost: $0. Scalability: unlimited (1 swarm = 12 swarms = 1000 swarms = $0).
+Zero-cost architecture: gossip via GitHub Issues (pull model, not push).
+Each node publishes to shared election issue, others poll via free GitHub API.
 """
 import json
 import logging
@@ -16,7 +15,7 @@ logger = logging.getLogger("centinel.github_gossip")
 
 
 class GitHubGossipQueue:
-    """Gossip via GitHub Issues — free, auditable, immutable."""
+    """Gossip via GitHub Issues - free, scalable, auditable."""
 
     def __init__(self, repo: str, election_id: str, github_token: Optional[str] = None):
         """
@@ -32,12 +31,11 @@ class GitHubGossipQueue:
         self.issue_number = None
         self.last_comment_id = 0
 
-    def _publish_payload(self, swarm_id: str, node_id: str, payload: dict) -> bool:
+    def _publish_payload(self, node_id: str, payload: dict) -> bool:
         """Publish node payload as comment in election issue."""
         try:
             message = json.dumps(
                 {
-                    "swarm_id": swarm_id,
                     "node_id": node_id,
                     "published_at": datetime.now(timezone.utc).isoformat(),
                     "payload": payload,
@@ -47,8 +45,7 @@ class GitHubGossipQueue:
             # In production: POST /repos/{owner}/{repo}/issues/{issue}/comments
             # For now, log intent
             logger.info(
-                "gossip_publish swarm=%s node=%s election=%s payload_size=%d",
-                swarm_id,
+                "gossip_publish node_id=%s election=%s payload_size=%d",
                 node_id,
                 self.election_id,
                 len(message),
@@ -56,13 +53,11 @@ class GitHubGossipQueue:
             return True
 
         except Exception as exc:
-            logger.error(
-                "gossip_publish_failed swarm=%s node=%s error=%s", swarm_id, node_id, exc
-            )
+            logger.error("gossip_publish_failed node_id=%s error=%s", node_id, exc)
             return False
 
     def _read_payloads(self) -> list[dict]:
-        """Read all gossip messages from election issue (GitHub API, free)."""
+        """Read all gossip messages from election issue (GitHub API)."""
         try:
             # In production: GET /repos/{owner}/{repo}/issues/{issue}/comments
             # Returns paginated list, client-side pagination (free, no rate limit)
@@ -76,13 +71,8 @@ class GitHubGossipQueue:
             logger.error("gossip_read_failed election=%s error=%s", self.election_id, exc)
             return []
 
-    def compute_consensus(
-        self, payloads: list[dict], threshold: float = 0.66
-    ) -> Optional[dict]:
-        """Compute consensus from all node payloads (local computation, zero network cost).
-
-        Groups by fingerprint hash. Returns consensus if >threshold nodes agree.
-        """
+    def compute_consensus(self, payloads: list[dict], threshold: float = 0.66) -> Optional[dict]:
+        """Compute consensus from all node payloads (local computation, zero network cost)."""
         if not payloads:
             return None
 
@@ -93,50 +83,41 @@ class GitHubGossipQueue:
             if fh:
                 fingerprints[fh] = fingerprints.get(fh, 0) + 1
 
-        # Consensus = fingerprint with >threshold agreement
+        # Consensus = fingerprint with >66% agreement
         total = len(payloads)
         for fh, count in fingerprints.items():
             if count / total >= threshold:
-                return {
-                    "fingerprint_hash": fh,
-                    "consensus_nodes": count,
-                    "total_nodes": total,
-                }
+                return {"fingerprint_hash": fh, "consensus_nodes": count, "total_nodes": total}
 
         return None
 
 
-def gossip_via_github(repo: str, election_id: str, swarm_id: str = "swarm-001") -> dict:
-    """Single-swarm gossip cycle via GitHub Issues (zero cost)."""
+def gossip_via_github(repo: str, election_id: str) -> dict:
+    """Single-node gossip cycle via GitHub Issues (zero cost)."""
     queue = GitHubGossipQueue(repo, election_id)
 
-    # 1. Publish local swarm findings (from all 12 nodes in swarm)
+    # 1. Publish local node payload
     local_payload = {
         "fingerprint_hash": "sha256:abc123",  # placeholder
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "swarm_consensus": True,
     }
+    queue._publish_payload("node-001", local_payload)
 
-    # Simulate 12 nodes publishing (actually just one publish with swarm consensus)
-    queue._publish_payload(swarm_id, "node-001", local_payload)
-
-    # 2. Read all other swarms' payloads (free GitHub API, no rate limit)
+    # 2. Read all other nodes' payloads (free GitHub API)
     all_payloads = queue._read_payloads()
-    all_payloads.append({"swarm_id": swarm_id, "node_id": "node-001", "payload": local_payload})
+    all_payloads.append({"node_id": "node-001", "payload": local_payload})
 
     # 3. Compute consensus locally (zero network cost)
-    # Consensus requires agreement across swarms, not individual nodes
     consensus = queue.compute_consensus(all_payloads)
 
     return {
         "election_id": election_id,
-        "swarm_id": swarm_id,
         "consensus": consensus,
-        "swarms_heard": len(set(p.get("swarm_id") for p in all_payloads)),
+        "nodes_heard": len(all_payloads),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
 if __name__ == "__main__":
-    result = gossip_via_github("vectisdev/centinel-data", "election-2026-06-01", "swarm-001")
+    result = gossip_via_github("vectisdev/centinel-data", "election-2026-06-01")
     print(json.dumps(result, indent=2))
