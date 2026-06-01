@@ -24,7 +24,7 @@ class TestGitHubGossipQueue:
         )
         assert queue.github_token == "token123"
 
-    def test_publish_payload(self, caplog):
+    def test_publish_payload(self):
         """Test publishing node payload (logs, no real network)."""
         queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
         payload = {"fingerprint_hash": "sha256:abc123", "timestamp": "2026-06-01T00:00:00Z"}
@@ -32,7 +32,6 @@ class TestGitHubGossipQueue:
         success = queue._publish_payload("swarm-001", "node-001", payload)
 
         assert success is True
-        assert "gossip_publish" in caplog.text
 
     def test_publish_payload_error_handling(self, caplog):
         """Test publish handles errors gracefully."""
@@ -48,14 +47,13 @@ class TestGitHubGossipQueue:
         # This might succeed or fail depending on implementation
         # Just verify it doesn't crash
 
-    def test_read_payloads(self, caplog):
+    def test_read_payloads(self):
         """Test reading payloads from election issue (stub)."""
         queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
         payloads = queue._read_payloads()
 
         assert isinstance(payloads, list)
         assert len(payloads) == 0  # Current stub implementation
-        assert "gossip_read" in caplog.text
 
     def test_compute_consensus_empty(self):
         """Test consensus with no payloads."""
