@@ -122,6 +122,9 @@ test-security-all: ## Todos los tests de seguridad / All security tests
 #  REPRODUCIBILITY / REPRODUCIBILIDAD
 # ══════════════════════════════════════════════════════════════════════════════
 
+forensic-pdf: ## Generar PDF forense con datos reales HND-2025 / Generate forensic PDF with real HND-2025 data
+	$(PYTHON_COMMAND) scripts/generate_forensic_pdf.py --output centinel_hnd_2025_forensic.pdf
+
 reproduce-2025-audit: ## Reproducir análisis forense completo HND-2025 / Reproduce full HND-2025 forensic analysis
 	@echo "══════════════════════════════════════════════════════════════"
 	@echo "  Centinel — Reproducible Forensic Analysis: Honduras 2025"
