@@ -1,0 +1,61 @@
+name: Reputation JSON API Export
+
+on:
+  schedule:
+    - cron: '3 0 * * *'  # Daily at 00:03 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Export reputation as JSON
+        run: |
+          python -c "
+          from pathlib import Path
+          from centinel.federation.reputation import ReputationEngine
+          import json
+
+          db_path = Path('var/federation_reputation.db')
+          engine = ReputationEngine(db_path=db_path)
+          data = {
+              'exported_at': __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),
+              'nodes': engine.get_all(),
+              'ring_counts': engine.ring_counts(),
+          }
+
+          Path('data/reputation').mkdir(parents=True, exist_ok=True)
+          with open('data/reputation/nodes.json', 'w') as f:
+              json.dump(data, f, indent=2)
+          "
+
+      - name: Commit JSON API
+        run: |
+          git config user.name centinel-bot
+          git config user.email bot@centinel.local
+          git checkout -B data/api
+          git add data/reputation/nodes.json
+          git commit -m "Reputation API snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
+          git push origin data/api --force-with-lease
+
+      - name: Deploy to GitHub Pages (raw.githubusercontent)
+        run: |
+          echo "Reputation API available at:"
+          echo "https://raw.githubusercontent.com/${{ github.repository }}/data/api/data/reputation/nodes.json"
