@@ -1303,12 +1303,12 @@ details .details-body{padding:12px 0 4px}
           </div>
 
           <div class="ctrl-row">
-            <label>Conectar a swarms existentes
+            <label style="margin-bottom:8px">Conectar a swarms existentes
               <span data-tip="Selecciona uno o más enjambres existentes para conectar la simulación a su red de peer-review.">ⓘ</span>
             </label>
-            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px"></div>
+            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:8px"></div>
             <div style="font-size:12px;color:var(--muted);margin-top:8px" id="lab-swarms-empty">
-              No hay enjambres conectados aún. Conecta a "Red de Nodos" primero.
+              No hay enjambres conectados. La simulación correrá en modo aislado.
             </div>
           </div>
 
@@ -3835,22 +3835,99 @@ function updateLabNodeCount(val) {
   document.getElementById('lab-nodes-count').textContent = val;
 }
 
+function loadLabSwarms() {
+  const swarmsList = document.getElementById('lab-swarms-list');
+  const swarmEmpty = document.getElementById('lab-swarms-empty');
+
+  // Get available swarms from existing swarm data or mock some
+  let availableSwarms = [];
+
+  // Check if there are any connected swarms in s8
+  const swarmLabel = document.getElementById('swarm-label');
+  if (swarmLabel && swarmLabel.textContent === 'CONECTADO') {
+    availableSwarms.push({
+      id: 'local-swarm-1',
+      name: 'Enjambre Local',
+      nodes: 3,
+      reputation: 85,
+    });
+  }
+
+  // Add some demo swarms
+  if (availableSwarms.length === 0) {
+    availableSwarms = [
+      {id: 'demo-1', name: 'Demo Honduras', nodes: 2, reputation: 72},
+      {id: 'demo-2', name: 'Demo Costa Rica', nodes: 3, reputation: 88},
+      {id: 'demo-3', name: 'Demo Panamá', nodes: 2, reputation: 65},
+    ];
+  }
+
+  if (availableSwarms.length === 0) {
+    swarmEmpty.style.display = '';
+    swarmsList.innerHTML = '';
+    return;
+  }
+
+  swarmEmpty.style.display = 'none';
+  swarmsList.innerHTML = '';
+
+  for (const swarm of availableSwarms) {
+    const card = document.createElement('label');
+    card.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:0.1s';
+    card.innerHTML = `
+      <input type="checkbox" class="lab-swarm-checkbox" value="${swarm.id}" data-name="${swarm.name}" data-rep="${swarm.reputation}" style="cursor:pointer;width:16px;height:16px">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600">${swarm.name}</div>
+        <div style="font-size:10px;color:var(--muted)">${swarm.nodes} nodos · Rep ${swarm.reputation}%</div>
+      </div>
+    `;
+    card.onmouseover = () => card.style.background = 'var(--panel2)';
+    card.onmouseout = () => card.style.background = 'var(--panel)';
+    swarmsList.appendChild(card);
+  }
+}
+
 async function startLabSimulation() {
   const nodeCount = parseInt(document.getElementById('lab-nodes-slider').value);
   const country = document.getElementById('lab-country-select').value;
 
-  // Initialize nodes
+  // Load selected swarms
+  const selectedSwarms = Array.from(document.querySelectorAll('.lab-swarm-checkbox:checked')).map(cb => ({
+    id: cb.value,
+    name: cb.getAttribute('data-name'),
+    reputation: parseInt(cb.getAttribute('data-rep')),
+  }));
+
+  // Initialize nodes with home nodes + connected swarm nodes
   labSimulation.running = true;
   labSimulation.startTime = Date.now();
   labSimulation.tick = 0;
   labSimulation.findings = [];
+  labSimulation.connectedSwarms = selectedSwarms;
+
   labSimulation.nodes = Array.from({length: nodeCount}, (_, i) => ({
     id: `node-${i+1}`,
     country,
+    swarm: 'local',
     alerts: [],
     lastUpdate: Date.now(),
-    reputation: Math.random() * 100,
+    reputation: 70 + Math.random() * 30,
   }));
+
+  // Add nodes from connected swarms
+  for (const swarm of selectedSwarms) {
+    for (let i = 0; i < Math.min(2, Math.floor(Math.random() * 3) + 1); i++) {
+      labSimulation.nodes.push({
+        id: `${swarm.id}-node-${i+1}`,
+        country,
+        swarm: swarm.id,
+        swarmName: swarm.name,
+        alerts: [],
+        lastUpdate: Date.now(),
+        reputation: swarm.reputation,
+      });
+    }
+  }
 
   const resultsDiv = document.getElementById('lab-results-section');
   if (resultsDiv) resultsDiv.style.display = '';
@@ -4007,6 +4084,7 @@ function resetLabSimulation() {
   labSimulation.nodes = [];
   labSimulation.findings = [];
   labSimulation.tick = 0;
+  labSimulation.connectedSwarms = [];
 
   const resultsDiv = document.getElementById('lab-results-section');
   if (resultsDiv) resultsDiv.style.display = 'none';
@@ -4015,6 +4093,15 @@ function resetLabSimulation() {
   document.getElementById('lab-consensus-pct').textContent = '—';
   document.getElementById('lab-findings-count').textContent = '—';
   document.getElementById('lab-elapsed-time').textContent = '—';
+  document.getElementById('lab-consensus-matrix').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Matriz de consenso aparecerá aquí tras iniciar…</div>';
+  document.getElementById('lab-findings-list').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Hallazgos aparecerán aquí…</div>';
+}
+
+// Initialize lab section when page loads - load swarms
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadLabSwarms);
+} else {
+  loadLabSwarms();
 }
 
 // Keyboard shortcut to open this panel (also registered in parent pages)
