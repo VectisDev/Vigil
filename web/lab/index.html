@@ -933,6 +933,52 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
       <strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> son bizantinos. Las líneas muestran cómo se comunican entre swarms. Haz click en "Simular" para ver el protocolo gossip propagando mensajes a través de la red descentralizada.
     </div>
   </div>
+
+  <!-- DISTRIBUTED AUDIT — CROSS-SWARM VALIDATION -->
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+    <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+      Auditoría Distribuida — Validación en Tiempo Real
+      <span style="font-size:8px;color:var(--muted);font-weight:400;text-transform:none">(Todos los swarms auditan simultáneamente)</span>
+    </div>
+
+    <!-- Election Timeline & Validation Progress -->
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
+      <div style="font-size:9px;color:var(--muted);font-weight:600;margin-bottom:8px">LÍNEA DE TIEMPO — Elección en Progreso</div>
+      <div style="position:relative;height:60px">
+        <canvas id="audit-timeline-canvas" style="width:100%;height:60px;display:block;border-radius:4px;background:rgba(0,0,0,.2)"></canvas>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between">
+        <span>Inicio</span>
+        <span id="audit-phase">Fase 1: Recopilación</span>
+        <span>Resultado</span>
+      </div>
+    </div>
+
+    <!-- Validation Status per Swarm -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Estado de Validación por Swarm</div>
+      <div id="audit-validation-status" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px"></div>
+    </div>
+
+    <!-- Data Checksums Being Verified -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Verificación de Checksums (Hash Validation)</div>
+      <div id="audit-checksums" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:9px;font-family:var(--mono);max-height:120px;overflow-y:auto;color:var(--muted)">
+        <div style="opacity:.5">Esperando inicio de auditoría...</div>
+      </div>
+    </div>
+
+    <!-- Control -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="swarm-node-btn" onclick="startAuditSimulation()" style="font-size:11px;padding:6px 12px">▶ Iniciar Auditoría Distribuida</button>
+      <button class="swarm-node-btn" style="font-size:11px;padding:6px 12px;background:rgba(100,100,100,.3)" onclick="resetAuditSimulation()" title="Limpiar estado de auditoría">✕ Limpiar</button>
+    </div>
+
+    <!-- Summary -->
+    <div style="font-size:10px;color:var(--muted);padding:10px;background:rgba(55,65,81,.3);border-radius:6px;line-height:1.5">
+      <strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es Centinel auditando como lo hace en producción.
+    </div>
+  </div>
 </div>
 
 <!-- ══ SECTION 4.6 — BYZANTINE RESILIENCE LAB ═════════════════════════════════════ -->
@@ -1596,7 +1642,7 @@ function _initReps(n){
 }
 _initReps(SWARM.nodes);
 // Render panels after DOM is ready
-document.addEventListener('DOMContentLoaded',()=>{ renderRepGrid(); renderTaskTable(); updateSwarmKpis(); renderExternalSwarms(); updateInteractionMetrics(); initNetworkVisualization(); });
+document.addEventListener('DOMContentLoaded',()=>{ renderRepGrid(); renderTaskTable(); updateSwarmKpis(); renderExternalSwarms(); updateInteractionMetrics(); initNetworkVisualization(); renderAuditTimeline(); renderAuditValidationStatus(); renderAuditChecksums(); });
 
 function renderRepGrid(){
   const el=document.getElementById('rep-grid');
@@ -1990,6 +2036,187 @@ function startInteractionSimulation(){
     }
   };
   animate();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DISTRIBUTED AUDIT SIMULATION
+
+let auditState={
+  isRunning:false,
+  phase:0,
+  phaseNames:['Recopilación','Propagación','Validación','Consenso'],
+  validatedCount:0,
+  totalNodes:0,
+  checksums:[],
+};
+
+function startAuditSimulation(){
+  if(externalSwarms.length===0){
+    alert('Agregue al menos un swarm externo para simular auditoría distribuida');
+    return;
+  }
+  auditState.isRunning=true;
+  auditState.phase=0;
+  auditState.validatedCount=0;
+  auditState.totalNodes=externalSwarms.reduce((sum,s)=>sum+s.nodes,0);
+  auditState.checksums=[];
+
+  const dataset=[
+    {id:'VOTO-001',hash:'a3f2c8e9d1b4f5a7',data:'Voto para candidato A'},
+    {id:'VOTO-002',hash:'b4g3d9f0e2c5g6b8',data:'Voto para candidato B'},
+    {id:'ACTA-001',hash:'c5h4e0a1f3d6h7c9',data:'Acta de votación centro 1'},
+    {id:'AUDIT-HASH',hash:'d6i5f1b2g4e7i8d0',data:'Checksum de consenso'},
+  ];
+
+  let frame=0;
+  const totalFrames=240;
+
+  const animate=()=>{
+    // Update phase based on frame
+    auditState.phase=Math.min(3,Math.floor(frame/60));
+
+    // Simulate validation progress
+    const phaseProgress=frame%60;
+    const validationRate=Math.floor((phaseProgress/60)*auditState.totalNodes*0.95);
+    auditState.validatedCount=validationRate;
+
+    // Generate checksums during validation phase
+    if(auditState.phase===2 && auditState.checksums.length<dataset.length){
+      if(frame%(60/dataset.length)===0){
+        const item=dataset[auditState.checksums.length];
+        auditState.checksums.push({
+          id:item.id,
+          hash:item.hash,
+          verified:Math.random()>0.15,
+          timestamp:new Date().toLocaleTimeString(),
+        });
+      }
+    }
+
+    // Render UI
+    renderAuditTimeline();
+    renderAuditValidationStatus();
+    renderAuditChecksums();
+
+    if(frame<totalFrames){
+      frame++;
+      requestAnimationFrame(animate);
+    }else{
+      auditState.isRunning=false;
+      auditState.validatedCount=auditState.totalNodes;
+      auditState.checksums=dataSet||dataSet;
+      renderAuditTimeline();
+      renderAuditValidationStatus();
+      renderAuditChecksums();
+      logSE('INFO',`Auditoría completada: ${externalSwarms.length} swarms, ${auditState.totalNodes} nodos validados, consenso alcanzado`);
+    }
+  };
+  animate();
+}
+
+function renderAuditTimeline(){
+  const canvas=document.getElementById('audit-timeline-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width;
+  canvas.height=rect.height;
+
+  ctx.fillStyle='rgba(0,0,0,.1)';
+  ctx.fillRect(0,0,rect.width,rect.height);
+
+  const phases=auditState.phaseNames;
+  const phaseWidth=rect.width/phases.length;
+  const currentPhase=auditState.phase;
+  const phaseProgress=auditState.validatedCount/Math.max(1,auditState.totalNodes);
+
+  phases.forEach((phase,i)=>{
+    const x=i*phaseWidth;
+    const w=phaseWidth;
+    const h=rect.height;
+    const isActive=i===currentPhase;
+    const isPast=i<currentPhase;
+
+    // Phase background
+    ctx.fillStyle=isPast?'rgba(16,185,129,.3)':isActive?'rgba(59,130,246,.3)':'rgba(107,114,128,.2)';
+    ctx.fillRect(x,0,w,h);
+
+    // Phase label
+    ctx.fillStyle=isActive?'rgba(255,255,255,.9)':'rgba(107,114,128,.6)';
+    ctx.font='11px -apple-system,BlinkMacSystemFont';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(phase,x+w/2,h/2);
+
+    // Progress bar (only for active phase)
+    if(isActive && phaseProgress<1){
+      ctx.fillStyle='rgba(59,130,246,.8)';
+      ctx.fillRect(x,h-4,w*phaseProgress,4);
+    }
+  });
+}
+
+function renderAuditValidationStatus(){
+  const container=document.getElementById('audit-validation-status');
+  if(!container) return;
+
+  if(externalSwarms.length===0){
+    container.innerHTML='<div style="grid-column:1/-1;font-size:11px;color:var(--muted);padding:15px;text-align:center;opacity:.5">Sin swarms externos</div>';
+    return;
+  }
+
+  const totalValidated=auditState.validatedCount;
+  const totalNodes=auditState.totalNodes;
+  const consensusThreshold=Math.ceil(totalNodes*0.66);
+
+  container.innerHTML=externalSwarms.map(swarm=>{
+    const nodesValidated=Math.floor((totalValidated/totalNodes)*swarm.nodes);
+    const pct=totalNodes>0?Math.floor((nodesValidated/swarm.nodes)*100):0;
+    const consensusColor=nodesValidated>=Math.ceil(swarm.nodes*0.66)?'var(--ok)':'var(--warn)';
+    return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:600;color:var(--purple)">${swarm.id.substring(0,10)}…</span>
+        <span style="font-size:10px;color:var(--muted)">${nodesValidated}/${swarm.nodes}</span>
+      </div>
+      <div style="background:rgba(55,65,81,.3);border-radius:3px;height:6px;overflow:hidden">
+        <div style="height:100%;background:${consensusColor};width:${pct}%;transition:width .2s"></div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px">Validado: ${pct}% · Consenso: ${nodesValidated>=consensusThreshold?'✓ OK':'◯ En progreso'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAuditChecksums(){
+  const container=document.getElementById('audit-checksums');
+  if(!container) return;
+
+  if(auditState.checksums.length===0){
+    container.innerHTML='<div style="opacity:.5">Esperando fase de validación...</div>';
+    return;
+  }
+
+  container.innerHTML=auditState.checksums.map(cs=>{
+    const status=cs.verified?'✓ VÁLIDO':'✗ INVÁLIDO';
+    const color=cs.verified?'rgba(16,185,129,.6)':'rgba(248,113,113,.6)';
+    return `<div style="padding:4px;border-left:3px solid ${color};margin-bottom:3px;background:rgba(55,65,81,.2);border-radius:2px">
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <span>[${cs.id}]</span>
+        <span style="opacity:.6">hash: ${cs.hash}</span>
+        <span style="color:${color};font-weight:600">${status}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function resetAuditSimulation(){
+  auditState.isRunning=false;
+  auditState.phase=0;
+  auditState.validatedCount=0;
+  auditState.checksums=[];
+  renderAuditTimeline();
+  renderAuditValidationStatus();
+  renderAuditChecksums();
+  logSE('INFO','Estado de auditoría reiniciado');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
