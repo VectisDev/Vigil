@@ -49,10 +49,17 @@ class NodeReputation:
     outage_count: int = 0
     betrayal_count: int = 0
     _pending_outage_beta: float = 0.0  # reversible β added during current outage
+    _cached_trust_score: Optional[float] = None  # Cached trust score, invalidated on α/β change
 
     @property
     def trust_score(self) -> float:
-        return (self.alpha + 1.0) / (self.alpha + self.beta + 2.0)
+        if self._cached_trust_score is None:
+            self._cached_trust_score = (self.alpha + 1.0) / (self.alpha + self.beta + 2.0)
+        return self._cached_trust_score
+
+    def _invalidate_trust_cache(self) -> None:
+        """Invalidate cached trust score when α or β changes."""
+        self._cached_trust_score = None
 
     def _refresh_ring(self, ring0_ids: set[str]) -> None:
         if self.node_id in ring0_ids:
@@ -165,7 +172,7 @@ class ReputationEngine:
             logger.warning("reputation_load_rows_error error=%s", exc)
 
     def _record_event(self, rep: NodeReputation, event_type: str, ts: str) -> None:
-        """Append a reputation event row for forensic audit trail."""
+        """Append a reputation event row for forensic audit trail (30-day TTL)."""
         if not self._db_path:
             return
         try:
@@ -176,6 +183,10 @@ class ReputationEngine:
                     " VALUES (?,?,?,?,?,?,?)",
                     (rep.node_id, event_type, round(rep.alpha, 4),
                      round(rep.beta, 4), round(rep.trust_score, 4), rep.ring, ts),
+                )
+                # Cleanup old events (>30 days) to prevent DB bloat
+                conn.execute(
+                    "DELETE FROM reputation_events WHERE ts < datetime('now', '-30 days')"
                 )
                 conn.commit()
         except Exception as exc:
@@ -232,6 +243,7 @@ class ReputationEngine:
                 return self.ensure(node_id)
             prev_ring = rep.ring
             rep.alpha += _ALPHA_CONSISTENT
+            rep._invalidate_trust_cache()
             rep.last_seen_utc = now
             rep.last_updated_utc = now
             rep._refresh_ring(self._ring0)
@@ -249,6 +261,7 @@ class ReputationEngine:
                 return self.ensure(node_id)
             prev_ring = rep.ring
             rep.beta += _BETA_BETRAYAL
+            rep._invalidate_trust_cache()
             rep.betrayal_count += 1
             rep.last_updated_utc = now
             rep._refresh_ring(self._ring0)
@@ -266,6 +279,7 @@ class ReputationEngine:
             if rep is None:
                 return self.ensure(node_id)
             rep.beta += _BETA_OUTAGE
+            rep._invalidate_trust_cache()
             rep._pending_outage_beta += _BETA_OUTAGE
             rep.outage_count += 1
             rep.last_updated_utc = now
@@ -287,6 +301,7 @@ class ReputationEngine:
             rep.beta = max(1.0, rep.beta - rep._pending_outage_beta)
             rep._pending_outage_beta = 0.0
             rep.alpha += _ALPHA_RESTORE
+            rep._invalidate_trust_cache()
             rep.last_seen_utc = now
             rep.last_updated_utc = now
             rep._refresh_ring(self._ring0)
@@ -328,6 +343,7 @@ class ReputationEngine:
                     continue
                 rep.alpha = max(1.0, rep.alpha * math.pow(0.5, days / _HALFLIFE_ALPHA_DAYS))
                 rep.beta  = max(1.0, rep.beta  * math.pow(0.5, days / _HALFLIFE_BETA_DAYS))
+                rep._invalidate_trust_cache()
                 rep._refresh_ring(self._ring0)
 
     # ── queries ───────────────────────────────────────────────────────────────
