@@ -899,8 +899,9 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
       <div style="font-size:9px;color:var(--muted);margin-top:6px;padding:6px;background:rgba(55,65,81,.3);border-radius:4px;display:flex;gap:12px;flex-wrap:wrap">
         <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#d4af37;flex-shrink:0"></span>LOCAL (nosotros)</span>
         <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></span>Nodos honestos</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0"></span>Nodos divergentes</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:2px;background:#6ee7b7;flex-shrink:0;border-radius:1px"></span>Gossip activo</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;border:1.5px solid #22d3ee;flex-shrink:0"></span>Embajador</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0"></span>Divergente</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:2px;background:#6ee7b7;flex-shrink:0;border-radius:1px"></span>Gossip</span>
       </div>
     </div>
 
@@ -934,7 +935,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
     <!-- Explanation -->
     <div style="font-size:10px;color:var(--muted);padding:10px;background:rgba(55,65,81,.3);border-radius:6px;line-height:1.5">
-      <strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> divergieron del consenso. El nodo <strong style="color:#d4af37">dorado</strong> es LOCAL (nosotros). Las conexiones ondulantes muestran gossip en tiempo real conforme el dataset avanza. Los swarms se comportan según los datos que estamos analizando.
+      <strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> divergieron del consenso. El nodo <strong style="color:#d4af37">dorado</strong> es LOCAL (nosotros). Los nodos con <strong style="color:#22d3ee">anillo cyan</strong> son <strong>embajadores</strong> — 2 por swarm, elegidos por trust, son los únicos que comunican hallazgos cross-swarm. Si uno cae, el otro cubre. Pasa el mouse sobre cualquier nodo para ver su estado.
     </div>
   </div>
 
@@ -1982,6 +1983,13 @@ function _rebuildNetworkClusters(){
       clusters.push({id:sw.id,cx,cy,nodes,isLocal:false,label:sw.id.substring(0,10),health:sw.consensusHealth||1});
     }
   }
+  // Designate 2 ambassadors per cluster (deterministic: first 2 non-byzantine nodes)
+  clusters.forEach(cl=>{
+    const eligible=cl.nodes.filter(n=>!n.byz&&!n.outage);
+    const amb=eligible.length>=2?[eligible[0].id,eligible[1].id]:eligible.length===1?[eligible[0].id]:[cl.nodes[0]?.id];
+    cl.nodes.forEach(n=>{n.ambassador=amb.includes(n.id);});
+    cl._ambassadorIds=amb;
+  });
   networkState.clusters=clusters;
   networkState.messages=[];
   // Build sparse gossip topology: fan-out = min(3, N-1) per node
@@ -2091,6 +2099,12 @@ function _drawNetwork(ctx,w,h,t){
         }
       }
       ctx.fill();ctx.stroke();
+      // ambassador outer ring (cyan/teal)
+      if(node.ambassador&&!isOutage&&!node.byz){
+        ctx.beginPath();ctx.arc(node.x,node.y,node.r+3,0,Math.PI*2);
+        ctx.strokeStyle=cl.isLocal?'rgba(212,175,55,.6)':'rgba(34,211,238,.6)';
+        ctx.lineWidth=1.5;ctx.stroke();
+      }
       // outage icon (lightning bolt)
       if(isOutage){
         ctx.fillStyle='rgba(252,211,77,.9)';ctx.font=`${Math.max(8,node.r)}px sans-serif`;
@@ -2197,11 +2211,13 @@ function _drawNetwork(ctx,w,h,t){
     const status=n.outage?'CORTE':n.byz?'BIZANTINO':trust>=85?'CONFIABLE':trust>=60?'OBSERVADO':'SOSPECHOSO';
     const statusColor=n.outage?'#9ca3af':n.byz?'#f87171':trust>=85?'#6ee7b7':trust>=60?'#fcd34d':'#fb923c';
     const ring=n.trust>=0.85?'Ring-1':n.trust>=0.5?'Ring-2':'Ring-3';
+    const role=n.ambassador?'EMBAJADOR':'nodo';
     const lines=[
-      `Nodo #${n.id} · ${cl.isLocal?'LOCAL':cl.label}`,
+      `${role} #${n.id} · ${cl.isLocal?'LOCAL':cl.label}`,
       `Estado: ${status}`,
       `Trust: ${trust.toFixed(0)}% · ${ring}`,
     ];
+    if(n.ambassador) lines.push('Comunica hallazgos cross-swarm');
     if(n.outage) lines.push('⚡ Corte eléctrico');
     const tx=networkState._mouse.x,ty=networkState._mouse.y;
     const lineH=14,pad=8;
@@ -2264,7 +2280,21 @@ function _startNetworkLoop(){
 function _spawnGossipMessage(fromCluster,toCluster,color,label){
   if(!fromCluster||!toCluster) return;
   if(networkState.messages.length>=12) return;
-  networkState.messages.push({sx:fromCluster.cx,sy:fromCluster.cy,tx:toCluster.cx,ty:toCluster.cy,progress:0,color:color||'rgba(110,231,183,.7)',label:label||''});
+  // Messages originate from ambassador node position, arrive at destination ambassador
+  const srcAmb=_getActiveAmbassador(fromCluster);
+  const dstAmb=_getActiveAmbassador(toCluster);
+  const sx=srcAmb?srcAmb.x:fromCluster.cx, sy=srcAmb?srcAmb.y:fromCluster.cy;
+  const tx=dstAmb?dstAmb.x:toCluster.cx, ty=dstAmb?dstAmb.y:toCluster.cy;
+  networkState.messages.push({sx,sy,tx,ty,progress:0,color:color||'rgba(110,231,183,.7)',label:label||''});
+}
+
+function _getActiveAmbassador(cluster){
+  if(!cluster||!cluster.nodes) return null;
+  // Return first alive ambassador; if both down, return any alive node
+  const ambs=cluster.nodes.filter(n=>n.ambassador&&!n.outage&&!n.byz);
+  if(ambs.length>0) return ambs[0];
+  const alive=cluster.nodes.filter(n=>!n.outage&&!n.byz);
+  return alive.length>0?alive[0]:cluster.nodes[0];
 }
 
 function _tickExternalSwarms(){
@@ -2287,6 +2317,15 @@ function _tickExternalSwarms(){
       }
     });
   }
+  // Re-elect ambassadors by trust (2 per cluster, deterministic)
+  // Highest trust nodes that are alive and honest get the role
+  clusters.forEach(cl=>{
+    const ranked=cl.nodes.slice().filter(n=>!n.outage&&!n.byz).sort((a,b)=>(b.trust||0.8)-(a.trust||0.8));
+    const ambCount=Math.min(2,ranked.length);
+    const ambIds=ranked.slice(0,ambCount).map(n=>n.id);
+    cl.nodes.forEach(n=>{n.ambassador=ambIds.includes(n.id);});
+    cl._ambassadorIds=ambIds;
+  });
   // Compute local fingerprint and delta votes from snapshot
   const localFP=_snapFingerprint(snap,1.0);
   const prevSnap=SIM.idx>0?SIM.snapshots[SIM.idx-1]:null;
@@ -2376,10 +2415,13 @@ function _tickExternalSwarms(){
   if(tick%6===0){
     const matchCount=externalSwarms.filter(s=>s._lastMatch).length;
     const total=externalSwarms.length;
-    const deltaVotes=snap.candidatos?Object.values(snap.candidatos).reduce((s,v)=>s+v,0):0;
+    const dv=snap.candidatos?Object.values(snap.candidatos).reduce((s,v)=>s+v,0):0;
     if(total>0){
       const target=externalSwarms[tick%total];
-      logSE('INFO',`[GOSSIP] LOCAL → ${target.id.substring(0,8)}: fingerprint snap#${SIM.idx} δ=${deltaVotes.toLocaleString()} votos propagado`);
+      const tgtCl=clusters.find(c=>c.id===target.id);
+      const localAmb=local._ambassadorIds||[];
+      const tgtAmb=tgtCl?tgtCl._ambassadorIds:[];
+      logSE('INFO',`[GOSSIP] LOCAL(emb#${localAmb[0]||0}) → ${target.id.substring(0,8)}(emb#${tgtAmb[0]||0}): snap#${SIM.idx} δ=${dv.toLocaleString()} votos`);
     }
     if(matchCount===total&&total>0){
       logSE('OK',`[CONSENSUS] ${matchCount+1}/${total+1} swarms confirman fingerprint snap#${SIM.idx} — consenso alcanzado`);
