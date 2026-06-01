@@ -1928,54 +1928,56 @@ function drawNetwork(ctx,width,height){
     return;
   }
 
-  // Build network from swarms
-  networkState.nodes=[];
-  networkState.edges=[];
-  const swarmWidth=width/(externalSwarms.length+1);
-  let nodeIndex=0;
+  // Build network from swarms (cached)
+  if(networkState.nodes.length===0){
+    const swarmWidth=width/(externalSwarms.length+1);
+    let nodeIndex=0;
+    externalSwarms.forEach((swarm,swarmIdx)=>{
+      const cx=(swarmIdx+1)*swarmWidth;
+      const totalNodesInSwarm=swarm.nodes;
+      const nodeRadius=18;
+      const spacing=height/(totalNodesInSwarm+1);
+      for(let i=0;i<totalNodesInSwarm;i++){
+        const ny=(i+1)*spacing;
+        const isByzantine=Math.random()>0.8;
+        const node={id:nodeIndex++,x:cx,y:ny,swarmIdx,isByzantine,radius:nodeRadius};
+        networkState.nodes.push(node);
+      }
+    });
+  }
 
-  // Render swarms
-  externalSwarms.forEach((swarm,swarmIdx)=>{
-    const cx=(swarmIdx+1)*swarmWidth;
-    const totalNodesInSwarm=swarm.nodes;
-    const nodeRadius=20;
-    const spacing=height/(totalNodesInSwarm+1);
+  // Render nodes (optimized)
+  networkState.nodes.forEach(node=>{
+    ctx.beginPath();
+    ctx.arc(node.x,node.y,node.radius,0,Math.PI*2);
+    ctx.fillStyle=node.isByzantine?'rgba(248,113,113,.7)':'rgba(16,185,129,.7)';
+    ctx.fill();
+    ctx.strokeStyle='rgba(200,200,200,.4)';
+    ctx.lineWidth=1;
+    ctx.stroke();
 
-    for(let i=0;i<totalNodesInSwarm;i++){
-      const ny=(i+1)*spacing;
-      const isByzantine=Math.random()>0.8;
-      const node={id:nodeIndex++,x:cx,y:ny,swarmIdx,isByzantine,radius:nodeRadius};
-      networkState.nodes.push(node);
-
-      // Draw node circle
-      ctx.beginPath();
-      ctx.arc(cx,ny,nodeRadius,0,Math.PI*2);
-      ctx.fillStyle=isByzantine?'rgba(248,113,113,.6)':'rgba(16,185,129,.6)';
-      ctx.fill();
-      ctx.strokeStyle='rgba(200,200,200,.3)';
-      ctx.lineWidth=1.5;
-      ctx.stroke();
-
-      // Draw node ID
-      ctx.fillStyle='rgba(255,255,255,.8)';
-      ctx.font='10px monospace';
+    // Draw node ID (simplified)
+    if(networkState.nodes.length<=30){ // Only show IDs for small networks
+      ctx.fillStyle='rgba(255,255,255,.9)';
+      ctx.font='9px monospace';
       ctx.textAlign='center';
       ctx.textBaseline='middle';
-      ctx.fillText(i.toString(),cx,ny);
+      ctx.fillText(node.id.toString(),node.x,node.y);
     }
   });
 
-  // Draw edges (gossip connections)
-  if(networkState.isAnimating){
-    for(let i=0;i<Math.min(networkState.nodes.length/2,8);i++){
+  // Draw edges (limited and cached)
+  if(networkState.isAnimating && networkState.nodes.length>0){
+    const edgeCount=Math.min(6,Math.floor(networkState.nodes.length/3));
+    for(let i=0;i<edgeCount;i++){
       const n1=networkState.nodes[Math.floor(Math.random()*networkState.nodes.length)];
       const n2=networkState.nodes[Math.floor(Math.random()*networkState.nodes.length)];
       if(n1.id!==n2.id){
         ctx.beginPath();
         ctx.moveTo(n1.x,n1.y);
         ctx.lineTo(n2.x,n2.y);
-        ctx.strokeStyle='rgba(110,231,183,.3)';
-        ctx.lineWidth=1;
+        ctx.strokeStyle='rgba(110,231,183,.25)';
+        ctx.lineWidth=0.8;
         ctx.stroke();
       }
     }
@@ -1994,33 +1996,38 @@ function startInteractionSimulation(){
 
   const ctx=canvas.getContext('2d');
   const rect=canvas.getBoundingClientRect();
-  canvas.width=rect.width*window.devicePixelRatio;
-  canvas.height=rect.height*window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  canvas.width=rect.width;
+  canvas.height=rect.height;
 
   let frame=0;
-  const maxFrames=120;
-  const animate=()=>{
-    ctx.clearRect(0,0,rect.width,rect.height);
-    drawNetwork(ctx,rect.width,rect.height);
+  const maxFrames=80; // Reduced from 120 for better performance
+  const maxActiveMessages=12; // Cap concurrent animations
 
-    // Animate message propagation
+  const animate=()=>{
+    // Only redraw if needed (less frequent canvas updates)
+    if(frame%2===0){ // Update every 2 frames
+      ctx.clearRect(0,0,rect.width,rect.height);
+      drawNetwork(ctx,rect.width,rect.height);
+    }
+
+    // Animate message propagation (throttled)
     if(frame<maxFrames){
-      if(frame%10===0 && networkState.nodes.length>1){
+      if(frame%8===0 && networkState.animatingMessages.length<maxActiveMessages && networkState.nodes.length>1){
         const n1=networkState.nodes[Math.floor(Math.random()*networkState.nodes.length)];
         const n2=networkState.nodes[Math.floor(Math.random()*networkState.nodes.length)];
         if(n1.id!==n2.id){
-          networkState.animatingMessages.push({sx:n1.x,sy:n1.y,tx:n2.x,ty:n2.y,progress:0,color:'rgba(110,231,183,.8)'});
+          networkState.animatingMessages.push({sx:n1.x,sy:n1.y,tx:n2.x,ty:n2.y,progress:0,color:'rgba(110,231,183,.7)'});
         }
       }
 
+      // Update and render only active messages
       networkState.animatingMessages=networkState.animatingMessages.filter(msg=>{
-        msg.progress+=0.03;
+        msg.progress+=0.04;
         if(msg.progress<=1){
           const x=msg.sx+(msg.tx-msg.sx)*msg.progress;
           const y=msg.sy+(msg.ty-msg.sy)*msg.progress;
           ctx.beginPath();
-          ctx.arc(x,y,3,0,Math.PI*2);
+          ctx.arc(x,y,2,0,Math.PI*2);
           ctx.fillStyle=msg.color;
           ctx.fill();
           return true;
