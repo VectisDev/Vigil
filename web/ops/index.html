@@ -1434,45 +1434,50 @@ let currentPopupCode = null; // dept code open in popup
 // ══════════════════════════════════════════════════════════
 let DEPTS = [];  // populated by loadDepartments()
 let COUNTRY_META = {};
+let ACTIVE_COUNTRY_CODE = localStorage.getItem('centinel_country_code') || 'HN';
 
-async function loadDepartments() {
-  try {
-    const r = await fetch(`${RAW_BASE}/web/data/departments.json?t=${Date.now()}`);
-    if (!r.ok) throw new Error(r.status);
-    const data = await r.json();
+async function loadDepartments(code) {
+  const cc = (code || ACTIVE_COUNTRY_CODE || 'HN').toUpperCase();
+  const parsed = data => {
     COUNTRY_META = data;
     DEPTS = data.departments.map(d => ({
-      code: d.code,
-      name: d.name,
-      abbr: d.abbr,
-      iso:  d.iso,
-      url:  d.url,
+      code: d.code, name: d.name, abbr: d.abbr, iso: d.iso, url: d.url,
     }));
     console.log(`Departments loaded: ${DEPTS.length} (${data.country})`);
+  };
+  // Try country-specific file first
+  try {
+    const r = await fetch(`${RAW_BASE}/web/data/departments/${cc}.json?t=${Date.now()}`);
+    if (r.ok) { parsed(await r.json()); return; }
+  } catch(_) {}
+  // Fall back to legacy departments.json (HN)
+  try {
+    const r = await fetch(`${RAW_BASE}/web/data/departments.json?t=${Date.now()}`);
+    if (r.ok) { parsed(await r.json()); return; }
   } catch (e) {
     console.warn('departments.json not found, using HN fallback:', e);
-    DEPTS = [
-      {code:'00',name:'NACIONAL',abbr:'NAC',iso:null},
-      {code:'01',name:'Atlántida',abbr:'AT',iso:'HN-AT'},
-      {code:'02',name:'Choluteca',abbr:'CH',iso:'HN-CH'},
-      {code:'03',name:'Colón',abbr:'CL',iso:'HN-CL'},
-      {code:'04',name:'Comayagua',abbr:'CM',iso:'HN-CM'},
-      {code:'05',name:'Copán',abbr:'CP',iso:'HN-CP'},
-      {code:'06',name:'Cortés',abbr:'CR',iso:'HN-CR'},
-      {code:'07',name:'El Paraíso',abbr:'EP',iso:'HN-EP'},
-      {code:'08',name:'Fco. Morazán',abbr:'FM',iso:'HN-FM'},
-      {code:'09',name:'Gracias a Dios',abbr:'GD',iso:'HN-GD'},
-      {code:'10',name:'Intibucá',abbr:'IN',iso:'HN-IN'},
-      {code:'11',name:'I. de la Bahía',abbr:'IB',iso:'HN-IB'},
-      {code:'12',name:'La Paz',abbr:'LP',iso:'HN-LP'},
-      {code:'13',name:'Lempira',abbr:'LE',iso:'HN-LE'},
-      {code:'14',name:'Ocotepeque',abbr:'OC',iso:'HN-OC'},
-      {code:'15',name:'Olancho',abbr:'OL',iso:'HN-OL'},
-      {code:'16',name:'Santa Bárbara',abbr:'SB',iso:'HN-SB'},
-      {code:'17',name:'Valle',abbr:'VA',iso:'HN-VA'},
-      {code:'18',name:'Yoro',abbr:'YO',iso:'HN-YO'},
-    ];
   }
+  DEPTS = [
+    {code:'00',name:'NACIONAL',abbr:'NAC',iso:null},
+    {code:'01',name:'Atlántida',abbr:'AT',iso:'HN-AT'},
+    {code:'02',name:'Choluteca',abbr:'CH',iso:'HN-CH'},
+    {code:'03',name:'Colón',abbr:'CL',iso:'HN-CL'},
+    {code:'04',name:'Comayagua',abbr:'CM',iso:'HN-CM'},
+    {code:'05',name:'Copán',abbr:'CP',iso:'HN-CP'},
+    {code:'06',name:'Cortés',abbr:'CR',iso:'HN-CR'},
+    {code:'07',name:'El Paraíso',abbr:'EP',iso:'HN-EP'},
+    {code:'08',name:'Fco. Morazán',abbr:'FM',iso:'HN-FM'},
+    {code:'09',name:'Gracias a Dios',abbr:'GD',iso:'HN-GD'},
+    {code:'10',name:'Intibucá',abbr:'IN',iso:'HN-IN'},
+    {code:'11',name:'I. de la Bahía',abbr:'IB',iso:'HN-IB'},
+    {code:'12',name:'La Paz',abbr:'LP',iso:'HN-LP'},
+    {code:'13',name:'Lempira',abbr:'LE',iso:'HN-LE'},
+    {code:'14',name:'Ocotepeque',abbr:'OC',iso:'HN-OC'},
+    {code:'15',name:'Olancho',abbr:'OL',iso:'HN-OL'},
+    {code:'16',name:'Santa Bárbara',abbr:'SB',iso:'HN-SB'},
+    {code:'17',name:'Valle',abbr:'VA',iso:'HN-VA'},
+    {code:'18',name:'Yoro',abbr:'YO',iso:'HN-YO'},
+  ];
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1559,7 +1564,7 @@ async function initAll(){
   // Wrap each synchronous call so a transient error can't abort the whole
   // init chain and leave later sections (like 2 dept grid) unrendered.
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
-  await loadDepartments();
+  await loadDepartments(ACTIVE_COUNTRY_CODE);
   try { buildDeptGrid(); }    catch(e){ console.warn('buildDeptGrid',e); }
   try { buildPresetsGrid(); } catch(e){ console.warn('buildPresetsGrid',e); }
   await Promise.all([
@@ -2698,11 +2703,11 @@ async function loadCountrySelector() {
   const auth = document.getElementById('country-current-auth');
   if (!sel) return;
 
-  // Current country from API status (best-effort)
-  let currentCode = '';
+  // Current country from API status (best-effort), fall back to localStorage
+  let currentCode = ACTIVE_COUNTRY_CODE || 'HN';
   try {
     const s = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
-    if (s.ok) { const d = await s.json(); currentCode = d.country_code || ''; }
+    if (s.ok) { const d = await s.json(); currentCode = d.country_code || currentCode; }
   } catch(_) {}
 
   // Countries list from static file (always available, no API dependency)
@@ -2711,7 +2716,7 @@ async function loadCountrySelector() {
     if (!r.ok) { sel.innerHTML = '<option value="">Sin conexión al repositorio</option>'; return; }
     const countries = await r.json();
     sel.innerHTML = countries.map(c =>
-      `<option value="${c.code}"${c.code === currentCode ? ' selected' : ''}>${c.flag} ${c.name} — ${c.authority}</option>`
+      `<option value="${c.code}"${c.code === currentCode ? ' selected' : ''} data-flag="${c.flag}" data-name="${c.name}" data-auth="${c.authority}">${c.flag} ${c.name} — ${c.authority}</option>`
     ).join('');
     const cur = countries.find(c => c.code === currentCode);
     if (cur) {
@@ -2761,62 +2766,61 @@ async function doChangeCountry() {
   if (btn) { btn.disabled = true; btn.textContent = 'Aplicando…'; }
   if (res) res.style.display = 'none';
 
+  // Extract display data from the selected option
+  const opt = sel.options[sel.selectedIndex];
+  const optFlag = opt ? (opt.dataset.flag || '') : '';
+  const optName = opt ? (opt.dataset.name || code) : code;
+  const optAuth = opt ? (opt.dataset.auth || '') : '';
+
+  // Update client-side state immediately (no API required)
+  ACTIVE_COUNTRY_CODE = code;
+  localStorage.setItem('centinel_country_code', code);
+
+  const flagEl = document.getElementById('country-current-flag');
+  const nameEl = document.getElementById('country-current-name');
+  const authEl = document.getElementById('country-current-auth');
+  if (flagEl) flagEl.textContent = optFlag;
+  if (nameEl) nameEl.textContent = optName;
+  if (authEl) authEl.textContent = optAuth;
+
+  // Load country-specific departments and rebuild grid
+  await loadDepartments(code);
+  buildDeptGrid();
+
+  // Best-effort API sync (silent on failure — works offline / GitHub Pages)
+  let apiSynced = false;
   try {
     const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/change_country', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({country_code: code}),
     });
-    const d = await r.json();
-
-    if (r.ok && d.success) {
-      const flag = document.getElementById('country-current-flag');
-      const name = document.getElementById('country-current-name');
-      const auth = document.getElementById('country-current-auth');
-      if (flag) flag.textContent = d.flag;
-      if (name) name.textContent = d.country_name;
-      if (auth) auth.textContent = d.authority;
-
-      if (res) {
-        res.style.display = '';
-        res.style.background = 'rgba(87,192,141,.08)';
-        res.style.border = '1px solid rgba(87,192,141,.25)';
-        res.style.color = 'var(--ok)';
-        res.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> País cambiado a ${d.flag} <strong>${d.country_name}</strong> — ${d.authority}`;
-      }
-
-      // Warn if swarm is currently running with the old country
-      if (swWarn) {
-        try {
-          const sw = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status');
-          const sd = sw.ok ? await sw.json() : {running: false};
-          swWarn.style.display = (sd.running || sd.connected_peers > 0) ? '' : 'none';
-        } catch(_) { swWarn.style.display = 'none'; }
-      }
-
-      loadSeedStatus();
-      await loadDepartments();
-      buildDeptGrid();
-    } else {
-      if (res) {
-        res.style.display = '';
-        res.style.background = 'rgba(220,50,47,.08)';
-        res.style.border = '1px solid rgba(220,50,47,.25)';
-        res.style.color = 'var(--alert)';
-        res.textContent = d.detail || 'Error al cambiar país.';
+    if (r.ok) {
+      const d = await r.json();
+      if (d.success) {
+        apiSynced = true;
+        loadSeedStatus();
+        if (swWarn) {
+          try {
+            const sw = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status');
+            const sd = sw.ok ? await sw.json() : {running: false};
+            swWarn.style.display = (sd.running || sd.connected_peers > 0) ? '' : 'none';
+          } catch(_) { swWarn.style.display = 'none'; }
+        }
       }
     }
-  } catch(e) {
-    if (res) {
-      res.style.display = '';
-      res.style.background = 'rgba(220,50,47,.08)';
-      res.style.border = '1px solid rgba(220,50,47,.25)';
-      res.style.color = 'var(--alert)';
-      res.textContent = 'Error de red: ' + e.message;
-    }
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
+  } catch(_) {}
+
+  if (res) {
+    res.style.display = '';
+    res.style.background = 'rgba(87,192,141,.08)';
+    res.style.border = '1px solid rgba(87,192,141,.25)';
+    res.style.color = 'var(--ok)';
+    const syncNote = apiSynced ? '' : ' <span style="opacity:.6;font-size:.85em">(modo offline)</span>';
+    res.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> País establecido: ${optFlag} <strong>${optName}</strong>${optAuth ? ' — ' + optAuth : ''}${syncNote}`;
   }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
 }
 
 // ── 7 Acceso y Seeds ──────────────────────────────────────────────────────
