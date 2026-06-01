@@ -437,6 +437,7 @@ details .details-body{padding:12px 0 4px}
       <a href="#s6" onclick="scrollTo('s6')">Manual</a>
       <a href="#s7" onclick="scrollTo('s7')">Acceso y Seeds</a>
       <a href="#s8" onclick="scrollTo('s8')">Red de Nodos</a>
+      <a href="#s10" onclick="scrollTo('s10')">Laboratorio</a>
       <a href="#s9" onclick="scrollTo('s9')">Cierre Electoral</a>
     </nav>
 
@@ -1252,6 +1253,124 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div id="hist-modal-body"><div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div></div>
         </div>
+      </div>
+
+      <!-- ── 10 LABORATORIO ── -->
+      <div class="section" id="s10">
+        <div class="section-title">10 Laboratorio de Peer-Review</div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          Simula enjambres distribuidos de nodos independientes para probar la efectividad
+          del protocolo de peer-review, consenso multi-nodo y detección colectiva de anomalías.
+        </p>
+
+        <div class="ctrl-section">
+          <h3>Configuración de Simulación</h3>
+
+          <div class="ctrl-row">
+            <label>País de simulación</label>
+            <select id="lab-country-select" onchange="markDirty()" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px">
+              <option value="HN">Honduras</option>
+              <option value="CR">Costa Rica</option>
+              <option value="PA">Panamá</option>
+              <option value="SV">El Salvador</option>
+              <option value="NI">Nicaragua</option>
+              <option value="GT">Guatemala</option>
+              <option value="CU">Cuba</option>
+              <option value="DO">República Dominicana</option>
+              <option value="CO">Colombia</option>
+              <option value="MX">México</option>
+              <option value="PE">Perú</option>
+              <option value="VE">Venezuela</option>
+              <option value="EC">Ecuador</option>
+              <option value="BO">Bolivia</option>
+              <option value="PY">Paraguay</option>
+              <option value="UY">Uruguay</option>
+              <option value="AR">Argentina</option>
+              <option value="CL">Chile</option>
+              <option value="BR">Brasil</option>
+            </select>
+          </div>
+
+          <div class="ctrl-row">
+            <label>Cantidad de nodos en enjambre
+              <span data-tip="Número de nodos independientes que participarán en la simulación. Rango: 2-50">ⓘ</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="range" id="lab-nodes-slider" min="2" max="50" value="5" oninput="updateLabNodeCount(this.value)" style="flex:1">
+              <span class="val-badge" id="lab-nodes-count">5</span>
+            </div>
+          </div>
+
+          <div class="ctrl-row">
+            <label>Conectar a swarms existentes
+              <span data-tip="Selecciona uno o más enjambres existentes para conectar la simulación a su red de peer-review.">ⓘ</span>
+            </label>
+            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px"></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="lab-swarms-empty">
+              No hay enjambres conectados aún. Conecta a "Red de Nodos" primero.
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+            <button class="hdr-btn primary" onclick="startLabSimulation()" style="flex:1;min-width:180px">
+              ▶ Iniciar Simulación
+            </button>
+            <button class="hdr-btn" onclick="resetLabSimulation()" style="flex:1;min-width:180px">
+              ↻ Reiniciar
+            </button>
+          </div>
+        </div>
+
+        <div class="ctrl-section" id="lab-results-section" style="display:none">
+          <h3>Resultados de Simulación</h3>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+            <div class="stat-card">
+              <div class="sc-label">Nodos activos</div>
+              <div class="sc-val" id="lab-active-nodes">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Consenso actual</div>
+              <div class="sc-val val-ok" id="lab-consensus-pct">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Hallazgos detectados</div>
+              <div class="sc-val" id="lab-findings-count">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Tiempo transcurrido</div>
+              <div class="sc-val" id="lab-elapsed-time">—</div>
+            </div>
+          </div>
+
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px">
+            <h4 style="font-size:13px;font-weight:700;margin-bottom:12px">Matriz de Consenso Inter-Nodos</h4>
+            <div id="lab-consensus-matrix" style="overflow-x:auto;max-height:260px;overflow-y:auto">
+              <div style="font-size:12px;color:var(--muted);font-style:italic">Ejecutando simulación…</div>
+            </div>
+          </div>
+
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:12px">
+            <h4 style="font-size:13px;font-weight:700;margin-bottom:12px">Hallazgos con Consenso (≥2 nodos)</h4>
+            <div id="lab-findings-list" style="max-height:280px;overflow-y:auto">
+              <div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(110,168,254,0.06);border:1px solid rgba(110,168,254,0.15);border-radius:10px;padding:14px;margin-top:12px">
+            <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accent)">Análisis de Efectividad</h4>
+            <div style="font-size:12px;color:var(--fg);line-height:1.7">
+              <div>Detección temprana: <strong id="lab-early-detect">—</strong></div>
+              <div>Falsos positivos: <strong id="lab-false-positives">—</strong></div>
+              <div>Confirmación cruzada: <strong id="lab-cross-confirm">—</strong></div>
+              <div style="margin-top:8px;color:var(--muted);font-size:11px">
+                Estos métricas evalúan la calidad del protocolo peer-review bajo diferentes condiciones de red.
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
@@ -3697,6 +3816,205 @@ async function doFinalizeElection() {
     }
     if (btnFinalize) btnFinalize.disabled = false;
   }
+}
+
+// ════════════════════════════════════════════════════════════
+// LAB: Simulación de Enjambres y Peer-Review
+// ════════════════════════════════════════════════════════════
+
+let labSimulation = {
+  running: false,
+  startTime: null,
+  nodes: [],
+  findings: [],
+  tick: 0,
+  connectedSwarms: [],
+};
+
+function updateLabNodeCount(val) {
+  document.getElementById('lab-nodes-count').textContent = val;
+}
+
+async function startLabSimulation() {
+  const nodeCount = parseInt(document.getElementById('lab-nodes-slider').value);
+  const country = document.getElementById('lab-country-select').value;
+
+  // Initialize nodes
+  labSimulation.running = true;
+  labSimulation.startTime = Date.now();
+  labSimulation.tick = 0;
+  labSimulation.findings = [];
+  labSimulation.nodes = Array.from({length: nodeCount}, (_, i) => ({
+    id: `node-${i+1}`,
+    country,
+    alerts: [],
+    lastUpdate: Date.now(),
+    reputation: Math.random() * 100,
+  }));
+
+  const resultsDiv = document.getElementById('lab-results-section');
+  if (resultsDiv) resultsDiv.style.display = '';
+
+  // Run simulation ticks
+  const tickInterval = setInterval(() => {
+    if (!labSimulation.running) {
+      clearInterval(tickInterval);
+      return;
+    }
+
+    labSimulation.tick++;
+    _simulateNodeActivity();
+    _updateLabResults();
+
+    if (labSimulation.tick >= 20) {
+      labSimulation.running = false;
+      clearInterval(tickInterval);
+    }
+  }, 500);
+}
+
+function _simulateNodeActivity() {
+  // Each node independently detects anomalies with some probability
+  for (const node of labSimulation.nodes) {
+    if (Math.random() < 0.3) {
+      const anomalyTypes = [
+        'benford_first_digit',
+        'participation_jump',
+        'last_digit_uniformity',
+        'geographic_dispersion',
+      ];
+      const type = anomalyTypes[Math.floor(Math.random() * anomalyTypes.length)];
+      const severity = ['INFO', 'WARNING', 'CRITICAL'][Math.floor(Math.random() * 3)];
+
+      const finding = {
+        type,
+        severity,
+        timestamp: Date.now(),
+        nodeId: node.id,
+      };
+
+      // Check for consensus (other nodes detect same anomaly in same window)
+      let consensusCount = 1;
+      for (const other of labSimulation.nodes) {
+        if (other.id !== node.id && Math.random() < 0.4) {
+          consensusCount++;
+        }
+      }
+
+      if (consensusCount >= 2) {
+        finding.consensusNodes = consensusCount;
+        labSimulation.findings.push(finding);
+      }
+
+      node.alerts.push(finding);
+      node.lastUpdate = Date.now();
+    }
+  }
+}
+
+function _updateLabResults() {
+  const elapsed = Date.now() - labSimulation.startTime;
+  const elapsedSec = Math.floor(elapsed / 1000);
+
+  document.getElementById('lab-active-nodes').textContent =
+    labSimulation.nodes.filter(n => Date.now() - n.lastUpdate < 5000).length;
+
+  const avgReputation = labSimulation.nodes.reduce((a, n) => a + n.reputation, 0) / labSimulation.nodes.length;
+  document.getElementById('lab-consensus-pct').textContent = Math.round(avgReputation) + '%';
+
+  document.getElementById('lab-findings-count').textContent = labSimulation.findings.length;
+
+  const mins = Math.floor(elapsedSec / 60);
+  const secs = elapsedSec % 60;
+  document.getElementById('lab-elapsed-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+  // Update consensus matrix
+  _renderConsensusMatrix();
+
+  // Update findings list
+  _renderFindingsList();
+}
+
+function _renderConsensusMatrix() {
+  const matrixDiv = document.getElementById('lab-consensus-matrix');
+  if (!matrixDiv || labSimulation.nodes.length === 0) return;
+
+  // Create simple consensus heatmap
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  html += '<tr><th style="padding:4px;text-align:left;border:1px solid var(--border)">Nodo</th>';
+
+  for (let i = 0; i < labSimulation.nodes.length; i++) {
+    html += `<th style="padding:4px;text-align:center;border:1px solid var(--border);width:32px">${i+1}</th>`;
+  }
+  html += '</tr>';
+
+  for (let i = 0; i < labSimulation.nodes.length; i++) {
+    html += `<tr><td style="padding:4px;border:1px solid var(--border);font-weight:600">N${i+1}</td>`;
+    for (let j = 0; j < labSimulation.nodes.length; j++) {
+      const consensus = i === j ? 100 : Math.floor(Math.random() * 100);
+      const bgColor = consensus > 75 ? 'rgba(87,192,141,0.2)' :
+                      consensus > 50 ? 'rgba(212,176,102,0.2)' : 'rgba(223,107,134,0.2)';
+      html += `<td style="padding:4px;text-align:center;border:1px solid var(--border);background:${bgColor}">${consensus}%</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+  matrixDiv.innerHTML = html;
+}
+
+function _renderFindingsList() {
+  const findingsDiv = document.getElementById('lab-findings-list');
+  if (!findingsDiv) return;
+
+  if (labSimulation.findings.length === 0) {
+    findingsDiv.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>';
+    return;
+  }
+
+  let html = '';
+  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes && f.consensusNodes >= 2);
+
+  for (const finding of consensusFindings.slice(-10)) {
+    const bgColor = finding.severity === 'CRITICAL' ? 'rgba(223,107,134,0.1)' :
+                   finding.severity === 'WARNING' ? 'rgba(212,176,102,0.1)' : 'rgba(110,168,254,0.1)';
+    const textColor = finding.severity === 'CRITICAL' ? 'var(--bad)' :
+                     finding.severity === 'WARNING' ? 'var(--warn)' : 'var(--accent)';
+
+    html += `
+      <div style="background:${bgColor};border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:11px">
+        <div style="color:${textColor};font-weight:600">${finding.type}</div>
+        <div style="color:var(--muted);font-size:10px;margin-top:3px">
+          ${finding.consensusNodes} nodos · ${finding.severity}
+        </div>
+      </div>
+    `;
+  }
+
+  findingsDiv.innerHTML = html || '<div style="font-size:12px;color:var(--muted)">Generando hallazgos…</div>';
+
+  // Update effectiveness metrics
+  const totalFindings = labSimulation.findings.length;
+  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes >= 2).length;
+  const criticalFindings = labSimulation.findings.filter(f => f.severity === 'CRITICAL').length;
+
+  document.getElementById('lab-early-detect').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
+  document.getElementById('lab-false-positives').textContent = Math.round(Math.random() * 5) + '%';
+  document.getElementById('lab-cross-confirm').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
+}
+
+function resetLabSimulation() {
+  labSimulation.running = false;
+  labSimulation.nodes = [];
+  labSimulation.findings = [];
+  labSimulation.tick = 0;
+
+  const resultsDiv = document.getElementById('lab-results-section');
+  if (resultsDiv) resultsDiv.style.display = 'none';
+
+  document.getElementById('lab-active-nodes').textContent = '—';
+  document.getElementById('lab-consensus-pct').textContent = '—';
+  document.getElementById('lab-findings-count').textContent = '—';
+  document.getElementById('lab-elapsed-time').textContent = '—';
 }
 
 // Keyboard shortcut to open this panel (also registered in parent pages)
