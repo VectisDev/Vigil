@@ -7,151 +7,176 @@
       "code": "00",
       "name": "NACIONAL",
       "abbr": "NAC",
-      "iso": null
+      "iso": null,
+      "url": "https://resultados.cne.gob.ve/api/presidencial/nacional"
     },
     {
       "code": "01",
       "name": "Amazonas",
       "abbr": "AM",
-      "iso": "VE-AM"
+      "iso": "VE-AM",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/01"
     },
     {
       "code": "02",
       "name": "Anzoátegui",
       "abbr": "AN",
-      "iso": "VE-AN"
+      "iso": "VE-AN",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/02"
     },
     {
       "code": "03",
       "name": "Apure",
       "abbr": "AP",
-      "iso": "VE-AP"
+      "iso": "VE-AP",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/03"
     },
     {
       "code": "04",
       "name": "Aragua",
       "abbr": "AR",
-      "iso": "VE-AR"
+      "iso": "VE-AR",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/04"
     },
     {
       "code": "05",
       "name": "Barinas",
       "abbr": "BA",
-      "iso": "VE-BA"
+      "iso": "VE-BA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/05"
     },
     {
       "code": "06",
       "name": "Bolívar",
       "abbr": "BO",
-      "iso": "VE-BO"
+      "iso": "VE-BO",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/06"
     },
     {
       "code": "07",
       "name": "Carabobo",
       "abbr": "CA",
-      "iso": "VE-CA"
+      "iso": "VE-CA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/07"
     },
     {
       "code": "08",
       "name": "Cojedes",
       "abbr": "CO",
-      "iso": "VE-CO"
+      "iso": "VE-CO",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/08"
     },
     {
       "code": "09",
       "name": "Delta Amacuro",
       "abbr": "DA",
-      "iso": "VE-DA"
+      "iso": "VE-DA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/09"
     },
     {
       "code": "10",
       "name": "Falcón",
       "abbr": "FA",
-      "iso": "VE-FA"
+      "iso": "VE-FA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/10"
     },
     {
       "code": "11",
       "name": "Guárico",
       "abbr": "GU",
-      "iso": "VE-GU"
+      "iso": "VE-GU",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/11"
     },
     {
       "code": "12",
       "name": "Lara",
       "abbr": "LA",
-      "iso": "VE-LA"
+      "iso": "VE-LA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/12"
     },
     {
       "code": "13",
       "name": "Mérida",
       "abbr": "ME",
-      "iso": "VE-ME"
+      "iso": "VE-ME",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/13"
     },
     {
       "code": "14",
       "name": "Miranda",
       "abbr": "MI",
-      "iso": "VE-MI"
+      "iso": "VE-MI",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/14"
     },
     {
       "code": "15",
       "name": "Monagas",
       "abbr": "MO",
-      "iso": "VE-MO"
+      "iso": "VE-MO",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/15"
     },
     {
       "code": "16",
       "name": "Nueva Esparta",
       "abbr": "NE",
-      "iso": "VE-NE"
+      "iso": "VE-NE",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/16"
     },
     {
       "code": "17",
       "name": "Portuguesa",
       "abbr": "PO",
-      "iso": "VE-PO"
+      "iso": "VE-PO",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/17"
     },
     {
       "code": "18",
       "name": "Sucre",
       "abbr": "SU",
-      "iso": "VE-SU"
+      "iso": "VE-SU",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/18"
     },
     {
       "code": "19",
       "name": "Táchira",
       "abbr": "TA",
-      "iso": "VE-TA"
+      "iso": "VE-TA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/19"
     },
     {
       "code": "20",
       "name": "Trujillo",
       "abbr": "TR",
-      "iso": "VE-TR"
+      "iso": "VE-TR",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/20"
     },
     {
       "code": "21",
       "name": "Vargas",
       "abbr": "VA",
-      "iso": "VE-VA"
+      "iso": "VE-VA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/21"
     },
     {
       "code": "22",
       "name": "Yaracuy",
       "abbr": "YA",
-      "iso": "VE-YA"
+      "iso": "VE-YA",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/22"
     },
     {
       "code": "23",
       "name": "Zulia",
       "abbr": "ZU",
-      "iso": "VE-ZU"
+      "iso": "VE-ZU",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/23"
     },
     {
       "code": "24",
       "name": "Distrito Capital",
       "abbr": "DC",
-      "iso": "VE-DC"
+      "iso": "VE-DC",
+      "url": "https://resultados.cne.gob.ve/api/presidencial/estado/24"
     }
   ]
 }
