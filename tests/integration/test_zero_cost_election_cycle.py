@@ -5,6 +5,7 @@ Validates:
 - Consensus computed locally (zero network cost)
 - Cross-swarm validation works without external services
 """
+
 import json
 from datetime import datetime
 
@@ -194,10 +195,7 @@ class TestZeroCostProperties:
         # Consensus computation should not require any network communication
         queue = GitHubGossipQueue("vectisdev/centinel-data", "election-2026-06-01")
 
-        payloads = [
-            {"swarm_id": f"swarm-{i:03d}", "payload": {"fingerprint_hash": "hash"}}
-            for i in range(10)
-        ]
+        payloads = [{"swarm_id": f"swarm-{i:03d}", "payload": {"fingerprint_hash": "hash"}} for i in range(10)]
 
         # This should complete without any network access
         consensus = queue.compute_consensus(payloads)
@@ -242,9 +240,7 @@ class TestSwarmCoordinationPatterns:
 
     def test_sequential_election_cycles(self):
         """Test multiple sequential elections."""
-        election_ids = [
-            f"election-2026-06-01-{i:02d}" for i in range(10)
-        ]  # 10 elections
+        election_ids = [f"election-2026-06-01-{i:02d}" for i in range(10)]  # 10 elections
 
         for election_id in election_ids:
             result = gossip_via_github(

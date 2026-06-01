@@ -1,4 +1,5 @@
 """Tests for reputation export to JSON (zero-cost forensic trails)."""
+
 import json
 import tempfile
 from pathlib import Path
