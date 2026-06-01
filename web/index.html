@@ -13,11 +13,18 @@
     display:flex;flex-direction:column;align-items:center;
     justify-content:center;padding:40px 24px;line-height:1.65;
     -webkit-font-smoothing:antialiased}
-  #topbar{position:fixed;top:0;right:0;padding:14px 20px;z-index:99}
-  #topbar a{font-size:11px;font-weight:700;color:var(--muted);text-decoration:none;
+  nav{position:fixed;top:0;left:0;right:0;z-index:99;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    padding:12px 20px;background:rgba(15,17,21,.92);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);flex-wrap:wrap}
+  nav a{font-size:11px;font-weight:700;color:var(--muted);text-decoration:none;
     letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;
-    border:1px solid var(--border);border-radius:6px;transition:.15s}
-  #topbar a:hover{color:var(--fg);border-color:#3a3f49}
+    border:1px solid transparent;border-radius:6px;transition:.15s;white-space:nowrap}
+  nav a:hover{color:var(--fg);border-color:#3a3f49}
+  .badge{display:inline-block;margin-bottom:36px;font-size:12px;color:var(--muted);
+    background:var(--panel);border:1px solid var(--border);border-radius:999px;
+    padding:5px 16px;letter-spacing:.02em}
   h1{font-size:34px;margin:0 0 10px;font-weight:600;letter-spacing:-.03em}
   .sub{color:var(--muted);max-width:600px;text-align:center;margin:0 0 44px;
     font-size:15px}
@@ -36,6 +43,16 @@
   .t-val{background:rgba(176,140,240,.13);color:var(--purple)}
   .t-upnfm{background:rgba(87,192,141,.12);color:#57c08d}
   a.card{width:355px}
+  .t-rep{background:rgba(223,107,134,.12);color:#df6b86}
+  .t-ver{background:rgba(110,168,254,.12);color:var(--accent)}
+  .docs-section{margin-top:40px;max-width:820px;text-align:center}
+  .docs-section h3{font-size:13px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--muted);margin-bottom:14px}
+  .docs-links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+  .docs-links a{font-size:12px;color:var(--muted);text-decoration:none;
+    padding:5px 14px;border:1px solid var(--border);border-radius:6px;
+    transition:.15s}
+  .docs-links a:hover{color:var(--fg);border-color:#3a3f49}
   footer{margin-top:48px;color:var(--muted);font-size:12.5px;
     text-align:center;line-height:1.7}
   code{font-family:ui-monospace,monospace;background:var(--panel);
@@ -44,13 +61,19 @@
 </style>
 </head>
 <body>
-  <div id="topbar">
-    <a href="ops/">OPS ↗</a>
-  </div>
+  <nav>
+    <a href="monitor/">Monitor</a>
+    <a href="lab/">Lab</a>
+    <a href="reports/hnd_2025.html">Reports</a>
+    <a href="verifier/">Verifier</a>
+    <a href="peers/">Peers</a>
+    <a href="ops/">OPS</a>
+  </nav>
 
   <h1>CENTINEL Electoral Honduras</h1>
   <p class="sub">Auditoría criptográfica independiente del proceso electoral.
     Anclado en Bitcoin. Costo cero. Reproducible por cualquiera.</p>
+  <span class="badge">64 snapshots reales procesados · Honduras 2025 · 21 anomalías detectadas</span>
   <div class="cards">
     <a class="card" href="monitor/">
       <span class="tag t-pub">PÚBLICO · tiempo real</span>
@@ -65,6 +88,25 @@
         de 576 snapshots. Inyección de anomalías de origen, ataques al sistema y patrones
         estadísticos electorales. Ajuste de umbrales de las 23 reglas.</p>
     </a>
+    <a class="card" href="reports/hnd_2025.html">
+      <span class="tag t-rep">ANÁLISIS · Honduras 2025</span>
+      <h2>Resultados Auditoría 2025</h2>
+      <p>Análisis forense automatizado de 64 snapshots reales del CNE. Detección de apagones, velocidad de resolución anómala, inyección progresiva y estancamiento prolongado.</p>
+    </a>
+    <a class="card" href="verifier/">
+      <span class="tag t-ver">VERIFICACIÓN · independiente</span>
+      <h2>Verificador Offline</h2>
+      <p>Descarga el verificador HTML. Comprueba la autenticidad de cualquier snapshot sin conexión a internet, sin dependencia del CNE ni de Centinel.</p>
+    </a>
+  </div>
+  <div class="docs-section">
+    <h3>Documentación Técnica</h3>
+    <div class="docs-links">
+      <a href="https://github.com/VectisDev/centinel">GitHub Repo</a>
+      <a href="https://github.com/VectisDev/centinel/tree/main/docs/whitepaper">Whitepaper</a>
+      <a href="https://github.com/VectisDev/centinel/tree/main/docs/mathematics">Metodología Matemática</a>
+      <a href="https://github.com/VectisDev/centinel/blob/main/docs/security/THREAT-MODEL.md">Modelo de Amenazas</a>
+    </div>
   </div>
   <footer>
     AGPL-3.0 · <code>github.com/VectisDev/centinel</code><br>
