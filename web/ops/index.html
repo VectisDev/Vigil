@@ -369,6 +369,8 @@ details .details-body{padding:12px 0 4px}
   transition:.15s;border:1.5px solid transparent;letter-spacing:.01em;white-space:nowrap}
 .btn-op.iniciar{background:var(--ok);color:#061409;border-color:var(--ok)}
 .btn-op.iniciar:hover{opacity:.85}
+.btn-op.iniciar.running{background:var(--accent);border-color:var(--accent);color:#fff;animation:pulse-btn 2s infinite}
+@keyframes pulse-btn{0%,100%{opacity:1}50%{opacity:.7}}
 .btn-op.finalizar{background:transparent;border-color:var(--warn);color:var(--warn)}
 .btn-op.finalizar:hover{background:rgba(212,176,102,.08)}
 .btn-op.emergencia{background:transparent;border-color:var(--bad);color:var(--bad)}
@@ -435,6 +437,7 @@ details .details-body{padding:12px 0 4px}
       <a href="#s6" onclick="scrollTo('s6')">Manual</a>
       <a href="#s7" onclick="scrollTo('s7')">Acceso y Seeds</a>
       <a href="#s8" onclick="scrollTo('s8')">Red de Nodos</a>
+      <a href="#s10" onclick="scrollTo('s10')">Laboratorio</a>
       <a href="#s9" onclick="scrollTo('s9')">Cierre Electoral</a>
     </nav>
 
@@ -448,10 +451,11 @@ details .details-body{padding:12px 0 4px}
         <div id="panel-topbar">
           <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span></div>
           <div id="panel-actions">
-            <button class="btn-op iniciar" onclick="doIniciar()" title="Inicia el proceso de monitoreo y scraping en modo electoral">▶ Iniciar</button>
+            <button class="btn-op iniciar" id="btn-iniciar" onclick="doIniciar()" title="Inicia el proceso de monitoreo y scraping en modo electoral">▶ Iniciar</button>
             <button class="btn-op finalizar" onclick="openFinalizeModal()" title="Detiene el proceso, genera reporte final y cierra el ciclo electoral">◼ Finalizar</button>
             <button class="btn-op emergencia" onclick="doEmergencia()" title="Parada de emergencia inmediata — activa modo seguro">⚠ Emergencia</button>
           </div>
+          <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
         </div>
         <hr class="section-sep">
 
@@ -467,7 +471,7 @@ details .details-body{padding:12px 0 4px}
             <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Cambiar país</button>
           </div>
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em">URL del ente electoral</label>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip="La API debe devolver datos en formato JSON. No soportamos HTML, CSV, PDF o XML">URL del ente electoral <span style="color:var(--warn)">?</span></label>
             <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov/" oninput="syncText('mainurl',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
             <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar y descubrir</button>
           </div>
@@ -1251,6 +1255,138 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
+      <!-- ── 10 LABORATORIO ── -->
+      <div class="section" id="s10">
+        <div class="section-title">10 Simulacro en Swarm — Reputación PBTM</div>
+        <hr class="section-sep">
+
+        <div class="ctrl-section">
+          <!-- Node selector buttons + controls -->
+          <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Nodos (máx 12):</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button onclick="setLabNodeCount(2)" class="lab-node-btn" data-count="2" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">2</button>
+                <button onclick="setLabNodeCount(3)" class="lab-node-btn" data-count="3" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">3</button>
+                <button onclick="setLabNodeCount(4)" class="lab-node-btn" data-count="4" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">4</button>
+                <button onclick="setLabNodeCount(5)" class="lab-node-btn" data-count="5" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">5</button>
+                <button onclick="setLabNodeCount(6)" class="lab-node-btn lab-node-btn-selected" data-count="6" style="min-width:40px;padding:8px 12px;border:2px solid var(--accent);background:var(--accent);color:#0f1115;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">6</button>
+                <button onclick="setLabNodeCount(7)" class="lab-node-btn" data-count="7" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">7</button>
+                <button onclick="setLabNodeCount(8)" class="lab-node-btn" data-count="8" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">8</button>
+                <button onclick="setLabNodeCount(9)" class="lab-node-btn" data-count="9" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">9</button>
+                <button onclick="setLabNodeCount(10)" class="lab-node-btn" data-count="10" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">10</button>
+                <button onclick="setLabNodeCount(11)" class="lab-node-btn" data-count="11" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">11</button>
+                <button onclick="setLabNodeCount(12)" class="lab-node-btn" data-count="12" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">12</button>
+                <button class="hdr-btn" id="btn-corte" onclick="doCorteElectrico()" style="background:rgba(223,107,134,0.1);border-color:var(--bad);color:var(--bad);margin-left:12px;padding:8px 16px;font-size:12px;font-weight:700">⚡ Corte eléctrico</button>
+              </div>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <div class="ctrl-row" style="margin-bottom:0">
+                <label>País</label>
+                <select id="lab-country-select" onchange="markDirty()" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%">
+                  <option value="HN">Honduras</option>
+                  <option value="CR">Costa Rica</option>
+                  <option value="PA">Panamá</option>
+                  <option value="SV">El Salvador</option>
+                  <option value="NI">Nicaragua</option>
+                  <option value="GT">Guatemala</option>
+                  <option value="CU">Cuba</option>
+                  <option value="DO">Rep. Dominicana</option>
+                  <option value="CO">Colombia</option>
+                  <option value="MX">México</option>
+                  <option value="PE">Perú</option>
+                  <option value="VE">Venezuela</option>
+                  <option value="EC">Ecuador</option>
+                  <option value="BO">Bolivia</option>
+                  <option value="PY">Paraguay</option>
+                  <option value="UY">Uruguay</option>
+                  <option value="AR">Argentina</option>
+                  <option value="CL">Chile</option>
+                  <option value="BR">Brasil</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metrics row -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;margin-bottom:16px;border:1px solid var(--border)">
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-nodos">6</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">NODOS</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-gossip">2</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RONDAS GOSSIP</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-bft">1</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT TOLERANCIA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-ring0">1</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 SEMILLA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-ring1">0</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 CONFIABLE</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="lab-stat-compromised">0</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">COMPROMETIDOS</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-msgs">6</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">MSGS/TICK</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-consensus">OK</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">CONSENSO</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+            <button class="hdr-btn primary" onclick="startLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              ▶ Iniciar Simulación
+            </button>
+            <button class="hdr-btn" onclick="resetLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              ↻ Reiniciar
+            </button>
+          </div>
+
+          <!-- Connected swarms -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Conectar a swarms:</div>
+            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px"></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="lab-swarms-empty">
+              No hay enjambres conectados.
+            </div>
+          </div>
+        </div>
+
+        <!-- Anillos de confianza -->
+        <div class="ctrl-section" id="lab-rings-section" style="display:none">
+          <h3>Anillos de Confianza (Modelo Beta Bayesiano)</h3>
+          <div id="lab-rings-display" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px"></div>
+        </div>
+
+        <!-- Hallazgos -->
+        <div class="ctrl-section" id="lab-findings-section" style="display:none">
+          <h3>Hallazgos con Consenso (≥2 nodos)</h3>
+          <div id="lab-findings-list" style="max-height:280px;overflow-y:auto">
+            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>
+          </div>
+        </div>
+
+        <!-- Matriz de consenso -->
+        <div class="ctrl-section" id="lab-matrix-section" style="display:none">
+          <h3>Matriz de Consenso Inter-Nodos</h3>
+          <div id="lab-consensus-matrix" style="overflow-x:auto;max-height:260px;overflow-y:auto">
+            <div style="font-size:12px;color:var(--muted);font-style:italic">Matriz aparecerá aquí…</div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- ── 9 CIERRE ELECTORAL ── -->
       <div class="section" id="s9">
         <div class="section-title">9 Cierre Electoral</div>
@@ -1526,12 +1662,19 @@ async function doAdminLogin(){
     } catch(_) {}
     if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
     const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
-    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
-    if(!matched){
+    const rawSeeds = ac.seeds||{};
+    let seedId = null;
+    if(Array.isArray(rawSeeds)){
+      const hit = rawSeeds.find(s=>s.hash===candidate);
+      if(hit) seedId = 'S1-' + 'ABCDEFGHIJKL'[hit.slot-1];
+    } else {
+      const hit = Object.entries(rawSeeds).find(([,h])=>h===candidate);
+      if(hit) seedId = hit[0];
+    }
+    if(!seedId){
       err.textContent='Seed incorrecto.';
       btn.disabled=false; btn.textContent='Entrar'; return;
     }
-    const seedId = matched[0];
     sessionStorage.setItem('centinel_admin_tok', seedId);
     sessionStorage.setItem('centinel_admin_exp', String(Date.now()+8*3600*1000));
     currentUser = {seed: seedId};
@@ -1581,6 +1724,11 @@ async function initAll(){
   loadSwarmStatus();
   loadReputationPanel();
   loadElectionStatus();
+  // Restore pipeline button state if already running
+  fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/status')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if (d?.running) { _setPipelineUI(true, d.pid); _startPipelinePoll(); } })
+    .catch(() => {});
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2746,10 +2894,137 @@ function onCountrySelectChange(code) {
 }
 
 // ── Operaciones ───────────────────────────────────────────────────────────────
-function doIniciar() {
-  loadPreset('election');
-  markDirty();
-  applyChanges();
+let _pipelinePollTimer = null;
+
+async function doIniciar() {
+  const btn = document.getElementById('btn-iniciar');
+  const bar = document.getElementById('pipeline-status-bar');
+
+  // If already running, stop instead
+  if (btn?.classList.contains('running')) {
+    if (!confirm('¿Detener el monitoreo en curso?')) return;
+    try {
+      await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
+    } catch (_) {}
+    _setPipelineUI(false);
+    return;
+  }
+
+  // Validate URL is present and valid
+  const mainUrl = (document.getElementById('inp-main-url-easy')?.value ||
+                   document.getElementById('inp-main-url')?.value || '').trim();
+
+  if (!mainUrl) {
+    _setPipelineUI(false, null, '❌ Ingresa la URL del ente electoral antes de iniciar. (Ej: https://resultados.registraduria.gov.co/)');
+    return;
+  }
+
+  if (!mainUrl.startsWith('http://') && !mainUrl.startsWith('https://')) {
+    _setPipelineUI(false, null, '❌ La URL debe comenzar con http:// o https://');
+    return;
+  }
+
+  try {
+    new URL(mainUrl);
+  } catch (_) {
+    _setPipelineUI(false, null, '❌ URL inválida. Verifica el formato.');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Iniciando…'; }
+
+  // Collect current config to send
+  const epYaml = localConfig['config/prod/endpoints.yaml'] || null;
+
+  // 1. Apply config silently to server
+  try {
+    await fetch((window.CENTINEL_API_BASE || '') + '/api/config/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoints_yaml: epYaml,
+        country_code: ACTIVE_COUNTRY_CODE || 'HN',
+        main_url: mainUrl,
+      }),
+    });
+  } catch (_) {}
+
+  // 2. Start the pipeline
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ main_url: mainUrl, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      _setPipelineUI(true, d.pid);
+      _startPipelinePoll();
+    } else {
+      const err = await r.json().catch(() => ({}));
+      const detail = err.detail || 'Error al iniciar el pipeline.';
+      _setPipelineUI(false, null, '❌ ' + detail + ' (Verifica que Centinel esté corriendo en el servidor)');
+    }
+  } catch (_) {
+    // Offline / GitHub Pages — show clear message
+    _setPipelineUI(false, null, '❌ Panel en modo offline. Para iniciar el monitoreo, ejecuta Centinel en el servidor local y recarga.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function _setPipelineUI(running, pid, errorMsg) {
+  const btn = document.getElementById('btn-iniciar');
+  const bar = document.getElementById('pipeline-status-bar');
+  if (!btn) return;
+
+  if (running) {
+    btn.classList.add('running');
+    btn.textContent = '⏹ Detener';
+    btn.title = 'Monitoreo en curso — click para detener';
+    if (bar) {
+      bar.style.display = '';
+      bar.style.background = 'rgba(87,192,141,.08)';
+      bar.style.border = '1px solid rgba(87,192,141,.25)';
+      bar.style.color = 'var(--ok)';
+      bar.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/></svg> Monitoreo activo${pid ? ' · PID ' + pid : ''} · ${ACTIVE_COUNTRY_CODE || '—'}`;
+    }
+  } else {
+    btn.classList.remove('running');
+    btn.textContent = '▶ Iniciar';
+    btn.title = 'Inicia el proceso de monitoreo y scraping en modo electoral';
+    if (bar) {
+      if (errorMsg) {
+        bar.style.display = '';
+        bar.style.background = 'rgba(220,50,47,.08)';
+        bar.style.border = '1px solid rgba(220,50,47,.25)';
+        bar.style.color = 'var(--alert)';
+        bar.textContent = errorMsg;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+  }
+}
+
+function _startPipelinePoll() {
+  if (_pipelinePollTimer) return;
+  _pipelinePollTimer = setInterval(async () => {
+    try {
+      const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/status');
+      if (r.ok) {
+        const d = await r.json();
+        if (!d.running) {
+          clearInterval(_pipelinePollTimer);
+          _pipelinePollTimer = null;
+          _setPipelineUI(false);
+        }
+      }
+    } catch (_) {
+      clearInterval(_pipelinePollTimer);
+      _pipelinePollTimer = null;
+    }
+  }, 10000); // poll every 10s
 }
 
 function doEmergencia() {
@@ -3562,6 +3837,292 @@ async function doFinalizeElection() {
     }
     if (btnFinalize) btnFinalize.disabled = false;
   }
+}
+
+// ════════════════════════════════════════════════════════════
+// LAB: Simulación de Enjambres y Peer-Review
+// ════════════════════════════════════════════════════════════
+
+let labSimulation = {
+  running: false,
+  startTime: null,
+  nodes: [],
+  findings: [],
+  tick: 0,
+  connectedSwarms: [],
+};
+
+function updateLabNodeCount(val) {
+  document.getElementById('lab-nodes-count').textContent = val;
+}
+
+function loadLabSwarms() {
+  const swarmsList = document.getElementById('lab-swarms-list');
+  const swarmEmpty = document.getElementById('lab-swarms-empty');
+
+  // Get available swarms from existing swarm data or mock some
+  let availableSwarms = [];
+
+  // Check if there are any connected swarms in s8
+  const swarmLabel = document.getElementById('swarm-label');
+  if (swarmLabel && swarmLabel.textContent === 'CONECTADO') {
+    availableSwarms.push({
+      id: 'local-swarm-1',
+      name: 'Enjambre Local',
+      nodes: 3,
+      reputation: 85,
+    });
+  }
+
+  // Add some demo swarms
+  if (availableSwarms.length === 0) {
+    availableSwarms = [
+      {id: 'demo-1', name: 'Demo Honduras', nodes: 2, reputation: 72},
+      {id: 'demo-2', name: 'Demo Costa Rica', nodes: 3, reputation: 88},
+      {id: 'demo-3', name: 'Demo Panamá', nodes: 2, reputation: 65},
+    ];
+  }
+
+  if (availableSwarms.length === 0) {
+    swarmEmpty.style.display = '';
+    swarmsList.innerHTML = '';
+    return;
+  }
+
+  swarmEmpty.style.display = 'none';
+  swarmsList.innerHTML = '';
+
+  for (const swarm of availableSwarms) {
+    const card = document.createElement('label');
+    card.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:0.1s';
+    card.innerHTML = `
+      <input type="checkbox" class="lab-swarm-checkbox" value="${swarm.id}" data-name="${swarm.name}" data-rep="${swarm.reputation}" style="cursor:pointer;width:16px;height:16px">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600">${swarm.name}</div>
+        <div style="font-size:10px;color:var(--muted)">${swarm.nodes} nodos · Rep ${swarm.reputation}%</div>
+      </div>
+    `;
+    card.onmouseover = () => card.style.background = 'var(--panel2)';
+    card.onmouseout = () => card.style.background = 'var(--panel)';
+    swarmsList.appendChild(card);
+  }
+}
+
+async function startLabSimulation() {
+  const nodeCount = parseInt(document.getElementById('lab-nodes-slider').value);
+  const country = document.getElementById('lab-country-select').value;
+
+  // Load selected swarms
+  const selectedSwarms = Array.from(document.querySelectorAll('.lab-swarm-checkbox:checked')).map(cb => ({
+    id: cb.value,
+    name: cb.getAttribute('data-name'),
+    reputation: parseInt(cb.getAttribute('data-rep')),
+  }));
+
+  // Initialize nodes with home nodes + connected swarm nodes
+  labSimulation.running = true;
+  labSimulation.startTime = Date.now();
+  labSimulation.tick = 0;
+  labSimulation.findings = [];
+  labSimulation.connectedSwarms = selectedSwarms;
+
+  labSimulation.nodes = Array.from({length: nodeCount}, (_, i) => ({
+    id: `node-${i+1}`,
+    country,
+    swarm: 'local',
+    alerts: [],
+    lastUpdate: Date.now(),
+    reputation: 70 + Math.random() * 30,
+  }));
+
+  // Add nodes from connected swarms
+  for (const swarm of selectedSwarms) {
+    for (let i = 0; i < Math.min(2, Math.floor(Math.random() * 3) + 1); i++) {
+      labSimulation.nodes.push({
+        id: `${swarm.id}-node-${i+1}`,
+        country,
+        swarm: swarm.id,
+        swarmName: swarm.name,
+        alerts: [],
+        lastUpdate: Date.now(),
+        reputation: swarm.reputation,
+      });
+    }
+  }
+
+  const resultsDiv = document.getElementById('lab-results-section');
+  if (resultsDiv) resultsDiv.style.display = '';
+
+  // Run simulation ticks
+  const tickInterval = setInterval(() => {
+    if (!labSimulation.running) {
+      clearInterval(tickInterval);
+      return;
+    }
+
+    labSimulation.tick++;
+    _simulateNodeActivity();
+    _updateLabResults();
+
+    if (labSimulation.tick >= 20) {
+      labSimulation.running = false;
+      clearInterval(tickInterval);
+    }
+  }, 500);
+}
+
+function _simulateNodeActivity() {
+  // Each node independently detects anomalies with some probability
+  for (const node of labSimulation.nodes) {
+    if (Math.random() < 0.3) {
+      const anomalyTypes = [
+        'benford_first_digit',
+        'participation_jump',
+        'last_digit_uniformity',
+        'geographic_dispersion',
+      ];
+      const type = anomalyTypes[Math.floor(Math.random() * anomalyTypes.length)];
+      const severity = ['INFO', 'WARNING', 'CRITICAL'][Math.floor(Math.random() * 3)];
+
+      const finding = {
+        type,
+        severity,
+        timestamp: Date.now(),
+        nodeId: node.id,
+      };
+
+      // Check for consensus (other nodes detect same anomaly in same window)
+      let consensusCount = 1;
+      for (const other of labSimulation.nodes) {
+        if (other.id !== node.id && Math.random() < 0.4) {
+          consensusCount++;
+        }
+      }
+
+      if (consensusCount >= 2) {
+        finding.consensusNodes = consensusCount;
+        labSimulation.findings.push(finding);
+      }
+
+      node.alerts.push(finding);
+      node.lastUpdate = Date.now();
+    }
+  }
+}
+
+function _updateLabResults() {
+  const elapsed = Date.now() - labSimulation.startTime;
+  const elapsedSec = Math.floor(elapsed / 1000);
+
+  document.getElementById('lab-active-nodes').textContent =
+    labSimulation.nodes.filter(n => Date.now() - n.lastUpdate < 5000).length;
+
+  const avgReputation = labSimulation.nodes.reduce((a, n) => a + n.reputation, 0) / labSimulation.nodes.length;
+  document.getElementById('lab-consensus-pct').textContent = Math.round(avgReputation) + '%';
+
+  document.getElementById('lab-findings-count').textContent = labSimulation.findings.length;
+
+  const mins = Math.floor(elapsedSec / 60);
+  const secs = elapsedSec % 60;
+  document.getElementById('lab-elapsed-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+  // Update consensus matrix
+  _renderConsensusMatrix();
+
+  // Update findings list
+  _renderFindingsList();
+}
+
+function _renderConsensusMatrix() {
+  const matrixDiv = document.getElementById('lab-consensus-matrix');
+  if (!matrixDiv || labSimulation.nodes.length === 0) return;
+
+  // Create simple consensus heatmap
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  html += '<tr><th style="padding:4px;text-align:left;border:1px solid var(--border)">Nodo</th>';
+
+  for (let i = 0; i < labSimulation.nodes.length; i++) {
+    html += `<th style="padding:4px;text-align:center;border:1px solid var(--border);width:32px">${i+1}</th>`;
+  }
+  html += '</tr>';
+
+  for (let i = 0; i < labSimulation.nodes.length; i++) {
+    html += `<tr><td style="padding:4px;border:1px solid var(--border);font-weight:600">N${i+1}</td>`;
+    for (let j = 0; j < labSimulation.nodes.length; j++) {
+      const consensus = i === j ? 100 : Math.floor(Math.random() * 100);
+      const bgColor = consensus > 75 ? 'rgba(87,192,141,0.2)' :
+                      consensus > 50 ? 'rgba(212,176,102,0.2)' : 'rgba(223,107,134,0.2)';
+      html += `<td style="padding:4px;text-align:center;border:1px solid var(--border);background:${bgColor}">${consensus}%</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+  matrixDiv.innerHTML = html;
+}
+
+function _renderFindingsList() {
+  const findingsDiv = document.getElementById('lab-findings-list');
+  if (!findingsDiv) return;
+
+  if (labSimulation.findings.length === 0) {
+    findingsDiv.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>';
+    return;
+  }
+
+  let html = '';
+  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes && f.consensusNodes >= 2);
+
+  for (const finding of consensusFindings.slice(-10)) {
+    const bgColor = finding.severity === 'CRITICAL' ? 'rgba(223,107,134,0.1)' :
+                   finding.severity === 'WARNING' ? 'rgba(212,176,102,0.1)' : 'rgba(110,168,254,0.1)';
+    const textColor = finding.severity === 'CRITICAL' ? 'var(--bad)' :
+                     finding.severity === 'WARNING' ? 'var(--warn)' : 'var(--accent)';
+
+    html += `
+      <div style="background:${bgColor};border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:11px">
+        <div style="color:${textColor};font-weight:600">${finding.type}</div>
+        <div style="color:var(--muted);font-size:10px;margin-top:3px">
+          ${finding.consensusNodes} nodos · ${finding.severity}
+        </div>
+      </div>
+    `;
+  }
+
+  findingsDiv.innerHTML = html || '<div style="font-size:12px;color:var(--muted)">Generando hallazgos…</div>';
+
+  // Update effectiveness metrics
+  const totalFindings = labSimulation.findings.length;
+  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes >= 2).length;
+  const criticalFindings = labSimulation.findings.filter(f => f.severity === 'CRITICAL').length;
+
+  document.getElementById('lab-early-detect').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
+  document.getElementById('lab-false-positives').textContent = Math.round(Math.random() * 5) + '%';
+  document.getElementById('lab-cross-confirm').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
+}
+
+function resetLabSimulation() {
+  labSimulation.running = false;
+  labSimulation.nodes = [];
+  labSimulation.findings = [];
+  labSimulation.tick = 0;
+  labSimulation.connectedSwarms = [];
+
+  const resultsDiv = document.getElementById('lab-results-section');
+  if (resultsDiv) resultsDiv.style.display = 'none';
+
+  document.getElementById('lab-active-nodes').textContent = '—';
+  document.getElementById('lab-consensus-pct').textContent = '—';
+  document.getElementById('lab-findings-count').textContent = '—';
+  document.getElementById('lab-elapsed-time').textContent = '—';
+  document.getElementById('lab-consensus-matrix').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Matriz de consenso aparecerá aquí tras iniciar…</div>';
+  document.getElementById('lab-findings-list').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Hallazgos aparecerán aquí…</div>';
+}
+
+// Initialize lab section when page loads - load swarms
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadLabSwarms);
+} else {
+  loadLabSwarms();
 }
 
 // Keyboard shortcut to open this panel (also registered in parent pages)
