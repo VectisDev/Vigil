@@ -753,6 +753,9 @@ class GossipEngine:
                 self._inbound_node_rate[node_id] = ts
             while ts and now - ts[0] > _FINDING_RATE_WINDOW:
                 ts.popleft()
+            # Cleanup: remove empty deques to prevent memory leak from Sybil node_ids
+            if not ts:
+                del self._inbound_node_rate[node_id]
             if len(ts) >= _FINDING_RATE_LIMIT:
                 return False
             ts.append(now)
