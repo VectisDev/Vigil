@@ -1,8 +1,8 @@
 {
   "version": 1,
   "algo": "PBKDF2-SHA256",
-  "salt": "centinel-admin-salt-v1",
   "iterations": 600000,
+  "salt": "centinel-admin-salt-v1",
   "seeds": {
     "S1-A": "3b6babf456f9c6cf6fc528468ea275aaca3efa45bb0c4229f4859f149400669e",
     "S1-B": "33779973a1649f58cbca42134126790d542d94ce3b04d45a2039c2722fbd69a1",
@@ -16,5 +16,7 @@
     "S1-J": "dd367630e9d7f48156c92e9db4e3c65ef7226f12f6accd5b136bbe9d86c5fcb2",
     "S1-K": "a066a318e20689679c0251ea68efbf5ca5b0dc1955403fd7e9b0ce2c02c87855",
     "S1-L": "342132026f23d15913720137f819298dbdedc3ee740e1c3ab42894f7324a54fc"
-  }
+  },
+  "generated_at": "2026-06-01T03:45:00+00:00",
+  "country": "HN"
 }
