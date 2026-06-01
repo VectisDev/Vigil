@@ -1,4 +1,5 @@
 """Unit tests for the Persistent Bayesian Trust Model (PBTM)."""
+
 import math
 import tempfile
 from datetime import datetime, timedelta, timezone
@@ -23,6 +24,7 @@ def make_engine(**kw) -> ReputationEngine:
 
 # ── Prior / initial state ────────────────────────────────────────────────────
 
+
 def test_prior_trust_is_neutral():
     eng = make_engine()
     eng.ensure("node1")
@@ -36,6 +38,7 @@ def test_unknown_node_returns_neutral():
 
 
 # ── Ring promotion ────────────────────────────────────────────────────────────
+
 
 def test_10_consistent_events_promote_to_ring1():
     """Verified analytically: α=11 → trust=12/14=0.857 ≥ 0.85."""
@@ -68,6 +71,7 @@ def test_ring0_node_never_auto_demoted():
 
 # ── Betrayal ─────────────────────────────────────────────────────────────────
 
+
 def test_betrayal_drops_trust_and_increments_count():
     eng = make_engine()
     eng.ensure("bad")
@@ -98,6 +102,7 @@ def test_ring1_node_demoted_on_betrayal():
 
 
 # ── Outage / restore ─────────────────────────────────────────────────────────
+
 
 def test_outage_is_small_reversible_penalty():
     eng = make_engine()
@@ -143,6 +148,7 @@ def test_3_consistent_after_outage_allow_ring1():
 
 # ── Decay ─────────────────────────────────────────────────────────────────────
 
+
 def test_decay_halves_alpha_after_14_days():
     eng = make_engine()
     eng.ensure("node")
@@ -155,9 +161,7 @@ def test_decay_halves_alpha_after_14_days():
     eng.decay()
 
     expected = max(1.0, 8.0 * math.pow(0.5, 1.0))  # exactly half-life
-    assert eng.get_trust("node") == pytest.approx(
-        (expected + 1) / (expected + rep.beta + 2), abs=0.01
-    )
+    assert eng.get_trust("node") == pytest.approx((expected + 1) / (expected + rep.beta + 2), abs=0.01)
 
 
 def test_decay_beta_halves_after_30_days():
@@ -175,6 +179,7 @@ def test_decay_beta_halves_after_30_days():
 
 
 # ── Ring queries ──────────────────────────────────────────────────────────────
+
 
 def test_get_all_sorted_by_arrival_order():
     eng = make_engine()
@@ -199,6 +204,7 @@ def test_ring_counts():
 
 
 # ── SQLite persistence ────────────────────────────────────────────────────────
+
 
 def test_persistence_survives_restart():
     with tempfile.TemporaryDirectory() as tmpdir:

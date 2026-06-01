@@ -311,9 +311,7 @@ class FederationCoordinator:
                     witness_b_merkle=att_b.merkle_root,
                     matches=matches,
                     divergence_detail=(
-                        None
-                        if matches
-                        else f"{wid_a}({att_a.total_snapshots}) vs {wid_b}({att_b.total_snapshots})"
+                        None if matches else f"{wid_a}({att_a.total_snapshots}) vs {wid_b}({att_b.total_snapshots})"
                     ),
                 )
                 comparisons.append(comparison)
