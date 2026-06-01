@@ -470,7 +470,7 @@ details .details-body{padding:12px 0 4px}
             <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Cambiar país</button>
           </div>
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em">URL del ente electoral</label>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip="La API debe devolver datos en formato JSON. No soportamos HTML, CSV, PDF o XML">URL del ente electoral <span style="color:var(--warn)">?</span></label>
             <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov/" oninput="syncText('mainurl',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
             <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar y descubrir</button>
           </div>
@@ -2770,11 +2770,30 @@ async function doIniciar() {
     return;
   }
 
+  // Validate URL is present and valid
+  const mainUrl = (document.getElementById('inp-main-url-easy')?.value ||
+                   document.getElementById('inp-main-url')?.value || '').trim();
+
+  if (!mainUrl) {
+    _setPipelineUI(false, null, '❌ Ingresa la URL del ente electoral antes de iniciar. (Ej: https://resultados.registraduria.gov.co/)');
+    return;
+  }
+
+  if (!mainUrl.startsWith('http://') && !mainUrl.startsWith('https://')) {
+    _setPipelineUI(false, null, '❌ La URL debe comenzar con http:// o https://');
+    return;
+  }
+
+  try {
+    new URL(mainUrl);
+  } catch (_) {
+    _setPipelineUI(false, null, '❌ URL inválida. Verifica el formato.');
+    return;
+  }
+
   if (btn) { btn.disabled = true; btn.textContent = 'Iniciando…'; }
 
   // Collect current config to send
-  const mainUrl = document.getElementById('inp-main-url-easy')?.value.trim()
-    || document.getElementById('inp-main-url')?.value.trim() || '';
   const epYaml = localConfig['config/prod/endpoints.yaml'] || null;
 
   // 1. Apply config silently to server
@@ -2785,7 +2804,7 @@ async function doIniciar() {
       body: JSON.stringify({
         endpoints_yaml: epYaml,
         country_code: ACTIVE_COUNTRY_CODE || 'HN',
-        main_url: mainUrl || null,
+        main_url: mainUrl,
       }),
     });
   } catch (_) {}
@@ -2795,7 +2814,7 @@ async function doIniciar() {
     const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ main_url: mainUrl || null, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
+      body: JSON.stringify({ main_url: mainUrl, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
     });
     if (r.ok) {
       const d = await r.json();
@@ -2803,11 +2822,12 @@ async function doIniciar() {
       _startPipelinePoll();
     } else {
       const err = await r.json().catch(() => ({}));
-      _setPipelineUI(false, null, err.detail || 'Error al iniciar. Verifica que Centinel esté corriendo en el servidor.');
+      const detail = err.detail || 'Error al iniciar el pipeline.';
+      _setPipelineUI(false, null, '❌ ' + detail + ' (Verifica que Centinel esté corriendo en el servidor)');
     }
   } catch (_) {
     // Offline / GitHub Pages — show clear message
-    _setPipelineUI(false, null, 'Panel en modo offline. Para iniciar el monitoreo, ejecuta Centinel en el servidor y recarga.');
+    _setPipelineUI(false, null, '❌ Panel en modo offline. Para iniciar el monitoreo, ejecuta Centinel en el servidor local y recarga.');
   } finally {
     if (btn) btn.disabled = false;
   }
