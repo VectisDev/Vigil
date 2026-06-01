@@ -46,8 +46,8 @@ No esperar confirmación del usuario. El merge automático es la norma, no la ex
 
 ## Ramas de desarrollo
 
-- Las ramas de trabajo se crean desde `main` con el prefijo `claude/`
-- Formato: `claude/<slug>-<id>`
+- Las ramas de trabajo se crean desde `main` con el prefijo `vectisdev/`
+- Formato: `vectisdev/<slug>-<id>`
 - Nunca hacer push directo a `main` ni a `dev-vNN` salvo cherry-picks de seguridad urgentes
 
 ---
