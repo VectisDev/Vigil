@@ -1257,117 +1257,131 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 10 LABORATORIO ── -->
       <div class="section" id="s10">
-        <div class="section-title">10 Laboratorio de Peer-Review</div>
+        <div class="section-title">10 Simulacro en Swarm — Reputación PBTM</div>
         <hr class="section-sep">
-        <p class="section-sub">
-          Simula enjambres distribuidos de nodos independientes para probar la efectividad
-          del protocolo de peer-review, consenso multi-nodo y detección colectiva de anomalías.
-        </p>
 
         <div class="ctrl-section">
-          <h3>Configuración de Simulación</h3>
-
-          <div class="ctrl-row">
-            <label>País de simulación</label>
-            <select id="lab-country-select" onchange="markDirty()" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px">
-              <option value="HN">Honduras</option>
-              <option value="CR">Costa Rica</option>
-              <option value="PA">Panamá</option>
-              <option value="SV">El Salvador</option>
-              <option value="NI">Nicaragua</option>
-              <option value="GT">Guatemala</option>
-              <option value="CU">Cuba</option>
-              <option value="DO">República Dominicana</option>
-              <option value="CO">Colombia</option>
-              <option value="MX">México</option>
-              <option value="PE">Perú</option>
-              <option value="VE">Venezuela</option>
-              <option value="EC">Ecuador</option>
-              <option value="BO">Bolivia</option>
-              <option value="PY">Paraguay</option>
-              <option value="UY">Uruguay</option>
-              <option value="AR">Argentina</option>
-              <option value="CL">Chile</option>
-              <option value="BR">Brasil</option>
-            </select>
-          </div>
-
-          <div class="ctrl-row">
-            <label>Cantidad de nodos en enjambre
-              <span data-tip="Número de nodos independientes que participarán en la simulación. Rango: 2-50">ⓘ</span>
-            </label>
-            <div style="display:flex;align-items:center;gap:10px">
-              <input type="range" id="lab-nodes-slider" min="2" max="50" value="5" oninput="updateLabNodeCount(this.value)" style="flex:1">
-              <span class="val-badge" id="lab-nodes-count">5</span>
+          <!-- Node selector buttons + controls -->
+          <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Nodos (máx 12):</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button onclick="setLabNodeCount(2)" class="lab-node-btn" data-count="2" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">2</button>
+                <button onclick="setLabNodeCount(3)" class="lab-node-btn" data-count="3" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">3</button>
+                <button onclick="setLabNodeCount(4)" class="lab-node-btn" data-count="4" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">4</button>
+                <button onclick="setLabNodeCount(5)" class="lab-node-btn" data-count="5" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">5</button>
+                <button onclick="setLabNodeCount(6)" class="lab-node-btn lab-node-btn-selected" data-count="6" style="min-width:40px;padding:8px 12px;border:2px solid var(--accent);background:var(--accent);color:#0f1115;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">6</button>
+                <button onclick="setLabNodeCount(7)" class="lab-node-btn" data-count="7" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">7</button>
+                <button onclick="setLabNodeCount(8)" class="lab-node-btn" data-count="8" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">8</button>
+                <button onclick="setLabNodeCount(9)" class="lab-node-btn" data-count="9" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">9</button>
+                <button onclick="setLabNodeCount(10)" class="lab-node-btn" data-count="10" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">10</button>
+                <button onclick="setLabNodeCount(11)" class="lab-node-btn" data-count="11" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">11</button>
+                <button onclick="setLabNodeCount(12)" class="lab-node-btn" data-count="12" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">12</button>
+                <button class="hdr-btn" id="btn-corte" onclick="doCorteElectrico()" style="background:rgba(223,107,134,0.1);border-color:var(--bad);color:var(--bad);margin-left:12px;padding:8px 16px;font-size:12px;font-weight:700">⚡ Corte eléctrico</button>
+              </div>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <div class="ctrl-row" style="margin-bottom:0">
+                <label>País</label>
+                <select id="lab-country-select" onchange="markDirty()" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%">
+                  <option value="HN">Honduras</option>
+                  <option value="CR">Costa Rica</option>
+                  <option value="PA">Panamá</option>
+                  <option value="SV">El Salvador</option>
+                  <option value="NI">Nicaragua</option>
+                  <option value="GT">Guatemala</option>
+                  <option value="CU">Cuba</option>
+                  <option value="DO">Rep. Dominicana</option>
+                  <option value="CO">Colombia</option>
+                  <option value="MX">México</option>
+                  <option value="PE">Perú</option>
+                  <option value="VE">Venezuela</option>
+                  <option value="EC">Ecuador</option>
+                  <option value="BO">Bolivia</option>
+                  <option value="PY">Paraguay</option>
+                  <option value="UY">Uruguay</option>
+                  <option value="AR">Argentina</option>
+                  <option value="CL">Chile</option>
+                  <option value="BR">Brasil</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div class="ctrl-row">
-            <label style="margin-bottom:8px">Conectar a swarms existentes
-              <span data-tip="Selecciona uno o más enjambres existentes para conectar la simulación a su red de peer-review.">ⓘ</span>
-            </label>
-            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:8px"></div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="lab-swarms-empty">
-              No hay enjambres conectados. La simulación correrá en modo aislado.
+          <!-- Metrics row -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;margin-bottom:16px;border:1px solid var(--border)">
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-nodos">6</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">NODOS</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-gossip">2</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RONDAS GOSSIP</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-bft">1</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT TOLERANCIA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-ring0">1</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 SEMILLA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-ring1">0</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 CONFIABLE</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="lab-stat-compromised">0</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">COMPROMETIDOS</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-msgs">6</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">MSGS/TICK</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-consensus">OK</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">CONSENSO</div>
             </div>
           </div>
 
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-            <button class="hdr-btn primary" onclick="startLabSimulation()" style="flex:1;min-width:180px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+            <button class="hdr-btn primary" onclick="startLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
               ▶ Iniciar Simulación
             </button>
-            <button class="hdr-btn" onclick="resetLabSimulation()" style="flex:1;min-width:180px">
+            <button class="hdr-btn" onclick="resetLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
               ↻ Reiniciar
             </button>
           </div>
+
+          <!-- Connected swarms -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Conectar a swarms:</div>
+            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px"></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="lab-swarms-empty">
+              No hay enjambres conectados.
+            </div>
+          </div>
         </div>
 
-        <div class="ctrl-section" id="lab-results-section" style="display:none">
-          <h3>Resultados de Simulación</h3>
+        <!-- Anillos de confianza -->
+        <div class="ctrl-section" id="lab-rings-section" style="display:none">
+          <h3>Anillos de Confianza (Modelo Beta Bayesiano)</h3>
+          <div id="lab-rings-display" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px"></div>
+        </div>
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px">
-            <div class="stat-card">
-              <div class="sc-label">Nodos activos</div>
-              <div class="sc-val" id="lab-active-nodes">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="sc-label">Consenso actual</div>
-              <div class="sc-val val-ok" id="lab-consensus-pct">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="sc-label">Hallazgos detectados</div>
-              <div class="sc-val" id="lab-findings-count">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="sc-label">Tiempo transcurrido</div>
-              <div class="sc-val" id="lab-elapsed-time">—</div>
-            </div>
+        <!-- Hallazgos -->
+        <div class="ctrl-section" id="lab-findings-section" style="display:none">
+          <h3>Hallazgos con Consenso (≥2 nodos)</h3>
+          <div id="lab-findings-list" style="max-height:280px;overflow-y:auto">
+            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>
           </div>
+        </div>
 
-          <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px">
-            <h4 style="font-size:13px;font-weight:700;margin-bottom:12px">Matriz de Consenso Inter-Nodos</h4>
-            <div id="lab-consensus-matrix" style="overflow-x:auto;max-height:260px;overflow-y:auto">
-              <div style="font-size:12px;color:var(--muted);font-style:italic">Ejecutando simulación…</div>
-            </div>
-          </div>
-
-          <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:12px">
-            <h4 style="font-size:13px;font-weight:700;margin-bottom:12px">Hallazgos con Consenso (≥2 nodos)</h4>
-            <div id="lab-findings-list" style="max-height:280px;overflow-y:auto">
-              <div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>
-            </div>
-          </div>
-
-          <div style="background:rgba(110,168,254,0.06);border:1px solid rgba(110,168,254,0.15);border-radius:10px;padding:14px;margin-top:12px">
-            <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accent)">Análisis de Efectividad</h4>
-            <div style="font-size:12px;color:var(--fg);line-height:1.7">
-              <div>Detección temprana: <strong id="lab-early-detect">—</strong></div>
-              <div>Falsos positivos: <strong id="lab-false-positives">—</strong></div>
-              <div>Confirmación cruzada: <strong id="lab-cross-confirm">—</strong></div>
-              <div style="margin-top:8px;color:var(--muted);font-size:11px">
-                Estos métricas evalúan la calidad del protocolo peer-review bajo diferentes condiciones de red.
-              </div>
-            </div>
+        <!-- Matriz de consenso -->
+        <div class="ctrl-section" id="lab-matrix-section" style="display:none">
+          <h3>Matriz de Consenso Inter-Nodos</h3>
+          <div id="lab-consensus-matrix" style="overflow-x:auto;max-height:260px;overflow-y:auto">
+            <div style="font-size:12px;color:var(--muted);font-style:italic">Matriz aparecerá aquí…</div>
           </div>
         </div>
 
@@ -1648,12 +1662,19 @@ async function doAdminLogin(){
     } catch(_) {}
     if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
     const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
-    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
-    if(!matched){
+    const rawSeeds = ac.seeds||{};
+    let seedId = null;
+    if(Array.isArray(rawSeeds)){
+      const hit = rawSeeds.find(s=>s.hash===candidate);
+      if(hit) seedId = 'S1-' + 'ABCDEFGHIJKL'[hit.slot-1];
+    } else {
+      const hit = Object.entries(rawSeeds).find(([,h])=>h===candidate);
+      if(hit) seedId = hit[0];
+    }
+    if(!seedId){
       err.textContent='Seed incorrecto.';
       btn.disabled=false; btn.textContent='Entrar'; return;
     }
-    const seedId = matched[0];
     sessionStorage.setItem('centinel_admin_tok', seedId);
     sessionStorage.setItem('centinel_admin_exp', String(Date.now()+8*3600*1000));
     currentUser = {seed: seedId};
