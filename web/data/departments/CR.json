@@ -1,0 +1,55 @@
+{
+  "country": "CR",
+  "country_name": "Costa Rica",
+  "divisions_label": "Provincias",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null
+    },
+    {
+      "code": "01",
+      "name": "San José",
+      "abbr": "SJ",
+      "iso": "CR-SJ"
+    },
+    {
+      "code": "02",
+      "name": "Alajuela",
+      "abbr": "AL",
+      "iso": "CR-AL"
+    },
+    {
+      "code": "03",
+      "name": "Cartago",
+      "abbr": "CA",
+      "iso": "CR-CA"
+    },
+    {
+      "code": "04",
+      "name": "Heredia",
+      "abbr": "HE",
+      "iso": "CR-HE"
+    },
+    {
+      "code": "05",
+      "name": "Guanacaste",
+      "abbr": "GU",
+      "iso": "CR-GU"
+    },
+    {
+      "code": "06",
+      "name": "Puntarenas",
+      "abbr": "PU",
+      "iso": "CR-PU"
+    },
+    {
+      "code": "07",
+      "name": "Limón",
+      "abbr": "LI",
+      "iso": "CR-LI"
+    }
+  ]
+}
