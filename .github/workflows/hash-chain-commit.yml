@@ -1,0 +1,41 @@
+name: Hash Chain Commit
+
+on:
+  schedule:
+    - cron: '1 0 * * *'  # Daily at 00:01 UTC (after forensic export)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Commit to hash chain
+        run: python src/centinel/federation/hash_chain.py
+
+      - name: Push hash chain branch
+        run: |
+          git push origin data/reputation --force-with-lease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create chain verification
+        run: |
+          git log data/reputation --oneline -10 > chain-verification.txt
+          cat chain-verification.txt
