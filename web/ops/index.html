@@ -369,6 +369,8 @@ details .details-body{padding:12px 0 4px}
   transition:.15s;border:1.5px solid transparent;letter-spacing:.01em;white-space:nowrap}
 .btn-op.iniciar{background:var(--ok);color:#061409;border-color:var(--ok)}
 .btn-op.iniciar:hover{opacity:.85}
+.btn-op.iniciar.running{background:var(--accent);border-color:var(--accent);color:#fff;animation:pulse-btn 2s infinite}
+@keyframes pulse-btn{0%,100%{opacity:1}50%{opacity:.7}}
 .btn-op.finalizar{background:transparent;border-color:var(--warn);color:var(--warn)}
 .btn-op.finalizar:hover{background:rgba(212,176,102,.08)}
 .btn-op.emergencia{background:transparent;border-color:var(--bad);color:var(--bad)}
@@ -448,10 +450,11 @@ details .details-body{padding:12px 0 4px}
         <div id="panel-topbar">
           <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span></div>
           <div id="panel-actions">
-            <button class="btn-op iniciar" onclick="doIniciar()" title="Inicia el proceso de monitoreo y scraping en modo electoral">▶ Iniciar</button>
+            <button class="btn-op iniciar" id="btn-iniciar" onclick="doIniciar()" title="Inicia el proceso de monitoreo y scraping en modo electoral">▶ Iniciar</button>
             <button class="btn-op finalizar" onclick="openFinalizeModal()" title="Detiene el proceso, genera reporte final y cierra el ciclo electoral">◼ Finalizar</button>
             <button class="btn-op emergencia" onclick="doEmergencia()" title="Parada de emergencia inmediata — activa modo seguro">⚠ Emergencia</button>
           </div>
+          <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
         </div>
         <hr class="section-sep">
 
@@ -1581,6 +1584,11 @@ async function initAll(){
   loadSwarmStatus();
   loadReputationPanel();
   loadElectionStatus();
+  // Restore pipeline button state if already running
+  fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/status')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if (d?.running) { _setPipelineUI(true, d.pid); _startPipelinePoll(); } })
+    .catch(() => {});
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2746,10 +2754,117 @@ function onCountrySelectChange(code) {
 }
 
 // ── Operaciones ───────────────────────────────────────────────────────────────
-function doIniciar() {
-  loadPreset('election');
-  markDirty();
-  applyChanges();
+let _pipelinePollTimer = null;
+
+async function doIniciar() {
+  const btn = document.getElementById('btn-iniciar');
+  const bar = document.getElementById('pipeline-status-bar');
+
+  // If already running, stop instead
+  if (btn?.classList.contains('running')) {
+    if (!confirm('¿Detener el monitoreo en curso?')) return;
+    try {
+      await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
+    } catch (_) {}
+    _setPipelineUI(false);
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Iniciando…'; }
+
+  // Collect current config to send
+  const mainUrl = document.getElementById('inp-main-url-easy')?.value.trim()
+    || document.getElementById('inp-main-url')?.value.trim() || '';
+  const epYaml = localConfig['config/prod/endpoints.yaml'] || null;
+
+  // 1. Apply config silently to server
+  try {
+    await fetch((window.CENTINEL_API_BASE || '') + '/api/config/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoints_yaml: epYaml,
+        country_code: ACTIVE_COUNTRY_CODE || 'HN',
+        main_url: mainUrl || null,
+      }),
+    });
+  } catch (_) {}
+
+  // 2. Start the pipeline
+  try {
+    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ main_url: mainUrl || null, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      _setPipelineUI(true, d.pid);
+      _startPipelinePoll();
+    } else {
+      const err = await r.json().catch(() => ({}));
+      _setPipelineUI(false, null, err.detail || 'Error al iniciar. Verifica que Centinel esté corriendo en el servidor.');
+    }
+  } catch (_) {
+    // Offline / GitHub Pages — show clear message
+    _setPipelineUI(false, null, 'Panel en modo offline. Para iniciar el monitoreo, ejecuta Centinel en el servidor y recarga.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function _setPipelineUI(running, pid, errorMsg) {
+  const btn = document.getElementById('btn-iniciar');
+  const bar = document.getElementById('pipeline-status-bar');
+  if (!btn) return;
+
+  if (running) {
+    btn.classList.add('running');
+    btn.textContent = '⏹ Detener';
+    btn.title = 'Monitoreo en curso — click para detener';
+    if (bar) {
+      bar.style.display = '';
+      bar.style.background = 'rgba(87,192,141,.08)';
+      bar.style.border = '1px solid rgba(87,192,141,.25)';
+      bar.style.color = 'var(--ok)';
+      bar.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/></svg> Monitoreo activo${pid ? ' · PID ' + pid : ''} · ${ACTIVE_COUNTRY_CODE || '—'}`;
+    }
+  } else {
+    btn.classList.remove('running');
+    btn.textContent = '▶ Iniciar';
+    btn.title = 'Inicia el proceso de monitoreo y scraping en modo electoral';
+    if (bar) {
+      if (errorMsg) {
+        bar.style.display = '';
+        bar.style.background = 'rgba(220,50,47,.08)';
+        bar.style.border = '1px solid rgba(220,50,47,.25)';
+        bar.style.color = 'var(--alert)';
+        bar.textContent = errorMsg;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+  }
+}
+
+function _startPipelinePoll() {
+  if (_pipelinePollTimer) return;
+  _pipelinePollTimer = setInterval(async () => {
+    try {
+      const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/status');
+      if (r.ok) {
+        const d = await r.json();
+        if (!d.running) {
+          clearInterval(_pipelinePollTimer);
+          _pipelinePollTimer = null;
+          _setPipelineUI(false);
+        }
+      }
+    } catch (_) {
+      clearInterval(_pipelinePollTimer);
+      _pipelinePollTimer = null;
+    }
+  }, 10000); // poll every 10s
 }
 
 function doEmergencia() {

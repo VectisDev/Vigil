@@ -130,11 +130,13 @@ from .audit import router as audit_router  # noqa: E402
 from .routes.setup import router as setup_router  # noqa: E402
 from .routes.swarm import router as swarm_router  # noqa: E402
 from .routes.election import router as election_router  # noqa: E402
+from .routes.pipeline import router as pipeline_router  # noqa: E402
 
 app.include_router(audit_router)
 app.include_router(setup_router)
 app.include_router(swarm_router)
 app.include_router(election_router)
+app.include_router(pipeline_router)
 
 
 def _load_cors_origins() -> list[str]:
