@@ -25,6 +25,7 @@ from centinel.federation.findings_log import FederationAnomalyLog
 from centinel.federation.attack_log import FederationAttackLog
 from centinel.federation.reputation import ReputationEngine
 from centinel.federation.task_partitioner import TaskPartitioner, HN_SOURCES
+from centinel.federation.compression import decompress_payload
 from centinel.api.rate_limit import RateLimiter, RateLimitConfig
 
 logger = logging.getLogger("centinel.api.swarm")
@@ -73,6 +74,26 @@ def _read_setup() -> dict:
 
 def _get_country() -> str:
     return _read_setup().get("country_code", "HN")
+
+
+async def _read_payload(request: Request) -> dict:
+    """Read payload from request, handling both compressed and uncompressed formats.
+
+    Supports:
+    - application/gzip: decompress before parsing JSON
+    - application/json: parse directly
+    - (fallback to JSON if content-type missing)
+    """
+    content_type = request.headers.get("content-type", "").lower()
+    try:
+        if "gzip" in content_type or "application/octet-stream" in content_type:
+            body_bytes = await request.body()
+            return decompress_payload(body_bytes)
+        else:
+            return await request.json()
+    except Exception as e:
+        logger.debug("payload_read_failed content_type=%s error=%s", content_type, e)
+        raise
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -126,9 +147,9 @@ async def receive_attest(request: Request) -> dict:
         raise HTTPException(status_code=503, detail="Swarm not running. POST /api/swarm/connect first.")
 
     try:
-        payload_dict = await request.json()
+        payload_dict = await _read_payload(request)
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+        raise HTTPException(status_code=400, detail="Invalid payload (JSON or gzip).")
 
     accepted = await _engine.receive_attestation(payload_dict)
     return {"accepted": accepted}
@@ -287,9 +308,9 @@ async def receive_finding(request: Request) -> dict:
         raise HTTPException(status_code=503, detail="Swarm not running. POST /api/swarm/connect first.")
 
     try:
-        payload_dict = await request.json()
+        payload_dict = await _read_payload(request)
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+        raise HTTPException(status_code=400, detail="Invalid payload (JSON or gzip).")
 
     accepted = await _engine.receive_finding(payload_dict)
     return {"accepted": accepted}
@@ -376,9 +397,9 @@ async def receive_scrape_result(request: Request) -> dict:
         raise HTTPException(status_code=503, detail="Swarm not running.")
 
     try:
-        payload_dict = await request.json()
+        payload_dict = await _read_payload(request)
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+        raise HTTPException(status_code=400, detail="Invalid payload (JSON or gzip).")
 
     accepted = await _engine.receive_scrape_result(payload_dict)
     return {"accepted": accepted}
