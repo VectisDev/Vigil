@@ -255,6 +255,80 @@ def change_country(req: ChangeCountryRequest) -> dict:
     }
 
 
+class DiscoverRequest(BaseModel):
+    main_url: str
+    country_code: str = "HN"
+
+
+@router.post("/discover_endpoints")
+def discover_endpoints(req: DiscoverRequest) -> dict:
+    """Guarda main_url en endpoints.yaml y ejecuta el healer para descubrir
+    los endpoints por división política del ente electoral indicado.
+    """
+    import os
+    import yaml
+
+    main_url = req.main_url.strip()
+    if not main_url.startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="main_url debe comenzar con http:// o https://")
+
+    country_code = req.country_code.upper().strip()
+    config_path = _BASE / "config" / "prod" / "endpoints.yaml"
+
+    # Read current config and update main_url
+    if config_path.exists():
+        config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    else:
+        config = {}
+    config.setdefault("cne", {})
+    config["cne"]["main_url"] = main_url
+    config_path.write_text(yaml.dump(config, allow_unicode=True), encoding="utf-8")
+
+    # Run healer with the correct country context
+    try:
+        env = {**os.environ, "CENTINEL_COUNTRY": country_code}
+        import importlib, sys
+        # Reload healer module so EXPECTED_DEPARTMENTS picks up the new country
+        healer_mod = "centinel_engine.electoral_authority_healer"
+        old_env = os.environ.get("CENTINEL_COUNTRY")
+        os.environ["CENTINEL_COUNTRY"] = country_code
+        try:
+            if healer_mod in sys.modules:
+                del sys.modules[healer_mod]
+            from centinel_engine.electoral_authority_healer import ElectoralAuthorityHealer
+            healer = ElectoralAuthorityHealer(config_path=config_path, env_name="prod")
+            result = healer.run()
+        finally:
+            if old_env is None:
+                os.environ.pop("CENTINEL_COUNTRY", None)
+            else:
+                os.environ["CENTINEL_COUNTRY"] = old_env
+            # Restore original module if it was present
+            if healer_mod in sys.modules:
+                del sys.modules[healer_mod]
+    except Exception as exc:
+        logger.warning("discover_endpoints healer error url=%s err=%s", _sl(main_url), _sl(str(exc)))
+        raise HTTPException(status_code=502, detail=f"Error durante el descubrimiento: {exc}")
+
+    # Read back the validated endpoints from config
+    updated = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    endpoints = updated.get("cne", {}).get("presidential_endpoints", [])
+
+    logger.info(
+        "discover_endpoints url=%s country=%s found=%d",
+        _sl(main_url), _sl(country_code), len(endpoints),
+    )
+    return {
+        "success": True,
+        "main_url": main_url,
+        "country_code": country_code,
+        "endpoints_found": len(endpoints),
+        "changed": result.get("changed", False),
+        "healthy_count": result.get("healthy_count", 0),
+        "endpoints": endpoints,
+    }
+
+
 @router.post("/regenerate")
 def regenerate_seeds(req: RegenerateRequest) -> Response:
     """
