@@ -313,10 +313,10 @@ body.charts-pinned{padding-right:45vw}
 .chart-chip.off{opacity:.35;text-decoration:line-through}
 .chart-chip .sz-icon{font-size:8px;opacity:.5;cursor:pointer}
 .chart-chip .sz-icon:hover{opacity:1}
-/* Lock canvas height so chart redraws never shift the layout */
+/* Lock chart height — wrapper div has fixed height, canvas fills it */
 .chart-card{position:relative}
-.chart-card canvas{display:block;width:100%!important;box-sizing:border-box}
-.chart-card-compact canvas{height:60px!important}
+.chart-wrap{position:relative}
+.chart-card-compact .chart-wrap{height:60px!important;transition:height .2s}
 .chart-card-hidden{display:none!important}
 /* In-card size toggle button */
 .chart-size-btn{position:absolute;top:8px;right:10px;padding:2px 7px;border-radius:4px;
@@ -719,45 +719,45 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- Chart Toggle Bar -->
 <div class="chart-toggle-bar" id="chart-toggle-bar"></div>
 <div class="card chart-card" data-chart-id="s-chart-cand" style="margin-bottom:14px">
-  <canvas id="s-chart-cand" height="80"></canvas>
+  <div class="chart-wrap" style="height:80px"><canvas id="s-chart-cand"></canvas></div>
 </div>
 <div class="card chart-card" data-chart-id="s-chart-timeline" style="margin-bottom:14px">
-  <canvas id="s-chart-timeline" height="70"></canvas>
+  <div class="chart-wrap" style="height:70px"><canvas id="s-chart-timeline"></canvas></div>
 </div>
 <div class="grid2" style="margin-bottom:14px">
   <div class="card chart-card" data-chart-id="s-chart-benford">
-    <canvas id="s-chart-benford" height="120"></canvas>
+    <div class="chart-wrap" style="height:120px"><canvas id="s-chart-benford"></canvas></div>
     <div id="s-benford-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-lastdigit">
-    <canvas id="s-chart-lastdigit" height="120"></canvas>
+    <div class="chart-wrap" style="height:120px"><canvas id="s-chart-lastdigit"></canvas></div>
     <div id="s-lastdigit-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
 </div>
 <div class="grid3" style="margin-bottom:14px">
-  <div class="card chart-card" data-chart-id="s-chart-zscore"><canvas id="s-chart-zscore" height="140"></canvas></div>
-  <div class="card chart-card" data-chart-id="s-chart-participation"><canvas id="s-chart-participation" height="140"></canvas></div>
-  <div class="card chart-card" data-chart-id="s-chart-nullblank"><canvas id="s-chart-nullblank" height="140"></canvas></div>
+  <div class="card chart-card" data-chart-id="s-chart-zscore"><div class="chart-wrap" style="height:140px"><canvas id="s-chart-zscore"></canvas></div></div>
+  <div class="card chart-card" data-chart-id="s-chart-participation"><div class="chart-wrap" style="height:140px"><canvas id="s-chart-participation"></canvas></div></div>
+  <div class="card chart-card" data-chart-id="s-chart-nullblank"><div class="chart-wrap" style="height:140px"><canvas id="s-chart-nullblank"></canvas></div></div>
 </div>
 <!-- New forensic charts -->
 <div class="card chart-card" data-chart-id="s-chart-velocity" style="margin-bottom:14px">
-  <canvas id="s-chart-velocity" height="120"></canvas>
+  <div class="chart-wrap" style="height:120px"><canvas id="s-chart-velocity"></canvas></div>
 </div>
 <div class="card chart-card" data-chart-id="s-chart-leader" style="margin-bottom:14px">
-  <canvas id="s-chart-leader" height="100"></canvas>
+  <div class="chart-wrap" style="height:100px"><canvas id="s-chart-leader"></canvas></div>
 </div>
 <div class="card chart-card" data-chart-id="s-chart-trend" style="margin-bottom:14px">
-  <canvas id="s-chart-trend" height="120"></canvas>
+  <div class="chart-wrap" style="height:120px"><canvas id="s-chart-trend"></canvas></div>
 </div>
 <div class="card chart-card" data-chart-id="s-chart-anomaly-profile" style="margin-bottom:14px">
-  <canvas id="s-chart-anomaly-profile" height="160"></canvas>
+  <div class="chart-wrap" style="height:160px"><canvas id="s-chart-anomaly-profile"></canvas></div>
 </div>
 <div class="grid2" style="margin-bottom:14px">
   <div class="card chart-card" data-chart-id="s-chart-invalids">
-    <canvas id="s-chart-invalids" height="100"></canvas>
+    <div class="chart-wrap" style="height:100px"><canvas id="s-chart-invalids"></canvas></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-margin">
-    <canvas id="s-chart-margin" height="120"></canvas>
+    <div class="chart-wrap" style="height:120px"><canvas id="s-chart-margin"></canvas></div>
   </div>
 </div>
 
@@ -3646,7 +3646,7 @@ function renderSimFrame(idx){
   emitEngineEvents(snap,idx,benf,lastd,{mad,runs,trend,llnz});
 }
 
-const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
+const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,  /* canvas fills .chart-wrap height */
   plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
   scales:{x:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
