@@ -313,17 +313,19 @@ body.charts-pinned{padding-right:45vw}
 .chart-chip.off{opacity:.35;text-decoration:line-through}
 .chart-chip .sz-icon{font-size:8px;opacity:.5;cursor:pointer}
 .chart-chip .sz-icon:hover{opacity:1}
-/* Lock chart height — wrapper has fixed height + clips, canvas is absolutely
-   sized to fill it, so an un-rendered/empty canvas can never balloon the card */
-.chart-card{position:relative}
+/* Charts grid — large cards full width, compact cards 2-per-row */
+.charts-grid-container{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.chart-card{position:relative;flex:0 0 100%;min-width:0}
+.chart-card-compact{flex:0 0 calc(50% - 6px)}
+/* Lock chart height — wrapper has fixed height + clips, canvas absolutely fills it */
 .chart-wrap{position:relative;overflow:hidden}
 .chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;display:block}
-.chart-card-compact .chart-wrap{height:60px!important}
+.chart-card-compact .chart-wrap{height:90px!important}
 .chart-card-hidden{display:none!important}
-/* In-card size toggle button */
-.chart-size-btn{position:absolute;top:8px;right:10px;padding:2px 7px;border-radius:4px;
+/* In-card size toggle button — icon only */
+.chart-size-btn{position:absolute;top:6px;right:8px;padding:2px 5px;border-radius:4px;
   border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;
-  font-size:10px;line-height:1.4;z-index:2;transition:border-color .15s,color .15s}
+  font-size:12px;line-height:1;z-index:2;transition:border-color .15s,color .15s}
 .chart-size-btn:hover{border-color:var(--purple);color:var(--purple)}
 
 .swarm-node-btn{padding:4px 14px;border-radius:6px;border:1px solid var(--border);
@@ -720,46 +722,47 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <div class="section-body" id="sec-body-forense">
 <!-- Chart Toggle Bar -->
 <div class="chart-toggle-bar" id="chart-toggle-bar"></div>
-<div class="card chart-card" data-chart-id="s-chart-cand" style="margin-bottom:14px">
-  <div class="chart-wrap" style="height:80px"><canvas id="s-chart-cand"></canvas></div>
-</div>
-<div class="card chart-card" data-chart-id="s-chart-timeline" style="margin-bottom:14px">
-  <div class="chart-wrap" style="height:70px"><canvas id="s-chart-timeline"></canvas></div>
-</div>
-<div class="grid2" style="margin-bottom:14px">
+<div class="charts-grid-container">
+  <div class="card chart-card" data-chart-id="s-chart-cand">
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-cand"></canvas></div>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-timeline">
+    <div class="chart-wrap" style="height:160px"><canvas id="s-chart-timeline"></canvas></div>
+  </div>
   <div class="card chart-card" data-chart-id="s-chart-benford">
-    <div class="chart-wrap" style="height:120px"><canvas id="s-chart-benford"></canvas></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="s-chart-benford"></canvas></div>
     <div id="s-benford-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-lastdigit">
-    <div class="chart-wrap" style="height:120px"><canvas id="s-chart-lastdigit"></canvas></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="s-chart-lastdigit"></canvas></div>
     <div id="s-lastdigit-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
-</div>
-<div class="grid3" style="margin-bottom:14px">
-  <div class="card chart-card" data-chart-id="s-chart-zscore"><div class="chart-wrap" style="height:140px"><canvas id="s-chart-zscore"></canvas></div></div>
-  <div class="card chart-card" data-chart-id="s-chart-participation"><div class="chart-wrap" style="height:140px"><canvas id="s-chart-participation"></canvas></div></div>
-  <div class="card chart-card" data-chart-id="s-chart-nullblank"><div class="chart-wrap" style="height:140px"><canvas id="s-chart-nullblank"></canvas></div></div>
-</div>
-<!-- New forensic charts -->
-<div class="card chart-card" data-chart-id="s-chart-velocity" style="margin-bottom:14px">
-  <div class="chart-wrap" style="height:120px"><canvas id="s-chart-velocity"></canvas></div>
-</div>
-<div class="card chart-card" data-chart-id="s-chart-leader" style="margin-bottom:14px">
-  <div class="chart-wrap" style="height:100px"><canvas id="s-chart-leader"></canvas></div>
-</div>
-<div class="card chart-card" data-chart-id="s-chart-trend" style="margin-bottom:14px">
-  <div class="chart-wrap" style="height:120px"><canvas id="s-chart-trend"></canvas></div>
-</div>
-<div class="card chart-card" data-chart-id="s-chart-anomaly-profile" style="margin-bottom:14px">
-  <div class="chart-wrap" style="height:160px"><canvas id="s-chart-anomaly-profile"></canvas></div>
-</div>
-<div class="grid2" style="margin-bottom:14px">
+  <div class="card chart-card" data-chart-id="s-chart-zscore">
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-zscore"></canvas></div>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-participation">
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-participation"></canvas></div>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-nullblank">
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-nullblank"></canvas></div>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-velocity">
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-velocity"></canvas></div>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-leader">
+    <div class="chart-wrap" style="height:160px"><canvas id="s-chart-leader"></canvas></div>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-trend">
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-trend"></canvas></div>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-anomaly-profile">
+    <div class="chart-wrap" style="height:220px"><canvas id="s-chart-anomaly-profile"></canvas></div>
+  </div>
   <div class="card chart-card" data-chart-id="s-chart-invalids">
-    <div class="chart-wrap" style="height:100px"><canvas id="s-chart-invalids"></canvas></div>
+    <div class="chart-wrap" style="height:160px"><canvas id="s-chart-invalids"></canvas></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-margin">
-    <div class="chart-wrap" style="height:120px"><canvas id="s-chart-margin"></canvas></div>
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-margin"></canvas></div>
   </div>
 </div>
 
@@ -1272,7 +1275,7 @@ function _applyChartPrefs(){
     card.classList.toggle('chart-card-hidden',!vis);
     card.classList.toggle('chart-card-compact',compact);
     const szBtn=card.querySelector('.chart-size-btn');
-    if(szBtn)szBtn.textContent=compact?'▲ Grande':'▼ Pequeño';
+    if(szBtn)szBtn.textContent=compact?'⬆':'⬇';
     if(vis&&SC[d.id])SC[d.id].resize();
   });
   const bar=document.getElementById('chart-toggle-bar');
@@ -1291,8 +1294,8 @@ function _buildToggleBar(){
     if(!card||card.querySelector('.chart-size-btn'))return;
     const btn=document.createElement('button');
     btn.className='chart-size-btn';
-    btn.title='Alternar tamaño (grande / compacto)';
-    btn.textContent=_isChartCompact(d.id)?'▲ Grande':'▼ Pequeño';
+    btn.title='Alternar tamaño';
+    btn.textContent=_isChartCompact(d.id)?'⬆':'⬇';
     btn.onclick=(e)=>{e.stopPropagation();toggleChartSize(d.id,e);};
     card.appendChild(btn);
   });
