@@ -302,6 +302,20 @@ body.charts-pinned{padding-right:45vw}
 
 /* ── SWARM SIMULATION ── */
 .swarm-node-btns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+/* ── CHART TOGGLES ── */
+.chart-toggle-bar{display:flex;gap:4px;flex-wrap:wrap;padding:8px 10px;margin-bottom:10px;
+  background:var(--panel);border:1px solid var(--border);border-radius:8px}
+.chart-chip{padding:3px 9px;border-radius:5px;border:1px solid var(--border);
+  background:transparent;color:var(--fg);cursor:pointer;font-size:9px;font-weight:600;
+  transition:all .15s;user-select:none;display:flex;align-items:center;gap:4px}
+.chart-chip:hover{border-color:var(--purple)}
+.chart-chip.off{opacity:.35;text-decoration:line-through}
+.chart-chip .sz-icon{font-size:8px;opacity:.5;cursor:pointer}
+.chart-chip .sz-icon:hover{opacity:1}
+.chart-card-compact canvas{height:60px!important}
+.chart-card-hidden{display:none!important}
+
 .swarm-node-btn{padding:4px 14px;border-radius:6px;border:1px solid var(--border);
   background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:700;
   transition:border-color .15s,color .15s}
@@ -694,26 +708,49 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <button class="section-dl" onclick="downloadPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
 </div>
 <div class="section-body" id="sec-body-forense">
-<div class="card" style="margin-bottom:14px">
+<!-- Chart Toggle Bar -->
+<div class="chart-toggle-bar" id="chart-toggle-bar"></div>
+<div class="card chart-card" data-chart-id="s-chart-cand" style="margin-bottom:14px">
   <canvas id="s-chart-cand" height="80"></canvas>
 </div>
-<div class="card" style="margin-bottom:14px">
+<div class="card chart-card" data-chart-id="s-chart-timeline" style="margin-bottom:14px">
   <canvas id="s-chart-timeline" height="70"></canvas>
 </div>
 <div class="grid2" style="margin-bottom:14px">
-  <div class="card">
+  <div class="card chart-card" data-chart-id="s-chart-benford">
     <canvas id="s-chart-benford" height="120"></canvas>
     <div id="s-benford-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
-  <div class="card">
+  <div class="card chart-card" data-chart-id="s-chart-lastdigit">
     <canvas id="s-chart-lastdigit" height="120"></canvas>
     <div id="s-lastdigit-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
 </div>
 <div class="grid3" style="margin-bottom:14px">
-  <div class="card"><canvas id="s-chart-zscore" height="140"></canvas></div>
-  <div class="card"><canvas id="s-chart-participation" height="140"></canvas></div>
-  <div class="card"><canvas id="s-chart-nullblank" height="140"></canvas></div>
+  <div class="card chart-card" data-chart-id="s-chart-zscore"><canvas id="s-chart-zscore" height="140"></canvas></div>
+  <div class="card chart-card" data-chart-id="s-chart-participation"><canvas id="s-chart-participation" height="140"></canvas></div>
+  <div class="card chart-card" data-chart-id="s-chart-nullblank"><canvas id="s-chart-nullblank" height="140"></canvas></div>
+</div>
+<!-- New forensic charts -->
+<div class="card chart-card" data-chart-id="s-chart-velocity" style="margin-bottom:14px">
+  <canvas id="s-chart-velocity" height="120"></canvas>
+</div>
+<div class="card chart-card" data-chart-id="s-chart-leader" style="margin-bottom:14px">
+  <canvas id="s-chart-leader" height="100"></canvas>
+</div>
+<div class="card chart-card" data-chart-id="s-chart-trend" style="margin-bottom:14px">
+  <canvas id="s-chart-trend" height="120"></canvas>
+</div>
+<div class="card chart-card" data-chart-id="s-chart-anomaly-profile" style="margin-bottom:14px">
+  <canvas id="s-chart-anomaly-profile" height="160"></canvas>
+</div>
+<div class="grid2" style="margin-bottom:14px">
+  <div class="card chart-card" data-chart-id="s-chart-invalids">
+    <canvas id="s-chart-invalids" height="100"></canvas>
+  </div>
+  <div class="card chart-card" data-chart-id="s-chart-margin">
+    <canvas id="s-chart-margin" height="120"></canvas>
+  </div>
 </div>
 
 <!-- Forensic detector cards -->
@@ -1173,8 +1210,74 @@ let simChains = [];
 let historyBenford = [];
 let historyTimeline = [];
 let historyIncons = [];
-let historyLeader = [];   // sequence of leading party abbrev (for runs test)
-let historyLeadPct = [];  // leading party pct over time (for trend)
+let historyLeader = [];
+let historyLeadPct = [];
+let historyVelocity = [];
+let historyTrend = [];
+let historyInvalids = [];
+let historyMargin = [];
+let historyAnomalyCounts = {};
+
+const CHART_DEFS=[
+  {id:'s-chart-cand',label:'Partidos'},
+  {id:'s-chart-timeline',label:'Timeline'},
+  {id:'s-chart-benford',label:'Benford'},
+  {id:'s-chart-lastdigit',label:'Últ.Dígito'},
+  {id:'s-chart-zscore',label:'Z-score'},
+  {id:'s-chart-participation',label:'Escrutinio'},
+  {id:'s-chart-nullblank',label:'Nulos/Dept'},
+  {id:'s-chart-velocity',label:'Velocidad'},
+  {id:'s-chart-leader',label:'Líder'},
+  {id:'s-chart-trend',label:'Tendencia'},
+  {id:'s-chart-anomaly-profile',label:'Anomalías'},
+  {id:'s-chart-invalids',label:'Nulos/T'},
+  {id:'s-chart-margin',label:'Margen'},
+];
+let chartPrefs={};
+function _loadChartPrefs(){
+  try{const s=localStorage.getItem('centinel_chart_prefs');if(s)chartPrefs=JSON.parse(s);}catch(e){}
+}
+function _saveChartPrefs(){
+  try{localStorage.setItem('centinel_chart_prefs',JSON.stringify(chartPrefs));}catch(e){}
+}
+function _isChartVisible(id){return chartPrefs[id]?.visible!==false;}
+function _isChartCompact(id){return chartPrefs[id]?.compact===true;}
+function toggleChartVis(id){
+  if(!chartPrefs[id])chartPrefs[id]={visible:true,compact:false};
+  chartPrefs[id].visible=!chartPrefs[id].visible;
+  _saveChartPrefs();_applyChartPrefs();
+}
+function toggleChartSize(id,e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  if(!chartPrefs[id])chartPrefs[id]={visible:true,compact:false};
+  chartPrefs[id].compact=!chartPrefs[id].compact;
+  _saveChartPrefs();_applyChartPrefs();
+}
+function _applyChartPrefs(){
+  CHART_DEFS.forEach(d=>{
+    const card=document.querySelector(`.chart-card[data-chart-id="${d.id}"]`);
+    if(!card)return;
+    const vis=_isChartVisible(d.id);
+    const compact=_isChartCompact(d.id);
+    card.classList.toggle('chart-card-hidden',!vis);
+    card.classList.toggle('chart-card-compact',compact);
+    if(vis&&SC[d.id])SC[d.id].resize();
+  });
+  const bar=document.getElementById('chart-toggle-bar');
+  if(!bar)return;
+  bar.querySelectorAll('.chart-chip').forEach(chip=>{
+    const cid=chip.dataset.chartId;
+    chip.classList.toggle('off',!_isChartVisible(cid));
+    const szBtn=chip.querySelector('.sz-icon');
+    if(szBtn)szBtn.textContent=_isChartCompact(cid)?'◻':'◽';
+  });
+}
+function _buildToggleBar(){
+  const bar=document.getElementById('chart-toggle-bar');
+  if(!bar)return;
+  bar.innerHTML=CHART_DEFS.map(d=>`<span class="chart-chip${_isChartVisible(d.id)?'':' off'}" data-chart-id="${d.id}" onclick="toggleChartVis('${d.id}')">${d.label}<span class="sz-icon" onclick="toggleChartSize('${d.id}',event)" title="Alternar tamaño">${_isChartCompact(d.id)?'◻':'◽'}</span></span>`).join('');
+  _applyChartPrefs();
+}
 
 // Alert cooldown: prevents log spam for same rule within COOLDOWN_SNAPS
 const _alertLast = {};
@@ -1647,7 +1750,7 @@ function _initReps(n){
 }
 _initReps(SWARM.nodes);
 // Render panels after DOM is ready
-document.addEventListener('DOMContentLoaded',()=>{ renderRepGrid(); renderTaskTable(); updateSwarmKpis(); renderExternalSwarms(); updateInteractionMetrics(); _rebuildNetworkClusters(); _startNetworkLoop(); renderAuditTimeline(); renderAuditValidationStatus(); renderAuditChecksums(); });
+document.addEventListener('DOMContentLoaded',()=>{ _loadChartPrefs(); _buildToggleBar(); renderRepGrid(); renderTaskTable(); updateSwarmKpis(); renderExternalSwarms(); updateInteractionMetrics(); _rebuildNetworkClusters(); _startNetworkLoop(); renderAuditTimeline(); renderAuditValidationStatus(); renderAuditChecksums(); });
 
 function renderRepGrid(){
   const el=document.getElementById('rep-grid');
@@ -3043,6 +3146,7 @@ function simStop(){
   activeInjections=[];scheduledInjections=[];simAlerts=[];
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
   historyLeader=[];historyLeadPct=[];
+  historyVelocity=[];historyTrend=[];historyInvalids=[];historyMargin=[];historyAnomalyCounts={};
   Object.keys(_alertLast).forEach(k=>delete _alertLast[k]);
   Object.values(EVENTS).forEach(e=>{if(e._hc!==undefined)delete e._hc;if(e._cascade!==undefined)delete e._cascade;});
   renderActiveInjections();renderAlerts();
@@ -3450,6 +3554,26 @@ function renderSimFrame(idx){
     ts:tsShort(s.ts),actas:s.actas_divulgadas||0,anom:s._chain_broken_pct||s._false_hash||s._rollback?1:0}));
   historyIncons=SIM.snapshots.slice(0,idx+1).map(s=>s.inconsistentes||0);
 
+  // Accumulate new histories
+  const prevSnap=idx>0?SIM.snapshots[idx-1]:null;
+  const actasDelta=prevSnap?(snap.actas_divulgadas||0)-(prevSnap.actas_divulgadas||0):0;
+  historyVelocity.push({ts:tsShort(snap.ts),speed:snap._cd?._speed15||actasDelta});
+  if(historyVelocity.length>288)historyVelocity.shift();
+  historyTrend.push({ts:tsShort(snap.ts),real:snap.actas_divulgadas||0,predicted:snap._cd?.trend?.predicted||null});
+  if(historyTrend.length>288)historyTrend.shift();
+  const totalV=(snap.validos||0)+(snap.nulos||0)+(snap.blancos||0);
+  historyInvalids.push({ts:tsShort(snap.ts),nulPct:totalV?((snap.nulos||0)/totalV*100):0,blaPct:totalV?((snap.blancos||0)/totalV*100):0});
+  if(historyInvalids.length>288)historyInvalids.shift();
+  if(snap.partidos?.length>=2){
+    const sorted=[...snap.partidos].sort((a,b)=>(b.votos||0)-(a.votos||0));
+    historyMargin.push({ts:tsShort(snap.ts),margin:(sorted[0].votos||0)-(sorted[1].votos||0),leader:sorted[0].abbrev});
+    if(historyMargin.length>288)historyMargin.shift();
+  }
+  const anomFlags=['_rollback','_hold_release','_benford_biased','_nocturnal','_uniformidad_sospechosa',
+    '_duplication','_ts_drift','_chain_broken_pct','_cdn_mirrors_poisoned','_concentration',
+    '_geo_blackout','_binary_tampered','_zt_bypass_attempt','_mesa_fantasma'];
+  anomFlags.forEach(f=>{if(snap[f])historyAnomalyCounts[f]=(historyAnomalyCounts[f]||0)+1;});
+
   // Chain integrity
   const chainOk=!snap._chain_broken_pct&&!snap._false_hash&&!snap._sig_invalid&&!snap._chain_fork;
   const chainPct=snap._chain_broken_pct?Math.max(0,100-snap._chain_broken_pct):100;
@@ -3486,15 +3610,21 @@ function renderSimFrame(idx){
   const trend=computeTrendDev(historyLeadPct.slice(-20),historyLeadPct[historyLeadPct.length-1]||0);
   const llnz=computeLLNZ(historyBenford);
 
-  renderCandidates(snap);
-  renderTimeline();
-  renderBenford(benf,snap);
-  renderLastDigit(lastd,snap);
-  renderZScore(depts);
-  renderParticipation(depts);
-  renderNullBlank(depts);
+  if(_isChartVisible('s-chart-cand'))renderCandidates(snap);
+  if(_isChartVisible('s-chart-timeline'))renderTimeline();
+  if(_isChartVisible('s-chart-benford'))renderBenford(benf,snap);
+  if(_isChartVisible('s-chart-lastdigit'))renderLastDigit(lastd,snap);
+  if(_isChartVisible('s-chart-zscore'))renderZScore(depts);
+  if(_isChartVisible('s-chart-participation'))renderParticipation(depts);
+  if(_isChartVisible('s-chart-nullblank'))renderNullBlank(depts);
   renderDeptGrid(snap,depts);
   renderForensics(snap,benf,lastd,last10,{mad,runs,trend,llnz,depts});
+  if(_isChartVisible('s-chart-velocity'))renderVelocity();
+  if(_isChartVisible('s-chart-leader'))renderLeader(snap);
+  if(_isChartVisible('s-chart-trend'))renderTrendChart();
+  if(_isChartVisible('s-chart-anomaly-profile'))renderAnomalyProfile();
+  if(_isChartVisible('s-chart-invalids'))renderInvalids();
+  if(_isChartVisible('s-chart-margin'))renderMarginChart();
   emitEngineEvents(snap,idx,benf,lastd,{mad,runs,trend,llnz});
 }
 
@@ -3608,6 +3738,110 @@ function renderNullBlank(depts){
     options:{...CHART_OPT,indexAxis:'y',plugins:{...CHART_OPT.plugins,title:{display:true,text:'Votos Nulos y Blancos por Departamento',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'},stacked:true},
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'},stacked:true}}}});
+}
+
+function renderVelocity(){
+  if(historyVelocity.length<2)return;
+  const labs=historyVelocity.map(h=>h.ts);
+  const data=historyVelocity.map(h=>h.speed);
+  const mean=data.reduce((a,b)=>a+b,0)/data.length;
+  const std=Math.sqrt(data.reduce((a,v)=>a+(v-mean)**2,0)/data.length)||1;
+  const thr=mean+2*std;
+  const bgs=data.map(v=>v>thr?'rgba(223,107,134,.8)':'rgba(34,211,238,.6)');
+  mk('s-chart-velocity',{type:'bar',data:{labels:labs,datasets:[
+    {label:'Actas/intervalo',data,backgroundColor:bgs,borderRadius:2}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:'Velocidad de Escrutinio (actas/intervalo)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      legend:{display:false},annotation:thr>0?{annotations:{thrLine:{type:'line',yMin:thr,yMax:thr,borderColor:'rgba(223,107,134,.5)',borderWidth:1,borderDash:[4,4],label:{display:true,content:`2σ=${Math.round(thr)}`,position:'end',color:'#df6b86',font:{size:8}}}}}:undefined},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
+}
+
+function renderLeader(snap){
+  if(historyLeadPct.length<2)return;
+  const labs=historyVelocity.length===historyLeadPct.length?historyVelocity.map(h=>h.ts):historyLeadPct.map((_,i)=>i);
+  const colors=[];const pts=[];
+  for(let i=0;i<historyLeader.length;i++){
+    const changed=i>0&&historyLeader[i]!==historyLeader[i-1];
+    colors.push(changed?'rgba(252,211,77,1)':'rgba(176,140,240,.8)');
+    pts.push(changed?6:0);
+  }
+  mk('s-chart-leader',{type:'line',data:{labels:labs,datasets:[
+    {label:'% Líder',data:historyLeadPct,borderColor:'rgba(176,140,240,.7)',pointBackgroundColor:colors,pointRadius:pts,fill:true,backgroundColor:'rgba(176,140,240,.08)',tension:.3}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:`Evolución del Liderazgo — ${historyLeader[historyLeader.length-1]||'?'}`,color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      legend:{display:false}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'%',color:'#8b929c'}}}}});
+}
+
+function renderTrendChart(){
+  if(historyTrend.length<3)return;
+  const labs=historyTrend.map(h=>h.ts);
+  const real=historyTrend.map(h=>h.real);
+  const hasPred=historyTrend.some(h=>h.predicted!==null);
+  let predicted;
+  if(hasPred){
+    predicted=historyTrend.map(h=>h.predicted);
+  }else{
+    const n=real.length;
+    const first=real[0]||0,last=real[n-1]||0;
+    predicted=real.map((_,i)=>Math.round(first+(last-first)*i/(n-1)));
+  }
+  mk('s-chart-trend',{type:'line',data:{labels:labs,datasets:[
+    {label:'Real',data:real,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0},
+    {label:'Proyectada',data:predicted,borderColor:'rgba(139,146,156,.5)',borderDash:[5,3],fill:'-1',backgroundColor:'rgba(223,107,134,.08)',tension:.3,pointRadius:0}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:'Tendencia Esperada vs Real (Actas)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
+}
+
+function renderAnomalyProfile(){
+  const anomLabels={'_rollback':'Retroceso','_hold_release':'Hold & Release','_benford_biased':'Benford',
+    '_nocturnal':'Nocturno','_uniformidad_sospechosa':'Uniformidad','_duplication':'Duplicación',
+    '_ts_drift':'Timestamp','_chain_broken_pct':'Cadena','_cdn_mirrors_poisoned':'CDN',
+    '_concentration':'Concentración','_geo_blackout':'Geo Blackout','_binary_tampered':'Binario',
+    '_zt_bypass_attempt':'ZT Bypass','_mesa_fantasma':'Mesa Fantasma'};
+  const entries=Object.entries(historyAnomalyCounts).map(([k,v])=>({key:k,label:anomLabels[k]||k,count:v})).sort((a,b)=>b.count-a.count);
+  if(entries.length===0){
+    mk('s-chart-anomaly-profile',{type:'bar',data:{labels:['Sin anomalías'],datasets:[{data:[0],backgroundColor:'rgba(87,192,141,.3)'}]},
+      options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Perfil de Anomalías Acumuladas',color:'#8b929c',font:{size:11,weight:'600'}},legend:{display:false}}}});
+    return;
+  }
+  const labs=entries.map(e=>e.label);
+  const data=entries.map(e=>e.count);
+  const bgs=data.map(v=>v>=10?'rgba(223,107,134,.7)':v>=3?'rgba(212,176,102,.6)':'rgba(110,168,254,.5)');
+  mk('s-chart-anomaly-profile',{type:'bar',data:{labels:labs,datasets:[{label:'Ocurrencias',data,backgroundColor:bgs,borderRadius:3}]},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Perfil de Anomalías Acumuladas',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
+      scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},
+             y:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}}}}});
+}
+
+function renderInvalids(){
+  if(historyInvalids.length<2)return;
+  const labs=historyInvalids.map(h=>h.ts);
+  mk('s-chart-invalids',{type:'line',data:{labels:labs,datasets:[
+    {label:'% Nulos',data:historyInvalids.map(h=>h.nulPct),borderColor:'rgba(223,107,134,.7)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0},
+    {label:'% Blancos',data:historyInvalids.map(h=>h.blaPct),borderColor:'rgba(156,163,175,.6)',backgroundColor:'rgba(156,163,175,.08)',fill:true,tension:.3,pointRadius:0}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:'% Nulos + Blancos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'%',color:'#8b929c'}}}}});
+}
+
+function renderMarginChart(){
+  if(historyMargin.length<2)return;
+  const labs=historyMargin.map(h=>h.ts);
+  const data=historyMargin.map(h=>h.margin);
+  const posData=data.map(v=>v>=0?v:null);
+  const negData=data.map(v=>v<0?v:null);
+  mk('s-chart-margin',{type:'line',data:{labels:labs,datasets:[
+    {label:'Margen positivo',data:posData,borderColor:'rgba(87,192,141,.8)',backgroundColor:'rgba(87,192,141,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
+    {label:'Margen negativo',data:negData,borderColor:'rgba(223,107,134,.8)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
+    {label:'Margen',data,borderColor:'rgba(176,140,240,.6)',fill:false,tension:.3,pointRadius:0}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:`Margen 1° vs 2° — ${historyMargin[historyMargin.length-1]?.leader||''}`,color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      legend:{display:false}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Votos',color:'#8b929c'}}}}});
 }
 
 function renderForensics(snap,benf,lastd,last10,ext){
