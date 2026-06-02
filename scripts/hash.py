@@ -94,7 +94,7 @@ def configure_logging() -> None:
 
     Configura el logger de hash.
     """
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def hash_file(path: Path) -> str:
