@@ -8,6 +8,7 @@ Each node's trustworthiness is modelled as a Beta distribution:
 Silent outages receive a tiny reversible β so honest nodes that lose
 power don't suffer the same penalty as nodes that deliberately lie.
 """
+
 from __future__ import annotations
 
 import logging
@@ -19,16 +20,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-_RING1_SCORE = 0.85     # promote to Ring-1 when trust ≥ this
+_RING1_SCORE = 0.85  # promote to Ring-1 when trust ≥ this
 _RING2_DEMOTION = 0.40  # demote Ring-1 → Ring-2 when trust drops below this
 
-_ALPHA_CONSISTENT = 1.0    # reward: fingerprint matches Ring-0 consensus
-_ALPHA_RESTORE = 1.0       # reward: returned after outage with consistent data
-_BETA_OUTAGE = 0.1         # tiny tentative penalty for silent timeout
-_BETA_BETRAYAL = 5.0       # heavy penalty for divergent fingerprints
+_ALPHA_CONSISTENT = 1.0  # reward: fingerprint matches Ring-0 consensus
+_ALPHA_RESTORE = 1.0  # reward: returned after outage with consistent data
+_BETA_OUTAGE = 0.1  # tiny tentative penalty for silent timeout
+_BETA_BETRAYAL = 5.0  # heavy penalty for divergent fingerprints
 
 _HALFLIFE_ALPHA_DAYS = 14.0  # positive evidence half-life
-_HALFLIFE_BETA_DAYS  = 30.0  # negative evidence half-life (betrayal remembered longer)
+_HALFLIFE_BETA_DAYS = 30.0  # negative evidence half-life (betrayal remembered longer)
 
 _DB_FILENAME = "federation_reputation.db"
 _DECAY_INTERVAL_SECONDS = 86400.0  # run decay once per 24 hours
@@ -39,10 +40,10 @@ logger = logging.getLogger("centinel.federation.reputation")
 @dataclass
 class NodeReputation:
     node_id: str
-    alpha: float = 1.0         # Beta prior — start neutral (1,1) → trust = 0.5
+    alpha: float = 1.0  # Beta prior — start neutral (1,1) → trust = 0.5
     beta: float = 1.0
-    ring: int = 2              # 0=seed/Ring-0, 1=trusted, 2=observer
-    arrival_order: int = -1    # monotone counter when node was first seen
+    ring: int = 2  # 0=seed/Ring-0, 1=trusted, 2=observer
+    arrival_order: int = -1  # monotone counter when node was first seen
     country_code: str = "HN"
     last_seen_utc: Optional[str] = None
     last_updated_utc: Optional[str] = None
@@ -121,7 +122,8 @@ class ReputationEngine:
         path.parent.mkdir(parents=True, exist_ok=True)
         with sqlite3.connect(str(path)) as conn:
             conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS node_reputation (
                     node_id TEXT PRIMARY KEY,
                     alpha REAL NOT NULL DEFAULT 1.0,
@@ -134,8 +136,10 @@ class ReputationEngine:
                     outage_count INTEGER NOT NULL DEFAULT 0,
                     betrayal_count INTEGER NOT NULL DEFAULT 0
                 )
-            """)
-            conn.execute("""
+            """
+            )
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS reputation_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     node_id TEXT NOT NULL,
@@ -146,7 +150,8 @@ class ReputationEngine:
                     ring INTEGER NOT NULL,
                     ts TEXT NOT NULL
                 )
-            """)
+            """
+            )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_rep_events_node ON reputation_events(node_id)")
             conn.commit()
 
@@ -160,10 +165,16 @@ class ReputationEngine:
                 ).fetchall()
             for row in rows:
                 rep = NodeReputation(
-                    node_id=row[0], alpha=row[1], beta=row[2], ring=row[3],
-                    arrival_order=row[4], country_code=row[5],
-                    last_seen_utc=row[6], last_updated_utc=row[7],
-                    outage_count=row[8], betrayal_count=row[9],
+                    node_id=row[0],
+                    alpha=row[1],
+                    beta=row[2],
+                    ring=row[3],
+                    arrival_order=row[4],
+                    country_code=row[5],
+                    last_seen_utc=row[6],
+                    last_updated_utc=row[7],
+                    outage_count=row[8],
+                    betrayal_count=row[9],
                 )
                 self._nodes[rep.node_id] = rep
                 if rep.arrival_order >= self._counter:
@@ -181,13 +192,18 @@ class ReputationEngine:
                     "INSERT INTO reputation_events"
                     " (node_id, event_type, alpha, beta, trust_score, ring, ts)"
                     " VALUES (?,?,?,?,?,?,?)",
-                    (rep.node_id, event_type, round(rep.alpha, 4),
-                     round(rep.beta, 4), round(rep.trust_score, 4), rep.ring, ts),
+                    (
+                        rep.node_id,
+                        event_type,
+                        round(rep.alpha, 4),
+                        round(rep.beta, 4),
+                        round(rep.trust_score, 4),
+                        rep.ring,
+                        ts,
+                    ),
                 )
                 # Cleanup old events (>30 days) to prevent DB bloat
-                conn.execute(
-                    "DELETE FROM reputation_events WHERE ts < datetime('now', '-30 days')"
-                )
+                conn.execute("DELETE FROM reputation_events WHERE ts < datetime('now', '-30 days')")
                 conn.commit()
         except Exception as exc:
             logger.warning("reputation_record_event_error node_id=%s error=%s", rep.node_id, exc)
@@ -197,7 +213,8 @@ class ReputationEngine:
             return
         try:
             with sqlite3.connect(str(self._db_path)) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT INTO node_reputation
                         (node_id, alpha, beta, ring, arrival_order, country_code,
                          last_seen_utc, last_updated_utc, outage_count, betrayal_count)
@@ -208,11 +225,20 @@ class ReputationEngine:
                         last_updated_utc=excluded.last_updated_utc,
                         outage_count=excluded.outage_count,
                         betrayal_count=excluded.betrayal_count
-                """, (
-                    rep.node_id, rep.alpha, rep.beta, rep.ring, rep.arrival_order,
-                    rep.country_code, rep.last_seen_utc, rep.last_updated_utc,
-                    rep.outage_count, rep.betrayal_count,
-                ))
+                """,
+                    (
+                        rep.node_id,
+                        rep.alpha,
+                        rep.beta,
+                        rep.ring,
+                        rep.arrival_order,
+                        rep.country_code,
+                        rep.last_seen_utc,
+                        rep.last_updated_utc,
+                        rep.outage_count,
+                        rep.betrayal_count,
+                    ),
+                )
                 conn.commit()
         except Exception as exc:
             logger.warning("reputation_save_error node_id=%s error=%s", rep.node_id, exc)
@@ -342,7 +368,7 @@ class ReputationEngine:
                 if days < 0.1:
                     continue
                 rep.alpha = max(1.0, rep.alpha * math.pow(0.5, days / _HALFLIFE_ALPHA_DAYS))
-                rep.beta  = max(1.0, rep.beta  * math.pow(0.5, days / _HALFLIFE_BETA_DAYS))
+                rep.beta = max(1.0, rep.beta * math.pow(0.5, days / _HALFLIFE_BETA_DAYS))
                 rep._invalidate_trust_cache()
                 rep._refresh_ring(self._ring0)
 
@@ -401,8 +427,7 @@ class ReputationEngine:
                     (node_id, limit),
                 ).fetchall()
             return [
-                {"event_type": r[0], "alpha": r[1], "beta": r[2],
-                 "trust_score": r[3], "ring": r[4], "ts": r[5]}
+                {"event_type": r[0], "alpha": r[1], "beta": r[2], "trust_score": r[3], "ring": r[4], "ts": r[5]}
                 for r in rows
             ]
         except Exception as exc:
@@ -423,10 +448,17 @@ class ReputationEngine:
                 "exported_at": datetime.now(timezone.utc).isoformat(),
                 "event_count": len(rows),
                 "events": [
-                    {"node_id": r[0], "event_type": r[1], "alpha": r[2],
-                     "beta": r[3], "trust_score": r[4], "ring": r[5], "ts": r[6]}
+                    {
+                        "node_id": r[0],
+                        "event_type": r[1],
+                        "alpha": r[2],
+                        "beta": r[3],
+                        "trust_score": r[4],
+                        "ring": r[5],
+                        "ts": r[6],
+                    }
                     for r in rows
-                ]
+                ],
             }
         except Exception as exc:
             logger.warning("reputation_export_events_json_error error=%s", exc)

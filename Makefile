@@ -1,7 +1,8 @@
 .PHONY: help quickstart launch wizard setup install start stop restart status logs \
         init snapshot collect audit analyze summary pipeline report calibrate \
         security test-stress security-scan test lint \
-        test-security test-security-chaos test-security-all
+        test-security test-security-chaos test-security-all \
+        reproduce-2025-audit
 
 PYTHON_COMMAND ?= python
 SERVICE        := scripts/centinel_service.sh
@@ -116,3 +117,24 @@ test-security-chaos: ## Tests de caos / Chaos tests
 
 test-security-all: ## Todos los tests de seguridad / All security tests
 	$(PYTHON_COMMAND) -m pytest tests/test_attack_logger.py tests/test_advanced_security.py tests/test_security_ecosystem.py tests/chaos/test_security_chaos.py
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  REPRODUCIBILITY / REPRODUCIBILIDAD
+# ══════════════════════════════════════════════════════════════════════════════
+
+forensic-pdf: ## Generar PDF forense con datos reales HND-2025 / Generate forensic PDF with real HND-2025 data
+	$(PYTHON_COMMAND) scripts/generate_forensic_pdf.py --output centinel_hnd_2025_forensic.pdf
+
+reproduce-2025-audit: ## Reproducir análisis forense completo HND-2025 / Reproduce full HND-2025 forensic analysis
+	@echo "══════════════════════════════════════════════════════════════"
+	@echo "  Centinel — Reproducible Forensic Analysis: Honduras 2025"
+	@echo "══════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "Step 1/3: Running forensic engine on 64 real snapshots..."
+	$(PYTHON_COMMAND) scripts/forensic_hnd_2025.py
+	@echo ""
+	@echo "Step 2/3: Running replay pipeline (normalize + diff + rules)..."
+	$(PYTHON_COMMAND) scripts/replay_2025.py --data-dir tests/fixtures/hnd_2025/
+	@echo ""
+	@echo "Step 3/3: Done. Reports in reports/ directory."
+	@echo "══════════════════════════════════════════════════════════════"

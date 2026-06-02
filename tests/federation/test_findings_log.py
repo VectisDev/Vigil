@@ -1,4 +1,5 @@
 """Unit tests for FederationAnomalyLog and FederationAttackLog."""
+
 import pytest
 
 from centinel.federation.findings_log import FederationAnomalyLog
@@ -8,6 +9,7 @@ from centinel.federation.attack_log import FederationAttackLog
 def _finding(fid="f001", node="n1", severity="HIGH", ftype="anomaly", rule="benford"):
     """Create a minimal FindingPayload-like object via the gossip dataclass."""
     from centinel.federation.gossip import FindingPayload
+
     return FindingPayload(
         finding_id=fid,
         node_id=node,
@@ -23,6 +25,7 @@ def _finding(fid="f001", node="n1", severity="HIGH", ftype="anomaly", rule="benf
 
 
 # ── FederationAnomalyLog ──────────────────────────────────────────────────────
+
 
 def test_add_returns_true_for_new_finding():
     log = FederationAnomalyLog()
@@ -109,14 +112,21 @@ def test_eviction_keeps_newest():
 
     def _ts_finding(fid, ts):
         return FindingPayload(
-            finding_id=fid, node_id="n1", country_code="HN",
-            finding_type="anomaly", severity="HIGH", rule_key="benford",
-            summary="test", snapshot_id="snap", timestamp_utc=ts, signature="",
+            finding_id=fid,
+            node_id="n1",
+            country_code="HN",
+            finding_type="anomaly",
+            severity="HIGH",
+            rule_key="benford",
+            summary="test",
+            snapshot_id="snap",
+            timestamp_utc=ts,
+            signature="",
         )
 
     log = FederationAnomalyLog(max_findings=2)
-    log.add(_ts_finding("old",    "2025-12-08T10:00:00+00:00"))
-    log.add(_ts_finding("newer",  "2025-12-08T11:00:00+00:00"))
+    log.add(_ts_finding("old", "2025-12-08T10:00:00+00:00"))
+    log.add(_ts_finding("newer", "2025-12-08T11:00:00+00:00"))
     log.add(_ts_finding("newest", "2025-12-08T12:00:00+00:00"))
     results = log.query(limit=100)
     ids = {r["finding_id"] for r in results}
@@ -141,8 +151,10 @@ def test_consensus_summary_requires_min_nodes():
 
 # ── FederationAttackLog ───────────────────────────────────────────────────────
 
+
 def _attack(fid="a001", node="n1", rule="replay_attack"):
     from centinel.federation.gossip import FindingPayload
+
     return FindingPayload(
         finding_id=fid,
         node_id=node,
