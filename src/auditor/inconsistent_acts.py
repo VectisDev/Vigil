@@ -37,6 +37,8 @@ class SnapshotRecord:
     inconsistent_count: int
     candidate_votes: dict[str, int]
     source_hash: str
+    null_votes: int = 0
+    blank_votes: int = 0
 
 
 @dataclass
@@ -173,12 +175,20 @@ class InconsistentActsTracker:
         source_hash = hashlib.sha256(
             json.dumps(json_data, sort_keys=True, ensure_ascii=False).encode("utf-8")
         ).hexdigest()
+        null_votes = self._to_int(
+            json_data.get("votos_nulos") or json_data.get("null_votes") or json_data.get("nullVotes") or 0
+        )
+        blank_votes = self._to_int(
+            json_data.get("votos_blancos") or json_data.get("blank_votes") or json_data.get("blankVotes") or 0
+        )
 
         snapshot = SnapshotRecord(
             timestamp=timestamp,
             inconsistent_count=inconsistent_count,
             candidate_votes=candidate_votes,
             source_hash=source_hash,
+            null_votes=null_votes,
+            blank_votes=blank_votes,
         )
 
         if not self.snapshots:
