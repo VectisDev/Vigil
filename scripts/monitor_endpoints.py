@@ -83,8 +83,7 @@ def main() -> int:
     Español: Punto de entrada para modo one-shot seguro en cron y modo bucle daemon.
     """
 
-    logging.Formatter.converter = time.gmtime
-    logging.basicConfig(level=logging.INFO, format="%(asctime)sZ | %(levelname)s | %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     args = build_parser().parse_args()
 
     if args.once:

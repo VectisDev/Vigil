@@ -16,6 +16,7 @@ import hashlib
 import hmac
 import io
 import json
+import zipfile
 from dataclasses import dataclass
 from typing import Any
 
@@ -247,3 +248,104 @@ def generate_institutional_pdf_report(
     story = _build_story(context, metrics, anomaly_rows, cryptographic_signature)
     doc.build(story, onFirstPage=_footer, onLaterPages=_footer)
     return buffer.getvalue()
+
+
+_VERIFY_TXT = """\
+CENTINEL — Instrucciones de Verificación / Verification Instructions
+======================================================================
+
+ES: Este paquete contiene evidencia criptográficamente verificable de monitoreo
+electoral. Para verificar la integridad:
+
+1. Calcule el SHA-256 de cada archivo listado en manifest.json.
+   Compárelo con el valor "sha256" correspondiente en el manifiesto.
+
+2. Verifique la firma HMAC-SHA256 del manifiesto:
+   clave = root_hash (campo "root_hash" en audit_trail.json)
+   mensaje = JSON canónico de los campos "files" del manifiesto
+   algoritmo = HMAC-SHA256
+
+3. Si ots_proof.json está presente, verifique el anclaje Bitcoin con:
+   https://opentimestamps.org  (cargar el campo "raw_proof_b64" decodificado)
+
+EN: This package contains cryptographically verifiable electoral monitoring
+evidence. To verify integrity:
+
+1. Compute SHA-256 of each file listed in manifest.json.
+   Compare it to the corresponding "sha256" value in the manifest.
+
+2. Verify the manifest HMAC-SHA256 signature:
+   key = root_hash (field "root_hash" in audit_trail.json)
+   message = canonical JSON of the manifest "files" fields
+   algorithm = HMAC-SHA256
+
+3. If ots_proof.json is present, verify the Bitcoin anchor at:
+   https://opentimestamps.org  (load the decoded "raw_proof_b64" field)
+
+Schema: centinel-log-v1
+Reference: https://github.com/vectisdev/centinel
+"""
+
+
+def build_evidence_bundle(
+    context: InstitutionalReportContext,
+    metrics: dict[str, Any],
+    anomalies: list[dict[str, Any]],
+    chain_report: dict[str, Any],
+    log_excerpt: list[dict[str, Any]] | None = None,
+    ots_proof: dict[str, Any] | None = None,
+) -> bytes:
+    """Construye un ZIP firmado con toda la evidencia para uso forense.
+
+    EN: Build a signed ZIP containing all evidence for forensic/court use.
+
+    Contents:
+    - manifest.json     — SHA-256 of each file + HMAC bundle signature
+    - audit_trail.json  — metrics, anomalies, HMAC-SHA256 report signature
+    - chain_verification.json — result of verify_hashchain_from_snapshots()
+    - anomalies.jsonl   — one anomaly per line (centinel-log-v1)
+    - log_excerpt.jsonl — WARNING+ log entries (centinel-log-v1)
+    - ots_proof.json    — OpenTimestamps proof (if available)
+    - VERIFY.txt        — verification instructions ES/EN
+    """
+    generated_iso = context.generated_at_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    audit_trail = build_audit_trail_payload(context, metrics, anomalies)
+
+    files: dict[str, bytes] = {}
+
+    files["audit_trail.json"] = json.dumps(audit_trail, ensure_ascii=False, indent=2).encode("utf-8")
+    files["chain_verification.json"] = json.dumps(chain_report, ensure_ascii=False, indent=2).encode("utf-8")
+    files["anomalies.jsonl"] = b"\n".join(
+        json.dumps(a, ensure_ascii=False).encode("utf-8") for a in anomalies
+    )
+    files["log_excerpt.jsonl"] = b"\n".join(
+        json.dumps(e, ensure_ascii=False).encode("utf-8") for e in (log_excerpt or [])
+    )
+    if ots_proof:
+        files["ots_proof.json"] = json.dumps(ots_proof, ensure_ascii=False, indent=2).encode("utf-8")
+    files["VERIFY.txt"] = _VERIFY_TXT.encode("utf-8")
+
+    # Build manifest — SHA-256 per file + HMAC over the file index
+    file_hashes = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
+    manifest_index = json.dumps(file_hashes, sort_keys=True, ensure_ascii=False)
+    secret = (context.root_hash or "CENTINEL-INSTITUTIONAL-DEFAULT").encode("utf-8")
+    bundle_signature = hmac.new(secret, manifest_index.encode("utf-8"), hashlib.sha256).hexdigest()
+    manifest = {
+        "schema": "centinel-log-v1",
+        "generated_at_utc": generated_iso,
+        "election_id": audit_trail.get("scope", "unknown"),
+        "files": file_hashes,
+        "bundle_signature": bundle_signature,
+        "signature_algorithm": "HMAC-SHA256",
+        "signature_key_description": "root_hash from audit_trail.json",
+    }
+    files["manifest.json"] = json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8")
+
+    # Pack into ZIP (in memory, no temp files)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for name, data in files.items():
+            info = zipfile.ZipInfo(name)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            zf.writestr(info, data)
+    return buf.getvalue()
