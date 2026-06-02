@@ -1652,14 +1652,14 @@ async function doAdminLogin(){
   if(!pass){err.textContent='Ingresa el seed de acceso.';return;}
   btn.disabled=true; btn.textContent='Verificando…'; err.textContent='';
   try{
-    // Try local API first (works when running via launch.py); fall back to relative path
-    const localApi = (window.CENTINEL_API_BASE||'') + '/api/setup/access.json';
     const fallbackUrl = new URL('../access.json', location.href).href;
     let ac;
-    try {
-      const r = await fetch(localApi + '?t=' + Date.now());
-      if (r.ok) ac = await r.json();
-    } catch(_) {}
+    if (window.CENTINEL_API_BASE) {
+      try {
+        const r = await fetch(window.CENTINEL_API_BASE + '/api/setup/access.json?t=' + Date.now());
+        if (r.ok) ac = await r.json();
+      } catch(_) {}
+    }
     if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
     const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
     const rawSeeds = ac.seeds||{};
@@ -3231,55 +3231,62 @@ async function doRegenerate() {
   const errEl = document.getElementById('regen-err');
   errEl.textContent = '';
 
-  const seedLabel = (document.getElementById('regen-seed-label')||{}).value;
-  const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
-  if (!seedValue) {
-    errEl.textContent = 'Ingresa el valor del seed para autenticar.';
-    return;
-  }
-
-  if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
-  document.getElementById('regen-confirm').style.display = 'none';
-
-  try {
-    const statusR = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
-    const status = await statusR.json();
-
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/regenerate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        country_code: status.country_code || null,
-        seed_label: seedLabel,
-        seed_value: seedValue,
-      }),
-    });
-
-    if (!r.ok) {
-      const err = await r.json().catch(()=>({}));
-      document.getElementById('regen-confirm').style.display = 'block';
-      errEl.textContent = err.detail || ('Error ' + r.status);
+  if (window.CENTINEL_API_BASE) {
+    const seedLabel = (document.getElementById('regen-seed-label')||{}).value;
+    const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
+    if (!seedValue) {
+      errEl.textContent = 'Ingresa el valor del seed para autenticar.';
       return;
     }
 
-    // Limpiar campo de seed por seguridad
-    const seedInput = document.getElementById('regen-seed-value');
-    if (seedInput) seedInput.value = '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
+    document.getElementById('regen-confirm').style.display = 'none';
 
-    // Descargar PDF automáticamente
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `centinel-seeds-nuevos-${Date.now()}.pdf`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    try {
+      const statusR = await fetch(window.CENTINEL_API_BASE + '/api/setup/status');
+      const status = await statusR.json();
 
-    await loadSeedStatus();
-  } catch(e) {
-    alert('Error: ' + e.message);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Sí, regenerar ahora'; }
+      const r = await fetch(window.CENTINEL_API_BASE + '/api/setup/regenerate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          country_code: status.country_code || null,
+          seed_label: seedLabel,
+          seed_value: seedValue,
+        }),
+      });
+
+      if (!r.ok) {
+        const err = await r.json().catch(()=>({}));
+        document.getElementById('regen-confirm').style.display = 'block';
+        errEl.textContent = err.detail || ('Error ' + r.status);
+        return;
+      }
+
+      const seedInput = document.getElementById('regen-seed-value');
+      if (seedInput) seedInput.value = '';
+
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `centinel-seeds-nuevos-${Date.now()}.pdf`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+      await loadSeedStatus();
+    } catch(e) {
+      alert('Error: ' + e.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Sí, regenerar ahora'; }
+    }
+  } else {
+    const workflowUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/regenerate-seeds.yml`;
+    document.getElementById('regen-confirm').style.display = 'none';
+    errEl.innerHTML = `<span style="color:var(--warn)">En modo Pages no hay API local.<br>` +
+      `<a href="${workflowUrl}" target="_blank" rel="noopener" style="color:var(--accent)">` +
+      `Abre el workflow "Regenerate Admin Seeds"</a> en GitHub Actions.<br>` +
+      `Haz clic en "Run workflow", luego descarga el artifact de seeds (expira en 24h).</span>`;
   }
 }
 

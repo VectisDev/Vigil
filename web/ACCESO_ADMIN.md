@@ -5,14 +5,14 @@
 ## URL
 
 ```
-https://vectisdev.github.io/centinel/admin/
+https://vectisdev.github.io/centinel/ops/
 ```
 
 ## Requisitos
 
 - Un **Seed de acceso** de la serie S1 (S1-A … S1-L).
 - El seed lo genera el operador con `make wizard` (o `python scripts/setup_wizard.py`).
-- Cada seed tiene 24 caracteres alfanuméricos.
+- Cada seed tiene 24 caracteres base64url (144 bits de entropía, 18 bytes aleatorios).
 
 ## Cómo ingresar
 
@@ -26,9 +26,18 @@ https://vectisdev.github.io/centinel/admin/
 - **No se transmite el seed al servidor.** El hash se computa en el navegador
   con PBKDF2-SHA256 (sal: `centinel-admin-salt-v1`, 600 000 iteraciones).
 - El archivo `web/access.json` solo contiene **hashes**, nunca seeds en texto plano.
-- Si un seed se compromete, regenera `access.json` con `make wizard`.
+- Si un seed se compromete, regenera inmediatamente con el workflow o `make wizard`.
 
 ## Regenerar accesos
+
+### Desde GitHub Actions (recomendado para GitHub Pages)
+
+1. Ve a **Actions → Regenerate Admin Seeds** en el repositorio.
+2. Haz clic en **Run workflow**.
+3. Descarga el artifact `centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA` (expira en 24h).
+4. Guarda los seeds en un gestor de contraseñas offline.
+
+### Desde línea de comandos (modo servidor local)
 
 ```bash
 make wizard
@@ -37,11 +46,17 @@ make wizard
 # Commitea web/access.json y haz push.
 ```
 
-## Acceso de emergencia
+## Seeds perdidos
 
-Si se pierden todos los seeds:
+Si se pierden todos los seeds y no hay acceso al panel:
 
+1. Ejecuta el workflow **Regenerate Admin Seeds** desde GitHub Actions (solo el owner del repo).
+2. El workflow genera seeds nuevos, actualiza `web/access.json`, y sube el artifact.
+3. Descarga el artifact antes de que expire (24 horas).
+
+Alternativa local:
 ```bash
-python scripts/setup_wizard.py
-# Responde "sí" en PASO 7 para generar nuevos seeds.
+FORCE_REGENERATE=true python3 .github/scripts/wizard_seeds.py
+# Los nuevos seeds quedan en /tmp/centinel-seeds.txt
+git add web/access.json && git commit -m "security: regenerate seeds" && git push
 ```
