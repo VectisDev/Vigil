@@ -168,6 +168,41 @@ def build_forensics_block(tracker: InconsistentActsTracker) -> dict[str, Any]:
             "history": [],
         }
 
+    # Velocity history — actas/minute derived from consecutive snapshot total-vote deltas.
+    velocity_history: list[dict] = []
+    for i in range(1, len(snaps)):
+        prev, curr = snaps[i - 1], snaps[i]
+        elapsed_min = (curr.timestamp - prev.timestamp).total_seconds() / 60.0
+        if elapsed_min <= 0:
+            continue
+        prev_total = sum(prev.candidate_votes.values())
+        curr_total = sum(curr.candidate_votes.values())
+        speed = round((curr_total - prev_total) / elapsed_min, 2)
+        velocity_history.append({"ts": curr.timestamp.isoformat(), "speed": speed})
+    velocity_block["history"] = velocity_history[-30:]
+
+    # Leader history — leading candidate and their % share per snapshot.
+    leader_history: list[dict] = []
+    for s in snaps[-30:]:
+        total = sum(s.candidate_votes.values())
+        if not s.candidate_votes or total <= 0:
+            continue
+        leader_name = max(s.candidate_votes, key=lambda k: s.candidate_votes[k])
+        pct = round(s.candidate_votes[leader_name] / total * 100, 2)
+        leader_history.append({"ts": s.timestamp.isoformat(), "leader": leader_name, "pct": pct})
+
+    # Invalids history — null and blank vote percentages per snapshot.
+    invalids_history: list[dict] = []
+    for s in snaps[-30:]:
+        total = sum(s.candidate_votes.values()) + s.null_votes + s.blank_votes
+        if total <= 0:
+            continue
+        invalids_history.append({
+            "ts": s.timestamp.isoformat(),
+            "nulPct": round(s.null_votes / total * 100, 2),
+            "blaPct": round(s.blank_votes / total * 100, 2),
+        })
+
     return {
         "progressive_injection": progressive_block,
         "velocity_anomaly": velocity_block,
@@ -177,6 +212,8 @@ def build_forensics_block(tracker: InconsistentActsTracker) -> dict[str, Any]:
         "zscore": zscore_block,
         "blackout": blackout_block,
         "inconsistent_acts": inconsistent_block,
+        "leader": {"history": leader_history},
+        "invalids": {"history": invalids_history},
     }
 
 
