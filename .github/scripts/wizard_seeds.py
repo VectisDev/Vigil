@@ -23,7 +23,7 @@ RUN_ID  = os.environ.get("GITHUB_RUN_ID", "")
 access_path = Path("web/access.json")
 
 # Don't regenerate if valid seeds already exist
-if access_path.exists():
+if access_path.exists() and os.environ.get("FORCE_REGENERATE") != "true":
     try:
         existing = json.loads(access_path.read_text())
         if existing.get("seeds") and len(existing["seeds"]) == 12:
