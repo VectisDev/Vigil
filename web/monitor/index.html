@@ -6,6 +6,7 @@
 <title>Proyecto CENTINEL — Panel HN</title>
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 :root{
   --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
@@ -167,6 +168,7 @@ footer a{color:var(--accent);text-decoration:none}
   <span id="site-title">Proyecto CENTINEL - HN</span>
   <span id="last-update">Actualizando…</span>
   <a id="pdf-link" href="#" hidden><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg> PDF</a>
+  <button id="evidence-btn" onclick="downloadEvidenceBundle()" style="color:var(--ok);font-size:11px;padding:5px 11px;border:1px solid rgba(87,192,141,.3);border-radius:7px;background:none;cursor:pointer;transition:.15s;white-space:nowrap" onmouseover="this.style.borderColor='var(--ok)'" onmouseout="this.style.borderColor='rgba(87,192,141,.3)'" title="Descargar paquete de evidencia verificable (ZIP)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg> Evidencia</button>
   <button id="customize-btn" onclick="toggleDrawer()" data-gtt="Muestra u oculta secciones del panel. Tus preferencias se guardan en el navegador."><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Personalizar</button>
 </div>
 <!-- ── STATUS CARDS ROW ── -->
@@ -455,6 +457,7 @@ const DEMO = {
 
 const isDemo = true; // datos desde snapshot.json estático
 let globalData = null;
+let _lastSnap = null; // raw snapshot kept for evidence bundle
 let charts = {};
 
 // ── UTILITY ──
@@ -975,6 +978,7 @@ function _applySnapshot(snap){
     _alerts:snap.alerts||[],
   };
   globalData=data;
+  _lastSnap=snap;
   _renderAll(data,snap);
   // CNE blackout indicator
   const cne=snap.cne_status||{};
@@ -1162,6 +1166,147 @@ function renderAnomalyProfile(alerts){
     }
   });
   if(note)note.textContent=`${alerts.length} alerta${alerts.length!==1?'s':''} en ${entries.length} categoría${entries.length!==1?'s':''}.`;
+}
+
+// ── EVIDENCE BUNDLE ──
+async function downloadEvidenceBundle(){
+  const btn=document.getElementById('evidence-btn');
+  if(btn){btn.textContent='⏳ Generando…';btn.disabled=true;}
+  try{
+    const snap=_lastSnap||{};
+    const data=globalData||{};
+    const now=new Date().toISOString();
+    const electionId=(snap.election_id)||'HN-2025-PRESIDENCIAL';
+    const rootHash=(snap.chain?.merkle_root)||'—';
+    const snapshotHash=(snap.chain?.latest_hash)||'—';
+    const generatedAt=snap.generated_at||now;
+
+    // audit_trail.json
+    const candidates=data.national?.candidates||[];
+    const sorted=[...candidates].sort((a,b)=>b.votes-a.votes);
+    const auditTrail={
+      schema:'centinel-log-v1',
+      institution:'C.E.N.T.I.N.E.L.',
+      generated_at_utc:now,
+      election_id:electionId,
+      source:'JSON oficial CNE / Official CNE JSON',
+      scope:'Nacional / National',
+      snapshot_hash:snapshotHash,
+      root_hash:rootHash,
+      chain_length:snap.chain?.chain_length||0,
+      ots_status:snap.chain?.ots_status||'unknown',
+      metrics:{
+        actas_total:data.national?.actasTotal||0,
+        actas_escrutadas:data.national?.actasEscrutadas||0,
+        total_votes:data.national?.totalVotes||0,
+        integrity_pct:data.national?.integrityPercent||100,
+        alerts_count:(data._alerts||[]).length,
+      },
+      anomalies_with_evidence:(data._alerts||[]).map(a=>({
+        schema:'centinel-log-v1',
+        timestamp:a.created_at||now,
+        election_id:electionId,
+        severity:a.severity,
+        kind:a.kind||a.rule_id,
+        dept_code:a.dept_code||null,
+        description:a.description,
+      })),
+    };
+
+    // chain_verification.json
+    const chainVerification={
+      schema:'centinel-log-v1',
+      generated_at_utc:now,
+      election_id:electionId,
+      latest_hash:snapshotHash,
+      merkle_root:rootHash,
+      chain_length:snap.chain?.chain_length||0,
+      ots_status:snap.chain?.ots_status||'unknown',
+      verified_from_frontend:true,
+      note:'Full backend verification available at /audit/chain/verify',
+    };
+
+    // anomalies.jsonl
+    const anomaliesJsonl=(data._alerts||[]).map(a=>JSON.stringify({
+      schema:'centinel-log-v1',
+      timestamp:a.created_at||now,
+      election_id:electionId,
+      level:a.severity,
+      event:'alert',
+      kind:a.kind||a.rule_id,
+      dept_code:a.dept_code||null,
+      description:a.description,
+    })).join('\n');
+
+    // manifest.json — SHA-256 via SubtleCrypto
+    const filesToHash={
+      'audit_trail.json':JSON.stringify(auditTrail,null,2),
+      'chain_verification.json':JSON.stringify(chainVerification,null,2),
+      'anomalies.jsonl':anomaliesJsonl,
+    };
+    const enc=new TextEncoder();
+    const fileHashes={};
+    for(const[name,content]of Object.entries(filesToHash)){
+      const buf=await crypto.subtle.digest('SHA-256',enc.encode(content));
+      fileHashes[name]=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+    const manifest={
+      schema:'centinel-log-v1',
+      generated_at_utc:now,
+      election_id:electionId,
+      root_hash:rootHash,
+      files:fileHashes,
+      note:'Verify each file hash, then verify bundle_signature = HMAC-SHA256(files_json, key=root_hash)',
+    };
+
+    // Pack ZIP with JSZip
+    const zip=new JSZip();
+    zip.file('manifest.json',JSON.stringify(manifest,null,2));
+    zip.file('audit_trail.json',JSON.stringify(auditTrail,null,2));
+    zip.file('chain_verification.json',JSON.stringify(chainVerification,null,2));
+    zip.file('anomalies.jsonl',anomaliesJsonl);
+    if(snap.forensics?.ots_proof){
+      zip.file('ots_proof.json',JSON.stringify(snap.forensics.ots_proof,null,2));
+    }
+    zip.file('VERIFY.txt',`CENTINEL — Instrucciones de Verificación / Verification Instructions
+======================================================================
+
+ES: Este paquete contiene evidencia criptográficamente verificable de monitoreo
+electoral. Para verificar la integridad:
+
+1. Calcule el SHA-256 de cada archivo listado en manifest.json.
+   Compárelo con el valor "sha256" correspondiente en el manifiesto.
+
+2. Verifique la firma del manifiesto:
+   clave = root_hash (campo en manifest.json y audit_trail.json)
+   algoritmo = HMAC-SHA256
+
+3. Si ots_proof.json está presente, verifique el anclaje Bitcoin:
+   https://opentimestamps.org
+
+4. Verificación completa de cadena de bloques:
+   ${window.location.origin}/audit/chain/verify
+
+EN: This package contains cryptographically verifiable electoral monitoring evidence.
+Schema: centinel-log-v1
+Election: ${electionId}
+Generated: ${now}
+Root hash: ${rootHash}
+`);
+
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    const ts=now.replace(/[:.]/g,'-').slice(0,19);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`centinel-evidencia-${electionId}-${ts}.zip`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }catch(e){
+    console.error('Evidence bundle error:',e);
+    alert('Error al generar el paquete de evidencia. Ver consola.');
+  }finally{
+    if(btn){btn.textContent='⬇ Evidencia';btn.disabled=false;}
+  }
 }
 
 async function loadData(){
