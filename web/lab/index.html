@@ -897,7 +897,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;min-height:420px;position:relative">
       <canvas id="network-canvas" style="width:100%;height:400px;border-radius:6px;background:rgba(0,0,0,.2);display:block"></canvas>
       <div style="font-size:9px;color:var(--muted);margin-top:6px;padding:6px;background:rgba(55,65,81,.3);border-radius:4px;display:flex;gap:12px;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#d4af37;flex-shrink:0"></span>LOCAL (nosotros)</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#22d3ee;flex-shrink:0"></span>LOCAL (nosotros)</span>
         <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></span>Nodos honestos</span>
         <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;border:1.5px solid #22d3ee;flex-shrink:0"></span>Embajador</span>
         <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0"></span>Divergente</span>
@@ -935,7 +935,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
     <!-- Explanation -->
     <div style="font-size:10px;color:var(--muted);padding:10px;background:rgba(55,65,81,.3);border-radius:6px;line-height:1.5">
-      <strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> divergieron del consenso. El nodo <strong style="color:#d4af37">dorado</strong> es LOCAL (nosotros). Los nodos con <strong style="color:#22d3ee">anillo cyan</strong> son <strong>embajadores</strong> — 2 por swarm, elegidos por trust, son los únicos que comunican hallazgos cross-swarm. Si uno cae, el otro cubre. Pasa el mouse sobre cualquier nodo para ver su estado.
+      <strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> divergieron del consenso. El nodo <strong style="color:#22d3ee">cyan</strong> es LOCAL (nosotros). Los nodos con <strong style="color:#22d3ee">anillo cyan</strong> son <strong>embajadores</strong> — 2 por swarm, elegidos por trust, son los únicos que comunican hallazgos cross-swarm. Si uno cae, el otro cubre. Pasa el mouse sobre cualquier nodo para ver su estado.
     </div>
   </div>
 
@@ -2025,7 +2025,7 @@ function _drawWavyLine(ctx,x1,y1,x2,y2,t,alpha,isLocal,latency){
   ctx.beginPath();
   ctx.moveTo(x1,y1);
   ctx.quadraticCurveTo(cpx,cpy,x2,y2);
-  ctx.strokeStyle=isLocal?`rgba(212,175,55,${alpha})`:`rgba(110,231,183,${alpha})`;
+  ctx.strokeStyle=isLocal?`rgba(34,211,238,${alpha})`:`rgba(110,231,183,${alpha})`;
   const lw=latency?(0.5+Math.min(2.5,latency/30)):isLocal?1.5:0.8;
   ctx.lineWidth=lw;
   ctx.stroke();
@@ -2060,23 +2060,20 @@ function _drawNetwork(ctx,w,h,t){
     if(cl.nodes.length>1){
       const clR=Math.max(...cl.nodes.map(n=>Math.sqrt((n.x-cl.cx)**2+(n.y-cl.cy)**2)))+cl.nodes[0].r+6;
       ctx.beginPath();ctx.arc(cl.cx,cl.cy,clR,0,Math.PI*2);
-      ctx.strokeStyle=cl.isLocal?'rgba(212,175,55,.4)':'rgba(110,231,183,.15)';
+      ctx.strokeStyle=cl.isLocal?'rgba(34,211,238,.35)':'rgba(110,231,183,.15)';
       ctx.lineWidth=cl.isLocal?2:1;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
     }
-    // nodes — color by trust state
     cl.nodes.forEach(node=>{
-      // glow for local nodes
       if(cl.isLocal){
         ctx.beginPath();ctx.arc(node.x,node.y,node.r+3,0,Math.PI*2);
-        ctx.fillStyle='rgba(212,175,55,.15)';ctx.fill();
+        ctx.fillStyle='rgba(34,211,238,.12)';ctx.fill();
       }
-      // outage effect: pulsing dim
       const isOutage=node.outage;
       const outPulse=isOutage?0.3+0.2*Math.sin(t*4):1;
       ctx.beginPath();ctx.arc(node.x,node.y,node.r,0,Math.PI*2);
       if(cl.isLocal){
-        ctx.fillStyle=isOutage?`rgba(156,163,175,${0.4*outPulse})`:'rgba(212,175,55,.85)';
-        ctx.strokeStyle=isOutage?'rgba(156,163,175,.5)':'rgba(212,175,55,.95)';ctx.lineWidth=2;
+        ctx.fillStyle=isOutage?`rgba(156,163,175,${0.4*outPulse})`:'rgba(34,211,238,.9)';
+        ctx.strokeStyle=isOutage?'rgba(156,163,175,.5)':'rgba(34,211,238,1)';ctx.lineWidth=2;
       }else{
         // trust-based color gradient: high trust=green, mid=yellow, low=red, byzantine=red pulsing
         const trust=node.trust||0.8;
@@ -2102,7 +2099,7 @@ function _drawNetwork(ctx,w,h,t){
       // ambassador outer ring (cyan/teal)
       if(node.ambassador&&!isOutage&&!node.byz){
         ctx.beginPath();ctx.arc(node.x,node.y,node.r+3,0,Math.PI*2);
-        ctx.strokeStyle=cl.isLocal?'rgba(212,175,55,.6)':'rgba(34,211,238,.6)';
+        ctx.strokeStyle=cl.isLocal?'rgba(255,255,255,.6)':'rgba(34,211,238,.6)';
         ctx.lineWidth=1.5;ctx.stroke();
       }
       // outage icon (lightning bolt)
@@ -2119,7 +2116,7 @@ function _drawNetwork(ctx,w,h,t){
     // label below cluster
     const maxNodeY=cl.nodes.length>0?Math.max(...cl.nodes.map(n=>n.y)):cl.cy;
     const labelY=maxNodeY+(cl.nodes.length>0?cl.nodes[0].r:0)+10;
-    ctx.fillStyle=cl.isLocal?'rgba(212,175,55,.95)':'rgba(176,140,240,.8)';
+    ctx.fillStyle=cl.isLocal?'rgba(34,211,238,.95)':'rgba(176,140,240,.8)';
     ctx.font=`${cl.isLocal?'bold 11':'10'}px -apple-system,BlinkMacSystemFont,Segoe UI`;
     ctx.textAlign='center';ctx.textBaseline='top';
     ctx.fillText(cl.label,cl.cx,Math.min(labelY,h-12));
@@ -2180,9 +2177,8 @@ function _drawNetwork(ctx,w,h,t){
       const startA=-Math.PI/2;
       const endA=startA+(2*Math.PI*(con.pct/100));
       ctx.beginPath();ctx.arc(localCl.cx,localCl.cy,pr,startA,endA);
-      ctx.strokeStyle='rgba(212,175,55,.4)';ctx.lineWidth=3;ctx.stroke();
-      // % text top-right of LOCAL
-      ctx.fillStyle='rgba(212,175,55,.7)';ctx.font='bold 9px monospace';
+      ctx.strokeStyle='rgba(34,211,238,.4)';ctx.lineWidth=3;ctx.stroke();
+      ctx.fillStyle='rgba(34,211,238,.7)';ctx.font='bold 9px monospace';
       ctx.textAlign='left';ctx.textBaseline='middle';
       ctx.fillText(`${con.pct.toFixed(1)}%`,localCl.cx+pr+6,localCl.cy-pr+5);
     }
@@ -2264,17 +2260,23 @@ function _startNetworkLoop(){
     canvas.style.cursor=hit?'pointer':'default';
   });
   canvas.addEventListener('mouseleave',()=>{networkState._tooltip=null;networkState._mouse={x:-1,y:-1};});
-  const loop=()=>{
-    const rect=canvas.getBoundingClientRect();
-    if(canvas.width!==Math.round(rect.width*dpr)||canvas.height!==Math.round(rect.height*dpr)){
-      canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
-      ctx.scale(dpr,dpr);
-    }
-    networkState.time+=0.016;
-    _drawNetwork(ctx,rect.width,rect.height,networkState.time);
+  let lastFrame=0;
+  const TARGET_FPS=20;
+  const FRAME_BUDGET=1000/TARGET_FPS;
+  const loop=(now)=>{
     networkState.animFrameId=requestAnimationFrame(loop);
+    if(now-lastFrame<FRAME_BUDGET) return;
+    lastFrame=now;
+    const rect=canvas.getBoundingClientRect();
+    const wPx=Math.round(rect.width*dpr), hPx=Math.round(rect.height*dpr);
+    if(canvas.width!==wPx||canvas.height!==hPx){
+      canvas.width=wPx;canvas.height=hPx;
+    }
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    networkState.time+=0.05;
+    _drawNetwork(ctx,rect.width,rect.height,networkState.time);
   };
-  loop();
+  requestAnimationFrame(loop);
 }
 
 function _spawnGossipMessage(fromCluster,toCluster,color,label){
