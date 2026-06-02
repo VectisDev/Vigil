@@ -313,8 +313,16 @@ body.charts-pinned{padding-right:45vw}
 .chart-chip.off{opacity:.35;text-decoration:line-through}
 .chart-chip .sz-icon{font-size:8px;opacity:.5;cursor:pointer}
 .chart-chip .sz-icon:hover{opacity:1}
+/* Lock canvas height so chart redraws never shift the layout */
+.chart-card{position:relative}
+.chart-card canvas{display:block;width:100%!important;box-sizing:border-box}
 .chart-card-compact canvas{height:60px!important}
 .chart-card-hidden{display:none!important}
+/* In-card size toggle button */
+.chart-size-btn{position:absolute;top:8px;right:10px;padding:2px 7px;border-radius:4px;
+  border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;
+  font-size:10px;line-height:1.4;z-index:2;transition:border-color .15s,color .15s}
+.chart-size-btn:hover{border-color:var(--purple);color:var(--purple)}
 
 .swarm-node-btn{padding:4px 14px;border-radius:6px;border:1px solid var(--border);
   background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:700;
@@ -1261,21 +1269,31 @@ function _applyChartPrefs(){
     const compact=_isChartCompact(d.id);
     card.classList.toggle('chart-card-hidden',!vis);
     card.classList.toggle('chart-card-compact',compact);
+    const szBtn=card.querySelector('.chart-size-btn');
+    if(szBtn)szBtn.textContent=compact?'▲ Grande':'▼ Pequeño';
     if(vis&&SC[d.id])SC[d.id].resize();
   });
   const bar=document.getElementById('chart-toggle-bar');
   if(!bar)return;
   bar.querySelectorAll('.chart-chip').forEach(chip=>{
-    const cid=chip.dataset.chartId;
-    chip.classList.toggle('off',!_isChartVisible(cid));
-    const szBtn=chip.querySelector('.sz-icon');
-    if(szBtn)szBtn.textContent=_isChartCompact(cid)?'◻':'◽';
+    chip.classList.toggle('off',!_isChartVisible(chip.dataset.chartId));
   });
 }
 function _buildToggleBar(){
   const bar=document.getElementById('chart-toggle-bar');
   if(!bar)return;
-  bar.innerHTML=CHART_DEFS.map(d=>`<span class="chart-chip${_isChartVisible(d.id)?'':' off'}" data-chart-id="${d.id}" onclick="toggleChartVis('${d.id}')">${d.label}<span class="sz-icon" onclick="toggleChartSize('${d.id}',event)" title="Alternar tamaño">${_isChartCompact(d.id)?'◻':'◽'}</span></span>`).join('');
+  bar.innerHTML=CHART_DEFS.map(d=>`<span class="chart-chip${_isChartVisible(d.id)?'':' off'}" data-chart-id="${d.id}" onclick="toggleChartVis('${d.id}')">${d.label}</span>`).join('');
+  // Inject in-card size buttons into every chart-card
+  CHART_DEFS.forEach(d=>{
+    const card=document.querySelector(`.chart-card[data-chart-id="${d.id}"]`);
+    if(!card||card.querySelector('.chart-size-btn'))return;
+    const btn=document.createElement('button');
+    btn.className='chart-size-btn';
+    btn.title='Alternar tamaño (grande / compacto)';
+    btn.textContent=_isChartCompact(d.id)?'▲ Grande':'▼ Pequeño';
+    btn.onclick=(e)=>{e.stopPropagation();toggleChartSize(d.id,e);};
+    card.appendChild(btn);
+  });
   _applyChartPrefs();
 }
 
@@ -3628,7 +3646,7 @@ function renderSimFrame(idx){
   emitEngineEvents(snap,idx,benf,lastd,{mad,runs,trend,llnz});
 }
 
-const CHART_OPT={animation:false,responsive:true,
+const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
   plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
   scales:{x:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
