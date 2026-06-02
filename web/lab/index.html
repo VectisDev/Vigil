@@ -313,10 +313,12 @@ body.charts-pinned{padding-right:45vw}
 .chart-chip.off{opacity:.35;text-decoration:line-through}
 .chart-chip .sz-icon{font-size:8px;opacity:.5;cursor:pointer}
 .chart-chip .sz-icon:hover{opacity:1}
-/* Lock chart height — wrapper div has fixed height, canvas fills it */
+/* Lock chart height — wrapper has fixed height + clips, canvas is absolutely
+   sized to fill it, so an un-rendered/empty canvas can never balloon the card */
 .chart-card{position:relative}
-.chart-wrap{position:relative}
-.chart-card-compact .chart-wrap{height:60px!important;transition:height .2s}
+.chart-wrap{position:relative;overflow:hidden}
+.chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;display:block}
+.chart-card-compact .chart-wrap{height:60px!important}
 .chart-card-hidden{display:none!important}
 /* In-card size toggle button */
 .chart-size-btn{position:absolute;top:8px;right:10px;padding:2px 7px;border-radius:4px;
