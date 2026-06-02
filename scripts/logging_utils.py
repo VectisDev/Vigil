@@ -287,8 +287,11 @@ def log_event(logger: logging.Logger, level: int, event: str, **fields: Any) -> 
     """/** Registra un evento JSON con datos saneados. / Log a JSON event with sanitized data. **/"""
     safe_fields = _scrub_fields(fields)
     payload = {
+        "schema": "centinel-log-v1",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "level": logging.getLevelName(level),
+        "election_id": os.environ.get("CENTINEL_ELECTION_ID", "unknown"),
+        "centinel_version": os.environ.get("CENTINEL_VERSION", "unknown"),
         "logger": logger.name,
         "event": event,
         **safe_fields,

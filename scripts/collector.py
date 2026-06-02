@@ -112,10 +112,7 @@ def configure_logging() -> None:
 
     Configura logging del colector.
     """
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    )
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
