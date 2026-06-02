@@ -1,4 +1,5 @@
 """Unit tests for the deterministic task partitioner."""
+
 import pytest
 
 from centinel.federation.task_partitioner import TaskPartitioner, HN_SOURCES
@@ -12,6 +13,7 @@ def make_nodes(n: int) -> list[tuple[str, int]]:
 
 
 # ── Basic assignment ──────────────────────────────────────────────────────────
+
 
 def test_single_node_gets_all_sources():
     tp = TaskPartitioner()
@@ -47,6 +49,7 @@ def test_all_sources_assigned_for_every_n():
 
 # ── Odd node counts ───────────────────────────────────────────────────────────
 
+
 def test_n3_load_distribution():
     """With 19 sources and 3 nodes: node-0 gets 7, nodes 1 and 2 get 6."""
     tp = TaskPartitioner()
@@ -81,24 +84,24 @@ def test_n12_load_distribution():
 
 # ── Determinism ───────────────────────────────────────────────────────────────
 
+
 def test_same_input_same_output():
     nodes = make_nodes(6)
     tp = TaskPartitioner()
     result_a = tp.assign(nodes)
     result_b = tp.assign(nodes)
-    assert [(s.node_id, s.sources) for s in result_a] == \
-           [(s.node_id, s.sources) for s in result_b]
+    assert [(s.node_id, s.sources) for s in result_a] == [(s.node_id, s.sources) for s in result_b]
 
 
 def test_assignment_stable_across_instances():
     nodes = make_nodes(6)
     result_a = TaskPartitioner().assign(nodes)
     result_b = TaskPartitioner().assign(nodes)
-    assert [(s.node_id, s.sources) for s in result_a] == \
-           [(s.node_id, s.sources) for s in result_b]
+    assert [(s.node_id, s.sources) for s in result_a] == [(s.node_id, s.sources) for s in result_b]
 
 
 # ── Node failure coverage ─────────────────────────────────────────────────────
+
 
 def test_survivor_covers_all_when_node_drops():
     """When a node drops, survivors cover orphaned sources (no coordination needed)."""
@@ -120,6 +123,7 @@ def test_empty_nodes_returns_empty():
 
 
 # ── Custom sources ────────────────────────────────────────────────────────────
+
 
 def test_custom_sources():
     sources = ("A", "B", "C", "D", "E")

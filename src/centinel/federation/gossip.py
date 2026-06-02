@@ -39,12 +39,8 @@ logger = logging.getLogger("centinel.federation.gossip")
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _KEYS_DIR = _REPO_ROOT / "keys"
 
-_BOOTSTRAP_URL_TEMPLATE = (
-    "https://vectisdev.github.io/centinel/peers/{country}.json"
-)
-_BOOTSTRAP_BACKUP_TEMPLATE = (
-    "https://raw.githubusercontent.com/vectisdev/centinel/main/peers/{country}.json"
-)
+_BOOTSTRAP_URL_TEMPLATE = "https://vectisdev.github.io/centinel/peers/{country}.json"
+_BOOTSTRAP_BACKUP_TEMPLATE = "https://raw.githubusercontent.com/vectisdev/centinel/main/peers/{country}.json"
 _DNS_BOOTSTRAP_DOMAIN = "peers-{country}.centinel.vectisdev.com"
 
 _HARDCODED_SEEDS: list[str] = [
@@ -61,11 +57,11 @@ _CENTINEL_MDNS_SERVICE = b"_centinel._tcp.local"
 _FAN_OUT = 3
 _GOSSIP_VERSION = 1
 _FINDING_VERSION = 1
-_FINDING_RATE_LIMIT = 20       # max findings broadcast per minute per node
-_FINDING_RATE_WINDOW = 60.0    # sliding window in seconds
+_FINDING_RATE_LIMIT = 20  # max findings broadcast per minute per node
+_FINDING_RATE_WINDOW = 60.0  # sliding window in seconds
 _BROADCAST_SEVERITIES = {"HIGH", "CRITICAL"}
-_LRU_PUBKEY_CACHE_SIZE = 50    # bounded by max swarm size; historical buffer
-_MAX_SWARM_PEERS = 12          # hard cap — Centinel operates as a tight, known swarm
+_LRU_PUBKEY_CACHE_SIZE = 50  # bounded by max swarm size; historical buffer
+_MAX_SWARM_PEERS = 12  # hard cap — Centinel operates as a tight, known swarm
 
 
 # ── Data structures ───────────────────────────────────────────────────────────
@@ -75,14 +71,14 @@ _MAX_SWARM_PEERS = 12          # hard cap — Centinel operates as a tight, know
 class NodePayload:
     """Signed attestation broadcast by a Centinel node."""
 
-    node_id: str           # sha256(public_key_hex)[:16]
-    public_key_hex: str    # Ed25519 public key (64 hex chars)
-    country_code: str      # ISO-2 country code, e.g. "HN"
-    merkle_root: str       # SHA256 hex of entire snapshot chain
-    chain_length: int      # Number of snapshots in chain
-    timestamp_utc: str     # ISO 8601
+    node_id: str  # sha256(public_key_hex)[:16]
+    public_key_hex: str  # Ed25519 public key (64 hex chars)
+    country_code: str  # ISO-2 country code, e.g. "HN"
+    merkle_root: str  # SHA256 hex of entire snapshot chain
+    chain_length: int  # Number of snapshots in chain
+    timestamp_utc: str  # ISO 8601
     my_url: Optional[str]  # Public base URL if node is reachable, else None
-    signature: str         # Ed25519(sha256(canonical JSON without this field))
+    signature: str  # Ed25519(sha256(canonical JSON without this field))
     version: int = _GOSSIP_VERSION
     epoch: int = 0  # Incremented when a fork/rollback in chain is detected locally
     # Soft rule specialization — computed from node_id hash, purely informational.
@@ -114,16 +110,16 @@ class FindingPayload:
       "swarm_attack"   — infrastructure attack directed at Centinel endpoints
     """
 
-    finding_id: str        # sha256(node_id+timestamp+rule_key)[:16] — dedup key
-    node_id: str           # sha256(public_key_hex)[:16] of the detecting node
-    country_code: str      # ISO-2, e.g. "HN"
-    finding_type: str      # "rule_violation" | "anomaly" | "swarm_attack"
-    severity: str          # "HIGH" | "CRITICAL" — only these are broadcast
-    rule_key: str          # Rule/detector name: "late_mesa", "hold_and_release", "flood", …
-    summary: str           # ≤200 chars human description
-    snapshot_id: str       # Related snapshot hash, or "" for attack events
-    timestamp_utc: str     # ISO 8601
-    signature: str         # Ed25519 over canonical JSON (excludes this field)
+    finding_id: str  # sha256(node_id+timestamp+rule_key)[:16] — dedup key
+    node_id: str  # sha256(public_key_hex)[:16] of the detecting node
+    country_code: str  # ISO-2, e.g. "HN"
+    finding_type: str  # "rule_violation" | "anomaly" | "swarm_attack"
+    severity: str  # "HIGH" | "CRITICAL" — only these are broadcast
+    rule_key: str  # Rule/detector name: "late_mesa", "hold_and_release", "flood", …
+    summary: str  # ≤200 chars human description
+    snapshot_id: str  # Related snapshot hash, or "" for attack events
+    timestamp_utc: str  # ISO 8601
+    signature: str  # Ed25519 over canonical JSON (excludes this field)
     version: int = _FINDING_VERSION
     ttl_hops: int = 8  # Decremented on each fan-out hop; 0 = store locally, no forward
 
@@ -156,12 +152,12 @@ class ScrapeResultPayload:
     of how many nodes are running.
     """
 
-    result_id: str       # sha256(node_id + source_id + scraped_at_utc)[:16]
-    node_id: str         # sha256(public_key_hex)[:16] of the scraping node
-    source_id: str       # e.g. "NACIONAL", "06_cortes"
-    content_hash: str    # SHA256 of raw response (proof something was actually fetched)
+    result_id: str  # sha256(node_id + source_id + scraped_at_utc)[:16]
+    node_id: str  # sha256(public_key_hex)[:16] of the scraping node
+    source_id: str  # e.g. "NACIONAL", "06_cortes"
+    content_hash: str  # SHA256 of raw response (proof something was actually fetched)
     scraped_at_utc: str  # ISO 8601
-    signature: str       # Ed25519 over canonical JSON (excludes this field)
+    signature: str  # Ed25519 over canonical JSON (excludes this field)
     version: int = 1
 
     def canonical_bytes(self) -> bytes:
@@ -264,9 +260,7 @@ def _current_merkle_root() -> tuple[str, int]:
         if not db.exists():
             return "0" * 64, 0
         with sqlite3.connect(str(db)) as conn:
-            row = conn.execute(
-                "SELECT hash, id FROM snapshots ORDER BY id DESC LIMIT 1"
-            ).fetchone()
+            row = conn.execute("SELECT hash, id FROM snapshots ORDER BY id DESC LIMIT 1").fetchone()
             if not row:
                 return "0" * 64, 0
             count = conn.execute("SELECT COUNT(*) FROM snapshots").fetchone()[0]
@@ -444,9 +438,9 @@ class GossipEngine:
 
         # Federation finding logs (optional — gossip still works without them)
         self._anomaly_log = anomaly_log  # FederationAnomalyLog
-        self._attack_log = attack_log    # FederationAttackLog
+        self._attack_log = attack_log  # FederationAttackLog
         # Optional ReputationEngine — tracks per-node Bayesian trust scores.
-        self._reputation = reputation    # centinel.federation.reputation.ReputationEngine
+        self._reputation = reputation  # centinel.federation.reputation.ReputationEngine
 
         # Arrival-order tracking: first time a node_id is seen gets a monotone index.
         # This determines deterministic task assignment in the TaskPartitioner.
@@ -465,7 +459,7 @@ class GossipEngine:
         self._scrape_registry: dict[str, ScrapeResultPayload] = {}
         self._scrape_lock = threading.Lock()
 
-        self._peers: dict[str, str] = {}   # node_id → base_url
+        self._peers: dict[str, str] = {}  # node_id → base_url
         self._known: dict[str, NodePayload] = {}  # node_id → latest payload
         # Pubkey cache: all nodes ever seen (LRU, max 10k). Independent of routing table.
         self._pubkey_cache = _LRUPubkeyCache(_LRU_PUBKEY_CACHE_SIZE)
@@ -497,7 +491,9 @@ class GossipEngine:
             self._specialization = "general"
         logger.info(
             "gossip_start node_id=%s country=%s specialization=%s",
-            self._node_id, self.country_code, self._specialization,
+            self._node_id,
+            self.country_code,
+            self._specialization,
         )
 
         # Bootstrap peer discovery — try all sources in parallel
@@ -610,7 +606,9 @@ class GossipEngine:
 
         logger.info(
             "gossip_recv_accepted node_id=%s chain=%d merkle=%.8s",
-            node_id, payload.chain_length, payload.merkle_root,
+            node_id,
+            payload.chain_length,
+            payload.merkle_root,
         )
 
         # Fan-out to 2 random peers (exclude sender)
@@ -633,7 +631,9 @@ class GossipEngine:
         if not self._check_inbound_finding_rate(self._node_id):
             logger.warning(
                 "finding_broadcast_rate_limited node=%s rate=%d/%ds",
-                self._node_id, _FINDING_RATE_LIMIT, int(_FINDING_RATE_WINDOW),
+                self._node_id,
+                _FINDING_RATE_LIMIT,
+                int(_FINDING_RATE_WINDOW),
             )
             return 0
 
@@ -657,7 +657,10 @@ class GossipEngine:
 
         logger.info(
             "finding_broadcast sent=%d acked=%d rule=%s severity=%s",
-            len(targets), acks, finding.rule_key, finding.severity,
+            len(targets),
+            acks,
+            finding.rule_key,
+            finding.severity,
         )
         return acks
 
@@ -693,7 +696,8 @@ class GossipEngine:
         if not self._check_inbound_finding_rate(finding.node_id):
             logger.warning(
                 "finding_recv_rate_limited node_id=%s rule=%s",
-                finding.node_id, finding.rule_key,
+                finding.node_id,
+                finding.rule_key,
             )
             return False
 
@@ -703,7 +707,10 @@ class GossipEngine:
 
         logger.info(
             "finding_recv_accepted finding_id=%s rule=%s severity=%s from=%s",
-            finding.finding_id, finding.rule_key, finding.severity, finding.node_id,
+            finding.finding_id,
+            finding.rule_key,
+            finding.severity,
+            finding.node_id,
         )
 
         # ES: Si es un throttle de fuente, notificar al pipeline local para que
@@ -781,7 +788,8 @@ class GossipEngine:
             "consensus_scope": "local_50_peer_view",
             "last_broadcast_utc": (
                 datetime.fromtimestamp(self._last_broadcast, tz=timezone.utc).isoformat()
-                if self._last_broadcast else None
+                if self._last_broadcast
+                else None
             ),
             "peers": [
                 {
@@ -793,14 +801,8 @@ class GossipEngine:
                     "timestamp_utc": p.timestamp_utc,
                     "url": p.my_url,
                     "arrival_order": self._arrival_order.get(p.node_id, -1),
-                    "trust_score": (
-                        self._reputation.get_trust(p.node_id)
-                        if self._reputation is not None else None
-                    ),
-                    "ring": (
-                        self._reputation.get_ring(p.node_id)
-                        if self._reputation is not None else None
-                    ),
+                    "trust_score": (self._reputation.get_trust(p.node_id) if self._reputation is not None else None),
+                    "ring": (self._reputation.get_ring(p.node_id) if self._reputation is not None else None),
                 }
                 for p in peers
             ],
@@ -855,7 +857,7 @@ class GossipEngine:
 
         targets = list(self._peers.values())
         random.shuffle(targets)
-        for url in targets[:_FAN_OUT * 2]:
+        for url in targets[: _FAN_OUT * 2]:
             asyncio.create_task(self._push_scrape_result(url, result))
 
         logger.info("scrape_result_broadcast source=%s peers=%d", source_id, min(len(targets), _FAN_OUT * 2))
@@ -875,6 +877,7 @@ class GossipEngine:
 
         try:
             from centinel.core.custody import verify_snapshot_signature
+
             if not verify_snapshot_signature(result.canonical_bytes(), result.signature, public_key_hex=pub_hex):
                 logger.debug("scrape_result_recv_invalid_sig node_id=%s source=%s", result.node_id, result.source_id)
                 return False
@@ -889,7 +892,9 @@ class GossipEngine:
 
         logger.info(
             "scrape_result_accepted source=%s node=%s at=%s",
-            result.source_id, result.node_id, result.scraped_at_utc,
+            result.source_id,
+            result.node_id,
+            result.scraped_at_utc,
         )
 
         candidates = [u for nid, u in self._peers.items() if nid != result.node_id]
@@ -927,7 +932,9 @@ class GossipEngine:
         self._last_broadcast = time.time()
         logger.info(
             "gossip_broadcast sent=%d acked=%d merkle=%.8s",
-            len(targets), acks, payload.merkle_root,
+            len(targets),
+            acks,
+            payload.merkle_root,
         )
         return acks
 

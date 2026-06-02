@@ -12,6 +12,7 @@ Expected outcome:
 This test is published in the repository as academic evidence of Sybil resistance.
 It corresponds to the analysis in docs/research/REPUTATION-MODEL.md §4.
 """
+
 import pytest
 
 from centinel.federation.reputation import ReputationEngine, _RING1_SCORE
@@ -28,9 +29,9 @@ def test_sybil_nodes_degraded_after_1_inconsistent_event():
         nid = f"sybil_{i:02d}"
         eng.ensure(nid)
         eng.on_inconsistent(nid)
-        assert eng.get_trust(nid) < INFLUENCE_THRESHOLD, (
-            f"Sybil node {nid} trust={eng.get_trust(nid):.3f} exceeds threshold"
-        )
+        assert (
+            eng.get_trust(nid) < INFLUENCE_THRESHOLD
+        ), f"Sybil node {nid} trust={eng.get_trust(nid):.3f} exceeds threshold"
 
 
 def test_sybil_nodes_remain_degraded_across_cycles():
@@ -45,9 +46,7 @@ def test_sybil_nodes_remain_degraded_across_cycles():
 
     for i in range(SYBIL_COUNT):
         trust = eng.get_trust(f"sybil_{i:02d}")
-        assert trust < INFLUENCE_THRESHOLD, (
-            f"Cycle 5: sybil_{i:02d} trust={trust:.3f} still above threshold"
-        )
+        assert trust < INFLUENCE_THRESHOLD, f"Cycle 5: sybil_{i:02d} trust={trust:.3f} still above threshold"
 
 
 def test_honest_node_reaches_ring1_while_sybils_degrade():
@@ -62,9 +61,7 @@ def test_honest_node_reaches_ring1_while_sybils_degrade():
         for i in range(SYBIL_COUNT):
             eng.on_inconsistent(f"sybil_{i:02d}")
 
-    assert eng.get_ring("honest") == 1, (
-        f"Honest node ring={eng.get_ring('honest')} trust={eng.get_trust('honest'):.3f}"
-    )
+    assert eng.get_ring("honest") == 1, f"Honest node ring={eng.get_ring('honest')} trust={eng.get_trust('honest'):.3f}"
     for i in range(SYBIL_COUNT):
         assert eng.get_ring(f"sybil_{i:02d}") == 2
 
@@ -104,9 +101,7 @@ def test_sybil_recovery_requires_many_consistent_events():
     for _ in range(40):
         eng.on_consistent("reformed")
 
-    assert eng.get_ring("reformed") == 1, (
-        f"After 40 consistent: trust={eng.get_trust('reformed'):.3f}"
-    )
+    assert eng.get_ring("reformed") == 1, f"After 40 consistent: trust={eng.get_trust('reformed'):.3f}"
 
 
 def test_sybil_cluster_all_below_threshold_at_every_step():
@@ -121,6 +116,4 @@ def test_sybil_cluster_all_below_threshold_at_every_step():
         # Invariant: no Sybil node ever crosses the threshold
         for i in range(SYBIL_COUNT):
             trust = eng.get_trust(f"s_{i}")
-            assert trust < INFLUENCE_THRESHOLD, (
-                f"Cycle {cycle}: s_{i} trust={trust:.3f} exceeds {INFLUENCE_THRESHOLD}"
-            )
+            assert trust < INFLUENCE_THRESHOLD, f"Cycle {cycle}: s_{i} trust={trust:.3f} exceeds {INFLUENCE_THRESHOLD}"
