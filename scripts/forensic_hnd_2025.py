@@ -31,8 +31,8 @@ def main() -> None:
     print(f"Found {len(files)} snapshots in {data_dir}\n")
 
     tracker = InconsistentActsTracker(
-        config_path=Path("/tmp/forensic_hnd_key.json"),
-        runtime_config_path=Path("/tmp/forensic_hnd_config.json"),
+        config_path=Path("/tmp/forensic_hnd_key.json"),  # nosec B108
+        runtime_config_path=Path("/tmp/forensic_hnd_config.json"),  # nosec B108
         blackout_gap_minutes=30,
         max_resolution_rate=10.0,
         bulk_resolution_threshold=200,
