@@ -214,6 +214,25 @@ footer a{color:var(--accent);text-decoration:none}
   </div>
 </div>
 
+<!-- ── VENTAJA DEL LÍDER ── -->
+<div class="card" data-section="margin">
+  <h2>Ventaja del candidato líder</h2>
+  <div style="display:flex;align-items:center;gap:40px;flex-wrap:wrap;padding:4px 0">
+    <div>
+      <div class="kpi-val" id="v-margin-leader" style="font-size:26px">—</div>
+      <div class="kpi-label">candidato líder</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-margin-pct" style="font-size:26px">—</div>
+      <div class="kpi-label">ventaja sobre el 2°</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-margin-votes" style="font-size:26px">—</div>
+      <div class="kpi-label">votos de diferencia</div>
+    </div>
+  </div>
+</div>
+
 <!-- ── REGISTROS INCONSISTENTES BAJO MICROSCOPIO ── -->
 <div class="card" id="incons-card" data-section="incons">
   <h2 id="incons-title">Registros inconsistentes — bajo vigilancia permanente</h2>
@@ -319,6 +338,13 @@ footer a{color:var(--accent);text-decoration:none}
 <div class="card" data-section="forensics">
   <h2>Análisis forense en tiempo real</h2>
   <div id="forensic-list" style="display:grid;gap:12px"></div>
+</div>
+
+<!-- ── PERFIL DE ANOMALÍAS ── -->
+<div class="card" data-section="anomaly-profile">
+  <h2>Perfil de anomalías detectadas</h2>
+  <canvas id="chart-anomaly-profile" height="200"></canvas>
+  <div id="anomaly-profile-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Distribución de alertas por categoría, ordenadas por frecuencia.</div>
 </div>
 
 <!-- ── CADENA CRIPTOGRÁFICA ── -->
@@ -959,7 +985,65 @@ function _renderAll(data,snap){
   renderZScore(data.departments);
   renderParticipation(data.departments);
   renderNullBlank(data.departments);
+  if(data.national?.candidates)renderMarginKPI(data.national.candidates);
+  if(data._alerts)renderAnomalyProfile(data._alerts);
   applySectionPrefs();
+}
+
+// ── VENTAJA DEL LÍDER ──
+function renderMarginKPI(candidates){
+  const ids=['v-margin-leader','v-margin-pct','v-margin-votes'];
+  if(!candidates||candidates.length<2){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});return;}
+  const sorted=[...candidates].sort((a,b)=>b.votes-a.votes);
+  const first=sorted[0],second=sorted[1];
+  const diff=first.votes-second.votes;
+  const total=sorted.reduce((s,c)=>s+(c.votes||0),0);
+  const gapPct=total>0?((first.votes-second.votes)/total*100):0;
+  const lEl=document.getElementById('v-margin-leader');
+  const pEl=document.getElementById('v-margin-pct');
+  const vEl=document.getElementById('v-margin-votes');
+  if(lEl)lEl.textContent=first.name||(first.party||'—');
+  if(pEl){pEl.textContent='+'+gapPct.toFixed(1)+'%';pEl.style.color=gapPct<2?'var(--warn)':'var(--ok)';}
+  if(vEl)vEl.textContent='+'+fmt(diff);
+}
+
+// ── PERFIL DE ANOMALÍAS ──
+function renderAnomalyProfile(alerts){
+  const el=document.getElementById('chart-anomaly-profile');
+  const note=document.getElementById('anomaly-profile-note');
+  if(!el)return;
+  if(!alerts||alerts.length===0){
+    if(charts.anomalyProfile){charts.anomalyProfile.destroy();charts.anomalyProfile=null;}
+    if(note)note.textContent='Sin alertas registradas en este ciclo.';
+    return;
+  }
+  const sevOrder={LOW:1,MEDIUM:2,HIGH:3,CRITICAL:4};
+  const kindMap={};
+  alerts.forEach(a=>{
+    const k=a.kind||a.rule_id||'Desconocida';
+    if(!kindMap[k])kindMap[k]={count:0,maxSev:0,sev:'LOW'};
+    kindMap[k].count++;
+    const so=sevOrder[a.severity]||1;
+    if(so>kindMap[k].maxSev){kindMap[k].maxSev=so;kindMap[k].sev=a.severity;}
+  });
+  const entries=Object.entries(kindMap).sort((a,b)=>b[1].count-a[1].count);
+  const labels=entries.map(([k])=>k);
+  const values=entries.map(([,v])=>v.count);
+  const colors=entries.map(([,v])=>v.sev==='CRITICAL'||v.sev==='HIGH'?'#df6b86':v.sev==='MEDIUM'?'#d4b066':'#8b929c');
+  if(charts.anomalyProfile)charts.anomalyProfile.destroy();
+  charts.anomalyProfile=new Chart(el,{
+    type:'bar',
+    data:{labels,datasets:[{data:values,backgroundColor:colors,borderRadius:4,borderSkipped:false}]},
+    options:{
+      indexAxis:'y',responsive:true,animation:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x} alerta${ctx.parsed.x!==1?'s':''}`}}},
+      scales:{
+        x:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},stepSize:1},beginAtZero:true},
+        y:{grid:{display:false},ticks:{color:'#8b929c',font:{size:11}}}
+      }
+    }
+  });
+  if(note)note.textContent=`${alerts.length} alerta${alerts.length!==1?'s':''} en ${entries.length} categoría${entries.length!==1?'s':''}.`;
 }
 
 async function loadData(){
@@ -1081,7 +1165,7 @@ const SECTION_LABELS={
   timeline:'Serie temporal',benford:'Benford',lastdigit:'Último dígito',
   zscore:'Z-score por depto',participation:'Participación por depto',
   nullblank:'Nulos y blancos',endpoints:'Endpoints CNE',alerts:'Alertas',forensics:'Análisis forense',
-  chain:'Cadena criptográfica',
+  'anomaly-profile':'Perfil de anomalías',margin:'Ventaja del líder',chain:'Cadena criptográfica',
 };
 function applySectionPrefs(){
   const prefs=JSON.parse(localStorage.getItem('centinel_sections')||'{}');
