@@ -340,6 +340,27 @@ footer a{color:var(--accent);text-decoration:none}
   <div id="forensic-list" style="display:grid;gap:12px"></div>
 </div>
 
+<!-- ── VELOCIDAD DE ESCRUTINIO ── -->
+<div class="card" data-section="velocity">
+  <h2>Velocidad de escrutinio (votos/minuto)</h2>
+  <canvas id="chart-velocity" height="140"></canvas>
+  <div id="velocity-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Tasa de ingreso de votos entre capturas consecutivas.</div>
+</div>
+
+<!-- ── EVOLUCIÓN DEL LIDERAZGO ── -->
+<div class="card" data-section="leader">
+  <h2>Evolución del liderazgo</h2>
+  <canvas id="chart-leader" height="140"></canvas>
+  <div id="leader-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Porcentaje del candidato líder en cada captura.</div>
+</div>
+
+<!-- ── NULOS Y BLANCOS EN EL TIEMPO ── -->
+<div class="card" data-section="invalids">
+  <h2>Votos nulos y blancos en el tiempo (%)</h2>
+  <canvas id="chart-invalids" height="140"></canvas>
+  <div id="invalids-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Proporción de votos inválidos sobre el total de votos emitidos.</div>
+</div>
+
 <!-- ── PERFIL DE ANOMALÍAS ── -->
 <div class="card" data-section="anomaly-profile">
   <h2>Perfil de anomalías detectadas</h2>
@@ -987,7 +1008,104 @@ function _renderAll(data,snap){
   renderNullBlank(data.departments);
   if(data.national?.candidates)renderMarginKPI(data.national.candidates);
   if(data._alerts)renderAnomalyProfile(data._alerts);
+  if(data.forensics){renderVelocity(data.forensics);renderLeaderChart(data.forensics);renderInvalidsChart(data.forensics);}
   applySectionPrefs();
+}
+
+// ── VELOCIDAD DE ESCRUTINIO ──
+function renderVelocity(forensics){
+  const el=document.getElementById('chart-velocity');
+  const note=document.getElementById('velocity-note');
+  if(!el)return;
+  const history=(forensics?.velocity_anomaly?.history)||[];
+  if(history.length<2){if(charts.velocity){charts.velocity.destroy();charts.velocity=null;}return;}
+  const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  const values=history.map(h=>h.speed);
+  const mean=values.reduce((a,b)=>a+b,0)/values.length;
+  const threshold=(forensics?.velocity_anomaly?.threshold)||10;
+  if(charts.velocity)charts.velocity.destroy();
+  charts.velocity=new Chart(el,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'votos/min',data:values,borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.1)',fill:true,tension:0.3,pointRadius:history.length<15?3:0,borderWidth:2},
+        {label:'Umbral',data:Array(values.length).fill(threshold),borderColor:'#df6b86',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
+      ]
+    },
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}`}}},
+      scales:{
+        x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
+        y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10}},beginAtZero:true}
+      }
+    }
+  });
+  if(note)note.textContent=`Media: ${mean.toFixed(1)} votos/min. Umbral de anomalía: ${threshold} votos/min.`;
+}
+
+// ── EVOLUCIÓN DEL LIDERAZGO ──
+function renderLeaderChart(forensics){
+  const el=document.getElementById('chart-leader');
+  const note=document.getElementById('leader-note');
+  if(!el)return;
+  const history=(forensics?.leader?.history)||[];
+  if(history.length<2){if(charts.leader){charts.leader.destroy();charts.leader=null;}return;}
+  const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  const values=history.map(h=>h.pct);
+  const latestLeader=history[history.length-1]?.leader||'—';
+  if(charts.leader)charts.leader.destroy();
+  charts.leader=new Chart(el,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[{label:'% líder',data:values,borderColor:'#b08cf0',backgroundColor:'rgba(176,140,240,.1)',fill:true,tension:0.3,pointRadius:history.length<15?3:0,borderWidth:2}]
+    },
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y.toFixed(1)}%`}}},
+      scales:{
+        x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
+        y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},min:0,max:100}
+      }
+    }
+  });
+  if(note)note.textContent=`Líder actual: ${latestLeader} con ${values[values.length-1]?.toFixed(1)||'—'}%.`;
+}
+
+// ── NULOS Y BLANCOS EN EL TIEMPO ──
+function renderInvalidsChart(forensics){
+  const el=document.getElementById('chart-invalids');
+  const note=document.getElementById('invalids-note');
+  if(!el)return;
+  const history=(forensics?.invalids?.history)||[];
+  if(history.length<2){if(charts.invalids){charts.invalids.destroy();charts.invalids=null;}return;}
+  const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  const nulVals=history.map(h=>h.nulPct);
+  const blaVals=history.map(h=>h.blaPct);
+  if(charts.invalids)charts.invalids.destroy();
+  charts.invalids=new Chart(el,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Nulos %',data:nulVals,borderColor:'#df6b86',backgroundColor:'rgba(223,107,134,.15)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},
+        {label:'Blancos %',data:blaVals,borderColor:'#8b929c',backgroundColor:'rgba(139,146,156,.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:1.5}
+      ]
+    },
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`}}},
+      scales:{
+        x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
+        y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},beginAtZero:true}
+      }
+    }
+  });
+  const lastNul=nulVals[nulVals.length-1]?.toFixed(2)||'—';
+  const lastBla=blaVals[blaVals.length-1]?.toFixed(2)||'—';
+  if(note)note.textContent=`Última captura: ${lastNul}% nulos, ${lastBla}% blancos.`;
 }
 
 // ── VENTAJA DEL LÍDER ──
@@ -1165,6 +1283,7 @@ const SECTION_LABELS={
   timeline:'Serie temporal',benford:'Benford',lastdigit:'Último dígito',
   zscore:'Z-score por depto',participation:'Participación por depto',
   nullblank:'Nulos y blancos',endpoints:'Endpoints CNE',alerts:'Alertas',forensics:'Análisis forense',
+  velocity:'Velocidad de escrutinio',leader:'Evolución del liderazgo',invalids:'Nulos/Blancos en el tiempo',
   'anomaly-profile':'Perfil de anomalías',margin:'Ventaja del líder',chain:'Cadena criptográfica',
 };
 function applySectionPrefs(){
