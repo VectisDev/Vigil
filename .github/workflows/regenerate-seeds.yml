@@ -1,0 +1,47 @@
+name: Regenerate Admin Seeds
+
+on:
+  workflow_dispatch:
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate new seeds (overwrites access.json)
+        env:
+          FORCE_REGENERATE: "true"
+          CENTINEL_COUNTRY: "HN"
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: python3 .github/scripts/wizard_seeds.py
+
+      - name: Commit new access.json
+        run: |
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add web/access.json
+          git diff --cached --quiet || git commit -m "security: regenerate admin seeds (PBKDF2-SHA256 x600K)"
+          git push
+
+      - name: Upload seeds artifact (expires 24h)
+        uses: actions/upload-artifact@v4
+        with:
+          name: centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA
+          path: /tmp/centinel-seeds.txt
+          retention-days: 1
+
+      - name: Trigger Pages deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run pages.yml --ref main 2>/dev/null || echo "Pages deploy will trigger on next push to main"
