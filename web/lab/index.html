@@ -434,10 +434,17 @@ body.charts-pinned{padding-right:45vw}
   .swarm-kpis{gap:10px 12px}
   .swarm-kpi{flex:1 1 calc(50% - 12px)}
   .telem-section-buttons{flex-wrap:wrap;gap:4px}
+  .chart-group-2{grid-template-columns:1fr}
+  .chart-group-3{grid-template-columns:1fr}
+  .chart-wrap{height:220px!important}
+  .chart-toggle-bar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px}
+  .chart-chip{flex-shrink:0}
 }
 @media(max-width:420px){
   .lab-dept-grid{grid-template-columns:repeat(3,1fr)}
   .grid4{grid-template-columns:1fr}
+  #sim-control-bar{padding:6px 8px;gap:4px}
+  .speed-group{display:none}
 }
 /* ── ACADEMIC TOOLS ── */
 .acad-session-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -3645,9 +3652,11 @@ function renderSimFrame(idx){
   emitEngineEvents(snap,idx,benf,lastd,{mad,runs,trend,llnz});
 }
 
-const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,  /* canvas fills .chart-wrap height */
+const MOB=window.innerWidth<=600;
+const X_TICKS_LIMIT=MOB?6:10;
+const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
   plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
-  scales:{x:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
+  scales:{x:{ticks:{color:'#8b929c',font:{size:10},maxRotation:MOB?45:undefined,maxTicksLimit:X_TICKS_LIMIT},grid:{color:'#1c1f26'}},
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
 function mk(id,cfg){if(SC[id])SC[id].destroy();
   const c=document.getElementById(id);if(!c)return;SC[id]=new Chart(c,cfg);}
@@ -3689,7 +3698,7 @@ function renderTimeline(){
     options:{...CHART_OPT,plugins:{...CHART_OPT.plugins,
       decimation:{enabled:true,algorithm:'lttb',samples:400,threshold:400},
       title:{display:true,text:'Actas Acumuladas y Eventos Anómalos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}}},scales:{
-      x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:9}},grid:{color:'#1c1f26'}},
+      x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:9}},grid:{color:'#1c1f26'}},
       y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Actas',color:'#8b929c'}},
       y2:{position:'right',ticks:{color:'#df6b86'},grid:{drawOnChartArea:false},title:{display:true,text:'Anomalías',color:'#df6b86'}}}}});
 }
@@ -3769,7 +3778,7 @@ function renderVelocity(){
     {label:'Actas/intervalo',data,backgroundColor:bgs,borderRadius:2}]},
     options:{...CHART_OPT,plugins:{title:{display:true,text:'Velocidad de Escrutinio (actas/intervalo)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{display:false},annotation:thr>0?{annotations:{thrLine:{type:'line',yMin:thr,yMax:thr,borderColor:'rgba(223,107,134,.5)',borderWidth:1,borderDash:[4,4],label:{display:true,content:`2σ=${Math.round(thr)}`,position:'end',color:'#df6b86',font:{size:8}}}}}:undefined},
-      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
 }
 
@@ -3786,7 +3795,7 @@ function renderLeader(snap){
     {label:'% Líder',data:historyLeadPct,borderColor:'rgba(176,140,240,.7)',pointBackgroundColor:colors,pointRadius:pts,fill:true,backgroundColor:'rgba(176,140,240,.08)',tension:.3}]},
     options:{...CHART_OPT,plugins:{title:{display:true,text:`Evolución del Liderazgo — ${historyLeader[historyLeader.length-1]||'?'}`,color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{display:false}},
-      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'%',color:'#8b929c'}}}}});
 }
 
@@ -3808,7 +3817,7 @@ function renderTrendChart(){
     {label:'Proyectada',data:predicted,borderColor:'rgba(139,146,156,.5)',borderDash:[5,3],fill:'-1',backgroundColor:'rgba(223,107,134,.08)',tension:.3,pointRadius:0}]},
     options:{...CHART_OPT,plugins:{title:{display:true,text:'Tendencia Esperada vs Real (Actas)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{labels:{color:'#8b929c',font:{size:10}}}},
-      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
 }
 
@@ -3841,7 +3850,7 @@ function renderInvalids(){
     {label:'% Blancos',data:historyInvalids.map(h=>h.blaPct),borderColor:'rgba(156,163,175,.6)',backgroundColor:'rgba(156,163,175,.08)',fill:true,tension:.3,pointRadius:0}]},
     options:{...CHART_OPT,plugins:{title:{display:true,text:'% Nulos + Blancos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{labels:{color:'#8b929c',font:{size:10}}}},
-      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'%',color:'#8b929c'}}}}});
 }
 
@@ -3857,7 +3866,7 @@ function renderMarginChart(){
     {label:'Margen',data,borderColor:'rgba(176,140,240,.6)',fill:false,tension:.3,pointRadius:0}]},
     options:{...CHART_OPT,plugins:{title:{display:true,text:`Margen 1° vs 2° — ${historyMargin[historyMargin.length-1]?.leader||''}`,color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{display:false}},
-      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:10,font:{size:8}},grid:{color:'#1c1f26'}},
+      scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Votos',color:'#8b929c'}}}}});
 }
 
