@@ -445,15 +445,14 @@ details .details-body{padding:12px 0 4px}
       <div class="sec-header">Operación</div>
       <a href="#s1" onclick="scrollTo('s1')">Panel de control</a>
       <div class="sec-header">Configuración</div>
-      <a href="#s3" onclick="scrollTo('s3')">Configuración</a>
-      <a href="#s4" onclick="scrollTo('s4')">Presets</a>
+      <a href="#s3" onclick="scrollTo('s3')">Presets</a>
       <div class="sec-header">Registros</div>
-      <a href="#s5" onclick="scrollTo('s5')">Logs y terminales</a>
+      <a href="#s4" onclick="scrollTo('s4')">Logs y terminales</a>
       <div class="sec-header">Avanzado</div>
-      <a href="#s6" onclick="scrollTo('s6')">Manual</a>
-      <a href="#s7" onclick="scrollTo('s7')">Acceso y Seeds</a>
-      <a href="#s8" onclick="scrollTo('s8')">Red de Nodos</a>
-      <a href="#s9" onclick="scrollTo('s9')">Cierre Electoral</a>
+      <a href="#s5" onclick="scrollTo('s5')">Manual</a>
+      <a href="#s6" onclick="scrollTo('s6')">Acceso y Seeds</a>
+      <a href="#s7" onclick="scrollTo('s7')">Red de Nodos</a>
+      <a href="#s8" onclick="scrollTo('s8')">Cierre Electoral</a>
     </nav>
 
     <!-- MAIN -->
@@ -492,6 +491,10 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
+          <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em" data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic. Ej: mi-centinel-2029">Alertas push (ntfy) ⓘ</label>
+            <input type="text" id="inp-ntfy" placeholder="mi-centinel-2029" oninput="markDirty();syncText('ntfy',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+          </div>
         </div>
         <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
           ⚠ El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.
@@ -535,384 +538,32 @@ details .details-body{padding:12px 0 4px}
 
       <!-- s2 eliminado — contenido integrado en s1 -->
 
-      <!-- ── 3 CONFIGURACIÓN ── -->
+      <!-- Hidden inputs preserved for JS (were in old s3 easy-mode) -->
+      <div style="display:none" aria-hidden="true">
+        <input type="range" id="sl-interval" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+        <input type="range" id="sl-rph" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+        <input type="range" id="sl-benford" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+        <input type="range" id="sl-zscore" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+        <span id="vb-interval">10</span>
+        <span id="vb-rph">240</span>
+        <span id="vb-benford">5.99</span>
+        <span id="vb-zscore">3.0</span>
+        <input type="checkbox" id="tog-election" onchange="markDirty()">
+        <input type="checkbox" id="tog-safe" onchange="markDirty()">
+      </div>
+
+      <!-- ── 3 PRESETS ── -->
       <div class="section" id="s3">
-        <div class="section-title">3 Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
+        <div class="section-title">3 Presets <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
         <hr class="section-sep">
+
+        <!-- 409 conflict banner -->
         <div id="banner-409">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.
           <button onclick="reloadShaAndReapply()">Recargar SHA y re-aplicar</button>
           <button onclick="discardEdits()" style="background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:4px">Descartar</button>
         </div>
 
-        <!-- EASY MODE -->
-        <div id="easy-mode">
-          <div class="ctrl-section">
-            <h3>Parámetros principales</h3>
-            <div class="ctrl-row">
-              <label>Intervalo de captura (min)
-                <span data-tip="Frecuencia con que el sistema escanea endpoints. Reducir aumenta la carga sobre el servidor.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-interval" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
-                <span class="val-badge" id="vb-interval">10</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Requests por hora
-                <span data-tip="Límite de peticiones por hora. Reducir si el servidor bloquea por exceso de llamadas.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-rph" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
-                <span class="val-badge" id="vb-rph">240</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Umbral Benford χ²
-                <span data-tip="Sensibilidad del detector Benford. Valores bajos = más alertas, más falsos positivos. 5.99 = 95% confianza.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-benford" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
-                <span class="val-badge" id="vb-benford">5.99</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Umbral Z-score (σ)
-                <span data-tip="Desviaciones estándar para activar alerta. 3.0 = 99.7% de confianza estadística.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-zscore" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
-                <span class="val-badge" id="vb-zscore">3.0</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Topic ntfy (alertas push)
-                <span data-tip="Canal de alertas. Instala la app ntfy y suscríbete a este topic. Ej: mi-centinel-2029">ⓘ</span>
-              </label>
-              <input type="text" id="inp-ntfy" placeholder="mi-centinel-2029" oninput="markDirty()">
-            </div>
-          </div>
-          <div class="ctrl-section">
-            <h3>Modos de operación</h3>
-            <div class="toggle-row">
-              <label data-tip="Modo electoral: incrementa frecuencia y activa detectores adicionales.">Election mode ⓘ</label>
-              <label class="toggle"><input type="checkbox" id="tog-election" onchange="markDirty()"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-row">
-              <label data-tip="Safe mode: operación mínima ante condiciones adversas. Reduce peticiones al máximo.">Safe mode ⓘ</label>
-              <label class="toggle"><input type="checkbox" id="tog-safe" onchange="markDirty()"><span class="toggle-slider"></span></label>
-            </div>
-          </div>
-          <!-- OTS SECTION (visible in both modes) -->
-          <div class="ctrl-section" id="ots-section">
-            <h3>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              Anclaje Bitcoin
-              <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
-              <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
-            </h3>
-            <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-                <span id="ots-status-badge" class="badge badge-neutral">CARGANDO…</span>
-                <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
-              </div>
-              <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
-              <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
-            </div>
-            <!-- air-gap / offline warning (shown automatically if unreachable + enabled) -->
-            <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el toggle</strong> para evitar esperas innecesarias.</span>
-            </div>
-            <div class="toggle-row">
-              <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">
-                Anclar en Bitcoin
-                <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">(OpenTimestamps) ⓘ</span>
-              </label>
-              <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="onOtsToggle()"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-              <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
-              <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
-                <option value="https://a.pool.opentimestamps.org">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
-                <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
-                <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
-                <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
-                <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
-                <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
-                <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
-                <option value="__custom__">✏️ Personalizado…</option>
-              </select>
-              <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
-            </div>
-            <details>
-              <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
-              <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
-                <p>Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</p>
-                <p style="margin-top:8px"><strong>Calendarios usados (gratuitos, sin API key):</strong></p>
-                <ul style="margin:4px 0 0 16px">
-                  <li>alice.btc.calendar.opentimestamps.org</li>
-                  <li>bob.btc.calendar.opentimestamps.org</li>
-                  <li>finney.calendar.eternitywall.com</li>
-                  <li>ots.btc.catallaxy.com</li>
-                </ul>
-                <p style="margin-top:8px"><strong>Para verificar una prueba OTS:</strong></p>
-                <ol style="margin:4px 0 0 16px">
-                  <li>Descarga el archivo <code>.ots</code> del checkpoint</li>
-                  <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
-                  <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
-                </ol>
-                <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
-                <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
-                <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
-              </div>
-            </details>
-          </div>
-        </div>
-
-        <!-- FULL MODE -->
-        <div id="full-mode" style="display:none">
-          <div class="tabs" id="cfg-tabs">
-            <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
-            <button onclick="showTab('t-capture')">Captura</button>
-            <button onclick="showTab('t-alerts')">Alertas</button>
-            <button onclick="showTab('t-network')">Red</button>
-            <button onclick="showTab('t-rules')">Reglas</button>
-          </div>
-
-          <!-- Tab: Endpoints -->
-          <div id="t-endpoints" class="tab-pane active">
-            <div class="ctrl-section">
-              <h3>URL principal</h3>
-              <div class="ctrl-row">
-                <label>CNE Main URL</label>
-                <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()">
-              </div>
-            </div>
-            <div class="ctrl-section" style="overflow-x:auto">
-              <h3>Endpoints departamentales</h3>
-              <table class="data-table" id="endpoints-table">
-                <thead><tr>
-                  <th>Depto</th><th>Código</th><th>URL endpoint</th>
-                  <th>Estado</th><th>Último OK</th><th>Acciones</th>
-                </tr></thead>
-                <tbody id="endpoints-tbody"><!-- filled by JS --></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Tab: Captura -->
-          <div id="t-capture" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Watchdog</h3>
-              <div class="ctrl-row">
-                <label>Intervalo de captura (min)
-                  <span data-tip="Igual que el slider en modo fácil. Ambos sincronizan.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-interval2" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
-                  <span class="val-badge" id="vb-interval2">10</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Check interval watchdog (min)
-                  <span data-tip="Con qué frecuencia el watchdog verifica si el servicio principal sigue corriendo.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-wdcheck" min="1" max="15" step="1" value="3" oninput="syncSlider('wdcheck',this.value)">
-                  <span class="val-badge" id="vb-wdcheck">3</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Límite CPU (%)
-                  <span data-tip="El watchdog pausa capturas si el CPU supera este porcentaje.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-cpu" min="50" max="95" step="1" value="80" oninput="syncSlider('cpu',this.value)">
-                  <span class="val-badge" id="vb-cpu">80</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Límite RAM (%)
-                  <span data-tip="El watchdog pausa capturas si la memoria supera este porcentaje.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-ram" min="50" max="95" step="1" value="90" oninput="syncSlider('ram',this.value)">
-                  <span class="val-badge" id="vb-ram">90</span>
-                </div>
-              </div>
-            </div>
-            <div class="ctrl-section">
-              <h3>Rate limiter</h3>
-              <div class="ctrl-row">
-                <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-rph2" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
-                  <span class="val-badge" id="vb-rph2">240</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Capacidad de ráfaga <span data-tip="Número de requests permitidos en ráfaga antes de aplicar el rate limiter.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-capacity" min="1" max="10" step="1" value="3" oninput="syncSlider('capacity',this.value)">
-                  <span class="val-badge" id="vb-capacity">3</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-timeout" min="10" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
-                  <span class="val-badge" id="vb-timeout">30</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab: Alertas -->
-          <div id="t-alerts" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Notificaciones</h3>
-              <div class="ctrl-row">
-                <label>Topic ntfy <span data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic.">ⓘ</span></label>
-                <input type="text" id="inp-ntfy2" placeholder="mi-centinel-2029" oninput="syncText('ntfy',this.value)">
-              </div>
-              <div class="ctrl-row">
-                <label>Nivel mínimo de alerta</label>
-                <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
-                  <option value="INFO">INFO</option>
-                  <option value="WARNING" selected>WARNING</option>
-                  <option value="CRITICAL">CRITICAL</option>
-                  <option value="PANIC">PANIC</option>
-                </select>
-              </div>
-              <div class="toggle-row">
-                <label data-tip="Crear Issue automático en GitHub ante fallos críticos de git push.">Auto-Issue en fallos de git ⓘ</label>
-                <label class="toggle"><input type="checkbox" id="tog-autoissue" onchange="markDirty()"><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-            <div class="ctrl-section">
-              <h3>Honeypot y detección de ataques</h3>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Tipos de eventos registrados en el attack logger y su nivel de severidad.</p>
-              <table class="data-table" style="margin-bottom:16px">
-                <thead><tr><th>Tipo</th><th>Descripción</th><th>Severidad</th></tr></thead>
-                <tbody>
-                  <tr><td><code>FLOOD</code></td><td style="color:var(--muted)">Más de N requests por IP en ventana de tiempo</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
-                  <tr><td><code>BRUTE</code></td><td style="color:var(--muted)">Acceso a rutas de fuerza bruta (/admin, /login, /api/internal)</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
-                  <tr><td><code>SCAN</code></td><td style="color:var(--muted)">User-agents de scanners (sqlmap, nmap, nikto, masscan…)</td><td><span class="badge badge-warn">WARNING</span></td></tr>
-                  <tr><td><code>PROXY_SUSPECT</code></td><td style="color:var(--muted)">Tráfico desde nodos Tor o cadenas de proxies</td><td><span class="badge badge-warn">WARNING</span></td></tr>
-                  <tr><td><code>SUSPICIOUS</code></td><td style="color:var(--muted)">Actividad anómala no clasificable en las anteriores</td><td><span class="badge badge-neutral">INFO</span></td></tr>
-                </tbody>
-              </table>
-              <div class="toggle-row">
-                <label data-tip="Activa el honeypot para registrar todos los intentos de acceso no autorizados a rutas sensibles.">Honeypot activo ⓘ</label>
-                <label class="toggle"><input type="checkbox" id="tog-honeypot" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
-              </div>
-              <div class="ctrl-row">
-                <label>Rutas honeypot monitoreadas <span data-tip="Separadas por comas. Cualquier acceso a estas rutas activa el logger.">ⓘ</span></label>
-                <input type="text" id="inp-honeypot-routes" value="/debug,/admin,/api/internal" oninput="markDirty()">
-              </div>
-              <div class="ctrl-row">
-                <label>Flood threshold (requests/IP) <span data-tip="Número de requests en la ventana de tiempo que activan clasificación FLOOD.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-flood" min="5" max="100" step="5" value="20" oninput="syncSlider('flood',this.value)">
-                  <span class="val-badge" id="vb-flood">20</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab: Red -->
-          <div id="t-network" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Retry por código HTTP</h3>
-              <table class="data-table">
-                <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
-                <tbody>
-                  <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
-                  <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
-                  <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
-                  <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Tab: Reglas -->
-          <div id="t-rules" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Parámetros globales</h3>
-              <div class="ctrl-row">
-                <label>Umbral Benford χ² <span data-tip="Umbral chi-cuadrado para la ley de Benford. Sincronizado con Modo Fácil.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-benford2" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
-                  <span class="val-badge" id="vb-benford2">5.99</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Umbral Z-score (σ) <span data-tip="Desviaciones estándar para activar alerta. Sincronizado con Modo Fácil.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-zscore2" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
-                  <span class="val-badge" id="vb-zscore2">3.0</span>
-                </div>
-              </div>
-            </div>
-            <details open>
-              <summary>🔴 CRITICAL — 15 reglas</summary>
-              <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
-                <tr><td><code>benford_first_digit</code></td><td>Benford 1er dígito (MAD+χ²)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_first_digit" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_first_digit" value="0.015" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> mad_critical</td></tr>
-                <tr><td><code>last_digit_uniformity</code></td><td>Uniformidad último dígito</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-last_digit_uniformity" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-last_digit_uniformity" value="0.001" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_pvalue</td></tr>
-                <tr><td><code>granular_anomaly</code></td><td>Anomalías granulares (deltas, z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-granular_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-granular_anomaly" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> zscore_threshold</td></tr>
-                <tr><td><code>mesa_impossibility</code></td><td>Imposibilidad aritmética por registro</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_impossibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-                <tr><td><code>mesa_reconciliation</code></td><td>Mutación de registros entre publicaciones</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_reconciliation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-                <tr><td><code>mesas_diff</code></td><td>Mesas duplicadas o desaparecidas</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesas_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-                <tr><td><code>snapshot_jump</code></td><td>Saltos entre snapshots (&gt;X% en Y min)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-snapshot_jump" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-snapshot_jump" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_change_%</td></tr>
-                <tr><td><code>participation_vote_correlation</code></td><td>Correlación participación-voto (Pearson)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_vote_correlation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_vote_correlation" value="0.85" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_r</td></tr>
-                <tr><td><code>geographic_dispersion</code></td><td>Dispersión geográfica (CV departamentos)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-geographic_dispersion" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-geographic_dispersion" value="0.45" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_cv</td></tr>
-                <tr><td><code>null_blank_votes</code></td><td>Nulos y blancos elevados</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-null_blank_votes" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-null_blank_votes" value="12" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
-                <tr><td><code>table_consistency</code></td><td>Consistencia por mesa (suma votos vs total)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-table_consistency" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-table_consistency" value="1" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> tolerance</td></tr>
-                <tr><td><code>inconsistency_rate</code></td><td>Tasa de inconsistencia estructural</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-inconsistency_rate" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-inconsistency_rate" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
-                <tr><td><code>runs_test</code></td><td>Runs test (aleatoriedad en secuencia)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-runs_test" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-runs_test" value="0.01" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_p</td></tr>
-                <tr><td><code>participation_anomaly_advanced</code></td><td>Participación anómala avanzada (z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly_advanced" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly_advanced" value="88.15" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_mean</td></tr>
-                <tr><td><code>turnout_impossible</code></td><td>Turnout imposible (&lt;0% o &gt;100%)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-turnout_impossible" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-              </tbody></table></div>
-            </details>
-            <details open>
-              <summary>🟠 High — 5 reglas</summary>
-              <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
-                <tr><td><code>basic_diff</code></td><td>Consistencia aritmética básica</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-basic_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-basic_diff" value="15" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> change_%</td></tr>
-                <tr><td><code>irreversibility</code></td><td>Irreversibilidad estadística</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-irreversibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-irreversibility" value="0.60" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_turnout</td></tr>
-                <tr><td><code>participation_anomaly</code></td><td>Anomalía de participación (saltos escrutinio)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> jump_%</td></tr>
-                <tr><td><code>processing_speed</code></td><td>Velocidad de procesamiento (actas/15min)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-processing_speed" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-processing_speed" value="500" step="50" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_actas/15m</td></tr>
-                <tr><td><code>trend_shift</code></td><td>Desviación de tendencia</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-trend_shift" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-trend_shift" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> threshold_%</td></tr>
-              </tbody></table></div>
-            </details>
-            <details>
-              <summary>🟡 Medium / WARNING — 4 reglas</summary>
-              <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
-                <tr><td><code>benford_law</code></td><td>Benford por candidato (χ²)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_law" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_law" value="0.05" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_threshold</td></tr>
-                <tr><td><code>large_numbers_convergence</code></td><td>Convergencia ley grandes números</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-large_numbers_convergence" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-large_numbers_convergence" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> z_threshold</td></tr>
-                <tr><td><code>ml_outliers</code></td><td>Outliers ML (Isolation Forest)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-ml_outliers" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-ml_outliers" value="0.1" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> contamination</td></tr>
-                <tr><td><code>late_mesa</code></td><td>Aparición tardía de registros en JSON</td><td><span class="badge badge-neutral">WARN</span></td><td><label class="toggle"><input type="checkbox" id="r-late_mesa" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-              </tbody></table></div>
-            </details>
-            <details>
-              <summary>🔬 Research — 2 reglas experimentales</summary>
-              <div class="details-body">
-                <div class="info-box" style="margin-bottom:12px">Reglas en revisión académica antes de ser promovidas a producción. Solo para entornos de investigación.</div>
-                <table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Activa</th></tr></thead><tbody>
-                  <tr><td><code>apply_benford_law</code></td><td>Ley de Benford — alternativa (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-apply_benford_law" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
-                  <tr><td><code>check_distribution_chi2</code></td><td>Distribución partido/depto (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-check_distribution_chi2" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
-                </tbody></table>
-              </div>
-            </details>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── 4 PRESETS ── -->
-      <div class="section" id="s4">
-        <div class="section-title">4 Presets</div>
-        <hr class="section-sep">
         <p class="section-sub">Plantillas de configuración predefinidas.</p>
         <div class="info-box" style="margin-bottom:16px">
           Los presets son <strong>plantillas de interfaz</strong> guardadas localmente en tu navegador.
@@ -931,15 +582,333 @@ details .details-body{padding:12px 0 4px}
           </button>
         </div>
         <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
           <input type="text" id="preset-name" placeholder="Nombre del preset…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
           <button class="hdr-btn" onclick="saveCustomPreset()">Guardar estado actual como preset</button>
         </div>
+
+        <!-- OTS (Bitcoin anchoring) -->
+        <details style="margin-bottom:16px">
+          <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Anclaje Bitcoin (OpenTimestamps)
+          </summary>
+          <div class="details-body">
+            <div class="ctrl-section" id="ots-section">
+              <h3>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Anclaje Bitcoin
+                <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
+                <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
+              </h3>
+              <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span id="ots-status-badge" class="badge badge-neutral">CARGANDO…</span>
+                  <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
+                <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
+              </div>
+              <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el toggle</strong> para evitar esperas innecesarias.</span>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">
+                  Anclar en Bitcoin
+                  <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">(OpenTimestamps) ⓘ</span>
+                </label>
+                <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="onOtsToggle()"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
+                <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+                  <option value="https://a.pool.opentimestamps.org">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
+                  <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
+                  <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
+                  <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
+                  <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
+                  <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
+                  <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
+                  <option value="__custom__">✏️ Personalizado…</option>
+                </select>
+                <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+              </div>
+              <details>
+                <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
+                <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
+                  <p>Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</p>
+                  <p style="margin-top:8px"><strong>Calendarios usados (gratuitos, sin API key):</strong></p>
+                  <ul style="margin:4px 0 0 16px">
+                    <li>alice.btc.calendar.opentimestamps.org</li>
+                    <li>bob.btc.calendar.opentimestamps.org</li>
+                    <li>finney.calendar.eternitywall.com</li>
+                    <li>ots.btc.catallaxy.com</li>
+                  </ul>
+                  <p style="margin-top:8px"><strong>Para verificar una prueba OTS:</strong></p>
+                  <ol style="margin:4px 0 0 16px">
+                    <li>Descarga el archivo <code>.ots</code> del checkpoint</li>
+                    <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
+                    <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
+                  </ol>
+                  <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
+                  <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
+                  <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
+                </div>
+              </details>
+            </div>
+          </div>
+        </details>
+
+        <!-- Configuración avanzada (Full mode tabs) -->
+        <details style="margin-bottom:16px">
+          <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">Configuración avanzada</summary>
+          <div class="details-body">
+            <!-- Easy/Full mode toggle preserved for setMode() -->
+            <div id="easy-mode" style="display:none"></div>
+            <div id="full-mode">
+              <div class="tabs" id="cfg-tabs">
+                <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
+                <button onclick="showTab('t-capture')">Captura</button>
+                <button onclick="showTab('t-alerts')">Alertas</button>
+                <button onclick="showTab('t-network')">Red</button>
+                <button onclick="showTab('t-rules')">Reglas</button>
+              </div>
+
+              <!-- Tab: Endpoints -->
+              <div id="t-endpoints" class="tab-pane active">
+                <div class="ctrl-section">
+                  <h3>URL principal</h3>
+                  <div class="ctrl-row">
+                    <label>CNE Main URL</label>
+                    <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()">
+                  </div>
+                </div>
+                <div class="ctrl-section" style="overflow-x:auto">
+                  <h3>Endpoints departamentales</h3>
+                  <table class="data-table" id="endpoints-table">
+                    <thead><tr>
+                      <th>Depto</th><th>Código</th><th>URL endpoint</th>
+                      <th>Estado</th><th>Último OK</th><th>Acciones</th>
+                    </tr></thead>
+                    <tbody id="endpoints-tbody"><!-- filled by JS --></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab: Captura -->
+              <div id="t-capture" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Watchdog</h3>
+                  <div class="ctrl-row">
+                    <label>Intervalo de captura (min)
+                      <span data-tip="Frecuencia de escaneo de endpoints.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-interval2" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+                      <span class="val-badge" id="vb-interval2">10</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Check interval watchdog (min)
+                      <span data-tip="Con qué frecuencia el watchdog verifica si el servicio principal sigue corriendo.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-wdcheck" min="1" max="15" step="1" value="3" oninput="syncSlider('wdcheck',this.value)">
+                      <span class="val-badge" id="vb-wdcheck">3</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Límite CPU (%)
+                      <span data-tip="El watchdog pausa capturas si el CPU supera este porcentaje.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-cpu" min="50" max="95" step="1" value="80" oninput="syncSlider('cpu',this.value)">
+                      <span class="val-badge" id="vb-cpu">80</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Límite RAM (%)
+                      <span data-tip="El watchdog pausa capturas si la memoria supera este porcentaje.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-ram" min="50" max="95" step="1" value="90" oninput="syncSlider('ram',this.value)">
+                      <span class="val-badge" id="vb-ram">90</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="ctrl-section">
+                  <h3>Rate limiter</h3>
+                  <div class="ctrl-row">
+                    <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-rph2" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+                      <span class="val-badge" id="vb-rph2">240</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Capacidad de ráfaga <span data-tip="Número de requests permitidos en ráfaga antes de aplicar el rate limiter.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-capacity" min="1" max="10" step="1" value="3" oninput="syncSlider('capacity',this.value)">
+                      <span class="val-badge" id="vb-capacity">3</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-timeout" min="10" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
+                      <span class="val-badge" id="vb-timeout">30</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: Alertas -->
+              <div id="t-alerts" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Notificaciones</h3>
+                  <div class="ctrl-row">
+                    <label>Topic ntfy <span data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic.">ⓘ</span></label>
+                    <input type="text" id="inp-ntfy2" placeholder="mi-centinel-2029" oninput="syncText('ntfy',this.value)">
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Nivel mínimo de alerta</label>
+                    <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
+                      <option value="INFO">INFO</option>
+                      <option value="WARNING" selected>WARNING</option>
+                      <option value="CRITICAL">CRITICAL</option>
+                      <option value="PANIC">PANIC</option>
+                    </select>
+                  </div>
+                  <div class="toggle-row">
+                    <label data-tip="Crear Issue automático en GitHub ante fallos críticos de git push.">Auto-Issue en fallos de git ⓘ</label>
+                    <label class="toggle"><input type="checkbox" id="tog-autoissue" onchange="markDirty()"><span class="toggle-slider"></span></label>
+                  </div>
+                </div>
+                <div class="ctrl-section">
+                  <h3>Honeypot y detección de ataques</h3>
+                  <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Tipos de eventos registrados en el attack logger y su nivel de severidad.</p>
+                  <table class="data-table" style="margin-bottom:16px">
+                    <thead><tr><th>Tipo</th><th>Descripción</th><th>Severidad</th></tr></thead>
+                    <tbody>
+                      <tr><td><code>FLOOD</code></td><td style="color:var(--muted)">Más de N requests por IP en ventana de tiempo</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>BRUTE</code></td><td style="color:var(--muted)">Acceso a rutas de fuerza bruta (/admin, /login, /api/internal)</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>SCAN</code></td><td style="color:var(--muted)">User-agents de scanners (sqlmap, nmap, nikto, masscan…)</td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>PROXY_SUSPECT</code></td><td style="color:var(--muted)">Tráfico desde nodos Tor o cadenas de proxies</td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>SUSPICIOUS</code></td><td style="color:var(--muted)">Actividad anómala no clasificable en las anteriores</td><td><span class="badge badge-neutral">INFO</span></td></tr>
+                    </tbody>
+                  </table>
+                  <div class="toggle-row">
+                    <label data-tip="Activa el honeypot para registrar todos los intentos de acceso no autorizados a rutas sensibles.">Honeypot activo ⓘ</label>
+                    <label class="toggle"><input type="checkbox" id="tog-honeypot" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Rutas honeypot monitoreadas <span data-tip="Separadas por comas. Cualquier acceso a estas rutas activa el logger.">ⓘ</span></label>
+                    <input type="text" id="inp-honeypot-routes" value="/debug,/admin,/api/internal" oninput="markDirty()">
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Flood threshold (requests/IP) <span data-tip="Número de requests en la ventana de tiempo que activan clasificación FLOOD.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-flood" min="5" max="100" step="5" value="20" oninput="syncSlider('flood',this.value)">
+                      <span class="val-badge" id="vb-flood">20</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: Red -->
+              <div id="t-network" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Retry por código HTTP</h3>
+                  <table class="data-table">
+                    <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                      <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
+                      <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
+                      <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
+                      <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab: Reglas -->
+              <div id="t-rules" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Parámetros globales</h3>
+                  <div class="ctrl-row">
+                    <label>Umbral Benford χ² <span data-tip="Umbral chi-cuadrado para la ley de Benford.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-benford2" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+                      <span class="val-badge" id="vb-benford2">5.99</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Umbral Z-score (σ) <span data-tip="Desviaciones estándar para activar alerta.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-zscore2" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+                      <span class="val-badge" id="vb-zscore2">3.0</span>
+                    </div>
+                  </div>
+                </div>
+                <details open>
+                  <summary>🔴 CRITICAL — 15 reglas</summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                    <tr><td><code>benford_first_digit</code></td><td>Benford 1er dígito (MAD+χ²)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_first_digit" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_first_digit" value="0.015" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> mad_critical</td></tr>
+                    <tr><td><code>last_digit_uniformity</code></td><td>Uniformidad último dígito</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-last_digit_uniformity" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-last_digit_uniformity" value="0.001" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_pvalue</td></tr>
+                    <tr><td><code>granular_anomaly</code></td><td>Anomalías granulares (deltas, z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-granular_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-granular_anomaly" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> zscore_threshold</td></tr>
+                    <tr><td><code>mesa_impossibility</code></td><td>Imposibilidad aritmética por registro</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_impossibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>mesa_reconciliation</code></td><td>Mutación de registros entre publicaciones</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_reconciliation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>mesas_diff</code></td><td>Mesas duplicadas o desaparecidas</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesas_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>snapshot_jump</code></td><td>Saltos entre snapshots (&gt;X% en Y min)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-snapshot_jump" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-snapshot_jump" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_change_%</td></tr>
+                    <tr><td><code>participation_vote_correlation</code></td><td>Correlación participación-voto (Pearson)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_vote_correlation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_vote_correlation" value="0.85" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_r</td></tr>
+                    <tr><td><code>geographic_dispersion</code></td><td>Dispersión geográfica (CV departamentos)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-geographic_dispersion" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-geographic_dispersion" value="0.45" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_cv</td></tr>
+                    <tr><td><code>null_blank_votes</code></td><td>Nulos y blancos elevados</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-null_blank_votes" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-null_blank_votes" value="12" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
+                    <tr><td><code>table_consistency</code></td><td>Consistencia por mesa (suma votos vs total)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-table_consistency" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-table_consistency" value="1" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> tolerance</td></tr>
+                    <tr><td><code>inconsistency_rate</code></td><td>Tasa de inconsistencia estructural</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-inconsistency_rate" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-inconsistency_rate" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
+                    <tr><td><code>runs_test</code></td><td>Runs test (aleatoriedad en secuencia)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-runs_test" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-runs_test" value="0.01" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_p</td></tr>
+                    <tr><td><code>participation_anomaly_advanced</code></td><td>Participación anómala avanzada (z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly_advanced" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly_advanced" value="88.15" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_mean</td></tr>
+                    <tr><td><code>turnout_impossible</code></td><td>Turnout imposible (&lt;0% o &gt;100%)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-turnout_impossible" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details open>
+                  <summary>🟠 High — 5 reglas</summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                    <tr><td><code>basic_diff</code></td><td>Consistencia aritmética básica</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-basic_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-basic_diff" value="15" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> change_%</td></tr>
+                    <tr><td><code>irreversibility</code></td><td>Irreversibilidad estadística</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-irreversibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-irreversibility" value="0.60" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_turnout</td></tr>
+                    <tr><td><code>participation_anomaly</code></td><td>Anomalía de participación (saltos escrutinio)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> jump_%</td></tr>
+                    <tr><td><code>processing_speed</code></td><td>Velocidad de procesamiento (actas/15min)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-processing_speed" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-processing_speed" value="500" step="50" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_actas/15m</td></tr>
+                    <tr><td><code>trend_shift</code></td><td>Desviación de tendencia</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-trend_shift" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-trend_shift" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> threshold_%</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details>
+                  <summary>🟡 Medium / WARNING — 4 reglas</summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                    <tr><td><code>benford_law</code></td><td>Benford por candidato (χ²)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_law" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_law" value="0.05" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_threshold</td></tr>
+                    <tr><td><code>large_numbers_convergence</code></td><td>Convergencia ley grandes números</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-large_numbers_convergence" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-large_numbers_convergence" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> z_threshold</td></tr>
+                    <tr><td><code>ml_outliers</code></td><td>Outliers ML (Isolation Forest)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-ml_outliers" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-ml_outliers" value="0.1" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> contamination</td></tr>
+                    <tr><td><code>late_mesa</code></td><td>Aparición tardía de registros en JSON</td><td><span class="badge badge-neutral">WARN</span></td><td><label class="toggle"><input type="checkbox" id="r-late_mesa" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details>
+                  <summary>🔬 Research — 2 reglas experimentales</summary>
+                  <div class="details-body">
+                    <div class="info-box" style="margin-bottom:12px">Reglas en revisión académica antes de ser promovidas a producción. Solo para entornos de investigación.</div>
+                    <table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Activa</th></tr></thead><tbody>
+                      <tr><td><code>apply_benford_law</code></td><td>Ley de Benford — alternativa (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-apply_benford_law" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
+                      <tr><td><code>check_distribution_chi2</code></td><td>Distribución partido/depto (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-check_distribution_chi2" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
+                    </tbody></table>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
 
       <!-- ── 5 LOGS ── -->
-      <div class="section" id="s5">
-        <div class="section-title">5 Logs y terminales</div>
+      <div class="section" id="s4">
+        <div class="section-title">4 Logs y terminales</div>
         <hr class="section-sep">
 
         <!-- Log General -->
@@ -1006,17 +975,17 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 6 MANUAL ── -->
-      <div class="section" id="s6">
-        <div class="section-title">6 Manual</div>
+      <div class="section" id="s5">
+        <div class="section-title">5 Manual</div>
         <hr class="section-sep">
         <details id="mini-manual">
           <summary>Guía rápida del panel de administración</summary>
           <div class="details-body">
             <div class="ctrl-section">
-              <h3>Modo Fácil vs Modo Completo</h3>
+              <h3>Configuración avanzada</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <strong>Modo Fácil</strong> expone los 4 parámetros más importantes: intervalo de captura, requests/hora, umbrales Benford y Z-score, y el topic de ntfy. Ideal para operación diaria.<br><br>
-                <strong>Modo Completo</strong> habilita 5 tabs con acceso a todos los parámetros: endpoints individuales, watchdog, rate limiter, red, y reglas de detección.
+                Los parámetros de operación se configuran desde la sección <strong>3 Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro. El topic ntfy para alertas push está disponible directamente en el panel de control (sección 1).<br><br>
+                Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.
               </p>
               <h3>El mapa de endpoints</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
@@ -1054,8 +1023,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 7 Acceso y Seeds ── -->
-      <div class="section" id="s7">
-        <div class="section-title">7 Acceso y Seeds</div>
+      <div class="section" id="s6">
+        <div class="section-title">6 Acceso y Seeds</div>
         <hr class="section-sep">
         <p class="section-sub">
           Gestión de las 12 claves de acceso administrativo.
@@ -1097,8 +1066,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
-      <div class="section" id="s8">
-        <div class="section-title">8 Red de Nodos</div>
+      <div class="section" id="s7">
+        <div class="section-title">7 Red de Nodos</div>
         <hr class="section-sep">
         <p class="section-sub">
           Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
@@ -1301,8 +1270,8 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
-      <div class="section" id="s9">
-        <div class="section-title">9 Cierre Electoral</div>
+      <div class="section" id="s8">
+        <div class="section-title">8 Cierre Electoral</div>
         <hr class="section-sep">
         <p class="section-sub">
           Secuencia de fin de elección: raspe final forzado de todas las fuentes,
@@ -1934,7 +1903,7 @@ function buildSensorCards(){
     <div class="stat-card" id="sc-${def.id}">
       <div class="sc-label">
         <span>${def.icon} ${def.label}</span>
-        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con 3" style="font-size:10px;cursor:help">ⓘ</span>`:''}
+        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con Configuración avanzada" style="font-size:10px;cursor:help">ⓘ</span>`:''}
       </div>
       <div class="sc-val val-neutral" id="scv-${def.id}">—</div>
       <div class="sc-detail" id="scd-${def.id}">—</div>
@@ -2297,8 +2266,12 @@ function setMode(m){
   adminMode = m;
   document.getElementById('btn-easy').className = m==='easy' ? 'active' : '';
   document.getElementById('btn-full').className = m==='full' ? 'active' : '';
-  document.getElementById('easy-mode').style.display = m==='easy' ? 'block' : 'none';
-  document.getElementById('full-mode').style.display = m==='full' ? 'block' : 'none';
+  // easy-mode/full-mode divs are now inside the advanced details block;
+  // full-mode is always shown; easy-mode is empty/hidden.
+  const easyEl = document.getElementById('easy-mode');
+  const fullEl = document.getElementById('full-mode');
+  if(easyEl) easyEl.style.display = 'none';
+  if(fullEl) fullEl.style.display = 'block';
 }
 
 // ══════════════════════════════════════════════════════════
@@ -3518,7 +3491,7 @@ const observer = new IntersectionObserver(entries=>{
     }
   });
 },{threshold:.3});
-['s1','s2','s3','s4','s5','s6','s7','s8'].forEach(id=>{
+['s1','s3','s4','s5','s6','s7','s8'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) observer.observe(el);
 });
