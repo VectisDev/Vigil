@@ -1,10 +1,10 @@
 """Forensic publisher — runs the inconsistent-acts tracker over stored
 snapshots and publishes a panel-ready forensics block plus coverage
-accounting to Supabase.
+accounting to the public panel.
 
 Publicador forense: ejecuta el rastreador de actas inconsistentes sobre los
 snapshots almacenados y publica un bloque forense listo para el panel más la
-contabilidad de cobertura a Supabase.
+contabilidad de cobertura al panel público.
 
 Design / Diseño:
 - Always non-fatal: local SQLite + hash chain remain the source of truth.
@@ -382,9 +382,9 @@ def run_and_publish(
     endpoints_yaml_path: Optional[Path] = None,
     extra_meta: Optional[dict] = None,
 ) -> Optional[int]:
-    """Run forensics over snapshots and publish to Supabase. Always non-fatal.
+    """Run forensics over snapshots and publish to the public panel. Always non-fatal.
 
-    Ejecuta forenses sobre los snapshots y publica a Supabase. No fatal.
+    Ejecuta forenses sobre los snapshots y publica al panel público. No fatal.
 
     Returns the inserted snapshot row id (or None).
     """
