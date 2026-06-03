@@ -546,6 +546,22 @@ def _perform_request(
                     "context": context,
                 },
             )
+        retry_after_raw = response.headers.get("Retry-After")
+        retry_after_seconds: float | None = None
+        if retry_after_raw:
+            try:
+                retry_after_seconds = float(retry_after_raw)
+            except (ValueError, TypeError):
+                pass
+        try:
+            from centinel_engine.rate_limiter import get_rate_limiter
+            get_rate_limiter().notify_response(
+                response.status_code,
+                success=False,
+                retry_after_seconds=retry_after_seconds,
+            )
+        except Exception:  # noqa: BLE001
+            pass
         response_text = _extract_response_text(response, retry_config.log_payload_bytes)
         if policy.max_attempts <= 1 or policy.action == "fail_fast":
             raise NonRetryableStatusError(response.status_code, response_text)
