@@ -4106,12 +4106,12 @@ function _renderFindingsList() {
 
   // Update effectiveness metrics
   const totalFindings = labSimulation.findings.length;
-  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes >= 2).length;
+  const consensusCount = labSimulation.findings.filter(f => f.consensusNodes >= 2).length;
   const criticalFindings = labSimulation.findings.filter(f => f.severity === 'CRITICAL').length;
 
-  document.getElementById('lab-early-detect').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
+  document.getElementById('lab-early-detect').textContent = Math.round((consensusCount / Math.max(totalFindings, 1)) * 100) + '%';
   document.getElementById('lab-false-positives').textContent = Math.round(Math.random() * 5) + '%';
-  document.getElementById('lab-cross-confirm').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
+  document.getElementById('lab-cross-confirm').textContent = Math.round((consensusCount / Math.max(totalFindings, 1)) * 100) + '%';
 }
 
 function resetLabSimulation() {
