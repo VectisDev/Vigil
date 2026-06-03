@@ -1440,13 +1440,42 @@ details .details-body{padding:12px 0 4px}
 
 <!-- ════ UNLOCK MODAL (Carta de responsabilidad) ════ -->
 <div id="unlock-modal">
-  <div class="modal-box" style="max-width:560px">
-    <h2 style="color:var(--bad)">&#x26a0; Desbloqueo de l&iacute;mites de seguridad</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:8px">
-      Est&aacute;s a punto de desactivar los l&iacute;mites de seguridad que protegen la integridad
-      del monitoreo y evitan sobrecargar los servidores del CNE.
+  <div class="modal-box" style="max-width:600px">
+    <h2 style="color:var(--warn);font-size:17px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:22px">&#x26a0;</span> ADVERTENCIA DE SEGURIDAD OPERATIVA
+    </h2>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:6px">
+      Est&aacute;s por desactivar los <strong>l&iacute;mites de cortes&iacute;a digital de f&aacute;brica</strong> de CENTINEL.<br>
+      Por dise&ntilde;o original, este software opera bajo un <strong>Modo Electoral Seguro</strong> que
+      respeta las directivas del servidor (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">robots.txt</code>),
+      los frenos de saturaci&oacute;n (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">Retry-After</code>)
+      y se identifica honestamente ante la infraestructura auditada.
     </p>
-    <div class="unlock-legal" id="unlock-legal-text"></div>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:12px">
+      Al proceder con esta acci&oacute;n, declaras conscientemente lo siguiente:
+    </p>
+    <div style="padding:0 8px;margin-bottom:14px">
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Autonom&iacute;a:</strong>
+        <span>Entiendes que est&aacute;s forzando la herramienta m&aacute;s all&aacute; de los l&iacute;mites
+          &eacute;ticos y t&eacute;cnicos establecidos por su creador
+          (m&aacute;x <span id="ul-rph">480</span> req/h, m&iacute;n <span id="ul-int">2</span>s intervalo, burst <span id="ul-burst">8</span>).</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Responsabilidad:</strong>
+        <span>Asumes de forma exclusiva y total cualquier consecuencia t&eacute;cnica, legal o
+          administrativa derivada del aumento en la intensidad de las peticiones.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Desvinculaci&oacute;n:</strong>
+        <span>Eximes a la suite CENTINEL y a sus desarrolladores de cualquier implicaci&oacute;n
+          por el uso derivado de esta sesi&oacute;n.</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px;line-height:1.5">
+      Para desbloquear los l&iacute;mites, confirma la acci&oacute;n. Tu aceptaci&oacute;n se grabar&aacute; de forma
+      permanente e inmutable mediante un commit firmado en el historial del repositorio.
+    </p>
     <div class="unlock-check">
       <input type="checkbox" id="unlock-accept-chk" onchange="updateUnlockBtn()">
       <label for="unlock-accept-chk">He le&iacute;do y acepto la declaraci&oacute;n de responsabilidad.
@@ -1455,7 +1484,8 @@ details .details-body{padding:12px 0 4px}
     <div class="auth-err" id="unlock-err"></div>
     <div class="modal-btns">
       <button class="hdr-btn" onclick="closeUnlockModal()">Cancelar</button>
-      <button class="hdr-btn" id="unlock-confirm-btn" disabled onclick="executeUnlock()">
+      <button class="hdr-btn" id="unlock-confirm-btn" disabled onclick="executeUnlock()"
+        style="background:var(--warn);color:#000;font-weight:700">
         Firmar y desbloquear
       </button>
     </div>
@@ -1563,31 +1593,38 @@ async function loadDepartments(code) {
 // Only "custom" presets (user-created) can bypass them — under operator responsibility.
 const HARD_CEILING = { maxRph: 480, minInterval: 1, maxBurst: 8 };
 
-const UNLOCK_LEGAL_TEXT = `DECLARACIÓN DE RESPONSABILIDAD — CENTINEL
+const UNLOCK_LEGAL_TEXT = `ADVERTENCIA DE SEGURIDAD OPERATIVA — CENTINEL
+═══════════════════════════════════════════════════
 
 Fecha/hora: {{TIMESTAMP}}
 
-Por medio de la presente, el operador declara que:
+El operador está desactivando los límites de cortesía digital de fábrica de CENTINEL.
+Por diseño original, este software opera bajo un Modo Electoral Seguro que respeta
+las directivas del servidor (robots.txt), los frenos de saturación (Retry-After) y
+se identifica honestamente ante la infraestructura auditada.
 
-1. CONOCE que los límites de seguridad de CENTINEL (máximo {{MAX_RPH}} solicitudes/hora,
-   intervalo mínimo {{MIN_INTERVAL}}s, burst máximo {{MAX_BURST}}) existen para proteger
-   la integridad del monitoreo electoral y evitar sobrecargar los servidores públicos del CNE.
+Al proceder con esta acción, el operador declara conscientemente:
 
-2. DECIDE VOLUNTARIAMENTE desactivar estos límites, asumiendo total responsabilidad
-   por las consecuencias que esto pueda generar, incluyendo pero no limitado a:
-   - Bloqueo de IP por parte del servidor del CNE
-   - Degradación del servicio público de resultados electorales
-   - Pérdida de datos por rate limiting del servidor remoto
-   - Posibles implicaciones legales por acceso excesivo a infraestructura pública
+  ● AUTONOMÍA: Entiende que está forzando la herramienta más allá de los límites
+    éticos y técnicos establecidos por su creador (máx {{MAX_RPH}} req/h, mín
+    {{MIN_INTERVAL}}s intervalo, burst máx {{MAX_BURST}}).
 
-3. ACEPTA que esta acción queda registrada de forma permanente e inmutable en el
-   historial de Git del repositorio, sirviendo como evidencia de su decisión voluntaria.
+  ● RESPONSABILIDAD: Asume de forma exclusiva y total cualquier consecuencia
+    técnica, legal o administrativa derivada del aumento en la intensidad de las
+    peticiones, incluyendo pero no limitado a:
+    - Bloqueo de IP por parte del servidor del CNE
+    - Degradación del servicio público de resultados electorales
+    - Pérdida de datos por rate limiting del servidor remoto
+    - Posibles implicaciones legales por acceso excesivo a infraestructura pública
 
-4. SE COMPROMETE a reactivar los límites de seguridad tan pronto como la situación
-   excepcional que motivó este desbloqueo haya cesado.
+  ● DESVINCULACIÓN: Exime a la suite CENTINEL y a sus desarrolladores de cualquier
+    implicación por el uso derivado de esta sesión.
 
-Este documento constituye la "carta de responsabilidad" firmada digitalmente
-mediante commit al repositorio del proyecto.`;
+  ● COMPROMISO: Se compromete a reactivar los límites de seguridad tan pronto como
+    la situación excepcional que motivó este desbloqueo haya cesado.
+
+Esta aceptación se graba de forma permanente e inmutable mediante commit firmado
+en el historial del repositorio.`;
 
 const FACTORY_PRESETS = [
   {id:'normal',   name:'Operación normal',  desc:'Monitoreo pasivo entre elecciones · 10 min',
@@ -2366,6 +2403,12 @@ function requestUnlock(){
     .replace('{{MIN_INTERVAL}}', HARD_CEILING.minInterval)
     .replace('{{MAX_BURST}}', HARD_CEILING.maxBurst);
   document.getElementById('unlock-legal-text').textContent = text;
+  const rphEl = document.getElementById('ul-rph');
+  const intEl = document.getElementById('ul-int');
+  const burstEl = document.getElementById('ul-burst');
+  if(rphEl) rphEl.textContent = HARD_CEILING.maxRph;
+  if(intEl) intEl.textContent = HARD_CEILING.minInterval;
+  if(burstEl) burstEl.textContent = HARD_CEILING.maxBurst;
   document.getElementById('unlock-accept-chk').checked = false;
   document.getElementById('unlock-err').textContent = '';
   updateUnlockBtn();
