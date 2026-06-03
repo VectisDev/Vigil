@@ -616,9 +616,19 @@ details .details-body{padding:12px 0 4px}
               </label>
               <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="onOtsToggle()"><span class="toggle-slider"></span></label>
             </div>
-            <div class="ctrl-row">
-              <label>Servidor OTS personalizado (opcional) <span class="tip-left" data-tip="Deja vacío para usar los 4 calendarios públicos. Solo especifica si tienes un servidor propio.">ⓘ</span></label>
-              <input type="text" id="inp-ots-server" placeholder="https://a.pool.opentimestamps.org" oninput="markDirty()">
+            <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+              <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
+              <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+                <option value="https://a.pool.opentimestamps.org">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
+                <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
+                <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
+                <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
+                <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
+                <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
+                <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
+                <option value="__custom__">✏️ Personalizado…</option>
+              </select>
+              <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
             </div>
             <details>
               <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
@@ -2565,6 +2575,20 @@ function showResultModal(lines, isError){
 // OTS — OpenTimestamps Bitcoin Anchoring
 // ══════════════════════════════════════════════════════════
 
+function onOtsServerSelect(val) {
+  const inp = document.getElementById('inp-ots-server');
+  if (!inp) return;
+  if (val === '__custom__') {
+    inp.style.display = '';
+    inp.value = '';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+    inp.value = val;
+  }
+  markDirty();
+}
+
 // Update the connectivity dot + hint text in the heading
 function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
   const dot  = document.getElementById('ots-net-dot');
@@ -2658,7 +2682,19 @@ async function loadOtsStatus(){
   const togOts = document.getElementById('tog-ots');
   if(togOts) togOts.checked = cfg?.opentimestamps?.enabled ?? true;
   const inpServer = document.getElementById('inp-ots-server');
-  if(inpServer) inpServer.value = cfg?.opentimestamps?.primary_server || '';
+  const selServer = document.getElementById('sel-ots-server');
+  const savedServer = cfg?.opentimestamps?.primary_server || '';
+  if (inpServer) inpServer.value = savedServer;
+  if (selServer) {
+    const knownOpt = [...selServer.options].find(o => o.value === savedServer);
+    if (savedServer && !knownOpt) {
+      selServer.value = '__custom__';
+      inpServer.style.display = '';
+    } else {
+      selServer.value = savedServer || 'https://a.pool.opentimestamps.org';
+      if (inpServer) inpServer.style.display = 'none';
+    }
+  }
   // Auto-probe on load — non-blocking
   const enabled = togOts?.checked ?? true;
   if(enabled){ _setOtsDot('probing'); _probeOtsNetwork(); }
