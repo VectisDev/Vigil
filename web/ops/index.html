@@ -437,7 +437,6 @@ details .details-body{padding:12px 0 4px}
       <a href="#s6" onclick="scrollTo('s6')">Manual</a>
       <a href="#s7" onclick="scrollTo('s7')">Acceso y Seeds</a>
       <a href="#s8" onclick="scrollTo('s8')">Red de Nodos</a>
-      <a href="#s10" onclick="scrollTo('s10')">Laboratorio</a>
       <a href="#s9" onclick="scrollTo('s9')">Cierre Electoral</a>
     </nav>
 
@@ -1070,54 +1069,85 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── 8 Red de Nodos ── -->
+      <!-- ── 8 Red de Nodos — Panel de Control ── -->
       <div class="section" id="s8">
         <div class="section-title">8 Red de Nodos</div>
         <hr class="section-sep">
         <p class="section-sub">
-          Protocolo gossip P2P — el nodo transmite su atestación firmada al enjambre y compara el
-          Merkle root con otros observadores para detectar manipulaciones en tiempo real.
+          Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
+          el Merkle root con otros observadores para detectar manipulaciones en tiempo real.
         </p>
 
+        <!-- Estado + Control -->
         <div class="ctrl-section">
-          <h3>Estado de conexión</h3>
-          <div id="swarm-status-row" style="display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap">
-            <span id="swarm-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted)"></span>
-            <span id="swarm-label" style="font-size:14px;font-weight:600;color:var(--muted)">DESCONECTADO</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span id="swarm-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--muted)"></span>
+              <span id="swarm-label" style="font-size:16px;font-weight:700;color:var(--muted)">DESCONECTADO</span>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()" style="padding:10px 24px;font-size:13px">
+                Conectar a la red
+              </button>
+              <button class="hdr-btn" id="btn-disconnect" onclick="doSwarmDisconnect()" style="display:none;padding:10px 24px;font-size:13px">
+                Desconectar
+              </button>
+              <button class="hdr-btn" onclick="refreshSwarmPanel()" style="padding:10px 14px;font-size:13px" title="Actualizar">↻</button>
+            </div>
           </div>
-          <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:8px;display:none">
-            <span id="swarm-node-id"></span>
+          <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:10px;display:none">
+            <span>Mi nodo: </span>
+            <code id="swarm-node-id" style="cursor:pointer;color:var(--accent)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar"></code>
             <span id="swarm-consensus-row" style="display:none">
-              &nbsp;·&nbsp;Consenso: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
+              &nbsp;&middot;&nbsp;Consenso: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
             </span>
             <br>Último broadcast: <span id="swarm-last-bcast">—</span>
           </div>
+          <details style="margin-top:10px">
+            <summary style="font-size:12px;color:var(--muted);cursor:pointer">URL pública del nodo (opcional)</summary>
+            <div style="margin-top:8px">
+              <input type="text" id="swarm-my-url" placeholder="https://mi-nodo.example.com" style="width:100%;max-width:380px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+              <p style="font-size:11px;color:var(--muted);margin-top:6px">Déjalo vacío si estás detrás de NAT. Solo necesario si otros nodos deben conectarse directamente a ti.</p>
+            </div>
+          </details>
         </div>
 
+        <!-- Métricas en vivo -->
         <div class="ctrl-section">
-          <h3>Control</h3>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-            <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()">
-              Conectar a la red
-            </button>
-            <button class="hdr-btn" id="btn-disconnect" onclick="doSwarmDisconnect()" style="display:none">
-              Desconectar
-            </button>
-          </div>
-          <p style="font-size:12px;color:var(--muted);margin-top:10px">
-            Opcional: ingresa tu URL pública si el nodo es accesible desde internet
-            (ej. <code>https://mi-nodo.example.com</code>). Déjalo vacío si estás detrás de NAT.
-          </p>
-          <div class="ctrl-row" style="margin-top:10px">
-            <label>URL pública del nodo (opcional)</label>
-            <input type="text" id="swarm-my-url" placeholder="https://…" style="width:100%;max-width:380px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;border:1px solid var(--border)">
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-nodos">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">NODOS</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-consenso">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">CONSENSO</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-bft">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT TOLERANCIA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:#b08cf0" id="swarm-m-ring0">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 SEMILLA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-ring1">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 CONFIABLE</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="swarm-m-compromised">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">COMPROMETIDOS</div>
+            </div>
           </div>
         </div>
 
+        <!-- Nodos del enjambre (tarjetas visuales) -->
         <div class="ctrl-section" id="swarm-peers-section" style="display:none">
-          <h3>Nodos conectados (<span id="swarm-peer-count">0</span>)</h3>
+          <h3>Nodos del enjambre (<span id="swarm-peer-count">0</span>)</h3>
           <div id="swarm-consensus-banner" style="display:none;margin:10px 0;padding:10px 14px;border-radius:8px;font-size:13px"></div>
-          <div style="overflow-x:auto;margin-top:12px">
+          <div id="swarm-node-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px"></div>
+          <div id="swarm-peers-table-wrap" style="overflow-x:auto;margin-top:12px;display:none">
             <table style="width:100%;border-collapse:collapse;font-size:12px">
               <thead>
                 <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
@@ -1126,7 +1156,6 @@ details .details-body{padding:12px 0 4px}
                   <th style="padding:6px 10px">Snapshots</th>
                   <th style="padding:6px 10px">Merkle Root</th>
                   <th style="padding:6px 10px">Sincronía</th>
-                  <th style="padding:6px 10px">Especialización</th>
                   <th style="padding:6px 10px">Timestamp</th>
                   <th style="padding:6px 10px"></th>
                 </tr>
@@ -1136,16 +1165,60 @@ details .details-body{padding:12px 0 4px}
           </div>
         </div>
 
-        <!-- ── Consenso multi-nodo de hallazgos ── -->
+        <!-- Coordinar enjambre -->
+        <div class="ctrl-section" id="swarm-sala-section">
+          <h3>Coordinar enjambre</h3>
+          <div id="sala-pick" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="hdr-btn primary" onclick="createSala()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              Invitar a otros →
+            </button>
+            <button class="hdr-btn" onclick="salaTab('unirse')" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              Unirme a un enjambre →
+            </button>
+          </div>
+          <div id="sala-crear-panel" style="display:none">
+            <p style="font-size:12px;color:var(--ok);margin-bottom:14px">
+              Enjambre creado. Comparte esta invitación con los demás operadores.
+            </p>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Invitación para compartir</div>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input id="sala-invite-text" type="text" readonly
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
+                onclick="this.select()" title="Clic para seleccionar">
+              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
+              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
+            </div>
+            <div id="sala-tech-details" style="display:none;margin-top:10px">
+              <div class="invite-box" id="sala-invite-json"></div>
+            </div>
+          </div>
+          <div id="sala-unirse-panel" style="display:none">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
+              Pega aquí la invitación que te compartieron.
+            </p>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
+              <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
+            </div>
+            <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
+            <button class="hdr-btn" onclick="salaTab('crear')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
+          </div>
+        </div>
+
+        <!-- Hallazgos con consenso multi-nodo -->
         <div class="ctrl-section" id="swarm-consensus-findings-section">
-          <h3>Hallazgos con Consenso Multi-Nodo</h3>
+          <h3>Hallazgos con consenso</h3>
           <p style="font-size:12px;color:var(--muted);margin:6px 0 12px">
-            Anomalías detectadas de forma independiente por ≥2 nodos distintos del enjambre.
-            Fondo ámbar = 2–4 nodos · Fondo rojo = 5+ nodos.
+            Anomalías detectadas de forma independiente por 2 o más nodos del enjambre.
           </p>
           <div id="swarm-consensus-findings-wrap">
             <div style="font-size:12px;color:var(--muted);font-style:italic" id="swarm-consensus-empty">
-              Sin hallazgos con consenso multi-nodo aún.
+              Sin hallazgos con consenso aún.
             </div>
             <div style="overflow-x:auto;display:none" id="swarm-consensus-table-wrap">
               <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -1164,58 +1237,7 @@ details .details-body{padding:12px 0 4px}
           </div>
         </div>
 
-        <!-- ── Sala (crear / unirse / invitar) ── -->
-        <div class="ctrl-section" id="swarm-sala-section">
-          <h3>Coordinar enjambre</h3>
-
-          <!-- Estado: sin acción tomada -->
-          <div id="sala-pick" style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="hdr-btn primary" onclick="createSala()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              Quiero invitar a otros →
-            </button>
-            <button class="hdr-btn" onclick="salaTab('unirse')" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              Me invitaron a un enjambre →
-            </button>
-          </div>
-
-          <!-- Panel CREAR (después de generar) -->
-          <div id="sala-crear-panel" style="display:none">
-            <p style="font-size:12px;color:var(--ok);margin-bottom:14px">
-              ✓ Enjambre creado. Comparte esta invitación con los demás operadores — ellos la pegarán al unirse.
-            </p>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Invitación para compartir</div>
-            <div style="display:flex;gap:8px;align-items:stretch">
-              <input id="sala-invite-text" type="text" readonly
-                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
-                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
-                onclick="this.select()" title="Haz clic para seleccionar todo">
-              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
-            </div>
-            <div style="margin-top:14px;display:flex;gap:8px">
-              <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
-              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
-            </div>
-            <div id="sala-tech-details" style="display:none;margin-top:10px">
-              <div class="invite-box" id="sala-invite-json"></div>
-            </div>
-          </div>
-
-          <!-- Panel UNIRSE -->
-          <div id="sala-unirse-panel" style="display:none">
-            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
-              Pega aquí la invitación que te compartieron.
-            </p>
-            <div style="display:flex;gap:8px;align-items:stretch">
-              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…"
-                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
-              <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
-            </div>
-            <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
-            <button class="hdr-btn" onclick="salaTab('crear')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
-          </div>
-        </div>
-
-        <!-- ── Reputación PBTM ── -->
+        <!-- Reputación PBTM -->
         <div class="ctrl-section">
           <h3 style="justify-content:space-between">
             <span>Reputación PBTM</span>
@@ -1231,13 +1253,13 @@ details .details-body{padding:12px 0 4px}
             <div class="rep-ring-bar" id="rep-ring-bar"></div>
           </div>
           <div id="rep-nodes-list">
-            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin datos — conecta el swarm o recarga.</div>
+            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin datos — conecta el swarm para ver nodos.</div>
           </div>
         </div>
 
-        <!-- ── Actividad reciente ── -->
+        <!-- Actividad reciente -->
         <div class="ctrl-section" id="swarm-activity-section" style="display:none">
-          <h3>Actividad Reciente</h3>
+          <h3>Actividad reciente</h3>
           <div id="swarm-activity-list" style="max-height:260px;overflow-y:auto"></div>
         </div>
 
@@ -1255,120 +1277,6 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div id="hist-modal-body"><div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div></div>
         </div>
-      </div>
-
-      <!-- ── 10 LABORATORIO ── -->
-      <div class="section" id="s10">
-        <div class="section-title">10 Simulacro en Swarm — Reputación PBTM</div>
-        <hr class="section-sep">
-
-        <div class="ctrl-section">
-          <!-- Node selector buttons + controls -->
-          <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
-            <div>
-              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Nodos (máx 12):</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button onclick="setLabNodeCount(2)" class="lab-node-btn" data-count="2" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">2</button>
-                <button onclick="setLabNodeCount(3)" class="lab-node-btn" data-count="3" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">3</button>
-                <button onclick="setLabNodeCount(4)" class="lab-node-btn" data-count="4" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">4</button>
-                <button onclick="setLabNodeCount(5)" class="lab-node-btn" data-count="5" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">5</button>
-                <button onclick="setLabNodeCount(6)" class="lab-node-btn lab-node-btn-selected" data-count="6" style="min-width:40px;padding:8px 12px;border:2px solid var(--accent);background:var(--accent);color:#0f1115;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">6</button>
-                <button onclick="setLabNodeCount(7)" class="lab-node-btn" data-count="7" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">7</button>
-                <button onclick="setLabNodeCount(8)" class="lab-node-btn" data-count="8" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">8</button>
-                <button onclick="setLabNodeCount(9)" class="lab-node-btn" data-count="9" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">9</button>
-                <button onclick="setLabNodeCount(10)" class="lab-node-btn" data-count="10" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">10</button>
-                <button onclick="setLabNodeCount(11)" class="lab-node-btn" data-count="11" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">11</button>
-                <button onclick="setLabNodeCount(12)" class="lab-node-btn" data-count="12" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">12</button>
-                <button class="hdr-btn" id="btn-corte" onclick="doCorteElectrico()" style="background:rgba(223,107,134,0.1);border-color:var(--bad);color:var(--bad);margin-left:12px;padding:8px 16px;font-size:12px;font-weight:700">⚡ Corte eléctrico</button>
-              </div>
-            </div>
-            <div style="flex:1;min-width:200px">
-              <div class="ctrl-row" style="margin-bottom:0">
-                <label>País</label>
-                <select id="lab-country-select" onchange="markDirty()" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%">
-                  <option value="">Cargando países…</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Metrics row -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;margin-bottom:16px;border:1px solid var(--border)">
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-nodos">6</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">NODOS</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-gossip">2</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RONDAS GOSSIP</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-bft">1</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT TOLERANCIA</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-ring0">1</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 SEMILLA</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-ring1">0</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 CONFIABLE</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="lab-stat-compromised">0</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">COMPROMETIDOS</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-msgs">6</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">MSGS/TICK</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-consensus">OK</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">CONSENSO</div>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-            <button class="hdr-btn primary" onclick="startLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              ▶ Iniciar Simulación
-            </button>
-            <button class="hdr-btn" onclick="resetLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              ↻ Reiniciar
-            </button>
-          </div>
-
-          <!-- Connected swarms -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Conectar a swarms:</div>
-            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px"></div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="lab-swarms-empty">
-              No hay enjambres conectados.
-            </div>
-          </div>
-        </div>
-
-        <!-- Anillos de confianza -->
-        <div class="ctrl-section" id="lab-rings-section" style="display:none">
-          <h3>Anillos de Confianza (Modelo Beta Bayesiano)</h3>
-          <div id="lab-rings-display" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px"></div>
-        </div>
-
-        <!-- Hallazgos -->
-        <div class="ctrl-section" id="lab-findings-section" style="display:none">
-          <h3>Hallazgos con Consenso (≥2 nodos)</h3>
-          <div id="lab-findings-list" style="max-height:280px;overflow-y:auto">
-            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>
-          </div>
-        </div>
-
-        <!-- Matriz de consenso -->
-        <div class="ctrl-section" id="lab-matrix-section" style="display:none">
-          <h3>Matriz de Consenso Inter-Nodos</h3>
-          <div id="lab-consensus-matrix" style="overflow-x:auto;max-height:260px;overflow-y:auto">
-            <div style="font-size:12px;color:var(--muted);font-style:italic">Matriz aparecerá aquí…</div>
-          </div>
-        </div>
-
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
@@ -2908,13 +2816,6 @@ async function loadCountrySelector() {
       if (name) name.textContent = cur.name;
       if (auth) auth.textContent = cur.authority;
     }
-    // Populate lab country selector from the same data
-    const labSel = document.getElementById('lab-country-select');
-    if (labSel) {
-      labSel.innerHTML = countries.map(c =>
-        `<option value="${c.code}"${c.code === currentCode ? ' selected' : ''}>${c.flag} ${c.name}</option>`
-      ).join('');
-    }
   } catch(e) {
     sel.innerHTML = '<option value="">Error al cargar países</option>';
   }
@@ -3192,10 +3093,6 @@ async function doChangeCountry() {
 
   // Auto-populate endpoints config from the new country's department URLs
   syncEndpointsFromDepts(true);
-
-  // Sync lab country selector
-  const labSel = document.getElementById('lab-country-select');
-  if (labSel) labSel.value = code;
 
   // Best-effort API sync (silent on failure — works offline / GitHub Pages)
   let apiSynced = false;
@@ -3525,14 +3422,14 @@ async function doSwarmDisconnect() {
 
 function _startSwarmPoll() {
   if (_swarmPollTimer) return;
-  _swarmPollTimer = setInterval(loadSwarmStatus, 5000);
+  _swarmPollTimer = setInterval(() => { loadSwarmStatus(); refreshSwarmPanel(); }, 5000);
+  refreshSwarmPanel();
 }
 
 function _stopSwarmPoll() {
   if (_swarmPollTimer) { clearInterval(_swarmPollTimer); _swarmPollTimer = null; }
-  // Once connected, switch to slow polling
   setTimeout(() => {
-    _swarmPollTimer = setInterval(loadSwarmStatus, 30000);
+    _swarmPollTimer = setInterval(() => { loadSwarmStatus(); refreshSwarmPanel(); }, 30000);
   }, 100);
 }
 
@@ -3881,286 +3778,74 @@ async function doFinalizeElection() {
 // LAB: Simulación de Enjambres y Peer-Review
 // ════════════════════════════════════════════════════════════
 
-let labSimulation = {
-  running: false,
-  startTime: null,
-  nodes: [],
-  findings: [],
-  tick: 0,
-  connectedSwarms: [],
-};
-
-function updateLabNodeCount(val) {
-  document.getElementById('lab-nodes-count').textContent = val;
+// ── Swarm Panel — métricas en vivo + tarjetas de nodos ────────────────────
+async function refreshSwarmPanel() {
+  try {
+    const [statusRes, repRes] = await Promise.allSettled([
+      fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status'),
+      fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/reputation'),
+    ]);
+    const status = statusRes.status === 'fulfilled' && statusRes.value.ok ? await statusRes.value.json() : null;
+    const rep = repRes.status === 'fulfilled' && repRes.value.ok ? await repRes.value.json() : null;
+    renderSwarmMetrics(status, rep);
+    if (rep) renderNodeCards(rep);
+  } catch(_) {
+    renderSwarmMetrics(null, null);
+  }
 }
 
-function loadLabSwarms() {
-  const swarmsList = document.getElementById('lab-swarms-list');
-  const swarmEmpty = document.getElementById('lab-swarms-empty');
+function renderSwarmMetrics(status, rep) {
+  const el = id => document.getElementById(id);
+  const peers = status?.connected_peers ?? 0;
+  const total = peers + (status ? 1 : 0);
+  const bft = Math.floor((total - 1) / 3);
+  const r0 = rep?.ring_summary?.ring0 ?? 0;
+  const r1 = rep?.ring_summary?.ring1 ?? 0;
+  const compromised = (rep?.nodes || []).filter(n => n.trust_score < 0.5).length;
+  const consensus = status?.consensus || '—';
 
-  // Get available swarms from existing swarm data or mock some
-  let availableSwarms = [];
-
-  // Check if there are any connected swarms in s8
-  const swarmLabel = document.getElementById('swarm-label');
-  if (swarmLabel && swarmLabel.textContent === 'CONECTADO') {
-    availableSwarms.push({
-      id: 'local-swarm-1',
-      name: 'Enjambre Local',
-      nodes: 3,
-      reputation: 85,
-    });
+  if (el('swarm-m-nodos')) el('swarm-m-nodos').textContent = status ? total : '—';
+  if (el('swarm-m-consenso')) {
+    el('swarm-m-consenso').textContent = status ? consensus : '—';
+    el('swarm-m-consenso').style.color = consensus === 'OK' ? 'var(--ok)' : consensus === 'DIVERGENT' ? 'var(--bad)' : 'var(--fg)';
   }
-
-  // Add some demo swarms
-  if (availableSwarms.length === 0) {
-    availableSwarms = [
-      {id: 'demo-1', name: 'Demo Honduras', nodes: 2, reputation: 72},
-      {id: 'demo-2', name: 'Demo Costa Rica', nodes: 3, reputation: 88},
-      {id: 'demo-3', name: 'Demo Panamá', nodes: 2, reputation: 65},
-    ];
+  if (el('swarm-m-bft')) el('swarm-m-bft').textContent = status ? bft : '—';
+  if (el('swarm-m-ring0')) el('swarm-m-ring0').textContent = rep ? r0 : '—';
+  if (el('swarm-m-ring1')) el('swarm-m-ring1').textContent = rep ? r1 : '—';
+  if (el('swarm-m-compromised')) {
+    el('swarm-m-compromised').textContent = rep ? compromised : '—';
+    if (el('swarm-m-compromised')) el('swarm-m-compromised').style.color = compromised > 0 ? 'var(--bad)' : 'var(--ok)';
   }
+}
 
-  if (availableSwarms.length === 0) {
-    swarmEmpty.style.display = '';
-    swarmsList.innerHTML = '';
-    return;
-  }
-
-  swarmEmpty.style.display = 'none';
-  swarmsList.innerHTML = '';
-
-  for (const swarm of availableSwarms) {
-    const card = document.createElement('label');
-    card.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:0.1s';
+function renderNodeCards(rep) {
+  const container = document.getElementById('swarm-node-cards');
+  if (!container || !rep?.nodes) return;
+  container.innerHTML = '';
+  for (const node of rep.nodes) {
+    const trust = Math.round((node.trust_score ?? 0) * 100);
+    const ring = node.ring ?? 2;
+    const ringLabel = ring === 0 ? 'Ring-0' : ring === 1 ? 'Ring-1' : 'Ring-2';
+    const ringColor = ring === 0 ? '#b08cf0' : ring === 1 ? 'var(--ok)' : 'var(--muted)';
+    const trustColor = trust >= 85 ? 'var(--ok)' : trust >= 50 ? 'var(--warn)' : 'var(--bad)';
+    const shortId = (node.node_id || '').slice(0, 8);
+    const isSelf = node.is_self;
+    const card = document.createElement('div');
+    card.style.cssText = `padding:12px;background:var(--panel);border:1px solid ${isSelf ? 'var(--accent)' : 'var(--border)'};border-radius:10px;text-align:center;cursor:pointer;transition:.15s`;
+    card.title = node.node_id || '';
     card.innerHTML = `
-      <input type="checkbox" class="lab-swarm-checkbox" value="${swarm.id}" data-name="${swarm.name}" data-rep="${swarm.reputation}" style="cursor:pointer;width:16px;height:16px">
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:600">${swarm.name}</div>
-        <div style="font-size:10px;color:var(--muted)">${swarm.nodes} nodos · Rep ${swarm.reputation}%</div>
+      <div style="font-size:11px;font-weight:700;color:var(--fg);font-family:var(--mono);margin-bottom:6px">${isSelf ? '(tú) ' : ''}${shortId}</div>
+      <div style="font-size:24px;font-weight:700;color:${trustColor}">${trust}%</div>
+      <div style="font-size:10px;color:${ringColor};font-weight:600;margin-top:4px">${ringLabel}</div>
+      <div style="width:100%;height:4px;background:var(--bg);border-radius:2px;margin-top:8px;overflow:hidden">
+        <div style="width:${trust}%;height:100%;background:${trustColor};border-radius:2px"></div>
       </div>
     `;
-    card.onmouseover = () => card.style.background = 'var(--panel2)';
-    card.onmouseout = () => card.style.background = 'var(--panel)';
-    swarmsList.appendChild(card);
+    card.onmouseover = () => { card.style.background = 'var(--panel2)'; card.style.transform = 'translateY(-2px)'; };
+    card.onmouseout = () => { card.style.background = 'var(--panel)'; card.style.transform = ''; };
+    card.onclick = () => openSwarmHist(node.node_id);
+    container.appendChild(card);
   }
-}
-
-async function startLabSimulation() {
-  const nodeCount = parseInt(document.getElementById('lab-nodes-slider').value);
-  const country = document.getElementById('lab-country-select').value;
-
-  // Load selected swarms
-  const selectedSwarms = Array.from(document.querySelectorAll('.lab-swarm-checkbox:checked')).map(cb => ({
-    id: cb.value,
-    name: cb.getAttribute('data-name'),
-    reputation: parseInt(cb.getAttribute('data-rep')),
-  }));
-
-  // Initialize nodes with home nodes + connected swarm nodes
-  labSimulation.running = true;
-  labSimulation.startTime = Date.now();
-  labSimulation.tick = 0;
-  labSimulation.findings = [];
-  labSimulation.connectedSwarms = selectedSwarms;
-
-  labSimulation.nodes = Array.from({length: nodeCount}, (_, i) => ({
-    id: `node-${i+1}`,
-    country,
-    swarm: 'local',
-    alerts: [],
-    lastUpdate: Date.now(),
-    reputation: 70 + Math.random() * 30,
-  }));
-
-  // Add nodes from connected swarms
-  for (const swarm of selectedSwarms) {
-    for (let i = 0; i < Math.min(2, Math.floor(Math.random() * 3) + 1); i++) {
-      labSimulation.nodes.push({
-        id: `${swarm.id}-node-${i+1}`,
-        country,
-        swarm: swarm.id,
-        swarmName: swarm.name,
-        alerts: [],
-        lastUpdate: Date.now(),
-        reputation: swarm.reputation,
-      });
-    }
-  }
-
-  const resultsDiv = document.getElementById('lab-results-section');
-  if (resultsDiv) resultsDiv.style.display = '';
-
-  // Run simulation ticks
-  const tickInterval = setInterval(() => {
-    if (!labSimulation.running) {
-      clearInterval(tickInterval);
-      return;
-    }
-
-    labSimulation.tick++;
-    _simulateNodeActivity();
-    _updateLabResults();
-
-    if (labSimulation.tick >= 20) {
-      labSimulation.running = false;
-      clearInterval(tickInterval);
-    }
-  }, 500);
-}
-
-function _simulateNodeActivity() {
-  // Each node independently detects anomalies with some probability
-  for (const node of labSimulation.nodes) {
-    if (Math.random() < 0.3) {
-      const anomalyTypes = [
-        'benford_first_digit',
-        'participation_jump',
-        'last_digit_uniformity',
-        'geographic_dispersion',
-      ];
-      const type = anomalyTypes[Math.floor(Math.random() * anomalyTypes.length)];
-      const severity = ['INFO', 'WARNING', 'CRITICAL'][Math.floor(Math.random() * 3)];
-
-      const finding = {
-        type,
-        severity,
-        timestamp: Date.now(),
-        nodeId: node.id,
-      };
-
-      // Check for consensus (other nodes detect same anomaly in same window)
-      let consensusCount = 1;
-      for (const other of labSimulation.nodes) {
-        if (other.id !== node.id && Math.random() < 0.4) {
-          consensusCount++;
-        }
-      }
-
-      if (consensusCount >= 2) {
-        finding.consensusNodes = consensusCount;
-        labSimulation.findings.push(finding);
-      }
-
-      node.alerts.push(finding);
-      node.lastUpdate = Date.now();
-    }
-  }
-}
-
-function _updateLabResults() {
-  const elapsed = Date.now() - labSimulation.startTime;
-  const elapsedSec = Math.floor(elapsed / 1000);
-
-  document.getElementById('lab-active-nodes').textContent =
-    labSimulation.nodes.filter(n => Date.now() - n.lastUpdate < 5000).length;
-
-  const avgReputation = labSimulation.nodes.reduce((a, n) => a + n.reputation, 0) / labSimulation.nodes.length;
-  document.getElementById('lab-consensus-pct').textContent = Math.round(avgReputation) + '%';
-
-  document.getElementById('lab-findings-count').textContent = labSimulation.findings.length;
-
-  const mins = Math.floor(elapsedSec / 60);
-  const secs = elapsedSec % 60;
-  document.getElementById('lab-elapsed-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-
-  // Update consensus matrix
-  _renderConsensusMatrix();
-
-  // Update findings list
-  _renderFindingsList();
-}
-
-function _renderConsensusMatrix() {
-  const matrixDiv = document.getElementById('lab-consensus-matrix');
-  if (!matrixDiv || labSimulation.nodes.length === 0) return;
-
-  // Create simple consensus heatmap
-  let html = '<table style="width:100%;border-collapse:collapse;font-size:11px">';
-  html += '<tr><th style="padding:4px;text-align:left;border:1px solid var(--border)">Nodo</th>';
-
-  for (let i = 0; i < labSimulation.nodes.length; i++) {
-    html += `<th style="padding:4px;text-align:center;border:1px solid var(--border);width:32px">${i+1}</th>`;
-  }
-  html += '</tr>';
-
-  for (let i = 0; i < labSimulation.nodes.length; i++) {
-    html += `<tr><td style="padding:4px;border:1px solid var(--border);font-weight:600">N${i+1}</td>`;
-    for (let j = 0; j < labSimulation.nodes.length; j++) {
-      const consensus = i === j ? 100 : Math.floor(Math.random() * 100);
-      const bgColor = consensus > 75 ? 'rgba(87,192,141,0.2)' :
-                      consensus > 50 ? 'rgba(212,176,102,0.2)' : 'rgba(223,107,134,0.2)';
-      html += `<td style="padding:4px;text-align:center;border:1px solid var(--border);background:${bgColor}">${consensus}%</td>`;
-    }
-    html += '</tr>';
-  }
-  html += '</table>';
-  matrixDiv.innerHTML = html;
-}
-
-function _renderFindingsList() {
-  const findingsDiv = document.getElementById('lab-findings-list');
-  if (!findingsDiv) return;
-
-  if (labSimulation.findings.length === 0) {
-    findingsDiv.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>';
-    return;
-  }
-
-  let html = '';
-  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes && f.consensusNodes >= 2);
-
-  for (const finding of consensusFindings.slice(-10)) {
-    const bgColor = finding.severity === 'CRITICAL' ? 'rgba(223,107,134,0.1)' :
-                   finding.severity === 'WARNING' ? 'rgba(212,176,102,0.1)' : 'rgba(110,168,254,0.1)';
-    const textColor = finding.severity === 'CRITICAL' ? 'var(--bad)' :
-                     finding.severity === 'WARNING' ? 'var(--warn)' : 'var(--accent)';
-
-    html += `
-      <div style="background:${bgColor};border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:11px">
-        <div style="color:${textColor};font-weight:600">${finding.type}</div>
-        <div style="color:var(--muted);font-size:10px;margin-top:3px">
-          ${finding.consensusNodes} nodos · ${finding.severity}
-        </div>
-      </div>
-    `;
-  }
-
-  findingsDiv.innerHTML = html || '<div style="font-size:12px;color:var(--muted)">Generando hallazgos…</div>';
-
-  // Update effectiveness metrics
-  const totalFindings = labSimulation.findings.length;
-  const consensusCount = labSimulation.findings.filter(f => f.consensusNodes >= 2).length;
-  const criticalFindings = labSimulation.findings.filter(f => f.severity === 'CRITICAL').length;
-
-  document.getElementById('lab-early-detect').textContent = Math.round((consensusCount / Math.max(totalFindings, 1)) * 100) + '%';
-  document.getElementById('lab-false-positives').textContent = Math.round(Math.random() * 5) + '%';
-  document.getElementById('lab-cross-confirm').textContent = Math.round((consensusCount / Math.max(totalFindings, 1)) * 100) + '%';
-}
-
-function resetLabSimulation() {
-  labSimulation.running = false;
-  labSimulation.nodes = [];
-  labSimulation.findings = [];
-  labSimulation.tick = 0;
-  labSimulation.connectedSwarms = [];
-
-  const resultsDiv = document.getElementById('lab-results-section');
-  if (resultsDiv) resultsDiv.style.display = 'none';
-
-  document.getElementById('lab-active-nodes').textContent = '—';
-  document.getElementById('lab-consensus-pct').textContent = '—';
-  document.getElementById('lab-findings-count').textContent = '—';
-  document.getElementById('lab-elapsed-time').textContent = '—';
-  document.getElementById('lab-consensus-matrix').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Matriz de consenso aparecerá aquí tras iniciar…</div>';
-  document.getElementById('lab-findings-list').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Hallazgos aparecerán aquí…</div>';
-}
-
-// Initialize lab section when page loads - load swarms
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadLabSwarms);
-} else {
-  loadLabSwarms();
 }
 
 // Keyboard shortcut to open this panel (also registered in parent pages)
