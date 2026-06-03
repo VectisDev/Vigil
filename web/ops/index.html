@@ -1103,13 +1103,6 @@ details .details-body{padding:12px 0 4px}
             </span>
             <br>Último broadcast: <span id="swarm-last-bcast">—</span>
           </div>
-          <details style="margin-top:10px">
-            <summary style="font-size:12px;color:var(--muted);cursor:pointer">URL pública del nodo (opcional)</summary>
-            <div style="margin-top:8px">
-              <input type="text" id="swarm-my-url" placeholder="https://mi-nodo.example.com" style="width:100%;max-width:380px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
-              <p style="font-size:11px;color:var(--muted);margin-top:6px">Déjalo vacío si estás detrás de NAT. Solo necesario si otros nodos deben conectarse directamente a ti.</p>
-            </div>
-          </details>
         </div>
 
         <!-- Métricas en vivo -->
@@ -1189,6 +1182,7 @@ details .details-body{padding:12px 0 4px}
               <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
             </div>
             <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="hdr-btn" onclick="salaTab('reset')" style="font-size:11px;color:var(--muted)">← Volver</button>
               <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
               <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
             </div>
@@ -1206,7 +1200,7 @@ details .details-body{padding:12px 0 4px}
               <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
             </div>
             <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
-            <button class="hdr-btn" onclick="salaTab('crear')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
+            <button class="hdr-btn" onclick="salaTab('reset')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
           </div>
         </div>
 
@@ -3437,7 +3431,7 @@ function _stopSwarmPoll() {
 let _salaId = null;
 
 function salaTab(tab) {
-  document.getElementById('sala-pick').style.display = 'none';
+  document.getElementById('sala-pick').style.display = tab === 'reset' ? '' : 'none';
   document.getElementById('sala-crear-panel').style.display = tab === 'crear' ? '' : 'none';
   document.getElementById('sala-unirse-panel').style.display = tab === 'unirse' ? '' : 'none';
 }
