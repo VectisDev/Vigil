@@ -414,7 +414,7 @@ footer a{color:var(--accent);text-decoration:none}
 </script>
 
 <script>
-// ── DEMO DATA (usado si Supabase no está configurado) ──
+// ── DEMO DATA (fallback cuando no hay backend activo) ──
 const DEMO = {
   snapshots: [
     {id:1,captured_at:'2026-05-17T10:00:00Z',dept_code:null,merkle_root:'a1b2c3d4e5f6789012345678abcdef01a1b2c3d4e5f6789012345678abcdef01',chain_hash:'f1e2d3c4b5a697881234567890abcdef',chain_length:1,anomaly_flag:false,alert_state:'normal'},
@@ -1310,7 +1310,7 @@ Root hash: ${rootHash}
 }
 
 async function loadData(){
-  // 1. Static JSON — CDN edge, cero Supabase, zero dependency
+  // 1. Static JSON — CDN edge, zero dependency
   try{
     const r=await fetch('../data/snapshot.json',{cache:'no-store'});
     if(r.ok){const snap=await r.json();_applySnapshot(snap);return;}
