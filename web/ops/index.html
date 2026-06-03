@@ -282,9 +282,25 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
 .tip-left[data-tip]::after{left:auto;right:0;transform:none}
 
 /* ── DIFF MODAL ── */
-#diff-modal,#pat-modal,#result-modal{display:none;position:fixed;inset:0;z-index:500;
+#diff-modal,#pat-modal,#result-modal,#unlock-modal{display:none;position:fixed;inset:0;z-index:500;
   align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
-#diff-modal.open,#pat-modal.open,#result-modal.open{display:flex}
+#diff-modal.open,#pat-modal.open,#result-modal.open,#unlock-modal.open{display:flex}
+.unlock-bar{display:flex;align-items:center;gap:14px;padding:14px 18px;
+  background:rgba(223,107,134,.06);border:1px solid rgba(223,107,134,.25);
+  border-radius:10px;margin-bottom:20px}
+.unlock-bar .ub-icon{font-size:20px;flex-shrink:0}
+.unlock-bar .ub-text{flex:1;font-size:12px;color:var(--muted);line-height:1.5}
+.unlock-bar .ub-text strong{color:var(--bad);font-weight:700}
+.unlock-bar.unlocked{border-color:rgba(212,176,102,.4);background:rgba(212,176,102,.08)}
+.unlock-bar.unlocked .ub-text strong{color:var(--warn)}
+.unlock-legal{background:var(--bg);border-radius:8px;padding:14px;font-family:var(--mono);
+  font-size:11px;max-height:250px;overflow-y:auto;line-height:1.7;margin:14px 0;
+  border:1px solid rgba(223,107,134,.25);color:var(--muted);white-space:pre-wrap}
+.unlock-legal strong{color:var(--bad)}
+.unlock-check{display:flex;align-items:flex-start;gap:8px;margin:12px 0;font-size:12px;color:var(--fg)}
+.unlock-check input{margin-top:3px}
+#unlock-confirm-btn{background:var(--bad);color:#fff}
+#unlock-confirm-btn:disabled{opacity:.4;cursor:not-allowed}
 .modal-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;
   padding:28px 32px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto}
 .modal-box h2{font-size:16px;font-weight:700;margin-bottom:16px}
@@ -903,6 +919,17 @@ details .details-body{padding:12px 0 4px}
           <strong>Cargar</strong> un preset rellena los controles pero <strong>no modifica el repositorio</strong>.
           Solo <strong>"Aplicar cambios"</strong> escribe a GitHub y requiere PAT.
         </div>
+        <div class="unlock-bar" id="unlock-bar">
+          <div class="ub-icon">&#x1f512;</div>
+          <div class="ub-text">
+            <strong>L&iacute;mites de seguridad activos</strong> &mdash; los controles no pueden exceder
+            480 req/h, intervalo m&iacute;nimo 1s, burst m&aacute;ximo 8.
+            Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.
+          </div>
+          <button class="hdr-btn" id="btn-unlock" onclick="requestUnlock()" style="white-space:nowrap;border-color:var(--bad);color:var(--bad)">
+            Desbloquear l&iacute;mites
+          </button>
+        </div>
         <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <input type="text" id="preset-name" placeholder="Nombre del preset…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
@@ -1411,6 +1438,30 @@ details .details-body{padding:12px 0 4px}
   </div>
 </div>
 
+<!-- ════ UNLOCK MODAL (Carta de responsabilidad) ════ -->
+<div id="unlock-modal">
+  <div class="modal-box" style="max-width:560px">
+    <h2 style="color:var(--bad)">&#x26a0; Desbloqueo de l&iacute;mites de seguridad</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:8px">
+      Est&aacute;s a punto de desactivar los l&iacute;mites de seguridad que protegen la integridad
+      del monitoreo y evitan sobrecargar los servidores del CNE.
+    </p>
+    <div class="unlock-legal" id="unlock-legal-text"></div>
+    <div class="unlock-check">
+      <input type="checkbox" id="unlock-accept-chk" onchange="updateUnlockBtn()">
+      <label for="unlock-accept-chk">He le&iacute;do y acepto la declaraci&oacute;n de responsabilidad.
+        Entiendo que este acto quedar&aacute; registrado de forma permanente en el historial de Git.</label>
+    </div>
+    <div class="auth-err" id="unlock-err"></div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeUnlockModal()">Cancelar</button>
+      <button class="hdr-btn" id="unlock-confirm-btn" disabled onclick="executeUnlock()">
+        Firmar y desbloquear
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- hidden print target -->
 <div id="print-target" style="display:none"></div>
 
@@ -1512,6 +1563,32 @@ async function loadDepartments(code) {
 // Only "custom" presets (user-created) can bypass them — under operator responsibility.
 const HARD_CEILING = { maxRph: 480, minInterval: 1, maxBurst: 8 };
 
+const UNLOCK_LEGAL_TEXT = `DECLARACIÓN DE RESPONSABILIDAD — CENTINEL
+
+Fecha/hora: {{TIMESTAMP}}
+
+Por medio de la presente, el operador declara que:
+
+1. CONOCE que los límites de seguridad de CENTINEL (máximo {{MAX_RPH}} solicitudes/hora,
+   intervalo mínimo {{MIN_INTERVAL}}s, burst máximo {{MAX_BURST}}) existen para proteger
+   la integridad del monitoreo electoral y evitar sobrecargar los servidores públicos del CNE.
+
+2. DECIDE VOLUNTARIAMENTE desactivar estos límites, asumiendo total responsabilidad
+   por las consecuencias que esto pueda generar, incluyendo pero no limitado a:
+   - Bloqueo de IP por parte del servidor del CNE
+   - Degradación del servicio público de resultados electorales
+   - Pérdida de datos por rate limiting del servidor remoto
+   - Posibles implicaciones legales por acceso excesivo a infraestructura pública
+
+3. ACEPTA que esta acción queda registrada de forma permanente e inmutable en el
+   historial de Git del repositorio, sirviendo como evidencia de su decisión voluntaria.
+
+4. SE COMPROMETE a reactivar los límites de seguridad tan pronto como la situación
+   excepcional que motivó este desbloqueo haya cesado.
+
+Este documento constituye la "carta de responsabilidad" firmada digitalmente
+mediante commit al repositorio del proyecto.`;
+
 const FACTORY_PRESETS = [
   {id:'normal',   name:'Operación normal',  desc:'Monitoreo pasivo entre elecciones · 10 min',
    cfg:{interval:10, rph:240, benford:5.99, zscore:3.0, election:false, safe:false, rlMode:'normal'}},
@@ -1528,6 +1605,7 @@ const FACTORY_PRESETS = [
 ];
 let customPresets = [];
 let activePresetId = null;
+let ceilingUnlocked = false;
 
 // ══════════════════════════════════════════════════════════
 // AUTH
@@ -2118,9 +2196,8 @@ const BADGE_IDS = {
 
 function syncSlider(key, val){
   let v = parseFloat(val);
-  // Enforce hard ceiling on CENTINEL presets (not custom)
   const isCustom = activePresetId && activePresetId.startsWith('custom-');
-  if(!isCustom){
+  if(!isCustom || !ceilingUnlocked){
     if(key==='rph')      v = Math.min(v, HARD_CEILING.maxRph);
     if(key==='interval') v = Math.max(v, HARD_CEILING.minInterval);
   }
@@ -2272,6 +2349,137 @@ function getCurrentCfg(){
 }
 
 // ══════════════════════════════════════════════════════════
+// CEILING UNLOCK
+// ══════════════════════════════════════════════════════════
+
+function requestUnlock(){
+  if(ceilingUnlocked){
+    ceilingUnlocked = false;
+    updateUnlockUI();
+    enforceCurrentCeilings();
+    return;
+  }
+  const now = new Date().toISOString();
+  const text = UNLOCK_LEGAL_TEXT
+    .replace('{{TIMESTAMP}}', now)
+    .replace('{{MAX_RPH}}', HARD_CEILING.maxRph)
+    .replace('{{MIN_INTERVAL}}', HARD_CEILING.minInterval)
+    .replace('{{MAX_BURST}}', HARD_CEILING.maxBurst);
+  document.getElementById('unlock-legal-text').textContent = text;
+  document.getElementById('unlock-accept-chk').checked = false;
+  document.getElementById('unlock-err').textContent = '';
+  updateUnlockBtn();
+  document.getElementById('unlock-modal').classList.add('open');
+}
+
+function updateUnlockBtn(){
+  const btn = document.getElementById('unlock-confirm-btn');
+  btn.disabled = !document.getElementById('unlock-accept-chk').checked;
+}
+
+function closeUnlockModal(){
+  document.getElementById('unlock-modal').classList.remove('open');
+}
+
+async function executeUnlock(){
+  const errEl = document.getElementById('unlock-err');
+  const btn   = document.getElementById('unlock-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Firmando…';
+  errEl.textContent = '';
+
+  let pat = sessionStorage.getItem('gh-pat');
+  if(!pat){
+    closeUnlockModal();
+    const acquired = await requestPat();
+    if(!acquired){
+      btn.textContent = 'Firmar y desbloquear';
+      btn.disabled = false;
+      return;
+    }
+    pat = sessionStorage.getItem('gh-pat');
+    document.getElementById('unlock-modal').classList.add('open');
+  }
+
+  const now = new Date().toISOString();
+  const doc = UNLOCK_LEGAL_TEXT
+    .replace('{{TIMESTAMP}}', now)
+    .replace('{{MAX_RPH}}', HARD_CEILING.maxRph)
+    .replace('{{MIN_INTERVAL}}', HARD_CEILING.minInterval)
+    .replace('{{MAX_BURST}}', HARD_CEILING.maxBurst);
+
+  const safeTs = now.replace(/[:.]/g,'-');
+  const filePath = `audit/ceiling-unlock/${safeTs}.txt`;
+  const commitMsg = `audit: operador acepta responsabilidad por desbloqueo de límites\n\nFecha: ${now}\nLímites desbloqueados: RPH>${HARD_CEILING.maxRph}, interval<${HARD_CEILING.minInterval}s, burst>${HARD_CEILING.maxBurst}`;
+
+  try{
+    const encoded = btoa(unescape(encodeURIComponent(doc)));
+    const r = await fetch(`${API_BASE}/contents/${filePath}`,{
+      method:'PUT',
+      headers:{Authorization:`Bearer ${pat}`,'Content-Type':'application/json'},
+      body: JSON.stringify({ message: commitMsg, content: encoded }),
+    });
+    if(!r.ok){
+      const j = await r.json().catch(()=>({}));
+      throw new Error(j.message || `HTTP ${r.status}`);
+    }
+    const j = await r.json();
+    const sha7 = (j.commit?.sha||'').slice(0,7);
+
+    ceilingUnlocked = true;
+    closeUnlockModal();
+    updateUnlockUI();
+    showResultModal([
+      `✓ Firma registrada — commit ${sha7}`,
+      `✓ Archivo: ${filePath}`,
+      `✓ Límites de seguridad desbloqueados para esta sesión`,
+    ], false);
+  }catch(e){
+    errEl.textContent = `Error al firmar: ${e.message}`;
+  }
+  btn.textContent = 'Firmar y desbloquear';
+  btn.disabled = false;
+}
+
+function updateUnlockUI(){
+  const bar = document.getElementById('unlock-bar');
+  const btn = document.getElementById('btn-unlock');
+  const rphSliders = ['sl-rph','sl-rph2'];
+  const intSliders = ['sl-interval','sl-interval2'];
+  if(ceilingUnlocked){
+    bar.classList.add('unlocked');
+    bar.querySelector('.ub-icon').textContent = '🔓';
+    bar.querySelector('.ub-text').innerHTML =
+      '<strong>Límites desbloqueados para esta sesión</strong> — los controles pueden exceder '+
+      'los límites de seguridad. La firma de responsabilidad ha sido registrada en Git.';
+    btn.textContent = 'Rebloquear límites';
+    btn.style.borderColor = 'var(--warn)';
+    btn.style.color = 'var(--warn)';
+    rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
+    intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=0.5; });
+  } else {
+    bar.classList.remove('unlocked');
+    bar.querySelector('.ub-icon').textContent = '🔒';
+    bar.querySelector('.ub-text').innerHTML =
+      '<strong>Límites de seguridad activos</strong> — los controles no pueden exceder '+
+      '480 req/h, intervalo mínimo 1s, burst máximo 8. '+
+      'Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.';
+    btn.textContent = 'Desbloquear límites';
+    btn.style.borderColor = 'var(--bad)';
+    btn.style.color = 'var(--bad)';
+    rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
+    intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
+  }
+}
+
+function enforceCurrentCeilings(){
+  const rph = parseFloat(document.getElementById('sl-rph')?.value||240);
+  const interval = parseFloat(document.getElementById('sl-interval')?.value||10);
+  if(rph > HARD_CEILING.maxRph) syncSlider('rph', HARD_CEILING.maxRph);
+  if(interval < HARD_CEILING.minInterval) syncSlider('interval', HARD_CEILING.minInterval);
+}
+
+// ══════════════════════════════════════════════════════════
 // APPLY CHANGES
 // ══════════════════════════════════════════════════════════
 async function applyChanges(){
@@ -2323,10 +2531,11 @@ function buildNewRateLimiterYaml(){
   const preset = [...FACTORY_PRESETS, ...customPresets].find(p=>p.id===activePresetId);
   const rlMode = preset?.cfg?.rlMode || 'normal';
   const isCustom = activePresetId && activePresetId.startsWith('custom-');
+  const bypassCeiling = isCustom && ceilingUnlocked;
 
-  base.active_mode = isCustom ? 'custom' : rlMode;
-  base.max_requests_per_hour = isCustom ? rph : Math.min(rph, HARD_CEILING.maxRph);
-  base.capacity = isCustom ? capacity : Math.min(capacity, HARD_CEILING.maxBurst);
+  base.active_mode = bypassCeiling ? 'custom-unlocked' : (isCustom ? 'custom' : rlMode);
+  base.max_requests_per_hour = bypassCeiling ? rph : Math.min(rph, HARD_CEILING.maxRph);
+  base.capacity = bypassCeiling ? capacity : Math.min(capacity, HARD_CEILING.maxBurst);
   base.timeout_seconds = parseInt(document.getElementById('sl-timeout')?.value||30);
 
   // Ensure hard_ceiling is always present
