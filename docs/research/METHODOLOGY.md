@@ -41,7 +41,7 @@ auditores ciudadanos independientes.
 4. **Diffs** — Comparación entre snapshots consecutivos; registro de mutaciones.
 5. **Reglas** — 23 reglas estadísticas + 7 detectores forenses (sección 4).
 6. **Anclaje externo** — Merkle root anclado a Bitcoin vía OpenTimestamps.
-7. **Publicación** — Bloque forense + cobertura a Supabase; panel público.
+7. **Publicación** — Bloque forense + cobertura al panel público.
 
 ### 4. Catálogo de detectores implementados
 
@@ -169,7 +169,7 @@ auditors.
 ### 3. Technical pipeline
 
 Capture → SHA-256 hashing & chaining → normalization → diffs → 23 rules + 7 forensic
-detectors → Bitcoin anchoring (OpenTimestamps) → publication (Supabase + public panel).
+detectors → Bitcoin anchoring (OpenTimestamps) → publication (public panel).
 
 ### 4. Implemented detector catalog
 

@@ -1095,7 +1095,7 @@ def run_pipeline(config: dict[str, Any]) -> None:
             if should_generate_report(state, now):
                 run_command([sys.executable, "scripts/summarize_findings.py"], "reportes")
                 state["last_report_at"] = now.isoformat()
-                # Generate membretado PDF and upload to Supabase Storage
+                # Generate membretado PDF and publish to panel
                 _cli_args = globals().get("args")
                 _pdf_name = getattr(_cli_args, "output", "centinel_informe_nacional.pdf")
                 pdf_url = _generate_and_upload_pdf(_pdf_name)
@@ -1379,7 +1379,7 @@ def _trigger_emergency_publish(reason: str = "anomaly_detected") -> None:
     """Call GitHub workflow_dispatch to push snapshot.json immediately on HIGH/CRITICAL anomaly.
 
     Requires GITHUB_TOKEN and GITHUB_REPOSITORY env vars.
-    Fails silently — local chain and Supabase alerts are the primary record.
+    Fails silently — local chain and hash chain are the primary record.
     """
     import urllib.request as _urllib_req
 
@@ -1410,7 +1410,7 @@ def _trigger_emergency_publish(reason: str = "anomaly_detected") -> None:
 
 
 def _publish_forensics(config: dict[str, Any], now: datetime, extra_meta: dict | None = None) -> None:
-    """/** Publica forenses + cobertura a Supabase. / Publish forensics + coverage to Supabase. **
+    """/** Publica forenses + cobertura al panel público. / Publish forensics + coverage to public panel. **
 
     Always non-fatal: local SQLite + hash chain remain the source of truth.
     Siempre no fatal: SQLite local + cadena de hashes son la fuente de verdad.

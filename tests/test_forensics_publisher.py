@@ -1,6 +1,6 @@
-"""Tests for the Supabase forensics publisher.
+"""Tests for the forensics publisher.
 
-Pruebas para el publicador forense de Supabase.
+Pruebas para el publicador forense.
 """
 
 from __future__ import annotations
