@@ -89,8 +89,8 @@ def run_forensic_engine(data_dir: Path) -> InconsistentActsTracker:
         raise FileNotFoundError(f"No JSON files found in {data_dir}")
 
     tracker = InconsistentActsTracker(
-        config_path=Path("/tmp/forensic_pdf_key.json"),
-        runtime_config_path=Path("/tmp/forensic_pdf_config.json"),
+        config_path=Path("/tmp/forensic_pdf_key.json"),  # nosec B108
+        runtime_config_path=Path("/tmp/forensic_pdf_config.json"),  # nosec B108
         blackout_gap_minutes=30,
         max_resolution_rate=10.0,
         bulk_resolution_threshold=200,
