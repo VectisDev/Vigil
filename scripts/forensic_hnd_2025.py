@@ -89,7 +89,7 @@ def main() -> None:
 
     asymmetry = tracker.detect_asymmetric_benefit()
     if asymmetry:
-        print(f"\nAsymmetric benefit: {asymmetry['beneficiary']}")
+        print("\nAsymmetric benefit: [REDACTED]")
         print(f"  Swing: +{asymmetry['swing_pp']} pp, z={asymmetry['z_score']:+.3f}, p={asymmetry['z_pvalue']:.5f}")
         print(f"  Extra votes: ~{asymmetry['estimated_extra_votes']:,}")
     else:
