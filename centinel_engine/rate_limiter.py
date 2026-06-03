@@ -10,9 +10,11 @@ Este módulo forma parte de Centinel Engine y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
+  - HARD_CEILING / PRESET_MODES
   - TokenBucketRateLimiter
   - _load_rate_limiter_config
   - get_rate_limiter
+  - switch_mode
   - reset_rate_limiter
 
 Notas:
@@ -25,9 +27,11 @@ This module is part of Centinel Engine and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
+  - HARD_CEILING / PRESET_MODES
   - TokenBucketRateLimiter
   - _load_rate_limiter_config
   - get_rate_limiter
+  - switch_mode
   - reset_rate_limiter
 
 Notes:
@@ -47,6 +51,33 @@ from typing import Any, Deque, Optional
 from centinel_engine.config_loader import load_config
 
 logger = logging.getLogger(__name__)
+
+HARD_CEILING_MAX_REQUESTS_PER_HOUR: int = 480
+HARD_CEILING_MIN_INTERVAL: float = 2.0
+HARD_CEILING_MAX_BURST: int = 8
+
+PRESET_MODES: dict[str, dict[str, Any]] = {
+    "normal": {
+        "rate_interval": 10.0, "burst": 5, "min_interval": 6.0,
+        "max_interval": 12.0, "max_requests_per_hour": 240,
+        "conservative_min_delay_seconds": 600.0,
+    },
+    "electoral": {
+        "rate_interval": 7.0, "burst": 6, "min_interval": 3.0,
+        "max_interval": 8.0, "max_requests_per_hour": 360,
+        "conservative_min_delay_seconds": 300.0,
+    },
+    "aggressive": {
+        "rate_interval": 5.0, "burst": 8, "min_interval": 2.0,
+        "max_interval": 6.0, "max_requests_per_hour": 480,
+        "conservative_min_delay_seconds": 120.0,
+    },
+    "conservative": {
+        "rate_interval": 15.0, "burst": 3, "min_interval": 10.0,
+        "max_interval": 20.0, "max_requests_per_hour": 120,
+        "conservative_min_delay_seconds": 900.0,
+    },
+}
 
 DEFAULT_RATE_INTERVAL: float = 10.0
 DEFAULT_BURST: int = 5
@@ -88,7 +119,14 @@ class TokenBucketRateLimiter:
         max_interval: float = DEFAULT_MAX_INTERVAL,
         max_requests_per_hour: int = DEFAULT_MAX_REQUESTS_PER_HOUR,
         conservative_min_delay_seconds: float = DEFAULT_CONSERVATIVE_MIN_DELAY_SECONDS,
+        *,
+        mode: str = "normal",
+        enforce_ceiling: bool = True,
     ) -> None:
+        if enforce_ceiling:
+            max_requests_per_hour = min(int(max_requests_per_hour), HARD_CEILING_MAX_REQUESTS_PER_HOUR)
+            min_interval = max(float(min_interval), HARD_CEILING_MIN_INTERVAL)
+            burst = min(int(burst), HARD_CEILING_MAX_BURST)
         self._validate_limits(rate_interval, burst, min_interval, max_interval, max_requests_per_hour)
         self.rate_interval = float(rate_interval)
         self.burst = int(burst)
@@ -96,6 +134,8 @@ class TokenBucketRateLimiter:
         self.max_interval = float(max_interval)
         self.max_requests_per_hour = int(max_requests_per_hour)
         self.conservative_min_delay_seconds = float(conservative_min_delay_seconds)
+        self._mode = mode
+        self._enforce_ceiling = enforce_ceiling
 
         self._tokens = float(self.burst)
         self._last_refill = time.monotonic()
@@ -335,6 +375,41 @@ class TokenBucketRateLimiter:
                     int(DEFAULT_429_WINDOW_SECONDS),
                 )
 
+    def reconfigure(self, *, mode: str | None = None, **overrides: Any) -> None:
+        """Hot-reconfigure the limiter for a new mode or custom values.
+
+        Bilingual: Reconfigura el limitador en caliente para un nuevo modo o valores custom.
+        """
+        with self._lock:
+            if mode and mode != "custom":
+                preset = PRESET_MODES.get(mode)
+                if not preset:
+                    raise ValueError(f"Unknown mode: {mode}. Available: {', '.join(PRESET_MODES)}")
+                self._mode = mode
+                for key, value in preset.items():
+                    setattr(self, key, type(getattr(self, key))(value))
+            elif overrides:
+                self._mode = mode or "custom"
+                for key, value in overrides.items():
+                    if hasattr(self, key):
+                        setattr(self, key, type(getattr(self, key))(value))
+
+            if self._enforce_ceiling and self._mode != "custom":
+                self.max_requests_per_hour = min(self.max_requests_per_hour, HARD_CEILING_MAX_REQUESTS_PER_HOUR)
+                self.min_interval = max(self.min_interval, HARD_CEILING_MIN_INTERVAL)
+                self.burst = min(self.burst, HARD_CEILING_MAX_BURST)
+
+            self._tokens = min(self._tokens, float(self.burst))
+            logger.info(
+                "rate_limiter_reconfigured | mode=%s rph=%d min_interval=%.1f burst=%d",
+                self._mode, self.max_requests_per_hour, self.min_interval, self.burst,
+            )
+
+    @property
+    def mode(self) -> str:
+        with self._lock:
+            return self._mode
+
     @property
     def stats(self) -> dict[str, Any]:
         """Expose lightweight runtime metrics.
@@ -352,6 +427,7 @@ class TokenBucketRateLimiter:
         """
         with self._lock:
             return {
+                "mode": self._mode,
                 "rate_interval": self.rate_interval,
                 "burst": self.burst,
                 "min_interval": self.min_interval,
@@ -363,6 +439,11 @@ class TokenBucketRateLimiter:
                 "recent_429_count": len(self._recent_429_timestamps),
                 "total_wait_seconds": self._total_wait,
                 "total_waits": self._total_waits,
+                "hard_ceiling": {
+                    "max_requests_per_hour": HARD_CEILING_MAX_REQUESTS_PER_HOUR,
+                    "min_interval_seconds": HARD_CEILING_MIN_INTERVAL,
+                    "max_burst": HARD_CEILING_MAX_BURST,
+                },
             }
 
     @property
@@ -449,23 +530,71 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
         if _rate_limiter_singleton is None:
             config = _load_rate_limiter_config(env)
             core_limits = _load_core_limits(env)
+
+            active_mode = str(config.get("active_mode", "normal"))
+            modes = config.get("modes", {})
+            mode_cfg = modes.get(active_mode, {}) if isinstance(modes, dict) else {}
+
+            def _resolve(key: str, alt_key: str, default: Any) -> Any:
+                return mode_cfg.get(key, config.get(key, config.get(alt_key, default)))
+
             max_requests_per_hour = int(
-                config.get(
-                    "max_requests_per_hour",
+                _resolve(
+                    "max_requests_per_hour", "max_requests_per_hour",
                     core_limits.get("MAX_REQUESTS_PER_HOUR", DEFAULT_MAX_REQUESTS_PER_HOUR),
                 )
             )
+
+            ceiling = config.get("hard_ceiling", {})
+            is_custom = active_mode == "custom"
+
             _rate_limiter_singleton = TokenBucketRateLimiter(
-                rate_interval=float(config.get("rate_interval", config.get("rate_interval_seconds", DEFAULT_RATE_INTERVAL))),
-                burst=int(config.get("burst", config.get("capacity", DEFAULT_BURST))),
-                min_interval=float(config.get("min_interval", config.get("min_interval_seconds", DEFAULT_MIN_INTERVAL))),
-                max_interval=float(config.get("max_interval", config.get("max_interval_seconds", DEFAULT_MAX_INTERVAL))),
+                rate_interval=float(_resolve("rate_interval", "rate_interval_seconds", DEFAULT_RATE_INTERVAL)),
+                burst=int(_resolve("burst", "capacity", DEFAULT_BURST)),
+                min_interval=float(_resolve("min_interval", "min_interval_seconds", DEFAULT_MIN_INTERVAL)),
+                max_interval=float(_resolve("max_interval", "max_interval_seconds", DEFAULT_MAX_INTERVAL)),
                 max_requests_per_hour=max_requests_per_hour,
                 conservative_min_delay_seconds=float(
-                    config.get("conservative_min_delay_seconds", DEFAULT_CONSERVATIVE_MIN_DELAY_SECONDS)
+                    _resolve("conservative_min_delay_seconds", "conservative_min_delay_seconds", DEFAULT_CONSERVATIVE_MIN_DELAY_SECONDS)
                 ),
+                mode=active_mode,
+                enforce_ceiling=not is_custom,
+            )
+
+            if ceiling and not is_custom:
+                HARD_CEILING_MAX_REQUESTS_PER_HOUR_CFG = int(ceiling.get("max_requests_per_hour", HARD_CEILING_MAX_REQUESTS_PER_HOUR))
+                HARD_CEILING_MIN_INTERVAL_CFG = float(ceiling.get("min_interval_seconds", HARD_CEILING_MIN_INTERVAL))
+                HARD_CEILING_MAX_BURST_CFG = int(ceiling.get("max_burst", HARD_CEILING_MAX_BURST))
+                _rate_limiter_singleton.max_requests_per_hour = min(
+                    _rate_limiter_singleton.max_requests_per_hour, HARD_CEILING_MAX_REQUESTS_PER_HOUR_CFG
+                )
+                _rate_limiter_singleton.min_interval = max(
+                    _rate_limiter_singleton.min_interval, HARD_CEILING_MIN_INTERVAL_CFG
+                )
+                _rate_limiter_singleton.burst = min(
+                    _rate_limiter_singleton.burst, HARD_CEILING_MAX_BURST_CFG
+                )
+
+            logger.info(
+                "rate_limiter_initialized | mode=%s rph=%d min_interval=%.1f burst=%d enforce_ceiling=%s",
+                active_mode, _rate_limiter_singleton.max_requests_per_hour,
+                _rate_limiter_singleton.min_interval, _rate_limiter_singleton.burst,
+                not is_custom,
             )
         return _rate_limiter_singleton
+
+
+def switch_mode(mode: str, **custom_overrides: Any) -> TokenBucketRateLimiter:
+    """Switch the active rate limiter mode at runtime.
+
+    Bilingual: Cambia el modo activo del rate limiter en tiempo de ejecución.
+    """
+    limiter = get_rate_limiter()
+    if mode == "custom":
+        limiter.reconfigure(mode="custom", **custom_overrides)
+    else:
+        limiter.reconfigure(mode=mode)
+    return limiter
 
 
 def reset_rate_limiter() -> None:
