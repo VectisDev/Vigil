@@ -90,9 +90,11 @@ import logging
 import os
 import random
 import time
+import urllib.robotparser
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator, Optional
+from urllib.parse import urlparse
 
 import requests
 import yaml
@@ -145,6 +147,44 @@ _THROTTLE_MINUTES = int(os.getenv("CENTINEL_THROTTLE_MINUTES", "30"))
 #     less than TTL minutes ago, this node skips it (protects CNE endpoint).
 _CENTINEL_API_URL = os.getenv("CENTINEL_API_URL", "http://localhost:8080").rstrip("/")
 _SCRAPE_TTL_MINUTES = int(os.getenv("CENTINEL_SCRAPE_TTL_MINUTES", "55"))
+
+_ROBOTS_CACHE: dict[str, tuple[urllib.robotparser.RobotFileParser | None, float]] = {}
+_ROBOTS_TTL_SECONDS = 3600.0
+_CENTINEL_UA = "Centinel-Engine/1.0"
+
+
+def _check_robots_allowed(url: str) -> bool:
+    """Check if robots.txt allows our User-Agent to access this URL.
+    Returns True (allowed) if robots.txt is absent, unparseable, or allows access.
+    EN: Fail-open — a missing or broken robots.txt never blocks collection."""
+    try:
+        parsed = urlparse(url)
+        origin = f"{parsed.scheme}://{parsed.netloc}"
+        now = time.time()
+        cached = _ROBOTS_CACHE.get(origin)
+        if cached and (now - cached[1]) < _ROBOTS_TTL_SECONDS:
+            rp = cached[0]
+        else:
+            rp = urllib.robotparser.RobotFileParser()
+            robots_url = f"{origin}/robots.txt"
+            rp.set_url(robots_url)
+            try:
+                rp.read()
+            except Exception:
+                logger.info("robots_txt_not_available origin=%s — proceeding (fail-open)", origin)
+                _ROBOTS_CACHE[origin] = (None, now)
+                return True
+            _ROBOTS_CACHE[origin] = (rp, now)
+            logger.info("robots_txt_loaded origin=%s", origin)
+
+        if rp is None:
+            return True
+        allowed = rp.can_fetch(_CENTINEL_UA, url)
+        if not allowed:
+            logger.warning("robots_txt_disallowed url=%s ua=%s — respecting directive", url, _CENTINEL_UA)
+        return allowed
+    except Exception:
+        return True
 
 
 def _is_throttled(source_id: str) -> bool:
@@ -617,6 +657,10 @@ def process_sources(
             #     Disabled during election close (we must scrape everything regardless).
             if not _force_full and _is_throttled(source_id):
                 logger.info("source_throttle_active source=%s — skipping until throttle expires", source_id)
+                continue
+
+            if not _check_robots_allowed(endpoint):
+                logger.warning("robots_txt_blocked source=%s endpoint=%s — skipping per robots.txt", source_id, endpoint)
                 continue
 
             # ES: Salto cooperativo — deshabilitado en cierre electoral (cada nodo

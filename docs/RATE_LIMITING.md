@@ -158,13 +158,42 @@ The admin panel at `/ops` exposes mode selection through the presets grid.
 Factory presets enforce hard ceilings. Only user-saved custom presets can
 exceed them.
 
+## Ethical Compliance (3 Pillars)
+
+### 1. Honest User-Agent
+
+All requests use `Centinel-Engine/1.0 (+https://github.com/VectisDev/centinel)`.
+No fake browser UAs (Chrome/Firefox/Safari). The User-Agent links to the open-source
+project so any server admin can verify our mission.
+
+Implementation: `centinel_engine/proxy_manager.py:USER_AGENT_POOL`
+
+### 2. robots.txt Respect
+
+Before each fetch, `urllib.robotparser` checks the target's robots.txt. Results
+are cached for 1 hour per origin. Fail-open: a missing or broken robots.txt never
+blocks data collection (the CNE does not currently publish one).
+
+Implementation: `scripts/download_and_hash.py:_check_robots_allowed()`
+
+### 3. Retry-After Respect
+
+When the server sends a `Retry-After` header in a 429/503 response, the rate
+limiter uses that value as the minimum wait time. The server's explicit directive
+always takes priority over CENTINEL's internal backoff calculations.
+
+Implementation: `src/centinel/downloader.py:_perform_request()` extracts the header,
+`centinel_engine/rate_limiter.py:notify_response()` enforces it.
+
 ## Adaptive Behavior
 
 Beyond the configured mode, the rate limiter automatically:
-1. **Backs off on 429s**: 2+ responses in 5 minutes trigger conservative mode (10 min pause)
-2. **Exponential backoff on failures**: Each consecutive failure doubles the wait
-3. **Random jitter**: Every request adds 0-3.2s random delay to break timing patterns
-4. **Per-source throttling**: A 429/503 from a specific endpoint throttles that source for 30 minutes
+1. **Respects Retry-After**: Server-mandated wait times are honored as minimum delays
+2. **Backs off on 429s**: 2+ responses in 5 minutes trigger conservative mode (10 min pause)
+3. **Exponential backoff on failures**: Each consecutive failure doubles the wait
+4. **Random jitter**: Every request adds 0-3.2s random delay to break timing patterns
+5. **Per-source throttling**: A 429/503 from a specific endpoint throttles that source for 30 minutes
+6. **robots.txt**: Checked before every fetch, cached 1h per origin
 
 ## Sources
 
