@@ -30,7 +30,7 @@ jobs:
           git config user.name "centinel-bot"
           git config user.email "bot@centinel.app"
           git add web/access.json
-          git diff --cached --quiet || git commit -m "security: regenerate admin seeds (PBKDF2-SHA256 x600K)"
+          git diff --cached --quiet || git commit -m "security: regenerate admin seeds (SHA-256)"
           git push
 
       - name: Upload seeds artifact (expires 24h)
