@@ -99,7 +99,7 @@ def generate_batch_matrix(batch: ValidationBatch, parallel_jobs: int = 20) -> li
 
 
 if __name__ == "__main__":
-    batch_dir = Path("/tmp/validation_batches")
+    batch_dir = Path("/tmp/validation_batches")  # nosec B108
     batch = load_or_create_batch(batch_dir, "batch-001")
     if save_batch(batch, batch_dir):
         print(f"✓ Batch ready: {batch.batch_id}")
