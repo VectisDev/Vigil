@@ -1276,25 +1276,7 @@ details .details-body{padding:12px 0 4px}
               <div class="ctrl-row" style="margin-bottom:0">
                 <label>País</label>
                 <select id="lab-country-select" onchange="markDirty()" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%">
-                  <option value="HN">Honduras</option>
-                  <option value="CR">Costa Rica</option>
-                  <option value="PA">Panamá</option>
-                  <option value="SV">El Salvador</option>
-                  <option value="NI">Nicaragua</option>
-                  <option value="GT">Guatemala</option>
-                  <option value="CU">Cuba</option>
-                  <option value="DO">Rep. Dominicana</option>
-                  <option value="CO">Colombia</option>
-                  <option value="MX">México</option>
-                  <option value="PE">Perú</option>
-                  <option value="VE">Venezuela</option>
-                  <option value="EC">Ecuador</option>
-                  <option value="BO">Bolivia</option>
-                  <option value="PY">Paraguay</option>
-                  <option value="UY">Uruguay</option>
-                  <option value="AR">Argentina</option>
-                  <option value="CL">Chile</option>
-                  <option value="BR">Brasil</option>
+                  <option value="">Cargando países…</option>
                 </select>
               </div>
             </div>
@@ -2890,16 +2872,21 @@ async function loadCountrySelector() {
       if (name) name.textContent = cur.name;
       if (auth) auth.textContent = cur.authority;
     }
+    // Populate lab country selector from the same data
+    const labSel = document.getElementById('lab-country-select');
+    if (labSel) {
+      labSel.innerHTML = countries.map(c =>
+        `<option value="${c.code}"${c.code === currentCode ? ' selected' : ''}>${c.flag} ${c.name}</option>`
+      ).join('');
+    }
   } catch(e) {
     sel.innerHTML = '<option value="">Error al cargar países</option>';
   }
 }
 
-function onCountrySelectChange(code) {
-  const sel  = document.getElementById('country-select');
-  const flag = document.getElementById('country-current-flag');
-  const opt  = sel.options[sel.selectedIndex];
-  if (opt && flag) flag.textContent = opt.textContent.trim().split(' ')[0];
+async function onCountrySelectChange(code) {
+  if (!code) return;
+  await doChangeCountry();
 }
 
 // ── Operaciones ───────────────────────────────────────────────────────────────
@@ -3110,7 +3097,7 @@ async function saveElectoralUrl() {
 
 // Populate localConfig endpoints from current DEPTS data (no API required).
 // Runs after loadDepartments() so DEPTS is already filled.
-function syncEndpointsFromDepts() {
+function syncEndpointsFromDepts(force = false) {
   if (!DEPTS || DEPTS.length === 0) return;
   const nat = DEPTS.find(d => d.code === '00');
   const divs = DEPTS.filter(d => d.code !== '00');
@@ -3119,20 +3106,17 @@ function syncEndpointsFromDepts() {
   const ep = localConfig['config/prod/endpoints.yaml'];
   if (!ep.cne) ep.cne = {};
 
-  // Only overwrite main_url if it's empty or belongs to a different country
-  if (!ep.cne.main_url && nat?.url) ep.cne.main_url = nat.url;
+  if ((force || !ep.cne.main_url) && nat?.url) ep.cne.main_url = nat.url;
 
-  // Replace the endpoints list entirely with the new country's divisions
   ep.cne.presidential_endpoints = divs.map(d => ({
     department_code: parseInt(d.code, 10) || d.code,
     url: d.url || '',
   }));
 
-  // Update the main-url inputs in the UI
   const inpMain = document.getElementById('inp-main-url');
   const inpMainEasy = document.getElementById('inp-main-url-easy');
-  if (inpMain && !inpMain.value && nat?.url) inpMain.value = nat.url;
-  if (inpMainEasy && !inpMainEasy.value && nat?.url) inpMainEasy.value = nat.url;
+  if (inpMain && (force || !inpMain.value) && nat?.url) inpMain.value = nat.url;
+  if (inpMainEasy && (force || !inpMainEasy.value) && nat?.url) inpMainEasy.value = nat.url;
 
   markDirty();
   buildEndpointsTable();
@@ -3171,7 +3155,11 @@ async function doChangeCountry() {
   buildDeptGrid();
 
   // Auto-populate endpoints config from the new country's department URLs
-  syncEndpointsFromDepts();
+  syncEndpointsFromDepts(true);
+
+  // Sync lab country selector
+  const labSel = document.getElementById('lab-country-select');
+  if (labSel) labSel.value = code;
 
   // Best-effort API sync (silent on failure — works offline / GitHub Pages)
   let apiSynced = false;
