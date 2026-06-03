@@ -1525,15 +1525,17 @@ details .details-body{padding:12px 0 4px}
 // GLOBALS
 // ══════════════════════════════════════════════════════════
 // ── PBKDF2 Auth (no server-side deps) ──
-const ADMIN_SALT   = 'centinel-admin-salt-v1';
-const ADMIN_ITERS  = 600_000;
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
-async function pbkdf2Hex(password, salt, iterations){
+async function pbkdf2Hex(password, salt, iterations) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
-    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, key, 256);
-  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    {name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256'}, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // These are filled from config.js at runtime via GitHub Pages
@@ -1630,20 +1632,27 @@ let activePresetId = null;
 // ══════════════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════════════
-// Check session token stored in sessionStorage
+// Check session token stored in sessionStorage; also try URL fragment auto-login
 (function(){
   const tok = sessionStorage.getItem('centinel_admin_tok');
-  const exp = parseInt(sessionStorage.getItem('centinel_admin_exp')||'0',10);
-  if(tok && Date.now() < exp){ currentUser = {seed: tok}; showAdminShell(); }
+  const exp = parseInt(sessionStorage.getItem('centinel_admin_exp')||'0', 10);
+  if (tok && Date.now() < exp) { currentUser = {seed: tok}; showAdminShell(); return; }
+  // Auto-login via URL fragment: ops/#CLAVE24CHARS (base64url, 24 chars)
+  const frag = location.hash.slice(1);
+  if (frag.length === 24 && /^[A-Za-z0-9_-]{24}$/.test(frag)) {
+    window.addEventListener('DOMContentLoaded', () => doAdminLogin(frag), {once: true});
+  }
 })();
 
-async function doAdminLogin(){
-  const pass = document.getElementById('adm-pass').value.trim();
+async function doAdminLogin(prefillKey) {
+  const pass = prefillKey || document.getElementById('adm-pass').value.trim();
   const btn  = document.getElementById('btn-login');
   const err  = document.getElementById('auth-err');
-  if(!pass){err.textContent='Ingresa la clave de acceso.';return;}
-  btn.disabled=true; btn.textContent='Verificando…'; err.textContent='';
-  try{
+  if (!pass) { err.textContent = 'Ingresa la clave de acceso.'; return; }
+  btn.disabled = true;
+  btn.textContent = prefillKey ? 'Verificando enlace…' : 'Verificando…';
+  err.textContent = '';
+  try {
     const fallbackUrl = new URL('../access.json', location.href).href;
     let ac;
     if (window.CENTINEL_API_BASE) {
@@ -1652,26 +1661,37 @@ async function doAdminLogin(){
         if (r.ok) ac = await r.json();
       } catch(_) {}
     }
-    if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
-    const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
-    const rawSeeds = ac.seeds||{};
-    let matched = false;
-    if(Array.isArray(rawSeeds)){
-      matched = rawSeeds.some(h => (typeof h === 'string') ? h === candidate : h.hash === candidate);
-    } else {
-      matched = Object.values(rawSeeds).some(h => h === candidate);
+    if (!ac) {
+      const r = await fetch(fallbackUrl + '?t=' + Date.now());
+      if (!r.ok) {
+        err.textContent = `No se pudo cargar la configuración (HTTP ${r.status}).`;
+        btn.disabled = false; btn.textContent = 'Entrar'; return;
+      }
+      ac = await r.json();
     }
-    if(!matched){
-      err.textContent='Clave incorrecta.';
-      btn.disabled=false; btn.textContent='Entrar'; return;
+    // v3: SHA-256 direct; legacy v2: PBKDF2 (backwards-compat during transition)
+    let candidate;
+    if ((ac.version || 0) >= 3 || ac.method === 'SHA-256') {
+      candidate = await sha256Hex(pass);
+    } else {
+      candidate = await pbkdf2Hex(pass, ac.salt || 'centinel-admin-salt-v1', ac.iterations || 600000);
+    }
+    const rawSeeds = ac.seeds || {};
+    const matched = Array.isArray(rawSeeds)
+      ? rawSeeds.some(h => (typeof h === 'string') ? h === candidate : h.hash === candidate)
+      : Object.values(rawSeeds).some(h => h === candidate);
+    if (!matched) {
+      err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
+      btn.disabled = false; btn.textContent = 'Entrar'; return;
     }
     sessionStorage.setItem('centinel_admin_tok', 'operador');
-    sessionStorage.setItem('centinel_admin_exp', String(Date.now()+8*3600*1000));
+    sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
     currentUser = {seed: 'operador'};
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
-  }catch(e){
-    err.textContent='Error al verificar: '+e.message;
-    btn.disabled=false; btn.textContent='Entrar';
+  } catch(e) {
+    err.textContent = 'Error al verificar: ' + e.message;
+    btn.disabled = false; btn.textContent = 'Entrar';
   }
 }
 

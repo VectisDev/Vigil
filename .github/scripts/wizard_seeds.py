@@ -13,8 +13,6 @@ import hashlib, secrets, json, os, sys, base64
 from datetime import datetime, timezone
 from pathlib import Path
 
-SALT    = "centinel-admin-salt-v1"
-ITERS   = 600_000
 COUNTRY = os.environ.get("CENTINEL_COUNTRY", "HN")
 OWNER   = os.environ.get("REPO_OWNER", "")
 REPO    = os.environ.get("REPO_NAME", "")
@@ -44,17 +42,12 @@ def generate_base64_seed(entropy_bytes=18):
 
 NUM_SEEDS = 12
 seeds = [generate_base64_seed() for _ in range(NUM_SEEDS)]
-hashes = [
-    hashlib.pbkdf2_hmac("sha256", s.encode(), SALT.encode(), ITERS).hex()
-    for s in seeds
-]
+hashes = [hashlib.sha256(s.encode()).hexdigest() for s in seeds]
 
 access_path.parent.mkdir(parents=True, exist_ok=True)
 access_path.write_text(json.dumps({
-    "version":      2,
-    "algo":         "PBKDF2-SHA256",
-    "iterations":   ITERS,
-    "salt":         SALT,
+    "version":      3,
+    "method":       "SHA-256",
     "seeds":        hashes,
     "generated_at": datetime.now(timezone.utc).isoformat(),
     "country":      COUNTRY,
@@ -73,7 +66,7 @@ lines = [
     f"  Panel OPS: {pages_url}ops/",
     "",
     "  CONFIDENCIAL — Guarda este archivo FUERA DE LINEA.",
-    "    El sistema solo almacena los hashes PBKDF2-SHA256 (600K iter).",
+    "    El sistema solo almacena los hashes SHA-256.",
     "    Si pierdes estas claves, regenera desde el panel OPS.",
     "    Este archivo EXPIRA en 24 horas (artifact de GitHub Actions).",
     "",
