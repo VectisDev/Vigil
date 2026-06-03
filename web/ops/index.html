@@ -538,8 +538,8 @@ details .details-body{padding:12px 0 4px}
                 <span data-tip="Frecuencia con que el sistema escanea endpoints. Reducir aumenta la carga sobre el servidor.">ⓘ</span>
               </label>
               <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-interval" min="5" max="60" step="1" value="30" oninput="syncSlider('interval',this.value)">
-                <span class="val-badge" id="vb-interval">30</span>
+                <input type="range" id="sl-interval" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+                <span class="val-badge" id="vb-interval">10</span>
               </div>
             </div>
             <div class="ctrl-row">
@@ -547,8 +547,8 @@ details .details-body{padding:12px 0 4px}
                 <span data-tip="Límite de peticiones por hora. Reducir si el servidor bloquea por exceso de llamadas.">ⓘ</span>
               </label>
               <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-rph" min="60" max="360" step="10" value="180" oninput="syncSlider('rph',this.value)">
-                <span class="val-badge" id="vb-rph">180</span>
+                <input type="range" id="sl-rph" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+                <span class="val-badge" id="vb-rph">240</span>
               </div>
             </div>
             <div class="ctrl-row">
@@ -694,8 +694,8 @@ details .details-body{padding:12px 0 4px}
                   <span data-tip="Igual que el slider en modo fácil. Ambos sincronizan.">ⓘ</span>
                 </label>
                 <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-interval2" min="5" max="60" step="1" value="30" oninput="syncSlider('interval',this.value)">
-                  <span class="val-badge" id="vb-interval2">30</span>
+                  <input type="range" id="sl-interval2" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+                  <span class="val-badge" id="vb-interval2">10</span>
                 </div>
               </div>
               <div class="ctrl-row">
@@ -731,8 +731,8 @@ details .details-body{padding:12px 0 4px}
               <div class="ctrl-row">
                 <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
                 <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-rph2" min="60" max="360" step="10" value="180" oninput="syncSlider('rph',this.value)">
-                  <span class="val-badge" id="vb-rph2">180</span>
+                  <input type="range" id="sl-rph2" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+                  <span class="val-badge" id="vb-rph2">240</span>
                 </div>
               </div>
               <div class="ctrl-row">
@@ -1103,13 +1103,6 @@ details .details-body{padding:12px 0 4px}
             </span>
             <br>Último broadcast: <span id="swarm-last-bcast">—</span>
           </div>
-          <details style="margin-top:10px">
-            <summary style="font-size:12px;color:var(--muted);cursor:pointer">URL pública del nodo (opcional)</summary>
-            <div style="margin-top:8px">
-              <input type="text" id="swarm-my-url" placeholder="https://mi-nodo.example.com" style="width:100%;max-width:380px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
-              <p style="font-size:11px;color:var(--muted);margin-top:6px">Déjalo vacío si estás detrás de NAT. Solo necesario si otros nodos deben conectarse directamente a ti.</p>
-            </div>
-          </details>
         </div>
 
         <!-- Métricas en vivo -->
@@ -1189,6 +1182,7 @@ details .details-body{padding:12px 0 4px}
               <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
             </div>
             <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="hdr-btn" onclick="salaTab('reset')" style="font-size:11px;color:var(--muted)">← Volver</button>
               <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
               <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
             </div>
@@ -1206,7 +1200,7 @@ details .details-body{padding:12px 0 4px}
               <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
             </div>
             <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
-            <button class="hdr-btn" onclick="salaTab('crear')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
+            <button class="hdr-btn" onclick="salaTab('reset')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
           </div>
         </div>
 
@@ -1514,17 +1508,23 @@ async function loadDepartments(code) {
 // ══════════════════════════════════════════════════════════
 // PRESETS
 // ══════════════════════════════════════════════════════════
+// Hard ceiling: CENTINEL presets never exceed these values.
+// Only "custom" presets (user-created) can bypass them — under operator responsibility.
+const HARD_CEILING = { maxRph: 480, minInterval: 1, maxBurst: 8 };
+
 const FACTORY_PRESETS = [
-  {id:'normal',   name:'Operación normal',  desc:'Producción estándar',
-   cfg:{interval:30, rph:180, benford:5.99, zscore:3.0, election:false, safe:false}},
-  {id:'election', name:'Noche electoral',   desc:'Máxima frecuencia y sensibilidad',
-   cfg:{interval:10, rph:360, benford:4.5,  zscore:2.5, election:true,  safe:false}},
-  {id:'conserv',  name:'Modo conservador',  desc:'Servidores sensibles',
-   cfg:{interval:60, rph:60,  benford:7.0,  zscore:3.5, election:false, safe:false}},
+  {id:'normal',   name:'Operación normal',  desc:'Monitoreo pasivo entre elecciones · 10 min',
+   cfg:{interval:10, rph:240, benford:5.99, zscore:3.0, election:false, safe:false, rlMode:'normal'}},
+  {id:'election', name:'Noche electoral',   desc:'Máxima frecuencia ética · 3 min (estándar NYT/MinnPost)',
+   cfg:{interval:3,  rph:360, benford:4.5,  zscore:2.5, election:true,  safe:false, rlMode:'electoral'}},
+  {id:'aggressive',name:'Apagón / Crítico', desc:'Datos en riesgo · 1 min · jitter alto',
+   cfg:{interval:1,  rph:480, benford:4.5,  zscore:2.5, election:true,  safe:false, rlMode:'aggressive'}},
+  {id:'conserv',  name:'Modo conservador',  desc:'Servidores sensibles · 30 min',
+   cfg:{interval:30, rph:120, benford:7.0,  zscore:3.5, election:false, safe:false, rlMode:'conservative'}},
   {id:'research', name:'Investigación',     desc:'Research rules activas, sensibilidad alta',
-   cfg:{interval:30, rph:180, benford:3.84, zscore:2.0, election:false, safe:false}},
+   cfg:{interval:10, rph:240, benford:3.84, zscore:2.0, election:false, safe:false, rlMode:'normal'}},
   {id:'emergency',name:'Emergencia',        desc:'Máxima resiliencia, modo mínimo',
-   cfg:{interval:10, rph:120, benford:5.99, zscore:3.0, election:false, safe:true}},
+   cfg:{interval:10, rph:120, benford:5.99, zscore:3.0, election:false, safe:true,  rlMode:'conservative'}},
 ];
 let customPresets = [];
 let activePresetId = null;
@@ -2117,7 +2117,13 @@ const BADGE_IDS = {
 };
 
 function syncSlider(key, val){
-  const v = parseFloat(val);
+  let v = parseFloat(val);
+  // Enforce hard ceiling on CENTINEL presets (not custom)
+  const isCustom = activePresetId && activePresetId.startsWith('custom-');
+  if(!isCustom){
+    if(key==='rph')      v = Math.min(v, HARD_CEILING.maxRph);
+    if(key==='interval') v = Math.max(v, HARD_CEILING.minInterval);
+  }
   const display = Number.isInteger(v) ? v : v.toFixed(2);
   (SLIDER_IDS[key]||[]).forEach(id=>{
     const el = document.getElementById(id);
@@ -2127,7 +2133,6 @@ function syncSlider(key, val){
     const el = document.getElementById(id);
     if(el) el.textContent = display;
   });
-  // update Benford/zscore sensor card values
   if(key==='benford'){
     const sv = document.getElementById('scv-benford');
     const sd = document.getElementById('scd-benford');
@@ -2210,13 +2215,13 @@ function buildPresetsGrid(){
   const all = [...FACTORY_PRESETS, ...customPresets];
   grid.innerHTML = all.map(p=>{
     const c = p.cfg || {};
+    const modeLabels = {normal:'NORMAL',electoral:'ELECTORAL',aggressive:'AGRESIVO',conservative:'CONSERVADOR'};
     const vals = [
-      c.interval !== undefined ? `⏱ ${c.interval}m`  : '',
-      c.rph      !== undefined ? `📡 ${c.rph}/h`      : '',
-      c.benford  !== undefined ? `χ² ${c.benford}`    : '',
-      c.zscore   !== undefined ? `σ ${c.zscore}`      : '',
-      c.election ? '🗳️ ELECTORAL' : '',
-      c.safe     ? '🛡️ SAFE'     : '',
+      c.rlMode ? (modeLabels[c.rlMode]||c.rlMode) : '',
+      c.interval !== undefined ? `${c.interval}m`  : '',
+      c.rph      !== undefined ? `${c.rph}/h`      : '',
+      c.election ? 'ELECCIONES' : '',
+      c.safe     ? 'SAFE'     : '',
     ].filter(Boolean);
     return `
     <div class="preset-card ${activePresetId===p.id?'active-preset':''}" onclick="loadPreset('${p.id}')">
@@ -2310,9 +2315,26 @@ function buildNewWatchdogYaml(){
 
 function buildNewRateLimiterYaml(){
   const base = deepClone(currentConfig['config/prod/rate_limiter.yaml']||{});
-  base.max_requests_per_hour = parseInt(document.getElementById('sl-rph')?.value||180);
-  base.capacity = parseInt(document.getElementById('sl-capacity')?.value||3);
+  const rph = parseInt(document.getElementById('sl-rph')?.value||240);
+  const capacity = parseInt(document.getElementById('sl-capacity')?.value||5);
+  const interval = parseInt(document.getElementById('sl-interval')?.value||10);
+
+  // Determine active mode from preset
+  const preset = [...FACTORY_PRESETS, ...customPresets].find(p=>p.id===activePresetId);
+  const rlMode = preset?.cfg?.rlMode || 'normal';
+  const isCustom = activePresetId && activePresetId.startsWith('custom-');
+
+  base.active_mode = isCustom ? 'custom' : rlMode;
+  base.max_requests_per_hour = isCustom ? rph : Math.min(rph, HARD_CEILING.maxRph);
+  base.capacity = isCustom ? capacity : Math.min(capacity, HARD_CEILING.maxBurst);
   base.timeout_seconds = parseInt(document.getElementById('sl-timeout')?.value||30);
+
+  // Ensure hard_ceiling is always present
+  if(!base.hard_ceiling) base.hard_ceiling = {};
+  base.hard_ceiling.max_requests_per_hour = HARD_CEILING.maxRph;
+  base.hard_ceiling.min_interval_seconds = HARD_CEILING.minInterval;
+  base.hard_ceiling.max_burst = HARD_CEILING.maxBurst;
+
   return base;
 }
 
@@ -3437,7 +3459,7 @@ function _stopSwarmPoll() {
 let _salaId = null;
 
 function salaTab(tab) {
-  document.getElementById('sala-pick').style.display = 'none';
+  document.getElementById('sala-pick').style.display = tab === 'reset' ? '' : 'none';
   document.getElementById('sala-crear-panel').style.display = tab === 'crear' ? '' : 'none';
   document.getElementById('sala-unirse-panel').style.display = tab === 'unirse' ? '' : 'none';
 }
