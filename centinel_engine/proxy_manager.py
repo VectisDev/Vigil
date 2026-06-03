@@ -52,22 +52,11 @@ DEFAULT_ROTATION_EVERY_N = 5
 ROTATION_TRIGGER_CODES = {403, 429}
 
 USER_AGENT_POOL = (
-    [
-        f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{version}.0.0.0 Safari/537.36"
-        for version in range(108, 136)
-    ]
-    + [
-        f"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:{version}.0) Gecko/20100101 Firefox/{version}.0"
-        for version in range(102, 130)
-    ]
-    + [
-        f"Mozilla/5.0 (Macintosh; Intel Mac OS X 13_{version}) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.{version} Safari/605.1.15"
-        for version in range(0, 12)
-    ]
-    + [
-        f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edg/{version}.0.0.0 Safari/537.36"
-        for version in range(115, 131)
-    ]
+    "Centinel-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
+    "Centinel-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
+    "Centinel-Electoral-Monitor/1.0 (public-data-audit; +https://github.com/VectisDev/centinel)",
+    "Centinel-Engine/1.0 (Decreto-170-2006-HN; +https://github.com/VectisDev/centinel)",
+    "Centinel-Watchdog/1.0 (electoral-transparency; +https://github.com/VectisDev/centinel)",
 )
 
 _ACCEPT_POOL = (
@@ -81,7 +70,7 @@ _LANGUAGE_POOL = (
     "en-US,en;q=0.8,es-HN;q=0.6,es;q=0.4",
 )
 _FETCH_MODE_POOL = ("navigate", "cors", "no-cors")
-_REFERER_POOL = ("", "https://www.cne.hn/", "https://www.google.com/")
+_REFERER_POOL = ("", "https://github.com/VectisDev/centinel")
 
 
 class ProxyAndUAManager:
