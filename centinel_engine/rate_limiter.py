@@ -335,20 +335,17 @@ class TokenBucketRateLimiter:
             self._total_waits += 1
             return total_waited
 
-    def notify_response(self, status_code: Optional[int], *, success: bool) -> None:
+    def notify_response(
+        self,
+        status_code: Optional[int],
+        *,
+        success: bool,
+        retry_after_seconds: Optional[float] = None,
+    ) -> None:
         """Update adaptive state from upstream response outcomes.
 
         Bilingual: Actualiza estado adaptativo con el resultado de respuesta.
-
-        Args:
-            status_code: Optional HTTP response status code.
-            success: Whether request is considered successful.
-
-        Returns:
-            None.
-
-        Raises:
-            None.
+        Si el servidor envía Retry-After, lo respeta como mínimo.
         """
         with self._lock:
             if success:
@@ -363,8 +360,18 @@ class TokenBucketRateLimiter:
             while self._recent_429_timestamps and self._recent_429_timestamps[0] < window_start:
                 self._recent_429_timestamps.popleft()
 
+            if retry_after_seconds and retry_after_seconds > 0:
+                server_requested_until = now_wall + retry_after_seconds
+                self._conservative_mode_until = max(
+                    self._conservative_mode_until,
+                    server_requested_until,
+                )
+                logger.info(
+                    "rate_limiter_respecting_retry_after | server_requested_seconds=%.0f",
+                    retry_after_seconds,
+                )
+
             if len(self._recent_429_timestamps) > DEFAULT_429_THRESHOLD:
-                # English: force immediate conservative mode under repeated 429 bursts. / Español: forzar modo conservador inmediato ante ráfagas 429.
                 self._conservative_mode_until = max(
                     self._conservative_mode_until,
                     now_wall + self.conservative_min_delay_seconds,
