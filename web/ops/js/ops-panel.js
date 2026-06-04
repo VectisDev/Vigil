@@ -55,14 +55,16 @@ function updateDirtyState(){
 }
 
 // ══════════════════════════════════════════════════════════
-// MODE TOGGLE
+// ADVANCED CONFIG TOGGLE
 // ══════════════════════════════════════════════════════════
-function setMode(m){
-  adminMode = m;
-  document.getElementById('btn-easy').className = m==='easy' ? 'active' : '';
-  document.getElementById('btn-full').className = m==='full' ? 'active' : '';
-  const advEl = document.getElementById('advanced-config');
-  if(advEl) advEl.style.display = m==='full' ? 'block' : 'none';
+function toggleAdvancedConfig(){
+  const el    = document.getElementById('advanced-config');
+  const btn   = document.getElementById('btn-adv-config');
+  const arrow = document.getElementById('adv-config-arrow');
+  const isOpen = el && el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  btn.classList.toggle('adv-open', !isOpen);
+  arrow.textContent = isOpen ? '▶' : '▼';
 }
 
 // ══════════════════════════════════════════════════════════
@@ -281,6 +283,18 @@ function updateUnlockUI(){
     [...rphSliders,'sl-rph3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
     [...intSliders,'sl-interval3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
   }
+  // Red tab: retry inputs — cap at 5 when locked, 20 when unlocked
+  const retryIds = ['retry-429','retry-5xx','retry-403','retry-404'];
+  retryIds.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.max = ceilingUnlocked ? 20 : 5;
+    if(!ceilingUnlocked && parseInt(el.value) > 5) el.value = 5;
+  });
+  const retryBadge = document.getElementById('retry-lock-badge');
+  const rateBadge  = document.getElementById('rate-lock-badge');
+  if(retryBadge) retryBadge.style.display = ceilingUnlocked ? 'none' : '';
+  if(rateBadge)  rateBadge.style.display  = ceilingUnlocked ? 'none' : '';
 }
 
 function enforceCurrentCeilings(){
