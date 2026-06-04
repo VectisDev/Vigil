@@ -32,7 +32,7 @@
     <span class="hdr-brand">CENTINEL</span>
     <span class="hdr-user" id="hdr-user">—</span>
     <button class="hdr-btn" onclick="reloadConfig()">↻ Recargar</button>
-    <button class="hdr-btn" onclick="doLogout()">Salir</button>
+    <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()">Salir</button>
   </div>
   <!-- MISSION BAR -->
   <div id="mission-bar">
@@ -1457,6 +1457,27 @@ function doLogout(){
   sessionStorage.removeItem('centinel_admin_tok');
   sessionStorage.removeItem('centinel_admin_exp');
   location.reload();
+}
+
+let _logoutArmed = false;
+let _logoutTimer = null;
+function confirmLogout(){
+  const btn = document.getElementById('btn-logout');
+  if(!_logoutArmed){
+    _logoutArmed = true;
+    btn.textContent = isDirty ? '⚠ Cambios sin guardar — ¿salir?' : '¿Confirmar salida?';
+    btn.style.borderColor = 'var(--bad)';
+    btn.style.color = 'var(--bad)';
+    _logoutTimer = setTimeout(()=>{
+      _logoutArmed = false;
+      btn.textContent = 'Salir';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 4000);
+  } else {
+    clearTimeout(_logoutTimer);
+    doLogout();
+  }
 }
 
 function showAdminShell(){
