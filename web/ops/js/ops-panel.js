@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════════
 // DIRTY STATE — auto-apply on change (debounced)
 // ══════════════════════════════════════════════════════════
-let _autoApplyEnabled = localStorage.getItem('centinel-autosave') === 'true';
+let _autoApplyEnabled = localStorage.getItem('centinel-autosave') !== 'false';
 let _autoApplyTimer = null;
 let _writeInProgress = false;
 
@@ -13,7 +13,8 @@ const _SLOG_MAX = 100;
 
 function auditLog(action, detail=''){
   try{
-    const entry = {ts:new Date().toISOString(), id:(typeof getCurrentSeedId==='function'?getCurrentSeedId():'S??'), role:getCurrentRole(), action, detail:String(detail).slice(0,200)};
+    const fp = sessionStorage.getItem('centinel_fp') || '';
+    const entry = {ts:new Date().toISOString(), id:(typeof getCurrentSeedId==='function'?getCurrentSeedId():'S??'), fp, role:getCurrentRole(), action, detail:String(detail).slice(0,200)};
     const log = _getSessionLog();
     log.unshift(entry);
     if(log.length > _SLOG_MAX) log.length = _SLOG_MAX;
@@ -41,9 +42,12 @@ function _renderSessionLog(){
     const d = new Date(e.ts);
     const time = d.toLocaleString('es',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
     const color = COLORS[e.action]||'var(--fg)';
-    const rColor = e.role==='observer'?'var(--warn)':'var(--ok)';
-    const seedId = e.id || e.role || 'S??';
-    return `<tr><td class="col-ts">${esc(time)}</td><td><span style="font-size:9px;font-weight:700;color:${rColor};font-family:var(--mono)">${esc(seedId)}</span></td><td style="color:${color};font-weight:600">${esc(e.action)}${e.detail?`<span style="color:var(--muted);font-size:10px;font-weight:400"> — ${esc(e.detail)}</span>`:''}</td></tr>`;
+    const isObserver = e.role==='observer';
+    const idColor  = isObserver ? 'var(--warn)' : 'var(--ok)';
+    const seedId   = e.id || 'S??';
+    const fp       = e.fp ? `<span style="color:var(--muted);font-size:9px;margin-left:4px">··${esc(e.fp)}</span>` : '';
+    const roleTag  = isObserver ? '<span style="font-size:8px;color:var(--warn);margin-left:3px">RO</span>' : '';
+    return `<tr><td class="col-ts">${esc(time)}</td><td style="white-space:nowrap"><span style="font-size:10px;font-weight:700;color:${idColor};font-family:var(--mono);letter-spacing:.05em">${esc(seedId)}</span>${fp}${roleTag}</td><td style="color:${color};font-weight:600">${esc(e.action)}${e.detail?`<span style="color:var(--muted);font-size:10px;font-weight:400"> — ${esc(e.detail)}</span>`:''}</td></tr>`;
   }).join('');
 }
 
