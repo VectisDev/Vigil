@@ -523,13 +523,6 @@ details .details-body{padding:12px 0 4px}
   font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;
   cursor:pointer;transition:background .15s}
 #btn-sidebar-finalizar:hover{background:rgba(212,176,102,.18)}
-/* sidebar OTS row */
-#sidebar-ots-row{display:flex;align-items:center;gap:6px;padding:2px 12px 8px}
-.sob-label{flex:1;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-.btn-ots-sb{padding:3px 8px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
-  cursor:pointer;transition:background .15s;letter-spacing:.05em;white-space:nowrap}
-.btn-ots-sb.ots-on{background:rgba(87,192,141,.08);border:1px solid rgba(87,192,141,.35);color:var(--ok)}
-.btn-ots-sb.ots-off{background:rgba(139,146,156,.06);border:1px solid rgba(139,146,156,.25);color:var(--muted)}
 /* sidebar emergency zone */
 #sidebar-emergency-zone{margin-top:auto;padding:8px 12px 12px;background:var(--panel)}
 .sez-sep{height:1px;background:rgba(223,107,134,.3);margin-bottom:10px}
@@ -624,11 +617,6 @@ details .details-body{padding:12px 0 4px}
       <a href="#s7" onclick="scrollTo('s7')">Red de Nodos</a>
       <div class="sec-header">Configuración</div>
       <a href="#s3" onclick="scrollTo('s3')">Presets</a>
-      <div id="sidebar-ots-row">
-        <span id="ots-net-dot-sb" class="ots-dot ots-dot-probing"></span>
-        <span class="sob-label">Bitcoin OTS</span>
-        <button id="btn-sidebar-ots" class="btn-ots-sb ots-on" onclick="onOtsToggle()">⛓ Activo</button>
-      </div>
       <div class="sec-header">Monitoreo</div>
       <a href="#s4" onclick="scrollTo('s4')">Logs y terminales</a>
       <div class="sec-header">Cierre</div>
@@ -779,11 +767,17 @@ details .details-body{padding:12px 0 4px}
 
         <!-- OTS (Bitcoin anchoring) -->
         <div class="ctrl-section" id="ots-section">
-              <h3>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                Anclaje Bitcoin
-                <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
-                <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
+              <h3 style="justify-content:space-between">
+                <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Anclaje Bitcoin
+                  <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
+                  <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
+                </span>
+                <button id="btn-ots-toggle" onclick="onOtsToggle()"
+                  style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
+                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
+                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ Activo</button>
               </h3>
               <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -798,16 +792,6 @@ details .details-body{padding:12px 0 4px}
                 <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el anclaje</strong> para evitar esperas innecesarias.</span>
               </div>
               <input type="checkbox" id="tog-ots" checked style="display:none">
-              <div class="ctrl-row" style="align-items:center;justify-content:space-between;margin-bottom:10px">
-                <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">
-                  Anclar en Bitcoin
-                  <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">(OpenTimestamps) ⓘ</span>
-                </label>
-                <button id="btn-ots-toggle" onclick="onOtsToggle()"
-                  style="padding:5px 14px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;
-                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
-                  background:rgba(87,192,141,.08);color:var(--ok)">⛓ Activo</button>
-              </div>
               <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
                 <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
                 <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
@@ -3043,9 +3027,8 @@ function onOtsServerSelect(val) {
 
 // Update the connectivity dot + hint text in the heading
 function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
-  const dot   = document.getElementById('ots-net-dot');
-  const dotSb = document.getElementById('ots-net-dot-sb');
-  const hint  = document.getElementById('ots-net-hint');
+  const dot  = document.getElementById('ots-net-dot');
+  const hint = document.getElementById('ots-net-hint');
   const map  = {
     probing: ['ots-dot-probing', 'probando red…'],
     ok:      ['ots-dot-ok',      'calendarios accesibles'],
@@ -3054,15 +3037,13 @@ function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
     off:     ['ots-dot-off',     'desactivado'],
   };
   const [cls, text] = map[state] || map.probing;
-  if(dot)   { dot.className = 'ots-dot ' + cls; dot.title = text; }
-  if(dotSb) { dotSb.className = 'ots-dot ' + cls; dotSb.title = text; }
-  if(hint)  { hint.textContent = text; }
+  if(dot)  { dot.className = 'ots-dot ' + cls; dot.title = text; }
+  if(hint) { hint.textContent = text; }
 }
 
 function _syncOtsBtn(){
   const enabled = document.getElementById('tog-ots')?.checked ?? true;
-  const btn  = document.getElementById('btn-ots-toggle');
-  const btnS = document.getElementById('btn-sidebar-ots');
+  const btn = document.getElementById('btn-ots-toggle');
   if(btn){
     if(enabled){
       btn.textContent = '⛓ Activo';
@@ -3075,10 +3056,6 @@ function _syncOtsBtn(){
       btn.style.background  = 'rgba(139,146,156,.06)';
       btn.style.color       = 'var(--muted)';
     }
-  }
-  if(btnS){
-    btnS.textContent = enabled ? '⛓ Activo' : '⛓ Inactivo';
-    btnS.className   = enabled ? 'btn-ots-sb ots-on' : 'btn-ots-sb ots-off';
   }
 }
 
