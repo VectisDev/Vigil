@@ -331,9 +331,15 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
   transform:translateX(-50%);background:#1e222a;color:var(--fg);font-size:11px;padding:6px 10px;
   border-radius:6px;width:220px;max-width:min(220px,calc(100vw - 30px));white-space:normal;
   word-break:normal;pointer-events:none;opacity:0;transition:.15s;
-  z-index:999;line-height:1.5;border:1px solid var(--border)}
+  z-index:1001;line-height:1.5;border:1px solid var(--border)}
 [data-tip]:hover::after{opacity:1}
 .tip-left[data-tip]::after{left:auto;right:0;transform:none}
+/* section tooltip icon */
+.sec-tip{font-size:10px;color:var(--muted);cursor:help;opacity:.55;transition:opacity .15s;
+  font-weight:400;letter-spacing:0;text-transform:none;user-select:none}
+.sec-tip:hover{opacity:1}
+.sec-tip[data-tip]::after{width:300px;max-width:min(300px,calc(100vw - 40px));left:0;
+  transform:none;font-size:11px;line-height:1.65;z-index:1001}
 
 /* ── DIFF MODAL ── */
 #diff-modal,#pat-modal,#result-modal,#unlock-modal{display:none;position:fixed;inset:0;z-index:500;
@@ -652,7 +658,7 @@ details .details-body{padding:12px 0 4px}
 
         <!-- Título + botones de operación -->
         <div id="panel-topbar">
-          <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span></div>
+          <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span><span class="sec-tip" data-tip="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia.">ⓘ</span></div>
           <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
           <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
           <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
@@ -736,7 +742,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 3 PRESETS ── -->
       <div class="section" id="s3">
-        <div class="section-title">Presets <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
+        <div class="section-title">Presets <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada.">ⓘ</span></div>
         <hr class="section-sep">
 
         <!-- 409 conflict banner -->
@@ -1084,7 +1090,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 5 LOGS ── -->
       <div class="section" id="s4">
-        <div class="section-title">Logs y terminales</div>
+        <div class="section-title">Logs y terminales <span class="sec-tip" data-tip="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoría. Todo queda grabado y no se puede borrar.">ⓘ</span></div>
         <hr class="section-sep">
 
         <!-- Log General -->
@@ -1169,7 +1175,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 6 MANUAL ── -->
       <div class="section" id="s5">
-        <div class="section-title">Manual</div>
+        <div class="section-title">Manual <span class="sec-tip" data-tip="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automático.">ⓘ</span></div>
         <hr class="section-sep">
         <details id="mini-manual">
           <summary>Guía rápida del panel de administración</summary>
@@ -1217,7 +1223,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 7 Acceso y Seeds ── -->
       <div class="section" id="s6">
-        <div class="section-title">Acceso y Seeds</div>
+        <div class="section-title">Acceso y Seeds <span class="sec-tip" data-tip="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano — solo su huella criptográfica. Úsalas para rotarlas o revocarlas.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
           Gestión de las 12 claves de acceso administrativo.
@@ -1260,7 +1266,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
       <div class="section" id="s7">
-        <div class="section-title">Red de Nodos</div>
+        <div class="section-title">Red de Nodos <span class="sec-tip" data-tip="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demás para detectar cualquier manipulación en tiempo real.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
           Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
@@ -1464,7 +1470,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
       <div class="section" id="s8">
-        <div class="section-title">Cierre Electoral</div>
+        <div class="section-title">Cierre Electoral <span class="sec-tip" data-tip="Secuencia de fin de elección: raspado final completo de todas las fuentes, publicación del snapshot certificado y apagado controlado del sistema. Irreversible.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
           Secuencia de fin de elección: raspe final forzado de todas las fuentes,
