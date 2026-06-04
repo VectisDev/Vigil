@@ -468,7 +468,7 @@ details .details-body{padding:12px 0 4px}
 /* ── SECTION ORDER ── */
 #main-area{display:flex;flex-direction:column}
 #main-area .section{width:100%}
-#s1{order:1}#s7{order:2}#s3{order:3}#s4{order:4}#s8{order:5}#s6{order:6}#s5{order:7}
+#s1{order:1}#s7{order:2}#s3{order:3}#s9{order:4}#s4{order:5}#s8{order:6}#s6{order:7}#s5{order:8}
 /* ── SPACEX REDESIGN ── */
 #admin-header{height:var(--hdr-height);box-shadow:0 1px 0 0 rgba(110,168,254,.1)}
 #admin-header .hdr-brand{letter-spacing:.2em;font-size:13px;color:var(--accent);text-shadow:0 0 14px var(--accent-glow)}
@@ -560,8 +560,6 @@ details .details-body{padding:12px 0 4px}
       <button onclick="setMode('full')" id="btn-full">Modo Completo</button>
     </div>
     <button class="hdr-btn" onclick="reloadConfig()">↻ Recargar</button>
-    <button class="hdr-btn primary" id="btn-apply" onclick="applyChanges()" disabled
-      data-tip="Sin cambios pendientes">Aplicar cambios</button>
     <button class="hdr-btn" onclick="doLogout()">Salir</button>
   </div>
   <!-- MISSION BAR -->
@@ -622,6 +620,8 @@ details .details-body{padding:12px 0 4px}
       <a href="#s7" onclick="scrollTo('s7')">Red de Nodos</a>
       <div class="sec-header">Configuración</div>
       <a href="#s3" onclick="scrollTo('s3')">Presets</a>
+      <div class="sec-header">Integridad</div>
+      <a href="#s9" onclick="scrollTo('s9')">Anclaje Bitcoin</a>
       <div class="sec-header">Monitoreo</div>
       <a href="#s4" onclick="scrollTo('s4')">Logs y terminales</a>
       <div class="sec-header">Cierre</div>
@@ -750,7 +750,7 @@ details .details-body{padding:12px 0 4px}
         <div class="info-box" style="margin-bottom:16px">
           Los presets son <strong>plantillas de interfaz</strong> guardadas localmente en tu navegador.
           <strong>Cargar</strong> un preset rellena los controles pero <strong>no modifica el repositorio</strong>.
-          Solo <strong>"Aplicar cambios"</strong> escribe a GitHub y requiere PAT.
+          Cada cambio se guarda automáticamente en GitHub (requiere PAT la primera vez).
         </div>
         <div class="unlock-bar" id="unlock-bar">
           <div class="ub-icon" id="unlock-bar-icon">&#x1f512;</div>
@@ -769,71 +769,6 @@ details .details-body{padding:12px 0 4px}
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
           <input type="text" id="preset-name" placeholder="Nombre del preset…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
           <button class="hdr-btn" onclick="saveCustomPreset()">Guardar estado actual como preset</button>
-        </div>
-
-        <!-- OTS (Bitcoin anchoring) -->
-        <div class="ctrl-section" id="ots-section">
-              <h3 style="justify-content:space-between">
-                <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                  Anclaje Bitcoin
-                  <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
-                  <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
-                </span>
-                <button id="btn-ots-toggle" onclick="onOtsToggle()"
-                  style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
-                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
-                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ Activo</button>
-              </h3>
-              <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-                  <span id="ots-status-badge" class="badge badge-neutral">—</span>
-                  <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
-                </div>
-                <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
-                <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
-              </div>
-              <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el anclaje</strong> para evitar esperas innecesarias.</span>
-              </div>
-              <input type="checkbox" id="tog-ots" checked style="display:none">
-              <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-                <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
-                <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
-                  <option value="https://a.pool.opentimestamps.org">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
-                  <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
-                  <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
-                  <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
-                  <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
-                  <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
-                  <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
-                  <option value="__custom__">✏️ Personalizado…</option>
-                </select>
-                <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
-              </div>
-              <details>
-                <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
-                <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
-                  <p>Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</p>
-                  <p style="margin-top:8px"><strong>Calendarios usados (gratuitos, sin API key):</strong></p>
-                  <ul style="margin:4px 0 0 16px">
-                    <li>alice.btc.calendar.opentimestamps.org</li>
-                    <li>bob.btc.calendar.opentimestamps.org</li>
-                    <li>finney.calendar.eternitywall.com</li>
-                    <li>ots.btc.catallaxy.com</li>
-                  </ul>
-                  <p style="margin-top:8px"><strong>Para verificar una prueba OTS:</strong></p>
-                  <ol style="margin:4px 0 0 16px">
-                    <li>Descarga el archivo <code>.ots</code> del checkpoint</li>
-                    <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
-                    <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
-                  </ol>
-                  <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
-                  <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
-                  <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
-                </div>
-              </details>
         </div>
 
         <!-- Configuración avanzada (Full mode tabs) -->
@@ -1078,6 +1013,75 @@ details .details-body{padding:12px 0 4px}
         </details>
       </div>
 
+      <!-- ── ANCLAJE BITCOIN (OTS) ── -->
+      <div class="section" id="s9">
+        <div class="section-title">Anclaje Bitcoin <span class="sec-tip" data-tip="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain vía OpenTimestamps para que cualquier auditor pueda verificar que los datos existían antes de cierto bloque, sin depender de Centinel.">ⓘ</span></div>
+        <hr class="section-sep">
+        <div class="ctrl-section" id="ots-section">
+              <h3 style="justify-content:space-between">
+                <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  OpenTimestamps
+                  <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
+                  <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
+                </span>
+                <button id="btn-ots-toggle" onclick="onOtsToggle()"
+                  style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
+                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
+                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ Activo</button>
+              </h3>
+              <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span id="ots-status-badge" class="badge badge-neutral">—</span>
+                  <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
+                <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
+              </div>
+              <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el anclaje</strong> para evitar esperas innecesarias.</span>
+              </div>
+              <input type="checkbox" id="tog-ots" checked style="display:none">
+              <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
+                <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+                  <option value="https://a.pool.opentimestamps.org">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
+                  <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
+                  <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
+                  <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
+                  <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
+                  <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
+                  <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
+                  <option value="__custom__">✏️ Personalizado…</option>
+                </select>
+                <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+              </div>
+              <details>
+                <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
+                <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
+                  <p>Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</p>
+                  <p style="margin-top:8px"><strong>Calendarios usados (gratuitos, sin API key):</strong></p>
+                  <ul style="margin:4px 0 0 16px">
+                    <li>alice.btc.calendar.opentimestamps.org</li>
+                    <li>bob.btc.calendar.opentimestamps.org</li>
+                    <li>finney.calendar.eternitywall.com</li>
+                    <li>ots.btc.catallaxy.com</li>
+                  </ul>
+                  <p style="margin-top:8px"><strong>Para verificar una prueba OTS:</strong></p>
+                  <ol style="margin:4px 0 0 16px">
+                    <li>Descarga el archivo <code>.ots</code> del checkpoint</li>
+                    <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
+                    <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
+                  </ol>
+                  <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
+                  <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
+                  <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
+                </div>
+              </details>
+        </div>
+      </div>
+
       <!-- ── 5 LOGS ── -->
       <div class="section" id="s4">
         <div class="section-title">Logs y terminales <span class="sec-tip" data-tip="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoría. Todo queda grabado y no se puede borrar.">ⓘ</span></div>
@@ -1156,7 +1160,7 @@ details .details-body{padding:12px 0 4px}
             <input type="search" id="audit-search" class="term-search" placeholder="SHA, autor, mensaje…" oninput="onAuditSearch(this.value)">
             <button onclick="fetchAuditTrail()" title="Refrescar">↻</button>
           </div>
-          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th>Tiempo</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Historial de cambios en configuración.<span class="log-empty-hint">Usa "Aplicar cambios" para conectar tu GitHub PAT y cargar el historial.</span></td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th>Tiempo</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Historial de cambios en configuración.<span class="log-empty-hint">Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.</span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-audit')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
           </div>
@@ -1173,21 +1177,20 @@ details .details-body{padding:12px 0 4px}
             <div class="ctrl-section">
               <h3>Configuración avanzada</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                Los parámetros de operación se configuran desde la sección <strong>3 Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
+                Los parámetros de operación se configuran desde la sección <strong>Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
                 Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.
               </p>
               <h3>El mapa de endpoints</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.<br><br>
-                Los cambios desde el popup quedan pendientes (dirty) hasta que hagas clic en "Aplicar cambios".
+                Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.
               </p>
               <h3>Cómo se guardan los cambios</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                1. Modifica cualquier control — el botón "Aplicar cambios" se activa.<br>
-                2. Click en "Aplicar" → modal con diff de todos los cambios pendientes.<br>
-                3. Confirma → se te pide el GitHub PAT (solo en sessionStorage, desaparece al cerrar el browser).<br>
-                4. El sistema hace commit a <code>config/prod/</code> vía GitHub API.<br>
-                5. Los cambios toman efecto en el próximo ciclo (~15 min).
+                Cada cambio se guarda automáticamente 1.5 segundos después de modificarlo.<br>
+                1. Modifica cualquier control — el cambio se envía a GitHub automáticamente.<br>
+                2. La primera vez se te pide el GitHub PAT (solo en sessionStorage, desaparece al cerrar el browser).<br>
+                3. El sistema hace commit a <code>config/prod/</code> vía GitHub API.<br>
+                4. Los cambios toman efecto en el próximo ciclo (~15 min).
               </p>
               <h3>Animal mode</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
@@ -1199,7 +1202,7 @@ details .details-body{padding:12px 0 4px}
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
                 1. Click en el punto en el mapa → "Probar ahora" para verificar si responde.<br>
                 2. Si no responde: verifica la URL con el proveedor CNE.<br>
-                3. Actualiza la URL en el popup → "Guardar cambio" → "Aplicar cambios".<br>
+                3. Actualiza la URL en el popup → "Guardar cambio" → se guarda automáticamente.<br>
                 4. Si es un fallo temporal, el circuit breaker se recupera automáticamente.
               </p>
               <h3>Recuperar configuración anterior</h3>
@@ -2538,11 +2541,31 @@ function syncText(key, val){
 }
 
 // ══════════════════════════════════════════════════════════
-// DIRTY STATE
+// DIRTY STATE — auto-apply on change (debounced)
 // ══════════════════════════════════════════════════════════
+let _autoApplyTimer = null;
 function markDirty(){
   isDirty = true;
   updateDirtyState();
+  if(_autoApplyTimer) clearTimeout(_autoApplyTimer);
+  _autoApplyTimer = setTimeout(()=>{ _autoApplyTimer=null; autoApply(); }, 1500);
+}
+
+async function autoApply(){
+  if(!isDirty) return;
+  const newEp  = buildNewEndpointsYaml();
+  const newWd  = buildNewWatchdogYaml();
+  const newRl  = buildNewRateLimiterYaml();
+  const newCfg = buildNewConfigYaml();
+  const changes = buildDiff(newEp, newWd, newRl, newCfg);
+  if(!changes.length){ isDirty=false; updateDirtyState(); return; }
+  let pat = sessionStorage.getItem('gh-pat');
+  if(!pat){
+    const acquired = await requestPat();
+    if(!acquired) return;
+    pat = sessionStorage.getItem('gh-pat');
+  }
+  await writeChanges(changes, {newEp, newWd, newRl, newCfg}, pat);
 }
 
 window.addEventListener('beforeunload', e => {
@@ -2551,12 +2574,7 @@ window.addEventListener('beforeunload', e => {
 
 function updateDirtyState(){
   const dot = document.getElementById('dirty-dot');
-  const btn = document.getElementById('btn-apply');
   if(dot) dot.style.display = isDirty ? 'inline-block' : 'none';
-  if(btn){
-    btn.disabled = !isDirty;
-    btn.dataset.tip = isDirty ? '' : 'Sin cambios pendientes';
-  }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2796,16 +2814,7 @@ function enforceCurrentCeilings(){
 // APPLY CHANGES
 // ══════════════════════════════════════════════════════════
 async function applyChanges(){
-  if(!isDirty) return;
-  const newEp  = buildNewEndpointsYaml();
-  const newWd  = buildNewWatchdogYaml();
-  const newRl  = buildNewRateLimiterYaml();
-  const newCfg = buildNewConfigYaml();
-  const changes = buildDiff(newEp, newWd, newRl, newCfg);
-  if(!changes.length){
-    isDirty=false; updateDirtyState(); return;
-  }
-  showDiffModal(changes, {newEp, newWd, newRl, newCfg});
+  await autoApply();
 }
 
 function buildNewEndpointsYaml(){
@@ -3365,7 +3374,7 @@ async function fetchAuditTrail(){
   const tbody = wrap?.querySelector('tbody');
   const pat = sessionStorage.getItem('gh-pat');
   if(!pat){
-    if(tbody) tbody.innerHTML=_emptyRow(4,'Historial de cambios en configuración.','Usa "Aplicar cambios" para conectar tu GitHub PAT y cargar el historial.');
+    if(tbody) tbody.innerHTML=_emptyRow(4,'Historial de cambios en configuración.','Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.');
     return;
   }
   try{
@@ -4127,7 +4136,7 @@ function scrollTo(id){
 
 // Active sidebar highlight — scroll-position based, reliable for any section height
 function _updateSidebarActive(){
-  const ids = ['s1','s7','s3','s4','s8','s6','s5'];
+  const ids = ['s1','s7','s3','s9','s4','s8','s6','s5'];
   const offset = 90; // header + mission bar height
   let current = ids[0];
   for(const id of ids){
