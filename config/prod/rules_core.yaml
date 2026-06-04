@@ -1,4 +1,8 @@
-MAX_REQUESTS_PER_HOUR: 180
+MAX_REQUESTS_PER_HOUR: 240
+HARD_CEILING_REQUESTS_PER_HOUR: 480
+# Enforced via urllib.robotparser in scripts/download_and_hash.py.
+# Fail-open: absent or broken robots.txt never blocks collection.
+# Cache TTL: 1 hour per origin.
 RESPECT_ROBOTS_TXT: true
 
 # Stable deterministic rules for production.

@@ -282,9 +282,25 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
 .tip-left[data-tip]::after{left:auto;right:0;transform:none}
 
 /* ── DIFF MODAL ── */
-#diff-modal,#pat-modal,#result-modal{display:none;position:fixed;inset:0;z-index:500;
+#diff-modal,#pat-modal,#result-modal,#unlock-modal{display:none;position:fixed;inset:0;z-index:500;
   align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
-#diff-modal.open,#pat-modal.open,#result-modal.open{display:flex}
+#diff-modal.open,#pat-modal.open,#result-modal.open,#unlock-modal.open{display:flex}
+.unlock-bar{display:flex;align-items:center;gap:14px;padding:14px 18px;
+  background:rgba(223,107,134,.06);border:1px solid rgba(223,107,134,.25);
+  border-radius:10px;margin-bottom:20px}
+.unlock-bar .ub-icon{font-size:20px;flex-shrink:0}
+.unlock-bar .ub-text{flex:1;font-size:12px;color:var(--muted);line-height:1.5}
+.unlock-bar .ub-text strong{color:var(--bad);font-weight:700}
+.unlock-bar.unlocked{border-color:rgba(212,176,102,.4);background:rgba(212,176,102,.08)}
+.unlock-bar.unlocked .ub-text strong{color:var(--warn)}
+.unlock-legal{background:var(--bg);border-radius:8px;padding:14px;font-family:var(--mono);
+  font-size:11px;max-height:250px;overflow-y:auto;line-height:1.7;margin:14px 0;
+  border:1px solid rgba(223,107,134,.25);color:var(--muted);white-space:pre-wrap}
+.unlock-legal strong{color:var(--bad)}
+.unlock-check{display:flex;align-items:flex-start;gap:8px;margin:12px 0;font-size:12px;color:var(--fg)}
+.unlock-check input{margin-top:3px}
+#unlock-confirm-btn{background:var(--bad);color:#fff}
+#unlock-confirm-btn:disabled{opacity:.4;cursor:not-allowed}
 .modal-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;
   padding:28px 32px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto}
 .modal-box h2{font-size:16px;font-weight:700;margin-bottom:16px}
@@ -397,9 +413,9 @@ details .details-body{padding:12px 0 4px}
   <div class="auth-card">
     <div class="logo">CENTINEL Electoral</div>
     <h1>Administración</h1>
-    <p class="sub">Acceso restringido — operadores autorizados<br><small style="opacity:.6">Ingresa un Seed de acceso (S1-A … S1-L)</small></p>
-    <label for="adm-pass">Seed de acceso</label>
-    <input type="password" id="adm-pass" placeholder="seed de 24 caracteres" autocomplete="current-password"
+    <p class="sub">Acceso restringido — operadores autorizados</p>
+    <label for="adm-pass">Clave de acceso</label>
+    <input type="password" id="adm-pass" placeholder="clave de 24 caracteres" autocomplete="current-password"
            onkeydown="if(event.key==='Enter')doAdminLogin()">
     <button class="btn-primary" id="btn-login" onclick="doAdminLogin()">Entrar</button>
     <div class="auth-err" id="auth-err"></div>
@@ -429,16 +445,14 @@ details .details-body{padding:12px 0 4px}
       <div class="sec-header">Operación</div>
       <a href="#s1" onclick="scrollTo('s1')">Panel de control</a>
       <div class="sec-header">Configuración</div>
-      <a href="#s3" onclick="scrollTo('s3')">Configuración</a>
-      <a href="#s4" onclick="scrollTo('s4')">Presets</a>
+      <a href="#s3" onclick="scrollTo('s3')">Presets</a>
       <div class="sec-header">Registros</div>
-      <a href="#s5" onclick="scrollTo('s5')">Logs y terminales</a>
+      <a href="#s4" onclick="scrollTo('s4')">Logs y terminales</a>
       <div class="sec-header">Avanzado</div>
-      <a href="#s6" onclick="scrollTo('s6')">Manual</a>
-      <a href="#s7" onclick="scrollTo('s7')">Acceso y Seeds</a>
-      <a href="#s8" onclick="scrollTo('s8')">Red de Nodos</a>
-      <a href="#s10" onclick="scrollTo('s10')">Laboratorio</a>
-      <a href="#s9" onclick="scrollTo('s9')">Cierre Electoral</a>
+      <a href="#s5" onclick="scrollTo('s5')">Manual</a>
+      <a href="#s6" onclick="scrollTo('s6')">Acceso y Seeds</a>
+      <a href="#s7" onclick="scrollTo('s7')">Red de Nodos</a>
+      <a href="#s8" onclick="scrollTo('s8')">Cierre Electoral</a>
     </nav>
 
     <!-- MAIN -->
@@ -477,6 +491,10 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
+          <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em" data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic. Ej: mi-centinel-2029">Alertas push (ntfy) ⓘ</label>
+            <input type="text" id="inp-ntfy" placeholder="mi-centinel-2029" oninput="markDirty();syncText('ntfy',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+          </div>
         </div>
         <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
           ⚠ El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.
@@ -520,390 +538,378 @@ details .details-body{padding:12px 0 4px}
 
       <!-- s2 eliminado — contenido integrado en s1 -->
 
-      <!-- ── 3 CONFIGURACIÓN ── -->
+      <!-- Hidden inputs preserved for JS (were in old s3 easy-mode) -->
+      <div style="display:none" aria-hidden="true">
+        <input type="range" id="sl-interval" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+        <input type="range" id="sl-rph" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+        <input type="range" id="sl-benford" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+        <input type="range" id="sl-zscore" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+        <span id="vb-interval">10</span>
+        <span id="vb-rph">240</span>
+        <span id="vb-benford">5.99</span>
+        <span id="vb-zscore">3.0</span>
+        <input type="checkbox" id="tog-election" onchange="markDirty()">
+        <input type="checkbox" id="tog-safe" onchange="markDirty()">
+      </div>
+
+      <!-- ── 3 PRESETS ── -->
       <div class="section" id="s3">
-        <div class="section-title">3 Configuración <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
+        <div class="section-title">3 Presets <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
         <hr class="section-sep">
+
+        <!-- 409 conflict banner -->
         <div id="banner-409">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.
           <button onclick="reloadShaAndReapply()">Recargar SHA y re-aplicar</button>
           <button onclick="discardEdits()" style="background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:4px">Descartar</button>
         </div>
 
-        <!-- EASY MODE -->
-        <div id="easy-mode">
-          <div class="ctrl-section">
-            <h3>Parámetros principales</h3>
-            <div class="ctrl-row">
-              <label>Intervalo de captura (min)
-                <span data-tip="Frecuencia con que el sistema escanea endpoints. Reducir aumenta la carga sobre el servidor.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-interval" min="5" max="60" step="1" value="30" oninput="syncSlider('interval',this.value)">
-                <span class="val-badge" id="vb-interval">30</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Requests por hora
-                <span data-tip="Límite de peticiones por hora. Reducir si el servidor bloquea por exceso de llamadas.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-rph" min="60" max="360" step="10" value="180" oninput="syncSlider('rph',this.value)">
-                <span class="val-badge" id="vb-rph">180</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Umbral Benford χ²
-                <span data-tip="Sensibilidad del detector Benford. Valores bajos = más alertas, más falsos positivos. 5.99 = 95% confianza.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-benford" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
-                <span class="val-badge" id="vb-benford">5.99</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Umbral Z-score (σ)
-                <span data-tip="Desviaciones estándar para activar alerta. 3.0 = 99.7% de confianza estadística.">ⓘ</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="range" id="sl-zscore" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
-                <span class="val-badge" id="vb-zscore">3.0</span>
-              </div>
-            </div>
-            <div class="ctrl-row">
-              <label>Topic ntfy (alertas push)
-                <span data-tip="Canal de alertas. Instala la app ntfy y suscríbete a este topic. Ej: mi-centinel-2029">ⓘ</span>
-              </label>
-              <input type="text" id="inp-ntfy" placeholder="mi-centinel-2029" oninput="markDirty()">
-            </div>
-          </div>
-          <div class="ctrl-section">
-            <h3>Modos de operación</h3>
-            <div class="toggle-row">
-              <label data-tip="Modo electoral: incrementa frecuencia y activa detectores adicionales.">Election mode ⓘ</label>
-              <label class="toggle"><input type="checkbox" id="tog-election" onchange="markDirty()"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-row">
-              <label data-tip="Safe mode: operación mínima ante condiciones adversas. Reduce peticiones al máximo.">Safe mode ⓘ</label>
-              <label class="toggle"><input type="checkbox" id="tog-safe" onchange="markDirty()"><span class="toggle-slider"></span></label>
-            </div>
-          </div>
-          <!-- OTS SECTION (visible in both modes) -->
-          <div class="ctrl-section" id="ots-section">
-            <h3>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              Anclaje Bitcoin
-              <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
-              <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
-            </h3>
-            <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-                <span id="ots-status-badge" class="badge badge-neutral">CARGANDO…</span>
-                <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
-              </div>
-              <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
-              <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
-            </div>
-            <!-- air-gap / offline warning (shown automatically if unreachable + enabled) -->
-            <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el toggle</strong> para evitar esperas innecesarias.</span>
-            </div>
-            <div class="toggle-row">
-              <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">
-                Anclar en Bitcoin
-                <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">(OpenTimestamps) ⓘ</span>
-              </label>
-              <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="onOtsToggle()"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="ctrl-row">
-              <label>Servidor OTS personalizado (opcional) <span class="tip-left" data-tip="Deja vacío para usar los 4 calendarios públicos. Solo especifica si tienes un servidor propio.">ⓘ</span></label>
-              <input type="text" id="inp-ots-server" placeholder="https://a.pool.opentimestamps.org" oninput="markDirty()">
-            </div>
-            <details>
-              <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
-              <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
-                <p>Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</p>
-                <p style="margin-top:8px"><strong>Calendarios usados (gratuitos, sin API key):</strong></p>
-                <ul style="margin:4px 0 0 16px">
-                  <li>alice.btc.calendar.opentimestamps.org</li>
-                  <li>bob.btc.calendar.opentimestamps.org</li>
-                  <li>finney.calendar.eternitywall.com</li>
-                  <li>ots.btc.catallaxy.com</li>
-                </ul>
-                <p style="margin-top:8px"><strong>Para verificar una prueba OTS:</strong></p>
-                <ol style="margin:4px 0 0 16px">
-                  <li>Descarga el archivo <code>.ots</code> del checkpoint</li>
-                  <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
-                  <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
-                </ol>
-                <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
-                <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
-                <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
-              </div>
-            </details>
-          </div>
-        </div>
-
-        <!-- FULL MODE -->
-        <div id="full-mode" style="display:none">
-          <div class="tabs" id="cfg-tabs">
-            <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
-            <button onclick="showTab('t-capture')">Captura</button>
-            <button onclick="showTab('t-alerts')">Alertas</button>
-            <button onclick="showTab('t-network')">Red</button>
-            <button onclick="showTab('t-rules')">Reglas</button>
-          </div>
-
-          <!-- Tab: Endpoints -->
-          <div id="t-endpoints" class="tab-pane active">
-            <div class="ctrl-section">
-              <h3>URL principal</h3>
-              <div class="ctrl-row">
-                <label>CNE Main URL</label>
-                <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()">
-              </div>
-            </div>
-            <div class="ctrl-section" style="overflow-x:auto">
-              <h3>Endpoints departamentales</h3>
-              <table class="data-table" id="endpoints-table">
-                <thead><tr>
-                  <th>Depto</th><th>Código</th><th>URL endpoint</th>
-                  <th>Estado</th><th>Último OK</th><th>Acciones</th>
-                </tr></thead>
-                <tbody id="endpoints-tbody"><!-- filled by JS --></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Tab: Captura -->
-          <div id="t-capture" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Watchdog</h3>
-              <div class="ctrl-row">
-                <label>Intervalo de captura (min)
-                  <span data-tip="Igual que el slider en modo fácil. Ambos sincronizan.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-interval2" min="5" max="60" step="1" value="30" oninput="syncSlider('interval',this.value)">
-                  <span class="val-badge" id="vb-interval2">30</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Check interval watchdog (min)
-                  <span data-tip="Con qué frecuencia el watchdog verifica si el servicio principal sigue corriendo.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-wdcheck" min="1" max="15" step="1" value="3" oninput="syncSlider('wdcheck',this.value)">
-                  <span class="val-badge" id="vb-wdcheck">3</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Límite CPU (%)
-                  <span data-tip="El watchdog pausa capturas si el CPU supera este porcentaje.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-cpu" min="50" max="95" step="1" value="80" oninput="syncSlider('cpu',this.value)">
-                  <span class="val-badge" id="vb-cpu">80</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Límite RAM (%)
-                  <span data-tip="El watchdog pausa capturas si la memoria supera este porcentaje.">ⓘ</span>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-ram" min="50" max="95" step="1" value="90" oninput="syncSlider('ram',this.value)">
-                  <span class="val-badge" id="vb-ram">90</span>
-                </div>
-              </div>
-            </div>
-            <div class="ctrl-section">
-              <h3>Rate limiter</h3>
-              <div class="ctrl-row">
-                <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-rph2" min="60" max="360" step="10" value="180" oninput="syncSlider('rph',this.value)">
-                  <span class="val-badge" id="vb-rph2">180</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Capacidad de ráfaga <span data-tip="Número de requests permitidos en ráfaga antes de aplicar el rate limiter.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-capacity" min="1" max="10" step="1" value="3" oninput="syncSlider('capacity',this.value)">
-                  <span class="val-badge" id="vb-capacity">3</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-timeout" min="10" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
-                  <span class="val-badge" id="vb-timeout">30</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab: Alertas -->
-          <div id="t-alerts" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Notificaciones</h3>
-              <div class="ctrl-row">
-                <label>Topic ntfy <span data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic.">ⓘ</span></label>
-                <input type="text" id="inp-ntfy2" placeholder="mi-centinel-2029" oninput="syncText('ntfy',this.value)">
-              </div>
-              <div class="ctrl-row">
-                <label>Nivel mínimo de alerta</label>
-                <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
-                  <option value="INFO">INFO</option>
-                  <option value="WARNING" selected>WARNING</option>
-                  <option value="CRITICAL">CRITICAL</option>
-                  <option value="PANIC">PANIC</option>
-                </select>
-              </div>
-              <div class="toggle-row">
-                <label data-tip="Crear Issue automático en GitHub ante fallos críticos de git push.">Auto-Issue en fallos de git ⓘ</label>
-                <label class="toggle"><input type="checkbox" id="tog-autoissue" onchange="markDirty()"><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-            <div class="ctrl-section">
-              <h3>Honeypot y detección de ataques</h3>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Tipos de eventos registrados en el attack logger y su nivel de severidad.</p>
-              <table class="data-table" style="margin-bottom:16px">
-                <thead><tr><th>Tipo</th><th>Descripción</th><th>Severidad</th></tr></thead>
-                <tbody>
-                  <tr><td><code>FLOOD</code></td><td style="color:var(--muted)">Más de N requests por IP en ventana de tiempo</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
-                  <tr><td><code>BRUTE</code></td><td style="color:var(--muted)">Acceso a rutas de fuerza bruta (/admin, /login, /api/internal)</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
-                  <tr><td><code>SCAN</code></td><td style="color:var(--muted)">User-agents de scanners (sqlmap, nmap, nikto, masscan…)</td><td><span class="badge badge-warn">WARNING</span></td></tr>
-                  <tr><td><code>PROXY_SUSPECT</code></td><td style="color:var(--muted)">Tráfico desde nodos Tor o cadenas de proxies</td><td><span class="badge badge-warn">WARNING</span></td></tr>
-                  <tr><td><code>SUSPICIOUS</code></td><td style="color:var(--muted)">Actividad anómala no clasificable en las anteriores</td><td><span class="badge badge-neutral">INFO</span></td></tr>
-                </tbody>
-              </table>
-              <div class="toggle-row">
-                <label data-tip="Activa el honeypot para registrar todos los intentos de acceso no autorizados a rutas sensibles.">Honeypot activo ⓘ</label>
-                <label class="toggle"><input type="checkbox" id="tog-honeypot" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
-              </div>
-              <div class="ctrl-row">
-                <label>Rutas honeypot monitoreadas <span data-tip="Separadas por comas. Cualquier acceso a estas rutas activa el logger.">ⓘ</span></label>
-                <input type="text" id="inp-honeypot-routes" value="/debug,/admin,/api/internal" oninput="markDirty()">
-              </div>
-              <div class="ctrl-row">
-                <label>Flood threshold (requests/IP) <span data-tip="Número de requests en la ventana de tiempo que activan clasificación FLOOD.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-flood" min="5" max="100" step="5" value="20" oninput="syncSlider('flood',this.value)">
-                  <span class="val-badge" id="vb-flood">20</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab: Red -->
-          <div id="t-network" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Retry por código HTTP</h3>
-              <table class="data-table">
-                <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
-                <tbody>
-                  <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
-                  <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
-                  <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
-                  <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Tab: Reglas -->
-          <div id="t-rules" class="tab-pane">
-            <div class="ctrl-section">
-              <h3>Parámetros globales</h3>
-              <div class="ctrl-row">
-                <label>Umbral Benford χ² <span data-tip="Umbral chi-cuadrado para la ley de Benford. Sincronizado con Modo Fácil.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-benford2" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
-                  <span class="val-badge" id="vb-benford2">5.99</span>
-                </div>
-              </div>
-              <div class="ctrl-row">
-                <label>Umbral Z-score (σ) <span data-tip="Desviaciones estándar para activar alerta. Sincronizado con Modo Fácil.">ⓘ</span></label>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <input type="range" id="sl-zscore2" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
-                  <span class="val-badge" id="vb-zscore2">3.0</span>
-                </div>
-              </div>
-            </div>
-            <details open>
-              <summary>🔴 CRITICAL — 15 reglas</summary>
-              <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
-                <tr><td><code>benford_first_digit</code></td><td>Benford 1er dígito (MAD+χ²)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_first_digit" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_first_digit" value="0.015" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> mad_critical</td></tr>
-                <tr><td><code>last_digit_uniformity</code></td><td>Uniformidad último dígito</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-last_digit_uniformity" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-last_digit_uniformity" value="0.001" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_pvalue</td></tr>
-                <tr><td><code>granular_anomaly</code></td><td>Anomalías granulares (deltas, z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-granular_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-granular_anomaly" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> zscore_threshold</td></tr>
-                <tr><td><code>mesa_impossibility</code></td><td>Imposibilidad aritmética por registro</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_impossibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-                <tr><td><code>mesa_reconciliation</code></td><td>Mutación de registros entre publicaciones</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_reconciliation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-                <tr><td><code>mesas_diff</code></td><td>Mesas duplicadas o desaparecidas</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesas_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-                <tr><td><code>snapshot_jump</code></td><td>Saltos entre snapshots (&gt;X% en Y min)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-snapshot_jump" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-snapshot_jump" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_change_%</td></tr>
-                <tr><td><code>participation_vote_correlation</code></td><td>Correlación participación-voto (Pearson)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_vote_correlation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_vote_correlation" value="0.85" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_r</td></tr>
-                <tr><td><code>geographic_dispersion</code></td><td>Dispersión geográfica (CV departamentos)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-geographic_dispersion" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-geographic_dispersion" value="0.45" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_cv</td></tr>
-                <tr><td><code>null_blank_votes</code></td><td>Nulos y blancos elevados</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-null_blank_votes" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-null_blank_votes" value="12" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
-                <tr><td><code>table_consistency</code></td><td>Consistencia por mesa (suma votos vs total)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-table_consistency" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-table_consistency" value="1" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> tolerance</td></tr>
-                <tr><td><code>inconsistency_rate</code></td><td>Tasa de inconsistencia estructural</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-inconsistency_rate" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-inconsistency_rate" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
-                <tr><td><code>runs_test</code></td><td>Runs test (aleatoriedad en secuencia)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-runs_test" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-runs_test" value="0.01" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_p</td></tr>
-                <tr><td><code>participation_anomaly_advanced</code></td><td>Participación anómala avanzada (z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly_advanced" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly_advanced" value="88.15" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_mean</td></tr>
-                <tr><td><code>turnout_impossible</code></td><td>Turnout imposible (&lt;0% o &gt;100%)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-turnout_impossible" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-              </tbody></table></div>
-            </details>
-            <details open>
-              <summary>🟠 High — 5 reglas</summary>
-              <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
-                <tr><td><code>basic_diff</code></td><td>Consistencia aritmética básica</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-basic_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-basic_diff" value="15" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> change_%</td></tr>
-                <tr><td><code>irreversibility</code></td><td>Irreversibilidad estadística</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-irreversibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-irreversibility" value="0.60" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_turnout</td></tr>
-                <tr><td><code>participation_anomaly</code></td><td>Anomalía de participación (saltos escrutinio)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> jump_%</td></tr>
-                <tr><td><code>processing_speed</code></td><td>Velocidad de procesamiento (actas/15min)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-processing_speed" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-processing_speed" value="500" step="50" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_actas/15m</td></tr>
-                <tr><td><code>trend_shift</code></td><td>Desviación de tendencia</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-trend_shift" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-trend_shift" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> threshold_%</td></tr>
-              </tbody></table></div>
-            </details>
-            <details>
-              <summary>🟡 Medium / WARNING — 4 reglas</summary>
-              <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
-                <tr><td><code>benford_law</code></td><td>Benford por candidato (χ²)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_law" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_law" value="0.05" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_threshold</td></tr>
-                <tr><td><code>large_numbers_convergence</code></td><td>Convergencia ley grandes números</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-large_numbers_convergence" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-large_numbers_convergence" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> z_threshold</td></tr>
-                <tr><td><code>ml_outliers</code></td><td>Outliers ML (Isolation Forest)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-ml_outliers" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-ml_outliers" value="0.1" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> contamination</td></tr>
-                <tr><td><code>late_mesa</code></td><td>Aparición tardía de registros en JSON</td><td><span class="badge badge-neutral">WARN</span></td><td><label class="toggle"><input type="checkbox" id="r-late_mesa" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
-              </tbody></table></div>
-            </details>
-            <details>
-              <summary>🔬 Research — 2 reglas experimentales</summary>
-              <div class="details-body">
-                <div class="info-box" style="margin-bottom:12px">Reglas en revisión académica antes de ser promovidas a producción. Solo para entornos de investigación.</div>
-                <table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Activa</th></tr></thead><tbody>
-                  <tr><td><code>apply_benford_law</code></td><td>Ley de Benford — alternativa (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-apply_benford_law" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
-                  <tr><td><code>check_distribution_chi2</code></td><td>Distribución partido/depto (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-check_distribution_chi2" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
-                </tbody></table>
-              </div>
-            </details>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── 4 PRESETS ── -->
-      <div class="section" id="s4">
-        <div class="section-title">4 Presets</div>
-        <hr class="section-sep">
         <p class="section-sub">Plantillas de configuración predefinidas.</p>
         <div class="info-box" style="margin-bottom:16px">
-          Los presets son <strong>plantillas de interfaz</strong> guardadas en tu cuenta Supabase.
+          Los presets son <strong>plantillas de interfaz</strong> guardadas localmente en tu navegador.
           <strong>Cargar</strong> un preset rellena los controles pero <strong>no modifica el repositorio</strong>.
           Solo <strong>"Aplicar cambios"</strong> escribe a GitHub y requiere PAT.
         </div>
+        <div class="unlock-bar" id="unlock-bar">
+          <div class="ub-icon">&#x1f512;</div>
+          <div class="ub-text">
+            <strong>L&iacute;mites de seguridad activos</strong> &mdash; los controles no pueden exceder
+            480 req/h, intervalo m&iacute;nimo 1s, burst m&aacute;ximo 8.
+            Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.
+          </div>
+          <label class="toggle" style="flex-shrink:0;cursor:pointer" title="Desbloquear/bloquear límites">
+            <input type="checkbox" id="tog-unlock" onchange="requestUnlock(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
         <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
           <input type="text" id="preset-name" placeholder="Nombre del preset…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
           <button class="hdr-btn" onclick="saveCustomPreset()">Guardar estado actual como preset</button>
         </div>
+
+        <!-- OTS (Bitcoin anchoring) -->
+        <details style="margin-bottom:16px">
+          <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Anclaje Bitcoin (OpenTimestamps)
+          </summary>
+          <div class="details-body">
+            <div class="ctrl-section" id="ots-section">
+              <h3>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Anclaje Bitcoin
+                <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
+                <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
+              </h3>
+              <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span id="ots-status-badge" class="badge badge-neutral">CARGANDO…</span>
+                  <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
+                <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
+              </div>
+              <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el toggle</strong> para evitar esperas innecesarias.</span>
+              </div>
+              <div class="toggle-row">
+                <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">
+                  Anclar en Bitcoin
+                  <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">(OpenTimestamps) ⓘ</span>
+                </label>
+                <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="onOtsToggle()"><span class="toggle-slider"></span></label>
+              </div>
+              <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
+                <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+                  <option value="https://a.pool.opentimestamps.org">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
+                  <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
+                  <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
+                  <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
+                  <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
+                  <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
+                  <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
+                  <option value="__custom__">✏️ Personalizado…</option>
+                </select>
+                <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+              </div>
+              <details>
+                <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
+                <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
+                  <p>Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</p>
+                  <p style="margin-top:8px"><strong>Calendarios usados (gratuitos, sin API key):</strong></p>
+                  <ul style="margin:4px 0 0 16px">
+                    <li>alice.btc.calendar.opentimestamps.org</li>
+                    <li>bob.btc.calendar.opentimestamps.org</li>
+                    <li>finney.calendar.eternitywall.com</li>
+                    <li>ots.btc.catallaxy.com</li>
+                  </ul>
+                  <p style="margin-top:8px"><strong>Para verificar una prueba OTS:</strong></p>
+                  <ol style="margin:4px 0 0 16px">
+                    <li>Descarga el archivo <code>.ots</code> del checkpoint</li>
+                    <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
+                    <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
+                  </ol>
+                  <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
+                  <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
+                  <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
+                </div>
+              </details>
+            </div>
+          </div>
+        </details>
+
+        <!-- Configuración avanzada (Full mode tabs) -->
+        <details style="margin-bottom:16px">
+          <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">Configuración avanzada</summary>
+          <div class="details-body">
+            <!-- Easy/Full mode toggle preserved for setMode() -->
+            <div id="easy-mode" style="display:none"></div>
+            <div id="full-mode">
+              <div class="tabs" id="cfg-tabs">
+                <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
+                <button onclick="showTab('t-capture')">Captura</button>
+                <button onclick="showTab('t-alerts')">Alertas</button>
+                <button onclick="showTab('t-network')">Red</button>
+                <button onclick="showTab('t-rules')">Reglas</button>
+              </div>
+
+              <!-- Tab: Endpoints -->
+              <div id="t-endpoints" class="tab-pane active">
+                <div class="ctrl-section">
+                  <h3>URL principal</h3>
+                  <div class="ctrl-row">
+                    <label>CNE Main URL</label>
+                    <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()">
+                  </div>
+                </div>
+                <div class="ctrl-section" style="overflow-x:auto">
+                  <h3>Endpoints departamentales</h3>
+                  <table class="data-table" id="endpoints-table">
+                    <thead><tr>
+                      <th>Depto</th><th>Código</th><th>URL endpoint</th>
+                      <th>Estado</th><th>Último OK</th><th>Acciones</th>
+                    </tr></thead>
+                    <tbody id="endpoints-tbody"><!-- filled by JS --></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab: Captura -->
+              <div id="t-capture" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Watchdog</h3>
+                  <div class="ctrl-row">
+                    <label>Intervalo de captura (min)
+                      <span data-tip="Frecuencia de escaneo de endpoints.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-interval2" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+                      <span class="val-badge" id="vb-interval2">10</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Check interval watchdog (min)
+                      <span data-tip="Con qué frecuencia el watchdog verifica si el servicio principal sigue corriendo.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-wdcheck" min="1" max="15" step="1" value="3" oninput="syncSlider('wdcheck',this.value)">
+                      <span class="val-badge" id="vb-wdcheck">3</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Límite CPU (%)
+                      <span data-tip="El watchdog pausa capturas si el CPU supera este porcentaje.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-cpu" min="50" max="95" step="1" value="80" oninput="syncSlider('cpu',this.value)">
+                      <span class="val-badge" id="vb-cpu">80</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Límite RAM (%)
+                      <span data-tip="El watchdog pausa capturas si la memoria supera este porcentaje.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-ram" min="50" max="95" step="1" value="90" oninput="syncSlider('ram',this.value)">
+                      <span class="val-badge" id="vb-ram">90</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="ctrl-section">
+                  <h3>Rate limiter</h3>
+                  <div class="ctrl-row">
+                    <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-rph2" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+                      <span class="val-badge" id="vb-rph2">240</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Capacidad de ráfaga <span data-tip="Número de requests permitidos en ráfaga antes de aplicar el rate limiter.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-capacity" min="1" max="10" step="1" value="3" oninput="syncSlider('capacity',this.value)">
+                      <span class="val-badge" id="vb-capacity">3</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-timeout" min="10" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
+                      <span class="val-badge" id="vb-timeout">30</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: Alertas -->
+              <div id="t-alerts" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Notificaciones</h3>
+                  <div class="ctrl-row">
+                    <label>Topic ntfy <span data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic.">ⓘ</span></label>
+                    <input type="text" id="inp-ntfy2" placeholder="mi-centinel-2029" oninput="syncText('ntfy',this.value)">
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Nivel mínimo de alerta</label>
+                    <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
+                      <option value="INFO">INFO</option>
+                      <option value="WARNING" selected>WARNING</option>
+                      <option value="CRITICAL">CRITICAL</option>
+                      <option value="PANIC">PANIC</option>
+                    </select>
+                  </div>
+                  <div class="toggle-row">
+                    <label data-tip="Crear Issue automático en GitHub ante fallos críticos de git push.">Auto-Issue en fallos de git ⓘ</label>
+                    <label class="toggle"><input type="checkbox" id="tog-autoissue" onchange="markDirty()"><span class="toggle-slider"></span></label>
+                  </div>
+                </div>
+                <div class="ctrl-section">
+                  <h3>Honeypot y detección de ataques</h3>
+                  <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Tipos de eventos registrados en el attack logger y su nivel de severidad.</p>
+                  <table class="data-table" style="margin-bottom:16px">
+                    <thead><tr><th>Tipo</th><th>Descripción</th><th>Severidad</th></tr></thead>
+                    <tbody>
+                      <tr><td><code>FLOOD</code></td><td style="color:var(--muted)">Más de N requests por IP en ventana de tiempo</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>BRUTE</code></td><td style="color:var(--muted)">Acceso a rutas de fuerza bruta (/admin, /login, /api/internal)</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>SCAN</code></td><td style="color:var(--muted)">User-agents de scanners (sqlmap, nmap, nikto, masscan…)</td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>PROXY_SUSPECT</code></td><td style="color:var(--muted)">Tráfico desde nodos Tor o cadenas de proxies</td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>SUSPICIOUS</code></td><td style="color:var(--muted)">Actividad anómala no clasificable en las anteriores</td><td><span class="badge badge-neutral">INFO</span></td></tr>
+                    </tbody>
+                  </table>
+                  <div class="toggle-row">
+                    <label data-tip="Activa el honeypot para registrar todos los intentos de acceso no autorizados a rutas sensibles.">Honeypot activo ⓘ</label>
+                    <label class="toggle"><input type="checkbox" id="tog-honeypot" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Rutas honeypot monitoreadas <span data-tip="Separadas por comas. Cualquier acceso a estas rutas activa el logger.">ⓘ</span></label>
+                    <input type="text" id="inp-honeypot-routes" value="/debug,/admin,/api/internal" oninput="markDirty()">
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Flood threshold (requests/IP) <span data-tip="Número de requests en la ventana de tiempo que activan clasificación FLOOD.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-flood" min="5" max="100" step="5" value="20" oninput="syncSlider('flood',this.value)">
+                      <span class="val-badge" id="vb-flood">20</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: Red -->
+              <div id="t-network" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Retry por código HTTP</h3>
+                  <table class="data-table">
+                    <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                      <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
+                      <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
+                      <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
+                      <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab: Reglas -->
+              <div id="t-rules" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Parámetros globales</h3>
+                  <div class="ctrl-row">
+                    <label>Umbral Benford χ² <span data-tip="Umbral chi-cuadrado para la ley de Benford.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-benford2" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+                      <span class="val-badge" id="vb-benford2">5.99</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Umbral Z-score (σ) <span data-tip="Desviaciones estándar para activar alerta.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-zscore2" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+                      <span class="val-badge" id="vb-zscore2">3.0</span>
+                    </div>
+                  </div>
+                </div>
+                <details open>
+                  <summary>🔴 CRITICAL — 15 reglas</summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                    <tr><td><code>benford_first_digit</code></td><td>Benford 1er dígito (MAD+χ²)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_first_digit" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_first_digit" value="0.015" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> mad_critical</td></tr>
+                    <tr><td><code>last_digit_uniformity</code></td><td>Uniformidad último dígito</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-last_digit_uniformity" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-last_digit_uniformity" value="0.001" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_pvalue</td></tr>
+                    <tr><td><code>granular_anomaly</code></td><td>Anomalías granulares (deltas, z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-granular_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-granular_anomaly" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> zscore_threshold</td></tr>
+                    <tr><td><code>mesa_impossibility</code></td><td>Imposibilidad aritmética por registro</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_impossibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>mesa_reconciliation</code></td><td>Mutación de registros entre publicaciones</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_reconciliation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>mesas_diff</code></td><td>Mesas duplicadas o desaparecidas</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesas_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>snapshot_jump</code></td><td>Saltos entre snapshots (&gt;X% en Y min)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-snapshot_jump" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-snapshot_jump" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_change_%</td></tr>
+                    <tr><td><code>participation_vote_correlation</code></td><td>Correlación participación-voto (Pearson)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_vote_correlation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_vote_correlation" value="0.85" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_r</td></tr>
+                    <tr><td><code>geographic_dispersion</code></td><td>Dispersión geográfica (CV departamentos)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-geographic_dispersion" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-geographic_dispersion" value="0.45" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_cv</td></tr>
+                    <tr><td><code>null_blank_votes</code></td><td>Nulos y blancos elevados</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-null_blank_votes" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-null_blank_votes" value="12" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
+                    <tr><td><code>table_consistency</code></td><td>Consistencia por mesa (suma votos vs total)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-table_consistency" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-table_consistency" value="1" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> tolerance</td></tr>
+                    <tr><td><code>inconsistency_rate</code></td><td>Tasa de inconsistencia estructural</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-inconsistency_rate" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-inconsistency_rate" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
+                    <tr><td><code>runs_test</code></td><td>Runs test (aleatoriedad en secuencia)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-runs_test" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-runs_test" value="0.01" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_p</td></tr>
+                    <tr><td><code>participation_anomaly_advanced</code></td><td>Participación anómala avanzada (z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly_advanced" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly_advanced" value="88.15" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_mean</td></tr>
+                    <tr><td><code>turnout_impossible</code></td><td>Turnout imposible (&lt;0% o &gt;100%)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-turnout_impossible" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details open>
+                  <summary>🟠 High — 5 reglas</summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                    <tr><td><code>basic_diff</code></td><td>Consistencia aritmética básica</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-basic_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-basic_diff" value="15" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> change_%</td></tr>
+                    <tr><td><code>irreversibility</code></td><td>Irreversibilidad estadística</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-irreversibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-irreversibility" value="0.60" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_turnout</td></tr>
+                    <tr><td><code>participation_anomaly</code></td><td>Anomalía de participación (saltos escrutinio)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> jump_%</td></tr>
+                    <tr><td><code>processing_speed</code></td><td>Velocidad de procesamiento (actas/15min)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-processing_speed" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-processing_speed" value="500" step="50" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_actas/15m</td></tr>
+                    <tr><td><code>trend_shift</code></td><td>Desviación de tendencia</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-trend_shift" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-trend_shift" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> threshold_%</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details>
+                  <summary>🟡 Medium / WARNING — 4 reglas</summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                    <tr><td><code>benford_law</code></td><td>Benford por candidato (χ²)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_law" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_law" value="0.05" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_threshold</td></tr>
+                    <tr><td><code>large_numbers_convergence</code></td><td>Convergencia ley grandes números</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-large_numbers_convergence" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-large_numbers_convergence" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> z_threshold</td></tr>
+                    <tr><td><code>ml_outliers</code></td><td>Outliers ML (Isolation Forest)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-ml_outliers" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-ml_outliers" value="0.1" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> contamination</td></tr>
+                    <tr><td><code>late_mesa</code></td><td>Aparición tardía de registros en JSON</td><td><span class="badge badge-neutral">WARN</span></td><td><label class="toggle"><input type="checkbox" id="r-late_mesa" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details>
+                  <summary>🔬 Research — 2 reglas experimentales</summary>
+                  <div class="details-body">
+                    <div class="info-box" style="margin-bottom:12px">Reglas en revisión académica antes de ser promovidas a producción. Solo para entornos de investigación.</div>
+                    <table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Activa</th></tr></thead><tbody>
+                      <tr><td><code>apply_benford_law</code></td><td>Ley de Benford — alternativa (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-apply_benford_law" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
+                      <tr><td><code>check_distribution_chi2</code></td><td>Distribución partido/depto (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-check_distribution_chi2" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
+                    </tbody></table>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
 
       <!-- ── 5 LOGS ── -->
-      <div class="section" id="s5">
-        <div class="section-title">5 Logs y terminales</div>
+      <div class="section" id="s4">
+        <div class="section-title">4 Logs y terminales</div>
         <hr class="section-sep">
 
         <!-- Log General -->
@@ -970,17 +976,17 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 6 MANUAL ── -->
-      <div class="section" id="s6">
-        <div class="section-title">6 Manual</div>
+      <div class="section" id="s5">
+        <div class="section-title">5 Manual</div>
         <hr class="section-sep">
         <details id="mini-manual">
           <summary>Guía rápida del panel de administración</summary>
           <div class="details-body">
             <div class="ctrl-section">
-              <h3>Modo Fácil vs Modo Completo</h3>
+              <h3>Configuración avanzada</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <strong>Modo Fácil</strong> expone los 4 parámetros más importantes: intervalo de captura, requests/hora, umbrales Benford y Z-score, y el topic de ntfy. Ideal para operación diaria.<br><br>
-                <strong>Modo Completo</strong> habilita 5 tabs con acceso a todos los parámetros: endpoints individuales, watchdog, rate limiter, red, y reglas de detección.
+                Los parámetros de operación se configuran desde la sección <strong>3 Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro. El topic ntfy para alertas push está disponible directamente en el panel de control (sección 1).<br><br>
+                Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.
               </p>
               <h3>El mapa de endpoints</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
@@ -1018,13 +1024,13 @@ details .details-body{padding:12px 0 4px}
       </div>
 
       <!-- ── 7 Acceso y Seeds ── -->
-      <div class="section" id="s7">
-        <div class="section-title">7 Acceso y Seeds</div>
+      <div class="section" id="s6">
+        <div class="section-title">6 Acceso y Seeds</div>
         <hr class="section-sep">
         <p class="section-sub">
-          Gestión de los 12 seeds de acceso administrativo (S1-A … S1-L).
-          Los seeds reales nunca se almacenan — solo sus hashes PBKDF2-SHA256.
-          El PDF generado es el único registro.
+          Gestión de las 12 claves de acceso administrativo.
+          Las claves nunca se almacenan — solo sus hashes PBKDF2-SHA256.
+          El archivo generado es el único registro.
         </p>
 
         <div class="ctrl-section">
@@ -1037,23 +1043,15 @@ details .details-body{padding:12px 0 4px}
         <div class="ctrl-section">
           <h3 style="color:var(--bad)">Regenerar seeds</h3>
           <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">
-            Genera 12 seeds completamente nuevos y descarga el PDF actualizado.
-            <strong style="color:var(--warn)">Todos los seeds anteriores quedan invalidados permanentemente.</strong>
+            Genera 12 claves completamente nuevas y descarga el archivo actualizado.
+            <strong style="color:var(--warn)">Todas las claves anteriores quedan invalidadas permanentemente.</strong>
           </p>
           <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
             <strong>¿Confirmas la regeneración?</strong><br>
-            Esta acción no se puede deshacer. Los 12 seeds actuales dejarán de funcionar.
-            <p style="margin:10px 0 6px;color:var(--fg)">Introduce uno de tus seeds actuales para autenticar:</p>
+            Esta acción no se puede deshacer. Las 12 claves actuales dejarán de funcionar.
+            <p style="margin:10px 0 6px;color:var(--fg)">Introduce una de tus claves actuales para autenticar:</p>
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
-              <select id="regen-seed-label" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px">
-                <option value="S1-A">S1-A</option><option value="S1-B">S1-B</option>
-                <option value="S1-C">S1-C</option><option value="S1-D">S1-D</option>
-                <option value="S1-E">S1-E</option><option value="S1-F">S1-F</option>
-                <option value="S1-G">S1-G</option><option value="S1-H">S1-H</option>
-                <option value="S1-I">S1-I</option><option value="S1-J">S1-J</option>
-                <option value="S1-K">S1-K</option><option value="S1-L">S1-L</option>
-              </select>
-              <input type="password" id="regen-seed-value" placeholder="Seed de 24 caracteres" autocomplete="off"
+              <input type="password" id="regen-seed-value" placeholder="Clave de 24 caracteres" autocomplete="off"
                 style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px;flex:1;min-width:200px">
             </div>
             <div class="auth-err" id="regen-err"></div>
@@ -1068,54 +1066,78 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── 8 Red de Nodos ── -->
-      <div class="section" id="s8">
-        <div class="section-title">8 Red de Nodos</div>
+      <!-- ── 8 Red de Nodos — Panel de Control ── -->
+      <div class="section" id="s7">
+        <div class="section-title">7 Red de Nodos</div>
         <hr class="section-sep">
         <p class="section-sub">
-          Protocolo gossip P2P — el nodo transmite su atestación firmada al enjambre y compara el
-          Merkle root con otros observadores para detectar manipulaciones en tiempo real.
+          Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
+          el Merkle root con otros observadores para detectar manipulaciones en tiempo real.
         </p>
 
+        <!-- Estado + Control -->
         <div class="ctrl-section">
-          <h3>Estado de conexión</h3>
-          <div id="swarm-status-row" style="display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap">
-            <span id="swarm-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted)"></span>
-            <span id="swarm-label" style="font-size:14px;font-weight:600;color:var(--muted)">DESCONECTADO</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span id="swarm-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--muted)"></span>
+              <span id="swarm-label" style="font-size:16px;font-weight:700;color:var(--muted)">DESCONECTADO</span>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()" style="padding:10px 24px;font-size:13px">
+                Conectar a la red
+              </button>
+              <button class="hdr-btn" id="btn-disconnect" onclick="doSwarmDisconnect()" style="display:none;padding:10px 24px;font-size:13px">
+                Desconectar
+              </button>
+              <button class="hdr-btn" onclick="refreshSwarmPanel()" style="padding:10px 14px;font-size:13px" title="Actualizar">↻</button>
+            </div>
           </div>
-          <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:8px;display:none">
-            <span id="swarm-node-id"></span>
+          <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:10px;display:none">
+            <span>Mi nodo: </span>
+            <code id="swarm-node-id" style="cursor:pointer;color:var(--accent)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar"></code>
             <span id="swarm-consensus-row" style="display:none">
-              &nbsp;·&nbsp;Consenso: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
+              &nbsp;&middot;&nbsp;Consenso: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
             </span>
             <br>Último broadcast: <span id="swarm-last-bcast">—</span>
           </div>
         </div>
 
+        <!-- Métricas en vivo -->
         <div class="ctrl-section">
-          <h3>Control</h3>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-            <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()">
-              Conectar a la red
-            </button>
-            <button class="hdr-btn" id="btn-disconnect" onclick="doSwarmDisconnect()" style="display:none">
-              Desconectar
-            </button>
-          </div>
-          <p style="font-size:12px;color:var(--muted);margin-top:10px">
-            Opcional: ingresa tu URL pública si el nodo es accesible desde internet
-            (ej. <code>https://mi-nodo.example.com</code>). Déjalo vacío si estás detrás de NAT.
-          </p>
-          <div class="ctrl-row" style="margin-top:10px">
-            <label>URL pública del nodo (opcional)</label>
-            <input type="text" id="swarm-my-url" placeholder="https://…" style="width:100%;max-width:380px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;border:1px solid var(--border)">
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-nodos">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">NODOS</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-consenso">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">CONSENSO</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-bft">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT TOLERANCIA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:#b08cf0" id="swarm-m-ring0">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 SEMILLA</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-ring1">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 CONFIABLE</div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="swarm-m-compromised">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">COMPROMETIDOS</div>
+            </div>
           </div>
         </div>
 
+        <!-- Nodos del enjambre (tarjetas visuales) -->
         <div class="ctrl-section" id="swarm-peers-section" style="display:none">
-          <h3>Nodos conectados (<span id="swarm-peer-count">0</span>)</h3>
+          <h3>Nodos del enjambre (<span id="swarm-peer-count">0</span>)</h3>
           <div id="swarm-consensus-banner" style="display:none;margin:10px 0;padding:10px 14px;border-radius:8px;font-size:13px"></div>
-          <div style="overflow-x:auto;margin-top:12px">
+          <div id="swarm-node-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px"></div>
+          <div id="swarm-peers-table-wrap" style="overflow-x:auto;margin-top:12px;display:none">
             <table style="width:100%;border-collapse:collapse;font-size:12px">
               <thead>
                 <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
@@ -1124,7 +1146,6 @@ details .details-body{padding:12px 0 4px}
                   <th style="padding:6px 10px">Snapshots</th>
                   <th style="padding:6px 10px">Merkle Root</th>
                   <th style="padding:6px 10px">Sincronía</th>
-                  <th style="padding:6px 10px">Especialización</th>
                   <th style="padding:6px 10px">Timestamp</th>
                   <th style="padding:6px 10px"></th>
                 </tr>
@@ -1134,16 +1155,61 @@ details .details-body{padding:12px 0 4px}
           </div>
         </div>
 
-        <!-- ── Consenso multi-nodo de hallazgos ── -->
+        <!-- Coordinar enjambre -->
+        <div class="ctrl-section" id="swarm-sala-section">
+          <h3>Coordinar enjambre</h3>
+          <div id="sala-pick" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="hdr-btn primary" onclick="createSala()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              Invitar a otros →
+            </button>
+            <button class="hdr-btn" onclick="salaTab('unirse')" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              Unirme a un enjambre →
+            </button>
+          </div>
+          <div id="sala-crear-panel" style="display:none">
+            <p style="font-size:12px;color:var(--ok);margin-bottom:14px">
+              Enjambre creado. Comparte esta invitación con los demás operadores.
+            </p>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Invitación para compartir</div>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input id="sala-invite-text" type="text" readonly
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
+                onclick="this.select()" title="Clic para seleccionar">
+              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="hdr-btn" onclick="salaTab('reset')" style="font-size:11px;color:var(--muted)">← Volver</button>
+              <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
+              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
+            </div>
+            <div id="sala-tech-details" style="display:none;margin-top:10px">
+              <div class="invite-box" id="sala-invite-json"></div>
+            </div>
+          </div>
+          <div id="sala-unirse-panel" style="display:none">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
+              Pega aquí la invitación que te compartieron.
+            </p>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
+              <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
+            </div>
+            <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
+            <button class="hdr-btn" onclick="salaTab('reset')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
+          </div>
+        </div>
+
+        <!-- Hallazgos con consenso multi-nodo -->
         <div class="ctrl-section" id="swarm-consensus-findings-section">
-          <h3>Hallazgos con Consenso Multi-Nodo</h3>
+          <h3>Hallazgos con consenso</h3>
           <p style="font-size:12px;color:var(--muted);margin:6px 0 12px">
-            Anomalías detectadas de forma independiente por ≥2 nodos distintos del enjambre.
-            Fondo ámbar = 2–4 nodos · Fondo rojo = 5+ nodos.
+            Anomalías detectadas de forma independiente por 2 o más nodos del enjambre.
           </p>
           <div id="swarm-consensus-findings-wrap">
             <div style="font-size:12px;color:var(--muted);font-style:italic" id="swarm-consensus-empty">
-              Sin hallazgos con consenso multi-nodo aún.
+              Sin hallazgos con consenso aún.
             </div>
             <div style="overflow-x:auto;display:none" id="swarm-consensus-table-wrap">
               <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -1162,58 +1228,7 @@ details .details-body{padding:12px 0 4px}
           </div>
         </div>
 
-        <!-- ── Sala (crear / unirse / invitar) ── -->
-        <div class="ctrl-section" id="swarm-sala-section">
-          <h3>Coordinar enjambre</h3>
-
-          <!-- Estado: sin acción tomada -->
-          <div id="sala-pick" style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="hdr-btn primary" onclick="createSala()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              Quiero invitar a otros →
-            </button>
-            <button class="hdr-btn" onclick="salaTab('unirse')" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              Me invitaron a un enjambre →
-            </button>
-          </div>
-
-          <!-- Panel CREAR (después de generar) -->
-          <div id="sala-crear-panel" style="display:none">
-            <p style="font-size:12px;color:var(--ok);margin-bottom:14px">
-              ✓ Enjambre creado. Comparte esta invitación con los demás operadores — ellos la pegarán al unirse.
-            </p>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Invitación para compartir</div>
-            <div style="display:flex;gap:8px;align-items:stretch">
-              <input id="sala-invite-text" type="text" readonly
-                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
-                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
-                onclick="this.select()" title="Haz clic para seleccionar todo">
-              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
-            </div>
-            <div style="margin-top:14px;display:flex;gap:8px">
-              <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
-              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
-            </div>
-            <div id="sala-tech-details" style="display:none;margin-top:10px">
-              <div class="invite-box" id="sala-invite-json"></div>
-            </div>
-          </div>
-
-          <!-- Panel UNIRSE -->
-          <div id="sala-unirse-panel" style="display:none">
-            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
-              Pega aquí la invitación que te compartieron.
-            </p>
-            <div style="display:flex;gap:8px;align-items:stretch">
-              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…"
-                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
-              <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
-            </div>
-            <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
-            <button class="hdr-btn" onclick="salaTab('crear')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
-          </div>
-        </div>
-
-        <!-- ── Reputación PBTM ── -->
+        <!-- Reputación PBTM -->
         <div class="ctrl-section">
           <h3 style="justify-content:space-between">
             <span>Reputación PBTM</span>
@@ -1229,13 +1244,13 @@ details .details-body{padding:12px 0 4px}
             <div class="rep-ring-bar" id="rep-ring-bar"></div>
           </div>
           <div id="rep-nodes-list">
-            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin datos — conecta el swarm o recarga.</div>
+            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin datos — conecta el swarm para ver nodos.</div>
           </div>
         </div>
 
-        <!-- ── Actividad reciente ── -->
+        <!-- Actividad reciente -->
         <div class="ctrl-section" id="swarm-activity-section" style="display:none">
-          <h3>Actividad Reciente</h3>
+          <h3>Actividad reciente</h3>
           <div id="swarm-activity-list" style="max-height:260px;overflow-y:auto"></div>
         </div>
 
@@ -1255,141 +1270,9 @@ details .details-body{padding:12px 0 4px}
         </div>
       </div>
 
-      <!-- ── 10 LABORATORIO ── -->
-      <div class="section" id="s10">
-        <div class="section-title">10 Simulacro en Swarm — Reputación PBTM</div>
-        <hr class="section-sep">
-
-        <div class="ctrl-section">
-          <!-- Node selector buttons + controls -->
-          <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
-            <div>
-              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Nodos (máx 12):</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button onclick="setLabNodeCount(2)" class="lab-node-btn" data-count="2" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">2</button>
-                <button onclick="setLabNodeCount(3)" class="lab-node-btn" data-count="3" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">3</button>
-                <button onclick="setLabNodeCount(4)" class="lab-node-btn" data-count="4" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">4</button>
-                <button onclick="setLabNodeCount(5)" class="lab-node-btn" data-count="5" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">5</button>
-                <button onclick="setLabNodeCount(6)" class="lab-node-btn lab-node-btn-selected" data-count="6" style="min-width:40px;padding:8px 12px;border:2px solid var(--accent);background:var(--accent);color:#0f1115;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">6</button>
-                <button onclick="setLabNodeCount(7)" class="lab-node-btn" data-count="7" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">7</button>
-                <button onclick="setLabNodeCount(8)" class="lab-node-btn" data-count="8" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">8</button>
-                <button onclick="setLabNodeCount(9)" class="lab-node-btn" data-count="9" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">9</button>
-                <button onclick="setLabNodeCount(10)" class="lab-node-btn" data-count="10" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">10</button>
-                <button onclick="setLabNodeCount(11)" class="lab-node-btn" data-count="11" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">11</button>
-                <button onclick="setLabNodeCount(12)" class="lab-node-btn" data-count="12" style="min-width:40px;padding:8px 12px;border:1px solid var(--border);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.1s">12</button>
-                <button class="hdr-btn" id="btn-corte" onclick="doCorteElectrico()" style="background:rgba(223,107,134,0.1);border-color:var(--bad);color:var(--bad);margin-left:12px;padding:8px 16px;font-size:12px;font-weight:700">⚡ Corte eléctrico</button>
-              </div>
-            </div>
-            <div style="flex:1;min-width:200px">
-              <div class="ctrl-row" style="margin-bottom:0">
-                <label>País</label>
-                <select id="lab-country-select" onchange="markDirty()" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%">
-                  <option value="HN">Honduras</option>
-                  <option value="CR">Costa Rica</option>
-                  <option value="PA">Panamá</option>
-                  <option value="SV">El Salvador</option>
-                  <option value="NI">Nicaragua</option>
-                  <option value="GT">Guatemala</option>
-                  <option value="CU">Cuba</option>
-                  <option value="DO">Rep. Dominicana</option>
-                  <option value="CO">Colombia</option>
-                  <option value="MX">México</option>
-                  <option value="PE">Perú</option>
-                  <option value="VE">Venezuela</option>
-                  <option value="EC">Ecuador</option>
-                  <option value="BO">Bolivia</option>
-                  <option value="PY">Paraguay</option>
-                  <option value="UY">Uruguay</option>
-                  <option value="AR">Argentina</option>
-                  <option value="CL">Chile</option>
-                  <option value="BR">Brasil</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Metrics row -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;margin-bottom:16px;border:1px solid var(--border)">
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-nodos">6</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">NODOS</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-gossip">2</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RONDAS GOSSIP</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-bft">1</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT TOLERANCIA</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-ring0">1</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 SEMILLA</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-ring1">0</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 CONFIABLE</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="lab-stat-compromised">0</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">COMPROMETIDOS</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="lab-stat-msgs">6</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">MSGS/TICK</div>
-            </div>
-            <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="lab-stat-consensus">OK</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">CONSENSO</div>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-            <button class="hdr-btn primary" onclick="startLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              ▶ Iniciar Simulación
-            </button>
-            <button class="hdr-btn" onclick="resetLabSimulation()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              ↻ Reiniciar
-            </button>
-          </div>
-
-          <!-- Connected swarms -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Conectar a swarms:</div>
-            <div id="lab-swarms-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px"></div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="lab-swarms-empty">
-              No hay enjambres conectados.
-            </div>
-          </div>
-        </div>
-
-        <!-- Anillos de confianza -->
-        <div class="ctrl-section" id="lab-rings-section" style="display:none">
-          <h3>Anillos de Confianza (Modelo Beta Bayesiano)</h3>
-          <div id="lab-rings-display" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px"></div>
-        </div>
-
-        <!-- Hallazgos -->
-        <div class="ctrl-section" id="lab-findings-section" style="display:none">
-          <h3>Hallazgos con Consenso (≥2 nodos)</h3>
-          <div id="lab-findings-list" style="max-height:280px;overflow-y:auto">
-            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>
-          </div>
-        </div>
-
-        <!-- Matriz de consenso -->
-        <div class="ctrl-section" id="lab-matrix-section" style="display:none">
-          <h3>Matriz de Consenso Inter-Nodos</h3>
-          <div id="lab-consensus-matrix" style="overflow-x:auto;max-height:260px;overflow-y:auto">
-            <div style="font-size:12px;color:var(--muted);font-style:italic">Matriz aparecerá aquí…</div>
-          </div>
-        </div>
-
-      </div>
-
       <!-- ── 9 CIERRE ELECTORAL ── -->
-      <div class="section" id="s9">
-        <div class="section-title">9 Cierre Electoral</div>
+      <div class="section" id="s8">
+        <div class="section-title">8 Cierre Electoral</div>
         <hr class="section-sep">
         <p class="section-sub">
           Secuencia de fin de elección: raspe final forzado de todas las fuentes,
@@ -1525,6 +1408,60 @@ details .details-body{padding:12px 0 4px}
   </div>
 </div>
 
+<!-- ════ UNLOCK MODAL (Carta de responsabilidad) ════ -->
+<div id="unlock-modal">
+  <div class="modal-box" style="max-width:600px">
+    <h2 style="color:var(--warn);font-size:17px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:22px">&#x26a0;</span> ADVERTENCIA DE SEGURIDAD OPERATIVA
+    </h2>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:6px">
+      Est&aacute;s por desactivar los <strong>l&iacute;mites de cortes&iacute;a digital de f&aacute;brica</strong> de CENTINEL.<br>
+      Por dise&ntilde;o original, este software opera bajo un <strong>Modo Electoral Seguro</strong> que
+      respeta las directivas del servidor (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">robots.txt</code>),
+      los frenos de saturaci&oacute;n (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">Retry-After</code>)
+      y se identifica honestamente ante la infraestructura auditada.
+    </p>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:12px">
+      Al proceder con esta acci&oacute;n, declaras conscientemente lo siguiente:
+    </p>
+    <div style="padding:0 8px;margin-bottom:14px">
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Autonom&iacute;a:</strong>
+        <span>Entiendes que est&aacute;s forzando la herramienta m&aacute;s all&aacute; de los l&iacute;mites
+          &eacute;ticos y t&eacute;cnicos establecidos por su creador
+          (m&aacute;x <span id="ul-rph">480</span> req/h, m&iacute;n <span id="ul-int">2</span>s intervalo, burst <span id="ul-burst">8</span>).</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Responsabilidad:</strong>
+        <span>Asumes de forma exclusiva y total cualquier consecuencia t&eacute;cnica, legal o
+          administrativa derivada del aumento en la intensidad de las peticiones.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Desvinculaci&oacute;n:</strong>
+        <span>Eximes a la suite CENTINEL y a sus desarrolladores de cualquier implicaci&oacute;n
+          por el uso derivado de esta sesi&oacute;n.</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px;line-height:1.5">
+      Para desbloquear los l&iacute;mites, confirma la acci&oacute;n. Tu aceptaci&oacute;n se grabar&aacute; de forma
+      permanente e inmutable mediante un commit firmado en el historial del repositorio.
+    </p>
+    <div class="unlock-check">
+      <input type="checkbox" id="unlock-accept-chk" onchange="updateUnlockBtn()">
+      <label for="unlock-accept-chk">He le&iacute;do y acepto la declaraci&oacute;n de responsabilidad.
+        Entiendo que este acto quedar&aacute; registrado de forma permanente en el historial de Git.</label>
+    </div>
+    <div class="auth-err" id="unlock-err"></div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeUnlockModal()">Cancelar</button>
+      <button class="hdr-btn" id="unlock-confirm-btn" disabled onclick="executeUnlock()"
+        style="background:var(--warn);color:#000;font-weight:700">
+        Firmar y desbloquear
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- hidden print target -->
 <div id="print-target" style="display:none"></div>
 
@@ -1533,15 +1470,17 @@ details .details-body{padding:12px 0 4px}
 // GLOBALS
 // ══════════════════════════════════════════════════════════
 // ── PBKDF2 Auth (no server-side deps) ──
-const ADMIN_SALT   = 'centinel-admin-salt-v1';
-const ADMIN_ITERS  = 600_000;
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
-async function pbkdf2Hex(password, salt, iterations){
+async function pbkdf2Hex(password, salt, iterations) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
-    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, key, 256);
-  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    {name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256'}, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // These are filled from config.js at runtime via GitHub Pages
@@ -1620,68 +1559,124 @@ async function loadDepartments(code) {
 // ══════════════════════════════════════════════════════════
 // PRESETS
 // ══════════════════════════════════════════════════════════
+// Hard ceiling: CENTINEL presets never exceed these values.
+// Only "custom" presets (user-created) can bypass them — under operator responsibility.
+const HARD_CEILING = { maxRph: 480, minInterval: 1, maxBurst: 8 };
+
+const UNLOCK_LEGAL_TEXT = `ADVERTENCIA DE SEGURIDAD OPERATIVA — CENTINEL
+═══════════════════════════════════════════════════
+
+Fecha/hora: {{TIMESTAMP}}
+
+El operador está desactivando los límites de cortesía digital de fábrica de CENTINEL.
+Por diseño original, este software opera bajo un Modo Electoral Seguro que respeta
+las directivas del servidor (robots.txt), los frenos de saturación (Retry-After) y
+se identifica honestamente ante la infraestructura auditada.
+
+Al proceder con esta acción, el operador declara conscientemente:
+
+  ● AUTONOMÍA: Entiende que está forzando la herramienta más allá de los límites
+    éticos y técnicos establecidos por su creador (máx {{MAX_RPH}} req/h, mín
+    {{MIN_INTERVAL}}s intervalo, burst máx {{MAX_BURST}}).
+
+  ● RESPONSABILIDAD: Asume de forma exclusiva y total cualquier consecuencia
+    técnica, legal o administrativa derivada del aumento en la intensidad de las
+    peticiones, incluyendo pero no limitado a:
+    - Bloqueo de IP por parte del servidor del CNE
+    - Degradación del servicio público de resultados electorales
+    - Pérdida de datos por rate limiting del servidor remoto
+    - Posibles implicaciones legales por acceso excesivo a infraestructura pública
+
+  ● DESVINCULACIÓN: Exime a la suite CENTINEL y a sus desarrolladores de cualquier
+    implicación por el uso derivado de esta sesión.
+
+  ● COMPROMISO: Se compromete a reactivar los límites de seguridad tan pronto como
+    la situación excepcional que motivó este desbloqueo haya cesado.
+
+Esta aceptación se graba de forma permanente e inmutable mediante commit firmado
+en el historial del repositorio.`;
+
 const FACTORY_PRESETS = [
-  {id:'normal',   name:'Operación normal',  desc:'Producción estándar',
-   cfg:{interval:30, rph:180, benford:5.99, zscore:3.0, election:false, safe:false}},
-  {id:'election', name:'Noche electoral',   desc:'Máxima frecuencia y sensibilidad',
-   cfg:{interval:10, rph:360, benford:4.5,  zscore:2.5, election:true,  safe:false}},
-  {id:'conserv',  name:'Modo conservador',  desc:'Servidores sensibles',
-   cfg:{interval:60, rph:60,  benford:7.0,  zscore:3.5, election:false, safe:false}},
+  {id:'normal',   name:'Operación normal',  desc:'Monitoreo pasivo entre elecciones · 10 min',
+   cfg:{interval:10, rph:240, benford:5.99, zscore:3.0, election:false, safe:false, rlMode:'normal'}},
+  {id:'election', name:'Noche electoral',   desc:'Máxima frecuencia ética · 3 min (estándar NYT/MinnPost)',
+   cfg:{interval:3,  rph:360, benford:4.5,  zscore:2.5, election:true,  safe:false, rlMode:'electoral'}},
+  {id:'aggressive',name:'Apagón / Crítico', desc:'Datos en riesgo · 1 min · jitter alto',
+   cfg:{interval:1,  rph:480, benford:4.5,  zscore:2.5, election:true,  safe:false, rlMode:'aggressive'}},
+  {id:'conserv',  name:'Modo conservador',  desc:'Servidores sensibles · 30 min',
+   cfg:{interval:30, rph:120, benford:7.0,  zscore:3.5, election:false, safe:false, rlMode:'conservative'}},
   {id:'research', name:'Investigación',     desc:'Research rules activas, sensibilidad alta',
-   cfg:{interval:30, rph:180, benford:3.84, zscore:2.0, election:false, safe:false}},
+   cfg:{interval:10, rph:240, benford:3.84, zscore:2.0, election:false, safe:false, rlMode:'normal'}},
   {id:'emergency',name:'Emergencia',        desc:'Máxima resiliencia, modo mínimo',
-   cfg:{interval:10, rph:120, benford:5.99, zscore:3.0, election:false, safe:true}},
+   cfg:{interval:10, rph:120, benford:5.99, zscore:3.0, election:false, safe:true,  rlMode:'conservative'}},
 ];
 let customPresets = [];
 let activePresetId = null;
+let ceilingUnlocked = false;
 
 // ══════════════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════════════
-// Check session token stored in sessionStorage
+// Check session token stored in sessionStorage; also try URL fragment auto-login
 (function(){
   const tok = sessionStorage.getItem('centinel_admin_tok');
-  const exp = parseInt(sessionStorage.getItem('centinel_admin_exp')||'0',10);
-  if(tok && Date.now() < exp){ currentUser = {seed: tok}; showAdminShell(); }
+  const exp = parseInt(sessionStorage.getItem('centinel_admin_exp')||'0', 10);
+  if (tok && Date.now() < exp) { currentUser = {seed: tok}; showAdminShell(); return; }
+  // Auto-login via URL fragment: ops/#CLAVE24CHARS (base64url, 24 chars)
+  const frag = location.hash.slice(1);
+  if (frag.length === 24 && /^[A-Za-z0-9_-]{24}$/.test(frag)) {
+    window.addEventListener('DOMContentLoaded', () => doAdminLogin(frag), {once: true});
+  }
 })();
 
-async function doAdminLogin(){
-  const pass = document.getElementById('adm-pass').value.trim();
+async function doAdminLogin(prefillKey) {
+  const pass = prefillKey || document.getElementById('adm-pass').value.trim();
   const btn  = document.getElementById('btn-login');
   const err  = document.getElementById('auth-err');
-  if(!pass){err.textContent='Ingresa el seed de acceso.';return;}
-  btn.disabled=true; btn.textContent='Verificando…'; err.textContent='';
-  try{
-    // Try local API first (works when running via launch.py); fall back to relative path
-    const localApi = (window.CENTINEL_API_BASE||'') + '/api/setup/access.json';
+  if (!pass) { err.textContent = 'Ingresa la clave de acceso.'; return; }
+  btn.disabled = true;
+  btn.textContent = prefillKey ? 'Verificando enlace…' : 'Verificando…';
+  err.textContent = '';
+  try {
     const fallbackUrl = new URL('../access.json', location.href).href;
     let ac;
-    try {
-      const r = await fetch(localApi + '?t=' + Date.now());
-      if (r.ok) ac = await r.json();
-    } catch(_) {}
-    if (!ac) ac = await fetch(fallbackUrl + '?t=' + Date.now()).then(r => r.json());
-    const candidate = await pbkdf2Hex(pass, ac.salt||ADMIN_SALT, ac.iterations||ADMIN_ITERS);
-    const rawSeeds = ac.seeds||{};
-    let seedId = null;
-    if(Array.isArray(rawSeeds)){
-      const hit = rawSeeds.find(s=>s.hash===candidate);
-      if(hit) seedId = 'S1-' + 'ABCDEFGHIJKL'[hit.slot-1];
+    if (window.CENTINEL_API_BASE) {
+      try {
+        const r = await fetch(window.CENTINEL_API_BASE + '/api/setup/access.json?t=' + Date.now());
+        if (r.ok) ac = await r.json();
+      } catch(_) {}
+    }
+    if (!ac) {
+      const r = await fetch(fallbackUrl + '?t=' + Date.now());
+      if (!r.ok) {
+        err.textContent = `No se pudo cargar la configuración (HTTP ${r.status}).`;
+        btn.disabled = false; btn.textContent = 'Entrar'; return;
+      }
+      ac = await r.json();
+    }
+    // v3: SHA-256 direct; legacy v2: PBKDF2 (backwards-compat during transition)
+    let candidate;
+    if ((ac.version || 0) >= 3 || ac.method === 'SHA-256') {
+      candidate = await sha256Hex(pass);
     } else {
-      const hit = Object.entries(rawSeeds).find(([,h])=>h===candidate);
-      if(hit) seedId = hit[0];
+      candidate = await pbkdf2Hex(pass, ac.salt || 'centinel-admin-salt-v1', ac.iterations || 600000);
     }
-    if(!seedId){
-      err.textContent='Seed incorrecto.';
-      btn.disabled=false; btn.textContent='Entrar'; return;
+    const rawSeeds = ac.seeds || {};
+    const matched = Array.isArray(rawSeeds)
+      ? rawSeeds.some(h => (typeof h === 'string') ? h === candidate : h.hash === candidate)
+      : Object.values(rawSeeds).some(h => h === candidate);
+    if (!matched) {
+      err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
+      btn.disabled = false; btn.textContent = 'Entrar'; return;
     }
-    sessionStorage.setItem('centinel_admin_tok', seedId);
-    sessionStorage.setItem('centinel_admin_exp', String(Date.now()+8*3600*1000));
-    currentUser = {seed: seedId};
+    sessionStorage.setItem('centinel_admin_tok', 'operador');
+    sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
+    currentUser = {seed: 'operador'};
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
-  }catch(e){
-    err.textContent='Error al verificar: '+e.message;
-    btn.disabled=false; btn.textContent='Entrar';
+  } catch(e) {
+    err.textContent = 'Error al verificar: ' + e.message;
+    btn.disabled = false; btn.textContent = 'Entrar';
   }
 }
 
@@ -1695,8 +1690,7 @@ function showAdminShell(){
   document.getElementById('auth-screen').style.display='none';
   const shell = document.getElementById('admin-shell');
   shell.style.display='flex';
-  const seedId = currentUser?.seed || '—';
-  document.getElementById('hdr-user').textContent = seedId;
+  document.getElementById('hdr-user').textContent = 'Operador';
   loadCustomPresets();
   initAll();
 }
@@ -1910,7 +1904,7 @@ function buildSensorCards(){
     <div class="stat-card" id="sc-${def.id}">
       <div class="sc-label">
         <span>${def.icon} ${def.label}</span>
-        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con 3" style="font-size:10px;cursor:help">ⓘ</span>`:''}
+        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con Configuración avanzada" style="font-size:10px;cursor:help">ⓘ</span>`:''}
       </div>
       <div class="sc-val val-neutral" id="scv-${def.id}">—</div>
       <div class="sc-detail" id="scd-${def.id}">—</div>
@@ -2208,7 +2202,12 @@ const BADGE_IDS = {
 };
 
 function syncSlider(key, val){
-  const v = parseFloat(val);
+  let v = parseFloat(val);
+  const isCustom = activePresetId && activePresetId.startsWith('custom-');
+  if(!isCustom || !ceilingUnlocked){
+    if(key==='rph')      v = Math.min(v, HARD_CEILING.maxRph);
+    if(key==='interval') v = Math.max(v, HARD_CEILING.minInterval);
+  }
   const display = Number.isInteger(v) ? v : v.toFixed(2);
   (SLIDER_IDS[key]||[]).forEach(id=>{
     const el = document.getElementById(id);
@@ -2218,7 +2217,6 @@ function syncSlider(key, val){
     const el = document.getElementById(id);
     if(el) el.textContent = display;
   });
-  // update Benford/zscore sensor card values
   if(key==='benford'){
     const sv = document.getElementById('scv-benford');
     const sd = document.getElementById('scd-benford');
@@ -2269,8 +2267,12 @@ function setMode(m){
   adminMode = m;
   document.getElementById('btn-easy').className = m==='easy' ? 'active' : '';
   document.getElementById('btn-full').className = m==='full' ? 'active' : '';
-  document.getElementById('easy-mode').style.display = m==='easy' ? 'block' : 'none';
-  document.getElementById('full-mode').style.display = m==='full' ? 'block' : 'none';
+  // easy-mode/full-mode divs are now inside the advanced details block;
+  // full-mode is always shown; easy-mode is empty/hidden.
+  const easyEl = document.getElementById('easy-mode');
+  const fullEl = document.getElementById('full-mode');
+  if(easyEl) easyEl.style.display = 'none';
+  if(fullEl) fullEl.style.display = 'block';
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2301,13 +2303,13 @@ function buildPresetsGrid(){
   const all = [...FACTORY_PRESETS, ...customPresets];
   grid.innerHTML = all.map(p=>{
     const c = p.cfg || {};
+    const modeLabels = {normal:'NORMAL',electoral:'ELECTORAL',aggressive:'AGRESIVO',conservative:'CONSERVADOR'};
     const vals = [
-      c.interval !== undefined ? `⏱ ${c.interval}m`  : '',
-      c.rph      !== undefined ? `📡 ${c.rph}/h`      : '',
-      c.benford  !== undefined ? `χ² ${c.benford}`    : '',
-      c.zscore   !== undefined ? `σ ${c.zscore}`      : '',
-      c.election ? '🗳️ ELECTORAL' : '',
-      c.safe     ? '🛡️ SAFE'     : '',
+      c.rlMode ? (modeLabels[c.rlMode]||c.rlMode) : '',
+      c.interval !== undefined ? `${c.interval}m`  : '',
+      c.rph      !== undefined ? `${c.rph}/h`      : '',
+      c.election ? 'ELECCIONES' : '',
+      c.safe     ? 'SAFE'     : '',
     ].filter(Boolean);
     return `
     <div class="preset-card ${activePresetId===p.id?'active-preset':''}" onclick="loadPreset('${p.id}')">
@@ -2358,6 +2360,141 @@ function getCurrentCfg(){
 }
 
 // ══════════════════════════════════════════════════════════
+// CEILING UNLOCK
+// ══════════════════════════════════════════════════════════
+
+function requestUnlock(checked){
+  if(!checked){
+    ceilingUnlocked = false;
+    updateUnlockUI();
+    enforceCurrentCeilings();
+    return;
+  }
+  // Revert toggle immediately — only mark checked after successful commit
+  document.getElementById('tog-unlock').checked = false;
+  const now = new Date().toISOString();
+  const text = UNLOCK_LEGAL_TEXT
+    .replace('{{TIMESTAMP}}', now)
+    .replace('{{MAX_RPH}}', HARD_CEILING.maxRph)
+    .replace('{{MIN_INTERVAL}}', HARD_CEILING.minInterval)
+    .replace('{{MAX_BURST}}', HARD_CEILING.maxBurst);
+  document.getElementById('unlock-legal-text').textContent = text;
+  const rphEl = document.getElementById('ul-rph');
+  const intEl = document.getElementById('ul-int');
+  const burstEl = document.getElementById('ul-burst');
+  if(rphEl) rphEl.textContent = HARD_CEILING.maxRph;
+  if(intEl) intEl.textContent = HARD_CEILING.minInterval;
+  if(burstEl) burstEl.textContent = HARD_CEILING.maxBurst;
+  document.getElementById('unlock-accept-chk').checked = false;
+  document.getElementById('unlock-err').textContent = '';
+  updateUnlockBtn();
+  document.getElementById('unlock-modal').classList.add('open');
+}
+
+function updateUnlockBtn(){
+  const btn = document.getElementById('unlock-confirm-btn');
+  btn.disabled = !document.getElementById('unlock-accept-chk').checked;
+}
+
+function closeUnlockModal(){
+  document.getElementById('unlock-modal').classList.remove('open');
+}
+
+async function executeUnlock(){
+  const errEl = document.getElementById('unlock-err');
+  const btn   = document.getElementById('unlock-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Firmando…';
+  errEl.textContent = '';
+
+  let pat = sessionStorage.getItem('gh-pat');
+  if(!pat){
+    closeUnlockModal();
+    const acquired = await requestPat();
+    if(!acquired){
+      btn.textContent = 'Firmar y desbloquear';
+      btn.disabled = false;
+      return;
+    }
+    pat = sessionStorage.getItem('gh-pat');
+    document.getElementById('unlock-modal').classList.add('open');
+  }
+
+  const now = new Date().toISOString();
+  const doc = UNLOCK_LEGAL_TEXT
+    .replace('{{TIMESTAMP}}', now)
+    .replace('{{MAX_RPH}}', HARD_CEILING.maxRph)
+    .replace('{{MIN_INTERVAL}}', HARD_CEILING.minInterval)
+    .replace('{{MAX_BURST}}', HARD_CEILING.maxBurst);
+
+  const safeTs = now.replace(/[:.]/g,'-');
+  const filePath = `audit/ceiling-unlock/${safeTs}.txt`;
+  const commitMsg = `audit: operador acepta responsabilidad por desbloqueo de límites\n\nFecha: ${now}\nLímites desbloqueados: RPH>${HARD_CEILING.maxRph}, interval<${HARD_CEILING.minInterval}s, burst>${HARD_CEILING.maxBurst}`;
+
+  try{
+    const encoded = btoa(unescape(encodeURIComponent(doc)));
+    const r = await fetch(`${API_BASE}/contents/${filePath}`,{
+      method:'PUT',
+      headers:{Authorization:`Bearer ${pat}`,'Content-Type':'application/json'},
+      body: JSON.stringify({ message: commitMsg, content: encoded }),
+    });
+    if(!r.ok){
+      const j = await r.json().catch(()=>({}));
+      throw new Error(j.message || `HTTP ${r.status}`);
+    }
+    const j = await r.json();
+    const sha7 = (j.commit?.sha||'').slice(0,7);
+
+    ceilingUnlocked = true;
+    closeUnlockModal();
+    updateUnlockUI();
+    showResultModal([
+      `✓ Firma registrada — commit ${sha7}`,
+      `✓ Archivo: ${filePath}`,
+      `✓ Límites de seguridad desbloqueados para esta sesión`,
+    ], false);
+  }catch(e){
+    errEl.textContent = `Error al firmar: ${e.message}`;
+  }
+  btn.textContent = 'Firmar y desbloquear';
+  btn.disabled = false;
+}
+
+function updateUnlockUI(){
+  const bar = document.getElementById('unlock-bar');
+  const tog = document.getElementById('tog-unlock');
+  const rphSliders = ['sl-rph','sl-rph2'];
+  const intSliders = ['sl-interval','sl-interval2'];
+  if(ceilingUnlocked){
+    bar.classList.add('unlocked');
+    bar.querySelector('.ub-icon').textContent = '🔓';
+    bar.querySelector('.ub-text').innerHTML =
+      '<strong>Límites desbloqueados para esta sesión</strong> — los controles pueden exceder '+
+      'los límites de seguridad. La firma de responsabilidad ha sido registrada en Git.';
+    if(tog) tog.checked = true;
+    rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
+    intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=0.5; });
+  } else {
+    bar.classList.remove('unlocked');
+    bar.querySelector('.ub-icon').textContent = '🔒';
+    bar.querySelector('.ub-text').innerHTML =
+      '<strong>Límites de seguridad activos</strong> — los controles no pueden exceder '+
+      '480 req/h, intervalo mínimo 1s, burst máximo 8. '+
+      'Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.';
+    if(tog) tog.checked = false;
+    rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
+    intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
+  }
+}
+
+function enforceCurrentCeilings(){
+  const rph = parseFloat(document.getElementById('sl-rph')?.value||240);
+  const interval = parseFloat(document.getElementById('sl-interval')?.value||10);
+  if(rph > HARD_CEILING.maxRph) syncSlider('rph', HARD_CEILING.maxRph);
+  if(interval < HARD_CEILING.minInterval) syncSlider('interval', HARD_CEILING.minInterval);
+}
+
+// ══════════════════════════════════════════════════════════
 // APPLY CHANGES
 // ══════════════════════════════════════════════════════════
 async function applyChanges(){
@@ -2401,9 +2538,27 @@ function buildNewWatchdogYaml(){
 
 function buildNewRateLimiterYaml(){
   const base = deepClone(currentConfig['config/prod/rate_limiter.yaml']||{});
-  base.max_requests_per_hour = parseInt(document.getElementById('sl-rph')?.value||180);
-  base.capacity = parseInt(document.getElementById('sl-capacity')?.value||3);
+  const rph = parseInt(document.getElementById('sl-rph')?.value||240);
+  const capacity = parseInt(document.getElementById('sl-capacity')?.value||5);
+  const interval = parseInt(document.getElementById('sl-interval')?.value||10);
+
+  // Determine active mode from preset
+  const preset = [...FACTORY_PRESETS, ...customPresets].find(p=>p.id===activePresetId);
+  const rlMode = preset?.cfg?.rlMode || 'normal';
+  const isCustom = activePresetId && activePresetId.startsWith('custom-');
+  const bypassCeiling = isCustom && ceilingUnlocked;
+
+  base.active_mode = bypassCeiling ? 'custom-unlocked' : (isCustom ? 'custom' : rlMode);
+  base.max_requests_per_hour = bypassCeiling ? rph : Math.min(rph, HARD_CEILING.maxRph);
+  base.capacity = bypassCeiling ? capacity : Math.min(capacity, HARD_CEILING.maxBurst);
   base.timeout_seconds = parseInt(document.getElementById('sl-timeout')?.value||30);
+
+  // Ensure hard_ceiling is always present
+  if(!base.hard_ceiling) base.hard_ceiling = {};
+  base.hard_ceiling.max_requests_per_hour = HARD_CEILING.maxRph;
+  base.hard_ceiling.min_interval_seconds = HARD_CEILING.minInterval;
+  base.hard_ceiling.max_burst = HARD_CEILING.maxBurst;
+
   return base;
 }
 
@@ -2574,6 +2729,20 @@ function showResultModal(lines, isError){
 // OTS — OpenTimestamps Bitcoin Anchoring
 // ══════════════════════════════════════════════════════════
 
+function onOtsServerSelect(val) {
+  const inp = document.getElementById('inp-ots-server');
+  if (!inp) return;
+  if (val === '__custom__') {
+    inp.style.display = '';
+    inp.value = '';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+    inp.value = val;
+  }
+  markDirty();
+}
+
 // Update the connectivity dot + hint text in the heading
 function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
   const dot  = document.getElementById('ots-net-dot');
@@ -2667,7 +2836,19 @@ async function loadOtsStatus(){
   const togOts = document.getElementById('tog-ots');
   if(togOts) togOts.checked = cfg?.opentimestamps?.enabled ?? true;
   const inpServer = document.getElementById('inp-ots-server');
-  if(inpServer) inpServer.value = cfg?.opentimestamps?.primary_server || '';
+  const selServer = document.getElementById('sel-ots-server');
+  const savedServer = cfg?.opentimestamps?.primary_server || '';
+  if (inpServer) inpServer.value = savedServer;
+  if (selServer) {
+    const knownOpt = [...selServer.options].find(o => o.value === savedServer);
+    if (savedServer && !knownOpt) {
+      selServer.value = '__custom__';
+      inpServer.style.display = '';
+    } else {
+      selServer.value = savedServer || 'https://a.pool.opentimestamps.org';
+      if (inpServer) inpServer.style.display = 'none';
+    }
+  }
   // Auto-probe on load — non-blocking
   const enabled = togOts?.checked ?? true;
   if(enabled){ _setOtsDot('probing'); _probeOtsNetwork(); }
@@ -2886,11 +3067,9 @@ async function loadCountrySelector() {
   }
 }
 
-function onCountrySelectChange(code) {
-  const sel  = document.getElementById('country-select');
-  const flag = document.getElementById('country-current-flag');
-  const opt  = sel.options[sel.selectedIndex];
-  if (opt && flag) flag.textContent = opt.textContent.trim().split(' ')[0];
+async function onCountrySelectChange(code) {
+  if (!code) return;
+  await doChangeCountry();
 }
 
 // ── Operaciones ───────────────────────────────────────────────────────────────
@@ -3101,7 +3280,7 @@ async function saveElectoralUrl() {
 
 // Populate localConfig endpoints from current DEPTS data (no API required).
 // Runs after loadDepartments() so DEPTS is already filled.
-function syncEndpointsFromDepts() {
+function syncEndpointsFromDepts(force = false) {
   if (!DEPTS || DEPTS.length === 0) return;
   const nat = DEPTS.find(d => d.code === '00');
   const divs = DEPTS.filter(d => d.code !== '00');
@@ -3110,20 +3289,17 @@ function syncEndpointsFromDepts() {
   const ep = localConfig['config/prod/endpoints.yaml'];
   if (!ep.cne) ep.cne = {};
 
-  // Only overwrite main_url if it's empty or belongs to a different country
-  if (!ep.cne.main_url && nat?.url) ep.cne.main_url = nat.url;
+  if ((force || !ep.cne.main_url) && nat?.url) ep.cne.main_url = nat.url;
 
-  // Replace the endpoints list entirely with the new country's divisions
   ep.cne.presidential_endpoints = divs.map(d => ({
     department_code: parseInt(d.code, 10) || d.code,
     url: d.url || '',
   }));
 
-  // Update the main-url inputs in the UI
   const inpMain = document.getElementById('inp-main-url');
   const inpMainEasy = document.getElementById('inp-main-url-easy');
-  if (inpMain && !inpMain.value && nat?.url) inpMain.value = nat.url;
-  if (inpMainEasy && !inpMainEasy.value && nat?.url) inpMainEasy.value = nat.url;
+  if (inpMain && (force || !inpMain.value) && nat?.url) inpMain.value = nat.url;
+  if (inpMainEasy && (force || !inpMainEasy.value) && nat?.url) inpMainEasy.value = nat.url;
 
   markDirty();
   buildEndpointsTable();
@@ -3162,7 +3338,7 @@ async function doChangeCountry() {
   buildDeptGrid();
 
   // Auto-populate endpoints config from the new country's department URLs
-  syncEndpointsFromDepts();
+  syncEndpointsFromDepts(true);
 
   // Best-effort API sync (silent on failure — works offline / GitHub Pages)
   let apiSynced = false;
@@ -3215,7 +3391,7 @@ async function loadSeedStatus() {
         País: <strong>${s.country_name || s.country_code || '—'}</strong><br>
         Configurado: ${since}<br>
         Última regeneración: ${regen}<br>
-        Seeds activos: <strong>12 (S1-A … S1-L)</strong>
+        Claves activas: <strong>12</strong>
       `;
     } else {
       el.innerHTML = '<span style="color:var(--warn)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Sistema no configurado aún. Ejecuta el wizard de inicio.</span>';
@@ -3231,55 +3407,60 @@ async function doRegenerate() {
   const errEl = document.getElementById('regen-err');
   errEl.textContent = '';
 
-  const seedLabel = (document.getElementById('regen-seed-label')||{}).value;
-  const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
-  if (!seedValue) {
-    errEl.textContent = 'Ingresa el valor del seed para autenticar.';
-    return;
-  }
-
-  if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
-  document.getElementById('regen-confirm').style.display = 'none';
-
-  try {
-    const statusR = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
-    const status = await statusR.json();
-
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/regenerate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        country_code: status.country_code || null,
-        seed_label: seedLabel,
-        seed_value: seedValue,
-      }),
-    });
-
-    if (!r.ok) {
-      const err = await r.json().catch(()=>({}));
-      document.getElementById('regen-confirm').style.display = 'block';
-      errEl.textContent = err.detail || ('Error ' + r.status);
+  if (window.CENTINEL_API_BASE) {
+    const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
+    if (!seedValue) {
+      errEl.textContent = 'Ingresa la clave para autenticar.';
       return;
     }
 
-    // Limpiar campo de seed por seguridad
-    const seedInput = document.getElementById('regen-seed-value');
-    if (seedInput) seedInput.value = '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
+    document.getElementById('regen-confirm').style.display = 'none';
 
-    // Descargar PDF automáticamente
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `centinel-seeds-nuevos-${Date.now()}.pdf`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    try {
+      const statusR = await fetch(window.CENTINEL_API_BASE + '/api/setup/status');
+      const status = await statusR.json();
 
-    await loadSeedStatus();
-  } catch(e) {
-    alert('Error: ' + e.message);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Sí, regenerar ahora'; }
+      const r = await fetch(window.CENTINEL_API_BASE + '/api/setup/regenerate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          country_code: status.country_code || null,
+          seed_value: seedValue,
+        }),
+      });
+
+      if (!r.ok) {
+        const err = await r.json().catch(()=>({}));
+        document.getElementById('regen-confirm').style.display = 'block';
+        errEl.textContent = err.detail || ('Error ' + r.status);
+        return;
+      }
+
+      const seedInput = document.getElementById('regen-seed-value');
+      if (seedInput) seedInput.value = '';
+
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `centinel-seeds-nuevos-${Date.now()}.pdf`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+      await loadSeedStatus();
+    } catch(e) {
+      alert('Error: ' + e.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Sí, regenerar ahora'; }
+    }
+  } else {
+    const workflowUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/regenerate-seeds.yml`;
+    document.getElementById('regen-confirm').style.display = 'none';
+    errEl.innerHTML = `<span style="color:var(--warn)">En modo Pages no hay API local.<br>` +
+      `<a href="${workflowUrl}" target="_blank" rel="noopener" style="color:var(--accent)">` +
+      `Abre el workflow "Regenerate Admin Seeds"</a> en GitHub Actions.<br>` +
+      `Haz clic en "Run workflow", luego descarga el artifact de seeds (expira en 24h).</span>`;
   }
 }
 
@@ -3309,7 +3490,7 @@ const observer = new IntersectionObserver(entries=>{
     }
   });
 },{threshold:.3});
-['s1','s2','s3','s4','s5','s6','s7','s8'].forEach(id=>{
+['s1','s3','s4','s5','s6','s7','s8'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) observer.observe(el);
 });
@@ -3487,14 +3668,14 @@ async function doSwarmDisconnect() {
 
 function _startSwarmPoll() {
   if (_swarmPollTimer) return;
-  _swarmPollTimer = setInterval(loadSwarmStatus, 5000);
+  _swarmPollTimer = setInterval(() => { loadSwarmStatus(); refreshSwarmPanel(); }, 5000);
+  refreshSwarmPanel();
 }
 
 function _stopSwarmPoll() {
   if (_swarmPollTimer) { clearInterval(_swarmPollTimer); _swarmPollTimer = null; }
-  // Once connected, switch to slow polling
   setTimeout(() => {
-    _swarmPollTimer = setInterval(loadSwarmStatus, 30000);
+    _swarmPollTimer = setInterval(() => { loadSwarmStatus(); refreshSwarmPanel(); }, 30000);
   }, 100);
 }
 
@@ -3502,7 +3683,7 @@ function _stopSwarmPoll() {
 let _salaId = null;
 
 function salaTab(tab) {
-  document.getElementById('sala-pick').style.display = 'none';
+  document.getElementById('sala-pick').style.display = tab === 'reset' ? '' : 'none';
   document.getElementById('sala-crear-panel').style.display = tab === 'crear' ? '' : 'none';
   document.getElementById('sala-unirse-panel').style.display = tab === 'unirse' ? '' : 'none';
 }
@@ -3843,286 +4024,74 @@ async function doFinalizeElection() {
 // LAB: Simulación de Enjambres y Peer-Review
 // ════════════════════════════════════════════════════════════
 
-let labSimulation = {
-  running: false,
-  startTime: null,
-  nodes: [],
-  findings: [],
-  tick: 0,
-  connectedSwarms: [],
-};
-
-function updateLabNodeCount(val) {
-  document.getElementById('lab-nodes-count').textContent = val;
+// ── Swarm Panel — métricas en vivo + tarjetas de nodos ────────────────────
+async function refreshSwarmPanel() {
+  try {
+    const [statusRes, repRes] = await Promise.allSettled([
+      fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status'),
+      fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/reputation'),
+    ]);
+    const status = statusRes.status === 'fulfilled' && statusRes.value.ok ? await statusRes.value.json() : null;
+    const rep = repRes.status === 'fulfilled' && repRes.value.ok ? await repRes.value.json() : null;
+    renderSwarmMetrics(status, rep);
+    if (rep) renderNodeCards(rep);
+  } catch(_) {
+    renderSwarmMetrics(null, null);
+  }
 }
 
-function loadLabSwarms() {
-  const swarmsList = document.getElementById('lab-swarms-list');
-  const swarmEmpty = document.getElementById('lab-swarms-empty');
+function renderSwarmMetrics(status, rep) {
+  const el = id => document.getElementById(id);
+  const peers = status?.connected_peers ?? 0;
+  const total = peers + (status ? 1 : 0);
+  const bft = Math.floor((total - 1) / 3);
+  const r0 = rep?.ring_summary?.ring0 ?? 0;
+  const r1 = rep?.ring_summary?.ring1 ?? 0;
+  const compromised = (rep?.nodes || []).filter(n => n.trust_score < 0.5).length;
+  const consensus = status?.consensus || '—';
 
-  // Get available swarms from existing swarm data or mock some
-  let availableSwarms = [];
-
-  // Check if there are any connected swarms in s8
-  const swarmLabel = document.getElementById('swarm-label');
-  if (swarmLabel && swarmLabel.textContent === 'CONECTADO') {
-    availableSwarms.push({
-      id: 'local-swarm-1',
-      name: 'Enjambre Local',
-      nodes: 3,
-      reputation: 85,
-    });
+  if (el('swarm-m-nodos')) el('swarm-m-nodos').textContent = status ? total : '—';
+  if (el('swarm-m-consenso')) {
+    el('swarm-m-consenso').textContent = status ? consensus : '—';
+    el('swarm-m-consenso').style.color = consensus === 'OK' ? 'var(--ok)' : consensus === 'DIVERGENT' ? 'var(--bad)' : 'var(--fg)';
   }
-
-  // Add some demo swarms
-  if (availableSwarms.length === 0) {
-    availableSwarms = [
-      {id: 'demo-1', name: 'Demo Honduras', nodes: 2, reputation: 72},
-      {id: 'demo-2', name: 'Demo Costa Rica', nodes: 3, reputation: 88},
-      {id: 'demo-3', name: 'Demo Panamá', nodes: 2, reputation: 65},
-    ];
+  if (el('swarm-m-bft')) el('swarm-m-bft').textContent = status ? bft : '—';
+  if (el('swarm-m-ring0')) el('swarm-m-ring0').textContent = rep ? r0 : '—';
+  if (el('swarm-m-ring1')) el('swarm-m-ring1').textContent = rep ? r1 : '—';
+  if (el('swarm-m-compromised')) {
+    el('swarm-m-compromised').textContent = rep ? compromised : '—';
+    if (el('swarm-m-compromised')) el('swarm-m-compromised').style.color = compromised > 0 ? 'var(--bad)' : 'var(--ok)';
   }
+}
 
-  if (availableSwarms.length === 0) {
-    swarmEmpty.style.display = '';
-    swarmsList.innerHTML = '';
-    return;
-  }
-
-  swarmEmpty.style.display = 'none';
-  swarmsList.innerHTML = '';
-
-  for (const swarm of availableSwarms) {
-    const card = document.createElement('label');
-    card.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:0.1s';
+function renderNodeCards(rep) {
+  const container = document.getElementById('swarm-node-cards');
+  if (!container || !rep?.nodes) return;
+  container.innerHTML = '';
+  for (const node of rep.nodes) {
+    const trust = Math.round((node.trust_score ?? 0) * 100);
+    const ring = node.ring ?? 2;
+    const ringLabel = ring === 0 ? 'Ring-0' : ring === 1 ? 'Ring-1' : 'Ring-2';
+    const ringColor = ring === 0 ? '#b08cf0' : ring === 1 ? 'var(--ok)' : 'var(--muted)';
+    const trustColor = trust >= 85 ? 'var(--ok)' : trust >= 50 ? 'var(--warn)' : 'var(--bad)';
+    const shortId = (node.node_id || '').slice(0, 8);
+    const isSelf = node.is_self;
+    const card = document.createElement('div');
+    card.style.cssText = `padding:12px;background:var(--panel);border:1px solid ${isSelf ? 'var(--accent)' : 'var(--border)'};border-radius:10px;text-align:center;cursor:pointer;transition:.15s`;
+    card.title = node.node_id || '';
     card.innerHTML = `
-      <input type="checkbox" class="lab-swarm-checkbox" value="${swarm.id}" data-name="${swarm.name}" data-rep="${swarm.reputation}" style="cursor:pointer;width:16px;height:16px">
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:600">${swarm.name}</div>
-        <div style="font-size:10px;color:var(--muted)">${swarm.nodes} nodos · Rep ${swarm.reputation}%</div>
+      <div style="font-size:11px;font-weight:700;color:var(--fg);font-family:var(--mono);margin-bottom:6px">${isSelf ? '(tú) ' : ''}${shortId}</div>
+      <div style="font-size:24px;font-weight:700;color:${trustColor}">${trust}%</div>
+      <div style="font-size:10px;color:${ringColor};font-weight:600;margin-top:4px">${ringLabel}</div>
+      <div style="width:100%;height:4px;background:var(--bg);border-radius:2px;margin-top:8px;overflow:hidden">
+        <div style="width:${trust}%;height:100%;background:${trustColor};border-radius:2px"></div>
       </div>
     `;
-    card.onmouseover = () => card.style.background = 'var(--panel2)';
-    card.onmouseout = () => card.style.background = 'var(--panel)';
-    swarmsList.appendChild(card);
+    card.onmouseover = () => { card.style.background = 'var(--panel2)'; card.style.transform = 'translateY(-2px)'; };
+    card.onmouseout = () => { card.style.background = 'var(--panel)'; card.style.transform = ''; };
+    card.onclick = () => openSwarmHist(node.node_id);
+    container.appendChild(card);
   }
-}
-
-async function startLabSimulation() {
-  const nodeCount = parseInt(document.getElementById('lab-nodes-slider').value);
-  const country = document.getElementById('lab-country-select').value;
-
-  // Load selected swarms
-  const selectedSwarms = Array.from(document.querySelectorAll('.lab-swarm-checkbox:checked')).map(cb => ({
-    id: cb.value,
-    name: cb.getAttribute('data-name'),
-    reputation: parseInt(cb.getAttribute('data-rep')),
-  }));
-
-  // Initialize nodes with home nodes + connected swarm nodes
-  labSimulation.running = true;
-  labSimulation.startTime = Date.now();
-  labSimulation.tick = 0;
-  labSimulation.findings = [];
-  labSimulation.connectedSwarms = selectedSwarms;
-
-  labSimulation.nodes = Array.from({length: nodeCount}, (_, i) => ({
-    id: `node-${i+1}`,
-    country,
-    swarm: 'local',
-    alerts: [],
-    lastUpdate: Date.now(),
-    reputation: 70 + Math.random() * 30,
-  }));
-
-  // Add nodes from connected swarms
-  for (const swarm of selectedSwarms) {
-    for (let i = 0; i < Math.min(2, Math.floor(Math.random() * 3) + 1); i++) {
-      labSimulation.nodes.push({
-        id: `${swarm.id}-node-${i+1}`,
-        country,
-        swarm: swarm.id,
-        swarmName: swarm.name,
-        alerts: [],
-        lastUpdate: Date.now(),
-        reputation: swarm.reputation,
-      });
-    }
-  }
-
-  const resultsDiv = document.getElementById('lab-results-section');
-  if (resultsDiv) resultsDiv.style.display = '';
-
-  // Run simulation ticks
-  const tickInterval = setInterval(() => {
-    if (!labSimulation.running) {
-      clearInterval(tickInterval);
-      return;
-    }
-
-    labSimulation.tick++;
-    _simulateNodeActivity();
-    _updateLabResults();
-
-    if (labSimulation.tick >= 20) {
-      labSimulation.running = false;
-      clearInterval(tickInterval);
-    }
-  }, 500);
-}
-
-function _simulateNodeActivity() {
-  // Each node independently detects anomalies with some probability
-  for (const node of labSimulation.nodes) {
-    if (Math.random() < 0.3) {
-      const anomalyTypes = [
-        'benford_first_digit',
-        'participation_jump',
-        'last_digit_uniformity',
-        'geographic_dispersion',
-      ];
-      const type = anomalyTypes[Math.floor(Math.random() * anomalyTypes.length)];
-      const severity = ['INFO', 'WARNING', 'CRITICAL'][Math.floor(Math.random() * 3)];
-
-      const finding = {
-        type,
-        severity,
-        timestamp: Date.now(),
-        nodeId: node.id,
-      };
-
-      // Check for consensus (other nodes detect same anomaly in same window)
-      let consensusCount = 1;
-      for (const other of labSimulation.nodes) {
-        if (other.id !== node.id && Math.random() < 0.4) {
-          consensusCount++;
-        }
-      }
-
-      if (consensusCount >= 2) {
-        finding.consensusNodes = consensusCount;
-        labSimulation.findings.push(finding);
-      }
-
-      node.alerts.push(finding);
-      node.lastUpdate = Date.now();
-    }
-  }
-}
-
-function _updateLabResults() {
-  const elapsed = Date.now() - labSimulation.startTime;
-  const elapsedSec = Math.floor(elapsed / 1000);
-
-  document.getElementById('lab-active-nodes').textContent =
-    labSimulation.nodes.filter(n => Date.now() - n.lastUpdate < 5000).length;
-
-  const avgReputation = labSimulation.nodes.reduce((a, n) => a + n.reputation, 0) / labSimulation.nodes.length;
-  document.getElementById('lab-consensus-pct').textContent = Math.round(avgReputation) + '%';
-
-  document.getElementById('lab-findings-count').textContent = labSimulation.findings.length;
-
-  const mins = Math.floor(elapsedSec / 60);
-  const secs = elapsedSec % 60;
-  document.getElementById('lab-elapsed-time').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-
-  // Update consensus matrix
-  _renderConsensusMatrix();
-
-  // Update findings list
-  _renderFindingsList();
-}
-
-function _renderConsensusMatrix() {
-  const matrixDiv = document.getElementById('lab-consensus-matrix');
-  if (!matrixDiv || labSimulation.nodes.length === 0) return;
-
-  // Create simple consensus heatmap
-  let html = '<table style="width:100%;border-collapse:collapse;font-size:11px">';
-  html += '<tr><th style="padding:4px;text-align:left;border:1px solid var(--border)">Nodo</th>';
-
-  for (let i = 0; i < labSimulation.nodes.length; i++) {
-    html += `<th style="padding:4px;text-align:center;border:1px solid var(--border);width:32px">${i+1}</th>`;
-  }
-  html += '</tr>';
-
-  for (let i = 0; i < labSimulation.nodes.length; i++) {
-    html += `<tr><td style="padding:4px;border:1px solid var(--border);font-weight:600">N${i+1}</td>`;
-    for (let j = 0; j < labSimulation.nodes.length; j++) {
-      const consensus = i === j ? 100 : Math.floor(Math.random() * 100);
-      const bgColor = consensus > 75 ? 'rgba(87,192,141,0.2)' :
-                      consensus > 50 ? 'rgba(212,176,102,0.2)' : 'rgba(223,107,134,0.2)';
-      html += `<td style="padding:4px;text-align:center;border:1px solid var(--border);background:${bgColor}">${consensus}%</td>`;
-    }
-    html += '</tr>';
-  }
-  html += '</table>';
-  matrixDiv.innerHTML = html;
-}
-
-function _renderFindingsList() {
-  const findingsDiv = document.getElementById('lab-findings-list');
-  if (!findingsDiv) return;
-
-  if (labSimulation.findings.length === 0) {
-    findingsDiv.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Sin hallazgos aún…</div>';
-    return;
-  }
-
-  let html = '';
-  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes && f.consensusNodes >= 2);
-
-  for (const finding of consensusFindings.slice(-10)) {
-    const bgColor = finding.severity === 'CRITICAL' ? 'rgba(223,107,134,0.1)' :
-                   finding.severity === 'WARNING' ? 'rgba(212,176,102,0.1)' : 'rgba(110,168,254,0.1)';
-    const textColor = finding.severity === 'CRITICAL' ? 'var(--bad)' :
-                     finding.severity === 'WARNING' ? 'var(--warn)' : 'var(--accent)';
-
-    html += `
-      <div style="background:${bgColor};border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:11px">
-        <div style="color:${textColor};font-weight:600">${finding.type}</div>
-        <div style="color:var(--muted);font-size:10px;margin-top:3px">
-          ${finding.consensusNodes} nodos · ${finding.severity}
-        </div>
-      </div>
-    `;
-  }
-
-  findingsDiv.innerHTML = html || '<div style="font-size:12px;color:var(--muted)">Generando hallazgos…</div>';
-
-  // Update effectiveness metrics
-  const totalFindings = labSimulation.findings.length;
-  const consensusFindings = labSimulation.findings.filter(f => f.consensusNodes >= 2).length;
-  const criticalFindings = labSimulation.findings.filter(f => f.severity === 'CRITICAL').length;
-
-  document.getElementById('lab-early-detect').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
-  document.getElementById('lab-false-positives').textContent = Math.round(Math.random() * 5) + '%';
-  document.getElementById('lab-cross-confirm').textContent = Math.round((consensusFindings / Math.max(totalFindings, 1)) * 100) + '%';
-}
-
-function resetLabSimulation() {
-  labSimulation.running = false;
-  labSimulation.nodes = [];
-  labSimulation.findings = [];
-  labSimulation.tick = 0;
-  labSimulation.connectedSwarms = [];
-
-  const resultsDiv = document.getElementById('lab-results-section');
-  if (resultsDiv) resultsDiv.style.display = 'none';
-
-  document.getElementById('lab-active-nodes').textContent = '—';
-  document.getElementById('lab-consensus-pct').textContent = '—';
-  document.getElementById('lab-findings-count').textContent = '—';
-  document.getElementById('lab-elapsed-time').textContent = '—';
-  document.getElementById('lab-consensus-matrix').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Matriz de consenso aparecerá aquí tras iniciar…</div>';
-  document.getElementById('lab-findings-list').innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Hallazgos aparecerán aquí…</div>';
-}
-
-// Initialize lab section when page loads - load swarms
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadLabSwarms);
-} else {
-  loadLabSwarms();
 }
 
 // Keyboard shortcut to open this panel (also registered in parent pages)

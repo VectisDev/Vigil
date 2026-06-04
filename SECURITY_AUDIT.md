@@ -17,7 +17,7 @@
 
 ## Security Hardening v2 (Feb 2026)
 
-- [x] **Client-side rate limiting** — Token-bucket algorithm (1 req/8-12s, burst 3) in `centinel_engine/rate_limiter.py`. Complements Cloudflare (PR #397) with strict local governor.
+- [x] **Client-side rate limiting** — Token-bucket algorithm with 4 research-backed modes (normal/electoral/aggressive/conservative) in `centinel_engine/rate_limiter.py`. Hard ceiling enforcement (480 req/h, 2s min interval, burst 8) prevents any preset from exceeding safe limits. Custom mode requires explicit operator override. See `docs/RATE_LIMITING.md` for full research basis including CNE Honduras infrastructure analysis, Cloudflare thresholds, legal precedents (Van Buren v. US, Decreto 170-2006), and industry standards (NYT, MinnPost, NPR).
 - [x] **Proxy rotation + User-Agent pool** — 50+ real browser UAs with cryptographic random rotation per request. Auto-rotation on 429/403. See `centinel_engine/proxy_manager.py`.
 - [x] **Encrypted backup system** — AES-256 Fernet encryption for `health_state.json` + hash chain. Multi-destination: local `./backups/`, Dropbox, S3. 30-min background scheduler. See `centinel_engine/secure_backup.py`.
 - [x] **Legal Compliance Matrix** — Full Honduras legal analysis with references to Decreto 170-2006, Código Penal Arts. 393-397, and international observation standards (OEA/EU/Carter). See `docs/legal_compliance_matrix.md`.
