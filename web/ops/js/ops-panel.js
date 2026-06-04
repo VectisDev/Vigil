@@ -55,14 +55,46 @@ function updateDirtyState(){
 }
 
 // ══════════════════════════════════════════════════════════
-// MODE TOGGLE
+// ADVANCED CONFIG UNLOCK (double-confirm, 3s window)
 // ══════════════════════════════════════════════════════════
-function setMode(m){
-  adminMode = m;
-  document.getElementById('btn-easy').className = m==='easy' ? 'active' : '';
-  document.getElementById('btn-full').className = m==='full' ? 'active' : '';
-  const advEl = document.getElementById('advanced-config');
-  if(advEl) advEl.style.display = m==='full' ? 'block' : 'none';
+let _advArmed = false;
+let _advArmTimer = null;
+
+function toggleAdvancedConfig(){
+  const el    = document.getElementById('advanced-config');
+  const btn   = document.getElementById('btn-adv-config');
+  const label = document.getElementById('adv-config-label');
+  const arrow = document.getElementById('adv-config-arrow');
+  const isOpen = el && el.style.display !== 'none';
+
+  if(isOpen){
+    el.style.display = 'none';
+    btn.classList.remove('adv-armed','adv-open');
+    label.textContent = 'Configuración avanzada';
+    arrow.textContent = '▶';
+    _advArmed = false;
+    if(_advArmTimer){ clearTimeout(_advArmTimer); _advArmTimer = null; }
+    return;
+  }
+
+  if(!_advArmed){
+    _advArmed = true;
+    btn.classList.add('adv-armed');
+    label.textContent = 'Click de nuevo para abrir';
+    _advArmTimer = setTimeout(()=>{
+      _advArmed = false;
+      btn.classList.remove('adv-armed');
+      label.textContent = 'Configuración avanzada';
+    }, 3000);
+  } else {
+    clearTimeout(_advArmTimer); _advArmTimer = null;
+    _advArmed = false;
+    el.style.display = 'block';
+    btn.classList.remove('adv-armed');
+    btn.classList.add('adv-open');
+    label.textContent = 'Configuración avanzada';
+    arrow.textContent = '▼';
+  }
 }
 
 // ══════════════════════════════════════════════════════════

@@ -31,10 +31,6 @@
   <div id="admin-header">
     <span class="hdr-brand">CENTINEL</span>
     <span class="hdr-user" id="hdr-user">—</span>
-    <div class="mode-toggle">
-      <button onclick="setMode('easy')" id="btn-easy" class="active">Modo Fácil</button>
-      <button onclick="setMode('full')" id="btn-full">Modo Completo</button>
-    </div>
     <button class="hdr-btn" onclick="reloadConfig()">↻ Recargar</button>
     <button class="hdr-btn" onclick="doLogout()">Salir</button>
   </div>
@@ -313,13 +309,13 @@
           <button class="hdr-btn" onclick="saveCustomPreset()">Guardar estado actual como preset</button>
         </div>
 
-        <!-- Configuración avanzada (Full mode tabs) -->
-        <details id="advanced-config" style="margin-bottom:16px;display:none">
-          <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">Configuración avanzada</summary>
-          <div class="details-body">
-            <!-- Easy/Full mode toggle preserved for setMode() -->
-            <div id="easy-mode" style="display:none"></div>
-            <div id="full-mode">
+        <!-- Configuración avanzada -->
+        <button id="btn-adv-config" class="adv-config-trigger" onclick="toggleAdvancedConfig()">
+          <span class="adv-lock">⚙</span>
+          <span id="adv-config-label">Configuración avanzada</span>
+          <span class="adv-arrow" id="adv-config-arrow">▶</span>
+        </button>
+        <div id="advanced-config" style="display:none">
               <div class="tabs" id="cfg-tabs">
                 <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
                 <button onclick="showTab('t-capture')">Captura</button>
@@ -549,10 +545,7 @@
                     </tbody></table>
                   </div>
                 </details>
-              </div>
-            </div>
-          </div>
-        </details>
+        </div>
       </div>
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
@@ -1265,7 +1258,6 @@ const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/
 const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
 let currentUser = null;
-let adminMode = 'easy'; // 'easy' | 'full'
 let isDirty = false;
 let currentConfig = {};   // loaded from GitHub raw
 let localConfig   = {};   // edited state (mirrors currentConfig, modified by controls)
