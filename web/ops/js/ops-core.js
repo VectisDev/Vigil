@@ -182,8 +182,8 @@ function buildSensorCards(){
         <span>${def.icon} ${def.label}</span>
         ${def.hasSlider?`<span data-tip="Umbral — sincronizado con Configuración avanzada" style="font-size:10px;cursor:help">ⓘ</span>`:''}
       </div>
-      <div class="sc-val val-neutral" id="scv-${def.id}">—</div>
-      <div class="sc-detail" id="scd-${def.id}">—</div>
+      <div class="sc-val val-neutral skel-pulse" id="scv-${def.id}">—</div>
+      <div class="sc-detail skel-pulse" id="scd-${def.id}">—</div>
       <div class="sc-bar"><div class="sc-bar-fill" id="scb-${def.id}" style="width:0%;background:var(--muted)"></div></div>
       ${def.hasSlider?`
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
