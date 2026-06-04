@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════════
 // DIRTY STATE — auto-apply on change (debounced)
 // ══════════════════════════════════════════════════════════
-let _autoApplyEnabled = localStorage.getItem('centinel-autosave') !== 'false';
+let _autoApplyEnabled = localStorage.getItem('centinel-autosave') === 'true';
 let _autoApplyTimer = null;
 let _writeInProgress = false;
 

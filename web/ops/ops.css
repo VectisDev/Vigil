@@ -585,6 +585,17 @@ body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
   margin-left:8px;
 }
 
+/* ── SAVE BUTTON (shown when dirty + autosave OFF) ── */
+#btn-apply-now{
+  width:100%;padding:9px 6px;
+  background:rgba(110,168,254,.12);border:1px solid rgba(110,168,254,.45);
+  border-radius:2px;color:var(--accent);
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;
+  cursor:pointer;transition:background .15s,box-shadow .15s;
+  animation:pulse-btn 2s infinite;
+}
+#btn-apply-now:hover{background:rgba(110,168,254,.22);box-shadow:0 0 10px var(--accent-glow)}
+
 /* ── SKELETON SHIMMER (sensor cards loading) ── */
 @keyframes skel-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .sc-val.skel-pulse{

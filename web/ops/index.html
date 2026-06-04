@@ -111,10 +111,12 @@
         <div class="soz-autosave" onclick="toggleAutoApply()"
           title="Auto-guardar: aplica cambios a GitHub automáticamente tras 1.5s de inactividad">
           <span class="soz-autosave-label">Auto-guardar</span>
-          <span class="soz-autosave-val" id="autosave-val">ON</span>
+          <span class="soz-autosave-val off" id="autosave-val">OFF</span>
         </div>
         <button id="btn-apply-now" onclick="autoApply()" style="display:none"
-          title="Aplicar cambios pendientes a GitHub ahora">↑ Aplicar ahora</button>
+          title="Guardar los cambios de configuración en el repositorio">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>
+          Guardar cambios</button>
       </div>
       <div id="sidebar-emergency-zone">
         <div class="sez-sep"></div>
@@ -1135,13 +1137,17 @@
 
 <!-- ════ PAT MODAL ════ -->
 <div id="pat-modal">
-  <div class="modal-box" style="max-width:400px">
-    <h2>GitHub PAT requerido</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
-      Para aplicar cambios en el repositorio se necesita un Personal Access Token (Classic) con scope <code>repo</code>. Se guarda solo en sessionStorage y desaparece al cerrar el browser.
+  <div class="modal-box" style="max-width:420px">
+    <h2>Guardar configuración</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:6px">
+      Para guardar los cambios se requiere una clave de acceso al repositorio de configuración.
     </p>
+    <div class="info-box" style="margin-bottom:14px;font-size:12px">
+      <strong>¿Cómo obtengo la clave?</strong><br>
+      Solicítala al administrador del sistema. Es una cadena que empieza con <code style="font-family:var(--mono)">ghp_</code> y se usa una vez por sesión — no se almacena permanentemente.
+    </div>
     <div class="ctrl-row">
-      <label>GitHub PAT</label>
+      <label>Clave de acceso</label>
       <input type="password" id="pat-input" placeholder="ghp_…" autocomplete="off">
     </div>
     <div class="auth-err" id="pat-err"></div>
