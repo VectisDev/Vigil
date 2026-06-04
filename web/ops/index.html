@@ -491,18 +491,19 @@ details .details-body{padding:12px 0 4px}
 .ms-sep{color:var(--border);padding:0 2px}
 .ms-clock .ms-val{color:var(--accent);font-variant-numeric:tabular-nums}
 /* sidebar ops zone */
-#sidebar-ops-zone{padding:10px 12px 0}
-.soz-sep{height:1px;background:var(--border);margin-bottom:10px}
-.soz-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.12em;margin-bottom:6px}
-.soz-btns{display:flex;gap:6px}
-.soz-btns button{flex:1;padding:6px 4px;border-radius:2px;font-family:var(--mono);
-  font-size:10px;font-weight:700;cursor:pointer;transition:background .15s;border:1px solid}
-.soz-btns button:first-child{background:rgba(87,192,141,.08);border-color:rgba(87,192,141,.35);color:var(--ok)}
-.soz-btns button:first-child:hover{background:rgba(87,192,141,.18)}
-.soz-btns button:last-child{background:rgba(212,176,102,.08);border-color:rgba(212,176,102,.35);color:var(--warn)}
-.soz-btns button:last-child:hover{background:rgba(212,176,102,.18)}
+#sidebar-ops-zone{padding:8px 12px 0;display:flex;flex-direction:column;gap:6px}
+.soz-sep{height:1px;background:var(--border);margin-bottom:4px}
+#btn-sidebar-iniciar{width:100%;padding:8px 6px;background:rgba(87,192,141,.08);
+  border:1px solid rgba(87,192,141,.4);border-radius:2px;color:var(--ok);
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;
+  cursor:pointer;transition:background .15s,box-shadow .15s}
+#btn-sidebar-iniciar:hover{background:rgba(87,192,141,.18);box-shadow:0 0 10px var(--ok-glow)}
 #btn-sidebar-iniciar.running{background:rgba(87,192,141,.18);border-color:var(--ok);animation:pulse-btn 2s infinite}
+#btn-sidebar-finalizar{width:100%;padding:8px 6px;background:rgba(212,176,102,.08);
+  border:1px solid rgba(212,176,102,.4);border-radius:2px;color:var(--warn);
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;
+  cursor:pointer;transition:background .15s}
+#btn-sidebar-finalizar:hover{background:rgba(212,176,102,.18)}
 /* sidebar emergency zone */
 #sidebar-emergency-zone{padding:8px 12px 12px;background:var(--panel)}
 .sez-sep{height:1px;background:rgba(223,107,134,.3);margin-bottom:10px}
@@ -595,13 +596,10 @@ details .details-body{padding:12px 0 4px}
       <a href="#s5" onclick="scrollTo('s5')">Manual</a>
       <div id="sidebar-ops-zone">
         <div class="soz-sep"></div>
-        <div class="soz-label">Operación</div>
-        <div class="soz-btns">
-          <button id="btn-sidebar-iniciar" onclick="doIniciar()"
-            title="Iniciar monitoreo electoral">▶ Iniciar</button>
-          <button onclick="openFinalizeModal()"
-            title="Finalizar ciclo electoral">◼ Finalizar</button>
-        </div>
+        <button id="btn-sidebar-iniciar" onclick="doIniciar()"
+          title="Iniciar monitoreo electoral">▶ INICIAR</button>
+        <button id="btn-sidebar-finalizar" onclick="openFinalizeModal()"
+          title="Finalizar ciclo electoral">◼ FINALIZAR</button>
       </div>
       <div id="sidebar-emergency-zone">
         <div class="sez-sep"></div>
@@ -619,11 +617,8 @@ details .details-body{padding:12px 0 4px}
         <!-- Título + botones de operación -->
         <div id="panel-topbar">
           <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span></div>
-          <div id="panel-actions">
-            <button class="btn-op iniciar" id="btn-iniciar" onclick="doIniciar()" title="Inicia el proceso de monitoreo y scraping en modo electoral">▶ Iniciar</button>
-            <button class="btn-op finalizar" onclick="openFinalizeModal()" title="Detiene el proceso, genera reporte final y cierra el ciclo electoral">◼ Finalizar</button>
-            <button class="btn-op emergencia" onclick="openEmergencyModal()" title="Parada de emergencia inmediata — doble confirmación requerida">⚠ Emergencia</button>
-          </div>
+          <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
+          <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
           <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
         </div>
         <hr class="section-sep">
