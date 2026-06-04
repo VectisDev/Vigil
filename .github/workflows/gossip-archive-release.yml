@@ -35,7 +35,7 @@ jobs:
           ls -lh gossip-archive-*.tar.gz
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: gossip-archive-*.tar.gz
           tag_name: gossip-archive-${{ github.run_number }}
