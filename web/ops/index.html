@@ -662,7 +662,7 @@ details .details-body{padding:12px 0 4px}
         </details>
 
         <!-- Configuración avanzada (Full mode tabs) -->
-        <details style="margin-bottom:16px">
+        <details id="advanced-config" style="margin-bottom:16px;display:none">
           <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">Configuración avanzada</summary>
           <div class="details-body">
             <!-- Easy/Full mode toggle preserved for setMode() -->
@@ -2267,12 +2267,8 @@ function setMode(m){
   adminMode = m;
   document.getElementById('btn-easy').className = m==='easy' ? 'active' : '';
   document.getElementById('btn-full').className = m==='full' ? 'active' : '';
-  // easy-mode/full-mode divs are now inside the advanced details block;
-  // full-mode is always shown; easy-mode is empty/hidden.
-  const easyEl = document.getElementById('easy-mode');
-  const fullEl = document.getElementById('full-mode');
-  if(easyEl) easyEl.style.display = 'none';
-  if(fullEl) fullEl.style.display = 'block';
+  const advEl = document.getElementById('advanced-config');
+  if(advEl) advEl.style.display = m==='full' ? 'block' : 'none';
 }
 
 // ══════════════════════════════════════════════════════════
