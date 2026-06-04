@@ -1166,6 +1166,16 @@
     <div class="info-box" style="margin-top:12px">
       Los cambios toman efecto en el próximo ciclo de captura (~15 min).
     </div>
+    <div id="diff-pat-row" style="display:none;margin-top:12px">
+      <div class="ctrl-row" style="margin-bottom:4px">
+        <label style="font-size:12px">Clave de acceso <span style="color:var(--muted);font-weight:400">(solo esta sesión)</span></label>
+        <input type="password" id="diff-pat-input" placeholder="ghp_…" autocomplete="off"
+          onkeydown="if(event.key==='Enter')confirmApply()"
+          style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:6px 10px;color:var(--fg);font-family:var(--mono);font-size:12px;width:100%;box-sizing:border-box">
+      </div>
+      <div style="font-size:11px;color:var(--muted)">Solicítala al administrador del sistema. Empieza con <code style="font-family:var(--mono);font-size:10px">ghp_</code></div>
+      <div class="auth-err" id="diff-pat-err" style="margin-top:4px"></div>
+    </div>
     <div class="modal-btns">
       <button class="hdr-btn" onclick="closeDiffModal()">Cancelar</button>
       <button class="hdr-btn primary" onclick="confirmApply()">Confirmar y aplicar</button>
