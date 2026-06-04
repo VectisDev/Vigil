@@ -387,7 +387,7 @@
                   </div>
                 </div>
                 <div class="ctrl-section">
-                  <h3>Rate limiter</h3>
+                  <h3>Rate limiter <span class="ceiling-lock-badge" id="rate-lock-badge">🔒 requiere desbloqueo</span></h3>
                   <div class="ctrl-row">
                     <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
@@ -464,14 +464,14 @@
               <!-- Tab: Red -->
               <div id="t-network" class="tab-pane">
                 <div class="ctrl-section">
-                  <h3>Retry por código HTTP</h3>
+                  <h3>Retry por código HTTP <span class="ceiling-lock-badge" id="retry-lock-badge">🔒 requiere desbloqueo</span></h3>
                   <table class="data-table">
                     <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
                     <tbody>
-                      <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
-                      <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
-                      <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
-                      <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
+                      <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()" disabled></td><td style="color:var(--muted)">Rate limit</td></tr>
+                      <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()" disabled></td><td style="color:var(--muted)">Server error</td></tr>
+                      <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()" disabled></td><td style="color:var(--muted)">Forbidden</td></tr>
+                      <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()" disabled></td><td style="color:var(--muted)">Not found</td></tr>
                     </tbody>
                   </table>
                 </div>
