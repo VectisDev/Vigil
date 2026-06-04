@@ -490,8 +490,21 @@ details .details-body{padding:12px 0 4px}
 .ms-val.critico{color:var(--bad);text-shadow:0 0 6px var(--bad-glow)}
 .ms-sep{color:var(--border);padding:0 2px}
 .ms-clock .ms-val{color:var(--accent);font-variant-numeric:tabular-nums}
+/* sidebar ops zone */
+#sidebar-ops-zone{padding:10px 12px 0}
+.soz-sep{height:1px;background:var(--border);margin-bottom:10px}
+.soz-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.12em;margin-bottom:6px}
+.soz-btns{display:flex;gap:6px}
+.soz-btns button{flex:1;padding:6px 4px;border-radius:2px;font-family:var(--mono);
+  font-size:10px;font-weight:700;cursor:pointer;transition:background .15s;border:1px solid}
+.soz-btns button:first-child{background:rgba(87,192,141,.08);border-color:rgba(87,192,141,.35);color:var(--ok)}
+.soz-btns button:first-child:hover{background:rgba(87,192,141,.18)}
+.soz-btns button:last-child{background:rgba(212,176,102,.08);border-color:rgba(212,176,102,.35);color:var(--warn)}
+.soz-btns button:last-child:hover{background:rgba(212,176,102,.18)}
+#btn-sidebar-iniciar.running{background:rgba(87,192,141,.18);border-color:var(--ok);animation:pulse-btn 2s infinite}
 /* sidebar emergency zone */
-#sidebar-emergency-zone{margin-top:auto;padding:8px 12px 12px;background:var(--panel)}
+#sidebar-emergency-zone{padding:8px 12px 12px;background:var(--panel)}
 .sez-sep{height:1px;background:rgba(223,107,134,.3);margin-bottom:10px}
 #btn-sidebar-emg{width:100%;padding:8px 6px;background:rgba(223,107,134,.08);
   border:1px solid rgba(223,107,134,.4);border-radius:2px;color:var(--bad);
@@ -549,7 +562,7 @@ details .details-body{padding:12px 0 4px}
     </span>
     <span class="ms-sep">│</span>
     <span class="ms-item">
-      <span class="ms-label">DEFENSES</span>
+      <span class="ms-label">DEFENSAS</span>
       <span class="ms-val" id="ms-defense">—</span>
     </span>
     <span class="ms-sep">│</span>
@@ -580,6 +593,16 @@ details .details-body{padding:12px 0 4px}
       <div class="sec-header">Administración</div>
       <a href="#s6" onclick="scrollTo('s6')">Acceso y Seeds</a>
       <a href="#s5" onclick="scrollTo('s5')">Manual</a>
+      <div id="sidebar-ops-zone">
+        <div class="soz-sep"></div>
+        <div class="soz-label">Operación</div>
+        <div class="soz-btns">
+          <button id="btn-sidebar-iniciar" onclick="doIniciar()"
+            title="Iniciar monitoreo electoral">▶ Iniciar</button>
+          <button onclick="openFinalizeModal()"
+            title="Finalizar ciclo electoral">◼ Finalizar</button>
+        </div>
+      </div>
       <div id="sidebar-emergency-zone">
         <div class="sez-sep"></div>
         <button id="btn-sidebar-emg" onclick="openEmergencyModal()"
@@ -657,7 +680,7 @@ details .details-body{padding:12px 0 4px}
           <span><span class="dot" style="background:#3a3f49"></span> Sin configurar</span>
         </div>
         <div class="status-row" style="margin-top:16px">
-          <span class="badge" id="badge-animal">DEFENSES</span>
+          <span class="badge" id="badge-animal">DEFENSAS</span>
           <span class="badge" id="badge-safemode">SAFE MODE</span>
           <span class="badge" id="badge-circuit">CIRCUIT BREAKER</span>
           <span class="badge" id="badge-election">ELECTION MODE</span>
@@ -682,7 +705,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 3 PRESETS ── -->
       <div class="section" id="s3">
-        <div class="section-title">3 Presets <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
+        <div class="section-title">Presets <span class="dirty-dot" id="dirty-dot" style="display:none"></span></div>
         <hr class="section-sep">
 
         <!-- 409 conflict banner -->
@@ -1034,7 +1057,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 5 LOGS ── -->
       <div class="section" id="s4">
-        <div class="section-title">4 Logs y terminales</div>
+        <div class="section-title">Logs y terminales</div>
         <hr class="section-sep">
 
         <!-- Log General -->
@@ -1125,7 +1148,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 6 MANUAL ── -->
       <div class="section" id="s5">
-        <div class="section-title">5 Manual</div>
+        <div class="section-title">Manual</div>
         <hr class="section-sep">
         <details id="mini-manual">
           <summary>Guía rápida del panel de administración</summary>
@@ -1173,7 +1196,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 7 Acceso y Seeds ── -->
       <div class="section" id="s6">
-        <div class="section-title">6 Acceso y Seeds</div>
+        <div class="section-title">Acceso y Seeds</div>
         <hr class="section-sep">
         <p class="section-sub">
           Gestión de las 12 claves de acceso administrativo.
@@ -1216,7 +1239,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
       <div class="section" id="s7">
-        <div class="section-title">7 Red de Nodos</div>
+        <div class="section-title">Red de Nodos</div>
         <hr class="section-sep">
         <p class="section-sub">
           Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
@@ -1420,7 +1443,7 @@ details .details-body{padding:12px 0 4px}
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
       <div class="section" id="s8">
-        <div class="section-title">8 Cierre Electoral</div>
+        <div class="section-title">Cierre Electoral</div>
         <hr class="section-sep">
         <p class="section-sub">
           Secuencia de fin de elección: raspe final forzado de todas las fuentes,
@@ -2285,7 +2308,7 @@ function updateStatusBadges(){
   if(bAnimal){
     const cls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
     bAnimal.className = `badge badge-${cls}`;
-    bAnimal.textContent = `DEFENSES: ${animal.toUpperCase()}`;
+    bAnimal.textContent = `DEFENSAS: ${animal.toUpperCase()}`;
   }
   const bSafe = document.getElementById('badge-safemode');
   if(bSafe){
@@ -2332,7 +2355,10 @@ function _updateMissionBar() {
   }
   if (msNodes) msNodes.textContent = (nodeCount === '—' || nodeCount === '') ? '—' : nodeCount;
 
-  const hasCritical = document.querySelectorAll('.badge-bad').length > 0;
+  const hasCritical = ['badge-animal','badge-safemode','badge-circuit','badge-election'].some(id => {
+    const el = document.getElementById(id);
+    return el && el.classList.contains('badge-bad');
+  });
   msSystem.textContent = hasCritical ? 'ALERTA' : 'NOMINAL';
   msSystem.className = `ms-val ${hasCritical ? 'critico' : 'nominal'}`;
 }
@@ -3503,6 +3529,8 @@ async function loadCountrySelector() {
       if (flag) flag.textContent = cur.flag;
       if (name) name.textContent = cur.name;
       if (auth) auth.textContent = cur.authority;
+      ACTIVE_COUNTRY_CODE = currentCode;
+      _updateMissionBar();
     }
   } catch(e) {
     sel.innerHTML = '<option value="">Error al cargar países</option>';
@@ -3595,14 +3623,16 @@ async function doIniciar() {
 }
 
 function _setPipelineUI(running, pid, errorMsg) {
-  const btn = document.getElementById('btn-iniciar');
-  const bar = document.getElementById('pipeline-status-bar');
+  const btn  = document.getElementById('btn-iniciar');
+  const btnS = document.getElementById('btn-sidebar-iniciar');
+  const bar  = document.getElementById('pipeline-status-bar');
   if (!btn) return;
 
   if (running) {
     btn.classList.add('running');
     btn.textContent = '⏹ Detener';
     btn.title = 'Monitoreo en curso — click para detener';
+    if (btnS) { btnS.classList.add('running'); btnS.textContent = '⏹ Detener'; }
     if (bar) {
       bar.style.display = '';
       bar.style.background = 'rgba(87,192,141,.08)';
@@ -3614,6 +3644,7 @@ function _setPipelineUI(running, pid, errorMsg) {
     btn.classList.remove('running');
     btn.textContent = '▶ Iniciar';
     btn.title = 'Inicia el proceso de monitoreo y scraping en modo electoral';
+    if (btnS) { btnS.classList.remove('running'); btnS.textContent = '▶ Iniciar'; }
     if (bar) {
       if (errorMsg) {
         bar.style.display = '';
@@ -3849,6 +3880,7 @@ async function doChangeCountry() {
   }
 
   if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
+  _updateMissionBar();
 }
 
 // ── 7 Acceso y Seeds ──────────────────────────────────────────────────────
