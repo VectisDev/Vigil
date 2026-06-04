@@ -600,6 +600,11 @@ details .details-body{padding:12px 0 4px}
       <span class="ms-label">UTC</span>
       <span class="ms-val" id="ms-clock">--:--:--</span>
     </span>
+    <span class="ms-sep">│</span>
+    <span class="ms-item ms-clock">
+      <span class="ms-label">LOCAL</span>
+      <span class="ms-val" id="ms-local" style="opacity:.7">--:--:--</span>
+    </span>
   </div>
   <!-- UNLOCK ALERT BAR -->
   <div id="unlock-alert-bar">
@@ -646,7 +651,7 @@ details .details-body{padding:12px 0 4px}
 
         <!-- Título + botones de operación -->
         <div id="panel-topbar">
-          <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span><span class="sec-tip" data-tip="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia.">ⓘ</span></div>
+          <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(110,168,254,.1);border-color:rgba(110,168,254,.3);color:var(--accent)"></span><span class="sec-tip" data-tip="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia.">ⓘ</span></div>
           <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
           <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
           <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
@@ -1963,6 +1968,11 @@ async function initAll(){
     const ss = String(now.getUTCSeconds()).padStart(2,'0');
     const el = document.getElementById('ms-clock');
     if (el) el.textContent = `${hh}:${mm}:${ss}`;
+    const lh = String(now.getHours()).padStart(2,'0');
+    const lm = String(now.getMinutes()).padStart(2,'0');
+    const ls = String(now.getSeconds()).padStart(2,'0');
+    const le = document.getElementById('ms-local');
+    if (le) le.textContent = `${lh}:${lm}:${ls}`;
   }, 1000);
   _updateMissionBar();
 }
@@ -2535,6 +2545,10 @@ function markDirty(){
   updateDirtyState();
 }
 
+window.addEventListener('beforeunload', e => {
+  if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+});
+
 function updateDirtyState(){
   const dot = document.getElementById('dirty-dot');
   const btn = document.getElementById('btn-apply');
@@ -2615,7 +2629,15 @@ function loadPreset(id){
   const togSafe= document.getElementById('tog-safe');
   if(togEl  && c.election!==undefined) togEl.checked  = c.election;
   if(togSafe && c.safe!==undefined)    togSafe.checked = c.safe;
+  _showActivePresetLabel(p.name);
   buildPresetsGrid();
+}
+
+function _showActivePresetLabel(name){
+  const el = document.getElementById('active-preset-label');
+  if(!el) return;
+  if(name){ el.textContent = '⚙ ' + name; el.style.display = ''; }
+  else { el.style.display = 'none'; }
 }
 
 async function saveCustomPreset(){
