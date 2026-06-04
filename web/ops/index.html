@@ -478,6 +478,19 @@ details .details-body{padding:12px 0 4px}
 .hdr-btn.primary{border-radius:2px;box-shadow:0 0 10px var(--accent-glow)}
 .preset-card{border-radius:2px;border-left:2px solid var(--accent)}
 .terminal-hdr{letter-spacing:.06em;text-transform:uppercase;font-size:11px}
+/* unlock alert bar */
+#unlock-alert-bar{display:none;position:sticky;top:calc(var(--hdr-height) + 28px);z-index:198;
+  height:32px;background:rgba(223,107,134,.13);border-bottom:1px solid rgba(223,107,134,.4);
+  align-items:center;padding:0 16px;gap:10px;font-family:var(--mono);font-size:10px;
+  color:var(--bad);animation:pulse-btn 2.5s infinite;flex-shrink:0}
+#unlock-alert-bar.visible{display:flex}
+#unlock-alert-bar .uab-icon{font-size:13px;flex-shrink:0}
+#unlock-alert-bar .uab-text{flex:1;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+#unlock-alert-bar .uab-btn{padding:3px 10px;border-radius:2px;font-family:var(--mono);font-size:9px;
+  font-weight:700;cursor:pointer;border:1px solid rgba(87,192,141,.4);
+  background:rgba(87,192,141,.08);color:var(--ok);text-transform:uppercase;letter-spacing:.08em;
+  transition:background .15s;white-space:nowrap}
+#unlock-alert-bar .uab-btn:hover{background:rgba(87,192,141,.18)}
 /* mission bar */
 #mission-bar{position:sticky;top:var(--hdr-height);z-index:199;height:28px;background:var(--panel);
   border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;
@@ -576,6 +589,12 @@ details .details-body{padding:12px 0 4px}
       <span class="ms-label">UTC</span>
       <span class="ms-val" id="ms-clock">--:--:--</span>
     </span>
+  </div>
+  <!-- UNLOCK ALERT BAR -->
+  <div id="unlock-alert-bar">
+    <span class="uab-icon">⚠</span>
+    <span class="uab-text">Modo desbloqueado — límites operativos desactivados</span>
+    <button class="uab-btn" onclick="requestUnlock(false)">✓ Restaurar límites</button>
   </div>
 
   <!-- LAYOUT -->
@@ -736,13 +755,7 @@ details .details-body{padding:12px 0 4px}
         </div>
 
         <!-- OTS (Bitcoin anchoring) -->
-        <details style="margin-bottom:16px">
-          <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Anclaje Bitcoin (OpenTimestamps)
-          </summary>
-          <div class="details-body">
-            <div class="ctrl-section" id="ots-section">
+        <div class="ctrl-section" id="ots-section">
               <h3>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 Anclaje Bitcoin
@@ -804,9 +817,7 @@ details .details-body{padding:12px 0 4px}
                   <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
                 </div>
               </details>
-            </div>
-          </div>
-        </details>
+        </div>
 
         <!-- Configuración avanzada (Full mode tabs) -->
         <details id="advanced-config" style="margin-bottom:16px;display:none">
@@ -2709,8 +2720,9 @@ async function executeUnlock(){
 }
 
 function updateUnlockUI(){
-  const bar = document.getElementById('unlock-bar');
-  const btn = document.getElementById('btn-unlock-toggle');
+  const bar    = document.getElementById('unlock-bar');
+  const alertBar = document.getElementById('unlock-alert-bar');
+  const btn    = document.getElementById('btn-unlock-toggle');
   const rphSliders = ['sl-rph','sl-rph2'];
   const intSliders = ['sl-interval','sl-interval2'];
   if(ceilingUnlocked){
@@ -2720,6 +2732,7 @@ function updateUnlockUI(){
       '<strong>Límites desbloqueados para esta sesión</strong> — los controles pueden exceder '+
       'los límites de seguridad. La firma de responsabilidad ha sido registrada en Git.';
     if(btn){ btn.textContent='🔒 Volver a bloquear'; btn.style.borderColor='var(--ok)'; btn.style.background='rgba(87,192,141,.12)'; btn.style.color='var(--ok)'; }
+    if(alertBar) alertBar.classList.add('visible');
     rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
     intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=0.5; });
   } else {
@@ -2730,6 +2743,7 @@ function updateUnlockUI(){
       '480 req/h, intervalo mínimo 1s, burst máximo 8. '+
       'Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.';
     if(btn){ btn.textContent='⚠ Desbloquear límites'; btn.style.borderColor='var(--bad)'; btn.style.background='rgba(223,107,134,.12)'; btn.style.color='var(--bad)'; }
+    if(alertBar) alertBar.classList.remove('visible');
     rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
     intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
   }
