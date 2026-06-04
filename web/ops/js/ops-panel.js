@@ -3,6 +3,7 @@
 // ══════════════════════════════════════════════════════════
 let _autoApplyEnabled = localStorage.getItem('centinel-autosave') !== 'false';
 let _autoApplyTimer = null;
+let _writeInProgress = false;
 
 function toggleAutoApply(){
   _autoApplyEnabled = !_autoApplyEnabled;
@@ -27,20 +28,28 @@ function markDirty(){
 }
 
 async function autoApply(){
-  if(!isDirty) return;
-  const newEp  = buildNewEndpointsYaml();
-  const newWd  = buildNewWatchdogYaml();
-  const newRl  = buildNewRateLimiterYaml();
-  const newCfg = buildNewConfigYaml();
-  const changes = buildDiff(newEp, newWd, newRl, newCfg);
-  if(!changes.length){ isDirty=false; updateDirtyState(); return; }
-  let pat = sessionStorage.getItem('gh-pat');
-  if(!pat){
-    const acquired = await requestPat();
-    if(!acquired) return;
-    pat = sessionStorage.getItem('gh-pat');
+  if(!isDirty || _writeInProgress) return;
+  _writeInProgress = true;
+  const applyBtn = document.getElementById('btn-apply-now');
+  if(applyBtn) applyBtn.disabled = true;
+  try {
+    const newEp  = buildNewEndpointsYaml();
+    const newWd  = buildNewWatchdogYaml();
+    const newRl  = buildNewRateLimiterYaml();
+    const newCfg = buildNewConfigYaml();
+    const changes = buildDiff(newEp, newWd, newRl, newCfg);
+    if(!changes.length){ isDirty=false; updateDirtyState(); return; }
+    let pat = sessionStorage.getItem('gh-pat');
+    if(!pat){
+      const acquired = await requestPat();
+      if(!acquired) return;
+      pat = sessionStorage.getItem('gh-pat');
+    }
+    await writeChanges(changes, {newEp, newWd, newRl, newCfg}, pat);
+  } finally {
+    _writeInProgress = false;
+    if(applyBtn) applyBtn.disabled = false;
   }
-  await writeChanges(changes, {newEp, newWd, newRl, newCfg}, pat);
 }
 
 window.addEventListener('beforeunload', e => {
