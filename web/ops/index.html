@@ -704,7 +704,8 @@ details .details-body{padding:12px 0 4px}
           <span><span class="dot" style="background:#df6b86"></span> Caído / Error</span>
           <span><span class="dot" style="background:#3a3f49"></span> Sin configurar</span>
         </div>
-        <div class="status-row" style="margin-top:16px">
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:20px;margin-bottom:6px">Estado del sistema</div>
+        <div class="status-row">
           <span class="badge" id="badge-animal">DEFENSAS</span>
           <span class="badge" id="badge-safemode">SAFE MODE</span>
           <span class="badge" id="badge-circuit">CIRCUIT BREAKER</span>
@@ -1104,7 +1105,7 @@ details .details-body{padding:12px 0 4px}
             <button onclick="toggleTimestamp()" title="Alternar timestamp relativo/absoluto">🕐</button>
           </div>
           <div class="log-summary-bar" id="log-summary"></div>
-          <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th>Nivel</th><th>Mensaje</th><th>Regla / Kind</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Cargando…</td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th>Nivel</th><th>Mensaje</th><th>Regla / Kind</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Sin actividad registrada.<span class="log-empty-hint">Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.</span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-general')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
           </div>
@@ -1132,7 +1133,7 @@ details .details-body{padding:12px 0 4px}
             <button onclick="fetchAttackLog()" title="Refrescar">↻</button>
           </div>
           <div class="log-summary-bar" id="attack-summary"></div>
-          <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th>Tipo</th><th>IP / Geo</th><th>Ruta</th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6">Cargando…</td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th>Tipo</th><th>IP / Geo</th><th>Ruta</th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6">Sin ataques registrados.<span class="log-empty-hint">El sistema está vigilando — aparecerán aquí si se detecta actividad maliciosa.</span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-attacks')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
             <button onclick="generateIncidentReport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Reporte de incidente</button>
@@ -1150,7 +1151,7 @@ details .details-body{padding:12px 0 4px}
             <input type="search" id="audit-search" class="term-search" placeholder="SHA, autor, mensaje…" oninput="onAuditSearch(this.value)">
             <button onclick="fetchAuditTrail()" title="Refrescar">↻</button>
           </div>
-          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th>Tiempo</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Requiere PAT para cargar.</td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th>Tiempo</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Historial de cambios en configuración.<span class="log-empty-hint">Usa "Aplicar cambios" para conectar tu GitHub PAT y cargar el historial.</span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-audit')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
           </div>
@@ -1478,14 +1479,12 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="ec-mode-line"></div>
 
-          <div style="background:rgba(248,81,73,0.07);border:1px solid rgba(248,81,73,0.3);border-radius:10px;padding:16px 18px;margin-bottom:16px">
-            <strong style="color:#f85149;font-size:13px">Acción irreversible</strong>
+          <div class="info-box" style="margin-bottom:16px">
+            <strong style="color:var(--fg);font-size:12px">Qué ocurre al cerrar</strong>
             <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7">
-              Al cerrar el ciclo electoral:<br>
-              1. Se ejecuta un raspe completo y forzado de las 19 fuentes CNE.<br>
-              2. Se escribe el marker <code>ELECTION_CLOSED</code> en el repositorio.<br>
-              3. <code>CENTINEL_MODE</code> cambia a <code>maintenance</code>.<br>
-              4. Los schedulers de Actions dejan de correr automáticamente.<br>
+              1. Raspe completo y forzado de todas las fuentes electorales.<br>
+              2. Publicación del snapshot certificado en el repositorio.<br>
+              3. Modo de operación cambia a <code>maintenance</code> y los ciclos automáticos se detienen.<br>
               Para reactivar el monitoreo hay que eliminar el marker manualmente.
             </p>
           </div>
@@ -3242,7 +3241,7 @@ function renderLog(){
   const tbody = wrap.querySelector('tbody');
   if(!tbody) return;
   _renderLogSummary();
-  if(!logData.length){tbody.innerHTML=_emptyRow(4,'Sin datos de log.');return;}
+  if(!logData.length){tbody.innerHTML=_emptyRow(4,'Sin actividad registrada.','Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.');return;}
   let slice = n===0 ? logData : logData.slice(-n);
   slice = slice.filter(e => activeFilters.has((e.level||'INFO').toUpperCase()));
   if(logSearch){
@@ -3283,7 +3282,7 @@ function renderAttackLog(){
   const tbody = wrap.querySelector('tbody');
   if(!tbody) return;
   _renderAttackSummary();
-  if(!attackData.length){tbody.innerHTML=_emptyRow(6,'Sin eventos de ataque registrados.');return;}
+  if(!attackData.length){tbody.innerHTML=_emptyRow(6,'Sin ataques registrados.','El sistema está vigilando — aparecerán aquí si se detecta actividad maliciosa.');return;}
   let filtered = filter
     ? attackData.filter(e=>(e.type||e.classification||e.event||e.raw||'').toUpperCase().includes(filter))
     : attackData;
@@ -3341,7 +3340,7 @@ async function fetchAuditTrail(){
   const tbody = wrap?.querySelector('tbody');
   const pat = sessionStorage.getItem('gh-pat');
   if(!pat){
-    if(tbody) tbody.innerHTML=_emptyRow(4,'Requiere PAT para cargar.','Haz clic en "Aplicar cambios" para ingresar tu PAT.');
+    if(tbody) tbody.innerHTML=_emptyRow(4,'Historial de cambios en configuración.','Usa "Aplicar cambios" para conectar tu GitHub PAT y cargar el historial.');
     return;
   }
   try{
@@ -4082,20 +4081,21 @@ function scrollTo(id){
   });
 }
 
-// Active sidebar on scroll
-const observer = new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      document.querySelectorAll('#sidebar a').forEach(a=>{
-        a.classList.toggle('active', a.getAttribute('href')==='#'+e.target.id);
-      });
-    }
+// Active sidebar highlight — scroll-position based, reliable for any section height
+function _updateSidebarActive(){
+  const ids = ['s1','s7','s3','s4','s8','s6','s5'];
+  const offset = 90; // header + mission bar height
+  let current = ids[0];
+  for(const id of ids){
+    const el = document.getElementById(id);
+    if(el && el.getBoundingClientRect().top <= offset) current = id;
+  }
+  document.querySelectorAll('#sidebar a').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href')==='#'+current);
   });
-},{threshold:.3});
-['s1','s3','s4','s5','s6','s7','s8'].forEach(id=>{
-  const el = document.getElementById(id);
-  if(el) observer.observe(el);
-});
+}
+document.addEventListener('scroll', _updateSidebarActive, {passive:true});
+_updateSidebarActive();
 
 // ── 8 Red de Nodos ────────────────────────────────────────────────────────────
 let _swarmPollTimer = null;
