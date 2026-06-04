@@ -1,92 +1,82 @@
 # Dev Diary - 202601 - BootstrapDocs - 01
 
 **Fecha aproximada / Approximate date:** 22-ene-2026 / January 22, 2026  
-**Fase / Phase:** Inicio simplificado y documentación / Simplified bootstrap & documentation  
-**Versión interna / Internal version:** v0.0.41 (dev-v5)  
+**Fase / Phase:** Inicio simplificado y documentacion / Simplified bootstrap & documentation  
+**Version interna / Internal version:** v0.0.41 (dev-v5)  
 **Rama / Branch:** dev-v5  
 **Autor / Author:** userf8a2c4
 
 **Resumen de avances / Summary of progress:**
-- Helper de bootstrap y Makefile para estandarizar el arranque.  
-  Bootstrap helper and Makefile to standardize startup.
-- Actualización de README, QUICKSTART y docs de scripts.  
-  Updates to README, QUICKSTART, and scripts documentation.
-- Manual operativo ajustado con notas de despliegue.  
-  Operational manual updated with deployment notes.
+- Cree un helper de bootstrap y un Makefile para estandarizar el arranque.  
+  Built a bootstrap helper and Makefile to standardize startup.
+- Actualice README, QUICKSTART y la documentacion de scripts.  
+  Updated README, QUICKSTART, and scripts documentation.
+- Ajuste el manual operativo con notas de despliegue.  
+  Updated the operational manual with deployment notes.
 
 ---
-# [ES] Inicio simplificado dev-v5 – Bootstrap y documentación 2026
+# [ES] Inicio simplificado dev-v5 -- Bootstrap y documentacion 2026
 
-  /dev: Notas del parche: Versión: v0.0.41_-_dev-v5 (commit c5f6585)
+  /dev: Notas del parche: Version: v0.0.41_-_dev-v5 (commit c5f6585)
 
-
-
-# [ES] Notas de Parche – C.E.N.T.I.N.E.L.
-
-**Versión:** v0.0.41_-_dev-v5  
+**Version:** v0.0.41_-_dev-v5  
 **Fecha:** 22-ene-2026  
 **Autor:** userf8a2c4
 
-### Resumen
-Se agrega un flujo de inicio más claro con helper de bootstrap, Makefile y documentación ajustada para arrancar rápido en dev-v5.
+### Por que hice esto
 
-### Cambios principales
-- **Mejora:** Nuevo helper de arranque (`scripts/bootstrap.py`) y Makefile para comandos comunes  
-  - **Por qué:** Reducir fricción al configurar el entorno por primera vez y estandarizar pasos de inicio  
-  - **Impacto:** Onboarding más rápido, menos errores y guía consistente para devs
+Despues del refactor grande a `src/` y la integracion de dev-v4, me di cuenta de que arrancar el proyecto desde cero se habia vuelto confuso. Habia demasiados pasos manuales, dependencias que no estaban documentadas, y cada vez que intentaba levantar el entorno en limpio me encontraba con algun paso que habia olvidado. Si yo mismo tenia problemas, cualquier otro colaborador lo tendria peor. Decidi que era momento de invertir en la experiencia de onboarding.
 
-- **Mejora:** Actualización de README, QUICKSTART y documentación de scripts  
-  - **Por qué:** Alinear la documentación con el flujo real de arranque y aclarar dependencias  
-  - **Impacto:** Menos ambigüedad para ejecutar el sistema localmente
+### Lo que hice
 
-- **Mejora:** Manual actualizado con notas operativas  
-  - **Por qué:** Registrar pasos importantes y contexto para operación inicial  
-  - **Impacto:** Referencia más clara para quienes administran despliegues
+Escribi un script de bootstrap (`scripts/bootstrap.py`) que prepara todas las dependencias y la configuracion base automaticamente. Tambien cree un `Makefile` con los comandos mas comunes para que nadie tenga que recordar las invocaciones exactas. La idea es que con un solo comando puedas tener el entorno listo.
 
-### Cambios técnicos
-- Nuevos comandos de automatización en `Makefile`
-- Script de bootstrap para preparar dependencias y configuración base
+Actualice el README, el QUICKSTART y la documentacion de scripts para que reflejaran el flujo real de arranque. Antes habia discrepancias entre lo que decia la documentacion y lo que realmente funcionaba, y eso me frustraba. Tambien ajuste el manual operativo con notas de despliegue que habia ido acumulando durante las semanas anteriores.
+
+Aproveche para actualizar la documentacion de licencia y asegurarme de que reflejara correctamente la AGPL-3.0.
+
+### Cambios tecnicos
+
+- Nuevos comandos de automatizacion en `Makefile`
+- Script de bootstrap para preparar dependencias y configuracion base
 - Ajustes en `README.md`, `QUICKSTART.md`, `docs/manual.md` y `scripts/README.md`
 
-### Notas adicionales
-- Se recomienda ejecutar el flujo de bootstrap antes del primer arranque para evitar configuraciones incompletas
-- Documentación actualizada para reflejar la licencia real del proyecto
+### Lo que aprendi
 
-**Objetivo de C.E.N.T.I.N.E.L.:** Monitoreo independiente, neutral y transparente de datos electorales públicos. Solo números. Solo hechos. Código abierto AGPL-3.0 para el pueblo hondureño.
+A veces la documentacion y las herramientas de arranque no se sienten como "progreso real" porque no agregan funcionalidad. Pero me di cuenta de que sin ellas, todo lo demas se vuelve mas lento. Recomiendo ejecutar el flujo de bootstrap antes del primer arranque para evitar configuraciones incompletas.
+
+**Objetivo de C.E.N.T.I.N.E.L.:** Monitoreo independiente, neutral y transparente de datos electorales publicos. Solo numeros. Solo hechos. Codigo abierto AGPL-3.0 para el pueblo hondureno.
 
 
 -------------
 
 
-# [EN] Patch Notes – C.E.N.T.I.N.E.L.
+# [EN] Simplified bootstrap dev-v5 -- Bootstrap and documentation 2026
 
 **Version:** v0.0.41_-_dev-v5  
 **Date:** January 22, 2026  
 **Author:** userf8a2c4
 
-### Summary
-Adds a clearer startup flow with a bootstrap helper, Makefile, and docs updates to speed up dev-v5 onboarding.
+### Why I did this
 
-### Main Changes
-- **Improvement:** New bootstrap helper (`scripts/bootstrap.py`) and Makefile for common commands  
-  - **Why:** Reduce setup friction and standardize startup steps  
-  - **Impact:** Faster onboarding, fewer errors, consistent guidance for devs
+After the big refactor to `src/` and the dev-v4 integration, I realized that setting up the project from scratch had become confusing. There were too many manual steps, undocumented dependencies, and every time I tried to spin up a clean environment I'd run into some step I had forgotten. If I was having trouble myself, any other collaborator would have it worse. I decided it was time to invest in the onboarding experience.
 
-- **Improvement:** Updates to README, QUICKSTART, and scripts documentation  
-  - **Why:** Align documentation with the actual startup flow and clarify dependencies  
-  - **Impact:** Less ambiguity when running the system locally
+### What I did
 
-- **Improvement:** Manual updated with operational notes  
-  - **Why:** Capture important steps and context for initial operations  
-  - **Impact:** Clearer reference for operators
+I wrote a bootstrap script (`scripts/bootstrap.py`) that prepares all dependencies and base configuration automatically. I also created a `Makefile` with the most common commands so nobody has to remember the exact invocations. The idea is that with a single command you can have the environment ready.
+
+I updated the README, QUICKSTART, and scripts documentation so they reflected the actual startup flow. Before, there were discrepancies between what the docs said and what actually worked, and that frustrated me. I also updated the operational manual with deployment notes I had been accumulating over the previous weeks.
+
+I took the opportunity to update the license documentation and make sure it correctly reflected AGPL-3.0.
 
 ### Technical Changes
+
 - New automation commands in `Makefile`
 - Bootstrap script to prepare dependencies and base configuration
 - Updates to `README.md`, `QUICKSTART.md`, `docs/manual.md`, and `scripts/README.md`
 
-### Additional Notes
-- It is recommended to run the bootstrap flow before first startup to avoid incomplete setup
-- Documentation updated to reflect the project’s real license
+### What I learned
+
+Sometimes documentation and bootstrap tooling don't feel like "real progress" because they don't add functionality. But I realized that without them, everything else becomes slower. I recommend running the bootstrap flow before first startup to avoid incomplete setup.
 
 **C.E.N.T.I.N.E.L. Goal:** Independent, neutral and transparent monitoring of public electoral data. Only numbers. Only facts. AGPL-3.0 open-source for the Honduran people.

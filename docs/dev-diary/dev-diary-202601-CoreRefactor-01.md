@@ -1,128 +1,120 @@
 # Dev Diary - 202601 - CoreRefactor - 01
 
 **Fecha aproximada / Approximate date:** 18-ene-2026 / January 18, 2026  
-**Fase / Phase:** Refactor estructural y consolidación / Structural refactor & consolidation  
-**Versión interna / Internal version:** v0.0.40  
+**Fase / Phase:** Refactor estructural y consolidacion / Structural refactor & consolidation  
+**Version interna / Internal version:** v0.0.40  
 **Rama / Branch:** main (dev-6)  
 **Autor / Author:** userf8a2c4
 
 **Resumen de avances / Summary of progress:**
-- Integración completa de `dev-v4` en `main` con refactor masivo a estructura `src/`.  
-  Full `dev-v4` merge into `main` with a major refactor to `src/` layout.
-- Evolución del Command Center y modularización de reglas de anomalías.  
-  Command Center maturation and modular anomaly rules.
-- Limpiezas, mejoras en scraping, generación de PDFs y flujos principales.  
-  Cleanup plus improvements to scraping, PDF generation, and core flows.
-- Actualización de licencia y preparación para integración con frontend.  
-  License update and preparation for frontend integration.
+- Integre `dev-v4` completo en `main` con refactor masivo a estructura `src/`.  
+  Merged full `dev-v4` into `main` with a major refactor to `src/` layout.
+- Madure el Command Center y modularice las reglas de anomalias.  
+  Matured the Command Center and modularized anomaly rules.
+- Corregi y mejore scraping, generacion de PDFs y flujos principales.  
+  Fixed and improved scraping, PDF generation, and core flows.
+- Actualice la licencia y prepare el terreno para integracion con frontend.  
+  Updated the license and prepared for frontend integration.
 
 ---
-# Integración Mayor dev-v4 → main – Consolidación y Refactor 2026
+# Integracion Mayor dev-v4 a main -- Consolidacion y Refactor 2026
 
-/dev: Notas del parche: Versión: v0.0.40 (integración dev-v4)
+/dev: Notas del parche: Version: v0.0.40 (integracion dev-v4)
 
-# Notas de Parche – C.E.N.T.I.N.E.L.
+## [ES] Diario de desarrollo -- C.E.N.T.I.N.E.L.
 
-**Versión:** v0.0.40  
+**Version:** v0.0.40  
 **Fecha:** 18-ene-2026  
 **Autor:** userf8a2c4
 
-### Resumen
+### Contexto y por que lo hice
 
-Integración completa de la rama `dev-v4` en `main`: +150 commits de refactorización estructural, nuevo Command Center, módulo de análisis modular, reglas de anomalías reorganizadas y preparación para sinergia con el frontend (centinel-app). Se convierte `main` en la única línea activa de desarrollo. Se adopta la licencia actualizada presente en `main` (commit del 15-ene-2026 – AGPL-3.0).
+Llevaba semanas acumulando trabajo en la rama `dev-v4` -- mas de 150 commits entre refactorizacion estructural, el nuevo Command Center, el modulo de analisis modular, y las reglas de anomalias reorganizadas. El codigo habia crecido bastante, y me di cuenta de que seguir trabajando en ramas separadas ya no tenia sentido. Necesitaba consolidar todo en `main` y convertirla en la unica linea activa de desarrollo. Tambien aproveche para adoptar la licencia AGPL-3.0 actualizada que habia preparado el 15 de enero.
 
-### Cambios principales
+### La reorganizacion a `src/`
 
-**Mejora:** Reorganización completa del código en estructura `src/` estándar  
-* **Por qué:** Mejor mantenibilidad, importaciones limpias, preparación para crecimiento del equipo y packaging futuro  
-* **Impacto:** Código mucho más organizado y escalable; más fácil desarrollar nuevas funcionalidades y conectar con frontend
+El cambio mas grande que hice fue migrar todo el codigo a una estructura `src/` estandar. Lo decidi porque la organizacion anterior se estaba volviendo insostenible: las importaciones eran confusas, localizar archivos era lento, y me preocupaba que cuando el equipo creciera o necesitara empaquetar el proyecto, la estructura no aguantaria. Despues de la migracion, el codigo quedo mucho mas organizado y escalable. Fue un trabajo tedioso pero necesario.
 
-**Mejora:** Implementación y maduración del **Command Center** (centro de control)  
-* **Por qué:** Necesidad de un punto central para gestionar scraping, reglas de anomalías y monitoreo en tiempo real  
-* **Impacto:** Facilita mucho la operación diaria, edición de reglas y programación de tareas automáticas
+### El Command Center
 
-**Mejora:** Separación y modularización de reglas de anomalías (command_center/rules)  
-* **Por qué:** Las reglas estaban creciendo desordenadas; ahora son independientes y editables fácilmente  
-* **Impacto:** Más transparencia y capacidad de auditoría externa sobre qué se está detectando como anómalo
+Implemente y madure el Command Center, que es basicamente el punto central desde donde se gestiona todo: scraping, reglas de anomalias, monitoreo en tiempo real. Antes de esto, la operacion diaria era bastante manual -- tenia que invocar scripts individuales, editar configuraciones en varios lugares, y programar tareas a mano. El Command Center centraliza todo eso. Me facilita mucho el dia a dia, y cualquier operador futuro lo va a agradecer.
 
-**Mejora/Fix:** Múltiples correcciones en scraping, generación de PDFs, endpoints CNE y flujos principales  
-* **Por qué:** Acumulación de mejoras incrementales durante semanas de desarrollo intensivo  
-* **Impacto:** Sistema mucho más estable y listo para pruebas de integración con el frontend en desarrollo
+### Modularizacion de reglas de anomalias
 
-### Cambios técnicos
+Separe las reglas de anomalias en modulos independientes bajo `command_center/rules/`. Antes estaban creciendo desordenadas dentro de un solo archivo, lo cual hacia dificil probar reglas individuales o desactivar alguna sin tocar el resto. Ahora cada regla es independiente y editable por separado. Esto tambien mejora la transparencia del sistema -- cualquier auditor externo puede ver exactamente que se esta detectando como anomalo y por que.
 
-- Migración masiva de código a nueva estructura `src/` (refactor estructural profundo)
-- Creación y evolución de carpeta `command_center/` con settings, rules, scheduler
+### Correcciones y mejoras incrementales
+
+Ademas del refactor grande, fui corrigiendo multiples problemas que habia ido encontrando durante semanas de desarrollo intensivo: ajustes en scraping, mejoras en la generacion de PDFs, correcciones en endpoints del CNE, y estabilizacion de flujos principales. Nada de esto era glamoroso, pero era necesario para que el sistema estuviera realmente listo para pruebas de integracion con el frontend que estoy desarrollando en paralelo.
+
+### Cambios tecnicos
+
+- Migracion masiva de codigo a nueva estructura `src/` (refactor estructural profundo)
+- Creacion y evolucion de carpeta `command_center/` con settings, rules, scheduler
 - Reemplazo de `analyze_rules` por conjunto temporal de reglas + sistema modular
-- Modularización del módulo de análisis → nuevo paquete con componentes independientes
+- Modularizacion del modulo de analisis en un paquete con componentes independientes
 - Actualizaciones en `pdf_generator.py`, `main.py`, `requirements.txt`, flujos de scraping
-- Múltiples merges y limpiezas de ramas antiguas (`dev-v3` → `dev-v4`)
-- Actualización de LICENSE (adoptando AGPL-3.0 actualizada de main, commit 15-ene-2026) y documentación inicial de refactor
+- Multiples merges y limpiezas de ramas antiguas (`dev-v3` a `dev-v4`)
+- Actualizacion de LICENSE (adoptando AGPL-3.0 actualizada de main, commit 15-ene-2026) y documentacion inicial de refactor
 
-### Notas adicionales
+### Lo que pienso mirando hacia adelante
 
-- Después de este merge se recomienda eliminar ramas antiguas (`dev-v3`, `dev-v2`, etc.) para evitar confusión
-- Próximos pasos principales: estabilizar bugs encontrados en pruebas de integración, conectar con frontend (centinel-app), mejorar documentación y preparar primera release pública v0.1.0
-- Ya estamos viendo que la arquitectura modular (scrapers configurables, reglas independientes, análisis genéricos) abre la posibilidad real de adaptar el sistema a contextos electorales de otros países en el futuro. Por eso nos centraremos en un desarrollo que sea lo más agnóstico y globalmente implementable posible, manteniendo siempre el foco inicial en Honduras.
-- Proyecto sigue siendo privado/secreto → perfecto momento para reorganizar sin impacto en usuarios externos
-- ¡Gran avance! Estamos pasando de prototipo desordenado a sistema mucho más profesional y mantenible.
+Despues de este merge, decidi que voy a eliminar las ramas antiguas (`dev-v3`, `dev-v2`, etc.) para evitar confusion. Los proximos pasos principales son estabilizar los bugs que encuentre en pruebas de integracion, conectar con el frontend (centinel-app), mejorar la documentacion, y preparar la primera release publica v0.1.0.
 
-Este proyecto nace del deseo de contribuir, como ciudadanos, al fortalecimiento de la democracia en nuestro país.  
-Desde la tecnología buscamos ofrecer herramientas abiertas, objetivas y transparentes que permitan que los datos electorales hablen por sí mismos, sin intermediarios ni interpretaciones.  
-Solo hechos, al servicio de todas las personas que quieran verificarlos.
+Algo que me emociona es que ya estoy viendo como la arquitectura modular -- scrapers configurables, reglas independientes, analisis generico -- abre la posibilidad real de adaptar el sistema a contextos electorales de otros paises en el futuro. Por eso me voy a centrar en un desarrollo que sea lo mas agnostico y globalmente implementable posible, manteniendo siempre el foco inicial en Honduras.
 
-**Objetivo de C.E.N.T.I.N.E.L.:** Monitoreo independiente, neutral y transparente de datos electorales públicos. Solo números. Solo hechos. Código abierto (AGPL-3.0) para el pueblo hondureño.
+El proyecto sigue siendo privado por ahora, lo cual es perfecto para hacer este tipo de reorganizacion sin impactar a usuarios externos. Siento que este fue un gran avance -- estoy pasando de un prototipo desordenado a un sistema mucho mas profesional y mantenible.
+
+Este proyecto nace de mi deseo de contribuir, como ciudadano, al fortalecimiento de la democracia en mi pais. Desde la tecnologia busco ofrecer herramientas abiertas, objetivas y transparentes que permitan que los datos electorales hablen por si mismos, sin intermediarios ni interpretaciones. Solo hechos, al servicio de todas las personas que quieran verificarlos.
+
+**Objetivo de C.E.N.T.I.N.E.L.:** Monitoreo independiente, neutral y transparente de datos electorales publicos. Solo numeros. Solo hechos. Codigo abierto (AGPL-3.0) para el pueblo hondureno.
 
 ---
 
-# [EN] Patch Notes – C.E.N.T.I.N.E.L.
+## [EN] Development journal -- C.E.N.T.I.N.E.L.
 
-**Version:** v0.0.40 
+**Version:** v0.0.40  
 **Date:** January 18, 2026  
 **Author:** userf8a2c4
 
-### Summary
+### Context and why I did it
 
-Major merge of `dev-v4` into `main`: +150 commits including full code refactor to src/ layout, new Command Center, modular analysis package, reorganized anomaly rules and preparation for frontend integration. Adopts the updated AGPL-3.0 LICENSE from main (commit Jan 15, 2026).
+I had been accumulating work on the `dev-v4` branch for weeks -- over 150 commits of structural refactoring, the new Command Center, the modular analysis module, and reorganized anomaly rules. The code had grown substantially, and I realized that continuing to work on separate branches no longer made sense. I needed to consolidate everything into `main` and make it the sole active development line. I also took the opportunity to adopt the updated AGPL-3.0 license I had prepared on January 15.
 
-### Main Changes
+### The `src/` reorganization
 
-**Improvement:** Complete code reorganization to standard `src/` layout  
-* **Why:** Better maintainability, clean imports, future team & packaging readiness  
-* **Impact:** Much more organized and scalable codebase
+The biggest change I made was migrating all the code to a standard `src/` layout. I decided on this because the previous organization was becoming unsustainable: imports were confusing, finding files was slow, and I worried that when the team grew or I needed to package the project, the structure wouldn't hold up. After the migration, the code was much more organized and scalable. It was tedious work but necessary.
 
-**Improvement:** Implementation & maturation of **Command Center**  
-* **Why:** Need for a central place to manage scraping, anomaly rules and real-time monitoring  
-* **Impact:** Greatly simplifies daily operations and rule editing
+### The Command Center
 
-**Improvement:** Split & modularization of anomaly rules (command_center/rules)  
-* **Why:** Rules were becoming messy; now independent and easily editable  
-* **Impact:** More transparency and external auditability
+I implemented and matured the Command Center, which is basically the central point from which everything is managed: scraping, anomaly rules, real-time monitoring. Before this, daily operations were quite manual -- I had to invoke individual scripts, edit configurations in multiple places, and schedule tasks by hand. The Command Center centralizes all of that. It makes my day-to-day much easier, and any future operator will appreciate it.
 
-**Improvement/Fix:** Multiple fixes & enhancements across scraping, PDFs, CNE endpoints and core flows  
-* **Why:** Weeks of accumulated incremental improvements  
-* **Impact:** Much more stable system ready for frontend integration
+### Anomaly rules modularization
+
+I separated the anomaly rules into independent modules under `command_center/rules/`. Before, they were growing messily inside a single file, which made it hard to test individual rules or disable one without touching the rest. Now each rule is independent and editable on its own. This also improves the system's transparency -- any external auditor can see exactly what is being detected as anomalous and why.
+
+### Incremental fixes and improvements
+
+Beyond the big refactor, I kept fixing multiple issues I had been finding during weeks of intensive development: scraping adjustments, PDF generation improvements, CNE endpoint fixes, and core flow stabilization. None of this was glamorous, but it was necessary to get the system truly ready for integration testing with the frontend I'm developing in parallel.
 
 ### Technical Changes
 
-- Massive migration to `src/` layout
+- Massive code migration to new `src/` layout (deep structural refactor)
 - Creation/evolution of `command_center/` folder (settings, rules, scheduler)
 - Replacement of `analyze_rules` with modular temporary rule set
-- Modular analysis package into dedicated module
+- Modular analysis package split into dedicated independent components
 - Updates to `pdf_generator.py`, `main.py`, `requirements.txt`, scraping flows
 - Multiple branch merges and old branch cleanups
-- LICENSE update (adopting current AGPL-3.0 from main, Jan 15 2026 commit) & initial refactor documentation updates
+- LICENSE update (adopting current AGPL-3.0 from main, Jan 15 2026 commit) and initial refactor documentation updates
 
-### Additional Notes
+### Looking ahead
 
-- After this merge, consider deleting old branches (`dev-v3`, `dev-v2`, etc.)
-- Next main steps: bug stabilization, frontend integration, documentation polish, prepare v0.1.0 public release
-- We're already seeing that the modular architecture (configurable scrapers, independent rules, generic analysis) opens real possibilities for adapting the system to electoral contexts in other countries in the future. That's why we will focus on development that is as agnostic and globally implementable as possible, while keeping the initial focus on Honduras.
-- Project still private/secret → ideal time for structural cleanup
-- Big step forward! Moving from messy prototype to much more professional & maintainable system.
+After this merge, I decided to delete the old branches (`dev-v3`, `dev-v2`, etc.) to avoid confusion. The main next steps are stabilizing bugs found in integration tests, connecting with the frontend (centinel-app), improving documentation, and preparing the first public release v0.1.0.
 
-This project is born from the desire to contribute, as citizens, to strengthening democracy in our country.  
-From technology we aim to provide open, objective, and transparent tools that allow electoral data to speak for itself, without intermediaries or interpretations.  
-Just facts, at the service of everyone who wants to verify them.
+Something that excites me is that I'm already seeing how the modular architecture -- configurable scrapers, independent rules, generic analysis -- opens real possibilities for adapting the system to electoral contexts in other countries in the future. That's why I'm going to focus on development that is as agnostic and globally implementable as possible, while keeping the initial focus on Honduras.
+
+The project is still private for now, which is perfect for doing this kind of reorganization without impacting external users. I feel this was a major step forward -- I'm moving from a messy prototype to a much more professional and maintainable system.
+
+This project is born from my desire to contribute, as a citizen, to strengthening democracy in my country. Through technology I aim to provide open, objective, and transparent tools that allow electoral data to speak for itself, without intermediaries or interpretations. Just facts, at the service of everyone who wants to verify them.
 
 **C.E.N.T.I.N.E.L. Goal:** Independent, neutral and transparent monitoring of public electoral data. Only numbers. Only facts. Open-source (AGPL-3.0) for the Honduran people.
