@@ -520,6 +520,11 @@ details .details-body{padding:12px 0 4px}
   transition:color .2s}
 .soz-autosave-val.on{color:var(--ok)}
 .soz-autosave-val.off{color:var(--warn)}
+#btn-apply-now{width:100%;padding:6px 4px;background:rgba(110,168,254,.08);
+  border:1px solid rgba(110,168,254,.4);border-radius:2px;color:var(--accent);
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;
+  cursor:pointer;transition:background .15s}
+#btn-apply-now:hover{background:rgba(110,168,254,.18)}
 #btn-sidebar-iniciar{width:100%;padding:8px 6px;background:rgba(87,192,141,.08);
   border:1px solid rgba(87,192,141,.4);border-radius:2px;color:var(--ok);
   font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;
@@ -648,6 +653,8 @@ details .details-body{padding:12px 0 4px}
           <span class="soz-autosave-label">Auto-guardar</span>
           <span class="soz-autosave-val" id="autosave-val">ON</span>
         </div>
+        <button id="btn-apply-now" onclick="autoApply()" style="display:none"
+          title="Aplicar cambios pendientes a GitHub ahora">↑ Aplicar ahora</button>
       </div>
       <div id="sidebar-emergency-zone">
         <div class="sez-sep"></div>
@@ -2629,6 +2636,7 @@ function toggleAutoApply(){
   const el = document.getElementById('autosave-val');
   if(el){ el.textContent = _autoApplyEnabled ? 'ON' : 'OFF'; el.className = 'soz-autosave-val ' + (_autoApplyEnabled ? 'on' : 'off'); }
   if(!_autoApplyEnabled && _autoApplyTimer){ clearTimeout(_autoApplyTimer); _autoApplyTimer=null; }
+  updateDirtyState();
 }
 
 function _initAutoSaveUI(){
@@ -2668,6 +2676,8 @@ window.addEventListener('beforeunload', e => {
 function updateDirtyState(){
   const dot = document.getElementById('dirty-dot');
   if(dot) dot.style.display = isDirty ? 'inline-block' : 'none';
+  const applyBtn = document.getElementById('btn-apply-now');
+  if(applyBtn) applyBtn.style.display = (isDirty && !_autoApplyEnabled) ? 'block' : 'none';
 }
 
 // ══════════════════════════════════════════════════════════
