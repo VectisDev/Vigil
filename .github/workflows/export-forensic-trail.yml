@@ -28,7 +28,7 @@ jobs:
         run: python src/centinel/federation/export_reputation.py
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: forensic_trail.json
           tag_name: forensic-${{ github.run_number }}-${{ github.run_attempt }}
