@@ -35,6 +35,11 @@ CRITICAL_FILES = [
     "web/panel/index.html",
     "web/replay/index.html",
     "web/verifier/index.html",
+    "web/ops/index.html",
+    "web/ops/ops.css",
+    "web/ops/js/ops-core.js",
+    "web/ops/js/ops-panel.js",
+    "web/ops/js/ops-monitor.js",
     ".github/workflows/pages.yml",
 ]
 
