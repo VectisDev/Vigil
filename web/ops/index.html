@@ -677,9 +677,9 @@ details .details-body{padding:12px 0 4px}
             <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Cambiar país</button>
           </div>
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip="La API debe devolver datos en formato JSON. No soportamos HTML, CSV, PDF o XML">URL del ente electoral <span style="color:var(--warn)">?</span></label>
-            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov/" oninput="syncText('mainurl',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
-            <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Guardar y descubrir</button>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip="La dirección principal del sitio de resultados electorales. Centinel descubre los datos automáticamente — no necesitas saber nada más.">Sitio de resultados <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
+            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" oninput="onEasyUrlInput(this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+            <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Descubrir endpoints</button>
           </div>
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
@@ -2050,7 +2050,10 @@ function populateControls(){
   const inpMainUrl = document.getElementById('inp-main-url');
   if(inpMainUrl) inpMainUrl.value = mainUrl;
   const inpMainUrlEasy = document.getElementById('inp-main-url-easy');
-  if(inpMainUrlEasy) inpMainUrlEasy.value = mainUrl;
+  if(inpMainUrlEasy){
+    try{ inpMainUrlEasy.value = mainUrl ? new URL(mainUrl).origin : ''; }
+    catch(_){ inpMainUrlEasy.value = mainUrl; }
+  }
 
   // Retry table
   const ps = rc?.per_status || {};
@@ -2522,10 +2525,14 @@ function syncSlider(key, val){
   markDirty();
 }
 
+// Called when the user edits the friendly URL field — only marks dirty, does NOT overwrite inp-main-url
+function onEasyUrlInput(val){
+  markDirty();
+}
+
 function syncText(key, val){
   const ids = {
-
-    mainurl:['inp-main-url-easy','inp-main-url'],
+    mainurl:['inp-main-url'],  // easy field handled separately via onEasyUrlInput
   };
   (ids[key]||[]).forEach(id=>{
     const el = document.getElementById(id);
@@ -2810,8 +2817,9 @@ function buildNewEndpointsYaml(){
   base.healing.animal_mode = base.healing.animal_mode || 'normal';
   // endpoints
   if(!base.cne) base.cne={};
-  const mainUrlVal = document.getElementById('inp-main-url-easy')?.value.trim()
-    || document.getElementById('inp-main-url')?.value.trim()
+  // Prefer the technical full-path field; fall back to easy field (root origin) only if not set
+  const mainUrlVal = document.getElementById('inp-main-url')?.value.trim()
+    || document.getElementById('inp-main-url-easy')?.value.trim()
     || base.cne?.main_url || '';
   if(mainUrlVal) base.cne.main_url = mainUrlVal;
   base.cne.presidential_endpoints = local?.cne?.presidential_endpoints || base.cne?.presidential_endpoints || [];
@@ -3849,8 +3857,17 @@ async function saveElectoralUrl() {
       if (d.endpoints?.length) {
         if (!localConfig['config/prod/endpoints.yaml']) localConfig['config/prod/endpoints.yaml'] = {};
         if (!localConfig['config/prod/endpoints.yaml'].cne) localConfig['config/prod/endpoints.yaml'].cne = {};
-        localConfig['config/prod/endpoints.yaml'].cne.main_url = url;
+        // Use the full discovered main_url from backend if provided; otherwise keep user's input
+        const discoveredMainUrl = d.main_url || url;
+        localConfig['config/prod/endpoints.yaml'].cne.main_url = discoveredMainUrl;
         localConfig['config/prod/endpoints.yaml'].cne.presidential_endpoints = d.endpoints;
+        // Sync fields: technical gets full path, friendly gets just the origin
+        const inpFull = document.getElementById('inp-main-url');
+        const inpEasy = document.getElementById('inp-main-url-easy');
+        if (inpFull) inpFull.value = discoveredMainUrl;
+        if (inpEasy) {
+          try { inpEasy.value = new URL(discoveredMainUrl).origin; } catch(_) {}
+        }
         buildEndpointsTable();
       }
 
@@ -3904,7 +3921,9 @@ function syncEndpointsFromDepts(force = false) {
   const inpMain = document.getElementById('inp-main-url');
   const inpMainEasy = document.getElementById('inp-main-url-easy');
   if (inpMain && (force || !inpMain.value) && nat?.url) inpMain.value = nat.url;
-  if (inpMainEasy && (force || !inpMainEasy.value) && nat?.url) inpMainEasy.value = nat.url;
+  if (inpMainEasy && (force || !inpMainEasy.value) && nat?.url) {
+    try { inpMainEasy.value = new URL(nat.url).origin; } catch(_) { inpMainEasy.value = nat.url; }
+  }
 
   markDirty();
   buildEndpointsTable();
