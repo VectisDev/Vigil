@@ -577,9 +577,10 @@ details .details-body{padding:12px 0 4px}
             480 req/h, intervalo m&iacute;nimo 1s, burst m&aacute;ximo 8.
             Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.
           </div>
-          <button class="hdr-btn" id="btn-unlock" onclick="requestUnlock()" style="white-space:nowrap;border-color:var(--bad);color:var(--bad)">
-            Desbloquear l&iacute;mites
-          </button>
+          <label class="toggle" style="flex-shrink:0;cursor:pointer" title="Desbloquear/bloquear límites">
+            <input type="checkbox" id="tog-unlock" onchange="requestUnlock(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
         <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
@@ -2362,13 +2363,15 @@ function getCurrentCfg(){
 // CEILING UNLOCK
 // ══════════════════════════════════════════════════════════
 
-function requestUnlock(){
-  if(ceilingUnlocked){
+function requestUnlock(checked){
+  if(!checked){
     ceilingUnlocked = false;
     updateUnlockUI();
     enforceCurrentCeilings();
     return;
   }
+  // Revert toggle immediately — only mark checked after successful commit
+  document.getElementById('tog-unlock').checked = false;
   const now = new Date().toISOString();
   const text = UNLOCK_LEGAL_TEXT
     .replace('{{TIMESTAMP}}', now)
@@ -2459,7 +2462,7 @@ async function executeUnlock(){
 
 function updateUnlockUI(){
   const bar = document.getElementById('unlock-bar');
-  const btn = document.getElementById('btn-unlock');
+  const tog = document.getElementById('tog-unlock');
   const rphSliders = ['sl-rph','sl-rph2'];
   const intSliders = ['sl-interval','sl-interval2'];
   if(ceilingUnlocked){
@@ -2468,9 +2471,7 @@ function updateUnlockUI(){
     bar.querySelector('.ub-text').innerHTML =
       '<strong>Límites desbloqueados para esta sesión</strong> — los controles pueden exceder '+
       'los límites de seguridad. La firma de responsabilidad ha sido registrada en Git.';
-    btn.textContent = 'Rebloquear límites';
-    btn.style.borderColor = 'var(--warn)';
-    btn.style.color = 'var(--warn)';
+    if(tog) tog.checked = true;
     rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
     intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=0.5; });
   } else {
@@ -2480,9 +2481,7 @@ function updateUnlockUI(){
       '<strong>Límites de seguridad activos</strong> — los controles no pueden exceder '+
       '480 req/h, intervalo mínimo 1s, burst máximo 8. '+
       'Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.';
-    btn.textContent = 'Desbloquear límites';
-    btn.style.borderColor = 'var(--bad)';
-    btn.style.color = 'var(--bad)';
+    if(tog) tog.checked = false;
     rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
     intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
   }
