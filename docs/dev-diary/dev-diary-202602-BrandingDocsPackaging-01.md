@@ -1,20 +1,20 @@
 # Dev Diary - 202602 - BrandingDocsPackaging - 01
 
 **Fecha aproximada / Approximate date:** Febrero 2026 (estimada) / February 2026 (estimated)  
-**Fase / Phase:** Rebranding y documentación base / Rebranding & base documentation  
-**Versión interna / Internal version:** v0.1.00  
+**Fase / Phase:** Rebranding y documentacion base / Rebranding & base documentation  
+**Version interna / Internal version:** v0.1.00  
 **Rama / Branch:** main (dev-6)  
 **Autor / Author:** userf8a2c4
 
 **Resumen de avances / Summary of progress:**
-- Rebranding consistente a **C.E.N.T.I.N.E.L.** en documentación y configuración.  
-  Consistent **C.E.N.T.I.N.E.L.** rebranding across docs and configuration.
-- README principal reorganizado con flujo operativo y enlaces clave.  
-  Main README reorganized with operational flow and key links.
-- Configuración base simplificada con comentarios bilingües.  
-  Base configuration simplified with bilingual comments.
-- Metadatos de empaquetado en `pyproject.toml` pulidos.  
-  Packaging metadata polished in `pyproject.toml`.
+- Aplique rebranding consistente a **C.E.N.T.I.N.E.L.** en documentacion y configuracion.  
+  I applied consistent **C.E.N.T.I.N.E.L.** rebranding across docs and configuration.
+- Reorganice el README principal con flujo operativo y enlaces clave.  
+  I reorganized the main README with operational flow and key links.
+- Simplifique la configuracion base con comentarios bilingues.  
+  I simplified the base configuration with bilingual comments.
+- Puli los metadatos de empaquetado en `pyproject.toml`.  
+  I polished packaging metadata in `pyproject.toml`.
 
 ---
 # Diario de desarrollo v0.1.00 — C.E.N.T.I.N.E.L.
@@ -24,25 +24,25 @@
 ---
 
 ## [ES] Resumen ejecutivo
-- Rebranding consistente a **C.E.N.T.I.N.E.L.** en documentación, configuración y empaquetado.
-- Reorganización del README principal para lectura clara, con flujo operativo y enlaces clave.
-- Simplificación y comentarios bilingües en archivos de configuración base.
-- Pulido del empaquetado en `pyproject.toml` con metadatos profesionales.
+- Aplique rebranding consistente a **C.E.N.T.I.N.E.L.** en documentacion, configuracion y empaquetado.
+- Reorganice el README principal para que la lectura fuera clara, con flujo operativo y enlaces clave.
+- Simplifique los archivos de configuracion base y les agregue comentarios bilingues.
+- Puli el empaquetado en `pyproject.toml` con metadatos profesionales.
 
 ## [ES] Cambios detallados
-- README principal reestructurado con narrativa clara, flujo operativo, y enlaces ordenados.
-- Configuración principal (`config/config.yaml`), ejemplo raíz (`config.example.yaml`) y ejemplo del centro de comando (`command_center/config.yaml.example`) simplificados y comentados bilingüe.
-- Metadatos de empaquetado actualizados para estandarizar versión, contacto y clasificación.
+- Reestructure el README principal con una narrativa clara, flujo operativo y enlaces ordenados. Me parecio importante que cualquier persona que llegara al repo pudiera orientarse de inmediato.
+- Simplifique y comente de forma bilingue la configuracion principal (`config/config.yaml`), el ejemplo raiz (`config.example.yaml`) y el ejemplo del centro de comando (`command_center/config.yaml.example`).
+- Actualice los metadatos de empaquetado para estandarizar version, contacto y clasificacion. Decidi que era el momento correcto para dejar esos detalles profesionales antes de seguir avanzando.
 
 ---
 
 ## [EN] Executive summary
-- Consistent **C.E.N.T.I.N.E.L.** rebranding across documentation, configuration, and packaging.
-- Main README reorganized for clear onboarding, operational flow, and key links.
-- Base configuration files simplified with bilingual comments.
-- Packaging metadata polished in `pyproject.toml` with professional details.
+- I applied consistent **C.E.N.T.I.N.E.L.** rebranding across documentation, configuration, and packaging.
+- I reorganized the main README for clear onboarding, operational flow, and key links.
+- I simplified base configuration files with bilingual comments.
+- I polished packaging metadata in `pyproject.toml` with professional details.
 
 ## [EN] Detailed changes
-- Main README restructured with clear narrative, operational flow, and organized links.
-- Primary config (`config/config.yaml`), root example (`config.example.yaml`), and command center example (`command_center/config.yaml.example`) simplified and annotated bilingually.
-- Packaging metadata updated to standardize version, contact, and classifiers.
+- I restructured the main README with a clear narrative, operational flow, and organized links. I wanted anyone arriving at the repo to find their bearings immediately.
+- I simplified and annotated bilingually the primary config (`config/config.yaml`), root example (`config.example.yaml`), and command center example (`command_center/config.yaml.example`).
+- I updated packaging metadata to standardize version, contact, and classifiers. I decided this was the right moment to get those professional details in place before moving forward.
