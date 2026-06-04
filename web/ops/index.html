@@ -2625,7 +2625,8 @@ function requestUnlock(wantsUnlock){
     .replace('{{MAX_RPH}}', HARD_CEILING.maxRph)
     .replace('{{MIN_INTERVAL}}', HARD_CEILING.minInterval)
     .replace('{{MAX_BURST}}', HARD_CEILING.maxBurst);
-  document.getElementById('unlock-legal-text').textContent = text;
+  const _legalEl = document.getElementById('unlock-legal-text');
+  if (_legalEl) _legalEl.textContent = text;
   const rphEl = document.getElementById('ul-rph');
   const intEl = document.getElementById('ul-int');
   const burstEl = document.getElementById('ul-burst');
