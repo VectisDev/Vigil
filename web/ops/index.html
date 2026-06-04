@@ -2706,21 +2706,8 @@ async function executeUnlock(){
   const errEl = document.getElementById('unlock-err');
   const btn   = document.getElementById('unlock-confirm-btn');
   btn.disabled = true;
-  btn.textContent = 'Firmando…';
+  btn.textContent = 'Desbloqueando…';
   errEl.textContent = '';
-
-  let pat = sessionStorage.getItem('gh-pat');
-  if(!pat){
-    closeUnlockModal();
-    const acquired = await requestPat();
-    if(!acquired){
-      btn.textContent = 'Firmar y desbloquear';
-      btn.disabled = false;
-      return;
-    }
-    pat = sessionStorage.getItem('gh-pat');
-    document.getElementById('unlock-modal').classList.add('open');
-  }
 
   const now = new Date().toISOString();
   const doc = UNLOCK_LEGAL_TEXT
@@ -2729,35 +2716,41 @@ async function executeUnlock(){
     .replace('{{MIN_INTERVAL}}', HARD_CEILING.minInterval)
     .replace('{{MAX_BURST}}', HARD_CEILING.maxBurst);
 
-  const safeTs = now.replace(/[:.]/g,'-');
-  const filePath = `audit/ceiling-unlock/${safeTs}.txt`;
-  const commitMsg = `audit: operador acepta responsabilidad por desbloqueo de límites\n\nFecha: ${now}\nLímites desbloqueados: RPH>${HARD_CEILING.maxRph}, interval<${HARD_CEILING.minInterval}s, burst>${HARD_CEILING.maxBurst}`;
+  // Log acceptance locally — always works, no PAT needed
+  const record = { timestamp: now, action: 'ceiling_unlock', text: doc };
+  try { localStorage.setItem('centinel_last_unlock', JSON.stringify(record)); } catch(_){}
 
-  try{
-    const encoded = btoa(unescape(encodeURIComponent(doc)));
-    const r = await fetch(`${API_BASE}/contents/${filePath}`,{
-      method:'PUT',
-      headers:{Authorization:`Bearer ${pat}`,'Content-Type':'application/json'},
-      body: JSON.stringify({ message: commitMsg, content: encoded }),
-    });
-    if(!r.ok){
-      const j = await r.json().catch(()=>({}));
-      throw new Error(j.message || `HTTP ${r.status}`);
-    }
-    const j = await r.json();
-    const sha7 = (j.commit?.sha||'').slice(0,7);
-
-    ceilingUnlocked = true;
-    closeUnlockModal();
-    updateUnlockUI();
-    showResultModal([
-      `✓ Firma registrada — commit ${sha7}`,
-      `✓ Archivo: ${filePath}`,
-      `✓ Límites de seguridad desbloqueados para esta sesión`,
-    ], false);
-  }catch(e){
-    errEl.textContent = `Error al firmar: ${e.message}`;
+  // Try Git commit as bonus if PAT is already available — non-blocking
+  let sha7 = null;
+  const pat = sessionStorage.getItem('gh-pat');
+  if(pat){
+    try{
+      const safeTs = now.replace(/[:.]/g,'-');
+      const filePath = `audit/ceiling-unlock/${safeTs}.txt`;
+      const commitMsg = `audit: operador acepta responsabilidad por desbloqueo de límites\n\nFecha: ${now}\nLímites desbloqueados: RPH>${HARD_CEILING.maxRph}, interval<${HARD_CEILING.minInterval}s, burst>${HARD_CEILING.maxBurst}`;
+      const encoded = btoa(unescape(encodeURIComponent(doc)));
+      const r = await fetch(`${API_BASE}/contents/${filePath}`,{
+        method:'PUT',
+        headers:{Authorization:`Bearer ${pat}`,'Content-Type':'application/json'},
+        body: JSON.stringify({ message: commitMsg, content: encoded }),
+      });
+      if(r.ok){
+        const j = await r.json();
+        sha7 = (j.commit?.sha||'').slice(0,7);
+      }
+    }catch(_){}
   }
+
+  ceilingUnlocked = true;
+  closeUnlockModal();
+  updateUnlockUI();
+  const msgs = [
+    '✓ Límites de seguridad desbloqueados para esta sesión',
+    `✓ Aceptación registrada: ${now}`,
+  ];
+  if(sha7) msgs.push(`✓ Firma en Git — commit ${sha7}`);
+  showResultModal(msgs, false);
+
   btn.textContent = 'Firmar y desbloquear';
   btn.disabled = false;
 }
