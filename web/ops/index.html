@@ -111,10 +111,12 @@
         <div class="soz-autosave" onclick="toggleAutoApply()"
           title="Auto-guardar: aplica cambios a GitHub automáticamente tras 1.5s de inactividad">
           <span class="soz-autosave-label">Auto-guardar</span>
-          <span class="soz-autosave-val" id="autosave-val">ON</span>
+          <span class="soz-autosave-val off" id="autosave-val">OFF</span>
         </div>
         <button id="btn-apply-now" onclick="autoApply()" style="display:none"
-          title="Aplicar cambios pendientes a GitHub ahora">↑ Aplicar ahora</button>
+          title="Guardar los cambios de configuración en el repositorio">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>
+          Guardar cambios</button>
       </div>
       <div id="sidebar-emergency-zone">
         <div class="sez-sep"></div>
@@ -480,6 +482,21 @@
 
               <!-- Tab: Reglas -->
               <div id="t-rules" class="tab-pane">
+                <details class="rules-refs">
+                  <summary>📚 Base académica — metodología estadística</summary>
+                  <ol>
+                    <li><strong>Benford (1938)</strong> "The Law of Anomalous Numbers" — <em>Proc. American Philosophical Society</em>. Base de <code>benford_first_digit</code>, <code>benford_law</code>.</li>
+                    <li><strong>Beber &amp; Scacco (2012)</strong> "What the Numbers Say: A Digit-Based Test for Election Fraud" — <em>Political Analysis</em> 20(2). Base de <code>last_digit_uniformity</code>.</li>
+                    <li><strong>Klimek et al. (2012)</strong> "Statistical Detection of Systematic Election Irregularities" — <em>PNAS</em> 109(41). Base de <code>participation_vote_correlation</code>, <code>snapshot_jump</code>, <code>irreversibility</code>, <code>trend_shift</code>.</li>
+                    <li><strong>Mebane (2006)</strong> "Election Forensics: Vote Counts and Benford's Law" — <em>Summer Meeting of the Political Methodology Society</em>. Base de <code>granular_anomaly</code>, <code>participation_anomaly</code>, <code>participation_anomaly_advanced</code>.</li>
+                    <li><strong>Myagkov, Ordeshook &amp; Shakin (2009)</strong> <em>The Forensics of Election Fraud</em> — Cambridge University Press. Base de <code>geographic_dispersion</code>, <code>participation_anomaly_advanced</code>.</li>
+                    <li><strong>Wald &amp; Wolfowitz (1940)</strong> "On a Test Whether Two Samples Are from the Same Population" — <em>Annals of Mathematical Statistics</em>. Base de <code>runs_test</code>.</li>
+                    <li><strong>Liu, Ting &amp; Zhou (2008)</strong> "Isolation Forest" — <em>ICDM 2008</em>. Base de <code>ml_outliers</code>.</li>
+                    <li><strong>IIDH/CAPEL (2017)</strong> <em>Manual de Observación Electoral</em>. Marco para <code>null_blank_votes</code>, <code>turnout_impossible</code>, <code>mesa_impossibility</code>.</li>
+                    <li><strong>OSCE/ODIHR (2010)</strong> <em>Election Observation Handbook</em> (6th ed.). Marco para <code>mesa_reconciliation</code>, <code>mesas_diff</code>, <code>table_consistency</code>.</li>
+                    <li><strong>Pearson (1900)</strong> "On the criterion that a given system of deviations…" — <em>Philosophical Magazine</em>. Estadístico χ² en <code>benford_law</code>, <code>check_distribution_chi2</code>.</li>
+                  </ol>
+                </details>
                 <div class="ctrl-section">
                   <h3>Parámetros globales</h3>
                   <div class="ctrl-row">
@@ -1120,13 +1137,17 @@
 
 <!-- ════ PAT MODAL ════ -->
 <div id="pat-modal">
-  <div class="modal-box" style="max-width:400px">
-    <h2>GitHub PAT requerido</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
-      Para aplicar cambios en el repositorio se necesita un Personal Access Token (Classic) con scope <code>repo</code>. Se guarda solo en sessionStorage y desaparece al cerrar el browser.
+  <div class="modal-box" style="max-width:420px">
+    <h2>Guardar configuración</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:6px">
+      Para guardar los cambios se requiere una clave de acceso al repositorio de configuración.
     </p>
+    <div class="info-box" style="margin-bottom:14px;font-size:12px">
+      <strong>¿Cómo obtengo la clave?</strong><br>
+      Solicítala al administrador del sistema. Es una cadena que empieza con <code style="font-family:var(--mono)">ghp_</code> y se usa una vez por sesión — no se almacena permanentemente.
+    </div>
     <div class="ctrl-row">
-      <label>GitHub PAT</label>
+      <label>Clave de acceso</label>
       <input type="password" id="pat-input" placeholder="ghp_…" autocomplete="off">
     </div>
     <div class="auth-err" id="pat-err"></div>

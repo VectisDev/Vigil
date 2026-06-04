@@ -584,3 +584,49 @@ body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
   font-family:var(--mono);text-transform:uppercase;vertical-align:middle;
   margin-left:8px;
 }
+
+/* ── SAVE BUTTON (shown when dirty + autosave OFF) ── */
+#btn-apply-now{
+  width:100%;padding:9px 6px;
+  background:rgba(110,168,254,.12);border:1px solid rgba(110,168,254,.45);
+  border-radius:2px;color:var(--accent);
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;
+  cursor:pointer;transition:background .15s,box-shadow .15s;
+  animation:pulse-btn 2s infinite;
+}
+#btn-apply-now:hover{background:rgba(110,168,254,.22);box-shadow:0 0 10px var(--accent-glow)}
+
+/* ── SKELETON SHIMMER (sensor cards loading) ── */
+@keyframes skel-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sc-val.skel-pulse{
+  color:transparent!important;
+  background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);
+  background-size:200% 100%;
+  animation:skel-shimmer 1.4s infinite linear;
+  border-radius:3px;min-width:48px;display:inline-block;
+  pointer-events:none;user-select:none;
+}
+.sc-detail.skel-pulse{
+  color:transparent!important;
+  background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);
+  background-size:200% 100%;
+  animation:skel-shimmer 1.4s .2s infinite linear;
+  border-radius:2px;min-width:80px;height:10px;display:inline-block;
+}
+
+/* ── ACADEMIC REFERENCE BOX (rules tab) ── */
+.rules-refs{
+  background:rgba(176,140,240,.06);border:1px solid rgba(176,140,240,.2);
+  border-radius:2px;padding:10px 14px;margin-bottom:14px;font-size:11px;
+}
+.rules-refs summary{
+  color:var(--purple);font-weight:700;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;list-style:none;
+  display:flex;align-items:center;gap:6px;
+}
+.rules-refs summary::before{content:'▶';font-size:9px;transition:transform .15s}
+.rules-refs[open] summary::before{transform:rotate(90deg)}
+.rules-refs ol{margin:10px 0 4px 16px;line-height:1.8;color:var(--muted)}
+.rules-refs ol li{margin-bottom:2px}
+.rules-refs ol li strong{color:var(--fg);font-weight:600}
+.rules-refs ol li code{font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(110,168,254,.08);padding:1px 4px;border-radius:2px}
