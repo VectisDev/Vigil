@@ -346,6 +346,21 @@ That principle — **friction proportional to consequence** — is what guided e
 
 ---
 
+## Metricas de impacto / Impact Metrics
+
+| Metrica | Antes | Despues |
+|---------|-------|---------|
+| Clics para iniciar monitoreo desde sidebar | no existia — habia que scrollear al panel | 1 clic (▶ INICIAR visible siempre) |
+| Cambios perdidos por olvido de "Aplicar" | posible en cualquier sesion | imposible — se aplican solos en 1.5s |
+| Estado del sistema confiable (badge bug) | ALERTA falso permanente posible | corregido — solo 4 badges de estado reales |
+| Controles avanzados de scraping accesibles | 0 (ocultos sin ruta clara) | 6 controles visibles tras unlock explicito |
+| Tiempo de configuracion hasta primer commit | manual (boton + confirmacion) | 1.5s despues del ultimo cambio |
+| Anclaje Bitcoin ubicable sin conocimiento previo | enterrado en Presets | seccion propia s9 en sidebar |
+| País en mission bar correcto al cargar | desincronizado (bug de init) | correcto desde el primer frame |
+| Desbloqueo de limites sin friccion tecnica | requeria PAT de GitHub | 1 clic + confirmacion legal |
+
+---
+
 _Hito alcanzado / Milestone reached: 04-jun-2026_  
 _Archivo modificado / File modified: `web/ops/index.html` (unico archivo de todo el ciclo)_  
 _PRs mergeados / Merged PRs: 13 (#699-#711)_  
