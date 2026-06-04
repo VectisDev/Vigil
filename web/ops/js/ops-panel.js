@@ -70,27 +70,14 @@ function markDirty(){
 
 async function autoApply(){
   if(!isDirty || _writeInProgress) return;
-  _writeInProgress = true;
-  const applyBtn = document.getElementById('btn-apply-now');
-  if(applyBtn) applyBtn.disabled = true;
-  try {
-    const newEp  = buildNewEndpointsYaml();
-    const newWd  = buildNewWatchdogYaml();
-    const newRl  = buildNewRateLimiterYaml();
-    const newCfg = buildNewConfigYaml();
-    const changes = buildDiff(newEp, newWd, newRl, newCfg);
-    if(!changes.length){ isDirty=false; updateDirtyState(); return; }
-    let pat = sessionStorage.getItem('gh-pat');
-    if(!pat){
-      const acquired = await requestPat();
-      if(!acquired) return;
-      pat = sessionStorage.getItem('gh-pat');
-    }
-    await writeChanges(changes, {newEp, newWd, newRl, newCfg}, pat);
-  } finally {
-    _writeInProgress = false;
-    if(applyBtn) applyBtn.disabled = false;
-  }
+  const newEp  = buildNewEndpointsYaml();
+  const newWd  = buildNewWatchdogYaml();
+  const newRl  = buildNewRateLimiterYaml();
+  const newCfg = buildNewConfigYaml();
+  const changes = buildDiff(newEp, newWd, newRl, newCfg);
+  if(!changes.length){ isDirty=false; updateDirtyState(); return; }
+  // Show diff for confirmation — PAT only requested after user confirms
+  showDiffModal(changes, {newEp, newWd, newRl, newCfg});
 }
 
 window.addEventListener('beforeunload', e => {
@@ -470,17 +457,25 @@ function diffLines(a, b){
 function closeDiffModal(){ document.getElementById('diff-modal').classList.remove('open'); }
 
 async function confirmApply(){
+  if(_writeInProgress) return;
+  _writeInProgress = true;
+  const applyBtn = document.getElementById('btn-apply-now');
+  if(applyBtn) applyBtn.disabled = true;
   closeDiffModal();
   const changes   = document.getElementById('diff-modal')._changes;
   const newYamls  = document.getElementById('diff-modal')._newYamls;
-  // Get PAT
-  let pat = sessionStorage.getItem('gh-pat');
-  if(!pat){
-    const acquired = await requestPat();
-    if(!acquired) return;
-    pat = sessionStorage.getItem('gh-pat');
+  try {
+    let pat = sessionStorage.getItem('gh-pat');
+    if(!pat){
+      const acquired = await requestPat();
+      if(!acquired) return;
+      pat = sessionStorage.getItem('gh-pat');
+    }
+    await writeChanges(changes, newYamls, pat);
+  } finally {
+    _writeInProgress = false;
+    if(applyBtn) applyBtn.disabled = false;
   }
-  await writeChanges(changes, newYamls, pat);
 }
 
 function requestPat(){
@@ -569,6 +564,7 @@ async function reloadShaAndReapply(){
 }
 
 function discardEdits(){
+  if(!confirm('¿Descartar todos los cambios locales? Se perderán las ediciones no guardadas.')) return;
   document.getElementById('banner-409').classList.remove('show');
   loadConfig();
 }
