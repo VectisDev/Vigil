@@ -298,10 +298,12 @@ function updateUnlockUI(){
 }
 
 function enforceCurrentCeilings(){
-  const rph = parseFloat(document.getElementById('sl-rph')?.value||240);
+  const rph      = parseFloat(document.getElementById('sl-rph')?.value||240);
   const interval = parseFloat(document.getElementById('sl-interval')?.value||10);
-  if(rph > HARD_CEILING.maxRph) syncSlider('rph', HARD_CEILING.maxRph);
+  const capacity = parseFloat(document.getElementById('sl-capacity')?.value||3);
+  if(rph > HARD_CEILING.maxRph)           syncSlider('rph', HARD_CEILING.maxRph);
   if(interval < HARD_CEILING.minInterval) syncSlider('interval', HARD_CEILING.minInterval);
+  if(capacity > HARD_CEILING.maxBurst)    syncSlider('capacity', HARD_CEILING.maxBurst);
 }
 
 // ══════════════════════════════════════════════════════════
