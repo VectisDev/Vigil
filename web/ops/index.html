@@ -1494,13 +1494,29 @@ async function doAdminLogin(prefillKey) {
     }
     const rawSeeds = ac.seeds || {};
     let matchedRole = 'operador';
+    let matchedId   = null;
+    let matchedPat  = null;
+    let matchedSlot = null;
     const matched = Array.isArray(rawSeeds)
-      ? rawSeeds.some(h => {
-          if(typeof h === 'string') return h === candidate;
-          if(h.hash === candidate){ matchedRole = h.role || 'operador'; return true; }
+      ? rawSeeds.some((h, idx) => {
+          const label = 'S' + String(idx + 1).padStart(2, '0');
+          if(typeof h === 'string'){
+            if(h === candidate){ matchedId = label; matchedSlot = idx + 1; return true; }
+            return false;
+          }
+          if(h.hash === candidate){
+            matchedRole = h.role || 'operador';
+            matchedId   = h.id   || label;
+            matchedPat  = h.pat  || null;
+            matchedSlot = h.slot || idx + 1;
+            return true;
+          }
           return false;
         })
-      : Object.values(rawSeeds).some(h => h === candidate);
+      : Object.entries(rawSeeds).some(([k, h]) => {
+          if(h === candidate){ matchedId = k; return true; }
+          return false;
+        });
     if (!matched) {
       err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
       btn.disabled = false; btn.textContent = 'Entrar'; return;
@@ -1508,7 +1524,13 @@ async function doAdminLogin(prefillKey) {
     sessionStorage.setItem('centinel_admin_tok', 'operador');
     sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
     sessionStorage.setItem('centinel_role', matchedRole);
-    currentUser = {seed: 'operador', role: matchedRole};
+    sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
+    // Try encrypted PAT first (writer_pat block), then fall back to plain h.pat
+    if(!matchedPat && ac.writer_pat && matchedSlot !== null){
+      matchedPat = await decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
+    }
+    if(matchedPat) sessionStorage.setItem('gh-pat', matchedPat);
+    currentUser = {seed: matchedId || 'S??', role: matchedRole};
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
   } catch(e) {
@@ -1522,21 +1544,59 @@ function doLogout(){
   sessionStorage.removeItem('centinel_admin_tok');
   sessionStorage.removeItem('centinel_admin_exp');
   sessionStorage.removeItem('centinel_role');
+  sessionStorage.removeItem('centinel_seed_id');
+  sessionStorage.removeItem('gh-pat');
   location.reload();
 }
 
 function getCurrentRole(){ return sessionStorage.getItem('centinel_role') || 'operador'; }
+function getCurrentSeedId(){ return sessionStorage.getItem('centinel_seed_id') || 'S??'; }
+
+// ── Encrypted PAT helpers (AES-256-GCM + HKDF key wrapping) ─────────────────
+function _b64e(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))); }
+function _b64d(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
+function _hexToBytes(hex){ return new Uint8Array(hex.match(/.{2}/g).map(b=>parseInt(b,16))); }
+
+async function _deriveWrapKey(seedHash){
+  const km = await crypto.subtle.importKey('raw', _hexToBytes(seedHash), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'HKDF', hash:'SHA-256',
+     salt: new TextEncoder().encode('centinel-wrap-v1'),
+     info: new TextEncoder().encode('writer-pat')},
+    km, {name:'AES-GCM', length:256}, false, ['decrypt']
+  );
+}
+
+async function _aesgcmDecrypt(cipherObj, key){
+  const pt = await crypto.subtle.decrypt(
+    {name:'AES-GCM', iv: _b64d(cipherObj.iv)}, key, _b64d(cipherObj.enc));
+  return new TextDecoder().decode(pt);
+}
+
+async function decryptWriterPat(candidateHash, slot, cfg){
+  try {
+    const wrap = cfg.wraps.find(w => w.slot === slot);
+    if(!wrap) return null;
+    const wrapKey      = await _deriveWrapKey(candidateHash);
+    const masterKeyB64 = await _aesgcmDecrypt({enc:wrap.enc, iv:wrap.iv}, wrapKey);
+    const masterKey    = await crypto.subtle.importKey(
+      'raw', _b64d(masterKeyB64), {name:'AES-GCM',length:256}, false, ['decrypt']);
+    return await _aesgcmDecrypt({enc:cfg.enc, iv:cfg.iv}, masterKey);
+  } catch(_) { return null; }
+}
 
 function applyRoleUI(){
-  const role = getCurrentRole();
+  const role   = getCurrentRole();
+  const seedId = getCurrentSeedId();
   document.body.setAttribute('data-role', role);
   const badge = document.getElementById('hdr-role');
   if(!badge) return;
   if(role === 'observer'){
-    badge.textContent = 'SOLO LECTURA';
+    badge.textContent = `SOLO LECTURA · ${seedId}`;
     badge.style.display = 'inline-block';
   } else {
-    badge.style.display = 'none';
+    badge.textContent = seedId;
+    badge.style.display = 'inline-block';
   }
 }
 

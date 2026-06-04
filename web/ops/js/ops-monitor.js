@@ -126,6 +126,7 @@ function exportCustodyReport(){
 
   // ── Session metadata ──
   const role    = (typeof getCurrentRole === 'function') ? getCurrentRole() : (sessionStorage.getItem('centinel_role')||'operador');
+  const seedId  = (typeof getCurrentSeedId === 'function') ? getCurrentSeedId() : (sessionStorage.getItem('centinel_seed_id')||'S??');
   const slog    = (typeof _getSessionLog === 'function') ? _getSessionLog() : [];
   const logStart = slog.length ? slog[0].ts : ts;
 
@@ -190,7 +191,7 @@ tr:nth-child(even) td{background:#fafafa}
 </style></head><body>
 <div class="header">
   <h1>CENTINEL — Cadena de Custodia Electoral</h1>
-  <div class="meta">Generado: ${esc(ts)} &nbsp;·&nbsp; Repo: ${esc(REPO_OWNER)}/${esc(REPO_NAME)} &nbsp;·&nbsp; Operador: ${esc(role.toUpperCase())}</div>
+  <div class="meta">Generado: ${esc(ts)} &nbsp;·&nbsp; Repo: ${esc(REPO_OWNER)}/${esc(REPO_NAME)} &nbsp;·&nbsp; Clave: ${esc(seedId)} &nbsp;·&nbsp; Rol: ${esc(role.toUpperCase())}</div>
 </div>
 
 <h2>Período de monitoreo</h2>
@@ -223,7 +224,7 @@ tr:nth-child(even) td{background:#fafafa}
 <table><thead><tr><th>Timestamp</th><th>Rol</th><th>Acción</th></tr></thead><tbody>${actionRows}</tbody></table>
 
 <div class="integrity">
-  <strong>Nota de integridad:</strong> Este informe fue generado por el operador con rol <strong>${esc(role.toUpperCase())}</strong> a las ${esc(ts)}. Las marcas de tiempo OTS están ancladas en la blockchain de Bitcoin y pueden verificarse independientemente en <em>opentimestamps.org</em> sin depender de este sistema.
+  <strong>Nota de integridad:</strong> Este informe fue generado por la clave <strong>${esc(seedId)}</strong> (rol: ${esc(role)}) a las ${esc(ts)}. Las marcas de tiempo OTS están ancladas en la blockchain de Bitcoin y pueden verificarse independientemente en <em>opentimestamps.org</em> sin depender de este sistema.
 </div>
 
 <div class="footer"><span>CENTINEL — Sistema de Monitoreo Electoral · ${esc(REPO_OWNER)}/${esc(REPO_NAME)}</span><span>Generado: ${esc(ts)}</span></div>
