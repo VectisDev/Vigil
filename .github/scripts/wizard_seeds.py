@@ -13,8 +13,6 @@ import hashlib, secrets, json, os, sys, base64
 from datetime import datetime, timezone
 from pathlib import Path
 
-SALT    = "centinel-admin-salt-v1"
-ITERS   = 600_000
 COUNTRY = os.environ.get("CENTINEL_COUNTRY", "HN")
 OWNER   = os.environ.get("REPO_OWNER", "")
 REPO    = os.environ.get("REPO_NAME", "")
@@ -23,10 +21,10 @@ RUN_ID  = os.environ.get("GITHUB_RUN_ID", "")
 access_path = Path("web/access.json")
 
 # Don't regenerate if valid seeds already exist
-if access_path.exists():
+if access_path.exists() and os.environ.get("FORCE_REGENERATE") != "true":
     try:
         existing = json.loads(access_path.read_text())
-        if existing.get("seeds") and len(existing["seeds"]) == 12:
+        if existing.get("seeds") and len(existing["seeds"]) >= 12:
             print("Seeds already exist — skipping generation.")
             Path("/tmp/centinel-seeds.txt").write_text(  # nosec B108 - ephemeral GitHub Actions runner; path used to pass output between steps
                 "Seeds ya configurados en una ejecución anterior.\n"
@@ -42,19 +40,14 @@ def generate_base64_seed(entropy_bytes=18):
     b64_encoded = base64.urlsafe_b64encode(random_bytes).decode('ascii')
     return b64_encoded[:24]
 
-LABELS = list("ABCDEFGHIJKL")
-seeds = [generate_base64_seed() for _ in range(12)]
-hashes = {
-    f"S1-{LABELS[i]}": hashlib.pbkdf2_hmac("sha256", s.encode(), SALT.encode(), ITERS).hex()
-    for i, s in enumerate(seeds)
-}
+NUM_SEEDS = 12
+seeds = [generate_base64_seed() for _ in range(NUM_SEEDS)]
+hashes = [hashlib.sha256(s.encode()).hexdigest() for s in seeds]
 
 access_path.parent.mkdir(parents=True, exist_ok=True)
 access_path.write_text(json.dumps({
-    "version":      1,
-    "algo":         "PBKDF2-SHA256",
-    "iterations":   ITERS,
-    "salt":         SALT,
+    "version":      3,
+    "method":       "SHA-256",
     "seeds":        hashes,
     "generated_at": datetime.now(timezone.utc).isoformat(),
     "country":      COUNTRY,
@@ -66,28 +59,28 @@ run_url   = f"https://github.com/{OWNER}/{REPO}/actions/runs/{RUN_ID}"
 
 lines = [
     "=" * 62,
-    "  CENTINEL — SEEDS DE ACCESO AL PANEL OPS",
+    "  CENTINEL — CLAVES DE ACCESO AL PANEL OPS",
     "=" * 62,
     f"  País:      {COUNTRY}",
     f"  Generado:  {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
     f"  Panel OPS: {pages_url}ops/",
     "",
-    "  ⚠ CONFIDENCIAL — Guarda este archivo FUERA DE LÍNEA.",
-    "    El sistema solo almacena los hashes PBKDF2-SHA256 (600K iter).",
-    "    Si pierdes estos seeds, regenera desde el panel OPS.",
+    "  CONFIDENCIAL — Guarda este archivo FUERA DE LINEA.",
+    "    El sistema solo almacena los hashes SHA-256.",
+    "    Si pierdes estas claves, regenera desde el panel OPS.",
     "    Este archivo EXPIRA en 24 horas (artifact de GitHub Actions).",
     "",
     "-" * 62,
-    "  12 SEEDS DE ALTA ENTROPÍA:",
+    f"  {NUM_SEEDS} CLAVES DE ACCESO:",
     "-" * 62,
     "",
 ]
-for i, (label, s) in enumerate(zip([f"S1-{l}" for l in LABELS], seeds), 1):
-    lines.append(f"  {label}:  {s}")
+for i, s in enumerate(seeds, 1):
+    lines.append(f"  Clave {i:2d}:  {s}")
 lines += [
     "",
     "=" * 62,
-    f"  Panel público:     {pages_url}",
+    f"  Panel publico:     {pages_url}",
     f"  Panel OPS:         {pages_url}ops/",
     f"  Run de origen:     {run_url}",
     "=" * 62,

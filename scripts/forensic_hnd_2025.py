@@ -31,8 +31,8 @@ def main() -> None:
     print(f"Found {len(files)} snapshots in {data_dir}\n")
 
     tracker = InconsistentActsTracker(
-        config_path=Path("/tmp/forensic_hnd_key.json"),
-        runtime_config_path=Path("/tmp/forensic_hnd_config.json"),
+        config_path=Path("/tmp/forensic_hnd_key.json"),  # nosec B108
+        runtime_config_path=Path("/tmp/forensic_hnd_config.json"),  # nosec B108
         blackout_gap_minutes=30,
         max_resolution_rate=10.0,
         bulk_resolution_threshold=200,
@@ -89,7 +89,7 @@ def main() -> None:
 
     asymmetry = tracker.detect_asymmetric_benefit()
     if asymmetry:
-        print(f"\nAsymmetric benefit: {asymmetry['beneficiary']}")
+        print("\nAsymmetric benefit: [REDACTED]")
         print(f"  Swing: +{asymmetry['swing_pp']} pp, z={asymmetry['z_score']:+.3f}, p={asymmetry['z_pvalue']:.5f}")
         print(f"  Extra votes: ~{asymmetry['estimated_extra_votes']:,}")
     else:

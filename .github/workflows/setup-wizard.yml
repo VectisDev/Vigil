@@ -376,7 +376,7 @@ jobs:
                 '',
                 '**✅ Cuando lo actives, el panel se desplegará automáticamente** en cada actualización de datos.',
                 '',
-                '> Para personalizar credenciales (Supabase) o dominio propio: [docs/PAGES-GUIDE.md](https://github.com/' + owner + '/' + repo + '/blob/main/docs/PAGES-GUIDE.md)',
+                '> Para personalizar dominio propio o configuración avanzada: [docs/PAGES-GUIDE.md](https://github.com/' + owner + '/' + repo + '/blob/main/docs/PAGES-GUIDE.md)',
               ].join('\n')
             });
 
@@ -453,7 +453,7 @@ PYEOF
           git config user.name "centinel-bot"
           git config user.email "bot@centinel.app"
           git add web/access.json
-          git diff --cached --quiet || git commit -m "security: generate seeds hashes (PBKDF2-SHA256 x600K)"
+          git diff --cached --quiet || git commit -m "security: generate seeds hashes (SHA-256)"
 
       - name: Upload seeds artifact (expires 24h — download immediately)
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'

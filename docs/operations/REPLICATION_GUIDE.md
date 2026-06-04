@@ -21,7 +21,7 @@ proceso diferente al presidencial hondureño).
 - Python 3.11+
 - Git
 - Acceso a internet (para captura de datos del CNE local)
-- Supabase account (gratuito) o base de datos PostgreSQL alternativa
+- Base de datos SQLite (incluida) o PostgreSQL alternativa
 - GitHub Pages o servidor web para el panel (opcional)
 
 **Operativos:**
@@ -200,7 +200,7 @@ Antes del proceso electoral:
 - [ ] `config/prod/endpoints.yaml` actualizado con las URLs correctas
 - [ ] Parser/adapter verificado contra datos de prueba del organismo
 - [ ] Variables de entorno configuradas en el servidor de producción
-- [ ] Supabase configurado con las tablas correctas
+- [ ] Base de datos configurada con las tablas correctas
 - [ ] Panel público deployado y accesible
 - [ ] Verificador offline probado localmente
 - [ ] `DEPT_CODE_FROM_NAME` en panel actualizado
@@ -273,7 +273,7 @@ LOG_LEVEL=INFO
 - [ ] `config/prod/endpoints.yaml` updated with correct URLs
 - [ ] Parser/adapter verified against sample data from the authority
 - [ ] Environment variables configured on production server
-- [ ] Supabase configured with correct tables
+- [ ] Database configured with correct tables
 - [ ] Public panel deployed and accessible
 - [ ] Offline verifier tested locally
 - [ ] `DEPT_CODE_FROM_NAME` in panel updated for new country
