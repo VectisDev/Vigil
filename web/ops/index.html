@@ -1494,13 +1494,27 @@ async function doAdminLogin(prefillKey) {
     }
     const rawSeeds = ac.seeds || {};
     let matchedRole = 'operador';
+    let matchedId   = null;
+    let matchedPat  = null;
     const matched = Array.isArray(rawSeeds)
-      ? rawSeeds.some(h => {
-          if(typeof h === 'string') return h === candidate;
-          if(h.hash === candidate){ matchedRole = h.role || 'operador'; return true; }
+      ? rawSeeds.some((h, idx) => {
+          const label = 'S' + String(idx + 1).padStart(2, '0');
+          if(typeof h === 'string'){
+            if(h === candidate){ matchedId = label; return true; }
+            return false;
+          }
+          if(h.hash === candidate){
+            matchedRole = h.role || 'operador';
+            matchedId   = h.id   || label;
+            matchedPat  = h.pat  || null;
+            return true;
+          }
           return false;
         })
-      : Object.values(rawSeeds).some(h => h === candidate);
+      : Object.entries(rawSeeds).some(([k, h]) => {
+          if(h === candidate){ matchedId = k; return true; }
+          return false;
+        });
     if (!matched) {
       err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
       btn.disabled = false; btn.textContent = 'Entrar'; return;
@@ -1508,7 +1522,9 @@ async function doAdminLogin(prefillKey) {
     sessionStorage.setItem('centinel_admin_tok', 'operador');
     sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
     sessionStorage.setItem('centinel_role', matchedRole);
-    currentUser = {seed: 'operador', role: matchedRole};
+    sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
+    if(matchedPat) sessionStorage.setItem('gh-pat', matchedPat);
+    currentUser = {seed: matchedId || 'S??', role: matchedRole};
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
   } catch(e) {
@@ -1522,21 +1538,26 @@ function doLogout(){
   sessionStorage.removeItem('centinel_admin_tok');
   sessionStorage.removeItem('centinel_admin_exp');
   sessionStorage.removeItem('centinel_role');
+  sessionStorage.removeItem('centinel_seed_id');
+  sessionStorage.removeItem('gh-pat');
   location.reload();
 }
 
 function getCurrentRole(){ return sessionStorage.getItem('centinel_role') || 'operador'; }
+function getCurrentSeedId(){ return sessionStorage.getItem('centinel_seed_id') || 'S??'; }
 
 function applyRoleUI(){
-  const role = getCurrentRole();
+  const role   = getCurrentRole();
+  const seedId = getCurrentSeedId();
   document.body.setAttribute('data-role', role);
   const badge = document.getElementById('hdr-role');
   if(!badge) return;
   if(role === 'observer'){
-    badge.textContent = 'SOLO LECTURA';
+    badge.textContent = `SOLO LECTURA · ${seedId}`;
     badge.style.display = 'inline-block';
   } else {
-    badge.style.display = 'none';
+    badge.textContent = seedId;
+    badge.style.display = 'inline-block';
   }
 }
 
