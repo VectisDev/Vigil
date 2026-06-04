@@ -513,10 +513,6 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
-          <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em" data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic. Ej: mi-centinel-2029">Alertas push (ntfy) ⓘ</label>
-            <input type="text" id="inp-ntfy" placeholder="mi-centinel-2029" oninput="markDirty();syncText('ntfy',this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
-          </div>
         </div>
         <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
           ⚠ El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.
@@ -551,7 +547,7 @@ details .details-body{padding:12px 0 4px}
           <span><span class="dot" style="background:#3a3f49"></span> Sin configurar</span>
         </div>
         <div class="status-row" style="margin-top:16px">
-          <span class="badge" id="badge-animal">ANIMAL MODE</span>
+          <span class="badge" id="badge-animal">DEFENSES</span>
           <span class="badge" id="badge-safemode">SAFE MODE</span>
           <span class="badge" id="badge-circuit">CIRCUIT BREAKER</span>
           <span class="badge" id="badge-election">ELECTION MODE</span>
@@ -593,16 +589,17 @@ details .details-body{padding:12px 0 4px}
           Solo <strong>"Aplicar cambios"</strong> escribe a GitHub y requiere PAT.
         </div>
         <div class="unlock-bar" id="unlock-bar">
-          <div class="ub-icon">&#x1f512;</div>
+          <div class="ub-icon" id="unlock-bar-icon">&#x1f512;</div>
           <div class="ub-text">
-            <strong>L&iacute;mites de seguridad activos</strong> &mdash; los controles no pueden exceder
+            <strong id="unlock-bar-title">L&iacute;mites de seguridad activos</strong> &mdash; los controles no pueden exceder
             480 req/h, intervalo m&iacute;nimo 1s, burst m&aacute;ximo 8.
             Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.
           </div>
-          <label class="toggle" style="flex-shrink:0;cursor:pointer" title="Desbloquear/bloquear límites">
-            <input type="checkbox" id="tog-unlock" onchange="requestUnlock(this.checked)">
-            <span class="toggle-slider"></span>
-          </label>
+          <button id="btn-unlock-toggle" onclick="requestUnlock(!ceilingUnlocked)"
+            style="flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bad);background:rgba(223,107,134,.12);color:var(--bad);transition:.15s"
+            title="Requiere doble verificación">
+            &#x26a0; Desbloquear límites
+          </button>
         </div>
         <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
@@ -790,10 +787,6 @@ details .details-body{padding:12px 0 4px}
               <div id="t-alerts" class="tab-pane">
                 <div class="ctrl-section">
                   <h3>Notificaciones</h3>
-                  <div class="ctrl-row">
-                    <label>Topic ntfy <span data-tip="Canal de alertas push. Instala la app ntfy y suscríbete a este topic.">ⓘ</span></label>
-                    <input type="text" id="inp-ntfy2" placeholder="mi-centinel-2029" oninput="syncText('ntfy',this.value)">
-                  </div>
                   <div class="ctrl-row">
                     <label>Nivel mínimo de alerta</label>
                     <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
@@ -1009,7 +1002,7 @@ details .details-body{padding:12px 0 4px}
             <div class="ctrl-section">
               <h3>Configuración avanzada</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                Los parámetros de operación se configuran desde la sección <strong>3 Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro. El topic ntfy para alertas push está disponible directamente en el panel de control (sección 1).<br><br>
+                Los parámetros de operación se configuran desde la sección <strong>3 Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
                 Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.
               </p>
               <h3>El mapa de endpoints</h3>
@@ -1801,7 +1794,7 @@ function populateControls(){
   const zscore   = 3.0;
   const safe     = ep?.healing?.safe_mode_active ?? false;
   const mainUrl  = ep?.cne?.main_url ?? '';
-  const ntfy     = '';
+
 
   syncSlider('interval', interval);
   syncSlider('rph', rph);
@@ -2104,7 +2097,7 @@ function updateStatusBadges(){
   if(bAnimal){
     const cls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
     bAnimal.className = `badge badge-${cls}`;
-    bAnimal.textContent = `ANIMAL: ${animal.toUpperCase()}`;
+    bAnimal.textContent = `DEFENSES: ${animal.toUpperCase()}`;
   }
   const bSafe = document.getElementById('badge-safemode');
   if(bSafe){
@@ -2257,7 +2250,7 @@ function syncSlider(key, val){
 
 function syncText(key, val){
   const ids = {
-    ntfy:['inp-ntfy','inp-ntfy2'],
+
     mainurl:['inp-main-url-easy','inp-main-url'],
   };
   (ids[key]||[]).forEach(id=>{
@@ -2384,15 +2377,13 @@ function getCurrentCfg(){
 // CEILING UNLOCK
 // ══════════════════════════════════════════════════════════
 
-function requestUnlock(checked){
-  if(!checked){
+function requestUnlock(wantsUnlock){
+  if(!wantsUnlock){
     ceilingUnlocked = false;
     updateUnlockUI();
     enforceCurrentCeilings();
     return;
   }
-  // Revert toggle immediately — only mark checked after successful commit
-  document.getElementById('tog-unlock').checked = false;
   const now = new Date().toISOString();
   const text = UNLOCK_LEGAL_TEXT
     .replace('{{TIMESTAMP}}', now)
@@ -2483,7 +2474,7 @@ async function executeUnlock(){
 
 function updateUnlockUI(){
   const bar = document.getElementById('unlock-bar');
-  const tog = document.getElementById('tog-unlock');
+  const btn = document.getElementById('btn-unlock-toggle');
   const rphSliders = ['sl-rph','sl-rph2'];
   const intSliders = ['sl-interval','sl-interval2'];
   if(ceilingUnlocked){
@@ -2492,7 +2483,7 @@ function updateUnlockUI(){
     bar.querySelector('.ub-text').innerHTML =
       '<strong>Límites desbloqueados para esta sesión</strong> — los controles pueden exceder '+
       'los límites de seguridad. La firma de responsabilidad ha sido registrada en Git.';
-    if(tog) tog.checked = true;
+    if(btn){ btn.textContent='🔒 Volver a bloquear'; btn.style.borderColor='var(--ok)'; btn.style.background='rgba(87,192,141,.12)'; btn.style.color='var(--ok)'; }
     rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
     intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=0.5; });
   } else {
@@ -2502,7 +2493,7 @@ function updateUnlockUI(){
       '<strong>Límites de seguridad activos</strong> — los controles no pueden exceder '+
       '480 req/h, intervalo mínimo 1s, burst máximo 8. '+
       'Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.';
-    if(tog) tog.checked = false;
+    if(btn){ btn.textContent='⚠ Desbloquear límites'; btn.style.borderColor='var(--bad)'; btn.style.background='rgba(223,107,134,.12)'; btn.style.color='var(--bad)'; }
     rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
     intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
   }
