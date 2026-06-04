@@ -782,7 +782,7 @@ details .details-body{padding:12px 0 4px}
               </h3>
               <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-                  <span id="ots-status-badge" class="badge badge-neutral">CARGANDO…</span>
+                  <span id="ots-status-badge" class="badge badge-neutral">—</span>
                   <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
                 </div>
                 <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
@@ -1261,9 +1261,12 @@ details .details-body{padding:12px 0 4px}
         <!-- Estado + Control -->
         <div class="ctrl-section">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-            <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span id="swarm-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--muted)"></span>
-              <span id="swarm-label" style="font-size:16px;font-weight:700;color:var(--muted)">DESCONECTADO</span>
+              <div>
+                <span id="swarm-label" style="font-size:16px;font-weight:700;color:var(--muted)">DESCONECTADO</span>
+                <div id="swarm-hint" style="font-size:10px;color:var(--muted);margin-top:2px;opacity:.7">Red P2P de observadores — independiente del monitoreo. Conéctate antes o después de iniciar.</div>
+              </div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
               <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()" style="padding:10px 24px;font-size:13px">
@@ -3113,10 +3116,17 @@ async function loadOtsStatus(){
   const chainLen = snapshotData?.chain?.chain_length || '?';
   const badge    = document.getElementById('ots-status-badge');
   if(badge){
-    const cls    = {confirmed:'ok', pending:'warn', error:'bad'}[ots] || 'neutral';
-    const labels = {confirmed:'CONFIRMADO', pending:'PENDIENTE', error:'ERROR'};
-    badge.className = 'badge badge-' + cls;
-    badge.textContent = labels[ots] || 'DESCONOCIDO';
+    // Show — when pipeline has no chain data yet (no anchors attempted)
+    const hasChain = !!(snapshotData?.chain?.chain_length > 0 || snapshotData?.chain?.last_anchor);
+    if(!hasChain || ots === 'unknown'){
+      badge.className = 'badge badge-neutral';
+      badge.textContent = '—';
+    } else {
+      const cls    = {confirmed:'ok', pending:'warn', error:'bad'}[ots] || 'neutral';
+      const labels = {confirmed:'CONFIRMADO', pending:'PENDIENTE', error:'ERROR'};
+      badge.className = 'badge badge-' + cls;
+      badge.textContent = labels[ots] || '—';
+    }
   }
   const lastEl = document.getElementById('ots-last-anchor');
   if(lastEl) lastEl.textContent = 'Último ancla: ' + (last ? relTime(last) : '—');
@@ -3603,9 +3613,28 @@ function _startUptimeClock() {
 
 function _stopUptimeClock() {
   if (_uptimeTimer) { clearInterval(_uptimeTimer); _uptimeTimer = null; }
+  // Save last duration before clearing, so the operator can see how long it ran
+  const start = parseInt(localStorage.getItem('centinel_pipeline_start') || '0');
+  if (start) {
+    const diff = Math.floor((Date.now() - start) / 1000);
+    localStorage.setItem('centinel_pipeline_last_uptime', diff.toString());
+  }
   localStorage.removeItem('centinel_pipeline_start');
   const el = document.getElementById('ms-uptime');
-  if (el) el.textContent = '—';
+  if (el) {
+    const last = parseInt(localStorage.getItem('centinel_pipeline_last_uptime') || '0');
+    if (last > 0) {
+      const d = Math.floor(last / 86400), h = Math.floor((last % 86400) / 3600),
+            m = Math.floor((last % 3600) / 60);
+      let s = '';
+      if (d > 0) s += d + 'd ';
+      if (d > 0 || h > 0) s += h + 'h ';
+      s += m + 'm';
+      el.textContent = 'Último: ' + s.trim();
+    } else {
+      el.textContent = '—';
+    }
+  }
 }
 
 function _tickUptime() {
@@ -4124,19 +4153,23 @@ function _renderSwarmStatus(s) {
   const tbody = document.getElementById('swarm-peers-tbody');
   const banner = document.getElementById('swarm-consensus-banner');
 
+  const hint = document.getElementById('swarm-hint');
   if (s.running && s.connected_peers > 0) {
     dot.style.background = 'var(--ok)';
     label.style.color = 'var(--ok)';
     label.textContent = `EN RED  ·  ${s.connected_peers} nodo${s.connected_peers!==1?'s':''} activo${s.connected_peers!==1?'s':''}`;
+    if (hint) hint.style.display = 'none';
     _stopSwarmPoll();
   } else if (s.running) {
     dot.style.background = 'var(--warn)';
     label.style.color = 'var(--warn)';
     label.textContent = 'CONECTANDO…';
+    if (hint) hint.style.display = 'none';
   } else {
     dot.style.background = 'var(--muted)';
     label.style.color = 'var(--muted)';
     label.textContent = 'DESCONECTADO';
+    if (hint) hint.style.display = '';
   }
 
   meta.style.display = s.node_id && s.node_id !== 'unknown' ? '' : 'none';
