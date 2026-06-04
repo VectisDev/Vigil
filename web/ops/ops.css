@@ -535,6 +535,26 @@ details .details-body{padding:12px 0 4px}
   cursor:pointer;transition:background .15s,box-shadow .15s}
 #btn-sidebar-emg:hover{background:rgba(223,107,134,.18);box-shadow:0 0 12px var(--bad-glow)}
 
+/* ── ROLE BADGE ── */
+#hdr-role{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:2px 8px;border-radius:2px;display:none;
+  background:rgba(212,176,102,.12);color:var(--warn);border:1px solid rgba(212,176,102,.4)}
+
+/* ── OBSERVER (READ-ONLY) MODE ── */
+body[data-role="observer"] #sidebar-ops-zone,
+body[data-role="observer"] #sidebar-emergency-zone,
+body[data-role="observer"] #btn-adv-config,
+body[data-role="observer"] #btn-unlock-toggle,
+body[data-role="observer"] #btn-discover,
+body[data-role="observer"] #btn-change-country,
+body[data-role="observer"] .hdr-btn.primary,
+body[data-role="observer"] #preset-name,
+body[data-role="observer"] .hdr-btn:not(#btn-logout):not([onclick*="reloadConfig"]) { display:none!important }
+body[data-role="observer"] input:not([type=checkbox]):not([type=range]),
+body[data-role="observer"] select,
+body[data-role="observer"] input[type=range],
+body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
+
 /* ── ADVANCED CONFIG TRIGGER ── */
 .adv-config-trigger{
   display:flex;align-items:center;gap:10px;width:100%;

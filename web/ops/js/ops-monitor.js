@@ -120,6 +120,122 @@ function generateIncidentReport(){
   URL.revokeObjectURL(url);
 }
 
+function exportCustodyReport(){
+  function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  const ts = new Date().toISOString();
+
+  // ── Session metadata ──
+  const role    = (typeof getCurrentRole === 'function') ? getCurrentRole() : (sessionStorage.getItem('centinel_role')||'operador');
+  const slog    = (typeof _getSessionLog === 'function') ? _getSessionLog() : [];
+  const logStart = slog.length ? slog[0].ts : ts;
+
+  // ── OTS data ──
+  const chain   = snapshotData?.chain || {};
+  const otsStatus = {confirmed:'CONFIRMADO',pending:'PENDIENTE',error:'ERROR',unknown:'—'}[chain.ots_status]||'—';
+  const otsColor  = {confirmed:'#1d6b3e',pending:'#8a6200',error:'#9b2335',unknown:'#555'}[chain.ots_status]||'#555';
+  const otsHash   = chain.latest_hash || '—';
+  const otsLen    = chain.chain_length ?? '—';
+  const otsLast   = chain.last_anchor ? new Date(chain.last_anchor).toISOString() : '—';
+
+  // ── Alert summary ──
+  const byLevel = {};
+  logData.forEach(e=>{ const l=(e.level||'INFO').toUpperCase(); byLevel[l]=(byLevel[l]||0)+1; });
+  const alertRows = Object.entries(byLevel).map(([l,n])=>{
+    const c={INFO:'#1a6fd4',WARNING:'#8a6200',CRITICAL:'#9b2335',PANIC:'#cc3333'}[l]||'#555';
+    return `<tr><td><span class="pill" style="background:${c}20;color:${c};border:1px solid ${c}40">${l}</span></td><td class="mono">${n}</td></tr>`;
+  }).join('') || '<tr><td colspan="2" style="color:#888">Sin alertas</td></tr>';
+
+  // ── Config commits (last 10) ──
+  const commitRows = auditData.slice(0,10).map(c=>
+    `<tr><td class="mono">${esc(c.sha.slice(0,7))}</td><td class="mono">${esc(c.commit.author.date)}</td><td>${esc(c.commit.author.name||'—')}</td><td>${esc(c.commit.message.split('\n')[0])}</td></tr>`
+  ).join('') || '<tr><td colspan="4" style="color:#888">Sin commits</td></tr>';
+
+  // ── Session actions ──
+  const actionRows = slog.map(e=>
+    `<tr><td class="mono">${esc(e.ts)}</td><td class="mono">${esc(e.role||'—')}</td><td>${esc(e.action)}${e.detail?` <span style="color:#666">— ${esc(e.detail)}</span>`:''}</td></tr>`
+  ).join('') || '<tr><td colspan="3" style="color:#888">Sin acciones registradas</td></tr>';
+
+  // ── Country info ──
+  const flag    = document.getElementById('country-current-flag')?.textContent || '';
+  const country = document.getElementById('country-current-name')?.textContent || '—';
+  const uptime  = document.getElementById('ms-uptime')?.textContent || '—';
+  const mainUrl = document.getElementById('inp-main-url')?.value ||
+                  document.getElementById('inp-main-url-easy')?.value || '—';
+
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<title>CENTINEL — Cadena de Custodia Electoral</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;color:#1a1a1a;background:#fff;padding:32px}
+h2{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#333;margin:24px 0 8px;padding-bottom:4px;border-bottom:1px solid #ddd}
+.header{margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1a1a1a}
+.header h1{font-size:18px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.header .meta{font-size:10px;color:#555;font-family:ui-monospace,monospace}
+.meta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;background:#f8f8fa;border:1px solid #e0e0e8;padding:12px 16px;margin-bottom:8px}
+.meta-row{display:flex;gap:8px;align-items:baseline}
+.meta-label{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#888;min-width:90px}
+.meta-val{font-family:ui-monospace,monospace;font-size:11px;color:#222}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+thead tr{background:#f4f4f6}
+th{padding:6px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#444;border-bottom:2px solid #ddd;white-space:nowrap}
+td{padding:5px 10px;border-bottom:1px solid #ebebeb;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.mono{font-family:ui-monospace,monospace;font-size:10px;color:#333}
+.pill{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.04em}
+.ots-card{background:#f0f7f4;border:1px solid #b6d9c8;padding:12px 16px;margin-top:6px}
+.ots-status{display:inline-block;padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.06em;background:${otsColor}20;color:${otsColor};border:1px solid ${otsColor}40}
+.footer{margin-top:24px;padding-top:10px;border-top:1px solid #ddd;font-size:9px;color:#888;display:flex;justify-content:space-between}
+.integrity{background:#fffbea;border:1px solid #d4b066;padding:8px 12px;font-size:10px;margin-top:20px;line-height:1.6}
+@media print{body{padding:16px}@page{margin:18mm}h2{page-break-after:avoid}}
+</style></head><body>
+<div class="header">
+  <h1>CENTINEL — Cadena de Custodia Electoral</h1>
+  <div class="meta">Generado: ${esc(ts)} &nbsp;·&nbsp; Repo: ${esc(REPO_OWNER)}/${esc(REPO_NAME)} &nbsp;·&nbsp; Operador: ${esc(role.toUpperCase())}</div>
+</div>
+
+<h2>Período de monitoreo</h2>
+<div class="meta-grid">
+  <div class="meta-row"><span class="meta-label">País</span><span class="meta-val">${esc(flag)} ${esc(country)}</span></div>
+  <div class="meta-row"><span class="meta-label">URL monitoreada</span><span class="meta-val">${esc(mainUrl)}</span></div>
+  <div class="meta-row"><span class="meta-label">Tiempo activo</span><span class="meta-val">${esc(uptime)}</span></div>
+  <div class="meta-row"><span class="meta-label">Inicio de sesión</span><span class="meta-val">${esc(logStart)}</span></div>
+  <div class="meta-row"><span class="meta-label">Alertas totales</span><span class="meta-val">${logData.length}</span></div>
+  <div class="meta-row"><span class="meta-label">Eventos de ataque</span><span class="meta-val">${attackData.length}</span></div>
+</div>
+
+<h2>Sello de integridad (OpenTimestamps)</h2>
+<div class="ots-card">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+    <span class="ots-status">${esc(otsStatus)}</span>
+    <span style="font-size:10px;color:#555">Último ancla: <span class="mono">${esc(otsLast)}</span></span>
+  </div>
+  <div class="meta-row" style="margin-bottom:4px"><span class="meta-label">Hash (últimos 12)</span><span class="meta-val">${esc(otsHash.slice(-12)||'—')}</span></div>
+  <div class="meta-row"><span class="meta-label">Bloques en cadena</span><span class="meta-val">${esc(String(otsLen))}</span></div>
+</div>
+
+<h2>Resumen de alertas</h2>
+<table><thead><tr><th>Nivel</th><th>Cantidad</th></tr></thead><tbody>${alertRows}</tbody></table>
+
+<h2>Commits de configuración (últimos 10)</h2>
+<table><thead><tr><th>Commit</th><th>Timestamp</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody>${commitRows}</tbody></table>
+
+<h2>Registro de acciones de sesión</h2>
+<table><thead><tr><th>Timestamp</th><th>Rol</th><th>Acción</th></tr></thead><tbody>${actionRows}</tbody></table>
+
+<div class="integrity">
+  <strong>Nota de integridad:</strong> Este informe fue generado por el operador con rol <strong>${esc(role.toUpperCase())}</strong> a las ${esc(ts)}. Las marcas de tiempo OTS están ancladas en la blockchain de Bitcoin y pueden verificarse independientemente en <em>opentimestamps.org</em> sin depender de este sistema.
+</div>
+
+<div class="footer"><span>CENTINEL — Sistema de Monitoreo Electoral · ${esc(REPO_OWNER)}/${esc(REPO_NAME)}</span><span>Generado: ${esc(ts)}</span></div>
+<script>window.onload=()=>window.print();<\/script>
+</body></html>`;
+
+  const blob = new Blob([html],{type:'text/html;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const w    = window.open(url,'_blank');
+  if(!w) URL.revokeObjectURL(url);
+}
+
 // ══════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════
@@ -244,6 +360,7 @@ async function doIniciar() {
     try {
       await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
     } catch (_) {}
+    auditLog('monitoreo detenido');
     _setPipelineUI(false);
     return;
   }
@@ -296,6 +413,7 @@ async function doIniciar() {
     });
     if (r.ok) {
       const d = await r.json();
+      auditLog('monitoreo iniciado', ACTIVE_COUNTRY_CODE || 'HN');
       _setPipelineUI(true, d.pid);
       _startPipelinePoll();
     } else {
@@ -404,6 +522,7 @@ function emergencyStep2() {
   }, 1000);
 }
 function executeEmergency() {
+  auditLog('EMERGENCIA activada');
   closeEmergencyModal();
   loadPreset('emergency');
   markDirty();
@@ -587,6 +706,7 @@ async function doChangeCountry() {
   }
 
   if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
+  auditLog('país cambiado', `${optFlag} ${optName}`);
   _updateMissionBar();
 
   // If swarm was running, reconnect with new country so isolation takes effect immediately
