@@ -564,6 +564,16 @@ class GossipEngine:
             logger.debug("gossip_recv_invalid_sig node_id=%s", payload_dict.get("node_id"))
             return False
 
+        # Hard country isolation: reject payloads from foreign election contexts.
+        if payload.country_code != self.country_code:
+            logger.debug(
+                "gossip_recv_country_mismatch node_id=%s payload_country=%s engine_country=%s",
+                payload_dict.get("node_id"),
+                payload.country_code,
+                self.country_code,
+            )
+            return False
+
         node_id = payload.node_id
         if hasattr(self, "_blocklist") and node_id in self._blocklist:
             logger.debug("gossip_recv_blocked node_id=%s", node_id)
@@ -677,6 +687,16 @@ class GossipEngine:
 
         if finding.severity not in _BROADCAST_SEVERITIES:
             logger.debug("finding_recv_low_severity severity=%s", finding.severity)
+            return False
+
+        # Hard country isolation: reject findings from foreign election contexts.
+        if finding.country_code != self.country_code:
+            logger.debug(
+                "finding_recv_country_mismatch node_id=%s payload_country=%s engine_country=%s",
+                finding.node_id,
+                finding.country_code,
+                self.country_code,
+            )
             return False
 
         # Verify signature using cached public key for this node_id
