@@ -4096,6 +4096,22 @@ async function doChangeCountry() {
 
   if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
   _updateMissionBar();
+
+  // If swarm was running, reconnect with new country so isolation takes effect immediately
+  try {
+    const sw = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status');
+    if (sw.ok) {
+      const sd = await sw.json();
+      if (sd.running) {
+        await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
+        await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/connect', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({}),
+        });
+      }
+    }
+  } catch(_) {}
 }
 
 // ── 7 Acceso y Seeds ──────────────────────────────────────────────────────
