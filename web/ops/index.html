@@ -31,8 +31,9 @@
   <div id="admin-header">
     <span class="hdr-brand">CENTINEL</span>
     <span class="hdr-user" id="hdr-user">—</span>
-    <button class="hdr-btn" onclick="reloadConfig()">↻ Recargar</button>
-    <button class="hdr-btn" onclick="doLogout()">Salir</button>
+    <span id="hdr-role"></span>
+    <button class="hdr-btn" onclick="reloadConfig()" title="Sincronizar configuración desde GitHub">↻ Sync config</button>
+    <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()">Salir</button>
   </div>
   <!-- MISSION BAR -->
   <div id="mission-bar">
@@ -150,7 +151,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
             <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip="La dirección principal del sitio de resultados electorales. Centinel descubre los datos automáticamente — no necesitas saber nada más.">Sitio de resultados <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
-            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" oninput="onEasyUrlInput(this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" oninput="onEasyUrlInput(this.value)" onblur="validateUrlField(this)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
             <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Descubrir endpoints</button>
           </div>
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
@@ -330,7 +331,7 @@
                   <h3>URL principal</h3>
                   <div class="ctrl-row">
                     <label>CNE Main URL</label>
-                    <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()">
+                    <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()" onblur="validateUrlField(this)">
                   </div>
                 </div>
                 <div class="ctrl-section" style="overflow-x:auto">
@@ -614,6 +615,13 @@
                   <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
                 </div>
               </details>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                <button class="hdr-btn" onclick="exportCustodyReport()" title="Genera un informe PDF con el registro de sesión, estado OTS, alertas y commits — para auditoría o evidencia legal">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><rect x="3" y="19" width="18" height="2" rx="1"/></svg>
+                  Exportar cadena de custodia
+                </button>
+                <span style="font-size:11px;color:var(--muted)">Incluye sesión, OTS, alertas y commits de config</span>
+              </div>
         </div>
       </div>
 
@@ -698,6 +706,25 @@
           <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th>Tiempo</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Historial de cambios en configuración.<span class="log-empty-hint">Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.</span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-audit')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
+          </div>
+        </div>
+
+        <!-- Session Action Log -->
+        <div class="terminal terminal--audit">
+          <div class="terminal-hdr">
+            <span class="term-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Acciones de sesión
+            </span>
+            <span class="section-badge" id="session-log-count" style="font-family:var(--mono)">0</span>
+            <button onclick="_renderSessionLog()" title="Refrescar">↻</button>
+            <button onclick="clearSessionLog()" title="Limpiar historial de sesión" style="color:var(--muted)">✕ Limpiar</button>
+          </div>
+          <div class="log-table-wrap">
+            <table class="log-table" id="session-log-table">
+              <thead><tr><th>Timestamp</th><th>Rol</th><th>Acción</th></tr></thead>
+              <tbody><tr class="log-empty"><td colspan="3">Sin acciones registradas.<span class="log-empty-hint">Las acciones del operador aparecerán aquí en tiempo real.</span></td></tr></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1435,8 +1462,13 @@ async function doAdminLogin(prefillKey) {
       candidate = await pbkdf2Hex(pass, ac.salt || 'centinel-admin-salt-v1', ac.iterations || 600000);
     }
     const rawSeeds = ac.seeds || {};
+    let matchedRole = 'operador';
     const matched = Array.isArray(rawSeeds)
-      ? rawSeeds.some(h => (typeof h === 'string') ? h === candidate : h.hash === candidate)
+      ? rawSeeds.some(h => {
+          if(typeof h === 'string') return h === candidate;
+          if(h.hash === candidate){ matchedRole = h.role || 'operador'; return true; }
+          return false;
+        })
       : Object.values(rawSeeds).some(h => h === candidate);
     if (!matched) {
       err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
@@ -1444,7 +1476,8 @@ async function doAdminLogin(prefillKey) {
     }
     sessionStorage.setItem('centinel_admin_tok', 'operador');
     sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
-    currentUser = {seed: 'operador'};
+    sessionStorage.setItem('centinel_role', matchedRole);
+    currentUser = {seed: 'operador', role: matchedRole};
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
   } catch(e) {
@@ -1454,9 +1487,55 @@ async function doAdminLogin(prefillKey) {
 }
 
 function doLogout(){
+  auditLog('sesión cerrada');
   sessionStorage.removeItem('centinel_admin_tok');
   sessionStorage.removeItem('centinel_admin_exp');
+  sessionStorage.removeItem('centinel_role');
   location.reload();
+}
+
+function getCurrentRole(){ return sessionStorage.getItem('centinel_role') || 'operador'; }
+
+function applyRoleUI(){
+  const role = getCurrentRole();
+  document.body.setAttribute('data-role', role);
+  const badge = document.getElementById('hdr-role');
+  if(!badge) return;
+  if(role === 'observer'){
+    badge.textContent = 'SOLO LECTURA';
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function validateUrlField(el){
+  const v = (el.value || '').trim();
+  const ok = !v || /^https?:\/\/.+\..+/.test(v);
+  el.style.borderColor = ok ? '' : 'var(--bad)';
+  el.title = ok ? '' : 'URL inválida — debe comenzar con https:// y contener un dominio válido';
+  return ok;
+}
+
+let _logoutArmed = false;
+let _logoutTimer = null;
+function confirmLogout(){
+  const btn = document.getElementById('btn-logout');
+  if(!_logoutArmed){
+    _logoutArmed = true;
+    btn.textContent = isDirty ? '⚠ Cambios sin guardar — ¿salir?' : '¿Confirmar salida?';
+    btn.style.borderColor = 'var(--bad)';
+    btn.style.color = 'var(--bad)';
+    _logoutTimer = setTimeout(()=>{
+      _logoutArmed = false;
+      btn.textContent = 'Salir';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 4000);
+  } else {
+    clearTimeout(_logoutTimer);
+    doLogout();
+  }
 }
 
 function showAdminShell(){
@@ -1464,8 +1543,10 @@ function showAdminShell(){
   const shell = document.getElementById('admin-shell');
   shell.style.display='flex';
   document.getElementById('hdr-user').textContent = 'Operador';
+  applyRoleUI();
   loadCustomPresets();
   initAll();
+  auditLog('sesión iniciada', getCurrentRole());
 }
 
 // ══════════════════════════════════════════════════════════
