@@ -411,11 +411,16 @@ function executeEmergency() {
 }
 
 async function saveElectoralUrl() {
-  const url = (document.getElementById('inp-main-url-easy')?.value || '').trim();
+  const urlEl = document.getElementById('inp-main-url-easy');
+  const url = (urlEl?.value || '').trim();
   const btn = document.getElementById('btn-discover');
   const res = document.getElementById('discover-result');
 
   if (!url) return;
+  if(urlEl && !validateUrlField(urlEl)){
+    if(res){ res.style.display=''; res.style.background='rgba(223,107,134,.08)'; res.style.border='1px solid rgba(223,107,134,.25)'; res.style.color='var(--bad)'; res.textContent='URL inválida — debe comenzar con https:// y contener un dominio válido.'; }
+    return;
+  }
 
   // Persist locally so the config saves regardless of API availability
   if (localConfig['config/prod/endpoints.yaml']?.cne) {
