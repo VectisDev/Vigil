@@ -765,6 +765,65 @@ details .details-body{padding:12px 0 4px}
             &#x26a0; Desbloquear límites
           </button>
         </div>
+        <!-- Panel de controles avanzados — visible solo con límites desbloqueados -->
+        <div id="unlocked-scraping-panel" style="display:none;margin-bottom:20px">
+          <div class="ctrl-section" style="border-color:rgba(212,176,102,.35);background:rgba(212,176,102,.04)">
+            <h3 style="color:var(--warn)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+              Controles de raspado ampliados
+              <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:6px">disponibles por desbloqueo operativo</span>
+            </h3>
+            <div class="ctrl-row">
+              <label>Intervalo de captura (min) <span data-tip="Frecuencia de escaneo. Sin límite inferior activo — valores muy bajos aumentan la carga en el servidor del CNE.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-interval3" min="0.5" max="60" step="0.5" value="10" oninput="syncSlider('interval',this.value)">
+                <span class="val-badge" id="vb-interval3">10</span>
+                <span style="font-size:11px;color:var(--muted)">min</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Requests por hora <span data-tip="Límite global de peticiones. Sin techo de 480 — el operador asume responsabilidad por impacto al servidor.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-rph3" min="60" max="1200" step="10" value="240" oninput="syncSlider('rph',this.value)">
+                <span class="val-badge" id="vb-rph3">240</span>
+                <span style="font-size:11px;color:var(--muted)">req/h</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Ráfaga (burst) <span data-tip="Requests simultáneos permitidos antes de que el token bucket frene. Valores altos pueden saturar el servidor.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-capacity2" min="1" max="30" step="1" value="3" oninput="syncSlider('capacity',this.value)">
+                <span class="val-badge" id="vb-capacity2">3</span>
+                <span style="font-size:11px;color:var(--muted)">req</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Jitter (seg) <span data-tip="Variación aleatoria en el timing de cada request. Evita patrones detectables y fingerprinting. 0 = sin jitter (timing exacto).">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-jitter" min="0" max="60" step="1" value="5" oninput="syncSlider('jitter',this.value)">
+                <span class="val-badge" id="vb-jitter">5</span>
+                <span style="font-size:11px;color:var(--muted)">seg</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Concurrencia <span data-tip="Endpoints consultados en paralelo por ciclo. Acelera la recolección pero aumenta la carga de red y en el servidor.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-concurrency" min="1" max="10" step="1" value="1" oninput="syncSlider('concurrency',this.value)">
+                <span class="val-badge" id="vb-concurrency">1</span>
+                <span style="font-size:11px;color:var(--muted)">paralelos</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-timeout2" min="5" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
+                <span class="val-badge" id="vb-timeout2">30</span>
+                <span style="font-size:11px;color:var(--muted)">seg</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
           <input type="text" id="preset-name" placeholder="Nombre del preset…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
@@ -2473,26 +2532,30 @@ async function testEndpointCode(code){
 // SLIDERS SYNC (bidirectional: easy↔full↔cards)
 // ══════════════════════════════════════════════════════════
 const SLIDER_IDS = {
-  interval:['sl-interval','sl-interval2','sc-sl-interval'],
-  rph:     ['sl-rph','sl-rph2'],
-  benford: ['sl-benford','sl-benford2','sc-sl-benford'],
-  zscore:  ['sl-zscore','sl-zscore2','sc-sl-zscore'],
-  wdcheck: ['sl-wdcheck'],
-  cpu:     ['sl-cpu','sc-sl-cpu'],
-  ram:     ['sl-ram','sc-sl-ram'],
-  capacity:['sl-capacity'],
-  timeout: ['sl-timeout'],
+  interval:   ['sl-interval','sl-interval2','sc-sl-interval','sl-interval3'],
+  rph:        ['sl-rph','sl-rph2','sl-rph3'],
+  benford:    ['sl-benford','sl-benford2','sc-sl-benford'],
+  zscore:     ['sl-zscore','sl-zscore2','sc-sl-zscore'],
+  wdcheck:    ['sl-wdcheck'],
+  cpu:        ['sl-cpu','sc-sl-cpu'],
+  ram:        ['sl-ram','sc-sl-ram'],
+  capacity:   ['sl-capacity','sl-capacity2'],
+  timeout:    ['sl-timeout','sl-timeout2'],
+  jitter:     ['sl-jitter'],
+  concurrency:['sl-concurrency'],
 };
 const BADGE_IDS = {
-  interval:['vb-interval','vb-interval2','sc-vb-interval'],
-  rph:     ['vb-rph','vb-rph2'],
-  benford: ['vb-benford','vb-benford2','sc-vb-benford'],
-  zscore:  ['vb-zscore','vb-zscore2','sc-vb-zscore'],
-  wdcheck: ['vb-wdcheck'],
-  cpu:     ['vb-cpu','sc-vb-cpu'],
-  ram:     ['vb-ram','sc-vb-ram'],
-  capacity:['vb-capacity'],
-  timeout: ['vb-timeout'],
+  interval:   ['vb-interval','vb-interval2','sc-vb-interval','vb-interval3'],
+  rph:        ['vb-rph','vb-rph2','vb-rph3'],
+  benford:    ['vb-benford','vb-benford2','sc-vb-benford'],
+  zscore:     ['vb-zscore','vb-zscore2','sc-vb-zscore'],
+  wdcheck:    ['vb-wdcheck'],
+  cpu:        ['vb-cpu','sc-vb-cpu'],
+  ram:        ['vb-ram','sc-vb-ram'],
+  capacity:   ['vb-capacity','vb-capacity2'],
+  timeout:    ['vb-timeout','vb-timeout2'],
+  jitter:     ['vb-jitter'],
+  concurrency:['vb-concurrency'],
 };
 
 function syncSlider(key, val){
@@ -2779,6 +2842,7 @@ function updateUnlockUI(){
   const btn    = document.getElementById('btn-unlock-toggle');
   const rphSliders = ['sl-rph','sl-rph2'];
   const intSliders = ['sl-interval','sl-interval2'];
+  const unlockedPanel = document.getElementById('unlocked-scraping-panel');
   if(ceilingUnlocked){
     bar.classList.add('unlocked');
     bar.querySelector('.ub-icon').textContent = '🔓';
@@ -2787,8 +2851,9 @@ function updateUnlockUI(){
       'los límites de seguridad. La firma de responsabilidad ha sido registrada en Git.';
     if(btn){ btn.textContent='🔒 Volver a bloquear'; btn.style.borderColor='var(--ok)'; btn.style.background='rgba(87,192,141,.12)'; btn.style.color='var(--ok)'; }
     if(alertBar) alertBar.classList.add('visible');
-    rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
-    intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=0.5; });
+    if(unlockedPanel) unlockedPanel.style.display = '';
+    [...rphSliders,'sl-rph3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
+    [...intSliders,'sl-interval3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.min=0.5; });
   } else {
     bar.classList.remove('unlocked');
     bar.querySelector('.ub-icon').textContent = '🔒';
@@ -2798,8 +2863,9 @@ function updateUnlockUI(){
       'Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.';
     if(btn){ btn.textContent='⚠ Desbloquear límites'; btn.style.borderColor='var(--bad)'; btn.style.background='rgba(223,107,134,.12)'; btn.style.color='var(--bad)'; }
     if(alertBar) alertBar.classList.remove('visible');
-    rphSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
-    intSliders.forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
+    if(unlockedPanel) unlockedPanel.style.display = 'none';
+    [...rphSliders,'sl-rph3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
+    [...intSliders,'sl-interval3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
   }
 }
 
@@ -2860,6 +2926,7 @@ function buildNewRateLimiterYaml(){
   base.max_requests_per_hour = bypassCeiling ? rph : Math.min(rph, HARD_CEILING.maxRph);
   base.capacity = bypassCeiling ? capacity : Math.min(capacity, HARD_CEILING.maxBurst);
   base.timeout_seconds = parseInt(document.getElementById('sl-timeout')?.value||30);
+  base.jitter_seconds  = parseInt(document.getElementById('sl-jitter')?.value||0);
 
   // Ensure hard_ceiling is always present
   if(!base.hard_ceiling) base.hard_ceiling = {};
@@ -3200,6 +3267,7 @@ function buildNewConfigYaml(){
   const server = document.getElementById('inp-ots-server')?.value.trim();
   if(server) base.opentimestamps.primary_server = server;
   else delete base.opentimestamps.primary_server;
+  base.max_concurrent_requests = parseInt(document.getElementById('sl-concurrency')?.value||1);
   return base;
 }
 
