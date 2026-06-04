@@ -432,8 +432,14 @@ function showDiffModal(changes, newYamls){
       <div class="diff-block">${diffLines(c.origYaml, c.updatedYaml)}</div>
     </div>
   `).join('');
+  // Show PAT field only if not already in session
+  const patRow = document.getElementById('diff-pat-row');
+  const patInput = document.getElementById('diff-pat-input');
+  const hasPat = !!sessionStorage.getItem('gh-pat');
+  if(patRow) patRow.style.display = hasPat ? 'none' : 'block';
+  if(patInput) patInput.value = '';
   document.getElementById('diff-modal').classList.add('open');
-  // Store for confirmApply
+  if(!hasPat && patInput) setTimeout(()=>patInput.focus(), 80);
   document.getElementById('diff-modal')._changes = changes;
   document.getElementById('diff-modal')._newYamls = newYamls;
 }
@@ -458,19 +464,27 @@ function closeDiffModal(){ document.getElementById('diff-modal').classList.remov
 
 async function confirmApply(){
   if(_writeInProgress) return;
+  // Resolve PAT — prefer session, then inline field in diff modal
+  let pat = sessionStorage.getItem('gh-pat');
+  if(!pat){
+    const inline = document.getElementById('diff-pat-input')?.value.trim();
+    if(!inline){
+      const errEl = document.getElementById('diff-pat-err');
+      if(errEl) errEl.textContent = 'Ingresa la clave de acceso.';
+      document.getElementById('diff-pat-input')?.focus();
+      return;
+    }
+    sessionStorage.setItem('gh-pat', inline);
+    pat = inline;
+    document.getElementById('diff-pat-input').value = '';
+  }
   _writeInProgress = true;
   const applyBtn = document.getElementById('btn-apply-now');
   if(applyBtn) applyBtn.disabled = true;
+  const changes  = document.getElementById('diff-modal')._changes;
+  const newYamls = document.getElementById('diff-modal')._newYamls;
   closeDiffModal();
-  const changes   = document.getElementById('diff-modal')._changes;
-  const newYamls  = document.getElementById('diff-modal')._newYamls;
   try {
-    let pat = sessionStorage.getItem('gh-pat');
-    if(!pat){
-      const acquired = await requestPat();
-      if(!acquired) return;
-      pat = sessionStorage.getItem('gh-pat');
-    }
     await writeChanges(changes, newYamls, pat);
   } finally {
     _writeInProgress = false;
