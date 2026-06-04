@@ -1011,6 +1011,7 @@ async function doSwarmConnect() {
 }
 
 async function doSwarmDisconnect() {
+  if(!confirm('¿Desconectar del enjambre? Tendrás que volver a conectar manualmente.')) return;
   const btn = document.getElementById('btn-disconnect');
   if (btn) { btn.disabled = true; btn.textContent = 'Desconectando…'; }
   _stopSwarmPoll();
