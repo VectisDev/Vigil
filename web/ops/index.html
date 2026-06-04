@@ -31,10 +31,6 @@
   <div id="admin-header">
     <span class="hdr-brand">CENTINEL</span>
     <span class="hdr-user" id="hdr-user">—</span>
-    <div class="mode-toggle">
-      <button onclick="setMode('easy')" id="btn-easy" class="active">Modo Fácil</button>
-      <button onclick="setMode('full')" id="btn-full">Modo Completo</button>
-    </div>
     <button class="hdr-btn" onclick="reloadConfig()">↻ Recargar</button>
     <button class="hdr-btn" onclick="doLogout()">Salir</button>
   </div>
@@ -313,13 +309,13 @@
           <button class="hdr-btn" onclick="saveCustomPreset()">Guardar estado actual como preset</button>
         </div>
 
-        <!-- Configuración avanzada (Full mode tabs) -->
-        <details id="advanced-config" style="margin-bottom:16px;display:none">
-          <summary style="font-size:13px;font-weight:700;color:var(--muted);padding:10px 0">Configuración avanzada</summary>
-          <div class="details-body">
-            <!-- Easy/Full mode toggle preserved for setMode() -->
-            <div id="easy-mode" style="display:none"></div>
-            <div id="full-mode">
+        <!-- Configuración avanzada -->
+        <button id="btn-adv-config" class="adv-config-trigger" onclick="toggleAdvancedConfig()">
+          <span class="adv-lock">⚙</span>
+          <span id="adv-config-label">Configuración avanzada</span>
+          <span class="adv-arrow" id="adv-config-arrow">▶</span>
+        </button>
+        <div id="advanced-config" style="display:none">
               <div class="tabs" id="cfg-tabs">
                 <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
                 <button onclick="showTab('t-capture')">Captura</button>
@@ -391,7 +387,7 @@
                   </div>
                 </div>
                 <div class="ctrl-section">
-                  <h3>Rate limiter</h3>
+                  <h3>Rate limiter <span class="ceiling-lock-badge" id="rate-lock-badge">🔒 requiere desbloqueo</span></h3>
                   <div class="ctrl-row">
                     <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
@@ -468,14 +464,14 @@
               <!-- Tab: Red -->
               <div id="t-network" class="tab-pane">
                 <div class="ctrl-section">
-                  <h3>Retry por código HTTP</h3>
+                  <h3>Retry por código HTTP <span class="ceiling-lock-badge" id="retry-lock-badge">🔒 requiere desbloqueo</span></h3>
                   <table class="data-table">
                     <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
                     <tbody>
-                      <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
-                      <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="20" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
-                      <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="20" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
-                      <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="20" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
+                      <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="5" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
+                      <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="5" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
+                      <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="5" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
+                      <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="5" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -549,10 +545,7 @@
                     </tbody></table>
                   </div>
                 </details>
-              </div>
-            </div>
-          </div>
-        </details>
+        </div>
       </div>
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
@@ -1265,7 +1258,6 @@ const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/
 const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
 let currentUser = null;
-let adminMode = 'easy'; // 'easy' | 'full'
 let isDirty = false;
 let currentConfig = {};   // loaded from GitHub raw
 let localConfig   = {};   // edited state (mirrors currentConfig, modified by controls)
