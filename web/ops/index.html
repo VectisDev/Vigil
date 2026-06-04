@@ -480,6 +480,21 @@
 
               <!-- Tab: Reglas -->
               <div id="t-rules" class="tab-pane">
+                <details class="rules-refs">
+                  <summary>📚 Base académica — metodología estadística</summary>
+                  <ol>
+                    <li><strong>Benford (1938)</strong> "The Law of Anomalous Numbers" — <em>Proc. American Philosophical Society</em>. Base de <code>benford_first_digit</code>, <code>benford_law</code>.</li>
+                    <li><strong>Beber &amp; Scacco (2012)</strong> "What the Numbers Say: A Digit-Based Test for Election Fraud" — <em>Political Analysis</em> 20(2). Base de <code>last_digit_uniformity</code>.</li>
+                    <li><strong>Klimek et al. (2012)</strong> "Statistical Detection of Systematic Election Irregularities" — <em>PNAS</em> 109(41). Base de <code>participation_vote_correlation</code>, <code>snapshot_jump</code>, <code>irreversibility</code>, <code>trend_shift</code>.</li>
+                    <li><strong>Mebane (2006)</strong> "Election Forensics: Vote Counts and Benford's Law" — <em>Summer Meeting of the Political Methodology Society</em>. Base de <code>granular_anomaly</code>, <code>participation_anomaly</code>, <code>participation_anomaly_advanced</code>.</li>
+                    <li><strong>Myagkov, Ordeshook &amp; Shakin (2009)</strong> <em>The Forensics of Election Fraud</em> — Cambridge University Press. Base de <code>geographic_dispersion</code>, <code>participation_anomaly_advanced</code>.</li>
+                    <li><strong>Wald &amp; Wolfowitz (1940)</strong> "On a Test Whether Two Samples Are from the Same Population" — <em>Annals of Mathematical Statistics</em>. Base de <code>runs_test</code>.</li>
+                    <li><strong>Liu, Ting &amp; Zhou (2008)</strong> "Isolation Forest" — <em>ICDM 2008</em>. Base de <code>ml_outliers</code>.</li>
+                    <li><strong>IIDH/CAPEL (2017)</strong> <em>Manual de Observación Electoral</em>. Marco para <code>null_blank_votes</code>, <code>turnout_impossible</code>, <code>mesa_impossibility</code>.</li>
+                    <li><strong>OSCE/ODIHR (2010)</strong> <em>Election Observation Handbook</em> (6th ed.). Marco para <code>mesa_reconciliation</code>, <code>mesas_diff</code>, <code>table_consistency</code>.</li>
+                    <li><strong>Pearson (1900)</strong> "On the criterion that a given system of deviations…" — <em>Philosophical Magazine</em>. Estadístico χ² en <code>benford_law</code>, <code>check_distribution_chi2</code>.</li>
+                  </ol>
+                </details>
                 <div class="ctrl-section">
                   <h3>Parámetros globales</h3>
                   <div class="ctrl-row">
