@@ -98,7 +98,7 @@ Add new files to `CRITICAL_FILES` in `scripts/heal_web.py`.
 
 - Feature branches from `main`, prefix `vectisdev/<slug>-<id>`
 - Push to BOTH `origin claude/<branch>` AND `origin vectisdev/<branch>` (stop hook checks against `vectisdev/` ref)
-- Create dual PRs: one → `main`, one → `dev-v15` (current dev branch)
+- Create dual PRs: one → `main`, one → `dev-v12` (current dev branch)
 - Conventional commits: `fix:`, `feat:`, `chore:`, `docs:`, `security:`
 - Include session URL at end of commit message
 
