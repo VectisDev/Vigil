@@ -3,6 +3,48 @@
 // ══════════════════════════════════════════════════════════
 let _autoApplyEnabled = localStorage.getItem('centinel-autosave') !== 'false';
 let _autoApplyTimer = null;
+let _writeInProgress = false;
+
+// ══════════════════════════════════════════════════════════
+// SESSION ACTION LOG
+// ══════════════════════════════════════════════════════════
+const _SLOG_KEY = 'centinel-session-log';
+const _SLOG_MAX = 100;
+
+function auditLog(action, detail=''){
+  try{
+    const entry = {ts:new Date().toISOString(), role:getCurrentRole(), action, detail:String(detail).slice(0,200)};
+    const log = _getSessionLog();
+    log.unshift(entry);
+    if(log.length > _SLOG_MAX) log.length = _SLOG_MAX;
+    localStorage.setItem(_SLOG_KEY, JSON.stringify(log));
+    _renderSessionLog();
+  }catch(_){}
+}
+function _getSessionLog(){ try{ return JSON.parse(localStorage.getItem(_SLOG_KEY)||'[]'); }catch(_){ return []; } }
+function clearSessionLog(){ localStorage.removeItem(_SLOG_KEY); _renderSessionLog(); }
+function _renderSessionLog(){
+  const tbody = document.querySelector('#session-log-table tbody');
+  if(!tbody) return;
+  const log = _getSessionLog();
+  const countEl = document.getElementById('session-log-count');
+  if(countEl) countEl.textContent = String(log.length);
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  if(!log.length){
+    tbody.innerHTML='<tr class="log-empty"><td colspan="3">Sin acciones registradas.<span class="log-empty-hint">Las acciones de operador aparecerán aquí en tiempo real.</span></td></tr>';
+    return;
+  }
+  const COLORS={'sesión iniciada':'var(--ok)','sesión cerrada':'var(--muted)','config aplicada':'var(--accent)',
+    'límites desbloqueados':'var(--bad)','límites restaurados':'var(--ok)','monitoreo iniciado':'var(--ok)',
+    'monitoreo detenido':'var(--warn)','EMERGENCIA activada':'var(--bad)','país cambiado':'var(--accent)','preset cargado':'var(--accent)'};
+  tbody.innerHTML = log.map(e=>{
+    const d = new Date(e.ts);
+    const time = d.toLocaleString('es',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+    const color = COLORS[e.action]||'var(--fg)';
+    const rColor = e.role==='observer'?'var(--warn)':'var(--ok)';
+    return `<tr><td class="col-ts">${esc(time)}</td><td><span style="font-size:9px;font-weight:700;color:${rColor};font-family:var(--mono)">${esc(e.role)}</span></td><td style="color:${color};font-weight:600">${esc(e.action)}${e.detail?`<span style="color:var(--muted);font-size:10px;font-weight:400"> — ${esc(e.detail)}</span>`:''}</td></tr>`;
+  }).join('');
+}
 
 function toggleAutoApply(){
   _autoApplyEnabled = !_autoApplyEnabled;
@@ -27,20 +69,28 @@ function markDirty(){
 }
 
 async function autoApply(){
-  if(!isDirty) return;
-  const newEp  = buildNewEndpointsYaml();
-  const newWd  = buildNewWatchdogYaml();
-  const newRl  = buildNewRateLimiterYaml();
-  const newCfg = buildNewConfigYaml();
-  const changes = buildDiff(newEp, newWd, newRl, newCfg);
-  if(!changes.length){ isDirty=false; updateDirtyState(); return; }
-  let pat = sessionStorage.getItem('gh-pat');
-  if(!pat){
-    const acquired = await requestPat();
-    if(!acquired) return;
-    pat = sessionStorage.getItem('gh-pat');
+  if(!isDirty || _writeInProgress) return;
+  _writeInProgress = true;
+  const applyBtn = document.getElementById('btn-apply-now');
+  if(applyBtn) applyBtn.disabled = true;
+  try {
+    const newEp  = buildNewEndpointsYaml();
+    const newWd  = buildNewWatchdogYaml();
+    const newRl  = buildNewRateLimiterYaml();
+    const newCfg = buildNewConfigYaml();
+    const changes = buildDiff(newEp, newWd, newRl, newCfg);
+    if(!changes.length){ isDirty=false; updateDirtyState(); return; }
+    let pat = sessionStorage.getItem('gh-pat');
+    if(!pat){
+      const acquired = await requestPat();
+      if(!acquired) return;
+      pat = sessionStorage.getItem('gh-pat');
+    }
+    await writeChanges(changes, {newEp, newWd, newRl, newCfg}, pat);
+  } finally {
+    _writeInProgress = false;
+    if(applyBtn) applyBtn.disabled = false;
   }
-  await writeChanges(changes, {newEp, newWd, newRl, newCfg}, pat);
 }
 
 window.addEventListener('beforeunload', e => {
@@ -168,6 +218,7 @@ function requestUnlock(wantsUnlock){
     ceilingUnlocked = false;
     updateUnlockUI();
     enforceCurrentCeilings();
+    auditLog('límites restaurados');
     return;
   }
   const now = new Date().toISOString();
@@ -241,6 +292,7 @@ async function executeUnlock(){
   ceilingUnlocked = true;
   closeUnlockModal();
   updateUnlockUI();
+  auditLog('límites desbloqueados', sha7 ? `commit ${sha7}` : 'sin commit');
   const msgs = [
     '✓ Límites de seguridad desbloqueados para esta sesión',
     `✓ Aceptación registrada: ${now}`,
@@ -298,10 +350,12 @@ function updateUnlockUI(){
 }
 
 function enforceCurrentCeilings(){
-  const rph = parseFloat(document.getElementById('sl-rph')?.value||240);
+  const rph      = parseFloat(document.getElementById('sl-rph')?.value||240);
   const interval = parseFloat(document.getElementById('sl-interval')?.value||10);
-  if(rph > HARD_CEILING.maxRph) syncSlider('rph', HARD_CEILING.maxRph);
+  const capacity = parseFloat(document.getElementById('sl-capacity')?.value||3);
+  if(rph > HARD_CEILING.maxRph)           syncSlider('rph', HARD_CEILING.maxRph);
   if(interval < HARD_CEILING.minInterval) syncSlider('interval', HARD_CEILING.minInterval);
+  if(capacity > HARD_CEILING.maxBurst)    syncSlider('capacity', HARD_CEILING.maxBurst);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -496,7 +550,10 @@ async function writeChanges(changes, newYamls, pat){
       anyError=true;
     }
   }
-  if(!anyError){ isDirty=false; updateDirtyState(); }
+  if(!anyError){
+    isDirty=false; updateDirtyState();
+    auditLog('config aplicada', changes.map(c=>c.path.split('/').pop()).join(', '));
+  }
   showResultModal(results, anyError);
 }
 
