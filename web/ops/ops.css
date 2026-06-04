@@ -547,10 +547,6 @@ details .details-body{padding:12px 0 4px}
 .adv-config-trigger:hover{border-color:#3a3f49;color:var(--fg)}
 .adv-lock{font-size:13px;flex-shrink:0}
 .adv-arrow{margin-left:auto;font-size:9px;opacity:.6;transition:opacity .15s}
-.adv-config-trigger.adv-armed{
-  border-color:rgba(212,176,102,.5);color:var(--warn);
-  background:rgba(212,176,102,.06);animation:pulse-btn 1s infinite;
-}
 .adv-config-trigger.adv-open{
   border-color:rgba(110,168,254,.3);color:var(--accent);
   background:rgba(110,168,254,.04);
@@ -568,4 +564,3 @@ details .details-body{padding:12px 0 4px}
   font-family:var(--mono);text-transform:uppercase;vertical-align:middle;
   margin-left:8px;
 }
-.data-table input[type=number]:disabled{opacity:.35;cursor:not-allowed}
