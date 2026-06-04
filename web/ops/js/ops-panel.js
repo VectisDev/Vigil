@@ -313,6 +313,13 @@ function updateUnlockUI(){
     [...rphSliders,'sl-rph3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
     [...intSliders,'sl-interval3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
   }
+  // Red tab: retry inputs + lock badges
+  const retryIds = ['retry-429','retry-5xx','retry-403','retry-404'];
+  retryIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=!ceilingUnlocked; });
+  const retryBadge = document.getElementById('retry-lock-badge');
+  const rateBadge  = document.getElementById('rate-lock-badge');
+  if(retryBadge) retryBadge.style.display = ceilingUnlocked ? 'none' : '';
+  if(rateBadge)  rateBadge.style.display  = ceilingUnlocked ? 'none' : '';
 }
 
 function enforceCurrentCeilings(){

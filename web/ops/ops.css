@@ -560,3 +560,12 @@ details .details-body{padding:12px 0 4px}
   border:1px solid rgba(110,168,254,.2);border-top:none;
   border-radius:0 0 2px 2px;padding:20px 20px 8px;margin-bottom:16px;
 }
+.ceiling-lock-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:700;color:var(--bad);
+  background:rgba(223,107,134,.1);border:1px solid rgba(223,107,134,.25);
+  border-radius:2px;padding:2px 7px;letter-spacing:.08em;
+  font-family:var(--mono);text-transform:uppercase;vertical-align:middle;
+  margin-left:8px;
+}
+.data-table input[type=number]:disabled{opacity:.35;cursor:not-allowed}
