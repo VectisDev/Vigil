@@ -733,13 +733,13 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Acciones de sesión
             </span>
-            <span class="section-badge" id="session-log-count" style="font-family:var(--mono)">0</span>
+            <span class="section-badge" id="session-log-count" style="font-family:var(--mono)" title="Acciones registradas en esta sesión">0</span>
             <button onclick="_renderSessionLog()" title="Refrescar">↻</button>
             <button onclick="clearSessionLog()" title="Limpiar historial de sesión" style="color:var(--muted)">✕ Limpiar</button>
           </div>
           <div class="log-table-wrap">
             <table class="log-table" id="session-log-table">
-              <thead><tr><th>Timestamp</th><th>Rol</th><th>Acción</th></tr></thead>
+              <thead><tr><th>Timestamp</th><th>ID Operador</th><th>Acción</th></tr></thead>
               <tbody><tr class="log-empty"><td colspan="3">Sin acciones registradas.<span class="log-empty-hint">Las acciones del operador aparecerán aquí en tiempo real.</span></td></tr></tbody>
             </table>
           </div>
@@ -1525,6 +1525,7 @@ async function doAdminLogin(prefillKey) {
     sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
     sessionStorage.setItem('centinel_role', matchedRole);
     sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
+    sessionStorage.setItem('centinel_fp', candidate.slice(-6));
     // Try encrypted PAT first (writer_pat block), then fall back to plain h.pat
     if(!matchedPat && ac.writer_pat && matchedSlot !== null){
       matchedPat = await decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
@@ -1545,6 +1546,7 @@ function doLogout(){
   sessionStorage.removeItem('centinel_admin_exp');
   sessionStorage.removeItem('centinel_role');
   sessionStorage.removeItem('centinel_seed_id');
+  sessionStorage.removeItem('centinel_fp');
   sessionStorage.removeItem('gh-pat');
   location.reload();
 }
