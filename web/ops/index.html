@@ -1084,9 +1084,7 @@ details .details-body{padding:12px 0 4px}
           <div class="log-summary-bar" id="log-summary"></div>
           <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th>Nivel</th><th>Mensaje</th><th>Regla / Kind</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Cargando…</td></tr></tbody></table></div>
           <div class="log-footer">
-            <button onclick="downloadTxt('log-general','alerts.txt')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> TXT</button>
             <button onclick="downloadPdf('log-general')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
-            <button onclick="copyLog('log-general')">⎘ Copiar</button>
           </div>
         </div>
 
@@ -1114,9 +1112,7 @@ details .details-body{padding:12px 0 4px}
           <div class="log-summary-bar" id="attack-summary"></div>
           <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th>Tipo</th><th>IP / Geo</th><th>Ruta</th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6">Cargando…</td></tr></tbody></table></div>
           <div class="log-footer">
-            <button onclick="downloadTxt('log-attacks','attacks.txt')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> TXT</button>
             <button onclick="downloadPdf('log-attacks')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
-            <button onclick="copyLog('log-attacks')">⎘ Copiar</button>
             <button onclick="generateIncidentReport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Reporte de incidente</button>
           </div>
         </div>
@@ -1134,9 +1130,7 @@ details .details-body{padding:12px 0 4px}
           </div>
           <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th>Tiempo</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Requiere PAT para cargar.</td></tr></tbody></table></div>
           <div class="log-footer">
-            <button onclick="downloadTxt('log-audit','audit.txt')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> TXT</button>
             <button onclick="downloadPdf('log-audit')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
-            <button onclick="copyLog('log-audit')">⎘ Copiar</button>
           </div>
         </div>
       </div>
