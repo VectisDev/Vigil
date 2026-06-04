@@ -517,6 +517,13 @@ details .details-body{padding:12px 0 4px}
   font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;
   cursor:pointer;transition:background .15s}
 #btn-sidebar-finalizar:hover{background:rgba(212,176,102,.18)}
+/* sidebar OTS row */
+#sidebar-ots-row{display:flex;align-items:center;gap:6px;padding:2px 12px 8px}
+.sob-label{flex:1;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.btn-ots-sb{padding:3px 8px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
+  cursor:pointer;transition:background .15s;letter-spacing:.05em;white-space:nowrap}
+.btn-ots-sb.ots-on{background:rgba(87,192,141,.08);border:1px solid rgba(87,192,141,.35);color:var(--ok)}
+.btn-ots-sb.ots-off{background:rgba(139,146,156,.06);border:1px solid rgba(139,146,156,.25);color:var(--muted)}
 /* sidebar emergency zone */
 #sidebar-emergency-zone{margin-top:auto;padding:8px 12px 12px;background:var(--panel)}
 .sez-sep{height:1px;background:rgba(223,107,134,.3);margin-bottom:10px}
@@ -611,6 +618,11 @@ details .details-body{padding:12px 0 4px}
       <a href="#s7" onclick="scrollTo('s7')">Red de Nodos</a>
       <div class="sec-header">Configuración</div>
       <a href="#s3" onclick="scrollTo('s3')">Presets</a>
+      <div id="sidebar-ots-row">
+        <span id="ots-net-dot-sb" class="ots-dot ots-dot-probing"></span>
+        <span class="sob-label">Bitcoin OTS</span>
+        <button id="btn-sidebar-ots" class="btn-ots-sb ots-on" onclick="onOtsToggle()">⛓ Activo</button>
+      </div>
       <div class="sec-header">Monitoreo</div>
       <a href="#s4" onclick="scrollTo('s4')">Logs y terminales</a>
       <div class="sec-header">Cierre</div>
@@ -777,14 +789,18 @@ details .details-body{padding:12px 0 4px}
               </div>
               <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el toggle</strong> para evitar esperas innecesarias.</span>
+                <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el anclaje</strong> para evitar esperas innecesarias.</span>
               </div>
-              <div class="toggle-row">
+              <input type="checkbox" id="tog-ots" checked style="display:none">
+              <div class="ctrl-row" style="align-items:center;justify-content:space-between;margin-bottom:10px">
                 <label data-tip="Ancla cada Merkle root en Bitcoin vía OpenTimestamps. Zero-cost, zero-secrets, non-blocking.">
                   Anclar en Bitcoin
                   <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px">(OpenTimestamps) ⓘ</span>
                 </label>
-                <label class="toggle"><input type="checkbox" id="tog-ots" checked onchange="onOtsToggle()"><span class="toggle-slider"></span></label>
+                <button id="btn-ots-toggle" onclick="onOtsToggle()"
+                  style="padding:5px 14px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;
+                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
+                  background:rgba(87,192,141,.08);color:var(--ok)">⛓ Activo</button>
               </div>
               <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
                 <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
@@ -2185,8 +2201,9 @@ function updateSensorCards(){
 
   // OTS
   const ots = chain.ots_status || 'unknown';
-  const otsCls = {confirmed:'ok',pending:'warn',error:'bad'}[ots]||'neutral';
-  setCard('ots', ots.toUpperCase(), chain.last_anchor ? `Último: ${relTime(chain.last_anchor)}` : '', 0, otsCls, false);
+  const otsCls   = {confirmed:'ok',pending:'warn',error:'bad'}[ots]||'neutral';
+  const otsLabel = {confirmed:'CONFIRMADO',pending:'PENDIENTE',error:'ERROR'}[ots]||'DESCONOCIDO';
+  setCard('ots', otsLabel, chain.last_anchor ? `Último: ${relTime(chain.last_anchor)}` : '', 0, otsCls, false);
 
   // Attacks
   const alerts = s?.alerts || [];
@@ -3012,8 +3029,9 @@ function onOtsServerSelect(val) {
 
 // Update the connectivity dot + hint text in the heading
 function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
-  const dot  = document.getElementById('ots-net-dot');
-  const hint = document.getElementById('ots-net-hint');
+  const dot   = document.getElementById('ots-net-dot');
+  const dotSb = document.getElementById('ots-net-dot-sb');
+  const hint  = document.getElementById('ots-net-hint');
   const map  = {
     probing: ['ots-dot-probing', 'probando red…'],
     ok:      ['ots-dot-ok',      'calendarios accesibles'],
@@ -3022,8 +3040,32 @@ function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
     off:     ['ots-dot-off',     'desactivado'],
   };
   const [cls, text] = map[state] || map.probing;
-  if(dot)  { dot.className = 'ots-dot ' + cls; dot.title = text; }
-  if(hint) { hint.textContent = text; }
+  if(dot)   { dot.className = 'ots-dot ' + cls; dot.title = text; }
+  if(dotSb) { dotSb.className = 'ots-dot ' + cls; dotSb.title = text; }
+  if(hint)  { hint.textContent = text; }
+}
+
+function _syncOtsBtn(){
+  const enabled = document.getElementById('tog-ots')?.checked ?? true;
+  const btn  = document.getElementById('btn-ots-toggle');
+  const btnS = document.getElementById('btn-sidebar-ots');
+  if(btn){
+    if(enabled){
+      btn.textContent = '⛓ Activo';
+      btn.style.borderColor = 'rgba(87,192,141,.4)';
+      btn.style.background  = 'rgba(87,192,141,.08)';
+      btn.style.color       = 'var(--ok)';
+    } else {
+      btn.textContent = '⛓ Inactivo';
+      btn.style.borderColor = 'rgba(139,146,156,.3)';
+      btn.style.background  = 'rgba(139,146,156,.06)';
+      btn.style.color       = 'var(--muted)';
+    }
+  }
+  if(btnS){
+    btnS.textContent = enabled ? '⛓ Activo' : '⛓ Inactivo';
+    btnS.className   = enabled ? 'btn-ots-sb ots-on' : 'btn-ots-sb ots-off';
+  }
 }
 
 // Silent background probe — returns true if reachable
@@ -3044,10 +3086,13 @@ async function _probeOtsNetwork(){
   }
 }
 
-// Called when toggle changes
+// Called by both the section button and the sidebar button
 function onOtsToggle(){
+  const chk = document.getElementById('tog-ots');
+  if(chk) chk.checked = !chk.checked;
   markDirty();
-  const enabled = document.getElementById('tog-ots')?.checked;
+  _syncOtsBtn();
+  const enabled = chk?.checked ?? true;
   const warn    = document.getElementById('ots-airgap-warn');
   if(!enabled){
     _setOtsDot('off');
@@ -3078,9 +3123,10 @@ async function loadOtsStatus(){
   const chainLen = snapshotData?.chain?.chain_length || '?';
   const badge    = document.getElementById('ots-status-badge');
   if(badge){
-    const cls = {confirmed:'ok', pending:'warn', error:'bad'}[ots] || 'neutral';
+    const cls    = {confirmed:'ok', pending:'warn', error:'bad'}[ots] || 'neutral';
+    const labels = {confirmed:'CONFIRMADO', pending:'PENDIENTE', error:'ERROR'};
     badge.className = 'badge badge-' + cls;
-    badge.textContent = ots.toUpperCase();
+    badge.textContent = labels[ots] || 'DESCONOCIDO';
   }
   const lastEl = document.getElementById('ots-last-anchor');
   if(lastEl) lastEl.textContent = 'Último ancla: ' + (last ? relTime(last) : '—');
@@ -3120,6 +3166,7 @@ async function loadOtsStatus(){
   const enabled = togOts?.checked ?? true;
   if(enabled){ _setOtsDot('probing'); _probeOtsNetwork(); }
   else { _setOtsDot('off'); }
+  _syncOtsBtn();
 }
 
 function buildNewConfigYaml(){
