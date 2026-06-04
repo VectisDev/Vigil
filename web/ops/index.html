@@ -150,7 +150,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
             <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip="La dirección principal del sitio de resultados electorales. Centinel descubre los datos automáticamente — no necesitas saber nada más.">Sitio de resultados <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
-            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" oninput="onEasyUrlInput(this.value)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" oninput="onEasyUrlInput(this.value)" onblur="validateUrlField(this)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
             <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Descubrir endpoints</button>
           </div>
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
@@ -330,7 +330,7 @@
                   <h3>URL principal</h3>
                   <div class="ctrl-row">
                     <label>CNE Main URL</label>
-                    <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()">
+                    <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()" onblur="validateUrlField(this)">
                   </div>
                 </div>
                 <div class="ctrl-section" style="overflow-x:auto">
@@ -1457,6 +1457,14 @@ function doLogout(){
   sessionStorage.removeItem('centinel_admin_tok');
   sessionStorage.removeItem('centinel_admin_exp');
   location.reload();
+}
+
+function validateUrlField(el){
+  const v = (el.value || '').trim();
+  const ok = !v || /^https?:\/\/.+\..+/.test(v);
+  el.style.borderColor = ok ? '' : 'var(--bad)';
+  el.title = ok ? '' : 'URL inválida — debe comenzar con https:// y contener un dominio válido';
+  return ok;
 }
 
 let _logoutArmed = false;
