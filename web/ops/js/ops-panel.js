@@ -55,46 +55,16 @@ function updateDirtyState(){
 }
 
 // ══════════════════════════════════════════════════════════
-// ADVANCED CONFIG UNLOCK (double-confirm, 3s window)
+// ADVANCED CONFIG TOGGLE
 // ══════════════════════════════════════════════════════════
-let _advArmed = false;
-let _advArmTimer = null;
-
 function toggleAdvancedConfig(){
   const el    = document.getElementById('advanced-config');
   const btn   = document.getElementById('btn-adv-config');
-  const label = document.getElementById('adv-config-label');
   const arrow = document.getElementById('adv-config-arrow');
   const isOpen = el && el.style.display !== 'none';
-
-  if(isOpen){
-    el.style.display = 'none';
-    btn.classList.remove('adv-armed','adv-open');
-    label.textContent = 'Configuración avanzada';
-    arrow.textContent = '▶';
-    _advArmed = false;
-    if(_advArmTimer){ clearTimeout(_advArmTimer); _advArmTimer = null; }
-    return;
-  }
-
-  if(!_advArmed){
-    _advArmed = true;
-    btn.classList.add('adv-armed');
-    label.textContent = 'Click de nuevo para abrir';
-    _advArmTimer = setTimeout(()=>{
-      _advArmed = false;
-      btn.classList.remove('adv-armed');
-      label.textContent = 'Configuración avanzada';
-    }, 3000);
-  } else {
-    clearTimeout(_advArmTimer); _advArmTimer = null;
-    _advArmed = false;
-    el.style.display = 'block';
-    btn.classList.remove('adv-armed');
-    btn.classList.add('adv-open');
-    label.textContent = 'Configuración avanzada';
-    arrow.textContent = '▼';
-  }
+  el.style.display = isOpen ? 'none' : 'block';
+  btn.classList.toggle('adv-open', !isOpen);
+  arrow.textContent = isOpen ? '▶' : '▼';
 }
 
 // ══════════════════════════════════════════════════════════
@@ -313,9 +283,14 @@ function updateUnlockUI(){
     [...rphSliders,'sl-rph3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=480; });
     [...intSliders,'sl-interval3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.min=1; });
   }
-  // Red tab: retry inputs + lock badges
+  // Red tab: retry inputs — cap at 5 when locked, 20 when unlocked
   const retryIds = ['retry-429','retry-5xx','retry-403','retry-404'];
-  retryIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=!ceilingUnlocked; });
+  retryIds.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.max = ceilingUnlocked ? 20 : 5;
+    if(!ceilingUnlocked && parseInt(el.value) > 5) el.value = 5;
+  });
   const retryBadge = document.getElementById('retry-lock-badge');
   const rateBadge  = document.getElementById('rate-lock-badge');
   if(retryBadge) retryBadge.style.display = ceilingUnlocked ? 'none' : '';
