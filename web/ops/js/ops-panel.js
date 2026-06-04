@@ -13,7 +13,7 @@ const _SLOG_MAX = 100;
 
 function auditLog(action, detail=''){
   try{
-    const entry = {ts:new Date().toISOString(), role:getCurrentRole(), action, detail:String(detail).slice(0,200)};
+    const entry = {ts:new Date().toISOString(), id:(typeof getCurrentSeedId==='function'?getCurrentSeedId():'S??'), role:getCurrentRole(), action, detail:String(detail).slice(0,200)};
     const log = _getSessionLog();
     log.unshift(entry);
     if(log.length > _SLOG_MAX) log.length = _SLOG_MAX;
@@ -42,7 +42,8 @@ function _renderSessionLog(){
     const time = d.toLocaleString('es',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
     const color = COLORS[e.action]||'var(--fg)';
     const rColor = e.role==='observer'?'var(--warn)':'var(--ok)';
-    return `<tr><td class="col-ts">${esc(time)}</td><td><span style="font-size:9px;font-weight:700;color:${rColor};font-family:var(--mono)">${esc(e.role)}</span></td><td style="color:${color};font-weight:600">${esc(e.action)}${e.detail?`<span style="color:var(--muted);font-size:10px;font-weight:400"> — ${esc(e.detail)}</span>`:''}</td></tr>`;
+    const seedId = e.id || e.role || 'S??';
+    return `<tr><td class="col-ts">${esc(time)}</td><td><span style="font-size:9px;font-weight:700;color:${rColor};font-family:var(--mono)">${esc(seedId)}</span></td><td style="color:${color};font-weight:600">${esc(e.action)}${e.detail?`<span style="color:var(--muted);font-size:10px;font-weight:400"> — ${esc(e.detail)}</span>`:''}</td></tr>`;
   }).join('');
 }
 
@@ -262,7 +263,8 @@ async function executeUnlock(){
     try{
       const safeTs = now.replace(/[:.]/g,'-');
       const filePath = `audit/ceiling-unlock/${safeTs}.txt`;
-      const commitMsg = `audit: operador acepta responsabilidad por desbloqueo de límites\n\nFecha: ${now}\nLímites desbloqueados: RPH>${HARD_CEILING.maxRph}, interval<${HARD_CEILING.minInterval}s, burst>${HARD_CEILING.maxBurst}`;
+      const seedId = (typeof getCurrentSeedId==='function'?getCurrentSeedId():'S??');
+      const commitMsg = `audit: ${seedId} acepta responsabilidad por desbloqueo de límites\n\nFecha: ${now}\nClave: ${seedId}\nLímites desbloqueados: RPH>${HARD_CEILING.maxRph}, interval<${HARD_CEILING.minInterval}s, burst>${HARD_CEILING.maxBurst}`;
       const encoded = btoa(unescape(encodeURIComponent(doc)));
       const r = await fetch(`${API_BASE}/contents/${filePath}`,{
         method:'PUT',
@@ -537,7 +539,7 @@ async function writeChanges(changes, newYamls, pat){
       const r = await fetch(`${API_BASE}/contents/${path}`,{
         method:'PUT',
         headers:{Authorization:`Bearer ${pat}`,'Content-Type':'application/json'},
-        body: JSON.stringify({message:'admin: config update via panel', content:encoded, sha}),
+        body: JSON.stringify({message:`config: actualizado por ${(typeof getCurrentSeedId==='function'?getCurrentSeedId():'S??')} — ${new Date().toISOString()}`, content:encoded, sha}),
       });
       if(r.status===409){
         show409Banner(); return;
