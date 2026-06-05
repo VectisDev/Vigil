@@ -4,6 +4,8 @@
 **Estado**: Desarrollo confidencial de alto rigor técnico  
 **Objetivo**: Ser el estándar de referencia en auditoría electoral independiente en Centroamérica para 2029.
 
+**Regla Sagrada del Proyecto**: Operación a **Costo Cero** absoluto (no se permite ningún gasto operativo ni de despliegue).
+
 ---
 
 ## Ramas Activas
@@ -11,7 +13,6 @@
 | Rama       | Rol                                      |
 |------------|------------------------------------------|
 | `main`     | Producción — merge solo vía PR revisado |
-| `dev-v11`  | Integración — rama dev anterior         |
 | `dev-v12`  | Integración — rama dev más reciente     |
 
 **Nota**: Actualizar esta tabla cuando se cree una nueva rama `dev-vNN`.
@@ -24,15 +25,18 @@ Todos los prompts de desarrollo **deben** invocar los agentes relevantes usando 
 
 ### Lista de Agentes
 
-| Agente                     | Rol Principal                                      | Uso Principal |
-|---------------------------|----------------------------------------------------|-------------|
-| `@stats-phd-agent`        | Estadística Forense y Matemáticas (PhD)           | Reglas estadísticas, umbrales, validación matemática, gráficos |
-| `@crypto-security-agent`  | Criptografía y Cadena de Custodia                 | Hashing, fingerprints, Merkle Trees, anchoring, verificación |
-| `@cybersecurity-agent`    | Ciberseguridad y Hardening                         | Threat modeling, proxies, logging, resiliencia |
-| `@ops-monitor-agent`      | Operaciones y SRE (24/7)                           | Polling, watchdog, monitoreo, benchmarks |
-| `@rules-engine-agent`     | Arquitectura del Motor de Reglas                   | Refactor, modularidad, tests, YAML |
-| `@dashboard-visual-agent` | Visualización y Reportes Profesionales             | Dashboards, PDFs, UI/UX, design system |
-| `@legal-strategy-agent`   | Asesoría Legal y Estratégica                       | Cumplimiento HN, disclaimers, estrategia con observadores |
+| Agente                      | Rol Principal                                              | Uso Principal |
+|----------------------------|------------------------------------------------------------|-------------|
+| `@stats-phd-agent`         | Estadística Forense y Matemáticas (PhD)                   | Reglas estadísticas, umbrales, validación matemática |
+| `@crypto-security-agent`   | Criptografía y Cadena de Custodia                         | Hashing, fingerprints, anchoring, verificación |
+| `@cybersecurity-agent`     | Ciberseguridad y Hardening                                 | Threat modeling, protección contra adversarios |
+| `@ops-monitor-agent`       | Operaciones y SRE (24/7)                                   | Polling ≤5min, resiliencia, monitoreo |
+| `@rules-engine-agent`      | Arquitectura del Motor de Reglas                           | Modularidad, tests, extensibilidad |
+| `@dashboard-visual-agent`  | Visualización y Reportes Profesionales                     | Dashboards, PDFs, UI/UX |
+| `@legal-strategy-agent`    | Asesoría Legal y Estratégica                               | Cumplimiento HN, disclaimers, observadores internacionales |
+| `@osint-security-agent`    | OSINT Defense y Protección de Identidad                    | Privacidad, opsec, threat intelligence |
+| `@github-ecosystem-agent`  | GitHub Advanced & Creative Ecosystem                       | Patrones avanzados, Merkle en Git, automatización cero costo |
+| `@treasurer-agent`         | Control Financiero y Cumplimiento de **Costo Cero**       | Fiscalizar y garantizar operación 100% gratuita |
 
 ### Reglas de Uso de Agentes (OBLIGATORIAS)
 
@@ -42,9 +46,9 @@ Todos los prompts de desarrollo **deben** invocar los agentes relevantes usando 
    - Docstrings **bilingües** completos (English/Spanish)
    - Comentarios bilingües en secciones críticas
    - Fórmulas en KaTeX
-   - Estándares de cada agente (rigor matemático, seguridad, diseño, etc.)
+   - Estándares específicos de cada agente
 4. Mantener compatibilidad absoluta con la cadena de hashes existente.
-5. Todo cambio significativo debe considerar impacto en neutralidad, reproducibilidad y credibilidad internacional.
+5. Todo cambio debe respetar la regla **Costo Cero** y la neutralidad del proyecto.
 
 ---
 
@@ -55,24 +59,19 @@ Todos los prompts de desarrollo **deben** invocar los agentes relevantes usando 
 1. **PR → `main`** (base: `main`)
 2. **PR → rama dev más reciente** (base: `dev-v12` o la activa)
 
-Ambos PRs deben crearse en el mismo momento, con el **mismo título y descripción**.  
-Nunca crear un PR que apunte solo a uno de los dos targets.
+Ambos PRs deben crearse en el mismo momento, con el **mismo título y descripción**.
 
 ### Flujo de Trabajo
+
 
 feature-branch
 ├── PR #A → main
 └── PR #B → dev-v12   (rama dev más reciente)
 
 
-Si la rama dev ya contiene los cambios (cherry-pick), igualmente crear el PR formal para trazabilidad y CI.
-
 ### Auto-merge — SIEMPRE hacer merge automáticamente
 
-**Regla crucial:** A MENOS QUE se indique explícitamente lo contrario, **SIEMPRE** hacer merge automáticamente cuando:
-- ✅ CI pasa verde en ambos PRs
-- ✅ No hay conflictos de merge
-- ✅ Todos los checks están "success"
+**Regla crucial:** A MENOS QUE se indique explícitamente lo contrario, **SIEMPRE** hacer merge automáticamente cuando CI pasa verde en ambos PRs, no hay conflictos y todos los checks están success.
 
 ---
 
@@ -94,38 +93,14 @@ Si la rama dev ya contiene los cambios (cherry-pick), igualmente crear el PR for
 ---
 
 **Este documento es de referencia obligatoria.**  
-Cualquier desviación debe ser justificada explícitamente.
+Cualquier desviación debe ser justificada explícitamente y aprobada.
 
 ---
 
-¿Quieres que haga algún ajuste adicional antes de que lo subas?
-
+**¿Quieres que haga algún ajuste adicional?**  
 Por ejemplo:
-- Agregar más secciones (estándares de código, testing strategy, etc.)
-- Cambiar el orden de las secciones
-- Hacerlo más corto o más formal
+- Añadir sección de estándares de código generales
+- Reordenar secciones
+- Hacerlo más corto o más detallado
 
-Dime cómo lo quieres y lo refinamos.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Dime y lo refinamos inmediatamente.
