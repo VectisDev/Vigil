@@ -52,6 +52,15 @@ No esperar confirmación del usuario. El merge automático es la norma, no la ex
 
 ---
 
+## Agentes especializados
+
+| Agente | Archivo | Función |
+|---|---|---|
+| `ops-visual` | `.claude/agents/ops-visual.md` | Cambios visuales/CSS en web/ops/ — conoce el design system SpaceX |
+| `red-team` | `.claude/agents/red-team.md` | Auditoría de seguridad, pentesting, revisión criptográfica, análisis de amenazas |
+
+---
+
 ## Convenciones de commits
 
 - Seguir Conventional Commits: `fix:`, `feat:`, `security:`, `chore:`, `docs:`
