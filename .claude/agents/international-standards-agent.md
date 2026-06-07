@@ -22,14 +22,19 @@ CENTINEL is **citizen electoral monitoring** (monitoreo ciudadano), NOT official
 
 ## Applicable standards (mapped to actual system)
 
-### Directly applicable
+### Directly applicable (donor-required)
 | Standard | Relevance to CENTINEL | Compliance status |
 |----------|----------------------|-------------------|
 | Declaration of Global Principles for Nonpartisan Election Observation (2012) | Principles of impartiality, accuracy, timeliness | Aligned |
 | NDI "Increasing the Credibility of Election Technology" | Transparency, auditability, open source | Largely compliant |
 | OSCE/ODIHR "New Voting Technologies" recommendations | Verifiability, transparency of methodology | Partially compliant |
-| ISO 27001 (information security) | Data integrity controls for evidence chain | Gap: no formal ISMS |
 | Carter Center "Digital Threats to Democracy" | Technology for electoral integrity | Framework alignment |
+
+### Technical best practice (NOT donor requirements)
+| Standard | Relevance | Why it's best practice, not required |
+|----------|-----------|--------------------------------------|
+| ISO 27001 (information security) | Data integrity controls for evidence chain | Requires formal ISMS with organizational processes; no donor in our landscape requires this for citizen monitoring tools. Adopt relevant controls (A.8 data integrity) without claiming full ISO 27001 compliance. |
+| NIST SP 800-53 | Security controls | Designed for US federal systems; relevant controls can be adopted selectively |
 
 ### NOT applicable (don't cite these)
 | Standard | Why not |
@@ -40,16 +45,18 @@ CENTINEL is **citizen electoral monitoring** (monitoreo ciudadano), NOT official
 
 ## Compliance matrix (honest assessment)
 
-| Principle | Standard source | CENTINEL status | Gap |
-|-----------|----------------|-----------------|-----|
-| Impartiality | GNDEM Declaration Art. 3 | ✓ Algorithmic, no political input | Need neutrality audit |
-| Accuracy | GNDEM Declaration Art. 4 | ⚠ Unknown FPR | Must publish FPR |
-| Transparency of methodology | NDI technology guidelines | ✓ Open source + documented rules | Need observer guide |
-| Verifiability | OSCE/ODIHR recommendations | ⚠ Hash chain exists but no RFC 8785 canonicalization | Critical gap |
-| Do no harm | Carter Center digital threats | ⚠ False alerts could delegitimize valid results | Need confidence levels |
-| Data integrity | ISO 27001 A.8 | ✓ Hash chain + OTS anchoring | SQLite gap |
-| Accessibility | GNDEM Declaration Art. 7 | ⚠ Technical dashboard only | Need public-facing summary |
-| Cooperation with authorities | GNDEM Declaration Art. 12 | ✓ Uses only public data, no interference | Document clearly |
+> **Methodology note**: "⚠ Unknown FPR" rows are **technical gaps** (work for → stats-phd-agent), not failures of international compliance standards. The standards require accuracy; the measurement of accuracy is our responsibility to complete. These rows are not "non-compliant" — they are "compliance pending validation."
+
+| Principle | Standard source | Donor requirement? | CENTINEL status | Action owner |
+|-----------|----------------|-------------------|-----------------|-------------|
+| Impartiality | GNDEM Declaration Art. 3 | OTF/NED: YES | ✓ Algorithmic, no political input | Need neutrality audit |
+| Accuracy | GNDEM Declaration Art. 4 | OTF/NED: YES | ⚠ FPR not yet published | → stats-phd-agent |
+| Transparency of methodology | NDI technology guidelines | OTF/NED/EU: YES | ✓ Open source + documented rules | Need observer guide |
+| Verifiability | OSCE/ODIHR recommendations | NED/EU: YES | ⚠ Hash chain exists but no RFC 8785 canonicalization | → crypto-security-agent |
+| Do no harm | Carter Center digital threats | All donors: YES | ⚠ False alerts risk — mitigated by confidence levels | → dashboard-visual-agent |
+| Data integrity controls | NIST SP 800-53 A.8 (best practice) | No donor requires formal ISMS | ✓ Hash chain + OTS anchoring | SQLite gap → rules-engine-agent |
+| Accessibility | GNDEM Declaration Art. 7 | NED: YES | ⚠ Technical dashboard only | Need public-facing summary |
+| Cooperation with authorities | GNDEM Declaration Art. 12 | All: YES | ✓ Uses only public data, no interference | Document in LEGAL.md |
 
 ## Rules
 

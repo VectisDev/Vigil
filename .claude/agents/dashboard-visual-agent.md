@@ -36,7 +36,7 @@ Electoral anomaly detection produces probabilistic outputs. Every visualization 
 
 | Requirement | How we verify | Current status |
 |-------------|--------------|----------------|
-| Color contrast ≥ 4.5:1 (text), ≥ 3:1 (UI) | Contrast matrix for SpaceX theme vars | Needs audit |
+| Color contrast ≥ 4.5:1 (text), ≥ 3:1 (UI) | `npx axe-core web/ops/index.html --tags wcag2aa` | Needs first run |
 | Not color-alone for status | Every badge has text label + icon shape | Partial |
 | Keyboard navigation | All interactive elements focusable, visible focus ring | Needs work |
 | Screen reader | `aria-label` on status badges, `role="alert"` on anomaly triggers | Missing |
@@ -86,3 +86,27 @@ When proposing visual changes:
 ```
 
 No mockup tools or Figma links — describe visually in text, then implement directly in HTML/CSS.
+
+## Uncertainty rendering reference (canonical HTML pattern)
+
+This is how a Benford first-digit test result renders using existing SpaceX classes:
+
+```html
+<!-- Rule result: Benford 1st digit, p=0.003, BH-adjusted significant -->
+<div class="ctrl-row" role="alert" aria-label="Regla Benford dígito inicial: anomalía detectada">
+  <span class="badge badge-bad">&#x26A0; ANOMALÍA</span>
+  <span class="val-badge">χ²=18.4</span>
+  <span class="val-badge" style="color:var(--muted)">p=0.003</span>
+  <span class="val-badge" style="color:var(--muted)">IC [0.001, 0.008]</span>
+  <span class="badge badge-neutral">BH ✓</span>
+</div>
+```
+
+**Why each element is required:**
+- `.badge-bad` + text: severity (not color alone)
+- `.val-badge` χ²: the actual test statistic (auditors verify this)
+- `.val-badge` p=: the probability — grant reviewers check this is present
+- `.val-badge` IC: confidence interval — distinguishes marginally significant from highly significant
+- `.badge-neutral` BH: confirms Benjamini-Hochberg correction was applied — critical for scientific credibility
+
+**For nominal/passing results**, use `.badge-ok` + `p=0.42` (no IC needed when not significant).

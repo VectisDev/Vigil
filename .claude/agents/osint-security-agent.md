@@ -40,7 +40,7 @@ find . -name "*.pdf" -o -name "*.png" -o -name "*.jpg" | head -20
 ### 2. GitHub account separation
 - [ ] CENTINEL GitHub account is NOT linked to personal accounts (no shared email, no follower overlap)
 - [ ] Profile has no real photo, real location, or identifiable bio
-- [ ] Contribution graph doesn't correlate with personal account activity patterns
+- [ ] **Contribution graph check**: Open GitHub contribution heatmap for both the CENTINEL account and any personal account. **Pass criterion**: No overlapping active weeks in the 90 days prior to the last election-related commit. (Tip: export both calendars via the GitHub contribution graph page and compare visually — ~2 minutes)
 - [ ] No starred repos that reveal personal interests/identity
 
 ### 3. Domain/infrastructure exposure
@@ -66,9 +66,9 @@ find . -name "*.pdf" -o -name "*.png" -o -name "*.jpg" | head -20
 ```
 
 ### 7. Contingency readiness
-- [ ] Another person can operate the system if primary operator is unavailable (documented handoff)
+- [ ] **Handoff drill** (run annually): A backup operator completes `docs/ops/election_night_runbook.md` from scratch, without assistance from the primary operator. **Pass criterion**: First successful poll cycle in <15 minutes from cold start. **Fail action**: Update runbook to remove the step that caused the delay.
 - [ ] Legal opinion letter is pre-prepared (see legal-strategy-agent)
-- [ ] Mirror repos are current and accessible without the primary GitHub account
+- [ ] Mirror repos are current and accessible without the primary GitHub account (verify by attempting to clone from GitLab/Codeberg mirror with a separate browser session not logged into any account)
 
 ## Rules
 

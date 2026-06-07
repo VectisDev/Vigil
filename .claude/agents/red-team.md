@@ -53,7 +53,30 @@ CENTINEL is a **client-side** electoral monitoring tool served via **GitHub Page
 | LOW | Best practice violation, no direct exploitability |
 | INFO | Observation, architectural note |
 
-## Known areas of interest (start here)
+## Pre-computed security analysis
+
+These analyses are complete. Use them as baselines — don't re-derive, just verify they still hold after code changes.
+
+### [INFO] Fixed PBKDF2 salt — intentional design, not a vulnerability
+
+**Location**: `web/ops/index.html` (auth section), `web/setup/index.html`
+**Analysis**: `centinel-admin-salt-v1` is a fixed salt shared across all 12 seeds. A per-seed random salt would be stronger, but:
+- At 600,000 PBKDF2-SHA256 iterations, a single guess costs ~600K hash operations
+- If seeds have ≥128 bits of entropy (verify at setup), brute force requires ~2¹²⁸ × 600K operations ≈ 10⁴⁴ hashes — computationally infeasible even with ASIC hardware
+- Rainbow table attack is defeated not by salt uniqueness but by the iteration count + seed entropy
+- **Verdict**: INFO — not a vulnerability IF seed entropy ≥128 bits. Verify entropy during setup audit.
+- **If seed entropy is <128 bits** (e.g., low-entropy passphrases used as seeds): this becomes HIGH severity. Flag this in setup documentation.
+
+### [MEDIUM] localStorage audit log — no integrity protection
+
+**Location**: `web/ops/js/ops-panel.js` (audit log write), `web/ops/index.html` (localStorage access)
+**Description**: The 100-entry ring buffer audit log is stored in `localStorage` without cryptographic integrity. Any JavaScript executing on the `ops/` origin can read, modify, or delete the entire audit history.
+**Impact**: An attacker who achieves XSS on the ops panel can silently rewrite the audit log before the operator notices — covering tracks of any changes made.
+**PoC**: Requires XSS on ops page (same-origin). Then: `localStorage.setItem('centinel-audit-log', JSON.stringify([]))` — clears all history silently.
+**Recommendation**: Include audit log hash in the next commit to the data branch (a Git commit is tamper-evident). The localStorage log is useful for UI but shouldn't be the canonical audit trail.
+**Limitation**: Even with this fix, an attacker with XSS can suppress the logging before it reaches Git. The real defense is preventing XSS in the first place (see XSS master vulnerability below).
+
+## Known areas of interest (investigate these — findings pending code review)
 
 1. **Fixed salt in PBKDF2**: `centinel-admin-salt-v1` is not per-user. All seeds use the same salt. Is this exploitable for rainbow tables given the 600k iteration count?
 2. **access.json as oracle**: Attacker has all hashes. Brute force 12 seeds × 600k PBKDF2? What's the entropy of the seeds?
