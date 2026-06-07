@@ -168,8 +168,8 @@ input::placeholder{color:var(--muted);}
         Crear token <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg>
       </a>
     </div>
-    <label>Tu nombre de usuario en GitHub</label>
-    <input type="text" id="ghUser" placeholder="mi-usuario" autocomplete="off" spellcheck="false">
+    <label>Usuario u organización dueña del repo</label>
+    <input type="text" id="ghUser" placeholder="mi-usuario o mi-org" autocomplete="off" spellcheck="false">
     <div id="token-error" class="box box-warn" style="display:none;"></div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="go(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Atrás</button>
@@ -338,7 +338,7 @@ function updateRepoPreview() {
   STATE.repo = document.getElementById('repoName').value.trim()
     .replace(/[^a-z0-9_.-]/gi, '-').toLowerCase() || 'centinel-datos';
   document.getElementById('rp-full').textContent =
-    (STATE.user || 'tu-usuario') + '/' + STATE.repo;
+    (STATE.owner || STATE.user || 'tu-usuario') + '/' + STATE.repo;
 }
 
 // ── Verificar token ─────────────────────────────────────────────────────────
@@ -363,12 +363,10 @@ async function verifyToken() {
     });
     if (!r.ok) throw new Error('Token inválido (HTTP '+r.status+')');
     const data = await r.json();
-    if (data.login.toLowerCase() !== user.toLowerCase()) {
-      throw new Error('El usuario "'+data.login+'" no coincide con "'+user+'"');
-    }
     STATE.token = token;
     STATE.user  = data.login;
-    document.getElementById('rp-full').textContent = STATE.user+'/'+STATE.repo;
+    STATE.owner = user.trim();
+    document.getElementById('rp-full').textContent = STATE.owner+'/'+STATE.repo;
     go(3);
   } catch(e) {
     errBox.textContent = 'Error: ' + e.message;
@@ -465,8 +463,11 @@ function b64(str) {
 // ── Deploy steps ────────────────────────────────────────────────────────────
 
 async function createRepo() {
+  const owner = STATE.owner || STATE.user;
+  const isOrg = owner.toLowerCase() !== STATE.user.toLowerCase();
   try {
-    await gh('POST', '/user/repos', {
+    const endpoint = isOrg ? `/orgs/${owner}/repos` : '/user/repos';
+    await gh('POST', endpoint, {
       name: STATE.repo,
       description: 'Centinel — Auditoría electoral automatizada ' + STATE.country + ' ' + STATE.year,
       private: false,
@@ -480,15 +481,15 @@ async function createRepo() {
     throw e;
   }
   await sleep(1500);
-  STATE.repoUrl = 'https://github.com/' + STATE.user + '/' + STATE.repo;
+  STATE.repoUrl = 'https://github.com/' + owner + '/' + STATE.repo;
 }
 
 async function setRepoVars() {
-  // Push repo variables for the workflows
+  const owner = STATE.owner || STATE.user;
   try {
-    await gh('POST', `/repos/${STATE.user}/${STATE.repo}/actions/variables`, {
+    await gh('POST', `/repos/${owner}/${STATE.repo}/actions/variables`, {
       name: 'CENTINEL_COUNTRY', value: STATE.country });
-    await gh('POST', `/repos/${STATE.user}/${STATE.repo}/actions/variables`, {
+    await gh('POST', `/repos/${owner}/${STATE.repo}/actions/variables`, {
       name: 'CENTINEL_YEAR', value: STATE.year });
   } catch(e) {
     // Variables API might require different perms — not fatal
@@ -497,14 +498,14 @@ async function setRepoVars() {
 }
 
 async function pushFile(path, content, message) {
-  // Check if file exists to get sha
+  const owner = STATE.owner || STATE.user;
   let sha;
   try {
-    const existing = await gh('GET', `/repos/${STATE.user}/${STATE.repo}/contents/${path}`);
+    const existing = await gh('GET', `/repos/${owner}/${STATE.repo}/contents/${path}`);
     sha = existing.sha;
   } catch(_) { sha = undefined; }
 
-  await gh('PUT', `/repos/${STATE.user}/${STATE.repo}/contents/${path}`, {
+  await gh('PUT', `/repos/${owner}/${STATE.repo}/contents/${path}`, {
     message,
     content: b64(content),
     ...(sha ? { sha } : {}),
@@ -612,7 +613,7 @@ jobs:
 }
 
 async function pushDashboard() {
-  const raw = `https://raw.githubusercontent.com/${STATE.user}/${STATE.repo}/main/web/data/snapshot.json`;
+  const raw = `https://raw.githubusercontent.com/${STATE.owner||STATE.user}/${STATE.repo}/main/web/data/snapshot.json`;
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -661,7 +662,7 @@ footer a{color:var(--accent);}
   <footer style="margin-top:32px;">
     Datos: <a href="${raw}" target="_blank">snapshot.json</a> ·
     Motor: <a href="https://github.com/VectisDev/centinel" target="_blank">VectisDev/centinel</a> ·
-    Datos: <a href="https://github.com/${STATE.user}/${STATE.repo}" target="_blank">${STATE.user}/${STATE.repo}</a>
+    Datos: <a href="https://github.com/${STATE.owner||STATE.user}/${STATE.repo}" target="_blank">${STATE.owner||STATE.user}/${STATE.repo}</a>
   </footer>
 </div>
 <script>
@@ -731,7 +732,7 @@ async function generateAndPushSeeds() {
 
 async function enablePages() {
   try {
-    await gh('POST', `/repos/${STATE.user}/${STATE.repo}/pages`, {
+    await gh('POST', `/repos/${STATE.owner||STATE.user}/${STATE.repo}/pages`, {
       build_type: 'workflow',
     });
   } catch(e) {
@@ -742,7 +743,7 @@ async function enablePages() {
     // Not fatal — user can enable manually
     logLine('  (Pages: '+e.message+' — activa manualmente en Settings)');
   }
-  STATE.pagesUrl = `https://${STATE.user}.github.io/${STATE.repo}/`;
+  STATE.pagesUrl = `https://${STATE.owner||STATE.user}.github.io/${STATE.repo}/`;
 }
 
 // ── Seed & crypto ───────────────────────────────────────────────────────────
@@ -871,7 +872,7 @@ async function downloadPDF() {
   doc.setFontSize(10);
   doc.setFont('helvetica','normal');
   doc.setTextColor(139,146,156);
-  doc.text(`${STATE.country} ${STATE.year}  ·  ${STATE.user}/${STATE.repo}`, M, y+20);
+  doc.text(`${STATE.country} ${STATE.year}  ·  ${STATE.owner||STATE.user}/${STATE.repo}`, M, y+20);
   doc.text('Generado: ' + new Date().toISOString(), M, y+27);
   y = 60;
 
@@ -927,8 +928,8 @@ async function downloadPDF() {
     '• Usa cualquiera de estos seeds para autenticarte en el panel OPS.',
     '• Cada seed puede usarse solo una vez si habilitas rotación.',
     `• Repo de datos: ${STATE.repoUrl}`,
-    `• Panel público: ${STATE.pagesUrl || 'https://'+STATE.user+'.github.io/'+STATE.repo+'/'}`,
-    `• Panel OPS: ${STATE.pagesUrl ? STATE.pagesUrl+'ops/' : 'https://'+STATE.user+'.github.io/'+STATE.repo+'/ops/'}`,
+    `• Panel público: ${STATE.pagesUrl || 'https://'+(STATE.owner||STATE.user)+'.github.io/'+STATE.repo+'/'}`,
+    `• Panel OPS: ${STATE.pagesUrl ? STATE.pagesUrl+'ops/' : 'https://'+(STATE.owner||STATE.user)+'.github.io/'+STATE.repo+'/ops/'}`,
   ];
   notes.forEach(n => { doc.text(n, M, y); y += 5; });
 
@@ -949,7 +950,7 @@ function go(n) {
 // ── Done screen ─────────────────────────────────────────────────────────────
 
 function renderDone() {
-  const pages = STATE.pagesUrl || `https://${STATE.user}.github.io/${STATE.repo}/`;
+  const pages = STATE.pagesUrl || `https://${STATE.owner||STATE.user}.github.io/${STATE.repo}/`;
   document.getElementById('done-links').innerHTML = `
     <div class="link-card">
       <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
