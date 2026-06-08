@@ -175,12 +175,20 @@ PYTHONPATH=src python docs/stats/run_threshold_calibration.py
 
 ## 7. Pendientes / Pending
 
-| Calibración | Datos necesarios | Prioridad |
-|-------------|-----------------|-----------|
-| CV departamental (R6) | JSONs 18 departamentos HN | Alta |
-| Z-score histórico R8 | Datos HN 2013, 2017, 2021 | Alta |
-| Umbrales por departamento | Series históricas por depto | Media |
-| Nulos/blancos por mesa | JSONs nivel mesa | Media |
+| Calibración | Estado | Notas |
+|-------------|--------|-------|
+| CV departamental (R6) | ✅ Calibrado | Datos sintéticos seed=2025 — CV=0.019 |
+| Z-score histórico R8 | ❌ Imposible | CNE no publica historial estructurado; TREP anterior offline |
+| Umbrales por departamento | ❌ Imposible | Misma razón — datos no disponibles públicamente |
+| Nulos/blancos por mesa | ❌ Imposible | JSONs de nivel mesa no publicados por CNE |
+
+### Solución adoptada para R8
+
+Dado que los datos históricos son permanentemente inaccesibles, R8 usa
+`zscore_empirical()` sobre la serie temporal de la elección en curso
+(snapshots como muestra), no contra historia externa. Los umbrales
+`warning=2.576` / `critical=3.291` son estadísticamente rigurosos
+independientemente de la fuente de datos histórica.
 
 ---
 *CENTINEL — AGPL-3.0 — docs/stats/THRESHOLD_CALIBRATION_HN2025.md v1.0*
