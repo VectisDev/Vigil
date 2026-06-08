@@ -13,7 +13,6 @@
 | Rama       | Rol                                      |
 |------------|------------------------------------------|
 | `main`     | Producción — merge solo vía PR revisado |
-| `dev-v11`  | Integración — rama dev anterior         |
 | `dev-v12`  | Integración — rama dev más reciente     |
 
 **Nota**: Actualizar esta tabla cuando se cree una nueva rama `dev-vNN`.
