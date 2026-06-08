@@ -90,6 +90,10 @@ benford_first_digit_experimental:
 # Rule 7 — large_numbers_convergence
 # CHANGE: z_threshold 3.0 → uses zscore_thresholds.warning (2.576) and .critical (3.291)
 # CHANGE: now calls zscore_proportion() from zscore_unified.py
+participation_vote_correlation:
+  warning_r: 0.70    # NEW: HN2025 r=0.76 — early warning level
+  critical_r: 0.85   # VALIDATED: not triggered in HN2025 clean data
+
 large_numbers_convergence:
   min_samples: 30
   min_total_votes: 200
@@ -100,8 +104,8 @@ large_numbers_convergence:
 # CHANGE: hardcoded |Z|>3 → uses zscore_thresholds.critical (3.291)
 # CHANGE: now calls zscore_empirical() with ddof=1 (was ddof=0 implicitly)
 participation_anomaly_advanced:
-  min_turnout_pct: 40
-  max_turnout_pct: 90
+  min_turnout_pct: 70   # CALIBRATED HN2025: p1=80% - 10pp buffer (was 40 — incorrect)
+  max_turnout_pct: 100  # CALIBRATED HN2025: observed max 99.4% (was 90 — triggers false alarm)
   # z_threshold: 3.0          # REMOVED — was hardcoded in code, now unified
   zscore_family: empirical     # Family B: ddof=1 muestral
   historical_by_department: true
