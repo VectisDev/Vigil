@@ -22,6 +22,16 @@
 
 # ── 01. RESILIENCIA ──────────────────────────────────────────
 retry_max: 5
+
+# ── UNIFIED Z-SCORE THRESHOLDS (dev-v12) ──────────────────────
+# Replaces all hardcoded |Z|>3 across the engine.
+# Family A (proportion): zscore_proportion() — for vote shares, turnout rates
+# Family B (empirical): zscore_empirical() ddof=1 — for counts, deltas
+# See: docs/stats/STATISTICAL_CONVENTIONS.md
+zscore_thresholds:
+  warning: 2.576   # p < 0.01 two-tailed
+  critical: 3.291  # p < 0.001 two-tailed
+
 backoff_factor: 2
 
 # ── 02. SEGURIDAD ────────────────────────────────────────────
@@ -41,7 +51,9 @@ max_json_presidenciales: 19
 rules:
 
   # ── BENFORD — Primer dígito (MAD + chi²) ─────────────────
-  # Módulo: benford_first_digit_rule.py | Severity: CRITICAL
+  # Módulo: benford_first_digit_rule.py | Severity: INFO (demoted dev-v12 — high FP rate)
+  # Deckert et al. (2011): 1st-digit Benford has ~100% FP on electoral count data.
+  # Use benford_canonical (2nd digit) for alerts. This is EXPERIMENTAL/logging only.
   benford_first_digit:
     enabled: true
     severity: "CRITICAL"
@@ -51,7 +63,9 @@ rules:
     chi_pvalue_critical: 0.01
 
   # ── BENFORD — Alternativa por candidato (chi²) ───────────
-  # Módulo: benford_law_rule.py | Severity: Medium
+  # Módulo: benford_law_rule.py | Severity: CRITICAL (rewritten dev-v12 — canonical 2BL)
+  # Now uses benford_batch(test_type='canonical') — Mebane (2006) 2nd-digit Benford.
+  # FP rate < 5%% on HN 2025 data (vs 100%% for 1st digit). See STATISTICAL_CONVENTIONS.md.
   benford_law:
     enabled: true
     severity: "Medium"
@@ -75,7 +89,8 @@ rules:
     negative_delta_threshold: 0
     delta_pct_alert: 3.0
     delta_pct_time_window_minutes: 30
-    zscore_threshold: 3.0
+    # zscore_threshold: 3.0  # REMOVED — now uses unified Z_THRESHOLD_CRITICAL=3.291 (p<0.001)
+    zscore_family: empirical  # Family B: zscore_empirical() ddof=1 — see zscore_unified.py
     zscore_min_abs_delta: 100
     zscore_min_departments: 5
     benford_pvalue_threshold: 0.05
@@ -120,7 +135,8 @@ rules:
     enabled: true
     severity: "CRITICAL"
     min_samples: 30
-    critical_r: 0.85
+    warning_r: 0.70    # NEW dev-v12: HN2025 r=0.76 — calibrated early-warning level
+    critical_r: 0.85    # VALIDATED: not triggered in HN2025 data (r=0.76 < 0.85 ✓)
 
   # ── DISPERSIÓN GEOGRÁFICA (CV entre departamentos) ───────
   # Módulo: geographic_dispersion_rule.py | Severity: CRITICAL
@@ -200,10 +216,12 @@ rules:
   # scrutiny rate (actas_divulgadas / actas_totales), not voter participation.
   # HN 2025 observed values:
   #   scrutiny rate: mean=88.15%, stdev=5.51%, range=[79.94%, 99.40%]
+  # CALIBRATED dev-v12: turnout thresholds updated from HN2025 real data (63 snapshots)
+  # See: docs/stats/THRESHOLD_CALIBRATION_HN2025.md
   participation_anomaly_advanced:
     enabled: true
     severity: "CRITICAL"
-    min_turnout_pct: 40
+    min_turnout_pct: 70   # CALIBRATED HN2025: observed min=80%, buffer 10pp (was 40 — unreachable)
     max_turnout_pct: 100
     # Calculado desde 54 snapshots con votos válidos, elección presidencial HN 2025.
     # Computed from 54 snapshots with valid votes, HN 2025 presidential election.
@@ -253,7 +271,8 @@ rules:
     enabled: true
     severity: "Medium"
     min_samples: 30
-    z_threshold: 3.0
+    # z_threshold: 3.0  # REMOVED — now uses unified Z_THRESHOLD_WARNING=2.576 / CRITICAL=3.291
+    zscore_family: proportion  # Family A: zscore_proportion() — see zscore_unified.py
     min_total_votes: 200
 
   # ── DESVIACIÓN DE TENDENCIA ───────────────────────────────
