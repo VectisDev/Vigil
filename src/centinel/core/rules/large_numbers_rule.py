@@ -54,11 +54,16 @@ Notes:
 
 from __future__ import annotations
 
-import math
 from typing import Dict, List, Optional
 
 from centinel.core.rules.common import extract_department, safe_int_or_none
 from centinel.core.rules.registry import rule
+from centinel.core.rules.zscore_unified import (  # noqa: E402 — unified Z-score conventions
+    zscore_proportion,
+    Z_THRESHOLD_WARNING,
+    Z_THRESHOLD_CRITICAL,
+    Severity,
+)
 
 
 def _extract_mesa_votes(mesa: dict) -> Dict[str, int]:
@@ -193,8 +198,9 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
         return alerts
 
     min_samples = int(config.get("min_samples", 30))
-    z_threshold = float(config.get("z_threshold", 3.0))
     min_total_votes = int(config.get("min_total_votes", 200))
+    # Z thresholds from zscore_unified — Family A (binomial SE for proportions)
+    # Replaces dev-v10 hardcoded z_threshold=3.0 (config key removed)
 
     total_votes_all = sum(totals.values())
     if total_votes_all < min_total_votes:
@@ -210,27 +216,32 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
             continue
         sample_mean = sum(sample_values) / len(sample_values)
         global_share = total_votes / total_votes_all
-        variance = global_share * (1 - global_share)
-        if variance <= 0:
-            continue
-        standard_error = math.sqrt(variance / len(sample_values))
-        if standard_error == 0:
-            continue
-        z_score = abs(sample_mean - global_share) / standard_error
-        if z_score <= z_threshold:
+
+        # Family A: Z = |p̂ - p₀| / √(p₀·(1-p₀)/n)
+        # Uses zscore_proportion() — see docs/stats/STATISTICAL_CONVENTIONS.md
+        result = zscore_proportion(
+            p_hat=sample_mean,
+            p_null=global_share,
+            n=len(sample_values),
+            min_samples=min_samples,
+            label=f"candidate={candidate_id}, dept={department}",
+        )
+        if result is None or result.severity == Severity.NOMINAL:
             continue
 
+        severity_str = "CRITICAL" if result.severity == Severity.CRITICAL else "WARNING"
         alerts.append(
             {
                 "type": "Desviación Ley de Grandes Números",
-                "severity": "Medium",
+                "severity": severity_str,
                 "department": department,
                 "justification": (
                     "La media de proporciones por mesa no converge al promedio global. "
-                    f"Candidato={candidate_id}, muestras={len(sample_values)}, "
-                    f"media={sample_mean:.4f}, global={global_share:.4f}, "
-                    f"error_std={standard_error:.4f}, z={z_score:.2f}, "
-                    f"umbral_z={z_threshold:.2f}."
+                    f"Candidato={candidate_id}, muestras={result.n}, "
+                    f"media={result.observed:.4f}, global={result.expected:.4f}, "
+                    f"SE={result.se_or_std:.6f}, z={result.z:.2f}, "
+                    f"p={result.p_value:.4f} "
+                    f"(umbral_warning={Z_THRESHOLD_WARNING}, critical={Z_THRESHOLD_CRITICAL})."
                 ),
             }
         )

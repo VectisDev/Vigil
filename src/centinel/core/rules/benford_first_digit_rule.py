@@ -126,9 +126,14 @@ def _collect_votes_by_candidate(data: dict) -> Dict[str, List[int]]:
 
 
 @rule(
-    name="Ley de Benford (Primer Dígito)",
-    severity="CRITICAL",
-    description="Evalúa MAD y chi-cuadrado sobre distribución del primer dígito (vista agregada).",
+    name="Ley de Benford (Primer Dígito) — Experimental",
+    severity="INFO",
+    description=(
+        "EXPERIMENTAL — demoted from CRITICAL in dev-v12. "
+        "High FP rate in electoral data (Deckert et al. 2011, Mebane 2011). "
+        "Kept for research/logging only. Use benford_canonical (2nd digit) for alerts. "
+        "See docs/stats/STATISTICAL_CONVENTIONS.md."
+    ),
     config_key="benford_first_digit",
 )
 def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> List[dict]:
@@ -174,10 +179,14 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     mad_critical = float(config.get("mad_critical", 0.015))
     chi_pvalue_critical = float(config.get("chi_pvalue_critical", 0.01))
 
+    # EXPERIMENTAL: 1st-digit Benford is capped at INFO in dev-v12.
+    # High FP rate on electoral count data (Deckert et al. 2011, Mebane 2011).
+    # Even strong chi² / MAD violations only produce INFO — never WARNING/CRITICAL.
+    # For CRITICAL alerts use benford_canonical (2nd digit) from benford_unified.py.
     if mad > mad_critical or chi_result.pvalue < chi_pvalue_critical:
-        severity = "CRITICAL"
+        severity = "INFO"  # was CRITICAL — demoted dev-v12
     elif mad_warning <= mad <= mad_critical:
-        severity = "WARNING"
+        severity = "INFO"  # was WARNING — demoted dev-v12
     else:
         return alerts
 

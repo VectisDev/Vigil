@@ -17,17 +17,17 @@ import pytest
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'centinel', 'core', 'rules'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'centinel', 'core', 'rules'))
 
 from centinel.core.rules.severity import Severity
-from zscore_unified import (
+from centinel.core.rules.zscore_unified import (
     zscore_proportion,
     zscore_empirical,
     Z_THRESHOLD_WARNING,
     Z_THRESHOLD_CRITICAL,
 )
-from benford_unified import (
+from centinel.core.rules.benford_unified import (
     benford_canonical,
     benford_experimental_first_digit,
     benford_batch,

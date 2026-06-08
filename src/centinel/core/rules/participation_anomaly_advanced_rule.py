@@ -60,6 +60,12 @@ from centinel.core.rules.common import (
     extract_total_votes,
 )
 from centinel.core.rules.registry import rule
+from centinel.core.rules.zscore_unified import (  # noqa: E402 — unified Z-score conventions
+    zscore_empirical,
+    Z_THRESHOLD_WARNING,
+    Z_THRESHOLD_CRITICAL,
+    Severity,
+)
 
 
 def _normalize_ratio(value: float) -> float:
@@ -170,29 +176,46 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     if std_ratio == 0:
         return alerts
 
-    z_score = (turnout - mean_ratio) / std_ratio
-    if abs(z_score) <= 3:
+    # Family B: Z = (x - x̄) / s — empirical Z-score against historical distribution.
+    # Build a synthetic sample from mean/std to satisfy zscore_empirical() interface.
+    # When real historical series is available, pass it directly as `sample`.
+    # Uses unified threshold: WARNING = p<0.01 (|Z|>2.576), CRITICAL = p<0.001 (|Z|>3.291)
+    # Replaces dev-v10 hardcoded |Z|>3 — see docs/stats/STATISTICAL_CONVENTIONS.md
+    import numpy as np  # noqa: PLC0415 — lazy import to keep module lightweight
+    rng = np.random.default_rng(seed=42)
+    synthetic_sample = rng.normal(loc=mean_ratio, scale=std_ratio, size=50).tolist()
+    result = zscore_empirical(
+        x=turnout,
+        sample=synthetic_sample,
+        min_samples=30,
+        label=f"dept={department}, turnout={turnout:.4f}",
+    )
+    if result is None or result.severity == Severity.NOMINAL:
         return alerts
 
-    message = "Participación se desvía más de 3σ de la media histórica."
+    severity_str = "CRITICAL" if result.severity == Severity.CRITICAL else "WARNING"
+    message = (
+        f"Participación se desvía ±{result.z:.2f}σ de la media histórica "
+        f"(p={result.p_value:.4f})."
+    )
     alerts.append(
         {
             "type": "Participación Anómala Histórica",
-            "severity": "WARNING",
+            "severity": severity_str,
             "department": department,
             "message": message,
-            "value": {"turnout": turnout, "z_score": z_score},
-            "threshold": {"historical_mean": mean_ratio, "historical_std": std_ratio},
-            "result": (
-                "WARNING",
-                message,
-                {"turnout": turnout, "z_score": z_score},
-                {"historical_mean": mean_ratio, "historical_std": std_ratio},
-            ),
+            "value": {"turnout": turnout, "z_score": result.z},
+            "threshold": {
+                "historical_mean": mean_ratio,
+                "historical_std": std_ratio,
+                "warning_z": Z_THRESHOLD_WARNING,
+                "critical_z": Z_THRESHOLD_CRITICAL,
+            },
             "justification": (
-                "La participación excede ±3σ respecto a la media histórica. "
+                f"La participación excede el umbral Z unificado. "
                 f"turnout={turnout:.2%}, mean={mean_ratio:.2%}, "
-                f"std={std_ratio:.2%}, z={z_score:.2f}."
+                f"std={std_ratio:.2%}, z={result.z:.2f}, p={result.p_value:.4f} "
+                f"(umbral_warning={Z_THRESHOLD_WARNING}, critical={Z_THRESHOLD_CRITICAL})."
             ),
         }
     )

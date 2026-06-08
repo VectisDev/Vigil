@@ -230,7 +230,10 @@ def _compute_zscores(series: pd.Series) -> pd.Series:
     if series.empty:
         return series
     mean = series.mean()
-    std = series.std(ddof=0)
+    # ddof=1 MANDATORY — Bessel correction for unbiased variance estimator.
+    # dev-v10 used ddof=0 (population std) which underestimates σ → inflated Z → excess FP.
+    # Fixed in dev-v11/v12. See docs/stats/STATISTICAL_CONVENTIONS.md Family B.
+    std = series.std(ddof=1)
     if std == 0 or pd.isna(std):
         return pd.Series([0.0] * len(series), index=series.index)
     return (series - mean) / std
