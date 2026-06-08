@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "26,036",
+      "porcentaje": 40.97
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "23,350",
+      "porcentaje": 36.74
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "12,347",
+      "porcentaje": 19.43
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,082",
+      "porcentaje": 1.7
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "730",
+      "porcentaje": 1.15
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "390",
+      "actas_divulgadas": "377"
+    },
+    "distribucion_votos": {
+      "validos": "63,547",
+      "nulos": "2,727",
+      "blancos": "1,141"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "336",
+      "actas_inconsistentes": "41"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Valle",
+    "codigo_cne": "17",
+    "peso_padron": 0.0204,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

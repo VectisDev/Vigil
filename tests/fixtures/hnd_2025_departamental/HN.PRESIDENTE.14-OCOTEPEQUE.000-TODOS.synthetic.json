@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "21,504",
+      "porcentaje": 38.56
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "21,520",
+      "porcentaje": 38.59
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "10,280",
+      "porcentaje": 18.43
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,613",
+      "porcentaje": 2.89
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "853",
+      "porcentaje": 1.53
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "334",
+      "actas_divulgadas": "331"
+    },
+    "distribucion_votos": {
+      "validos": "55,772",
+      "nulos": "2,112",
+      "blancos": "1,142"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "277",
+      "actas_inconsistentes": "54"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Ocotepeque",
+    "codigo_cne": "14",
+    "peso_padron": 0.0175,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

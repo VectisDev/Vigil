@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "65,274",
+      "porcentaje": 39.05
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "65,493",
+      "porcentaje": 39.18
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "33,049",
+      "porcentaje": 19.77
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,667",
+      "porcentaje": 1.0
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,667",
+      "porcentaje": 1.0
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "948",
+      "actas_divulgadas": "948"
+    },
+    "distribucion_votos": {
+      "validos": "167,152",
+      "nulos": "5,255",
+      "blancos": "2,969"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "812",
+      "actas_inconsistentes": "136"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "El Paraíso",
+    "codigo_cne": "07",
+    "peso_padron": 0.0495,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

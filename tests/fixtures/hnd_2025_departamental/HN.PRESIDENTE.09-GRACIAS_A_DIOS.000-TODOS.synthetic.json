@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "7,961",
+      "porcentaje": 39.18
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "7,685",
+      "porcentaje": 37.82
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "3,573",
+      "porcentaje": 17.59
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "543",
+      "porcentaje": 2.67
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "553",
+      "porcentaje": 2.72
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "120",
+      "actas_divulgadas": "120"
+    },
+    "distribucion_votos": {
+      "validos": "20,318",
+      "nulos": "871",
+      "blancos": "413"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "104",
+      "actas_inconsistentes": "16"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Gracias a Dios",
+    "codigo_cne": "09",
+    "peso_padron": 0.0063,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

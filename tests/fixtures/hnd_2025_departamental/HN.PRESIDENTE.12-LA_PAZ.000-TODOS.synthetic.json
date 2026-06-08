@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "30,980",
+      "porcentaje": 38.5
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "32,048",
+      "porcentaje": 39.82
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "15,077",
+      "porcentaje": 18.74
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,570",
+      "porcentaje": 1.95
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "795",
+      "porcentaje": 0.99
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "520",
+      "actas_divulgadas": "478"
+    },
+    "distribucion_votos": {
+      "validos": "80,473",
+      "nulos": "3,852",
+      "blancos": "1,849"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "415",
+      "actas_inconsistentes": "63"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "La Paz",
+    "codigo_cne": "12",
+    "peso_padron": 0.0272,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "14,569",
+      "porcentaje": 39.83
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "14,043",
+      "porcentaje": 38.39
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "7,197",
+      "porcentaje": 19.68
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "382",
+      "porcentaje": 1.04
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "382",
+      "porcentaje": 1.04
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "223",
+      "actas_divulgadas": "217"
+    },
+    "distribucion_votos": {
+      "validos": "36,576",
+      "nulos": "991",
+      "blancos": "842"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "182",
+      "actas_inconsistentes": "35"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Islas de la Bahía",
+    "codigo_cne": "11",
+    "peso_padron": 0.0116,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

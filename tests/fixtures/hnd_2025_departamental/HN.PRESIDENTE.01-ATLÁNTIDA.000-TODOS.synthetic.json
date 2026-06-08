@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "49,237",
+      "porcentaje": 37.7
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "53,895",
+      "porcentaje": 41.26
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "24,252",
+      "porcentaje": 18.57
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,594",
+      "porcentaje": 1.22
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,635",
+      "porcentaje": 1.25
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "836",
+      "actas_divulgadas": "776"
+    },
+    "distribucion_votos": {
+      "validos": "130,615",
+      "nulos": "4,953",
+      "blancos": "2,637"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "655",
+      "actas_inconsistentes": "121"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Atlántida",
+    "codigo_cne": "01",
+    "peso_padron": 0.0437,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

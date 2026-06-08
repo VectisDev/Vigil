@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "75,480",
+      "porcentaje": 38.56
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "77,618",
+      "porcentaje": 39.65
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "38,445",
+      "porcentaje": 19.64
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "2,287",
+      "porcentaje": 1.17
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,936",
+      "porcentaje": 0.99
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "1,190",
+      "actas_divulgadas": "1,163"
+    },
+    "distribucion_votos": {
+      "validos": "195,768",
+      "nulos": "6,126",
+      "blancos": "3,338"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "973",
+      "actas_inconsistentes": "190"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Yoro",
+    "codigo_cne": "18",
+    "peso_padron": 0.0621,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

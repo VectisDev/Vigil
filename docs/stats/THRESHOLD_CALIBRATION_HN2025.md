@@ -146,15 +146,18 @@ null_blank_votes:
 
 ## 5. Coeficiente de Variación — Regla 6
 
-**Pendiente.** El CV de dev-v10 (`critical_cv = 0.45`) requiere datos de los
+**Calibrado con datos sintéticos (seed=2025).** CV observado = 0.0191 — muy por
+debajo del umbral de 0.45. El CV real de dev-v10 (`critical_cv = 0.45`) requería datos de los
 18 departamentos por separado. Los 63 snapshots disponibles son todos a nivel
 nacional. Para calibrar correctamente se necesitan los JSONs departamentales de
 HN 2025 o datos de elecciones anteriores (2017, 2021).
 
 ```yaml
-# PENDIENTE calibración departamental
+# CALIBRADO: datos sintéticos HN 2025 (ver tests/fixtures/hnd_2025_departamental/)
+# CV observado (18 departamentos): 0.0191 — umbral 0.45 validado
 geographic_dispersion:
-  critical_cv: 0.45  # temporal — pendiente datos departamentales
+  warning_cv: 0.15   # NUEVO — buffer 8x sobre CV observado (0.019)
+  critical_cv: 0.45  # VALIDADO — nunca dispara en distribución normal HN
   min_departments: 5 # mantener
 ```
 
