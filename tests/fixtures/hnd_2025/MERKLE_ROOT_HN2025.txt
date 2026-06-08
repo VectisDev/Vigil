@@ -1,0 +1,19 @@
+CENTINEL — OpenTimestamps Merkle Root
+Dataset: Honduras 2025 Presidential Election (CNE)
+Files anchored: 64 JSON snapshots (2025-12-03 to 2025-12-10)
+Merkle root (SHA-256): f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780
+OTS proof file: MERKLE_ROOT_HN2025.ots
+Calendar: https://bob.btc.calendar.opentimestamps.org
+Status: PENDING — Bitcoin confirmation in ~1 hour of submission (2026-06-07)
+Anchoring module: src/centinel/core/anchoring.py
+
+Verification:
+  pip install opentimestamps-client
+  ots verify tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots
+
+Reproducibility:
+  PYTHONPATH=src python3 -c "
+  from centinel.core.anchoring import anchor_snapshot_chain
+  r = anchor_snapshot_chain('tests/fixtures/hnd_2025/')
+  print(r.merkle_root)  # must equal f17dbfe...
+  "

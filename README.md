@@ -24,7 +24,7 @@
 A single operator can audit a national election from a laptop.
 Every capture is chained and signed cryptographically.
 Any third party can verify — offline, independently, without your cooperation.
-Bitcoin blockchain anchoring via OpenTimestamps is on the roadmap for Q4 2026.
+Bitcoin blockchain anchoring via OpenTimestamps is implemented. HN 2025 dataset anchored: `f17dbfe...` — see `tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots`.
 
 > *Auditoría electoral independiente y reproducible, sin dependencia institucional, sin infraestructura dedicada y sin coste operativo. Un solo operador puede auditar una elección nacional desde un portátil.*
 
@@ -84,7 +84,7 @@ It will be available on the next push to `main`.
 | **Scale** | Team of observers, weeks of planning | **1 operator, 1 laptop, 3-step setup** |
 | **Real-time** | Post-election reports | **Continuous capture during the event** |
 | **Censorship resistance** | Single organization = single point to pressure | **P2P swarm — no center to seize or bribe** |
-| **Temporal proof** | None | **SHA-256 hash chain** — Bitcoin anchoring via OpenTimestamps planned Q4 2026 |
+| **Temporal proof** | None | **SHA-256 hash chain + Bitcoin anchoring** via OpenTimestamps (HN 2025 anchored) |
 | **Replicability** | Closed methodology | **Every step reproducible by any third party** |
 
 ---
@@ -148,7 +148,7 @@ Electoral authorities publish results that citizens must accept on trust. CENTIN
 | **Independent verification** | `verify_chain.py` — zero-dependency script any third party can run offline to verify the entire hash chain |
 | **Independence** | Operator needs no permission or cooperation from the authority |
 | **Resilience** | P2P federation — no single point of failure or capture |
-| **Temporal immutability** | SHA-256 chained snapshots; Bitcoin anchoring via OpenTimestamps planned for Q4 2026 |
+| **Temporal immutability** | SHA-256 chained snapshots + Bitcoin anchoring via OpenTimestamps (HN 2025 anchored) |
 | **Neutrality** | Reports verifiable facts only — no political interpretation |
 | **Ethical scraping** | Token-bucket rate limiting + jitter + gossip-first swarm design — the full swarm behaves as at most one visitor to the audited site |
 
@@ -173,7 +173,7 @@ Each fork is a fully independent node. Nodes can optionally join a **witness swa
 - **Join**: Fork → enable Actions → run wizard → the wizard auto-discovers existing peers
 - **Leave**: disable master switch → node gracefully exits; peers discard it after timeout
 - **Anti-DDoS**: gossip-first design means if a node receives a valid signed snapshot from a peer, it does not scrape the source again. The entire swarm never exceeds the footprint of a single polite visitor.
-- **OpenTimestamps**: planned for Q4 2026 — any node will be able to anchor to Bitcoin's blockchain for free.
+- **OpenTimestamps**: implemented. Any node anchors to Bitcoin's blockchain for free. HN 2025 dataset anchored: `MERKLE_ROOT_HN2025.ots`
 
 ---
 
@@ -215,7 +215,7 @@ CENTINEL applies defense in depth: each layer mitigates a distinct class of thre
 | Fernet (AES-128-CBC + HMAC-SHA256) | Encrypted backups and checkpoints |
 | HKDF-SHA256 | Checkpoint key derivation |
 | PBKDF2-SHA256 (600k iterations) | Admin seed hashing |
-| OpenTimestamps / Bitcoin | External temporal immutability anchor *(planned Q4 2026)* |
+| OpenTimestamps / Bitcoin | External temporal immutability anchor — HN 2025 dataset anchored |
 | Merkle tree (SHA-256) | Batch snapshot anchoring |
 
 ---
