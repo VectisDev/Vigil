@@ -1,7 +1,7 @@
 # Dataset: Honduras 2025 Presidential Election — CNE Snapshots
 # Dataset: Elecciones Presidenciales Honduras 2025 — Snapshots CNE
 
-**DOI:** *(pending Zenodo upload)*  
+**DOI:** 10.5281/zenodo.20598892  
 **Versión / Version:** 1.0  
 **Fecha de creación / Created:** 2026-06-07  
 **Licencia / License:** CC BY 4.0  
