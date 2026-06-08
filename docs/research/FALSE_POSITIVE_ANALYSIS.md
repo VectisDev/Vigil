@@ -189,6 +189,9 @@ PYTHONPATH=src python docs/research/run_fp_analysis.py
   *Working paper*, University of Michigan.
 - Mebane, W.R. Jr. (2011). Comment on "Benford's Law and the detection of
   election fraud." *Political Analysis*, 19(3), 269–272.
+- CENTINEL Project (2026). Honduras 2025 Presidential Election — CNE TREP
+  Snapshots (64 JSON files). Zenodo. https://doi.org/10.5281/zenodo.20598892
+
 - NIST/SEMATECH (2012). Engineering Statistics Handbook, §1.3.5.
 
 ---
