@@ -1,162 +1,127 @@
-# Budget Narrative — Centinel Engine
-## Narrativa de Presupuesto / OTF Grant Application
+# CENTINEL — Budget Narrative
+# Narrativa Presupuestaria
 
-**Version:** 1.0 | **Date:** 2026-05-18 | **Grant target:** OTF Core Infrastructure Fund
-**Period:** 12 months | **Requested:** $95,000 USD
-
----
-
-## Español
-
-### Resumen Ejecutivo del Presupuesto
-
-Centinel Engine solicita $95,000 USD para financiar 12 meses de operación, calibración y
-despliegue piloto en dos municipios de Honduras. El sistema ya existe y está operativo
-($0 de construcción). Este presupuesto cubre exclusivamente:
-1. Personal técnico de mantenimiento y calibración (costo principal)
-2. Piloto con observadores en campo
-3. Validación académica externa (UPNFM)
-4. Infraestructura mínima de operación continua
-
-El costo por elección monitorizada en producción es $0 en licencias y < $50/mes en
-infraestructura (GitHub Actions + dominio). El presupuesto cubre el período de maduración
-del sistema, no su construcción.
+**Grant:** OTF Internet Freedom Fund IFF-2026-06  
+**Monto solicitado / Requested amount:** USD 75,000  
+**Período / Period:** 18 meses / 18 months  
+**Costo operativo / Operational cost:** USD 0 (GitHub free tier)
 
 ---
 
-### Desglose por Categoría
+## Principio presupuestario / Budgetary principle
 
-#### 1. Personal / Personnel — $62,000 (65.3%)
+CENTINEL opera a **costo cero absoluto** — sin servidores, sin contratos de nube,
+sin licencias de software. Los fondos solicitados no financian operación; financian
+**validación, expansión académica e impacto documentado**.
 
-| Rol | Tiempo | Tarifa mensual | Total |
-|-----|--------|---------------|-------|
-| Ingeniero principal (mantenimiento, calibración HN-2025, CI) | 12 meses × 50% | $2,500 | $30,000 |
-| Investigador estadístico (validación FP rate, metodología UPNFM) | 12 meses × 25% | $1,500 | $18,000 |
-| Coordinador de campo (piloto 2 municipios, capacitación observadores) | 6 meses × 100% | $1,200 | $7,200 |
-| Revisor de seguridad externo (auditoría anual) | 1 audit | $6,800 | $6,800 |
-
-**Justificación:** Las tarifas son consistentes con salarios de Honduras y la región para
-profesionales técnicos senior. El ingeniero principal trabaja 50% porque el sistema ya
-está construido — el tiempo cubre mantenimiento reactivo, calibración de umbrales post-2025
-y soporte a observadores.
-
-#### 2. Piloto Electoral / Field Pilot — $12,000 (12.6%)
-
-| Item | Costo |
-|------|-------|
-| Laptops para 2 equipos de observación en campo (hardware) | $1,800 |
-| Capacitación presencial de observadores (2 municipios × 2 días) | $3,200 |
-| Viajes y logística (combustible, hospedaje, per diem) | $4,800 |
-| Documentación del piloto y reporte público | $2,200 |
-
-**Justificación:** El piloto en 2 municipios con resultados documentados públicamente es
-el paso que transforma el sistema de "herramienta técnica" a "herramienta validada en campo".
-Es el requisito más crítico para credibilidad ante Carter Center y OEA.
-
-#### 3. Validación Académica / Academic Validation — $8,000 (8.4%)
-
-| Item | Costo |
-|------|-------|
-| Convenio UPNFM — revisión de metodología estadística | $4,500 |
-| Publicación académica (open-access journal, peer review) | $2,000 |
-| Presentación en LAWOG o LASA 2026 | $1,500 |
-
-**Justificación:** La validación de UPNFM convierte una herramienta técnica en una
-herramienta con aval institucional universitario. OTF valora la independencia institucional.
-
-#### 4. Infraestructura / Infrastructure — $6,500 (6.8%)
-
-| Item | Costo anual |
-|------|-------------|
-| GitHub Teams (privado + Actions minutes) | $1,200 |
-| Dominio + certificado TLS | $120 |
-| Servidor de respaldo VPS (resiliencia) | $1,200 |
-| OpenTimestamps + Bitcoin fees estimados | $300 |
-| Contingencia de infraestructura (10%) | $2,000 |------|-------|
-| Traducción profesional de documentación técnica (EN→ES, viceversa) | $2,000 |
-| Diseño de materiales para observadores no-técnicos | $1,500 |
-| Website de documentación pública (fuera de GitHub Pages) | $1,000 |
-| Presentaciones en conferencias de sociedad civil centroamericana | $2,000 |
+CENTINEL operates at **zero operational cost** — no servers, no cloud contracts,
+no software licenses. Requested funds do not finance operations; they finance
+**validation, academic expansion, and documented impact**.
 
 ---
 
-### Total por Categoría
+## Desglose presupuestario / Budget Breakdown
 
-| Categoría | Monto | % del Total |
-|-----------|-------|------------|
-| Personal | $62,000 | 65.3% |
-| Piloto en campo | $12,000 | 12.6% |
-| Validación académica | $8,000 | 8.4% |
-| Infraestructura | $6,500 | 6.8% |
-| Comunicación | $6,500 | 6.8% |
-| **TOTAL** | **$95,000** | **100%** |
+### Línea 1 — Validación Académica / Academic Validation
+**USD 18,000 · 24%**
 
----
+| Ítem | Costo | Justificación |
+|------|-------|---------------|
+| Tiempo investigador co-PI (Prof. Devis Alvarado, UPNFM) | USD 12,000 | 300 hrs × $40/hr: revisión metodológica, calibración con datos históricos 2013-2021, co-autoría working paper |
+| Análisis estadístico independiente | USD 4,000 | Revisión externa por estadístico PhD (no afiliado al proyecto) |
+| Publicación open-access (arXiv + journal submission) | USD 2,000 | APCs si se acepta en revista Q1; arXiv es gratuito |
 
-### Por Qué Este Presupuesto es Eficiente
-
-**Lo que NO se paga con este grant:**
-- Desarrollo del sistema (ya existe, AGPL-3.0)
-- Licencias de software (todas las dependencias son open-source)
-- Servidores propietarios (GitHub Pages es gratuito indefinidamente)
-- Consultoría de marketing o comunicaciones institucionales
-
-**Ratio de impacto:** $95,000 / 2.5M votos monitorizados = $0.038 por voto en Honduras.
-En contraste, soluciones propietarias como Scytl o ES&S cobran $0.50–$2.00 por voto en
-contratos de monitoreo similares — una diferencia de 13–53x.
-
-**Sostenibilidad post-grant:** El sistema opera con $50/mes de infraestructura después del
-período de grant. La licencia AGPL-3.0 impide que sea absorbido por actores comerciales y
-mantiene el código público indefinidamente.
+*Justificación:* La validación académica independiente es el único gap técnico
+que CENTINEL no puede resolver internamente. El Prof. Alvarado de la UPNFM ya
+conoce el proyecto; los fondos permiten formalizar la colaboración.
 
 ---
 
-### Hitos por Trimestre / Quarterly Milestones
+### Línea 2 — Expansión Regional / Regional Expansion
+**USD 22,000 · 29%**
 
-| Trimestre | Hito |
-|-----------|------|
-| Q1 (meses 1-3) | Calibración de umbrales con datos HN-2025 reales; publicación de `FALSE_POSITIVE_ANALYSIS.md` con datos empíricos |
-| Q2 (meses 4-6) | Convenio UPNFM firmado; capacitación de primer equipo de observadores; despliegue en municipio piloto 1 |
-| Q3 (meses 7-9) | Piloto municipio 2; primer reporte público de resultados; submisión a journal académico |
-| Q4 (meses 10-12) | Auditoría de seguridad externa; publicación del playbook de replicación para Guatemala/El Salvador; informe final OTF |
+| Ítem | Costo | Justificación |
+|------|-------|---------------|
+| Piloto Guatemala (GT) — campo + validación | USD 8,000 | Viaje + tiempo técnico para validar configuración GT contra datos TSE reales |
+| Piloto El Salvador (SV) — campo + validación | USD 7,000 | Misma metodología que GT |
+| Adaptación de schemas JSON para 2 países nuevos | USD 4,000 | 100 hrs desarrollo × $40/hr |
+| Documentación localizada (ES) para cada país | USD 3,000 | Guías de observadores adaptadas al contexto local |
 
----
-
-## English
-
-### Budget Executive Summary
-
-Centinel Engine requests $95,000 USD to fund 12 months of operation, calibration, and pilot
-deployment in two Honduran municipalities. The system already exists and is operational
-($0 in construction costs). This budget covers exclusively:
-1. Technical staff for maintenance and calibration (primary cost)
-2. Field pilot with on-ground observers
-3. External academic validation (UPNFM)
-4. Minimal infrastructure for continuous operation
-
-The cost per monitored election in production is $0 in licenses and < $50/month in
-infrastructure (GitHub Actions + domain). The budget covers the system's maturation period,
-not its construction.
-
-### Why This Budget is Efficient
-
-**What this grant does NOT pay for:**
-- System development (already exists, AGPL-3.0)
-- Software licenses (all dependencies are open-source)
-- Proprietary servers (GitHub Pages is free indefinitely)
-- Marketing or institutional communications consulting
-
-**Impact ratio:** $95,000 / 2.5M monitored votes = $0.038 per vote in Honduras.
-By comparison, proprietary solutions like Scytl or ES&S charge $0.50–$2.00 per vote in
-similar monitoring contracts — a difference of 13–53x.
-
-**Post-grant sustainability:** The system operates on $50/month in infrastructure after
-the grant period. The AGPL-3.0 license prevents commercial absorption and keeps the
-code public indefinitely.
+*Justificación:* CENTINEL ya tiene configuraciones para GT y SV en el código.
+Los fondos financian la prueba de campo real, no el desarrollo desde cero.
+Costo por país adicional: ~$7,500 — fracción del costo de una misión de observación.
 
 ---
 
-*Documento bilingüe ES/EN — Versión 1.0 — 2026-05-18*
-*Para metodología técnica: [METHODOLOGY.md](METHODOLOGY.md)*
-*Para teoría del cambio: [THEORY_OF_CHANGE.md](THEORY_OF_CHANGE.md)*
-*Para auditoría de seguridad: [../SECURITY_AUDIT.md](../SECURITY_AUDIT.md)*
+### Línea 3 — Seguridad y Opsec / Security & Operational Security
+**USD 12,000 · 16%**
+
+| Ítem | Costo | Justificación |
+|------|-------|---------------|
+| Auditoría de seguridad independiente | USD 8,000 | Revisión del código por firma de seguridad externa (threat model completo) |
+| Infraestructura de opsec para operadores | USD 2,000 | Equipos seguros, VPN empresarial, gestión de claves para operadores en campo |
+| Capacitación en seguridad digital para operadores | USD 2,000 | Talleres con periodistas y sociedad civil en HN, GT, SV |
+
+*Justificación:* CENTINEL opera en entornos de alto riesgo. La auditoría
+independiente es un requisito para ser tomado en serio por misiones internacionales
+y es exigida explícitamente por OTF en proyectos de tecnología electoral.
+
+---
+
+### Línea 4 — Incidencia y Comunicación / Advocacy & Communications
+**USD 15,000 · 20%**
+
+| Ítem | Costo | Justificación |
+|------|-------|---------------|
+| Presentación ante misión OEA / Carter Center | USD 5,000 | Viaje + materiales para briefing técnico formal ante observadores internacionales |
+| Presencia en conferencias (RightsCon, OEA Electoral Forum) | USD 6,000 | 2 conferencias internacionales — visibilidad con donantes y observadores |
+| Materiales de comunicación para sociedad civil | USD 4,000 | Videos explicativos, infografías, guías no-técnicas en ES para ciudadanos |
+
+*Justificación:* La herramienta existe. El gap es visibilidad estratégica.
+Una presentación ante la OEA vale más que 10 comunicados de prensa.
+
+---
+
+### Línea 5 — Gestión y Coordinación / Management & Coordination
+**USD 8,000 · 11%**
+
+| Ítem | Costo | Justificación |
+|------|-------|---------------|
+| Coordinación técnica del proyecto (18 meses) | USD 6,000 | Gestión de deliverables, reporting a OTF, coordinación con co-PI |
+| Costos administrativos e imprevistos (10%) | USD 2,000 | Contingencia estándar |
+
+---
+
+## Resumen / Summary
+
+| Línea | Descripción | USD | % |
+|-------|-------------|-----|---|
+| 1 | Validación académica | 18,000 | 24% |
+| 2 | Expansión regional (GT + SV) | 22,000 | 29% |
+| 3 | Seguridad y opsec | 12,000 | 16% |
+| 4 | Incidencia y comunicación | 15,000 | 20% |
+| 5 | Gestión y coordinación | 8,000 | 11% |
+| **TOTAL** | | **75,000** | **100%** |
+
+---
+
+## Lo que este presupuesto NO incluye / What this budget does NOT include
+
+- ❌ Servidores ni infraestructura de nube (costo operativo = $0)
+- ❌ Desarrollo de funcionalidades básicas (ya implementadas)
+- ❌ Licencias de software (todo open-source)
+- ❌ Publicidad o marketing comercial
+
+## Sostenibilidad post-grant / Post-grant sustainability
+
+Al término del período de financiamiento, CENTINEL continuará operando a costo
+cero en GitHub free tier, con el código publicado bajo AGPL-3.0. La validación
+académica y la expansión regional son inversiones de una sola vez; el sistema
+no requiere mantenimiento continuo pagado.
+
+**CENTINEL es sostenible por diseño — no por financiamiento recurrente.**
+
+---
+
+*CENTINEL — AGPL-3.0 — docs/grants/BUDGET_NARRATIVE.md v1.0*  
+*OTF Internet Freedom Fund IFF-2026-06 · USD 75,000 · 18 meses*
