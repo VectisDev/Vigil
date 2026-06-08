@@ -18,14 +18,19 @@
 
 ---
 
-> Electoral authorities publish results that citizens must accept on trust.  
+> Electoral authorities publish results that citizens must accept on trust.
 > **CENTINEL eliminates that required trust** — permanently, cryptographically, at zero cost.
 
-A single operator can audit a national election from a laptop.  
-Every capture is chained, signed, and anchored to Bitcoin's blockchain.  
+A single operator can audit a national election from a laptop.
+Every capture is chained and signed cryptographically.
 Any third party can verify — offline, independently, without your cooperation.
+Bitcoin blockchain anchoring via OpenTimestamps is on the roadmap for Q4 2026.
 
 > *Auditoría electoral independiente y reproducible, sin dependencia institucional, sin infraestructura dedicada y sin coste operativo. Un solo operador puede auditar una elección nacional desde un portátil.*
+
+> **Neutrality disclaimer:** CENTINEL does not assert fraud. It detects statistical anomalies in publicly available electoral data and provides cryptographic proof of data integrity for independent human evaluation. The project is politically neutral, open-source, and reproducible.
+>
+> **Declaración de neutralidad:** CENTINEL no afirma fraude. Detecta anomalías estadísticas en datos electorales públicos y proporciona prueba criptográfica de integridad de datos para evaluación humana independiente. El proyecto es políticamente neutral, de código abierto y reproducible.
 
 <!-- INSTANCE-STATUS-START -->
 
@@ -54,8 +59,8 @@ Go to the **[Actions](../../actions)** tab of **your fork** and click:
 
 The wizard auto-configures everything: data repository, electoral authority endpoints, cryptographic seeds, and the visualization dashboard. Follow the Issue it opens for any remaining manual step.
 
-**What you get after setup:**  
-→ 2–5 min election captures · Cryptographic hash chain · Bitcoin-anchored proof · Public verification dashboard · P2P swarm-ready
+**What you get after setup:**
+→ 2–5 min election captures · Cryptographic hash chain · Public verification dashboard · Independent verify_chain.py script · P2P swarm-ready
 
 <details>
 <summary>Panel not showing after setup?</summary>
@@ -79,7 +84,7 @@ It will be available on the next push to `main`.
 | **Scale** | Team of observers, weeks of planning | **1 operator, 1 laptop, 3-step setup** |
 | **Real-time** | Post-election reports | **Continuous capture during the event** |
 | **Censorship resistance** | Single organization = single point to pressure | **P2P swarm — no center to seize or bribe** |
-| **Temporal proof** | None | **Bitcoin-anchored** via OpenTimestamps |
+| **Temporal proof** | None | **SHA-256 hash chain** — Bitcoin anchoring via OpenTimestamps planned Q4 2026 |
 | **Replicability** | Closed methodology | **Every step reproducible by any third party** |
 
 ---
@@ -88,7 +93,7 @@ It will be available on the next push to `main`.
 
 ### Honduras 2025 Presidential Election
 
-CENTINEL processed **64 real snapshots** from the CNE (Consejo Nacional Electoral) captured manually between December 3-10, 2025. The forensic engine detected:
+CENTINEL applied its forensic engine retroactively to **64 original JSON files from the CNE** (elecciones 30/11/2025). These are the same files published by the State — unmodified, no privileged access required. The forensic engine detected:
 
 | Finding | Detail |
 |---------|--------|
@@ -106,6 +111,11 @@ make reproduce-2025-audit
 > Raw data: `tests/fixtures/hnd_2025/` (64 JSON files from CNE)
 > Forensic script: `scripts/forensic_hnd_2025.py`
 > Detection engine: `src/auditor/inconsistent_acts.py`
+
+**Verify the hash chain independently:**
+```bash
+python verify/verify_chain.py tests/fixtures/hnd_2025/
+```
 
 *CENTINEL does not assert fraud. It detects statistical anomalies and provides cryptographic proof of data integrity for independent human evaluation.*
 
@@ -135,9 +145,10 @@ Electoral authorities publish results that citizens must accept on trust. CENTIN
 | Property | Guarantee |
 |----------|-----------|
 | **Reproducibility** | SHA-256 chain + Merkle root, verifiable offline by anyone |
+| **Independent verification** | `verify_chain.py` — zero-dependency script any third party can run offline to verify the entire hash chain |
 | **Independence** | Operator needs no permission or cooperation from the authority |
 | **Resilience** | P2P federation — no single point of failure or capture |
-| **Temporal immutability** | Bitcoin anchoring via OpenTimestamps — zero cost |
+| **Temporal immutability** | SHA-256 chained snapshots; Bitcoin anchoring via OpenTimestamps planned for Q4 2026 |
 | **Neutrality** | Reports verifiable facts only — no political interpretation |
 | **Ethical scraping** | Token-bucket rate limiting + jitter + gossip-first swarm design — the full swarm behaves as at most one visitor to the audited site |
 
@@ -162,7 +173,7 @@ Each fork is a fully independent node. Nodes can optionally join a **witness swa
 - **Join**: Fork → enable Actions → run wizard → the wizard auto-discovers existing peers
 - **Leave**: disable master switch → node gracefully exits; peers discard it after timeout
 - **Anti-DDoS**: gossip-first design means if a node receives a valid signed snapshot from a peer, it does not scrape the source again. The entire swarm never exceeds the footprint of a single polite visitor.
-- **OpenTimestamps**: any node can anchor to Bitcoin's blockchain for free. Multiple nodes submitting the same hash get the same proof — no coordination needed.
+- **OpenTimestamps**: planned for Q4 2026 — any node will be able to anchor to Bitcoin's blockchain for free.
 
 ---
 
@@ -204,7 +215,7 @@ CENTINEL applies defense in depth: each layer mitigates a distinct class of thre
 | Fernet (AES-128-CBC + HMAC-SHA256) | Encrypted backups and checkpoints |
 | HKDF-SHA256 | Checkpoint key derivation |
 | PBKDF2-SHA256 (600k iterations) | Admin seed hashing |
-| OpenTimestamps / Bitcoin | External temporal immutability anchor |
+| OpenTimestamps / Bitcoin | External temporal immutability anchor *(planned Q4 2026)* |
 | Merkle tree (SHA-256) | Batch snapshot anchoring |
 
 ---
@@ -215,11 +226,12 @@ CENTINEL applies defense in depth: each layer mitigates a distinct class of thre
 |------|--------|
 | Cryptographic audit (theorems T1–T4) | Complete — verifiable in code |
 | Test suite | 526 / 526 passing |
-| Independent academic validation | In progress (UPNFM, Honduras) |
+| Independent academic validation | Initiated — working paper in preparation with Prof. Devis Alvarado (UPNFM). Statistical conventions document under review. |
 | Field pilot | Completed — Honduras 2025 general election data |
 | False positive analysis | 500-run validation — [results published](docs/research/FALSE_POSITIVE_ANALYSIS.md) |
+| Statistical conventions | Unified — [see STATISTICAL_CONVENTIONS.md](docs/stats/STATISTICAL_CONVENTIONS.md) |
 
-Version **0.1 — pre-pilot.** Cryptographic core stable; pending formal independent academic review (UPNFM, Universidad Pedagógica Nacional Francisco Morazán).
+Version **0.1 — pre-pilot.** Cryptographic core stable; academic review initiated with UPNFM (Universidad Pedagógica Nacional Francisco Morazán).
 
 ---
 
@@ -243,6 +255,7 @@ CENTINEL separates code (this repository) from captured electoral data (`centine
 | [ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) | Technical reviewers — design and theorems |
 | [SECURITY-REVIEW.md](docs/security/SECURITY-REVIEW.md) | Security auditors — threat model |
 | [METHODOLOGY.md](docs/research/METHODOLOGY.md) | Academics — methodological foundation |
+| [STATISTICAL_CONVENTIONS.md](docs/stats/STATISTICAL_CONVENTIONS.md) | Statisticians — unified Z-score and Benford conventions |
 | [OPERATOR-RUNBOOKS.md](docs/operations/OPERATOR-RUNBOOKS.md) | Operators — step-by-step procedures |
 | [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](docs/legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md) | Legal framework and operational limits |
 | [docs/](docs/) | Full documentation index |
@@ -256,12 +269,14 @@ CENTINEL is designed for zero operating cost, maximum verifiability, and AGPL-3.
 **Relevant materials:**
 - [Theory of Change](docs/architecture/THEORY_OF_CHANGE.md) — impact logic model
 - [Methodology](docs/research/METHODOLOGY.md) — 25+ statistical detectors, academic foundation
+- [Statistical Conventions](docs/stats/STATISTICAL_CONVENTIONS.md) — unified Z-score and Benford methodology
+- [OTF Concept Note IFF-2026-06](docs/grants/OTF_ConceptNote_IFF2026.md) — concept note lista para enviar
 - [Budget Narrative](docs/grants/BUDGET_NARRATIVE.md) — grant budget breakdown
 - [Institutional Readiness](docs/grants/INSTITUTIONAL_READINESS.md) — readiness for multilateral observer engagement
 - [Roadmap](docs/grants/ROADMAP.md) — feature and deployment roadmap
 - [False Positive Analysis](docs/research/FALSE_POSITIVE_ANALYSIS.md) — 500-run validation
 
-**Suitable for:** Gitcoin · Open Society Foundations · NDI / IRI · OAS · NSF · Immunefi security bounties
+**Suitable for:** Gitcoin · Open Society Foundations · NDI / IRI · OAS · NSF · Immunefi security bounties · Open Technology Fund (OTF)
 
 → [Full grants documentation](docs/grants/)
 
