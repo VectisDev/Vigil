@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "73,459",
+      "porcentaje": 40.72
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "72,621",
+      "porcentaje": 40.25
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "29,916",
+      "porcentaje": 16.58
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,893",
+      "porcentaje": 1.05
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "2,521",
+      "porcentaje": 1.4
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "1,097",
+      "actas_divulgadas": "1,072"
+    },
+    "distribucion_votos": {
+      "validos": "180,412",
+      "nulos": "7,894",
+      "blancos": "3,429"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "907",
+      "actas_inconsistentes": "165"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Olancho",
+    "codigo_cne": "15",
+    "peso_padron": 0.0573,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

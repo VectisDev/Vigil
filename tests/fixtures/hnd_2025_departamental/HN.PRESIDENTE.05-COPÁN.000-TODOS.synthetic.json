@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "55,162",
+      "porcentaje": 39.66
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "53,232",
+      "porcentaje": 38.28
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "27,890",
+      "porcentaje": 20.05
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,333",
+      "porcentaje": 0.96
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,456",
+      "porcentaje": 1.05
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "818",
+      "actas_divulgadas": "818"
+    },
+    "distribucion_votos": {
+      "validos": "139,075",
+      "nulos": "4,544",
+      "blancos": "2,640"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "695",
+      "actas_inconsistentes": "123"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Copán",
+    "codigo_cne": "05",
+    "peso_padron": 0.0427,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

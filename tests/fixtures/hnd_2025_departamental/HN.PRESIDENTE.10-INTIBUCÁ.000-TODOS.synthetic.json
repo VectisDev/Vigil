@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "29,037",
+      "porcentaje": 39.81
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "28,879",
+      "porcentaje": 39.59
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "12,836",
+      "porcentaje": 17.6
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "795",
+      "porcentaje": 1.09
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,390",
+      "porcentaje": 1.91
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "427",
+      "actas_divulgadas": "427"
+    },
+    "distribucion_votos": {
+      "validos": "72,940",
+      "nulos": "2,212",
+      "blancos": "1,611"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "357",
+      "actas_inconsistentes": "70"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Intibucá",
+    "codigo_cne": "10",
+    "peso_padron": 0.0223,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

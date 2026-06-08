@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "72,311",
+      "porcentaje": 40.44
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "64,109",
+      "porcentaje": 35.85
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "32,657",
+      "porcentaje": 18.26
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,745",
+      "porcentaje": 0.98
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "7,987",
+      "porcentaje": 4.47
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "1,060",
+      "actas_divulgadas": "1,060"
+    },
+    "distribucion_votos": {
+      "validos": "178,811",
+      "nulos": "7,068",
+      "blancos": "3,961"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "912",
+      "actas_inconsistentes": "148"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Choluteca",
+    "codigo_cne": "02",
+    "peso_padron": 0.0553,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}
