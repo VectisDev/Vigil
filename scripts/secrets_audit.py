@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any
 
 SENSITIVE_ENV_KEYS = [
-    "ARBITRUM_PRIVATE_KEY",
     "SECRET_ENCRYPTION_KEY",
     "API_KEY",
     "TOKEN",

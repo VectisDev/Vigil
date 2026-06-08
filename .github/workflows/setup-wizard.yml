@@ -239,57 +239,9 @@ jobs:
               -d "{\"message\":\"init: $path\",\"content\":\"$b64\"}" \
               "$BASE_URL/contents/$path" > /dev/null
           }
+          # IPFS/Pinata removed — requires paid Pinata account (violates Zero Cost)
+      # Pin to IPFS removed — Pinata is a paid service
 
-          push_file ".github/workflows/ipfs-pin.yml" 'name: IPFS Pin (Optional)
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-jobs:
-  pin:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Pin to IPFS via Pinata
-        if: ${{ secrets.PINATA_JWT != '' }}
-        env:
-          PINATA_JWT: ${{ secrets.PINATA_JWT }}
-        run: |
-          tar czf /tmp/centinel-data.tar.gz --exclude='"'"'.git'"'"' .
-          RESPONSE=$(curl -sS --fail \
-            -H "Authorization: Bearer $PINATA_JWT" \
-            -F "file=@/tmp/centinel-data.tar.gz" \
-            "https://api.pinata.cloud/pinning/pinFileToIPFS")
-          CID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['"'"'IpfsHash'"'"'])")
-          echo "Pinned: ipfs://$CID"
-          python3 - <<EOF
-import json, os
-from datetime import datetime, timezone
-with open("ipfs-manifest.json") as f:
-    m = json.load(f)
-m["snapshots"].append({"cid": "$CID", "timestamp": datetime.now(timezone.utc).isoformat()})
-m["last_updated"] = datetime.now(timezone.utc).isoformat()
-with open("ipfs-manifest.json", "w") as f:
-    json.dump(m, f, indent=2)
-EOF
-          git config user.name "centinel-bot"
-          git config user.email "bot@centinel.app"
-          git add ipfs-manifest.json
-          git diff --cached --quiet || git commit -m "ipfs: pin $CID"
-          git push'
-
-          push_file ".github/workflows/auto-release.yml" 'name: Weekly Backup Release
-on:
-  schedule:
-    - cron: '"'"'0 3 * * 0'"'"'
-  workflow_dispatch:
-permissions:
-  contents: write
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - name: Create backup archive
         run: |
           TAG="backup-$(date -u +%Y-%m-%d)"

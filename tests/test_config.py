@@ -87,17 +87,7 @@ def test_load_config_reads_yaml(tmp_path, monkeypatch):
                 },
                 "alerts": {
                     "critical_anomaly_types": ["FOO"],
-                },
-                "arbitrum": {
-                    "enabled": False,
-                    "network": "Arbitrum One",
-                    "rpc_url": "https://arb1.arbitrum.io/rpc",
-                    "private_key": "0x...",
-                    "contract_address": "0x...",
-                    "interval_minutes": 15,
-                    "batch_size": 19,
-                    "auto_anchor_snapshots": True,
-                },
+                }
                 "rules": {"global_enabled": True},
             }
         ),
@@ -166,17 +156,7 @@ def test_load_config_rejects_invalid_master_switch(tmp_path, monkeypatch):
                     "network": "polygon-mumbai",
                     "private_key": "0x...",
                 },
-                "alerts": {"critical_anomaly_types": ["FOO"]},
-                "arbitrum": {
-                    "enabled": False,
-                    "network": "Arbitrum One",
-                    "rpc_url": "https://arb1.arbitrum.io/rpc",
-                    "private_key": "0x...",
-                    "contract_address": "0x...",
-                    "interval_minutes": 15,
-                    "batch_size": 19,
-                    "auto_anchor_snapshots": True,
-                },
+                "alerts": {"critical_anomaly_types": ["FOO"]}
                 "rules": {"global_enabled": True},
             }
         ),

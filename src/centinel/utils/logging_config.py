@@ -72,12 +72,12 @@ SENSITIVE_KEYS = {
     "secret",
     "password",
     "private_key",
-    "arbitrum_private_key",
+    "arbitrum_private_key",  # legacy key — kept in redaction list for safety
 }
 
 SECRET_PATTERNS = [
     re.compile(r"(?i)(bearer\s+)[A-Za-z0-9._-]+"),
-    re.compile(r"(?i)(arbitrum_private_key\s*[=:]\s*)[^\s,;]+"),
+    re.compile(r"(?i)(arbitrum_private_key\s*[=:]\s*)[^\s,;]+")  # legacy,
     re.compile(r"(?i)(api[_-]?key\s*[=:]\s*)[^\s,;]+"),
     re.compile(r"(?i)(token\s*[=:]\s*)[^\s,;]+"),
 ]

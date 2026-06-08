@@ -70,19 +70,9 @@ herramienta con aval institucional universitario. OTF valora la independencia in
 |------|-------------|
 | GitHub Teams (privado + Actions minutes) | $1,200 |
 | Dominio + certificado TLS | $120 |
-| Supabase Pro (base de datos del piloto) | $1,680 |
 | Servidor de respaldo VPS (resiliencia) | $1,200 |
 | OpenTimestamps + Bitcoin fees estimados | $300 |
-| Contingencia de infraestructura (10%) | $2,000 |
-
-**Justificación:** La infraestructura principal es GitHub Pages (costo $0). El VPS y
-Supabase son para el período del piloto activo únicamente. En operación sin piloto,
-el costo mensual de infraestructura es < $50.
-
-#### 5. Comunicación y Diseminación / Communication — $6,500 (6.8%)
-
-| Item | Costo |
-|------|-------|
+| Contingencia de infraestructura (10%) | $2,000 |------|-------|
 | Traducción profesional de documentación técnica (EN→ES, viceversa) | $2,000 |
 | Diseño de materiales para observadores no-técnicos | $1,500 |
 | Website de documentación pública (fuera de GitHub Pages) | $1,000 |

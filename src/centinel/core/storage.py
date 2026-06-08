@@ -56,9 +56,8 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-from centinel.core.blockchain import publish_cid_to_chain, publish_hash_to_chain
+# blockchain imports removed — use centinel.core.anchoring instead (Zero Cost)
 from centinel.core.hashchain import compute_hash
-from centinel.core.ipfs import upload_snapshot_to_ipfs
 from centinel.core.models import Snapshot
 from centinel.core.normalize import snapshot_to_canonical_json
 
@@ -124,21 +123,10 @@ class LocalSnapshotStore:
             raise ValueError(f"canonical_json generation produced invalid JSON: {exc}") from exc
         snapshot_hash = compute_hash(canonical_json, previous_hash=previous_hash)
         tx_hash = None
-        ipfs_cid = None
-        ipfs_tx_hash = None
-        try:
-            tx_hash = publish_hash_to_chain(snapshot_hash) or None
+        # tx_hash = publish_hash_to_chain() — REMOVED (Zero Cost)
+    tx_hash = None  # OTS handles anchoring: centinel.core.anchoring
         except Exception as exc:  # noqa: BLE001
             logger.warning("blockchain_publish_failed error=%s", exc)
-        try:
-            ipfs_cid = upload_snapshot_to_ipfs(json.loads(canonical_json)) or None
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("ipfs_upload_failed error=%s", exc)
-        if ipfs_cid:
-            try:
-                ipfs_tx_hash = publish_cid_to_chain(ipfs_cid) or None
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("ipfs_blockchain_publish_failed error=%s", exc)
         department_code = snapshot.meta.department_code
         table_name = self._department_table_name(department_code)
         self._ensure_department_table(table_name)
@@ -165,9 +153,7 @@ class LocalSnapshotStore:
                     null_votes,
                     blank_votes,
                     candidates_json,
-                    tx_hash,
-                    ipfs_cid,
-                    ipfs_tx_hash
+                    tx_hash
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,  # nosec B608 - validated by _assert_safe_identifier.
@@ -183,8 +169,6 @@ class LocalSnapshotStore:
                     totals.blank_votes,
                     candidates_json,
                     tx_hash,
-                    ipfs_cid,
-                    ipfs_tx_hash,
                 ),
             )
             self._connection.execute(
@@ -195,9 +179,7 @@ class LocalSnapshotStore:
                     table_name,
                     hash,
                     previous_hash,
-                    tx_hash,
-                    ipfs_cid,
-                    ipfs_tx_hash
+                    tx_hash
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -208,8 +190,6 @@ class LocalSnapshotStore:
                     snapshot_hash,
                     previous_hash,
                     tx_hash,
-                    ipfs_cid,
-                    ipfs_tx_hash,
                 ),
             )
 
@@ -236,7 +216,7 @@ class LocalSnapshotStore:
         if department_code:
             rows = self._connection.execute(
                 """
-                SELECT department_code, timestamp_utc, table_name, hash, previous_hash, tx_hash, ipfs_cid, ipfs_tx_hash
+                SELECT department_code, timestamp_utc, table_name, hash, previous_hash, tx_hash
                 FROM snapshot_index
                 WHERE department_code = ?
                 ORDER BY timestamp_utc
@@ -245,7 +225,7 @@ class LocalSnapshotStore:
             ).fetchall()
         else:
             rows = self._connection.execute("""
-                SELECT department_code, timestamp_utc, table_name, hash, previous_hash, tx_hash, ipfs_cid, ipfs_tx_hash
+                SELECT department_code, timestamp_utc, table_name, hash, previous_hash, tx_hash
                 FROM snapshot_index
                 ORDER BY department_code, timestamp_utc
                 """).fetchall()
@@ -281,8 +261,7 @@ class LocalSnapshotStore:
                     "previous_hash": row["previous_hash"],
                     "snapshot": snapshot_data,
                     "tx_hash": row["tx_hash"],
-                    "ipfs_cid": row["ipfs_cid"],
-                    "ipfs_tx_hash": row["ipfs_tx_hash"],
+                                        "": row[""],
                 }
             )
         Path(output_path).write_text(json.dumps(payload, ensure_ascii=False, indent=2))
@@ -314,8 +293,7 @@ class LocalSnapshotStore:
             "candidates_json",
             "canonical_json",
             "tx_hash",
-            "ipfs_cid",
-            "ipfs_tx_hash",
+            "",
         ]
         with Path(output_path).open("w", newline="", encoding="utf-8") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -349,9 +327,7 @@ class LocalSnapshotStore:
                 null_votes,
                 blank_votes,
                 candidates_json,
-                tx_hash,
-                ipfs_cid,
-                ipfs_tx_hash
+                tx_hash
             FROM {table_name}
             ORDER BY timestamp_utc
             """,  # nosec B608 - validated by _assert_safe_identifier.
@@ -370,15 +346,12 @@ class LocalSnapshotStore:
                 table_name TEXT NOT NULL,
                 hash TEXT NOT NULL,
                 previous_hash TEXT,
-                tx_hash TEXT,
-                ipfs_cid TEXT,
-                ipfs_tx_hash TEXT,
+                tx_hash TEXT TEXT TEXT,
                 PRIMARY KEY (department_code, timestamp_utc)
             )
             """)
         self._ensure_column("snapshot_index", "tx_hash", "TEXT")
-        self._ensure_column("snapshot_index", "ipfs_cid", "TEXT")
-        self._ensure_column("snapshot_index", "ipfs_tx_hash", "TEXT")
+        self._ensure_column("snapshot_index", "", "TEXT")
 
     def _ensure_department_table(self, table_name: str) -> None:
         """Crea la tabla de snapshots de un departamento si falta.
@@ -388,7 +361,7 @@ class LocalSnapshotStore:
         English:
             Create the department snapshot table if missing.
 
-            Also ensures indexes and extra columns (tx/IPFS).
+            Also ensures indexes and extra columns.
         """
         self._assert_safe_identifier(table_name, "table_name")
         self._connection.execute(
@@ -404,9 +377,7 @@ class LocalSnapshotStore:
                 null_votes INTEGER NOT NULL,
                 blank_votes INTEGER NOT NULL,
                 candidates_json TEXT NOT NULL,
-                tx_hash TEXT,
-                ipfs_cid TEXT,
-                ipfs_tx_hash TEXT
+                tx_hash TEXT TEXT TEXT
             )
             """,  # nosec B608 - validated by _assert_safe_identifier.
         )
@@ -416,8 +387,7 @@ class LocalSnapshotStore:
             f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table_name}(timestamp_utc)"  # nosec B608 - validated by _assert_safe_identifier.
         )
         self._ensure_column(table_name, "tx_hash", "TEXT")
-        self._ensure_column(table_name, "ipfs_cid", "TEXT")
-        self._ensure_column(table_name, "ipfs_tx_hash", "TEXT")
+        self._ensure_column(table_name, "", "TEXT")
 
     _TABLE_NAME_RE = re.compile(r"^[A-Za-z0-9_]+$")
 

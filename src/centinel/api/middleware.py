@@ -125,11 +125,7 @@ def _load_security_config() -> dict[str, Any]:
 # In-memory sliding-window rate limiter (Rate limiter deslizante en memoria)
 # ---------------------------------------------------------------------------
 # NOTE: This is intentionally simple and in-memory.  For horizontal scaling
-# replace with Redis-backed counters.
 # (NOTA: Intencionalmente simple y en memoria.  Para escalado horizontal
-# reemplazar con contadores respaldados por Redis.)
-
-
 class _SlidingWindowLimiter:
     """Per-IP sliding window rate limiter.
     (Rate limiter de ventana deslizante por IP.)

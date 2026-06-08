@@ -247,8 +247,6 @@ def _ensure_schema(connection: sqlite3.Connection) -> None:
             hash TEXT NOT NULL,
             previous_hash TEXT,
             tx_hash TEXT,
-            ipfs_cid TEXT,
-            ipfs_tx_hash TEXT,
             PRIMARY KEY (department_code, timestamp_utc)
         )
         """
@@ -312,8 +310,7 @@ def fetch_latest_snapshot(connection: sqlite3.Connection) -> dict | None:
     table_name = _validate_table_name(row["table_name"])
     snapshot = connection.execute(
         f"""
-        SELECT canonical_json, registered_voters, total_votes, valid_votes,
-               null_votes, blank_votes, candidates_json, ipfs_cid, ipfs_tx_hash
+        SELECT canonical_json, registered_voters, total_votes, valid_votes, null_votes, blank_votes, candidates_json
         FROM {table_name}
         WHERE hash = ?
         """,  # nosec B608 - table name validated against strict pattern.
@@ -335,9 +332,7 @@ def fetch_latest_snapshot(connection: sqlite3.Connection) -> dict | None:
         "timestamp_utc": row["timestamp_utc"],
         "previous_hash": row["previous_hash"],
         "tx_hash": row["tx_hash"],
-        "ipfs_cid": snapshot["ipfs_cid"] if snapshot else None,
-        "ipfs_tx_hash": snapshot["ipfs_tx_hash"] if snapshot else None,
-        "snapshot": payload,
+                        "snapshot": payload,
     }
 
 
@@ -375,7 +370,7 @@ def fetch_snapshot_by_hash(connection: sqlite3.Connection, snapshot_hash: str) -
     table_name = _validate_table_name(row["table_name"])
     snapshot = connection.execute(
         f"""
-        SELECT canonical_json, ipfs_cid, ipfs_tx_hash
+        SELECT canonical_json
         FROM {table_name}
         WHERE hash = ?
         """,  # nosec B608 - table name validated against strict pattern.
@@ -398,9 +393,7 @@ def fetch_snapshot_by_hash(connection: sqlite3.Connection, snapshot_hash: str) -
         "timestamp_utc": row["timestamp_utc"],
         "previous_hash": row["previous_hash"],
         "tx_hash": row["tx_hash"],
-        "ipfs_cid": snapshot["ipfs_cid"] if snapshot else None,
-        "ipfs_tx_hash": snapshot["ipfs_tx_hash"] if snapshot else None,
-        "snapshot": payload,
+                        "snapshot": payload,
     }
 
 
