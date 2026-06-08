@@ -140,7 +140,7 @@ class ChainVerificationResult:
 
 @dataclass(frozen=True)
 class AnchorVerificationResult:
-    """Resultado de verificar un anclaje contra Arbitrum. / Result of anchor verification against Arbitrum."""
+    # [REMOVED-ZERO-COST] """Resultado de verificar un anclaje contra Arbitrum. / Result of anchor verification against Arbitr
 
     valid: bool
     tx_hash: str
@@ -345,69 +345,66 @@ def verify_chain_from_entries(entries: List[Dict[str, Any]]) -> ChainVerificatio
 
 
 # ---------------------------------------------------------------------------
-# 2. verify_anchor — consulta Arbitrum y confirma que Merkle root coincide
-# ---------------------------------------------------------------------------
-
+    # [REMOVED-ZERO-COST] # verify_anchor (Arbitrum) removed — use centinel.core.anchoring.verify_anchor() instead.
 
 def verify_anchor(
     tx_hash: str,
     expected_root: Optional[str] = None,
     *,
-    rpc_url: Optional[str] = None,
+    # [REMOVED-ZERO-COST] rpc_url: Optional[str] = None,
     contract_address: Optional[str] = None,
     max_retries: int = 3,
 ) -> AnchorVerificationResult:
-    """Consulta Arbitrum y confirma que el Merkle root coincide con el esperado.
+    # [REMOVED-ZERO-COST] """Consulta Arbitrum y confirma que el Merkle root coincide con el esperado.
 
     Lee el receipt de la transacción, decodifica el evento
     ``HashRootAnchored(bytes32 root, uint256 timestamp)`` y compara
     el root on-chain con ``expected_root``.
 
     English:
-        Queries Arbitrum and confirms the on-chain Merkle root matches
+    # [REMOVED-ZERO-COST] Queries Arbitrum and confirms the on-chain Merkle root matches
         the expected root.
     """
-    if rpc_url is None or contract_address is None:
+    # [REMOVED-ZERO-COST] if rpc_url is None or contract_address is None:
         from centinel.utils.config_loader import load_config
 
         config = load_config()
-        arb = config.get("arbitrum", {})
-        rpc_url = rpc_url if rpc_url is not None else arb.get("rpc_url")
+    # [REMOVED-ZERO-COST] # Arbitrum config removed — Zero Cost principle.
+    # [REMOVED-ZERO-COST] # removed: rpc_url = rpc_url if rpc_url is not None else arb.get("rpc_url")
         contract_address = (
             contract_address if contract_address is not None else arb.get("contract_address")
         )
 
-    if not rpc_url:
+    # [REMOVED-ZERO-COST] if not rpc_url:
         return AnchorVerificationResult(
             valid=False,
             tx_hash=tx_hash,
             expected_root=expected_root or "",
-            error="missing_rpc_url",
+    # [REMOVED-ZERO-COST] error="missing_rpc_url",
         )
 
     try:
-        from web3 import Web3
     except ImportError:
         return AnchorVerificationResult(
             valid=False,
             tx_hash=tx_hash,
             expected_root=expected_root or "",
-            error="web3_not_installed",
+    # [REMOVED-ZERO-COST] # removed: error="web3_not_installed",
         )
 
     # Conectar con reintentos
-    web3: Optional[Web3] = None
+    # [REMOVED-ZERO-COST] # removed: web3: Optional[Web3] = None
     for attempt in range(max_retries):
         try:
-            web3 = Web3(Web3.HTTPProvider(rpc_url))
-            if web3.is_connected():
+    # [REMOVED-ZERO-COST] # removed: web3 = Web3(Web3.HTTPProvider(rpc_url))
+    # [REMOVED-ZERO-COST] # removed: if web3.is_connected():
                 break
         except Exception:  # nosec B110 - retry logic, connection failures expected
             pass
         if attempt < max_retries - 1:
             time.sleep(2**attempt)
 
-    if not web3 or not web3.is_connected():
+    # [REMOVED-ZERO-COST] # removed: if not web3 or not web3.is_connected():
         return AnchorVerificationResult(
             valid=False,
             tx_hash=tx_hash,
@@ -416,7 +413,7 @@ def verify_anchor(
         )
 
     try:
-        receipt = web3.eth.get_transaction_receipt(tx_hash)
+    # [REMOVED-ZERO-COST] # removed: receipt = web3.eth.get_transaction_receipt(tx_hash)
     except Exception as exc:
         return AnchorVerificationResult(
             valid=False,
@@ -434,15 +431,15 @@ def verify_anchor(
         )
 
     # Decodificar evento HashRootAnchored
-    # Topic[0] = keccak256("HashRootAnchored(bytes32,uint256)")
-    event_sig = web3.keccak(text="HashRootAnchored(bytes32,uint256)")
+    # [REMOVED-ZERO-COST] # Topic[0] = keccak256("HashRootAnchored(bytes32,uint256)")
+    # [REMOVED-ZERO-COST] # removed: event_sig = web3.keccak(text="HashRootAnchored(bytes32,uint256)")
     onchain_root: Optional[str] = None
     block_number = receipt.get("blockNumber")
     block_timestamp: Optional[int] = None
 
     for log_entry in receipt.get("logs", []):
         topics = log_entry.get("topics", [])
-        if not topics or topics[0] != event_sig:
+    # removed: if not topics or topics[0] != event_sig:
             continue
         # root está en topics[1] (indexed)
         if len(topics) >= 2:
@@ -810,14 +807,14 @@ def run_startup_verification(
     """Ejecuta verificación completa al arranque del pipeline.
 
     1. Verifica la cadena completa de hashes.
-    2. Opcionalmente verifica los últimos anclajes contra Arbitrum.
+    # [REMOVED-ZERO-COST] 2. Opcionalmente verifica los últimos anclajes contra Arbitrum.
     3. Verifica firmas Ed25519 en los registros de hash.
 
     English:
         Runs full verification at pipeline startup.
 
         1. Verifies the complete hash chain.
-        2. Optionally verifies recent anchors against Arbitrum.
+    # [REMOVED-ZERO-COST] 2. Optionally verifies recent anchors against Arbitrum.
         3. Verifies Ed25519 signatures on hash records.
     """
     start_time = time.monotonic()
@@ -850,31 +847,7 @@ def run_startup_verification(
             verified_links=0,
             errors=["hash_dir_not_found"],
         )
-
-    # 2. Verificar anclajes recientes contra Arbitrum
-    if verify_anchors and anchor_log_dir.exists():
-        anchor_logs = sorted(
-            anchor_log_dir.glob("anchor_*.json"),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )[:max_anchor_checks]
-
-        for anchor_log in anchor_logs:
-            try:
-                result = verify_anchor_from_log(anchor_log)
-                report.anchor_results.append(result)
-                if result.valid:
-                    logger.info(
-                        "startup_anchor_valid tx=%s root=%s",
-                        result.tx_hash[:16],
-                        (result.onchain_root or "")[:16],
-                    )
-                else:
-                    logger.warning(
-                        "startup_anchor_invalid tx=%s error=%s",
-                        result.tx_hash[:16] if result.tx_hash else "unknown",
-                        result.error,
-                    )
+    # [REMOVED-ZERO-COST] # Arbitrum anchoring removed — use centinel.core.anchoring module instead.
             except Exception as exc:
                 logger.warning("startup_anchor_check_failed file=%s error=%s", anchor_log.name, exc)
 

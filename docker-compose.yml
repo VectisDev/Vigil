@@ -52,13 +52,9 @@ services:
       ALERTING_ENABLED: "${ALERTING_ENABLED:-true}"
       ALERT_WEBHOOK_URL: "${ALERT_WEBHOOK_URL}"
       ALERT_SLACK_CHANNEL: "${ALERT_SLACK_CHANNEL}"
-      SENTRY_DSN: "${SENTRY_DSN}"
       OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT}"
 
       # Redis opcional (cola / cache temporal)
-      REDIS_URL: "${REDIS_URL}"
-      REDIS_PASSWORD: "${REDIS_PASSWORD}"
-
       # Otras integraciones / límites
       RATE_LIMIT_MAX: "${RATE_LIMIT_MAX:-1000}"
       REQUEST_TIMEOUT_SECONDS: "${REQUEST_TIMEOUT_SECONDS:-30}"
@@ -141,13 +137,15 @@ services:
       - centinel-internal
 
   # Redis mínimo para cola/estado temporal (opcional, comentado).
+  # ZERO COST RULE: No paid external services permitted.
+  # Redis (commented below) requires infrastructure — use SQLite rate-limiting instead.
   # redis:
   #   image: redis:7-alpine
   #   container_name: centinel-redis
   #   restart: unless-stopped
   #   command: ["redis-server", "--appendonly", "no"]
   #   environment:
-  #     REDIS_PASSWORD: "${REDIS_PASSWORD}"
+  #
   #   # Ejemplo con password (descomenta si lo usas):
   #   # command: ["redis-server", "--appendonly", "no", "--requirepass", "${REDIS_PASSWORD}"]
   #   networks:

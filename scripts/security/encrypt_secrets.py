@@ -110,7 +110,7 @@ def encrypt_secrets(
 ) -> dict[str, str]:
     """/** Encripta secretos del entorno en .env.encrypted. / Encrypt env secrets into .env.encrypted. **/"""
     _load_env(DEFAULT_ENV_PATHS)
-    selected_keys = list(keys or ["ARBITRUM_PRIVATE_KEY"])
+    selected_keys = list(keys or ["SECRET_ENCRYPTION_KEY"])
     output_path = output_path or DEFAULT_ENCRYPTED_PATH
 
     try:
@@ -152,7 +152,7 @@ def decrypt_secrets(
     encrypted_path: Path | None = None,
 ) -> dict[str, str]:
     """/** Desencripta secretos en memoria sin persistirlos. / Decrypt secrets in memory without persisting them. **/"""
-    selected_keys = set(keys or ["ARBITRUM_PRIVATE_KEY"])
+    selected_keys = set(keys or ["SECRET_ENCRYPTION_KEY"])
     encrypted_path = encrypted_path or DEFAULT_ENCRYPTED_PATH
 
     if not encrypted_path.exists():

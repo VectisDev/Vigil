@@ -131,8 +131,6 @@ class CentinelSettings(BaseSettings):
     STORAGE_PATH: Path
     LOG_LEVEL: str = "INFO"
     BOT_TOKEN_DISCORD: Optional[str] = None
-    IPFS_GATEWAY_URL: Optional[AnyUrl] = None
-
     def validate_paths(self) -> None:
         """/** Valida que las rutas críticas existan. / Validate that critical paths exist. **/"""
         if not self.STORAGE_PATH.exists():
@@ -150,13 +148,11 @@ def load_config() -> CentinelSettings:
             raw_sources = os.getenv("SOURCES")
             sources = json.loads(raw_sources) if raw_sources else None
             storage_path = os.getenv("STORAGE_PATH")
-            ipfs_url = os.getenv("IPFS_GATEWAY_URL")
             settings = CentinelSettings(
                 SOURCES=sources,
                 STORAGE_PATH=Path(storage_path) if storage_path else None,
                 LOG_LEVEL=os.getenv("LOG_LEVEL", "INFO"),
                 BOT_TOKEN_DISCORD=os.getenv("BOT_TOKEN_DISCORD"),
-                IPFS_GATEWAY_URL=ipfs_url,
             )
         settings.validate_paths()
         return settings

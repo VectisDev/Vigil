@@ -102,7 +102,6 @@ REQUIRED_TOP_LEVEL_KEYS = [
     "logging",
     "blockchain",
     "alerts",
-    "arbitrum",
     "rules",
 ]
 
@@ -110,16 +109,6 @@ REQUIRED_NESTED_KEYS = {
     "logging": ["level", "file"],
     "blockchain": ["enabled", "network", "private_key"],
     "alerts": ["critical_anomaly_types"],
-    "arbitrum": [
-        "enabled",
-        "network",
-        "rpc_url",
-        "private_key",
-        "contract_address",
-        "interval_minutes",
-        "batch_size",
-        "auto_anchor_snapshots",
-    ],
     "rules": ["global_enabled"],
 }
 

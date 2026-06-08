@@ -47,10 +47,6 @@ lines = [
     "# ── Cifrado en reposo ──────────────────────────────────────",
     f"ENCRYPTION_KEY={encryption_key}",
     "",
-    "# ── Supabase (completar con valores del proyecto) ──────────",
-    "SUPABASE_URL=https://PROYECTO.supabase.co",
-    "SUPABASE_ANON_KEY=eyJ...",
-    "SUPABASE_SERVICE_KEY=eyJ...",
     "",
     "# ── OpenTimestamps (opcional: fuerza un calendario específico)",
     "# OTS_SERVER=https://alice.btc.calendar.opentimestamps.org",
@@ -62,8 +58,6 @@ with open(".env", "w") as f:
 print("✓ .env generado.")
 print("")
 print("IMPORTANTE:")
-print("  1. Completa SUPABASE_URL, SUPABASE_ANON_KEY y SUPABASE_SERVICE_KEY")
-print("     con los valores de tu proyecto en supabase.com → Project Settings → API")
 print("")
 print("  2. Comparte CENTINEL_PUBLIC_KEY con cada testigo que quieras agregar.")
 print("     La clave PRIVADA (CENTINEL_SIGNING_KEY) NUNCA se comparte.")

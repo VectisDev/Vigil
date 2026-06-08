@@ -69,8 +69,6 @@ def _create_test_db(tmp_path: Path, *, canonical_json: str = '{"valid": true}'):
             hash TEXT NOT NULL,
             previous_hash TEXT,
             tx_hash TEXT,
-            ipfs_cid TEXT,
-            ipfs_tx_hash TEXT,
             PRIMARY KEY (department_code, timestamp_utc)
         )
     """)
@@ -87,8 +85,6 @@ def _create_test_db(tmp_path: Path, *, canonical_json: str = '{"valid": true}'):
             blank_votes INTEGER NOT NULL DEFAULT 0,
             candidates_json TEXT NOT NULL DEFAULT '[]',
             tx_hash TEXT,
-            ipfs_cid TEXT,
-            ipfs_tx_hash TEXT
         )
     """)
     conn.execute(

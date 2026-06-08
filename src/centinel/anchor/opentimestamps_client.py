@@ -261,23 +261,18 @@ class OpenTimestampsClient:
 
 
 class MultichainAnchor:
-    """Multi-chain anchor fallback (OTS + manual Arbitrum).
 
-    ES: Ancla multi-chain con fallback (OTS + Arbitrum manual).
 
     Design:
     - Primary: OpenTimestamps (fast, free, proven)
-    - Fallback: Arbitrum contract (if OTS unavailable, requires keys)
     - Non-fatal: if both fail, publish without anchor (lower assurance)
     """
 
-    def __init__(self, testnet: bool = False, arbitrum_rpc: Optional[str] = None):
         """Initialize multi-chain anchor (OTS Bitcoin only)."""
         self.ots_client = OpenTimestampsClient(use_testnet=testnet)
         self.testnet = testnet
 
     def anchor_checkpoint(self, checkpoint: dict) -> dict:
-        """Attempt to anchor checkpoint (OTS primary, Arbitrum fallback).
 
         Args:
             checkpoint: Checkpoint dict with merkle_root

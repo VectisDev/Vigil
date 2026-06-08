@@ -76,8 +76,6 @@ def test_store_snapshot_creates_index(tmp_path):
             "hash": expected_hash,
             "previous_hash": None,
             "tx_hash": None,
-            "ipfs_cid": None,
-            "ipfs_tx_hash": None,
         }
     ]
 
@@ -119,5 +117,3 @@ def test_exports_for_external_review(tmp_path):
     assert rows[0]["hash"] == snapshot_hash
     assert rows[0]["registered_voters"] == "2000"
     assert "tx_hash" in rows[0]
-    assert "ipfs_cid" in rows[0]
-    assert "ipfs_tx_hash" in rows[0]

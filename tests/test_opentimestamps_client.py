@@ -10,7 +10,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from centinel.anchor.opentimestamps_client import (
-    MultichainAnchor,
     OpenTimestampsClient,
     TimestampProof,
 )
@@ -204,12 +203,10 @@ class TestOpenTimestampsClient:
         assert "checkpoint_hash" in records[0]
 
 
-class TestMultichainAnchor:
     """Test multi-chain anchor with fallback."""
 
     def test_multichain_creation(self):
         """Create multi-chain anchor."""
-        anchor = MultichainAnchor(testnet=False)
 
         assert anchor.testnet is False
         assert anchor.ots_client is not None
@@ -225,7 +222,6 @@ class TestMultichainAnchor:
         )
         mock_stamp.return_value = proof
 
-        anchor = MultichainAnchor()
         checkpoint = {
             "timestamp": "2026-05-16T00:00:00Z",
             "merkle_root": "abc123" * 10 + "abcd",
@@ -240,7 +236,6 @@ class TestMultichainAnchor:
     @patch("centinel.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
     def test_anchor_checkpoint_no_merkle(self, mock_stamp):
         """Anchor checkpoint without merkle root."""
-        anchor = MultichainAnchor()
         checkpoint = {"timestamp": "2026-05-16T00:00:00Z"}
 
         result = anchor.anchor_checkpoint(checkpoint)
@@ -252,9 +247,6 @@ class TestMultichainAnchor:
     @patch("centinel.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
     def test_anchor_checkpoint_ots_fails(self, mock_stamp):
         """Anchor checkpoint when OTS fails (no fallback configured)."""
-        mock_stamp.return_value = None
-
-        anchor = MultichainAnchor(arbitrum_rpc=None)
         checkpoint = {
             "timestamp": "2026-05-16T00:00:00Z",
             "merkle_root": "abc123" * 10 + "abcd",
