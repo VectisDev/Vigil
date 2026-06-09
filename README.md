@@ -113,7 +113,7 @@ CENTINEL applied its forensic engine retroactively to **64 original JSON files f
 make reproduce-2025-audit
 ```
 
-> Raw data: `tests/fixtures/hnd_2025/` (64 JSON files from CNE)
+> Raw data: `tests/fixtures/hnd_2025/` (64 JSON files from CNE) — [Dataset DOI: 10.5281/zenodo.20598892](https://zenodo.org/records/20598892)
 > Forensic script: `scripts/forensic_hnd_2025.py`
 > Detection engine: `src/auditor/inconsistent_acts.py`
 
