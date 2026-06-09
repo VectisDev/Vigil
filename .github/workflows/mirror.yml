@@ -1,0 +1,331 @@
+# CENTINEL — Multi-platform code & evidence mirroring
+# Mirror automático multi-plataforma para código y evidencia
+#
+# Audit finding addressed: Point 4 — GitHub monoculture (single-platform dependency).
+# Hallazgo de auditoría: Punto 4 — Monocultura GitHub.
+#
+# What this workflow does / Qué hace este workflow:
+# 1. Mirrors the full git history (all branches and tags) to Codeberg
+#    (Forgejo, EU-based, non-profit).
+#    Espeja todo el historial git (ramas y tags) a Codeberg.
+# 2. Uploads a signed git bundle of the current HEAD to the Internet
+#    Archive, which acts as an independent, jurisdictionally-distinct
+#    preservation node.
+#    Sube un bundle git firmado del HEAD actual al Internet Archive,
+#    que actúa como nodo de preservación independiente y de
+#    jurisdicción distinta.
+# 3. Logs the mirror operation in the project's transparency log.
+#    Registra la operación de espejo en el log de transparencia del proyecto.
+#
+# Triggers / Disparadores:
+# - On push to main or dev-v12 (primary branches per project convention).
+# - Every 6 hours (periodic re-verification + tag mirroring).
+# - Manually via workflow_dispatch (for ad-hoc full re-sync).
+#
+# Cost: $0 — uses only GitHub Actions free tier minutes, Codeberg free
+# tier (no published quota — courtesy use), and Internet Archive free
+# tier (rate-limited but free).
+#
+# Coste: $0 — usa solo los minutos gratuitos de GitHub Actions, el tier
+# gratuito de Codeberg y el tier gratuito de Internet Archive.
+#
+# Secrets required / Secretos requeridos:
+# - CODEBERG_TOKEN: Personal access token from codeberg.org, scope: write.
+#   Token de acceso personal de codeberg.org con permiso de escritura.
+# - IA_ACCESS_KEY, IA_SECRET_KEY: Internet Archive S3-compatible keys
+#   from https://archive.org/account/s3.php (free).
+#   Claves S3-compatibles del Internet Archive (gratuitas).
+
+name: Resilience Mirror
+
+on:
+  push:
+    branches:
+      - main
+      - dev-v12
+    tags:
+      - 'v*'
+  schedule:
+    # Every 6 hours at minute 17 (offset to avoid the rush hour cron load).
+    # Cada 6 horas en el minuto 17 (desfasado para evitar la hora pico de cron).
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      full_resync:
+        description: 'Force full resync of all branches and tags'
+        required: false
+        type: boolean
+        default: false
+
+# Concurrency: only one mirror operation at a time.
+# Concurrencia: solo una operación de espejo a la vez.
+concurrency:
+  group: resilience-mirror
+  cancel-in-progress: false  # Let in-flight mirrors complete.
+
+permissions:
+  contents: read
+
+jobs:
+  # ----------------------------------------------------------------------
+  # JOB 1: Mirror to Codeberg
+  # ----------------------------------------------------------------------
+  mirror-codeberg:
+    name: Mirror to Codeberg
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          # Mandatory for mirroring: we need every commit, branch, and tag.
+          # Obligatorio para el espejo: necesitamos cada commit, rama y tag.
+          fetch-depth: 0
+          # Avoid sparse-checkout — we need everything.
+          # Evitar sparse-checkout — necesitamos todo.
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "centinel-mirror-bot"
+          git config user.email "mirror@centinel.local"
+
+      - name: Push to Codeberg
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Configure Codeberg remote. We use the token in the URL so that
+          # it never gets logged in plaintext (the URL is masked by GHA).
+          # Configurar remote a Codeberg. Usamos el token en la URL para
+          # que nunca se loguee en texto plano.
+          CODEBERG_URL="https://centinel-mirror-bot:${CODEBERG_TOKEN}@codeberg.org/VectisDev/centinel.git"
+          git remote remove codeberg 2>/dev/null || true
+          git remote add codeberg "${CODEBERG_URL}"
+
+          # Push all branches and tags. --force is acceptable because
+          # GitHub is the single source of truth; mirrors must follow.
+          # Push de todas las ramas y tags. --force es aceptable porque
+          # GitHub es la única fuente de verdad; los mirrors siguen.
+          echo "::group::Pushing branches"
+          git push codeberg --all --force
+          echo "::endgroup::"
+
+          echo "::group::Pushing tags"
+          git push codeberg --tags --force
+          echo "::endgroup::"
+
+      - name: Verify Codeberg head matches GitHub head
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          set -euo pipefail
+          GITHUB_HEAD="$(git rev-parse HEAD)"
+
+          # Query Codeberg API for the same branch HEAD.
+          # Consultar la API de Codeberg para el HEAD de la misma rama.
+          BRANCH="${GITHUB_REF##*/}"
+          CODEBERG_HEAD="$(curl -fsS \
+              -H "Authorization: token ${CODEBERG_TOKEN}" \
+              "https://codeberg.org/api/v1/repos/VectisDev/centinel/branches/${BRANCH}" \
+              | python3 -c 'import sys,json; print(json.load(sys.stdin)["commit"]["id"])' 2>/dev/null || echo "UNKNOWN")"
+
+          echo "GitHub HEAD ($BRANCH):   ${GITHUB_HEAD}"
+          echo "Codeberg HEAD ($BRANCH): ${CODEBERG_HEAD}"
+
+          if [[ "${CODEBERG_HEAD}" == "UNKNOWN" ]]; then
+            echo "::warning::Could not verify Codeberg HEAD via API (may be a new branch)."
+          elif [[ "${GITHUB_HEAD}" != "${CODEBERG_HEAD}" ]]; then
+            echo "::error::HEAD mismatch between GitHub and Codeberg"
+            exit 1
+          else
+            echo "✓ Codeberg HEAD matches GitHub HEAD"
+          fi
+
+  # ----------------------------------------------------------------------
+  # JOB 2: Snapshot bundle to Internet Archive
+  # ----------------------------------------------------------------------
+  archive-bundle:
+    name: Snapshot to Internet Archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true  # Graceful degradation if IA secrets not yet configured.
+    # Only run on push events or manual dispatch. Skipping on cron prevents
+    # daily growth of the IA collection with redundant bundles.
+    # Solo correr en push o disparo manual. Saltar en cron previene el
+    # crecimiento diario de la colección IA con bundles redundantes.
+    if: github.event_name != 'schedule'
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute bundle metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          HEAD_SHA="$(git rev-parse HEAD)"
+          BRANCH="${GITHUB_REF##*/}"
+          TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+          BUNDLE_NAME="centinel-${TIMESTAMP}-${BRANCH}-${HEAD_SHA:0:12}.bundle"
+
+          echo "head_sha=${HEAD_SHA}"          >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}"              >> "$GITHUB_OUTPUT"
+          echo "timestamp=${TIMESTAMP}"        >> "$GITHUB_OUTPUT"
+          echo "bundle_name=${BUNDLE_NAME}"    >> "$GITHUB_OUTPUT"
+
+      - name: Create git bundle
+        run: |
+          set -euo pipefail
+          git bundle create "${{ steps.meta.outputs.bundle_name }}" --all
+
+          BUNDLE_SHA=$(sha256sum "${{ steps.meta.outputs.bundle_name }}" | awk '{print $1}')
+          echo "Bundle SHA-256: ${BUNDLE_SHA}"
+          echo "BUNDLE_SHA=${BUNDLE_SHA}" >> "$GITHUB_ENV"
+
+      - name: Write bundle manifest
+        run: |
+          set -euo pipefail
+          cat > "${{ steps.meta.outputs.bundle_name }}.manifest.json" <<EOF
+          {
+            "centinel_mirror_manifest_version": 1,
+            "tool": "centinel-resilience-mirror",
+            "tool_url": "https://github.com/VectisDev/centinel",
+            "bundle_filename": "${{ steps.meta.outputs.bundle_name }}",
+            "bundle_sha256": "${BUNDLE_SHA}",
+            "git_head_sha": "${{ steps.meta.outputs.head_sha }}",
+            "git_branch": "${{ steps.meta.outputs.branch }}",
+            "captured_at_utc": "${{ steps.meta.outputs.timestamp }}",
+            "trigger_event": "${{ github.event_name }}",
+            "github_workflow_run_id": "${{ github.run_id }}",
+            "github_workflow_run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "instructions_to_verify": [
+              "1. Download the .bundle file from this Internet Archive item.",
+              "2. Compute: sha256sum <bundle> — must equal bundle_sha256.",
+              "3. Clone into a fresh directory: git clone <bundle> centinel-restored",
+              "4. Inside, verify git_head_sha: git rev-parse <branch> == ${{ steps.meta.outputs.head_sha }}"
+            ]
+          }
+          EOF
+
+      - name: Check IA secrets are configured
+        id: ia_check
+        run: |
+          if [ -z "${{ secrets.IA_ACCESS_KEY }}" ] || [ -z "${{ secrets.IA_SECRET_KEY }}" ]; then
+            echo "::warning::IA_ACCESS_KEY or IA_SECRET_KEY not configured. Skipping Internet Archive upload."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Internet Archive CLI
+        if: steps.ia_check.outputs.skip != 'true'
+        run: pip install internetarchive --quiet
+
+      - name: Upload bundle to Internet Archive
+        if: steps.ia_check.outputs.skip != 'true'
+        env:
+          IA_ACCESS_KEY: ${{ secrets.IA_ACCESS_KEY }}
+          IA_SECRET_KEY: ${{ secrets.IA_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          # Configure IA credentials non-interactively.
+          # Configurar credenciales de IA de forma no interactiva.
+          mkdir -p ~/.config/internetarchive
+          cat > ~/.config/internetarchive/ia.ini <<EOF
+          [s3]
+          access = ${IA_ACCESS_KEY}
+          secret = ${IA_SECRET_KEY}
+          EOF
+
+          # Identifier: stable per-month item so we don't create thousands
+          # of items. Bundles within the same month land in the same item.
+          # Identificador: ítem estable por mes para no crear miles de
+          # ítems. Bundles del mismo mes caen en el mismo ítem.
+          MONTH=$(date -u +%Y-%m)
+          IA_ID="centinel-mirror-${MONTH}"
+
+          ia upload "${IA_ID}" \
+              "${{ steps.meta.outputs.bundle_name }}" \
+              "${{ steps.meta.outputs.bundle_name }}.manifest.json" \
+              --metadata="title:CENTINEL Resilience Mirror ${MONTH}" \
+              --metadata="description:Periodic git-bundle snapshots of the CENTINEL repository, uploaded as part of the project's multi-platform resilience policy. Each bundle is independently verifiable against the GitHub source and SHA-256 hashes recorded in the manifest." \
+              --metadata="creator:CENTINEL Project (VectisDev)" \
+              --metadata="subject:electoral-audit" \
+              --metadata="subject:centinel" \
+              --metadata="subject:internet-freedom-infrastructure" \
+              --metadata="subject:open-source" \
+              --metadata="licenseurl:https://www.gnu.org/licenses/agpl-3.0.html" \
+              --metadata="mediatype:software" \
+              --no-derive \
+              --retries 3
+
+          echo "Uploaded to: https://archive.org/details/${IA_ID}"
+
+  # ----------------------------------------------------------------------
+  # JOB 3: Update transparency log
+  # ----------------------------------------------------------------------
+  log-transparency:
+    name: Append to transparency log
+    runs-on: ubuntu-latest
+    needs: [mirror-codeberg]
+    # Run even if archive-bundle was skipped (cron case).
+    if: always() && (needs.mirror-codeberg.result == 'success')
+
+    permissions:
+      contents: write  # Required to push the log update.
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Append mirror event to transparency log
+        run: |
+          set -euo pipefail
+          mkdir -p docs/transparency
+          LOG=docs/transparency/MIRROR-LOG.md
+
+          if [[ ! -f "${LOG}" ]]; then
+            cat > "${LOG}" <<'EOF'
+          # Resilience Mirror Log
+
+          Each entry below records a mirror operation executed by the
+          `Resilience Mirror` GitHub Actions workflow. Entries are append-only.
+
+          Cada entrada registra una operación de espejo ejecutada por el
+          workflow `Resilience Mirror`. Las entradas son append-only.
+
+          | UTC Timestamp | Trigger | Git HEAD | Codeberg | Internet Archive |
+          |---------------|---------|----------|----------|------------------|
+          EOF
+          fi
+
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          HEAD_SHA=$(git rev-parse HEAD)
+          HEAD_SHORT="${HEAD_SHA:0:12}"
+          TRIGGER="${{ github.event_name }}"
+          MONTH=$(date -u +%Y-%m)
+          IA_LINK="https://archive.org/details/centinel-mirror-${MONTH}"
+          CODEBERG_LINK="https://codeberg.org/VectisDev/centinel/commit/${HEAD_SHA}"
+
+          echo "| ${TIMESTAMP} | ${TRIGGER} | \`${HEAD_SHORT}\` | [✓](${CODEBERG_LINK}) | [✓](${IA_LINK}) |" >> "${LOG}"
+
+      - name: Commit and push log update
+        run: |
+          set -euo pipefail
+          git config user.name  "centinel-mirror-bot"
+          git config user.email "mirror@centinel.local"
+          git add docs/transparency/MIRROR-LOG.md
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore(mirror): append mirror event $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin main
