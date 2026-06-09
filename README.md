@@ -82,7 +82,7 @@ It will be available on the next push to `main`.
 | **Independence** | Requires access, funding, accreditation | **Complete** — no permission needed |
 | **Verifiability** | Reports and statements | **Cryptographic proof** — anyone can verify offline |
 | **Scale** | Team of observers, weeks of planning | **1 operator, 1 laptop, 3-step setup** |
-| **Real-time** | Post-election reports | **Continuous capture during the event** |
+| **Real-time capability** | Post-election reports | **Engine validated on retroactive 2025 data; continuous live capture is the operational target for HN 2029** |
 | **Censorship resistance** | Single organization = single point to pressure | **P2P swarm — no center to seize or bribe** |
 | **Temporal proof** | None | **SHA-256 hash chain + Bitcoin anchoring** via OpenTimestamps (HN 2025 anchored) |
 | **Replicability** | Closed methodology | **Every step reproducible by any third party** |
@@ -91,7 +91,12 @@ It will be available on the next push to `main`.
 
 ## What we've audited so far
 
-### Honduras 2025 Presidential Election
+### Honduras 2025 Presidential Election — Retroactive Forensic Analysis
+
+> ⚠️ **Methodological transparency / Transparencia metodológica.**
+> The following analysis is a **forensic post-mortem proof-of-concept** conducted on 64 CNE JSON files manually downloaded on **December 4, 2025**, after the electoral event concluded. This is a **retroactive analysis, not a live audit**. The cryptographic chain was constructed ex-post on the captured files and demonstrates the engine's detection capabilities on real electoral data — it does not constitute observational evidence of the live electoral process. Live continuous capture is the operational target for Honduras 2029.
+>
+> El siguiente análisis es una **demostración forense post-mortem** realizada sobre 64 archivos JSON del CNE descargados manualmente el **4 de diciembre de 2025**, tras concluir el evento electoral. Es un **análisis retroactivo, no una auditoría en vivo**. La cadena criptográfica se construyó ex-post sobre los archivos capturados y demuestra las capacidades de detección del motor sobre datos electorales reales — no constituye evidencia observacional del proceso electoral en vivo. La captura continua en vivo es el objetivo operacional para Honduras 2029.
 
 CENTINEL applied its forensic engine retroactively to **64 original JSON files from the CNE** (elecciones 30/11/2025). These are the same files published by the State — unmodified, no privileged access required. The forensic engine detected:
 
@@ -120,6 +125,10 @@ python verify/verify_chain.py tests/fixtures/hnd_2025/
 *CENTINEL does not assert fraud. It detects statistical anomalies and provides cryptographic proof of data integrity for independent human evaluation.*
 
 *CENTINEL no afirma fraude. Detecta anomalías estadísticas y proporciona prueba criptográfica de integridad de datos para evaluación humana independiente.*
+
+> **Scope clarification / Aclaración de alcance.** CENTINEL is positioned as **public electoral evidence preservation infrastructure** — not as an electoral authority, observer, or arbiter of disputes. The system captures, chains, and anchors publicly published data so that any third party can verify it offline, independently, and without the project's cooperation. The interpretation of detected anomalies is reserved for qualified observers, courts, and the public.
+>
+> CENTINEL se posiciona como **infraestructura de preservación de evidencia electoral pública** — no como autoridad electoral, observador ni árbitro de disputas. El sistema captura, encadena y ancla datos publicados públicamente para que cualquier tercero pueda verificarlos offline, de forma independiente y sin cooperación del proyecto. La interpretación de las anomalías detectadas queda reservada para observadores calificados, tribunales y la opinión pública.
 
 ---
 
@@ -227,7 +236,8 @@ CENTINEL applies defense in depth: each layer mitigates a distinct class of thre
 | Cryptographic audit (theorems T1–T4) | Complete — verifiable in code |
 | Test suite | 526 / 526 passing |
 | Independent academic validation | Initiated — working paper in preparation with Prof. Devis Alvarado (UPNFM). Statistical conventions document under review. |
-| Field pilot | Completed — Honduras 2025 general election data |
+| Retroactive forensic pilot | Completed — 64 CNE JSON files (HN 2025), manually downloaded 2025-12-04 |
+| Live operational pilot | Pending — targeting an intermediate electoral event in 2026–2027 prior to HN 2029 |
 | False positive analysis | 500-run validation — [results published](docs/research/FALSE_POSITIVE_ANALYSIS.md) |
 | Statistical conventions | Unified — [see STATISTICAL_CONVENTIONS.md](docs/stats/STATISTICAL_CONVENTIONS.md) |
 
