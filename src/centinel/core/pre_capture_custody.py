@@ -315,6 +315,9 @@ def extract_tls_metadata(
         # Construir contexto TLS. Verificación por defecto — el certificado
         # DEBE validar, sino estamos hablando con un atacante.
         context = ssl.create_default_context()
+        # Explicitly enforce TLS 1.2+ — disallow TLSv1/TLSv1.1
+        # Aplicar explicitamente TLS 1.2+ — deshabilitar TLSv1/TLSv1.1
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
         # We want the cert chain in DER form, so request binary form below.
         # Queremos la cadena de certificado en DER, así que pedimos binario abajo.
 
