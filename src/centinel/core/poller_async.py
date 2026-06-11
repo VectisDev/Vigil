@@ -333,6 +333,86 @@ class BatchHashChain:
 
 # ── Git commit del ciclo / Cycle git commit ────────────────────────────────────
 
+def _push_to_data_branch(
+    cycle_number: int,
+    cycle_hash: str,
+    results: list[FetchResult],
+    data_branch: str,
+) -> None:
+    """
+    Push snapshot data to a dedicated data branch using git worktree.
+    ES: Publica snapshots a una branch dedicada usando git worktree.
+
+    The data branch is a separate history from main — it holds only
+    snapshot JSON files and the hash chain. The main branch code is
+    never modified. Any third party can verify by cloning data branch.
+
+    Any third party can verify:
+      git clone --branch data https://github.com/user/centinel
+      python verify_chain.py data/poller_chain.jsonl
+
+    Args:
+        cycle_number: Sequential cycle number.
+        cycle_hash:   SHA-256 cycle hash for commit message.
+        results:      FetchResult list from this cycle.
+        data_branch:  Name of the data branch (e.g. "data").
+    """
+    import tempfile
+
+    worktree_dir = Path(tempfile.mkdtemp(prefix="centinel-data-"))
+
+    try:
+        # Add worktree pointing to data branch
+        subprocess.run(
+            ["git", "worktree", "add", "--checkout", str(worktree_dir), data_branch],
+            check=True, capture_output=True,
+        )
+
+        # Write snapshots into the worktree
+        snap_dir = worktree_dir / "snapshots"
+        snap_dir.mkdir(exist_ok=True)
+
+        for result in results:
+            if result.success and result.content_bytes:
+                ep_file = snap_dir / f"{result.endpoint_id}.json"
+                try:
+                    parsed = json.loads(result.content_bytes)
+                    ep_file.write_text(json.dumps(parsed, ensure_ascii=False, indent=2))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    ep_file.write_bytes(result.content_bytes)
+
+        # Copy hash chain
+        chain_src = Path("data/poller_chain.jsonl")
+        if chain_src.exists():
+            (worktree_dir / "poller_chain.jsonl").write_text(chain_src.read_text())
+
+        # Copy cycle summary
+        summary_src = Path("data/latest_cycle.json")
+        if summary_src.exists():
+            (worktree_dir / "latest_cycle.json").write_text(summary_src.read_text())
+
+        # Commit and push from the worktree
+        ok_count = sum(1 for r in results if r.success)
+        subprocess.run(["git", "add", "-A"], check=True, capture_output=True,
+                       cwd=str(worktree_dir))
+        subprocess.run(
+            ["git", "commit", "-m",
+             f"data cycle:{cycle_number} hash:{cycle_hash[:12]} "
+             f"ok:{ok_count}/{len(results)}"],
+            check=True, capture_output=True, cwd=str(worktree_dir),
+        )
+        subprocess.run(
+            ["git", "push", "origin", data_branch],
+            check=True, capture_output=True, cwd=str(worktree_dir),
+        )
+
+    finally:
+        subprocess.run(
+            ["git", "worktree", "remove", "--force", str(worktree_dir)],
+            capture_output=True,
+        )
+
+
 def commit_cycle(
     cycle_number: int,
     cycle_hash: str,
@@ -386,22 +466,32 @@ def commit_cycle(
         json.dumps(summary, ensure_ascii=False, indent=2)
     )
 
-    # Git commit atómico / Atomic git commit
+    # Git commit atómico — push a DATA_BRANCH si está configurado
+    # Atomic git commit — push to DATA_BRANCH if configured
+    data_branch = os.environ.get("DATA_BRANCH", "")
     try:
-        subprocess.run(["git", "add", "data/"], check=True, capture_output=True)
-        ok_count = sum(1 for r in results if r.success)
-        subprocess.run(
-            [
-                "git", "commit", "-m",
-                f"poller cycle:{cycle_number} "
-                f"hash:{cycle_hash[:12]} "
-                f"ok:{ok_count}/{len(results)}",
-            ],
-            check=True,
-            capture_output=True,
-        )
-        subprocess.run(["git", "push"], check=True, capture_output=True)
-        log.info("git commit cycle=%d hash=%s", cycle_number, cycle_hash[:16])
+        if data_branch:
+            # Push snapshots to dedicated data branch using worktree
+            # so the main branch codebase is never polluted with data files.
+            # ES: Los snapshots van a la branch de datos, no a main.
+            _push_to_data_branch(cycle_number, cycle_hash, results, data_branch)
+        else:
+            # Legacy: commit directly to current branch
+            subprocess.run(["git", "add", "data/"], check=True, capture_output=True)
+            ok_count = sum(1 for r in results if r.success)
+            subprocess.run(
+                [
+                    "git", "commit", "-m",
+                    f"poller cycle:{cycle_number} "
+                    f"hash:{cycle_hash[:12]} "
+                    f"ok:{ok_count}/{len(results)}",
+                ],
+                check=True,
+                capture_output=True,
+            )
+            subprocess.run(["git", "push"], check=True, capture_output=True)
+        log.info("git commit cycle=%d hash=%s branch=%s",
+                 cycle_number, cycle_hash[:16], data_branch or "current")
     except subprocess.CalledProcessError as exc:
         stderr = exc.stderr.decode() if exc.stderr else ""
         log.error("git commit failed cycle=%d err=%s", cycle_number, stderr[:200])
@@ -650,6 +740,12 @@ if __name__ == "__main__":
         help="Intervalo de polling en minutos (default: 3) / Polling interval in minutes",
     )
     parser.add_argument(
+        "--data-branch",
+        type=str,
+        default="",
+        help="Push data commits to this branch (empty = current branch)",
+    )
+    parser.add_argument(
         "--max-runtime",
         type=int,
         default=19_800,
@@ -658,6 +754,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     endpoints = load_endpoints()
+
+    if args.data_branch:
+        os.environ["DATA_BRANCH"] = args.data_branch
 
     poller = ContinuousPoller(
         endpoints=endpoints,
