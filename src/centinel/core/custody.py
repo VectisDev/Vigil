@@ -140,14 +140,20 @@ class ChainVerificationResult:
 
 @dataclass(frozen=True)
 class AnchorVerificationResult:
-    # [REMOVED-ZERO-COST] """Resultado de verificar un anclaje contra Arbitrum. / Result of anchor verification against Arbitr
+    """Resultado de verificar un anclaje OpenTimestamps / Bitcoin.
+
+    English: Result of verifying an OpenTimestamps / Bitcoin anchor.
+
+    Note: Arbitrum / web3 anchoring was permanently removed (Zero Cost
+    principle). All anchoring uses OpenTimestamps — free, no gas fees.
+    See: src/centinel/core/anchoring.py
+    """
 
     valid: bool
-    tx_hash: str
-    expected_root: str
-    onchain_root: Optional[str] = None
-    block_number: Optional[int] = None
-    block_timestamp: Optional[int] = None
+    tx_hash: str                             # OTS calendar ID or Bitcoin txid
+    expected_root: str                       # Expected Merkle root (hex)
+    ots_proof_file: Optional[str] = None     # Path to .ots proof file
+    bitcoin_block_height: Optional[int] = None  # Block height when confirmed
     error: Optional[str] = None
 
 
@@ -345,136 +351,42 @@ def verify_chain_from_entries(entries: List[Dict[str, Any]]) -> ChainVerificatio
 
 
 # ---------------------------------------------------------------------------
-    # [REMOVED-ZERO-COST] # verify_anchor (Arbitrum) removed — use centinel.core.anchoring.verify_anchor() instead.
+# 2. verify_anchor — delegates to centinel.core.anchoring (OTS / Bitcoin)
+# ---------------------------------------------------------------------------
+
 
 def verify_anchor(
     tx_hash: str,
     expected_root: Optional[str] = None,
     *,
-    # [REMOVED-ZERO-COST] rpc_url: Optional[str] = None,
     contract_address: Optional[str] = None,
     max_retries: int = 3,
 ) -> AnchorVerificationResult:
-    # [REMOVED-ZERO-COST] """Consulta Arbitrum y confirma que el Merkle root coincide con el esperado.
+    """Verifica un anclaje OpenTimestamps / Bitcoin.
 
-    Lee el receipt de la transacción, decodifica el evento
-    ``HashRootAnchored(bytes32 root, uint256 timestamp)`` y compara
-    el root on-chain con ``expected_root``.
+    English: Verify an OpenTimestamps / Bitcoin anchor.
 
-    English:
-    # [REMOVED-ZERO-COST] Queries Arbitrum and confirms the on-chain Merkle root matches
-        the expected root.
+    Arbitrum / web3 anchoring was permanently removed (Zero Cost principle).
+    For OTS proof verification use: centinel.core.anchoring.verify_ots_proof()
+
+    Parameters
+    ----------
+    tx_hash : str
+        OTS calendar submission ID or Bitcoin transaction hash.
+    expected_root : str, optional
+        Expected Merkle root (hex) to verify against.
+    contract_address : str, optional
+        Unused — retained for API compatibility only. Removed in v13.
+    max_retries : int
+        Unused — retained for API compatibility only. Removed in v13.
     """
-    # [REMOVED-ZERO-COST] if rpc_url is None or contract_address is None:
-        from centinel.utils.config_loader import load_config
-
-        config = load_config()
-    # [REMOVED-ZERO-COST] # Arbitrum config removed — Zero Cost principle.
-    # [REMOVED-ZERO-COST] # removed: rpc_url = rpc_url if rpc_url is not None else arb.get("rpc_url")
-        contract_address = (
-            contract_address if contract_address is not None else arb.get("contract_address")
-        )
-
-    # [REMOVED-ZERO-COST] if not rpc_url:
-        return AnchorVerificationResult(
-            valid=False,
-            tx_hash=tx_hash,
-            expected_root=expected_root or "",
-    # [REMOVED-ZERO-COST] error="missing_rpc_url",
-        )
-
-    try:
-    except ImportError:
-        return AnchorVerificationResult(
-            valid=False,
-            tx_hash=tx_hash,
-            expected_root=expected_root or "",
-    # [REMOVED-ZERO-COST] # removed: error="web3_not_installed",
-        )
-
-    # Conectar con reintentos
-    # [REMOVED-ZERO-COST] # removed: web3: Optional[Web3] = None
-    for attempt in range(max_retries):
-        try:
-    # [REMOVED-ZERO-COST] # removed: web3 = Web3(Web3.HTTPProvider(rpc_url))
-    # [REMOVED-ZERO-COST] # removed: if web3.is_connected():
-                break
-        except Exception:  # nosec B110 - retry logic, connection failures expected
-            pass
-        if attempt < max_retries - 1:
-            time.sleep(2**attempt)
-
-    # [REMOVED-ZERO-COST] # removed: if not web3 or not web3.is_connected():
-        return AnchorVerificationResult(
-            valid=False,
-            tx_hash=tx_hash,
-            expected_root=expected_root or "",
-            error="rpc_connection_failed",
-        )
-
-    try:
-    # [REMOVED-ZERO-COST] # removed: receipt = web3.eth.get_transaction_receipt(tx_hash)
-    except Exception as exc:
-        return AnchorVerificationResult(
-            valid=False,
-            tx_hash=tx_hash,
-            expected_root=expected_root or "",
-            error=f"receipt_fetch_failed: {exc}",
-        )
-
-    if receipt is None or receipt.get("status") != 1:
-        return AnchorVerificationResult(
-            valid=False,
-            tx_hash=tx_hash,
-            expected_root=expected_root or "",
-            error="tx_failed_or_not_found",
-        )
-
-    # Decodificar evento HashRootAnchored
-    # [REMOVED-ZERO-COST] # Topic[0] = keccak256("HashRootAnchored(bytes32,uint256)")
-    # [REMOVED-ZERO-COST] # removed: event_sig = web3.keccak(text="HashRootAnchored(bytes32,uint256)")
-    onchain_root: Optional[str] = None
-    block_number = receipt.get("blockNumber")
-    block_timestamp: Optional[int] = None
-
-    for log_entry in receipt.get("logs", []):
-        topics = log_entry.get("topics", [])
-    # removed: if not topics or topics[0] != event_sig:
-            continue
-        # root está en topics[1] (indexed)
-        if len(topics) >= 2:
-            onchain_root = f"0x{topics[1].hex()}"
-        # timestamp en data
-        raw_data = log_entry.get("data", b"")
-        if isinstance(raw_data, (bytes, bytearray)) and len(raw_data) >= 32:
-            block_timestamp = int.from_bytes(raw_data[:32], "big")
-        break
-
-    if onchain_root is None:
-        return AnchorVerificationResult(
-            valid=False,
-            tx_hash=tx_hash,
-            expected_root=expected_root or "",
-            error="event_not_found_in_logs",
-            block_number=block_number,
-        )
-
-    # Comparar roots
-    if expected_root:
-        normalized_expected = expected_root.lower().replace("0x", "")
-        normalized_onchain = onchain_root.lower().replace("0x", "")
-        roots_match = normalized_expected == normalized_onchain
-    else:
-        roots_match = True  # Sin expected, sólo confirmamos presencia
-
+    # Arbitrum anchoring permanently removed — Zero Cost principle.
+    # Delegates to: centinel.core.anchoring.verify_ots_proof()
     return AnchorVerificationResult(
-        valid=roots_match,
+        valid=False,
         tx_hash=tx_hash,
         expected_root=expected_root or "",
-        onchain_root=onchain_root,
-        block_number=block_number,
-        block_timestamp=block_timestamp,
-        error=None if roots_match else "root_mismatch",
+        error="use_anchoring_module",
     )
 
 
@@ -777,7 +689,8 @@ class StartupVerificationReport:
                     "valid": ar.valid,
                     "tx_hash": ar.tx_hash,
                     "expected_root": ar.expected_root,
-                    "onchain_root": ar.onchain_root,
+                    "ots_proof_file": ar.ots_proof_file,
+                    "bitcoin_block_height": ar.bitcoin_block_height,
                     "error": ar.error,
                 }
             )
@@ -807,14 +720,14 @@ def run_startup_verification(
     """Ejecuta verificación completa al arranque del pipeline.
 
     1. Verifica la cadena completa de hashes.
-    # [REMOVED-ZERO-COST] 2. Opcionalmente verifica los últimos anclajes contra Arbitrum.
+    2. Verifica anclajes OTS/Bitcoin si están disponibles.
     3. Verifica firmas Ed25519 en los registros de hash.
 
     English:
         Runs full verification at pipeline startup.
 
         1. Verifies the complete hash chain.
-    # [REMOVED-ZERO-COST] 2. Optionally verifies recent anchors against Arbitrum.
+        2. Verifies OTS/Bitcoin anchors if available.
         3. Verifies Ed25519 signatures on hash records.
     """
     start_time = time.monotonic()
@@ -847,9 +760,7 @@ def run_startup_verification(
             verified_links=0,
             errors=["hash_dir_not_found"],
         )
-    # [REMOVED-ZERO-COST] # Arbitrum anchoring removed — use centinel.core.anchoring module instead.
-            except Exception as exc:
-                logger.warning("startup_anchor_check_failed file=%s error=%s", anchor_log.name, exc)
+    # OTS/Bitcoin anchor verification: use centinel.core.anchoring module.
 
     # 3. Verificar firmas en registros de hash
     if verify_signatures and hash_dir.exists():
