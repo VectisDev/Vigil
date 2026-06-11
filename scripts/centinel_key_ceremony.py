@@ -252,7 +252,7 @@ def run_ceremony(
         encoding="utf-8",
     )
     # Set restrictive permissions (still public but mark as official).
-    os.chmod(pubkey_path, 0o644)
+    os.chmod(pubkey_path, 0o640)  # owner rw, group r -- not world-readable
 
     # 6. Write each share to its own file.
     share_files: List[str] = []
@@ -307,7 +307,7 @@ def run_ceremony(
         json.dumps(record, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    os.chmod(record_path, 0o644)
+    os.chmod(record_path, 0o640)  # owner rw, group r -- not world-readable
 
     if interactive:
         print()
