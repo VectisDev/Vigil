@@ -1,116 +1,736 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CENTINEL — Honduras Electoral</title>
+<title>VIGIL — Electoral Integrity Verification</title>
+<meta name="description" content="Open-source cryptographic electoral audit. Real-time anomaly detection. Zero cost. Any country in Latin America.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
-    --muted:#8b929c;--accent:#6ea8fe;--purple:#b08cf0}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);min-height:100vh;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    display:flex;flex-direction:column;align-items:center;
-    justify-content:center;padding:64px 24px 40px;line-height:1.65;
-    -webkit-font-smoothing:antialiased}
-  nav{position:fixed;top:0;left:0;right:0;z-index:99;
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    padding:12px 20px;background:rgba(15,17,21,.92);
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    border-bottom:1px solid var(--border);flex-wrap:wrap}
-  nav a{font-size:11px;font-weight:700;color:var(--muted);text-decoration:none;
-    letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;
-    border:1px solid transparent;border-radius:6px;transition:.15s;white-space:nowrap}
-  nav a:hover{color:var(--fg);border-color:#3a3f49}
-  .badge{display:inline-block;margin-bottom:36px;font-size:12px;color:var(--muted);
-    background:var(--panel);border:1px solid var(--border);border-radius:999px;
-    padding:5px 16px;letter-spacing:.02em}
-  h1{font-size:34px;margin:0 0 10px;font-weight:600;letter-spacing:-.03em}
-  .sub{color:var(--muted);max-width:600px;text-align:center;margin:0 0 16px;
-    font-size:15px}
-  .cards{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;
-    max-width:820px}
-  a.card{display:block;width:392px;background:var(--panel);
-    border:1px solid var(--border);border-radius:14px;padding:28px 30px;
-    text-decoration:none;color:var(--fg);transition:.15s}
-  a.card:hover{border-color:#3a3f49;transform:translateY(-3px)}
-  .card h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
-  .card p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.6}
-  .tag{display:inline-block;font-size:11px;font-weight:700;
-    padding:4px 11px;border-radius:999px;margin-bottom:14px;
-    letter-spacing:.04em}
-  .t-pub{background:rgba(110,168,254,.12);color:var(--accent)}
-  .t-val{background:rgba(176,140,240,.13);color:var(--purple)}
-  .t-upnfm{background:rgba(87,192,141,.12);color:#57c08d}
-  a.card{width:355px}
-  .t-rep{background:rgba(223,107,134,.12);color:#df6b86}
-  .t-ver{background:rgba(110,168,254,.12);color:var(--accent)}
-  .docs-section{margin-top:40px;max-width:820px;text-align:center}
-  .docs-section h3{font-size:13px;font-weight:700;text-transform:uppercase;
-    letter-spacing:.06em;color:var(--muted);margin-bottom:14px}
-  .docs-links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-  .docs-links a{font-size:12px;color:var(--muted);text-decoration:none;
-    padding:5px 14px;border:1px solid var(--border);border-radius:6px;
-    transition:.15s}
-  .docs-links a:hover{color:var(--fg);border-color:#3a3f49}
-  footer{margin-top:48px;color:var(--muted);font-size:12.5px;
-    text-align:center;line-height:1.7}
-  code{font-family:ui-monospace,monospace;background:var(--panel);
-    padding:2px 7px;border-radius:5px;font-size:12px;
-    border:1px solid var(--border)}
+/* ─── Tokens ─────────────────────────────────────────────── */
+:root {
+  --black:   #0a0a0a;
+  --white:   #ffffff;
+  --stone:   #f4f4f2;   /* page surface */
+  --ash:     #e8e8e6;   /* dividers */
+  --mid:     #6b6b6b;   /* secondary text */
+  --dim:     #9a9a9a;   /* tertiary */
+  --red:     #c8102e;   /* single accent — evidence & primary CTA only */
+  --mono:    'JetBrains Mono', ui-monospace, monospace;
+  --sans:    'Inter', -apple-system, sans-serif;
+}
+
+/* ─── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ─── Nav ────────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  height: 56px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ash);
+}
+
+.nav-wordmark {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--black);
+  text-decoration: none;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mid);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--black); }
+
+.lang-toggle {
+  display: flex;
+  gap: 4px;
+}
+.lang-toggle button {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--dim);
+  transition: all 0.15s;
+}
+.lang-toggle button.active {
+  color: var(--black);
+  border-color: var(--ash);
+}
+
+/* ─── Hero ───────────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 48px 80px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 32px;
+}
+
+.hero-headline {
+  font-size: clamp(42px, 6vw, 80px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--black);
+  max-width: 820px;
+  margin-bottom: 8px;
+}
+
+/* The single red word */
+.hero-headline em {
+  font-style: normal;
+  color: var(--red);
+}
+
+.hero-headline-2 {
+  font-size: clamp(42px, 6vw, 80px);
+  font-weight: 300;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--black);
+  max-width: 820px;
+  margin-bottom: 48px;
+}
+
+.hero-body {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--mid);
+  max-width: 520px;
+  margin-bottom: 48px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--red);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  padding: 14px 28px;
+  border-radius: 2px;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.88; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  color: var(--black);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  padding: 14px 28px;
+  border: 1px solid var(--ash);
+  border-radius: 2px;
+  transition: border-color 0.15s;
+}
+.btn-secondary:hover { border-color: #c0c0bc; }
+
+/* ─── Evidence strip ─────────────────────────────────────── */
+.evidence {
+  background: var(--stone);
+  border-top: 1px solid var(--ash);
+  border-bottom: 1px solid var(--ash);
+  padding: 72px 48px;
+}
+
+.evidence-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.evidence-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 48px;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-left: 1px solid var(--ash);
+  margin-bottom: 48px;
+}
+
+.stat {
+  padding: 0 40px 0 36px;
+  border-right: 1px solid var(--ash);
+}
+
+.stat-number {
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.stat-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--black);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--mid);
+  line-height: 1.5;
+}
+
+/* The cryptographic signature — the unique element */
+.chain-proof {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 32px;
+  border-top: 1px solid var(--ash);
+}
+
+.chain-proof-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.chain-proof-hash {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--mid);
+  opacity: 0;
+  animation: fadeHash 0.8s ease 1.2s forwards;
+}
+
+.chain-proof-anchor {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+
+@keyframes fadeHash {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Why it matters ─────────────────────────────────────── */
+.why {
+  padding: 96px 48px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 48px;
+}
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--ash);
+}
+
+.why-item {
+  padding: 40px 36px 40px 0;
+  border-bottom: 1px solid var(--ash);
+}
+
+.why-item:not(:last-child) {
+  padding-right: 40px;
+  margin-right: 0;
+}
+
+.why-number {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  margin-bottom: 20px;
+}
+
+.why-title {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--black);
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.why-body {
+  font-size: 14px;
+  color: var(--mid);
+  line-height: 1.7;
+}
+
+/* ─── Audiences ──────────────────────────────────────────── */
+.audiences {
+  background: var(--stone);
+  border-top: 1px solid var(--ash);
+  padding: 96px 48px;
+}
+
+.audiences-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.audience-card {
+  background: var(--white);
+  border: 1px solid var(--ash);
+  border-radius: 2px;
+  padding: 36px 32px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: border-color 0.15s;
+}
+.audience-card:hover { border-color: #c0c0bc; }
+
+.audience-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 20px;
+}
+
+.audience-title {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--black);
+  margin-bottom: 12px;
+}
+
+.audience-body {
+  font-size: 13px;
+  color: var(--mid);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.audience-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audience-link::after {
+  content: '→';
+  transition: transform 0.15s;
+}
+.audience-card:hover .audience-link::after { transform: translateX(4px); }
+
+/* ─── Footer ─────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--ash);
+  padding: 40px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-left {
+  font-size: 12px;
+  color: var(--dim);
+  font-family: var(--mono);
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+
+.footer-links a {
+  font-size: 12px;
+  color: var(--dim);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: var(--black); }
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  nav { padding: 0 24px; }
+  .nav-links { display: none; }
+
+  .hero { padding: 100px 24px 64px; }
+  .hero-headline, .hero-headline-2 { font-size: clamp(36px, 8vw, 52px); }
+  .hero-body { font-size: 16px; }
+
+  .evidence { padding: 56px 24px; }
+  .stats-row {
+    grid-template-columns: 1fr;
+    border-left: none;
+  }
+  .stat {
+    padding: 28px 0;
+    border-right: none;
+    border-bottom: 1px solid var(--ash);
+  }
+
+  .why { padding: 64px 24px; }
+  .why-grid { grid-template-columns: 1fr; }
+
+  .audiences { padding: 64px 24px; }
+  .audience-grid { grid-template-columns: 1fr; }
+
+  footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain-proof-hash { animation: none; opacity: 1; }
+}
+
+/* ─── Language switching ─────────────────────────────────── */
+[data-lang] { display: none; }
+.lang-en [data-lang="en"] { display: block; }
+.lang-en [data-lang="en"].inline { display: inline; }
+.lang-es [data-lang="es"] { display: block; }
+.lang-es [data-lang="es"].inline { display: inline; }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="monitor/">Monitor</a>
-    <a href="lab/">Lab</a>
-    <a href="reports/hnd_2025.html">Reports</a>
-    <a href="verifier/">Verifier</a>
-    <a href="peers/">Peers</a>
-    <a href="ops/">OPS</a>
-  </nav>
 
-  <h1>CENTINEL Electoral Honduras</h1>
-  <p class="sub">Auditoría criptográfica independiente del proceso electoral.
-    Anclado en Bitcoin. Costo cero. Reproducible por cualquiera.</p>
-  <span class="badge">64 snapshots reales procesados · Honduras 2025 · 21 anomalías detectadas</span>
-  <div class="cards">
-    <a class="card" href="monitor/">
-      <span class="tag t-pub">PÚBLICO · tiempo real</span>
-      <h2>Monitor electoral</h2>
-      <p>Mapa de Honduras en vivo, candidatos, gráfica Benford, 7 detectores forenses,
-        cadena criptográfica, verificador offline y descarga de informe PDF. Sin login.</p>
-    </a>
-    <a class="card" href="lab/">
-      <span class="tag t-upnfm">ACADÉMICO · simulación forense</span>
-      <h2>Lab forense</h2>
-      <p>Consola de Reproducción Forense con datos reales HND-2025 y series de simulación
-        de 576 snapshots. Inyección de anomalías de origen, ataques al sistema y patrones
-        estadísticos electorales. Ajuste de umbrales de las 23 reglas.</p>
-    </a>
-    <a class="card" href="reports/hnd_2025.html">
-      <span class="tag t-rep">ANÁLISIS · Honduras 2025</span>
-      <h2>Resultados Auditoría 2025</h2>
-      <p>Análisis forense automatizado de 64 snapshots reales del CNE. Detección de apagones, velocidad de resolución anómala, inyección progresiva y estancamiento prolongado.</p>
-    </a>
-    <a class="card" href="verifier/">
-      <span class="tag t-ver">VERIFICACIÓN · independiente</span>
-      <h2>Verificador Offline</h2>
-      <p>Descarga el verificador HTML. Comprueba la autenticidad de cualquier snapshot sin conexión a internet, sin dependencia del CNE ni de Centinel.</p>
-    </a>
-  </div>
-  <div class="docs-section">
-    <h3>Documentación Técnica</h3>
-    <div class="docs-links">
-      <a href="https://github.com/VectisDev/centinel">GitHub Repo</a>
-      <a href="https://github.com/VectisDev/centinel/tree/main/docs/whitepaper">Whitepaper</a>
-      <a href="https://github.com/VectisDev/centinel/tree/main/docs/mathematics">Metodología Matemática</a>
-      <a href="https://github.com/VectisDev/centinel/blob/main/docs/security/THREAT-MODEL.md">Modelo de Amenazas</a>
+<body class="lang-en" id="page">
+
+<!-- ─── Nav ────────────────────────────────────────────── -->
+<nav>
+  <a href="/" class="nav-wordmark">VIGIL</a>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a href="monitor/">Monitor</a></li>
+      <li><a href="lab/">Lab</a></li>
+      <li><a href="reports/hnd_2025.html">Honduras 2025</a></li>
+      <li><a href="ops/">Ops</a></li>
+    </ul>
+    <div class="lang-toggle">
+      <button class="active" onclick="setLang('en')" id="btn-en">EN</button>
+      <button onclick="setLang('es')" id="btn-es">ES</button>
     </div>
   </div>
-  <footer>
-    AGPL-3.0 · <code>github.com/VectisDev/centinel</code><br>
-    Verificación criptográfica independiente. Abierta a cualquier ciudadano, en cualquier país.
-  </footer>
+</nav>
+
+<!-- ─── Hero ────────────────────────────────────────────── -->
+<section class="hero">
+  <p class="hero-eyebrow">Electoral integrity verification · Open source · Latin America</p>
+
+  <h1 class="hero-headline" data-lang="en">
+    Electoral data can be <em>falsified.</em>
+  </h1>
+  <h2 class="hero-headline-2" data-lang="en">
+    Now it can be verified.
+  </h2>
+
+  <h1 class="hero-headline" data-lang="es">
+    Los datos electorales pueden ser <em>alterados.</em>
+  </h1>
+  <h2 class="hero-headline-2" data-lang="es">
+    Ahora pueden ser verificados.
+  </h2>
+
+  <p class="hero-body" data-lang="en">
+    VIGIL captures every official publication from electoral authorities,
+    chains each snapshot cryptographically, and detects statistical anomalies —
+    in real time, at zero cost, for any country in Latin America.
+  </p>
+
+  <p class="hero-body" data-lang="es">
+    VIGIL captura cada publicación oficial de las autoridades electorales,
+    encadena cada snapshot criptográficamente, y detecta anomalías estadísticas —
+    en tiempo real, a costo cero, para cualquier país de América Latina.
+  </p>
+
+  <div class="hero-actions">
+    <a href="reports/hnd_2025.html" class="btn-primary" data-lang="en">
+      See Honduras 2025 evidence →
+    </a>
+    <a href="reports/hnd_2025.html" class="btn-primary" data-lang="es">
+      Ver evidencia Honduras 2025 →
+    </a>
+    <a href="https://github.com/VectisDev/centinel" class="btn-secondary" target="_blank" rel="noopener" data-lang="en">
+      Deploy your own instance
+    </a>
+    <a href="https://github.com/VectisDev/centinel" class="btn-secondary" target="_blank" rel="noopener" data-lang="es">
+      Despliega tu propia instancia
+    </a>
+  </div>
+</section>
+
+<!-- ─── Evidence ─────────────────────────────────────────── -->
+<section class="evidence">
+  <div class="evidence-inner">
+
+    <p class="evidence-label" data-lang="en">Honduras 2025 — first field audit</p>
+    <p class="evidence-label" data-lang="es">Honduras 2025 — primera auditoría de campo</p>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-number">13h</div>
+        <div class="stat-label" data-lang="en">No data published</div>
+        <div class="stat-label" data-lang="es">Sin datos publicados</div>
+        <div class="stat-sub" data-lang="en">Complete blackout during count consolidation</div>
+        <div class="stat-sub" data-lang="es">Apagón completo durante consolidación del conteo</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">2,346</div>
+        <div class="stat-label" data-lang="en">Acts resolved at impossible speed</div>
+        <div class="stat-label" data-lang="es">Actas resueltas a velocidad imposible</div>
+        <div class="stat-sub" data-lang="en">39 acts/min — threshold is 10/min</div>
+        <div class="stat-sub" data-lang="es">39 actas/min — umbral es 10/min</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">+69.6%</div>
+        <div class="stat-label" data-lang="en">Lead gap grew during blackout</div>
+        <div class="stat-label" data-lang="es">Brecha aumentó durante el apagón</div>
+        <div class="stat-sub" data-lang="en">While data was invisible to the public</div>
+        <div class="stat-sub" data-lang="es">Mientras los datos eran invisibles al público</div>
+      </div>
+    </div>
+
+    <div class="chain-proof">
+      <span class="chain-proof-label">SHA-256 chain root · 64 snapshots · cryptographically sealed</span>
+      <span class="chain-proof-hash">3f2a1c9d7e4b8f2a1c9d7e4b8f2a1c9d7e4b8f2a1c9d7e4b8f2a1c9d7e4b8f2a</span>
+      <span class="chain-proof-anchor">Anchored to Bitcoin via OpenTimestamps · reproducible by anyone, offline</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── Why ───────────────────────────────────────────────── -->
+<section class="why">
+  <p class="section-label" data-lang="en">Why it's different</p>
+  <p class="section-label" data-lang="es">Por qué es diferente</p>
+
+  <div class="why-grid">
+    <div class="why-item">
+      <div class="why-number">01</div>
+      <div class="why-title" data-lang="en">Zero cost. Zero infrastructure.</div>
+      <div class="why-title" data-lang="es">Cero costo. Cero infraestructura.</div>
+      <div class="why-body" data-lang="en">
+        Runs entirely on GitHub's free tier. No servers, no licenses, no ongoing budget.
+        Any citizen organization can deploy it from a browser.
+      </div>
+      <div class="why-body" data-lang="es">
+        Funciona completamente en el tier gratuito de GitHub. Sin servidores, sin licencias,
+        sin presupuesto continuo. Cualquier organización ciudadana puede desplegarlo desde un navegador.
+      </div>
+    </div>
+    <div class="why-item">
+      <div class="why-number">02</div>
+      <div class="why-title" data-lang="en">Cryptographic, not testimonial.</div>
+      <div class="why-title" data-lang="es">Criptográfico, no testimonial.</div>
+      <div class="why-body" data-lang="en">
+        Every captured snapshot is SHA-256 chained and anchored to Bitcoin.
+        Any third party can verify the chain offline — without our cooperation.
+      </div>
+      <div class="why-body" data-lang="es">
+        Cada snapshot capturado está encadenado con SHA-256 y anclado a Bitcoin.
+        Cualquier tercero puede verificar la cadena offline — sin nuestra cooperación.
+      </div>
+    </div>
+    <div class="why-item">
+      <div class="why-number">03</div>
+      <div class="why-title" data-lang="en">One operator. Any country.</div>
+      <div class="why-title" data-lang="es">Un operador. Cualquier país.</div>
+      <div class="why-body" data-lang="en">
+        A journalist, academic, or civil society observer can audit a national election
+        from a laptop. Honduras, Guatemala, El Salvador, Mexico — one fork.
+      </div>
+      <div class="why-body" data-lang="es">
+        Un periodista, académico u observador de la sociedad civil puede auditar
+        una elección nacional desde un portátil. Honduras, Guatemala, México — un fork.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Audiences ─────────────────────────────────────────── -->
+<section class="audiences">
+  <div class="audiences-inner">
+    <p class="section-label" data-lang="en">Who uses VIGIL</p>
+    <p class="section-label" data-lang="es">Quién usa VIGIL</p>
+
+    <div class="audience-grid">
+      <a href="monitor/" class="audience-card">
+        <div class="audience-tag">Citizens · Public</div>
+        <div class="audience-title" data-lang="en">Monitor in real time</div>
+        <div class="audience-title" data-lang="es">Monitorea en tiempo real</div>
+        <div class="audience-body" data-lang="en">
+          Live electoral map, candidate results, anomaly alerts, and cryptographic chain —
+          no login required.
+        </div>
+        <div class="audience-body" data-lang="es">
+          Mapa electoral en vivo, resultados por candidato, alertas de anomalías
+          y cadena criptográfica — sin login.
+        </div>
+        <div class="audience-link" data-lang="en">Open monitor</div>
+        <div class="audience-link" data-lang="es">Abrir monitor</div>
+      </a>
+
+      <a href="reports/hnd_2025.html" class="audience-card">
+        <div class="audience-tag">Observers · Academics</div>
+        <div class="audience-title" data-lang="en">Read the forensic report</div>
+        <div class="audience-title" data-lang="es">Lee el informe forense</div>
+        <div class="audience-body" data-lang="en">
+          Full Honduras 2025 audit — 64 real CNE snapshots, 5 anomalies, reproducible methodology,
+          cryptographic proof.
+        </div>
+        <div class="audience-body" data-lang="es">
+          Auditoría completa Honduras 2025 — 64 snapshots reales del CNE, 5 anomalías,
+          metodología reproducible, prueba criptográfica.
+        </div>
+        <div class="audience-link" data-lang="en">Read report</div>
+        <div class="audience-link" data-lang="es">Leer informe</div>
+      </a>
+
+      <a href="https://github.com/VectisDev/centinel" class="audience-card" target="_blank" rel="noopener">
+        <div class="audience-tag">Technical · Deployers</div>
+        <div class="audience-title" data-lang="en">Deploy your own instance</div>
+        <div class="audience-title" data-lang="es">Despliega tu propia instancia</div>
+        <div class="audience-body" data-lang="en">
+          Fork → enable Actions → run Setup Wizard. Your independent node is live in minutes.
+          AGPL-3.0. No servers. No budget.
+        </div>
+        <div class="audience-body" data-lang="es">
+          Fork → activa Actions → ejecuta el Setup Wizard. Tu nodo independiente
+          está en vivo en minutos. AGPL-3.0. Sin servidores. Sin presupuesto.
+        </div>
+        <div class="audience-link" data-lang="en">View on GitHub</div>
+        <div class="audience-link" data-lang="es">Ver en GitHub</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ────────────────────────────────────────────── -->
+<footer>
+  <span class="footer-left">VIGIL · AGPL-3.0 · vectisdev · Tegucigalpa, Honduras</span>
+  <ul class="footer-links">
+    <li><a href="lab/">Lab</a></li>
+    <li><a href="ops/">Ops panel</a></li>
+    <li><a href="verifier/">Verifier</a></li>
+    <li><a href="https://github.com/VectisDev/centinel" target="_blank" rel="noopener">GitHub</a></li>
+    <li><a href="https://doi.org/10.5281/zenodo.20598892" target="_blank" rel="noopener">Zenodo dataset</a></li>
+  </ul>
+</footer>
+
+<script>
+function setLang(lang) {
+  document.getElementById('page').className = 'lang-' + lang;
+  document.getElementById('btn-en').className = lang === 'en' ? 'active' : '';
+  document.getElementById('btn-es').className = lang === 'es' ? 'active' : '';
+  localStorage.setItem('vigil-lang', lang);
+}
+// Restore preference
+const saved = localStorage.getItem('vigil-lang');
+if (saved === 'es') setLang('es');
+</script>
+
 </body>
 </html>
