@@ -307,7 +307,7 @@ def run_ceremony(
         json.dumps(record, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    os.chmod(record_path, 0o640)  # owner rw, group r -- not world-readable
+    os.chmod(record_path, 0o600)  # owner rw only (least privilege)
 
     if interactive:
         print()
