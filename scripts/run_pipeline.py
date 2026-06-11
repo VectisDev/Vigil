@@ -33,7 +33,8 @@ def resolve_poll_interval_seconds(config: dict[str, Any]) -> float:
     """Return configured polling interval in seconds.
 
     ES: Retorna el intervalo de polling configurado en segundos.
-    Reads poll_interval_seconds, election_interval_seconds, or defaults to 180s (3 min).
+    Priority: low_profile.base_interval_minutes > poll_interval_seconds >
+    election_interval_seconds > poll_interval_minutes > 180s default.
 
     Args:
         config: Pipeline configuration dictionary.
@@ -41,33 +42,71 @@ def resolve_poll_interval_seconds(config: dict[str, Any]) -> float:
     Returns:
         Polling interval in seconds (float, always >= 30).
     """
-    for key in ("poll_interval_seconds", "election_interval_seconds", "interval_seconds"):
+    # Low-profile mode overrides: use base_interval_minutes if present
+    low_profile = config.get("low_profile", {})
+    if isinstance(low_profile, dict) and low_profile.get("enabled", False):
+        base_min = low_profile.get("base_interval_minutes")
+        if base_min is not None:
+            try:
+                return max(30.0, float(base_min) * 60.0)
+            except (TypeError, ValueError):
+                pass
+
+    for key, multiplier in (
+        ("poll_interval_seconds", 1.0),
+        ("election_interval_seconds", 1.0),
+        ("interval_seconds", 1.0),
+        ("poll_interval_minutes", 60.0),
+    ):
         val = config.get(key)
         if val is not None:
             try:
-                return max(30.0, float(val))
+                return max(30.0, float(val) * multiplier)
             except (TypeError, ValueError):
                 pass
     return 180.0  # default: 3 minutes
 
 
-def resolve_poll_jitter_factor(config: dict[str, Any]) -> float:
-    """Return configured jitter factor for polling interval.
+def resolve_poll_jitter_factor(
+    config: dict[str, Any],
+    rng: "Any | None" = None,
+) -> float:
+    """Return a jitter multiplier for the polling interval.
 
-    ES: Retorna el factor de jitter configurado para el intervalo de polling.
-    Clamped to [0.0, 0.5].
+    ES: Retorna un multiplicador de jitter para el intervalo de polling.
+    Returns a value in [1-jitter, 1+jitter] when rng is provided,
+    or the raw jitter fraction when rng is None.
 
     Args:
         config: Pipeline configuration dictionary.
+        rng:    Optional random.Random instance. When provided, returns a
+                sampled multiplier in [1-p, 1+p]. When None, returns the
+                raw fraction clamped to [0.0, 0.5].
 
     Returns:
-        Jitter factor as a fraction in [0.0, 0.5].
+        Float jitter value.
     """
-    val = config.get("poll_jitter_factor", 0.1)
-    try:
-        return max(0.0, min(0.5, float(val)))
-    except (TypeError, ValueError):
-        return 0.1
+    import random as _random
+
+    low_profile = config.get("low_profile", {})
+    if isinstance(low_profile, dict) and low_profile.get("enabled", False):
+        jitter_pct = low_profile.get("jitter_percent", 10)
+        try:
+            fraction = max(0.0, min(50.0, float(jitter_pct))) / 100.0
+        except (TypeError, ValueError):
+            fraction = 0.1
+    else:
+        try:
+            fraction = max(0.0, min(0.5, float(config.get("poll_jitter_factor", 0.1))))
+        except (TypeError, ValueError):
+            fraction = 0.1
+
+    if rng is not None:
+        # Return sampled multiplier: uniform in [1-fraction, 1+fraction]
+        _rng = rng if hasattr(rng, "uniform") else _random.Random()
+        return _rng.uniform(1.0 - fraction, 1.0 + fraction)
+
+    return fraction
 
 
 def _trigger_emergency_publish(reason: str = "anomaly_detected") -> None:
