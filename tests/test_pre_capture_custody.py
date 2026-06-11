@@ -27,6 +27,7 @@ import json
 import sys
 from dataclasses import replace
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 
@@ -110,7 +111,9 @@ class TestBuildEnvelope:
     def test_construction_smoke(self):
         env = make_envelope()
         assert env.envelope_version == "1.0"
-        assert env.url_requested.startswith("https://cne.hn")
+        parsed = urlparse(env.url_requested)
+        assert parsed.scheme == "https"
+        assert parsed.hostname == "cne.hn"
         assert env.http_status_code == 200
         assert env.response_body_size_bytes == len(SAMPLE_BODY)
 
