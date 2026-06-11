@@ -39,6 +39,29 @@ from typing import Optional
 
 import aiohttp
 
+# Optional: pre-capture evidentiary custody (graceful degradation if unavailable).
+# Opcional: custodia de evidencia pre-captura (degradación graceful si no disponible).
+try:
+    from centinel.core.pre_capture_custody import (
+        build_envelope as _build_custody_envelope,
+        sign_envelope  as _sign_custody_envelope,
+    )
+    _CUSTODY_AVAILABLE = True
+except ImportError:
+    _CUSTODY_AVAILABLE = False
+
+
+def _get_operator_key():
+    """Load Ed25519 private key from env (raw hex). Returns None if not configured."""
+    hex_key = os.environ.get("CENTINEL_OPERATOR_PRIVATE_KEY_HEX")
+    if not hex_key or not _CUSTODY_AVAILABLE:
+        return None
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        return Ed25519PrivateKey.from_private_bytes(bytes.fromhex(hex_key))
+    except Exception:
+        return None
+
 # ── Logging estructurado / Structured logging ──────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -89,6 +112,9 @@ class FetchResult:
     content_bytes: Optional[bytes]
     error: Optional[str]
     latency_ms: float
+    custody_envelope: Optional[dict] = field(default=None)
+    # ^ Pre-capture evidentiary envelope. None if module unavailable or key not set.
+    #   See: src/centinel/core/pre_capture_custody.py
 
 
 # ── Fetch asíncrono / Async fetch ──────────────────────────────────────────────
@@ -126,6 +152,31 @@ async def fetch_one(
             latency_ms = (time.monotonic() - t_start) * 1000
             content_hash = hashlib.sha256(content).hexdigest()
 
+            # ── Pre-capture custody envelope ─────────────────────────
+            # Built on raw bytes BEFORE any parsing. TLS extraction is
+            # skipped in the async path (socket is sync); HTTP headers +
+            # body hash provide sufficient provenance evidence.
+            custody = None
+            if _CUSTODY_AVAILABLE:
+                try:
+                    env = _build_custody_envelope(
+                        url=str(endpoint.url),
+                        operator_id=os.environ.get(
+                            "CENTINEL_OPERATOR_ID", "centinel-operator"),
+                        response_body=content,
+                        response_status=response.status,
+                        response_headers=dict(response.headers),
+                        tls_metadata={},
+                    )
+                    op_key = _get_operator_key()
+                    if op_key:
+                        env = _sign_custody_envelope(env, op_key)
+                    custody = env.to_dict()
+                except Exception as _exc:  # noqa: BLE001
+                    log.debug("custody_envelope_failed endpoint=%s err=%s",
+                              endpoint.id, _exc)
+            # ─────────────────────────────────────────────────────────
+
             return FetchResult(
                 endpoint_id=endpoint.id,
                 timestamp_utc=timestamp,
@@ -135,6 +186,7 @@ async def fetch_one(
                 content_bytes=content,
                 error=None if response.status < 400 else f"http_{response.status}",
                 latency_ms=latency_ms,
+                custody_envelope=custody,
             )
 
     except asyncio.TimeoutError:
