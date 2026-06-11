@@ -302,7 +302,13 @@ class StructuredLogger:
 
         English: Function __init__ defined in src/centinel/downloader.py.
         """
-        if structlog is not None:
+        # Use real structlog only when the full package is present
+        # (has BoundLogger attr). Stubs/mocks fall through to stdlib.
+        _is_real_structlog = (
+            structlog is not None
+            and hasattr(structlog, "BoundLogger")
+        )
+        if _is_real_structlog:
             self._logger = structlog.get_logger(name)
             self._use_structlog = True
         else:
@@ -317,7 +323,7 @@ class StructuredLogger:
         if self._use_structlog:
             self._logger.info(event, **fields)
         else:
-            self._logger.info("%s %s", event, fields)
+            self._logger.info(event, extra=fields)
 
     def warning(self, event: str, **fields: Any) -> None:
         """Español: Función warning del módulo src/centinel/downloader.py.
@@ -327,7 +333,7 @@ class StructuredLogger:
         if self._use_structlog:
             self._logger.warning(event, **fields)
         else:
-            self._logger.warning("%s %s", event, fields)
+            self._logger.warning(event, extra=fields)
 
     def error(self, event: str, **fields: Any) -> None:
         """Español: Función error del módulo src/centinel/downloader.py.
@@ -337,7 +343,7 @@ class StructuredLogger:
         if self._use_structlog:
             self._logger.error(event, **fields)
         else:
-            self._logger.error("%s %s", event, fields)
+            self._logger.error(event, extra=fields)
 
     def debug(self, event: str, **fields: Any) -> None:
         """Español: Función debug del módulo src/centinel/downloader.py.
