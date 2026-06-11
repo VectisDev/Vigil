@@ -1,39 +1,73 @@
 """
-======================== ÍNDICE / INDEX ========================
-1. Descripción general / Overview
-2. Componentes principales / Main components
-3. Notas de mantenimiento / Maintenance notes
+CENTINEL — Pipeline Runner
+===========================
+Punto de entrada del pipeline de auditoría electoral.
+Electoral audit pipeline entry point.
 
-======================== ESPAÑOL ========================
-Archivo: `scripts/run_pipeline.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
-la navegación, mantenimiento y auditoría técnica.
+Functions:
+  - resolve_poll_interval_seconds: Return polling interval from config
+  - resolve_poll_jitter_factor:    Return jitter factor from config
+"""
 
-Componentes detectados:
-  - utcnow
-  - update_heartbeat
-  - load_state
-  - save_state
-  - load_pipeline_checkpoint
-  - save_pipeline_checkpoint
-  - clear_pipeline_checkpoint
-  - load_resilience_checkpoint
-  - collect_snapshot_index
-  # Arbitrum hash function removed (Zero Cost)
-        result = subprocess.run(
-            [sys.executable, "scripts/generate_report.py", "--upload", "--sign", "--output", output_filename],
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        for line in result.stdout.splitlines():
-            if line.startswith("PDF uploaded:"):
-                return line.split(":", 1)[1].strip()
-        if result.returncode != 0:
-            logger.warning("generate_report_failed stderr=%s", result.stderr[:300])
-    except Exception as exc:
-        logger.warning("generate_report_error error=%s", exc)
-    return None
+from __future__ import annotations
+
+import json
+import logging
+import os
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+
+logger = logging.getLogger("centinel.pipeline")
+
+
+def log_event(log: logging.Logger, level: int, event: str, **kwargs: Any) -> None:
+    """Structured log event. / Evento de log estructurado."""
+    log.log(level, event, extra=kwargs)
+
+
+def resolve_poll_interval_seconds(config: dict[str, Any]) -> float:
+    """Return configured polling interval in seconds.
+
+    ES: Retorna el intervalo de polling configurado en segundos.
+    Reads poll_interval_seconds, election_interval_seconds, or defaults to 180s (3 min).
+
+    Args:
+        config: Pipeline configuration dictionary.
+
+    Returns:
+        Polling interval in seconds (float, always >= 30).
+    """
+    for key in ("poll_interval_seconds", "election_interval_seconds", "interval_seconds"):
+        val = config.get(key)
+        if val is not None:
+            try:
+                return max(30.0, float(val))
+            except (TypeError, ValueError):
+                pass
+    return 180.0  # default: 3 minutes
+
+
+def resolve_poll_jitter_factor(config: dict[str, Any]) -> float:
+    """Return configured jitter factor for polling interval.
+
+    ES: Retorna el factor de jitter configurado para el intervalo de polling.
+    Clamped to [0.0, 0.5].
+
+    Args:
+        config: Pipeline configuration dictionary.
+
+    Returns:
+        Jitter factor as a fraction in [0.0, 0.5].
+    """
+    val = config.get("poll_jitter_factor", 0.1)
+    try:
+        return max(0.0, min(0.5, float(val)))
+    except (TypeError, ValueError):
+        return 0.1
 
 
 def _trigger_emergency_publish(reason: str = "anomaly_detected") -> None:
