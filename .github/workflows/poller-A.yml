@@ -85,16 +85,27 @@ jobs:
             exit 0
           fi
 
+      - name: Setup data branch
+        run: |
+          # Create data branch if it doesn't exist, then work in worktree
+          # so main branch code stays clean and data commits go to data branch.
+          git fetch origin data:data 2>/dev/null || \
+            git checkout --orphan data-init && \
+            git commit --allow-empty -m "init: data branch" && \
+            git push origin HEAD:data && \
+            git checkout main || true
+
       - name: Run continuous poller A
         env:
           POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
           MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19800' }}
-          ENDPOINTS_JSON:     ${{ secrets.ENDPOINTS_JSON }}
+          DATA_BRANCH:        "data"
           GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
         run: |
           python src/centinel/core/poller_async.py \
             --interval    $POLL_INTERVAL \
-            --max-runtime $MAX_RUNTIME
+            --max-runtime $MAX_RUNTIME \
+            --data-branch $DATA_BRANCH
 
       - name: Summary on exit
         if: always()
