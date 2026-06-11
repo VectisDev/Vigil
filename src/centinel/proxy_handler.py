@@ -68,9 +68,17 @@ from pathlib import Path
 from typing import Iterable, List, Optional
 
 import httpx
-import structlog
+try:
+    import structlog  # type: ignore[import]
+except ModuleNotFoundError:
+    structlog = None  # type: ignore[assignment]
 
-from centinel_engine.config_loader import load_config
+try:
+    from centinel_engine.config_loader import load_config  # type: ignore[import]
+except ModuleNotFoundError:  # centinel_engine not installed (tests / forks)
+    def load_config(file_name: str = "", env: str = "prod") -> dict:  # type: ignore[misc]
+        """Fallback stub when centinel_engine package is not available."""
+        return {}
 
 DEFAULT_PROXY_TIMEOUT_SECONDS = 15.0
 DEFAULT_PROXY_TEST_URL = "https://httpbin.org/ip"
