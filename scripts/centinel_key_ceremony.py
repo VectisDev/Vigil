@@ -251,8 +251,8 @@ def run_ceremony(
         f"{public_hex}\n",
         encoding="utf-8",
     )
-    # Set restrictive permissions (still public but mark as official).
-    os.chmod(pubkey_path, 0o640)  # owner rw, group r -- not world-readable
+    # Set restrictive permissions (owner-only read/write).
+    os.chmod(pubkey_path, 0o600)  # owner rw only
 
     # 6. Write each share to its own file.
     share_files: List[str] = []
