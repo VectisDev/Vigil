@@ -376,6 +376,18 @@ PYEOF
             git push
           fi
 
+
+      - name: Auto-discover electoral API endpoints
+        if: github.event.inputs.election_url != ''
+        env:
+          ELECTION_URL:      ${{ github.event.inputs.election_url }}
+          CENTINEL_COUNTRY:  ${{ github.event.inputs.country || 'HN' }}
+          CENTINEL_YEAR:     "2025"
+          DISCOVERY_TIMEOUT: "15"
+        run: |
+          pip install -q pyyaml 2>/dev/null || true
+          python3 .github/scripts/wizard_discovery.py
+
       - name: Write country config
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
         env:
