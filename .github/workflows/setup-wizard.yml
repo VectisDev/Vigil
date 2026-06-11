@@ -57,209 +57,125 @@ jobs:
       - name: Check setup state
         id: check
         env:
-          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
-          REPO_OWNER: ${{ github.repository_owner }}
-        run: |
-          if [ -z "$DATA_REPO_TOKEN" ]; then
-            echo "state=needs_token" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer $DATA_REPO_TOKEN" \
-            "https://api.github.com/repos/$REPO_OWNER/centinel-data")
-          if [ "$HTTP" = "404" ]; then
-            echo "state=needs_repo" >> $GITHUB_OUTPUT
-          elif [ "$HTTP" = "200" ]; then
-            echo "state=ready" >> $GITHUB_OUTPUT
-          else
-            echo "state=error_$HTTP" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Open setup issue (token missing)
-        if: steps.check.outputs.state == 'needs_token'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const existing = await github.rest.issues.listForRepo({
-              owner, repo, labels: 'centinel-setup', state: 'open', per_page: 1
-            });
-            if (existing.data.length > 0) {
-              console.log('Setup issue already open, skipping');
-              return;
-            }
-            await github.rest.issues.create({
-              owner, repo,
-              title: '⚙️ Acción requerida: conectar repositorio de datos',
-              labels: ['centinel-setup'],
-              body: [
-                '> 📍 **Estás en el paso 3** de la guía de despliegue en tu README.',
-                '> Cuando termines los dos pasos de abajo, usa el link del final para continuar con el **paso 4**.',
-                '',
-                '## Crear y conectar el token de acceso',
-                '',
-                'El sistema necesita un token para crear y gestionar el repositorio de datos.',
-                'Es el único paso que GitHub no permite automatizar por razones de seguridad.',
-                '',
-                '### Paso 1 — Crear el token (30 segundos)',
-                '',
-                `**[→ Abrir GitHub: crear token](https://github.com/settings/tokens/new?description=centinel-data&scopes=repo)**`,
-                '',
-                '- Baja hasta el botón **"Generate token"**',
-                '- Clic en **"Generate token"**',
-                '- **Copia el token** que aparece (solo se muestra una vez)',
-                '',
-                '### Paso 2 — Guardar el token (30 segundos)',
-                '',
-                `**[→ Abrir GitHub: añadir secret](https://github.com/${owner}/${repo}/settings/secrets/actions/new)**`,
-                '',
-                '- **Name:** `DATA_REPO_TOKEN`',
-                '- **Secret:** pega el token copiado',
-                '- Clic en **"Add secret"**',
-                '',
-                '---',
-                '',
-                '**✅ Cuando termines los dos pasos, vuelve aquí y haz clic:**',
-                `**[→ Re-ejecutar el Setup Wizard](https://github.com/${owner}/${repo}/actions/workflows/setup-wizard.yml)**`,
-                '→ Clic en **"Run workflow"** → aparece un formulario con estas opciones:',
-                '  - **País a auditar** → selecciona tu país (ej: `HN` para Honduras)',
-                '  - **URL de la autoridad electoral** → pega la URL oficial (ej: `https://resultados2029.cne.hn/`)',
-                '  - Clic en **"Run workflow"**',
-                '',
-                'El wizard detectará los endpoints automáticamente, generará los seeds de acceso y completará el setup.',
-                '',
-                '> Los seeds se subirán como artifact descargable en el propio run — el link aparecerá en este Issue al finalizar.',
-              ].join('\n')
-            });
-
-      - name: Handle token error (expired or wrong permissions)
-        if: startsWith(steps.check.outputs.state, 'error_4')
-        env:
-          CENTINEL_NTFY_TOPIC: ${{ secrets.CENTINEL_NTFY_TOPIC }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
-          STATE: ${{ steps.check.outputs.state }}
         run: |
-          [ -n "$CENTINEL_NTFY_TOPIC" ] && curl -s \
-            -H "Priority: urgent" -H "Tags: key,warning" \
-            -d "Centinel — token DATA_REPO_TOKEN inválido (${STATE}). Ve al Issue abierto en tu repo de GitHub." \
-            "https://ntfy.sh/${CENTINEL_NTFY_TOPIC}" || true
-      - name: Open token error issue
-        if: startsWith(steps.check.outputs.state, 'error_4')
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const state = '${{ steps.check.outputs.state }}';
-            const is401 = state === 'error_401';
-            const existing = await github.rest.issues.listForRepo({
-              owner, repo, labels: 'centinel-token-error', state: 'open', per_page: 1
-            });
-            if (existing.data.length > 0) return;
-            const title = is401
-              ? '🔑 Token DATA_REPO_TOKEN expirado — renovación necesaria'
-              : '🔑 Token DATA_REPO_TOKEN con error de acceso — verificar tipo de token';
-            await github.rest.issues.create({
-              owner, repo,
-              title,
-              labels: ['centinel-token-error'],
-              body: [
-                `## El wizard recibió \`${state}\` al intentar acceder a centinel-data.`,
-                '',
-                is401
-                  ? '**Causa más probable:** el token expiró o fue revocado.'
-                  : '**Causa más probable:** el token es Fine-grained (no compatible) o tiene permisos insuficientes.',
-                '',
-                '### Solución en 2 pasos',
-                '',
-                '**Paso 1 — Crear un nuevo Classic PAT:**',
-                `**[→ Crear token (scopes preconfigurados)](https://github.com/settings/tokens/new?description=centinel-data&scopes=repo)**`,
-                '- Confirma que **repo** está marcado (acceso completo)',
-                '- Clic en **"Generate token"** → copia el token',
-                '',
-                '**Paso 2 — Actualizar el secret:**',
-                `**[→ Ir a Settings → Secrets → DATA_REPO_TOKEN](https://github.com/${owner}/${repo}/settings/secrets/actions)**`,
-                '- Clic en **DATA_REPO_TOKEN** → "Update" → pega el nuevo token → Save',
-                '',
-                '> ⚠️ **Usa siempre Classic PAT** — los Fine-grained PAT no son compatibles con la API v3 de GitHub que usa este sistema y fallan silenciosamente.',
-                '',
-                '---',
-                '',
-                '**✅ El wizard detectará el token renovado en el próximo ciclo horario automáticamente.**',
-                `O re-ejecútalo ahora: **[Setup Wizard → Run workflow](https://github.com/${owner}/${repo}/actions/workflows/setup-wizard.yml)**`,
-              ].join('\n')
-            });
+          # Check if data branch exists — no external token needed
+          # ES: Verificar si la branch de datos existe — sin token externo
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/branches/data")
+          if [ "$HTTP" = "404" ]; then
+            echo "state=needs_repo" >> $GITHUB_OUTPUT
+          else
+            echo "state=ready" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Create centinel-data repo automatically
+      - name: Create data branch
         if: steps.check.outputs.state == 'needs_repo'
         id: create_repo
         env:
-          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
-          # Create the repo
-          curl -sS --fail \
-            -H "Authorization: Bearer $DATA_REPO_TOKEN" \
+          # Create orphan data branch — completely separate history from main
+          # ES: Crear branch huérfana para datos — historial separado de main
+          # Uses GITHUB_TOKEN only — no external PAT needed
+          
+          # Get main branch SHA to create data branch from
+          MAIN_SHA=$(curl -sS \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/refs/heads/main" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['object']['sha'])")
+          
+          # Create an empty tree for the orphan branch
+          TREE_SHA=$(curl -sS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"name\":\"centinel-data\",\"description\":\"Datos públicos de auditoría electoral — publicados automáticamente por centinel-engine\",\"private\":false,\"auto_init\":true}" \
-            "https://api.github.com/user/repos"
-
-          sleep 5  # wait for repo to initialize with its first commit
-
+            -d '{"tree":[]}' \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/trees" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['sha'])")
+          
+          # Create genesis commit for data branch
+          COMMIT_SHA=$(curl -sS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"message\":\"init: data branch — CENTINEL electoral snapshots\",\"tree\":\"$TREE_SHA\"}" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/commits" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['sha'])")
+          
+          # Create the data branch ref
+          curl -sS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"ref\":\"refs/heads/data\",\"sha\":\"$COMMIT_SHA\"}" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/refs"
+          
+          echo "✅ Data branch created"
           echo "repo_created=true" >> $GITHUB_OUTPUT
 
-      - name: Create organized department structure in centinel-data
+      - name: Initialize data branch structure
         if: steps.create_repo.outputs.repo_created == 'true'
         env:
-          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
           CENTINEL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
-          CENTINEL_YEAR: "2025"
         run: |
-          pip install -q pyyaml 2>/dev/null || true
-          python3 .github/scripts/wizard_repo_structure.py
+          # Create README on data branch documenting its purpose
+          # ES: Crear README en la branch de datos explicando su propósito
+          README_CONTENT=$(python3 -c "
+import base64, os
+country = os.environ.get('CENTINEL_COUNTRY', 'HN')
+content = f'''# CENTINEL Data Branch
 
-      - name: Initialize centinel-data workflows
-        if: steps.create_repo.outputs.repo_created == 'true'
-        env:
-          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
-          REPO_OWNER: ${{ github.repository_owner }}
-        run: |
-          BASE_URL="https://api.github.com/repos/$REPO_OWNER/centinel-data"
+Electoral snapshot data — automatically published by [CENTINEL](..) during elections.
 
-          push_file() {
-            local path="$1"
-            local content="$2"
-            local b64=$(echo "$content" | base64 -w 0)
-            curl -sS --fail \
-              -H "Authorization: Bearer $DATA_REPO_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"message\":\"init: $path\",\"content\":\"$b64\"}" \
-              "$BASE_URL/contents/$path" > /dev/null
-          }
-          # IPFS/Pinata removed — requires paid Pinata account (violates Zero Cost)
-      # Pin to IPFS removed — Pinata is a paid service
+**Country:** {country}  
+**Format:** JSON snapshots captured from official electoral authority  
+**Hash chain:** \`poller_chain.jsonl\` — cryptographically chained, verifiable offline  
 
-      - name: Create backup archive
-        run: |
-          TAG="backup-$(date -u +%Y-%m-%d)"
-          zip -r "centinel-data-${TAG}.zip" . --exclude "*.git*"
-          SHA=$(sha256sum "centinel-data-${TAG}.zip" | cut -d" " -f1)
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "SHA=$SHA" >> $GITHUB_ENV
-          echo "ZIPFILE=centinel-data-${TAG}.zip" >> $GITHUB_ENV
-      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
-        with:
-          tag_name: ${{ env.TAG }}
-          name: "Backup ${{ env.TAG }}"
-          body: |
-            Backup automático semanal de centinel-data.
-            SHA256: `${{ env.SHA }}`
-          files: ${{ env.ZIPFILE }}'
+## Verify integrity
 
-          echo "Workflows initialized"
+\`\`\`bash
+git clone --branch data https://github.com/{os.environ.get('REPO_OWNER','')}/{os.environ.get('REPO_NAME','')}
+python verify_chain.py poller_chain.jsonl
+\`\`\`
+
+*Auto-generated by CENTINEL Setup Wizard*
+'''
+print(base64.b64encode(content.encode()).decode())
+")
+          # Get current data branch SHA
+          DATA_SHA=$(curl -sS \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/refs/heads/data" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['object']['sha'])")
+          
+          # Create tree with README
+          TREE_SHA=$(curl -sS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"base_tree\":\"$DATA_SHA\",\"tree\":[{\"path\":\"README.md\",\"mode\":\"100644\",\"type\":\"blob\",\"content\":\"# CENTINEL Data\n\nElectoral snapshot data.\n\"}]}" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/trees" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['sha'])")
+          
+          COMMIT_SHA=$(curl -sS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"message\":\"docs: initialize data branch README\",\"tree\":\"$TREE_SHA\",\"parents\":[\"$DATA_SHA\"]}" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/commits" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['sha'])")
+          
+          curl -sS -X PATCH \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"sha\":\"$COMMIT_SHA\"}" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/git/refs/heads/data"
+          
+          echo "✅ Data branch initialized" 
 
       - name: Enable GitHub Pages automatically
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
@@ -435,7 +351,7 @@ PYEOF
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Update data and Pages links
-          DATA_LINK="[centinel-data →](https://github.com/${REPO_OWNER}/centinel-data)"
+          DATA_LINK="[Datos →](https://github.com/${REPO_OWNER}/${REPO_NAME}/tree/data)"
           sed -i "s|<!-- CENTINEL_DATA_URL -->.*<!-- /CENTINEL_DATA_URL -->|<!-- CENTINEL_DATA_URL -->${DATA_LINK}<!-- /CENTINEL_DATA_URL -->|" README.md
 
           PAGES_LINK="[Panel →](https://${REPO_OWNER}.github.io/${REPO_NAME}/)"
@@ -484,6 +400,17 @@ PYEOF
             -H "Content-Type: application/json" \
             -d "{\"ref\":\"main\"}" \
             "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/pages.yml/dispatches" || true
+
+          # Auto-start pollers immediately after setup
+          # ES: Iniciar pollers automáticamente después del setup
+          for POLLER in "poller-A.yml" "poller-B.yml"; do
+            curl -sS \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"ref\":\"main\"}" \
+              "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${POLLER}/dispatches" || true
+            echo "✅ Triggered $POLLER"
+          done
 
       - name: OTS anchoring — setup info
         if: steps.check.outputs.state == 'ready' || steps.check.outputs.state == 'needs_repo'
@@ -558,7 +485,7 @@ PYEOF
                   '',
                   `**📊 Panel público:** https://${owner}.github.io/${repo}/`,
                   `**🔧 Panel OPS:** https://${owner}.github.io/${repo}/ops/`,
-                  `**💾 Repositorio de datos:** https://github.com/${owner}/centinel-data`,
+                  `**💾 Datos (branch):** https://github.com/${owner}/${repo}/tree/data`,
                   '',
                   'El panel se está desplegando ahora — estará disponible en unos minutos.',
                 ].join('\n')
