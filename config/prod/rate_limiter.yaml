@@ -1,72 +1,9 @@
-# ══════════════════════════════════════════════════════════
-# CENTINEL — Rate Limiter Configuration
-# ══════════════════════════════════════════════════════════
-# Ethical scraping limits based on empirical research:
-# - CNE Honduras (resultadosgenerales2025.cne.hn) does NOT publish rate limits
-# - Cloudflare protects cne.hn but NOT the 2025 results subdomain
-# - Grupo ASD (TREP operator) contracted 200K queries/sec capacity
-# - Industry standard for electoral scraping: 3-10 min intervals (NYT, MinnPost, NPR)
-# - Legal basis: Decreto 170-2006 (Ley de Transparencia HN), Van Buren v. US (2021)
-#
-# HARD CEILING: absolute maximum that CENTINEL will never exceed,
-# regardless of mode or user configuration. Only "custom" mode
-# (explicitly chosen by the operator) can bypass these ceilings,
-# and even then the operator assumes full responsibility.
-
-# ── Hard ceilings (cannot be exceeded by any preset) ──
+active_mode: normal
+max_requests_per_hour: 240
+capacity: 3
+timeout_seconds: 30
+jitter_seconds: 5
 hard_ceiling:
   max_requests_per_hour: 480
-  min_interval_seconds: 2
+  min_interval_seconds: 1
   max_burst: 8
-
-# ── Active mode (switched at runtime or via /ops panel) ──
-active_mode: normal
-
-# ── Preset: Normal (between elections / passive monitoring) ──
-modes:
-  normal:
-    capacity: 5
-    rate_interval_seconds: 10
-    min_interval_seconds: 6
-    max_interval_seconds: 12
-    max_requests_per_hour: 240
-    conservative_min_delay_seconds: 600
-    capture_interval_minutes: 10
-    jitter_min: 0.0
-    jitter_max: 3.2
-
-  # ── Preset: Electoral (election night / active counting) ──
-  electoral:
-    capacity: 6
-    rate_interval_seconds: 7
-    min_interval_seconds: 3
-    max_interval_seconds: 8
-    max_requests_per_hour: 360
-    conservative_min_delay_seconds: 300
-    capture_interval_minutes: 3
-    jitter_min: 1.0
-    jitter_max: 5.0
-
-  # ── Preset: Aggressive (blackout detected / critical data) ──
-  aggressive:
-    capacity: 8
-    rate_interval_seconds: 5
-    min_interval_seconds: 2
-    max_interval_seconds: 6
-    max_requests_per_hour: 480
-    conservative_min_delay_seconds: 120
-    capture_interval_minutes: 1
-    jitter_min: 2.0
-    jitter_max: 8.0
-
-  # ── Preset: Conservative (sensitive servers / post-election) ──
-  conservative:
-    capacity: 3
-    rate_interval_seconds: 15
-    min_interval_seconds: 10
-    max_interval_seconds: 20
-    max_requests_per_hour: 120
-    conservative_min_delay_seconds: 900
-    capture_interval_minutes: 30
-    jitter_min: 0.5
-    jitter_max: 4.0
