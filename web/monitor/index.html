@@ -366,9 +366,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; display: grid; gap
   letter-spacing: 0.04em;
 }
 .back-btn:hover { background: var(--panel2); }
-.dept-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(48px,1fr)); gap: 6px; margin-top: 10px; }
-.dept-cell { background: var(--border); border-radius: 2px; padding: 6px 4px; text-align: center; font-size: 10px; font-weight: 600; cursor: pointer; transition: .15s; position: relative; font-family: var(--mono); }
-.dept-cell:hover { opacity: .75; }
 .dept-ep-dot { position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; pointer-events: none; }
 
 /* ── INFO TIP ─────────────────────────────────────────────── */
@@ -618,7 +615,77 @@ footer a { color: var(--accent); text-decoration: none; }
   </div>
   <div class="card" id="map-wrap">
     <h2>Estado por departamento</h2>
-    <div class="dept-grid" id="dept-grid"></div>
+    <div id="map-svg-wrap" style="position:relative;width:100%;max-width:480px;margin:0 auto">
+  <svg id="hn-map" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg"
+       style="width:100%;height:auto;display:block;cursor:pointer">
+    <style>
+      #hn-map path { stroke: var(--bg); stroke-width: 1.5; transition: opacity .15s, filter .15s; }
+      #hn-map path:hover { opacity: .82; filter: brightness(1.15); }
+      #hn-map .dept-label { font-family: var(--mono); font-size: 9px; fill: var(--bg);
+        pointer-events: none; font-weight: 600; text-anchor: middle; dominant-baseline: middle; }
+    </style>
+    <!-- Cortés -->
+    <path id="HN-CR" d="M148,108 L195,100 L220,118 L215,152 L190,162 L155,148 L140,128 Z" fill="#374151"/>
+    <text class="dept-label" x="182" y="130">CR</text>
+    <!-- Santa Bárbara -->
+    <path id="HN-SB" d="M155,148 L190,162 L195,195 L170,215 L138,210 L120,185 L128,162 Z" fill="#374151"/>
+    <text class="dept-label" x="160" y="182">SB</text>
+    <!-- Copán -->
+    <path id="HN-CP" d="M100,162 L128,162 L120,185 L115,215 L88,222 L72,200 L80,175 Z" fill="#374151"/>
+    <text class="dept-label" x="101" y="192">CP</text>
+    <!-- Ocotepeque -->
+    <path id="HN-OC" d="M72,200 L88,222 L82,250 L58,258 L45,235 L55,212 Z" fill="#374151"/>
+    <text class="dept-label" x="67" y="230">OC</text>
+    <!-- Lempira -->
+    <path id="HN-LE" d="M88,222 L115,215 L125,242 L118,270 L90,275 L68,260 L82,250 Z" fill="#374151"/>
+    <text class="dept-label" x="98" y="248">LE</text>
+    <!-- Intibucá -->
+    <path id="HN-IN" d="M118,270 L125,242 L155,248 L162,272 L148,292 L122,295 Z" fill="#374151"/>
+    <text class="dept-label" x="140" y="270">IN</text>
+    <!-- La Paz -->
+    <path id="HN-LP" d="M162,272 L155,248 L185,242 L205,258 L200,285 L178,295 L148,292 Z" fill="#374151"/>
+    <text class="dept-label" x="177" y="268">LP</text>
+    <!-- Comayagua -->
+    <path id="HN-CM" d="M170,215 L195,195 L228,205 L238,232 L220,255 L200,258 L185,242 L170,228 Z" fill="#374151"/>
+    <text class="dept-label" x="205" y="228">CM</text>
+    <!-- Fco. Morazán -->
+    <path id="HN-FM" d="M200,258 L220,255 L252,262 L268,285 L255,315 L230,325 L205,310 L195,285 Z" fill="#374151"/>
+    <text class="dept-label" x="230" y="292">FM</text>
+    <!-- Valle -->
+    <path id="HN-VA" d="M195,325 L205,310 L230,325 L225,348 L205,355 L188,342 Z" fill="#374151"/>
+    <text class="dept-label" x="209" y="335">VA</text>
+    <!-- Choluteca -->
+    <path id="HN-CH" d="M225,348 L255,335 L275,355 L268,385 L240,395 L215,378 L220,358 Z" fill="#374151"/>
+    <text class="dept-label" x="245" y="368">CH</text>
+    <!-- El Paraíso -->
+    <path id="HN-EP" d="M255,315 L290,308 L320,325 L312,358 L280,368 L255,355 L268,332 Z" fill="#374151"/>
+    <text class="dept-label" x="288" y="338">EP</text>
+    <!-- Yoro -->
+    <path id="HN-YO" d="M238,165 L285,155 L318,175 L315,210 L285,228 L255,222 L238,200 Z" fill="#374151"/>
+    <text class="dept-label" x="278" y="192">YO</text>
+    <!-- Atlántida -->
+    <path id="HN-AT" d="M238,120 L295,110 L318,128 L318,152 L285,155 L248,145 Z" fill="#374151"/>
+    <text class="dept-label" x="278" y="133">AT</text>
+    <!-- Colón -->
+    <path id="HN-CL" d="M318,128 L390,115 L428,135 L420,168 L385,180 L345,175 L318,155 Z" fill="#374151"/>
+    <text class="dept-label" x="373" y="148">CL</text>
+    <!-- Olancho -->
+    <path id="HN-OL" d="M315,210 L345,198 L395,200 L435,225 L425,275 L390,295 L355,288 L320,265 L312,238 Z" fill="#374151"/>
+    <text class="dept-label" x="373" y="248">OL</text>
+    <!-- Gracias a Dios -->
+    <path id="HN-GD" d="M428,135 L530,118 L590,140 L610,190 L580,240 L530,255 L480,248 L435,225 L420,168 Z" fill="#374151"/>
+    <text class="dept-label" x="515" y="190">GD</text>
+    <!-- Islas Bahía (inset) -->
+    <path id="HN-IB" d="M330,52 L358,48 L370,58 L365,68 L338,72 L325,62 Z" fill="#374151"/>
+    <text class="dept-label" x="348" y="60">IB</text>
+    <!-- Islas Bahía connector dot -->
+    <line x1="348" y1="70" x2="348" y2="108" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+  </svg>
+  <!-- tooltip -->
+  <div id="map-tooltip" style="position:absolute;display:none;background:var(--panel);border:1px solid var(--border);
+    border-radius:2px;padding:6px 10px;font-size:11px;font-family:var(--mono);pointer-events:none;
+    z-index:10;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>
+</div>
   </div>
 </div>
 
@@ -942,30 +1009,51 @@ function deptColor(dept){
 }
 
 function renderMap(departments){
-  const grid=document.getElementById('dept-grid');
-  grid.innerHTML='';
-
-  // Use DEPT_LIST for order and labels; fall back to snapshot keys
-  const rendered = new Set();
-  const renderList = DEPT_LIST.length > 0 ? DEPT_LIST : 
-    Object.keys(departments).map(iso=>({iso,code:iso.replace(/^[A-Z]+-/,''),
-      name:DEPT_NAMES[iso]||iso,abbr:iso.split('-')[1]||iso}));
-  renderList.forEach(dep=>{
-    const code = dep.iso || dep.code;
-    if(rendered.has(code)) return;
-    rendered.add(code);
-    const dept=departments[code]||null;
-    const cell=document.createElement('div');
-    cell.className='dept-cell';
-    cell.dataset.hnCode=code;
-    cell.style.background=deptColor(dept);
-    cell.style.color='#0f1115';
-    cell.title=(dep.name||code)+' ('+dep.abbr+')';
-    cell.textContent=dep.abbr||code.replace(/^[A-Z]+-/,'');
-    cell.onclick=()=>openDeptPanel(code,departments[code]);
-    grid.appendChild(cell);
+  // Paint SVG paths — one per department
+  const svg = document.getElementById('hn-map');
+  if(!svg) return;
+  const allCodes = DEPT_LIST.length > 0
+    ? DEPT_LIST.map(d=>d.iso||d.code)
+    : Object.keys(DEPT_NAMES);
+  allCodes.forEach(code=>{
+    const path = svg.getElementById(code);
+    if(!path) return;
+    const dept = departments[code]||null;
+    path.style.fill = deptColor(dept);
+    path.dataset.hnCode = code;
+    path.onclick = ()=>openDeptPanel(code, departments[code]);
   });
+  // Also handle any codes coming directly from snapshot
+  Object.keys(departments).forEach(code=>{
+    const path = svg.getElementById(code);
+    if(!path) return;
+    path.style.fill = deptColor(departments[code]);
+    path.dataset.hnCode = code;
+    path.onclick = ()=>openDeptPanel(code, departments[code]);
+  });
+  setupMapTooltip();
   updateDeptCellEpDots();
+}
+
+function setupMapTooltip(){
+  const svg = document.getElementById('hn-map');
+  const tip = document.getElementById('map-tooltip');
+  if(!svg||!tip) return;
+  svg.querySelectorAll('path[id^="HN-"]').forEach(path=>{
+    path.onmouseenter = (e)=>{
+      const code = path.id;
+      const name = DEPT_NAMES[code]||code;
+      tip.textContent = name;
+      tip.style.display = 'block';
+    };
+    path.onmousemove = (e)=>{
+      const wrap = document.getElementById('map-svg-wrap');
+      const rect = wrap.getBoundingClientRect();
+      tip.style.left = (e.clientX - rect.left + 10)+'px';
+      tip.style.top  = (e.clientY - rect.top - 28)+'px';
+    };
+    path.onmouseleave = ()=>{ tip.style.display='none'; };
+  });
 }
 
 function openDeptPanel(code,dept){
@@ -1157,13 +1245,15 @@ function _fmtDept(d){
   return d.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 }
 function updateDeptCellEpDots(){
-  document.querySelectorAll('#dept-grid .dept-cell[data-hn-code]').forEach(cell=>{
-    const ep=_epByCode[cell.dataset.hnCode];
-    let dot=cell.querySelector('.dept-ep-dot');
-    if(!ep){if(dot)dot.remove();return;}
-    if(!dot){dot=document.createElement('span');dot.className='dept-ep-dot';cell.appendChild(dot);}
-    dot.style.background=ep.status==='ok'?'var(--ok)':ep.status==='degraded'?'var(--warn)':'var(--bad)';
-    dot.title=`Endpoint: ${ep.status}${ep.auto_replaced?' · reemplazado auto.':''}`;
+  // For SVG map: add a stroke-highlight when endpoint is degraded/offline
+  const svg = document.getElementById('hn-map');
+  if(!svg) return;
+  svg.querySelectorAll('path[data-hn-code]').forEach(path=>{
+    const ep=_epByCode[path.dataset.hnCode];
+    if(!ep) return;
+    if(ep.status==='degraded') path.style.strokeWidth='3';
+    else if(ep.status!=='ok')  path.style.strokeWidth='3';
+    else path.style.strokeWidth='1.5';
   });
 }
 
