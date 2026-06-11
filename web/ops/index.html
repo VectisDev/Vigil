@@ -1102,6 +1102,45 @@
 
           <div id="ec-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.3);font-size:12px;color:#f85149"></div>
         </div>
+
+        <!-- ── GESTIÓN DE DATOS DE SCRAPING ── -->
+        <div class="ctrl-section" id="data-mgmt-section" style="margin-top:20px;border-color:rgba(110,168,254,.25)">
+          <h3 style="display:flex;align-items:center;gap:10px">
+            Datos recolectados
+            <span id="repo-size-badge" class="val-badge" style="font-size:11px;color:var(--muted)">calculando…</span>
+          </h3>
+
+          <!-- Barra de uso -->
+          <div style="margin:12px 0 6px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+              <span id="data-size-label">—</span>
+              <span id="data-limit-label" style="color:var(--muted)">límite GitHub: 1 GB</span>
+            </div>
+            <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden">
+              <div id="data-usage-bar" style="height:100%;width:0%;background:var(--ok);transition:width .5s"></div>
+            </div>
+          </div>
+
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6" id="data-cycles-label">
+            —
+          </div>
+
+          <!-- Botones principales -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="hdr-btn primary" id="btn-download-evidence"
+              onclick="downloadEvidence()"
+              style="display:flex;align-items:center;gap:6px">
+              <span>⬇</span> Descargar evidencia
+            </button>
+            <button class="hdr-btn" id="btn-purge-data"
+              onclick="openPurgeModal()"
+              style="border-color:var(--warn);color:var(--warn);display:flex;align-items:center;gap:6px">
+              <span>🗑</span> Limpiar datos
+            </button>
+          </div>
+
+          <div id="data-mgmt-msg" style="display:none;font-size:12px;margin-top:10px"></div>
+        </div>
       </div>
 
     </main>
@@ -1130,6 +1169,51 @@
         onclick="doFinalizeElection()"
         style="background:#f85149;border-color:#f85149;color:#fff">
         Cerrar ciclo electoral
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════ PURGE DATA MODAL ════ -->
+<div id="purge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center">
+  <div class="modal-box" style="max-width:460px;border-top:3px solid var(--warn)">
+    <h2 style="color:var(--warn)">Limpiar datos de scraping</h2>
+    <p style="font-size:13px;color:var(--muted);margin:12px 0;line-height:1.7">
+      Elimina los snapshots JSON del repo para liberar espacio.<br>
+      <strong style="color:var(--fg)">La cadena de hashes (<code>poller_chain.jsonl</code>) se conserva siempre</strong> — es la evidencia criptográfica irreemplazable.
+    </p>
+
+    <div style="background:var(--panel2);border-radius:4px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
+      <div>📦 Snapshots a eliminar: <strong id="purge-snapshots-count" style="color:var(--fg)">—</strong></div>
+      <div>🔗 Hash chain conservada: <strong style="color:var(--ok)">siempre</strong></div>
+      <div>💾 Espacio a recuperar: <strong id="purge-space-est" style="color:var(--fg)">—</strong></div>
+    </div>
+
+    <div class="ctrl-row" style="margin-bottom:4px">
+      <label style="color:var(--fg)">Clave de acceso al repositorio</label>
+      <input type="password" id="purge-pat-input" placeholder="ghp_…" autocomplete="off"
+        style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:6px 10px;color:var(--fg);font-family:var(--mono);font-size:12px;width:100%;box-sizing:border-box">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+      Necesaria para escribir en el repositorio. No se almacena.
+    </div>
+
+    <div class="auth-err" id="purge-err" style="margin-bottom:8px"></div>
+
+    <div id="purge-progress" style="display:none;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px" id="purge-progress-msg">Procesando…</div>
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div id="purge-progress-bar" style="height:100%;background:var(--warn);width:0%;transition:width .4s"></div>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closePurgeModal()">Cancelar</button>
+      <button class="hdr-btn" id="btn-purge-confirm"
+        onclick="executePurge()"
+        style="background:rgba(212,176,102,.15);border-color:var(--warn);color:var(--warn);font-weight:700">
+        Limpiar snapshots
       </button>
     </div>
   </div>
@@ -1697,6 +1781,251 @@ async function initAll(){
   isDirty = false;
   updateDirtyState();
 }
+
+
+// ══════════════════════════════════════════════════════════
+// GESTIÓN DE DATOS — Tamaño, descarga y limpieza
+// Data Management — Size, download and cleanup
+// ══════════════════════════════════════════════════════════
+
+async function loadDataSize() {
+  // Fetch repo size from GitHub API (public, no auth needed)
+  // Size is in KB per GitHub API docs
+  try {
+    const r = await fetch(`${API_BASE}?t=${Date.now()}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const sizeKb = d.size || 0;
+    const sizeMb = sizeKb / 1024;
+    const limitMb = 1024; // 1 GB warning threshold
+    const pct = Math.min(100, (sizeMb / limitMb) * 100);
+
+    // Update badge
+    const badge = document.getElementById('repo-size-badge');
+    if (badge) {
+      badge.textContent = sizeMb < 1 ? `${sizeKb} KB` : `${sizeMb.toFixed(1)} MB`;
+      badge.style.color = pct > 80 ? 'var(--bad)' : pct > 50 ? 'var(--warn)' : 'var(--ok)';
+    }
+
+    // Update bar
+    const bar = document.getElementById('data-usage-bar');
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.style.background = pct > 80 ? 'var(--bad)' : pct > 50 ? 'var(--warn)' : 'var(--ok)';
+    }
+
+    // Update labels
+    const sizeLabel = document.getElementById('data-size-label');
+    if (sizeLabel) sizeLabel.textContent = `${sizeMb.toFixed(1)} MB usados`;
+
+    // Estimate cycles from chain file
+    try {
+      const chainR = await fetch(`${RAW_BASE}/data/poller_chain.jsonl?t=${Date.now()}`);
+      if (chainR.ok) {
+        const text = await chainR.text();
+        const cycles = text.trim().split('\n').filter(Boolean).length;
+        const cyclesLabel = document.getElementById('data-cycles-label');
+        if (cyclesLabel) {
+          const days = (cycles / 480).toFixed(1);
+          cyclesLabel.textContent =
+            `${cycles.toLocaleString()} ciclos registrados en cadena de hashes` +
+            (cycles > 0 ? ` (~${days} días de monitoreo)` : '');
+        }
+        // Store for purge modal
+        window._dataCycles = cycles;
+      }
+    } catch(_) {}
+
+    // Count snapshots
+    try {
+      const snapR = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/data/snapshots`);
+      if (snapR.ok) {
+        const files = await snapR.json();
+        window._snapshotFiles = Array.isArray(files) ? files : [];
+        document.getElementById('purge-snapshots-count').textContent =
+          window._snapshotFiles.length + ' archivos JSON';
+        const snapKb = window._snapshotFiles.reduce((a, f) => a + (f.size || 0), 0) / 1024;
+        document.getElementById('purge-space-est').textContent =
+          snapKb < 1024 ? `~${snapKb.toFixed(0)} KB` : `~${(snapKb/1024).toFixed(1)} MB`;
+      }
+    } catch(_) {}
+
+  } catch(e) {
+    console.warn('loadDataSize error:', e);
+  }
+}
+
+async function downloadEvidence() {
+  const btn = document.getElementById('btn-download-evidence');
+  btn.disabled = true;
+  btn.textContent = '⏳ Preparando…';
+
+  try {
+    // Build a downloadable package:
+    // 1. poller_chain.jsonl (hash chain — the cryptographic evidence)
+    // 2. latest snapshots from data/snapshots/
+    // Use JSZip if available, otherwise download chain only
+
+    const msg = document.getElementById('data-mgmt-msg');
+    msg.style.display = 'block';
+    msg.style.color = 'var(--muted)';
+
+    // Download hash chain
+    const chainR = await fetch(`${RAW_BASE}/data/poller_chain.jsonl?t=${Date.now()}`);
+    if (!chainR.ok) throw new Error('No se encontró cadena de hashes');
+    const chainText = await chainR.text();
+
+    // Try to get snapshots
+    const snapshots = {};
+    try {
+      const snapListR = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/data/snapshots`);
+      if (snapListR.ok) {
+        const files = await snapListR.json();
+        if (Array.isArray(files)) {
+          for (const f of files.slice(0, 30)) { // cap at 30 files
+            try {
+              const fr = await fetch(f.download_url);
+              if (fr.ok) snapshots[f.name] = await fr.text();
+            } catch(_) {}
+          }
+        }
+      }
+    } catch(_) {}
+
+    // Build evidence bundle as JSON
+    const bundle = {
+      generated_at: new Date().toISOString(),
+      repo: `${REPO_OWNER}/${REPO_NAME}`,
+      hash_chain_entries: chainText.trim().split('\n').filter(Boolean).length,
+      hash_chain: chainText,
+      snapshots,
+      verification_instructions:
+        'Verify with: python verify_chain.py poller_chain.jsonl',
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(bundle, null, 2)],
+      {type: 'application/json'}
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `centinel-evidence-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    msg.style.color = 'var(--ok)';
+    msg.textContent = '✅ Evidencia descargada. Guárdala en un lugar seguro fuera del repositorio.';
+
+  } catch(e) {
+    const msg = document.getElementById('data-mgmt-msg');
+    msg.style.display = 'block';
+    msg.style.color = 'var(--bad)';
+    msg.textContent = '❌ ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>⬇</span> Descargar evidencia';
+  }
+}
+
+function openPurgeModal() {
+  document.getElementById('purge-modal').style.display = 'flex';
+  document.getElementById('purge-err').textContent = '';
+  document.getElementById('purge-progress').style.display = 'none';
+  document.getElementById('purge-progress-bar').style.width = '0%';
+  // Pre-fill PAT if already in session
+  const pat = sessionStorage.getItem('gh-pat');
+  if (pat) document.getElementById('purge-pat-input').value = pat;
+}
+
+function closePurgeModal() {
+  document.getElementById('purge-modal').style.display = 'none';
+}
+
+async function executePurge() {
+  const pat = document.getElementById('purge-pat-input').value.trim();
+  const err = document.getElementById('purge-err');
+  const btn = document.getElementById('btn-purge-confirm');
+  const prog = document.getElementById('purge-progress');
+  const progMsg = document.getElementById('purge-progress-msg');
+  const progBar = document.getElementById('purge-progress-bar');
+
+  if (!pat || !pat.startsWith('ghp_')) {
+    err.textContent = 'Clave inválida — debe comenzar con ghp_';
+    return;
+  }
+
+  err.textContent = '';
+  btn.disabled = true;
+  prog.style.display = 'block';
+
+  const files = window._snapshotFiles || [];
+  if (files.length === 0) {
+    err.textContent = 'No se encontraron snapshots para eliminar.';
+    btn.disabled = false;
+    return;
+  }
+
+  let deleted = 0;
+  let failed  = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    progMsg.textContent = `Eliminando ${f.name}… (${i+1}/${files.length})`;
+    progBar.style.width = Math.round(((i+1)/files.length)*100) + '%';
+
+    try {
+      const resp = await fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${f.path}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'token ' + pat,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: `data: purge snapshot ${f.name} — space management`,
+            sha: f.sha,
+          }),
+        }
+      );
+      if (resp.ok || resp.status === 200) {
+        deleted++;
+      } else {
+        failed++;
+        console.warn('Failed to delete', f.name, resp.status);
+      }
+    } catch(e) {
+      failed++;
+    }
+
+    // Small delay to avoid rate limiting
+    if (i < files.length - 1) await new Promise(r => setTimeout(r, 300));
+  }
+
+  prog.style.display = 'none';
+  closePurgeModal();
+  window._snapshotFiles = [];
+
+  const msg = document.getElementById('data-mgmt-msg');
+  msg.style.display = 'block';
+  if (failed === 0) {
+    msg.style.color = 'var(--ok)';
+    msg.textContent = `✅ ${deleted} snapshots eliminados. Cadena de hashes conservada intacta.`;
+  } else {
+    msg.style.color = 'var(--warn)';
+    msg.textContent = `⚠ ${deleted} eliminados, ${failed} fallaron. Recarga para reintentar.`;
+  }
+
+  // Refresh size
+  setTimeout(loadDataSize, 2000);
+  btn.disabled = false;
+  auditLog('purge-data', `deleted=${deleted} failed=${failed}`);
+}
+
+// ── init loadDataSize on shell open ──
+const _origInitAll = initAll;
+initAll = async function() { await _origInitAll(); loadDataSize(); };
 
 </script>
 </body>
