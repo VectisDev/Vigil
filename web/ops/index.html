@@ -831,43 +831,48 @@
 
       <!-- ── 7 Acceso y Seeds ── -->
       <div class="section" id="s6">
-        <div class="section-title">Acceso y Seeds <span class="sec-tip" data-tip="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano — solo su huella criptográfica. Úsalas para rotarlas o revocarlas.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access &amp; Seeds</span> <span class="sec-tip" data-tip-es="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano, solo su huella criptografica. Usalas para rotarlas o revocarlas." data-tip-en="Manage the 12 administrative access keys. Keys are never stored in plaintext, only their cryptographic fingerprint. Use this to rotate or revoke them.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
-          Gestión de las 12 claves de acceso administrativo.
+          <span data-lang="es">Gestión de las 12 claves de acceso administrativo.
           Las claves nunca se almacenan — solo sus hashes PBKDF2-SHA256.
-          El archivo generado es el único registro.
+          El archivo generado es el único registro.</span>
+          <span data-lang="en">Management of the 12 administrative access keys.
+          Keys are never stored — only their PBKDF2-SHA256 hashes.
+          The generated file is the only record.</span>
         </p>
 
         <div class="ctrl-section">
-          <h3>Estado actual</h3>
+          <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
           <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;">
-            Cargando…
+            <span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span>
           </div>
         </div>
 
         <div class="ctrl-section">
-          <h3 style="color:var(--bad)">Regenerar seeds</h3>
+          <h3 style="color:var(--bad)"><span data-lang="es">Regenerar seeds</span><span data-lang="en">Regenerate seeds</span></h3>
           <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">
-            Genera 12 claves completamente nuevas y descarga el archivo actualizado.
-            <strong style="color:var(--warn)">Todas las claves anteriores quedan invalidadas permanentemente.</strong>
+            <span data-lang="es">Genera 12 claves completamente nuevas y descarga el archivo actualizado.</span>
+            <span data-lang="en">Generates 12 completely new keys and downloads the updated file.</span>
+            <strong style="color:var(--warn)"><span data-lang="es">Todas las claves anteriores quedan invalidadas permanentemente.</span><span data-lang="en">All previous keys become permanently invalid.</span></strong>
           </p>
           <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
-            <strong>¿Confirmas la regeneración?</strong><br>
-            Esta acción no se puede deshacer. Las 12 claves actuales dejarán de funcionar.
-            <p style="margin:10px 0 6px;color:var(--fg)">Introduce una de tus claves actuales para autenticar:</p>
+            <strong><span data-lang="es">¿Confirmas la regeneración?</span><span data-lang="en">Confirm regeneration?</span></strong><br>
+            <span data-lang="es">Esta acción no se puede deshacer. Las 12 claves actuales dejarán de funcionar.</span>
+            <span data-lang="en">This action cannot be undone. The 12 current keys will stop working.</span>
+            <p style="margin:10px 0 6px;color:var(--fg)"><span data-lang="es">Introduce una de tus claves actuales para autenticar:</span><span data-lang="en">Enter one of your current keys to authenticate:</span></p>
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
-              <input type="password" id="regen-seed-value" placeholder="Clave de 24 caracteres" autocomplete="off"
+              <input type="password" id="regen-seed-value" placeholder="Clave de 24 caracteres" data-ph-es="Clave de 24 caracteres" data-ph-en="24-character key" autocomplete="off"
                 style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px;flex:1;min-width:200px">
             </div>
             <div class="auth-err" id="regen-err"></div>
             <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='none';document.getElementById('regen-err').textContent=''">Cancelar</button>
-              <button class="hdr-btn primary" style="background:var(--bad);border-color:var(--bad)" onclick="doRegenerate()">Sí, regenerar ahora</button>
+              <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='none';document.getElementById('regen-err').textContent=''"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+              <button class="hdr-btn primary" style="background:var(--bad);border-color:var(--bad)" onclick="doRegenerate()" id="btn-regen-confirm"><span data-lang="es">Sí, regenerar ahora</span><span data-lang="en">Yes, regenerate now</span></button>
             </div>
           </div>
           <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='block'" id="btn-regen">
-            Regenerar seeds y descargar nuevo PDF
+            <span data-lang="es">Regenerar seeds y descargar nuevo PDF</span><span data-lang="en">Regenerate seeds and download new PDF</span>
           </button>
         </div>
       </div>
