@@ -624,11 +624,11 @@ function _setOtsDot(state){ // 'probing'|'ok'|'warn'|'bad'|'off'
   const dot  = document.getElementById('ots-net-dot');
   const hint = document.getElementById('ots-net-hint');
   const map  = {
-    probing: ['ots-dot-probing', 'probando red…'],
-    ok:      ['ots-dot-ok',      'calendarios accesibles'],
-    warn:    ['ots-dot-warn',    'acceso parcial'],
-    bad:     ['ots-dot-bad',     'sin acceso (air-gapped?)'],
-    off:     ['ots-dot-off',     'desactivado'],
+    probing: ['ots-dot-probing', t('ots.probing')],
+    ok:      ['ots-dot-ok',      t('ots.ok')],
+    warn:    ['ots-dot-warn',    t('ots.warn')],
+    bad:     ['ots-dot-bad',     t('ots.bad')],
+    off:     ['ots-dot-off',     t('ots.off')],
   };
   const [cls, text] = map[state] || map.probing;
   if(dot)  { dot.className = 'ots-dot ' + cls; dot.title = text; }
@@ -640,12 +640,12 @@ function _syncOtsBtn(){
   const btn = document.getElementById('btn-ots-toggle');
   if(btn){
     if(enabled){
-      btn.textContent = '⛓ Activo';
+      btn.textContent = '⛓ ' + t('ots.activo');
       btn.style.borderColor = 'rgba(87,192,141,.4)';
       btn.style.background  = 'rgba(87,192,141,.08)';
       btn.style.color       = 'var(--ok)';
     } else {
-      btn.textContent = '⛓ Inactivo';
+      btn.textContent = '⛓ ' + t('ots.inactivo');
       btn.style.borderColor = 'rgba(139,146,156,.3)';
       btn.style.background  = 'rgba(139,146,156,.06)';
       btn.style.color       = 'var(--muted)';
@@ -691,12 +691,10 @@ function onOtsToggle(){
 // Manual test button (inside <details>) — delegates to probe + shows result text
 async function testOtsConnectivity(){
   const res = document.getElementById('ots-test-result');
-  if(res){ res.style.display='block'; res.textContent='Probando…'; res.style.color='var(--muted)'; }
+  if(res){ res.style.display='block'; res.textContent=t('ots.probando'); res.style.color='var(--muted)'; }
   const ok = await _probeOtsNetwork();
   if(res){
-    res.textContent = ok
-      ? '✓ Servidor responde (o CORS bloqueado — esto es normal, no indica error).'
-      : '⚠ Sin respuesta. Puede ser CORS o entorno sin internet.';
+    res.textContent = ok ? t('ots.test_ok') : t('ots.test_bad');
     res.style.color = ok ? 'var(--ok)' : 'var(--warn)';
   }
 }
@@ -715,15 +713,15 @@ async function loadOtsStatus(){
       badge.textContent = '—';
     } else {
       const cls    = {confirmed:'ok', pending:'warn', error:'bad'}[ots] || 'neutral';
-      const labels = {confirmed:'CONFIRMADO', pending:'PENDIENTE', error:'ERROR'};
+      const labels = {confirmed:t('val.confirmado'), pending:t('val.pendiente'), error:t('val.error')};
       badge.className = 'badge badge-' + cls;
       badge.textContent = labels[ots] || '—';
     }
   }
   const lastEl = document.getElementById('ots-last-anchor');
-  if(lastEl) lastEl.textContent = 'Último ancla: ' + (last ? relTime(last) : '—');
+  if(lastEl) lastEl.textContent = t('ots.ultimo_ancla') + ': ' + (last ? relTime(last) : '—');
   const infoEl = document.getElementById('ots-chain-info');
-  if(infoEl) infoEl.textContent = 'Cadena: ' + chainLen + ' bloques · Hash: ' +
+  if(infoEl) infoEl.textContent = t('ots.cadena') + ': ' + chainLen + ' ' + t('ots.bloques') + ' · ' + t('ots.hash') + ': ' +
     ((snapshotData?.chain?.latest_hash || '—').slice(-12));
   try{
     const r = await fetch(`${RAW_BASE}/data/pending_ots.json?t=${Date.now()}`);
@@ -733,7 +731,7 @@ async function loadOtsStatus(){
       const pendEl = document.getElementById('ots-pending');
       if(pendEl && n > 0){
         pendEl.style.display = 'block';
-        pendEl.textContent = n + ' raíz' + (n > 1 ? 'ces' : '') + ' pendiente' + (n > 1 ? 's' : '') + ' de anclaje';
+        pendEl.textContent = n + ' ' + (n > 1 ? t('ots.raices') : t('ots.raiz')) + ' ' + (n > 1 ? t('ots.pendientes') : t('ots.pendiente')) + ' ' + t('ots.de_anclaje');
       }
     }
   }catch{}
