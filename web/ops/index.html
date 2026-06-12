@@ -49,47 +49,51 @@
     <button class="hdr-btn" onclick="reloadConfig()" title="Sincronizar configuración desde GitHub" data-gtt-es="Sincronizar configuración desde GitHub" data-gtt-en="Sync configuration from GitHub"><span data-lang="es">↻ Sync config</span><span data-lang="en">↻ Sync config</span></button>
     <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
   </div>
-  <!-- MISSION BAR -->
-  <div id="mission-bar">
-    <span class="ms-item">
-      <span class="ms-label"><span data-lang="es">SISTEMA</span><span data-lang="en">SYSTEM</span></span>
-      <span class="ms-val" id="ms-system">—</span>
-    </span>
-    <span class="ms-sep">│</span>
-    <span class="ms-item">
-      <span class="ms-label"><span data-lang="es">PAÍS</span><span data-lang="en">COUNTRY</span></span>
-      <span class="ms-val" id="ms-country">—</span>
-    </span>
-    <span class="ms-sep">│</span>
-    <span class="ms-item">
-      <span class="ms-label"><span data-lang="es">MODO ELEC.</span><span data-lang="en">ELECTION MODE</span></span>
-      <span class="ms-val" id="ms-elec">—</span>
-    </span>
-    <span class="ms-sep">│</span>
-    <span class="ms-item">
-      <span class="ms-label"><span data-lang="es">DEFENSAS</span><span data-lang="en">DEFENSES</span></span>
-      <span class="ms-val" id="ms-defense">—</span>
-    </span>
-    <span class="ms-sep">│</span>
-    <span class="ms-item">
-      <span class="ms-label"><span data-lang="es">NODOS</span><span data-lang="en">NODES</span></span>
-      <span class="ms-val" id="ms-nodes">—</span>
-    </span>
-    <span class="ms-sep">│</span>
-    <span class="ms-item">
-      <span class="ms-label"><span data-lang="es">TIEMPO ACTIVO</span><span data-lang="en">UPTIME</span></span>
-      <span class="ms-val" id="ms-uptime">—</span>
-    </span>
-    <span class="ms-sep">│</span>
-    <span class="ms-item ms-clock">
-      <span class="ms-label">UTC</span>
-      <span class="ms-val" id="ms-clock">--:--:--</span>
-    </span>
-    <span class="ms-sep">│</span>
-    <span class="ms-item ms-clock">
-      <span class="ms-label">LOCAL</span>
-      <span class="ms-val" id="ms-local" style="opacity:.7">--:--:--</span>
-    </span>
+  <!-- COMMAND HEADER ── estado global de un vistazo -->
+  <div id="command-header">
+    <div id="status-ring-wrap">
+      <svg id="status-ring" viewBox="0 0 120 120" width="92" height="92">
+        <circle class="ring-track" cx="60" cy="60" r="52" fill="none" stroke-width="6"/>
+        <circle class="ring-fill"  cx="60" cy="60" r="52" fill="none" stroke-width="6"
+                stroke-dasharray="326.7" stroke-dashoffset="80" stroke-linecap="round"/>
+      </svg>
+      <div id="status-ring-center">
+        <div class="ring-sys-label"><span data-lang="es">SISTEMA</span><span data-lang="en">SYSTEM</span></div>
+        <div class="ring-sys-val" id="ms-system">—</div>
+      </div>
+    </div>
+    <div id="command-stats">
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-nodes">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Nodos</span><span data-lang="en">Nodes</span></div>
+      </div>
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-uptime">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Tiempo activo</span><span data-lang="en">Uptime</span></div>
+      </div>
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-defense">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Defensas</span><span data-lang="en">Defenses</span></div>
+      </div>
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-elec">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Modo elec.</span><span data-lang="en">Election mode</span></div>
+      </div>
+    </div>
+    <div id="command-secondary">
+      <span class="cmd-sec-item">
+        <span class="cmd-sec-label"><span data-lang="es">País</span><span data-lang="en">Country</span></span>
+        <span class="ms-val" id="ms-country">—</span>
+      </span>
+      <span class="cmd-sec-item">
+        <span class="cmd-sec-label">UTC</span>
+        <span class="ms-val" id="ms-clock">--:--:--</span>
+      </span>
+      <span class="cmd-sec-item">
+        <span class="cmd-sec-label"><span data-lang="es">Local</span><span data-lang="en">Local</span></span>
+        <span class="ms-val" id="ms-local" style="opacity:.7">--:--:--</span>
+      </span>
+    </div>
   </div>
   <!-- UNLOCK ALERT BAR -->
   <div id="unlock-alert-bar">
