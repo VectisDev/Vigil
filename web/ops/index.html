@@ -45,8 +45,8 @@
         <button id="btn-lang-en" onclick="setOpsLang('en')">EN</button>
       </div>
       <div class="vigil-toggle">
-        <button id="btn-theme-dark" class="active" onclick="setOpsTheme('dark')">Dark</button>
-        <button id="btn-theme-light" onclick="setOpsTheme('light')">Light</button>
+        <button id="btn-theme-dark" onclick="setOpsTheme('dark')">Dark</button>
+        <button id="btn-theme-light" class="active" onclick="setOpsTheme('light')">Light</button>
       </div>
     </div>
     <button class="hdr-btn" onclick="reloadConfig()" title="Sincronizar configuración desde GitHub" data-gtt-es="Sincronizar configuración desde GitHub" data-gtt-en="Sync configuration from GitHub"><span data-lang="es">↻ Sync config</span><span data-lang="en">↻ Sync config</span></button>
@@ -2103,7 +2103,7 @@ function setOpsLang(l){
   localStorage.setItem('vigil-lang', l);
   if(window.refreshOpsLang) refreshOpsLang();
 }
-setOpsTheme(localStorage.getItem('vigil-theme') || 'dark');
+setOpsTheme(localStorage.getItem('vigil-theme') || 'light');
 setOpsLang(localStorage.getItem('vigil-lang') || 'es');
 </script>
 </body>
