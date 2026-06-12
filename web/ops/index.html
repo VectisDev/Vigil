@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/vigil-nav.css">
 <link rel="stylesheet" href="ops.css">
 </head>
 <body class="lang-es">
@@ -34,13 +35,12 @@
 
 <!-- ════════════════════ ADMIN SHELL ════════════════════ -->
 <div id="admin-shell">
-  <!-- BREADCRUMB -->
-  <nav id="breadcrumb">
-    <a href="../">VIGIL</a><span class="sep">/</span><span>OPS</span>
+  <!-- VIGIL NAV (estandarizado, compartido con /monitor/ y /lab/) -->
+  <nav id="vigil-breadcrumb">
+    <a href="../">VIGIL</a><span class="vigil-sep">/</span><span>OPS</span>
   </nav>
-  <!-- HEADER -->
-  <div id="admin-header">
-    <span class="hdr-title">VIGIL &middot; OPS</span>
+  <div id="vigil-titlebar">
+    <span id="vigil-title">VIGIL &middot; OPS</span>
     <span class="hdr-user" id="hdr-user">—</span>
     <span id="hdr-role"></span>
     <div id="vigil-toggles">
