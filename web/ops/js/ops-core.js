@@ -216,6 +216,19 @@ const I18N = {
     'seed.error_prefix':'Error',
     'seed.modo_pages':'En modo Pages no hay API local.', 'seed.abre_workflow':'Abre el workflow "Regenerate Admin Seeds"',
     'seed.run_workflow_hint':'en GitHub Actions. Haz clic en "Run workflow", luego descarga el artifact de seeds (expira en 24h).',
+    'ec.cerrado':'Cerrado', 'ec.eleccion_en_curso':'Elección en curso', 'ec.modo':'Modo',
+    'ec.error_desconocido':'Error desconocido', 'ec.error':'Error',
+    'ec.iniciando_raspe':'Iniciando raspe completo…', 'ec.descargando_fuentes':'Descargando fuentes CNE…',
+    'ec.procesando_hash':'Procesando y hasheando snapshots…', 'ec.finalizando_cadena':'Finalizando cadena de hash…',
+    'data.usados':'usados', 'data.ciclos_registrados':'ciclos registrados en cadena de hashes', 'data.dias_monitoreo':'días de monitoreo',
+    'evidence.preparando':'⏳ Preparando…', 'evidence.descargar':'Descargar evidencia',
+    'evidence.no_cadena':'No se encontró cadena de hashes',
+    'evidence.descargada':'✅ Evidencia descargada. Guárdala en un lugar seguro fuera del repositorio.',
+    'purge.clave_invalida':'Clave inválida — debe comenzar con ghp_',
+    'purge.no_snapshots':'No se encontraron snapshots para eliminar.',
+    'purge.eliminando':'Eliminando', 'purge.archivos_json':'archivos JSON',
+    'purge.eliminados_ok':'snapshots eliminados. Cadena de hashes conservada intacta.',
+    'purge.eliminados_parcial':'eliminados, {f} fallaron. Recarga para reintentar.',
   },
   en: {
     'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
@@ -267,6 +280,19 @@ const I18N = {
     'seed.error_prefix':'Error',
     'seed.modo_pages':'No local API available in Pages mode.', 'seed.abre_workflow':'Open the "Regenerate Admin Seeds" workflow',
     'seed.run_workflow_hint':'on GitHub Actions. Click "Run workflow", then download the seeds artifact (expires in 24h).',
+    'ec.cerrado':'Closed', 'ec.eleccion_en_curso':'Election in progress', 'ec.modo':'Mode',
+    'ec.error_desconocido':'Unknown error', 'ec.error':'Error',
+    'ec.iniciando_raspe':'Starting full scrape…', 'ec.descargando_fuentes':'Downloading electoral sources…',
+    'ec.procesando_hash':'Processing and hashing snapshots…', 'ec.finalizando_cadena':'Finalizing hash chain…',
+    'data.usados':'used', 'data.ciclos_registrados':'cycles recorded in hash chain', 'data.dias_monitoreo':'days of monitoring',
+    'evidence.preparando':'⏳ Preparing…', 'evidence.descargar':'Download evidence',
+    'evidence.no_cadena':'Hash chain not found',
+    'evidence.descargada':'✅ Evidence downloaded. Store it somewhere safe outside the repository.',
+    'purge.clave_invalida':'Invalid key — must start with ghp_',
+    'purge.no_snapshots':'No snapshots found to delete.',
+    'purge.eliminando':'Deleting', 'purge.archivos_json':'JSON files',
+    'purge.eliminados_ok':'snapshots deleted. Hash chain preserved intact.',
+    'purge.eliminados_parcial':'deleted, {f} failed. Reload to retry.',
   }
 };
 function t(key, vars){
@@ -287,6 +313,8 @@ function refreshOpsLang(){
   try{ renderAuditTrail(); }catch(e){}
   try{ _renderSessionLog(); }catch(e){}
   try{ loadSeedStatus(); }catch(e){}
+  try{ loadElectionStatus(); }catch(e){}
+  try{ loadDataSize(); }catch(e){}
 }
 window.refreshOpsLang = refreshOpsLang;
 
