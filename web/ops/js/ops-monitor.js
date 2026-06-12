@@ -877,18 +877,18 @@ function _renderSwarmStatus(s) {
   if (s.running && s.connected_peers > 0) {
     dot.style.background = 'var(--ok)';
     label.style.color = 'var(--ok)';
-    label.textContent = `EN RED  ·  ${s.connected_peers} nodo${s.connected_peers!==1?'s':''} activo${s.connected_peers!==1?'s':''}`;
+    label.textContent = `${t('swarm.en_red')}  ·  ${s.connected_peers} ${s.connected_peers!==1?t('swarm.nodos'):t('swarm.nodo')} ${s.connected_peers!==1?t('swarm.activos'):t('swarm.activo')}`;
     if (hint) hint.style.display = 'none';
     _stopSwarmPoll();
   } else if (s.running) {
     dot.style.background = 'var(--warn)';
     label.style.color = 'var(--warn)';
-    label.textContent = 'CONECTANDO…';
+    label.textContent = t('swarm.conectando');
     if (hint) hint.style.display = 'none';
   } else {
     dot.style.background = 'var(--muted)';
     label.style.color = 'var(--muted)';
-    label.textContent = 'DESCONECTADO';
+    label.textContent = t('swarm.desconectado');
     if (hint) hint.style.display = '';
   }
 
@@ -903,14 +903,14 @@ function _renderSwarmStatus(s) {
     banner.style.background = 'rgba(87,192,141,.08)';
     banner.style.border = '1px solid rgba(87,192,141,.3)';
     banner.style.color = 'var(--ok)';
-    banner.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> Consenso alcanzado — <strong>${s.consensus_count} de ${s.connected_peers} nodos</strong> comparten el mismo Merkle root (<code>${s.consensus_root.slice(0,16)}…</code>). Los datos del CNE son consistentes en la red.`;
+    banner.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> ${t('swarm.consenso_alcanzado')} <strong>${s.consensus_count} ${window.OPS_LANG==='en'?'of':'de'} ${s.connected_peers} ${t('swarm.nodos')}</strong> ${t('swarm.comparten_merkle')} (<code>${s.consensus_root.slice(0,16)}…</code>). ${t('swarm.datos_consistentes')}`;
   } else if (s.connected_peers > 0) {
     consensusRow.style.display = 'none';
     banner.style.display = '';
     banner.style.background = 'rgba(212,176,102,.08)';
     banner.style.border = '1px solid rgba(212,176,102,.3)';
     banner.style.color = 'var(--warn)';
-    banner.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Sin consenso aún — esperando que más nodos sincronicen (${s.consensus_count || 0}/${s.connected_peers} coinciden).`;
+    banner.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> ${t('swarm.sin_consenso')} (${s.consensus_count || 0}/${s.connected_peers} ${t('swarm.coinciden')}).`;
   } else {
     consensusRow.style.display = 'none';
     banner.style.display = 'none';
@@ -926,8 +926,8 @@ function _renderSwarmStatus(s) {
     tbody.innerHTML = s.peers.map(p => {
       const inSync = s.consensus_root && p.merkle_root === s.consensus_root;
       const syncBadge = inSync
-        ? `<span style="color:var(--ok)">✓ en sync</span>`
-        : `<span style="color:var(--warn)">≠ diverge</span>`;
+        ? `<span style="color:var(--ok)">${t('swarm.en_sync')}</span>`
+        : `<span style="color:var(--warn)">${t('swarm.diverge')}</span>`;
       const ts = p.timestamp_utc ? relTime(p.timestamp_utc) : '—';
       const flagMap = {HN:'🇭🇳',GT:'🇬🇹',SV:'🇸🇻',NI:'🇳🇮',CR:'🇨🇷',PA:'🇵🇦',MX:'🇲🇽',CO:'🇨🇴',VE:'🇻🇪',PE:'🇵🇪',EC:'🇪🇨',BO:'🇧🇴',PY:'🇵🇾',UY:'🇺🇾',AR:'🇦🇷',CL:'🇨🇱',BR:'🇧🇷',DO:'🇩🇴',CU:'🇨🇺',PR:'🇵🇷'};
       const flag = flagMap[p.country_code] || '🌎';
@@ -942,7 +942,7 @@ function _renderSwarmStatus(s) {
         <td style="padding:7px 10px">${syncBadge}</td>
         <td style="padding:7px 10px">${specBadge}</td>
         <td style="padding:7px 10px;color:var(--muted)">${ts}</td>
-        <td style="padding:7px 10px"><button class="kick-btn" onclick="kickPeer('${p.node_id}')">Kick</button></td>
+        <td style="padding:7px 10px"><button class="kick-btn" onclick="kickPeer('${p.node_id}')">${t('swarm.kick')}</button></td>
       </tr>`;
     }).join('');
   }
@@ -977,7 +977,7 @@ async function loadSwarmConsensus() {
       return `<tr style="border-bottom:1px solid var(--border);background:${rowBg}">
         <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${c.rule_key}</td>
         <td style="padding:7px 10px;font-family:var(--mono);font-size:11px">${snap}…</td>
-        <td style="padding:7px 10px;font-weight:600">${nc} nodo${nc!==1?'s':''}</td>
+        <td style="padding:7px 10px;font-weight:600">${nc} ${nc!==1?t('swarm.nodos'):t('swarm.nodo')}</td>
         <td style="padding:7px 10px;color:${sevColor(c.severity)};font-weight:600">${c.severity}</td>
         <td style="padding:7px 10px;color:var(--muted)">${ts}</td>
       </tr>`;
@@ -987,7 +987,7 @@ async function loadSwarmConsensus() {
 
 async function doSwarmConnect() {
   const btn = document.getElementById('btn-connect');
-  if (btn) { btn.disabled = true; btn.textContent = 'Conectando…'; }
+  if (btn) { btn.disabled = true; btn.textContent = t('swarm.conectando').replace('…','').trim() + '…'; }
 
   const myUrl = (document.getElementById('swarm-my-url')||{}).value || undefined;
   try {
@@ -998,28 +998,28 @@ async function doSwarmConnect() {
     });
     if (!r.ok) {
       const err = await r.json().catch(()=>({}));
-      alert('Error al conectar: ' + (err.detail || r.status));
-      if (btn) { btn.disabled = false; btn.textContent = 'Conectar a la red'; }
+      alert(t('swarm.error_conectar') + ': ' + (err.detail || r.status));
+      if (btn) { btn.disabled = false; btn.textContent = t('swarm.conectar'); }
       return;
     }
     await loadSwarmStatus();
     _startSwarmPoll();
   } catch(e) {
-    alert('Error: ' + e.message);
-    if (btn) { btn.disabled = false; btn.textContent = 'Conectar a la red'; }
+    alert(t('swarm.error') + ': ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = t('swarm.conectar'); }
   }
 }
 
 async function doSwarmDisconnect() {
-  if(!confirm('¿Desconectar del enjambre? Tendrás que volver a conectar manualmente.')) return;
+  if(!confirm(t('swarm.confirm_desconectar'))) return;
   const btn = document.getElementById('btn-disconnect');
-  if (btn) { btn.disabled = true; btn.textContent = 'Desconectando…'; }
+  if (btn) { btn.disabled = true; btn.textContent = t('swarm.desconectando'); }
   _stopSwarmPoll();
   try {
     await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
     await loadSwarmStatus();
   } catch(_) {}
-  if (btn) { btn.disabled = false; btn.textContent = 'Desconectar'; }
+  if (btn) { btn.disabled = false; btn.textContent = t('swarm.desconectar'); }
 }
 
 function _startSwarmPoll() {
