@@ -339,11 +339,11 @@ window.refreshOpsLang = refreshOpsLang;
 
 const CARD_DEFS = [
   {id:'sha',    labelKey:'card.sha',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
-  {id:'cb',     labelKey:'card.cb',     icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'},
-  {id:'animal', labelKey:'card.animal',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
+  {id:'cb',     labelKey:'card.cb',     tier:'status', icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'},
+  {id:'animal', labelKey:'card.animal', tier:'status',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
   {id:'benford',labelKey:'card.benford',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>', hasSlider:'benford', min:3, max:15, step:0.1},
   {id:'zscore', labelKey:'card.zscore',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>', hasSlider:'zscore',  min:1.5,max:5,step:0.1},
-  {id:'ots',    labelKey:'card.ots',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
+  {id:'ots',    labelKey:'card.ots',    tier:'status',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
   {id:'cpu',    labelKey:'card.cpu',        icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', hasSlider:'cpu',     min:50,max:95,step:1},
   {id:'ram',    labelKey:'card.ram',             icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>', hasSlider:'ram',     min:50,max:95,step:1},
   {id:'attacks',labelKey:'card.attacks',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'},
@@ -351,10 +351,12 @@ const CARD_DEFS = [
 ];
 
 function buildSensorCards(){
+  const statusGrid = document.getElementById('status-cards');
   const grid = document.getElementById('sensor-cards');
   if(!grid) return;
-  grid.innerHTML = CARD_DEFS.map(def=>`
-    <div class="stat-card" id="sc-${def.id}">
+
+  const cardHtml = def => `
+    <div class="stat-card${def.tier==='status'?' status-card':''}" id="sc-${def.id}">
       <div class="sc-label">
         <span>${def.icon} ${t(def.labelKey)}</span>
         ${def.hasSlider?`<span data-tip="${t('tip.umbral')}" style="font-size:10px;cursor:help">ⓘ</span>`:''}
@@ -371,7 +373,10 @@ function buildSensorCards(){
       </div>`:''}
       <div class="sc-age" id="sca-${def.id}"></div>
     </div>
-  `).join('');
+  `;
+
+  if(statusGrid) statusGrid.innerHTML = CARD_DEFS.filter(d=>d.tier==='status').map(cardHtml).join('');
+  grid.innerHTML = CARD_DEFS.filter(d=>d.tier!=='status').map(cardHtml).join('');
 }
 
 function updateSensorCards(){
