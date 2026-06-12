@@ -7,7 +7,8 @@
   --muted:#6b6b6b;--accent:#0a0a0a;--ok:#2a9d6e;--bad:#c8102e;--warn:#b07d20;
   --purple:#7c5cd4;--mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  --sidebar:220px;--hdr-height:48px;--bc-height:28px;--cmdhdr-height:130px;
+  --sidebar:220px;--hdr-height:52px;--bc-height:28px;--cmdhdr-height:130px;
+  --vigil-bc-height:28px;--vigil-titlebar-height:52px;
   --accent-glow:rgba(10,10,10,.08);--ok-glow:rgba(42,157,110,.12);
   --bad-glow:rgba(200,16,46,.12);--warn-glow:rgba(176,125,32,.12);
   --grid-line:rgba(10,10,10,.025);
@@ -85,23 +86,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
   .auth-card{right:12px;left:auto;max-width:240px;top:62px;padding:16px 18px}
 }
 
-/* ── BREADCRUMB (uniforme con /monitor/ y /lab/) ── */
-#breadcrumb{position:sticky;top:0;z-index:201;background:var(--panel);
-  height:var(--bc-height);box-sizing:border-box;
-  padding:7px 20px;font-size:11px;color:var(--muted);
-  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;
-  font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase}
-#breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
-#breadcrumb a:hover{color:var(--fg)}
-#breadcrumb .sep{opacity:.35}
-
-/* ── HEADER ── */
-#admin-header{position:sticky;top:var(--bc-height);z-index:200;background:var(--panel);
-  border-bottom:1px solid var(--border);padding:10px 20px;
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-#admin-header .hdr-title{font-size:13px;font-weight:600;letter-spacing:.1em;
-  color:var(--fg);text-transform:uppercase;white-space:nowrap;font-family:var(--sans)}
-#admin-header .hdr-user{font-size:12px;color:var(--muted);margin-right:auto}
+/* Breadcrumb + titlebar viven en ../shared/vigil-nav.css (canonical) */
+/* Solo extensiones específicas de /ops/: user/role display + botones del header */
+#vigil-titlebar .hdr-user{font-size:12px;color:var(--muted);margin-right:auto}
 .hdr-btn{background:transparent;border:1px solid var(--border);border-radius:7px;
   padding:5px 12px;color:var(--fg);font-size:12px;cursor:pointer;transition:.1s}
 .hdr-btn:hover{background:var(--panel2);border-color:var(--muted)}
@@ -543,9 +530,9 @@ details .details-body{padding:12px 0 4px}
 #main-area .section{width:100%}
 #s1{order:1}#s7{order:2}#s3{order:3}#s9{order:4}#s4{order:5}#s8{order:6}#s6{order:7}#s5{order:8}
 /* ── SPACEX REDESIGN ── */
-#admin-header{height:var(--hdr-height);box-shadow:0 1px 0 0 rgba(var(--accent-tint),.1)}
-#admin-header .hdr-title{letter-spacing:.2em;color:var(--accent);text-shadow:0 0 14px var(--accent-glow)}
-#breadcrumb{box-shadow:0 1px 0 0 rgba(var(--accent-tint),.06)}
+#vigil-titlebar{box-shadow:0 1px 0 0 rgba(var(--accent-tint),.1)}
+#vigil-titlebar #vigil-title{letter-spacing:.2em;color:var(--accent);text-shadow:0 0 14px var(--accent-glow)}
+#vigil-breadcrumb{box-shadow:0 1px 0 0 rgba(var(--accent-tint),.06)}
 #main-area{background:var(--bg)}
 .section-title{text-transform:uppercase;letter-spacing:.08em;font-size:12px}
 .stat-card{border-radius:2px!important;transition:box-shadow .2s}
