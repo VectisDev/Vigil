@@ -188,6 +188,7 @@ const I18N = {
     'badge.on':'ON', 'badge.off':'OFF', 'badge.abierto':'ABIERTO', 'badge.cerrado':'CERRADO',
     'dept.label':'{div} — {total} endpoints (1 nacional + {n})',
     'dept.divisiones':'Divisiones',
+    'dept.map_unavailable':'Mapa no disponible',
     'ots.probing':'probando red…', 'ots.ok':'calendarios accesibles', 'ots.warn':'acceso parcial',
     'ots.bad':'sin acceso (air-gapped?)', 'ots.off':'desactivado',
     'ots.activo':'Activo', 'ots.inactivo':'Inactivo',
@@ -260,6 +261,7 @@ const I18N = {
     'badge.on':'ON', 'badge.off':'OFF', 'badge.abierto':'OPEN', 'badge.cerrado':'CLOSED',
     'dept.label':'{div} — {total} endpoints (1 national + {n})',
     'dept.divisiones':'Divisions',
+    'dept.map_unavailable':'Map unavailable',
     'ots.probing':'probing network…', 'ots.ok':'calendars reachable', 'ots.warn':'partial access',
     'ots.bad':'no access (air-gapped?)', 'ots.off':'disabled',
     'ots.activo':'Active', 'ots.inactivo':'Inactive',
@@ -440,7 +442,10 @@ function setCard(id, val, detail, barPct, cls, showBar=true){
     el(`scv-${id}`).textContent = val;
     el(`scv-${id}`).className = `sc-val ${clsMap[cls]||'val-neutral'}`;
   }
-  if(el(`scd-${id}`)) el(`scd-${id}`).textContent = detail;
+  if(el(`scd-${id}`)){
+    el(`scd-${id}`).textContent = detail;
+    el(`scd-${id}`).classList.remove('skel-pulse');
+  }
   if(el(`scb-${id}`)){
     const fillCls = {ok:'var(--ok)',warn:'var(--warn)',bad:'var(--bad)',neutral:'var(--muted)'}[cls];
     el(`scb-${id}`).style.width = (showBar?barPct:0)+'%';
@@ -454,15 +459,8 @@ function setCard(id, val, detail, barPct, cls, showBar=true){
 
 
 function buildDeptGrid(){
-  const grid = document.getElementById('dept-ep-grid');
-  if(!grid) return;
-  grid.innerHTML = '';
-
   // Defensive: DEPTS should always have entries (fallback list guarantees it)
-  if(!DEPTS || DEPTS.length === 0){
-    grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--muted);padding:12px 0">Cargando departamentos…</div>';
-    return;
-  }
+  if(!DEPTS || DEPTS.length === 0) return;
 
   // Update section label with live count
   const lbl = document.getElementById('dept-section-label');
@@ -470,24 +468,91 @@ function buildDeptGrid(){
   const divLabel = COUNTRY_META?.divisions_label || t('dept.divisiones');
   if (lbl) lbl.textContent = t('dept.label', {div:divLabel, total:divCount+1, n:divCount});
 
-  // NACIONAL card first
-  const natCard = document.createElement('div');
-  natCard.className = 'dep-card dep-national';
-  natCard.style.gridColumn = '1 / -1';
-  natCard.innerHTML = `<div class="dep-abbr" style="font-size:10px">00 · NACIONAL</div><div class="dep-dot" style="background:var(--accent)"></div>`;
-  natCard.onclick = () => openMapPopup('00');
-  grid.appendChild(natCard);
-
-  DEPTS.filter(d => d.code !== '00').forEach(dept => {
-    const abbr = dept.abbr || dept.name.slice(0,2).toUpperCase();
-    const card = document.createElement('div');
-    card.className = 'dep-card';
-    card.id = `dep-card-${dept.code}`;
-    card.title = dept.name + ' (' + dept.code + ')';
-    card.innerHTML = `<div class="dep-abbr">${abbr}</div><div class="dep-dot" id="dep-dot-${dept.code}" style="background:#3a3f49"></div>`;
-    card.onclick = () => openMapPopup(dept.code);
-    grid.appendChild(card);
+  // Load/refresh the interactive country map, then bind department clicks
+  loadOpsCountryMap(ACTIVE_COUNTRY_CODE).then(() => {
+    bindMapPaths();
+    updateDeptGrid();
   });
+}
+
+// ══════════════════════════════════════════════════════════
+// INTERACTIVE COUNTRY MAP (Divisiones electorales)
+// Mirrors web/monitor/'s loadCountryMap — same SVG assets,
+// but here each department opens the editable endpoint popup
+// (openMapPopupAtEvent) instead of a read-only side panel.
+// ══════════════════════════════════════════════════════════
+let _opsMapLoaded = null; // country code currently loaded into #hn-ops-map-container
+
+async function loadOpsCountryMap(countryCode){
+  const container = document.getElementById('hn-ops-map-container');
+  if(!container) return;
+  const code = (countryCode || 'HN').toUpperCase();
+  if(_opsMapLoaded === code && container.querySelector('svg')) return; // already loaded
+  try{
+    const r = await fetch(`../assets/maps/${code}.svg`);
+    if(!r.ok) throw new Error(r.status);
+    const svgText = await r.text();
+    container.innerHTML = svgText;
+    const svg = container.querySelector('svg');
+    if(svg){
+      svg.id = 'ops-hn-map';
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+      svg.style.display = 'block';
+    }
+    _opsMapLoaded = code;
+  }catch(e){
+    console.warn('Ops map SVG not available for', code, e);
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;font-family:var(--mono)">${t('dept.map_unavailable')||'Mapa no disponible'} (${code})</div>`;
+    _opsMapLoaded = null;
+  }
+}
+
+function bindMapPaths(){
+  const svg = document.getElementById('ops-hn-map');
+  if(!svg) return;
+  DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
+    const path = svg.querySelector('#'+dept.iso) || svg.getElementById(dept.iso);
+    if(!path) return;
+    path.style.cursor = 'pointer';
+    path.style.transition = 'fill .15s';
+    path.onclick = (e) => openMapPopupAtEvent(dept.code, e);
+    // Native tooltip with department name + code
+    let title = path.querySelector('title');
+    if(!title){ title = document.createElementNS('http://www.w3.org/2000/svg','title'); path.appendChild(title); }
+    title.textContent = `${dept.name} (${dept.code})`;
+  });
+}
+
+function updateDeptGrid(){
+  const epCfg = localConfig['config/prod/endpoints.yaml'] || {};
+  const configured = (epCfg?.cne?.presidential_endpoints || [])
+    .map(e => (e.department_code || '').toString().padStart(2,'0'));
+
+  // National badge dot
+  const natDot = document.getElementById('dep-dot-00');
+  if(natDot) natDot.style.background = deptDotColor('00', configured);
+
+  // Map path fills
+  const svg = document.getElementById('ops-hn-map');
+  if(!svg) return;
+  DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
+    const path = svg.querySelector('#'+dept.iso) || svg.getElementById(dept.iso);
+    if(!path) return;
+    path.style.fill = deptDotColor(dept.code, configured);
+  });
+}
+
+// Single source of truth for the 4-color legend
+// (OK / Tardío / Caído / Sin configurar) shared by dots and map fills.
+function deptDotColor(code, configured){
+  if(!configured.includes(code)) return '#3a3f49'; // Sin configurar
+  const status = getEndpointStatus(code);
+  if(!snapshotData) return '#3a3f49';
+  if(status.cls === 'ok')   return '#57c08d'; // OK
+  if(status.cls === 'bad')  return '#df6b86'; // Caído / Error
+  if(status.cls === 'warn') return '#d4b066'; // Tardío
+  return '#3a3f49'; // sin datos todavía
 }
 function getEndpointUrl(code){
   const ep = localConfig['config/prod/endpoints.yaml']?.cne?.presidential_endpoints || [];
