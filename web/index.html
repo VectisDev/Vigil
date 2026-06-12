@@ -497,8 +497,9 @@ footer {
 
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 768px) {
-  nav { padding: 0 24px; }
-  .nav-links { display: none; }
+  nav { padding: 12px 24px; flex-wrap: wrap; height: auto; row-gap: 10px; }
+  .nav-right { width: 100%; justify-content: space-between; gap: 16px; }
+  .nav-links { gap: 18px; }
 
   .hero { padding: 100px 24px 64px; }
   .hero-headline, .hero-headline-2 { font-size: clamp(36px, 8vw, 52px); }
