@@ -1088,58 +1088,64 @@
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
       <div class="section" id="s8">
-        <div class="section-title">Cierre Electoral <span class="sec-tip" data-tip="Secuencia de fin de elección: raspado final completo de todas las fuentes, publicación del snapshot certificado y apagado controlado del sistema. Irreversible.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Electoral Closure</span> <span class="sec-tip" data-tip-es="Secuencia de fin de eleccion: raspado final completo de todas las fuentes, publicacion del snapshot certificado y apagado controlado del sistema. Irreversible." data-tip-en="End-of-election sequence: full final scrape of all sources, publication of the certified snapshot, and controlled shutdown of the system. Irreversible.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
-          Secuencia de fin de elección: raspe final forzado de todas las fuentes,
-          publicación del snapshot certificado, y desactivación del scheduler.
+          <span data-lang="es">Secuencia de fin de elección: raspe final forzado de todas las fuentes,
+          publicación del snapshot certificado, y desactivación del scheduler.</span>
+          <span data-lang="en">End-of-election sequence: forced final scrape of all sources,
+          publication of the certified snapshot, and scheduler shutdown.</span>
         </p>
 
         <div class="ctrl-section" id="election-closed-banner" style="display:none;border-color:#3fb950;background:rgba(63,185,80,0.07)">
-          <h3 style="color:#3fb950">Ciclo Electoral Cerrado</h3>
+          <h3 style="color:#3fb950"><span data-lang="es">Ciclo Electoral Cerrado</span><span data-lang="en">Electoral Cycle Closed</span></h3>
           <div style="font-size:13px;color:var(--fg);margin-top:8px">
             <span id="ec-closed-at" style="color:var(--muted)"></span><br>
-            Merkle root final: <code id="ec-merkle" style="font-size:11px"></code><br>
-            Snapshots en cadena: <strong id="ec-chain"></strong>
+            <span data-lang="es">Merkle root final</span><span data-lang="en">Final Merkle root</span>: <code id="ec-merkle" style="font-size:11px"></code><br>
+            <span data-lang="es">Snapshots en cadena</span><span data-lang="en">Snapshots in chain</span>: <strong id="ec-chain"></strong>
           </div>
         </div>
 
         <div class="ctrl-section" id="election-open-section">
-          <h3>Estado actual</h3>
+          <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
           <div style="display:flex;align-items:center;gap:12px;margin:12px 0">
             <span id="ec-status-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok)"></span>
-            <span id="ec-status-label" style="font-size:14px;font-weight:600">Cargando…</span>
+            <span id="ec-status-label" style="font-size:14px;font-weight:600"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="ec-mode-line"></div>
 
           <div class="info-box" style="margin-bottom:16px">
-            <strong style="color:var(--fg);font-size:12px">Qué ocurre al cerrar</strong>
+            <strong style="color:var(--fg);font-size:12px"><span data-lang="es">Qué ocurre al cerrar</span><span data-lang="en">What happens on closure</span></strong>
             <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7">
-              1. Raspe completo y forzado de todas las fuentes electorales.<br>
+              <span data-lang="es">1. Raspe completo y forzado de todas las fuentes electorales.<br>
               2. Publicación del snapshot certificado en el repositorio.<br>
               3. Modo de operación cambia a <code>maintenance</code> y los ciclos automáticos se detienen.<br>
-              Para reactivar el monitoreo hay que eliminar el marker manualmente.
+              Para reactivar el monitoreo hay que eliminar el marker manualmente.</span>
+              <span data-lang="en">1. Full, forced scrape of all electoral sources.<br>
+              2. Publication of the certified snapshot to the repository.<br>
+              3. Operating mode changes to <code>maintenance</code> and automatic cycles stop.<br>
+              To resume monitoring, the marker must be removed manually.</span>
             </p>
           </div>
 
           <button class="hdr-btn" id="btn-finalize" onclick="openFinalizeModal()"
             style="border-color:#f85149;color:#f85149;font-weight:700">
-            Cerrar Ciclo Electoral
+            <span data-lang="es">Cerrar Ciclo Electoral</span><span data-lang="en">Close Electoral Cycle</span>
           </button>
 
           <div id="ec-progress" style="display:none;margin-top:16px">
-            <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="ec-progress-msg">Ejecutando raspe final…</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="ec-progress-msg"><span data-lang="es">Ejecutando raspe final…</span><span data-lang="en">Running final scrape…</span></div>
             <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
               <div id="ec-progress-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.5s"></div>
             </div>
           </div>
 
           <div id="ec-result" style="display:none;margin-top:16px;padding:14px 16px;background:var(--panel);border-radius:8px;border:1px solid var(--border)">
-            <div style="font-size:13px;font-weight:600;color:var(--ok);margin-bottom:8px">Ciclo cerrado correctamente</div>
+            <div style="font-size:13px;font-weight:600;color:var(--ok);margin-bottom:8px"><span data-lang="es">Ciclo cerrado correctamente</span><span data-lang="en">Cycle closed successfully</span></div>
             <div style="font-size:12px;color:var(--muted);line-height:1.8">
-              Merkle root final: <code id="ec-result-merkle"></code><br>
+              <span data-lang="es">Merkle root final</span><span data-lang="en">Final Merkle root</span>: <code id="ec-result-merkle"></code><br>
               Snapshots: <strong id="ec-result-chain"></strong><br>
-              Cerrado a las: <span id="ec-result-time"></span>
+              <span data-lang="es">Cerrado a las</span><span data-lang="en">Closed at</span>: <span id="ec-result-time"></span>
             </div>
           </div>
 
@@ -1173,12 +1179,12 @@
             <button class="hdr-btn primary" id="btn-download-evidence"
               onclick="downloadEvidence()"
               style="display:flex;align-items:center;gap:6px">
-              <span>⬇</span> Descargar evidencia
+              <span>⬇</span> <span data-lang="es">Descargar evidencia</span><span data-lang="en">Download evidence</span>
             </button>
             <button class="hdr-btn" id="btn-purge-data"
               onclick="openPurgeModal()"
               style="border-color:var(--warn);color:var(--warn);display:flex;align-items:center;gap:6px">
-              <span>🗑</span> Limpiar datos
+              <span>🗑</span> <span data-lang="es">Limpiar datos</span><span data-lang="en">Clear data</span>
             </button>
           </div>
 
@@ -1193,25 +1199,29 @@
 <!-- ════ ELECTION FINALIZE MODAL ════ -->
 <div id="finalize-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:none;align-items:center;justify-content:center">
   <div class="modal-box" style="max-width:440px;border:1px solid rgba(248,81,73,0.5)">
-    <h2 style="color:#f85149">Confirmar cierre electoral</h2>
+    <h2 style="color:#f85149"><span data-lang="es">Confirmar cierre electoral</span><span data-lang="en">Confirm electoral closure</span></h2>
     <p style="font-size:13px;color:var(--muted);margin:12px 0 16px;line-height:1.7">
-      Esta acción lanzará un raspe completo final de todas las fuentes CNE,
+      <span data-lang="es">Esta acción lanzará un raspe completo final de todas las fuentes CNE,
       escribirá el marker <code>ELECTION_CLOSED</code>, cambiará el modo a
       <code>maintenance</code>, y detendrá los schedulers automáticos.<br><br>
-      <strong style="color:var(--fg)">No se puede deshacer desde esta interfaz.</strong>
+      <strong style="color:var(--fg)">No se puede deshacer desde esta interfaz.</strong></span>
+      <span data-lang="en">This action will trigger a final full scrape of all electoral sources,
+      write the <code>ELECTION_CLOSED</code> marker, switch the mode to
+      <code>maintenance</code>, and stop the automatic schedulers.<br><br>
+      <strong style="color:var(--fg)">This cannot be undone from this interface.</strong></span>
     </p>
     <div class="ctrl-row" style="margin-bottom:16px">
-      <label style="color:var(--fg)">Escribe <strong>CERRAR</strong> para confirmar</label>
+      <label style="color:var(--fg)"><span data-lang="es">Escribe <strong>CERRAR</strong> para confirmar</span><span data-lang="en">Type <strong>CERRAR</strong> to confirm</span></label>
       <input type="text" id="finalize-confirm-input" placeholder="CERRAR"
         autocomplete="off" style="border-color:rgba(248,81,73,0.5)"
         oninput="document.getElementById('btn-finalize-confirm').disabled=this.value!=='CERRAR'">
     </div>
     <div class="modal-btns">
-      <button class="hdr-btn" onclick="closeFinalizeModal()">Cancelar</button>
+      <button class="hdr-btn" onclick="closeFinalizeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
       <button class="hdr-btn primary" id="btn-finalize-confirm" disabled
         onclick="doFinalizeElection()"
         style="background:#f85149;border-color:#f85149;color:#fff">
-        Cerrar ciclo electoral
+        <span data-lang="es">Cerrar ciclo electoral</span><span data-lang="en">Close electoral cycle</span>
       </button>
     </div>
   </div>
@@ -1221,42 +1231,44 @@
 <!-- ════ PURGE DATA MODAL ════ -->
 <div id="purge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center">
   <div class="modal-box" style="max-width:460px;border-top:3px solid var(--warn)">
-    <h2 style="color:var(--warn)">Limpiar datos de scraping</h2>
+    <h2 style="color:var(--warn)"><span data-lang="es">Limpiar datos de scraping</span><span data-lang="en">Clear scraping data</span></h2>
     <p style="font-size:13px;color:var(--muted);margin:12px 0;line-height:1.7">
-      Elimina los snapshots JSON del repo para liberar espacio.<br>
-      <strong style="color:var(--fg)">La cadena de hashes (<code>poller_chain.jsonl</code>) se conserva siempre</strong> — es la evidencia criptográfica irreemplazable.
+      <span data-lang="es">Elimina los snapshots JSON del repo para liberar espacio.<br>
+      <strong style="color:var(--fg)">La cadena de hashes (<code>poller_chain.jsonl</code>) se conserva siempre</strong> — es la evidencia criptográfica irreemplazable.</span>
+      <span data-lang="en">Deletes JSON snapshots from the repo to free up space.<br>
+      <strong style="color:var(--fg)">The hash chain (<code>poller_chain.jsonl</code>) is always preserved</strong> — it is the irreplaceable cryptographic evidence.</span>
     </p>
 
     <div style="background:var(--panel2);border-radius:4px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
-      <div>📦 Snapshots a eliminar: <strong id="purge-snapshots-count" style="color:var(--fg)">—</strong></div>
-      <div>🔗 Hash chain conservada: <strong style="color:var(--ok)">siempre</strong></div>
-      <div>💾 Espacio a recuperar: <strong id="purge-space-est" style="color:var(--fg)">—</strong></div>
+      <div>📦 <span data-lang="es">Snapshots a eliminar</span><span data-lang="en">Snapshots to delete</span>: <strong id="purge-snapshots-count" style="color:var(--fg)">—</strong></div>
+      <div>🔗 <span data-lang="es">Hash chain conservada</span><span data-lang="en">Hash chain preserved</span>: <strong style="color:var(--ok)"><span data-lang="es">siempre</span><span data-lang="en">always</span></strong></div>
+      <div>💾 <span data-lang="es">Espacio a recuperar</span><span data-lang="en">Space to recover</span>: <strong id="purge-space-est" style="color:var(--fg)">—</strong></div>
     </div>
 
     <div class="ctrl-row" style="margin-bottom:4px">
-      <label style="color:var(--fg)">Clave de acceso al repositorio</label>
+      <label style="color:var(--fg)"><span data-lang="es">Clave de acceso al repositorio</span><span data-lang="en">Repository access key</span></label>
       <input type="password" id="purge-pat-input" placeholder="ghp_…" autocomplete="off"
         style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:6px 10px;color:var(--fg);font-family:var(--mono);font-size:12px;width:100%;box-sizing:border-box">
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
-      Necesaria para escribir en el repositorio. No se almacena.
+      <span data-lang="es">Necesaria para escribir en el repositorio. No se almacena.</span><span data-lang="en">Needed to write to the repository. Not stored.</span>
     </div>
 
     <div class="auth-err" id="purge-err" style="margin-bottom:8px"></div>
 
     <div id="purge-progress" style="display:none;margin-bottom:12px">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:6px" id="purge-progress-msg">Procesando…</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px" id="purge-progress-msg"><span data-lang="es">Procesando…</span><span data-lang="en">Processing…</span></div>
       <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
         <div id="purge-progress-bar" style="height:100%;background:var(--warn);width:0%;transition:width .4s"></div>
       </div>
     </div>
 
     <div class="modal-btns">
-      <button class="hdr-btn" onclick="closePurgeModal()">Cancelar</button>
+      <button class="hdr-btn" onclick="closePurgeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
       <button class="hdr-btn" id="btn-purge-confirm"
         onclick="executePurge()"
         style="background:rgba(212,176,102,.15);border-color:var(--warn);color:var(--warn);font-weight:700">
-        Limpiar snapshots
+        <span data-lang="es">Limpiar snapshots</span><span data-lang="en">Clear snapshots</span>
       </button>
     </div>
   </div>
@@ -1859,7 +1871,7 @@ async function loadDataSize() {
 
     // Update labels
     const sizeLabel = document.getElementById('data-size-label');
-    if (sizeLabel) sizeLabel.textContent = `${sizeMb.toFixed(1)} MB usados`;
+    if (sizeLabel) sizeLabel.textContent = `${sizeMb.toFixed(1)} MB ${t('data.usados')}`;
 
     // Estimate cycles from chain file
     try {
@@ -1871,8 +1883,8 @@ async function loadDataSize() {
         if (cyclesLabel) {
           const days = (cycles / 480).toFixed(1);
           cyclesLabel.textContent =
-            `${cycles.toLocaleString()} ciclos registrados en cadena de hashes` +
-            (cycles > 0 ? ` (~${days} días de monitoreo)` : '');
+            `${cycles.toLocaleString()} ${t('data.ciclos_registrados')}` +
+            (cycles > 0 ? ` (~${days} ${t('data.dias_monitoreo')})` : '');
         }
         // Store for purge modal
         window._dataCycles = cycles;
@@ -1886,7 +1898,7 @@ async function loadDataSize() {
         const files = await snapR.json();
         window._snapshotFiles = Array.isArray(files) ? files : [];
         document.getElementById('purge-snapshots-count').textContent =
-          window._snapshotFiles.length + ' archivos JSON';
+          window._snapshotFiles.length + ' ' + t('purge.archivos_json');
         const snapKb = window._snapshotFiles.reduce((a, f) => a + (f.size || 0), 0) / 1024;
         document.getElementById('purge-space-est').textContent =
           snapKb < 1024 ? `~${snapKb.toFixed(0)} KB` : `~${(snapKb/1024).toFixed(1)} MB`;
@@ -1901,7 +1913,7 @@ async function loadDataSize() {
 async function downloadEvidence() {
   const btn = document.getElementById('btn-download-evidence');
   btn.disabled = true;
-  btn.textContent = '⏳ Preparando…';
+  btn.textContent = t('evidence.preparando');
 
   try {
     // Build a downloadable package:
@@ -1915,7 +1927,7 @@ async function downloadEvidence() {
 
     // Download hash chain
     const chainR = await fetch(`${RAW_BASE}/data/poller_chain.jsonl?t=${Date.now()}`);
-    if (!chainR.ok) throw new Error('No se encontró cadena de hashes');
+    if (!chainR.ok) throw new Error(t('evidence.no_cadena'));
     const chainText = await chainR.text();
 
     // Try to get snapshots
@@ -1958,7 +1970,7 @@ async function downloadEvidence() {
     URL.revokeObjectURL(url);
 
     msg.style.color = 'var(--ok)';
-    msg.textContent = '✅ Evidencia descargada. Guárdala en un lugar seguro fuera del repositorio.';
+    msg.textContent = t('evidence.descargada');
 
   } catch(e) {
     const msg = document.getElementById('data-mgmt-msg');
@@ -1967,7 +1979,7 @@ async function downloadEvidence() {
     msg.textContent = '❌ ' + e.message;
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span>⬇</span> Descargar evidencia';
+    btn.innerHTML = '<span>⬇</span> ' + t('evidence.descargar');
   }
 }
 
@@ -1994,7 +2006,7 @@ async function executePurge() {
   const progBar = document.getElementById('purge-progress-bar');
 
   if (!pat || !pat.startsWith('ghp_')) {
-    err.textContent = 'Clave inválida — debe comenzar con ghp_';
+    err.textContent = t('purge.clave_invalida');
     return;
   }
 
@@ -2004,7 +2016,7 @@ async function executePurge() {
 
   const files = window._snapshotFiles || [];
   if (files.length === 0) {
-    err.textContent = 'No se encontraron snapshots para eliminar.';
+    err.textContent = t('purge.no_snapshots');
     btn.disabled = false;
     return;
   }
@@ -2014,7 +2026,7 @@ async function executePurge() {
 
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
-    progMsg.textContent = `Eliminando ${f.name}… (${i+1}/${files.length})`;
+    progMsg.textContent = `${t('purge.eliminando')} ${f.name}… (${i+1}/${files.length})`;
     progBar.style.width = Math.round(((i+1)/files.length)*100) + '%';
 
     try {
@@ -2054,10 +2066,10 @@ async function executePurge() {
   msg.style.display = 'block';
   if (failed === 0) {
     msg.style.color = 'var(--ok)';
-    msg.textContent = `✅ ${deleted} snapshots eliminados. Cadena de hashes conservada intacta.`;
+    msg.textContent = `✅ ${deleted} ${t('purge.eliminados_ok')}`;
   } else {
     msg.style.color = 'var(--warn)';
-    msg.textContent = `⚠ ${deleted} eliminados, ${failed} fallaron. Recarga para reintentar.`;
+    msg.textContent = `⚠ ${deleted} ${t('purge.eliminados_parcial').replace('{f}', failed)}`;
   }
 
   // Refresh size
