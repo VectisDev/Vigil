@@ -146,7 +146,7 @@
 
         <!-- Título + botones de operación -->
         <div id="panel-topbar">
-          <div class="section-title">Panel de control <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(110,168,254,.1);border-color:rgba(110,168,254,.3);color:var(--accent)"></span><span class="sec-tip" data-tip="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia.">ⓘ</span></div>
+          <div class="section-title"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span> <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(110,168,254,.1);border-color:rgba(110,168,254,.3);color:var(--accent)"></span><span class="sec-tip" data-tip-es="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia." data-tip-en="Main command center. Start or stop electoral data scraping, check system status, and review the latest custody chain snapshots.">ⓘ</span></div>
           <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
           <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
           <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
@@ -160,27 +160,27 @@
             <span id="country-current-name">—</span>
             <span id="country-current-auth"></span>
             <select id="country-select" onchange="onCountrySelectChange(this.value)">
-              <option value="">Cargando países…</option>
+              <option value="" data-lang-es="Cargando países…" data-lang-en="Loading countries…">Cargando países…</option>
             </select>
-            <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()">Cambiar país</button>
+            <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()"><span data-lang="es">Cambiar país</span><span data-lang="en">Change country</span></button>
           </div>
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip="La dirección principal del sitio de resultados electorales. Centinel descubre los datos automáticamente — no necesitas saber nada más.">Sitio de resultados <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
-            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" oninput="onEasyUrlInput(this.value)" onblur="validateUrlField(this)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
-            <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap">Descubrir endpoints</button>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip-es="La dirección principal del sitio de resultados electorales. Centinel descubre los datos automáticamente — no necesitas saber nada más." data-tip-en="The main address of the electoral results site. Centinel discovers the data automatically, you don't need to know anything else."><span data-lang="es">Sitio de resultados</span><span data-lang="en">Results site</span> <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
+            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" data-ph-es="https://resultados.organismo-electoral.gov" data-ph-en="https://results.electoral-authority.gov" oninput="onEasyUrlInput(this.value)" onblur="validateUrlField(this)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+            <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap"><span data-lang="es">Descubrir endpoints</span><span data-lang="en">Discover endpoints</span></button>
           </div>
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
         </div>
         <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
-          ⚠ El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.
+          ⚠ <span data-lang="es">El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.</span><span data-lang="en">The swarm is connected with the previous country. Go to Node Network → Disconnect and reconnect.</span>
         </div>
 
         <!-- Tarjetas de estado -->
         <div class="cards-grid" id="sensor-cards"><!-- filled by JS --></div>
 
         <!-- Mapa de departamentos -->
-        <div id="dept-section-label">Divisiones electorales</div>
+        <div id="dept-section-label"><span data-lang="es">Divisiones electorales</span><span data-lang="en">Electoral divisions</span></div>
         <div id="adm-map-wrap" style="position:relative">
           <div id="dep-card-national" class="dep-national-badge" onclick="openMapPopup('00')" title="NACIONAL (00)">
             <span class="dep-dot" id="dep-dot-00" style="background:var(--accent)"></span>
@@ -196,9 +196,9 @@
             <input type="text" id="mp-url-input" placeholder="https://...">
             <div class="mp-status" id="mp-status">—</div>
             <div class="mp-btns">
-              <button onclick="testEndpoint()">Probar ahora</button>
-              <button onclick="closeMapPopup()">Cancelar</button>
-              <button class="save" onclick="saveEndpointFromPopup()">Guardar cambio</button>
+              <button onclick="testEndpoint()"><span data-lang="es">Probar ahora</span><span data-lang="en">Test now</span></button>
+              <button onclick="closeMapPopup()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+              <button class="save" onclick="saveEndpointFromPopup()"><span data-lang="es">Guardar cambio</span><span data-lang="en">Save change</span></button>
             </div>
           </div>
         </div>
@@ -208,7 +208,7 @@
           <span><span class="dot" style="background:#df6b86"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
           <span><span class="dot" style="background:#3a3f49"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
         </div>
-        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:20px;margin-bottom:6px">Estado del sistema</div>
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:20px;margin-bottom:6px"><span data-lang="es">Estado del sistema</span><span data-lang="en">System status</span></div>
         <div class="status-row">
           <span class="badge" id="badge-animal">DEFENSAS</span>
           <span class="badge" id="badge-safemode">SAFE MODE</span>
@@ -2059,6 +2059,7 @@ function setOpsLang(l){
   document.getElementById('btn-lang-es').className = l==='es' ? 'active' : '';
   document.getElementById('btn-lang-en').className = l==='en' ? 'active' : '';
   localStorage.setItem('vigil-lang', l);
+  if(window.refreshOpsLang) refreshOpsLang();
 }
 setOpsTheme(localStorage.getItem('vigil-theme') || 'dark');
 setOpsLang(localStorage.getItem('vigil-lang') || 'es');
