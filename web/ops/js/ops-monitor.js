@@ -736,20 +736,20 @@ async function loadSeedStatus() {
     const s = await r.json();
     if (s.configured) {
       const since = s.configured_at ? new Date(s.configured_at).toLocaleString() : '—';
-      const regen = s.last_regenerated_at ? new Date(s.last_regenerated_at).toLocaleString() : 'Nunca';
+      const regen = s.last_regenerated_at ? new Date(s.last_regenerated_at).toLocaleString() : t('seed.nunca');
       el.innerHTML = `
-        <span style="color:var(--ok)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> Sistema configurado</span><br>
-        País: <strong>${s.country_name || s.country_code || '—'}</strong><br>
-        Configurado: ${since}<br>
-        Última regeneración: ${regen}<br>
-        Claves activas: <strong>12</strong>
+        <span style="color:var(--ok)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> ${t('seed.configurado')}</span><br>
+        ${t('seed.pais')}: <strong>${s.country_name || s.country_code || '—'}</strong><br>
+        ${t('seed.configurado_el')}: ${since}<br>
+        ${t('seed.ultima_regen')}: ${regen}<br>
+        ${t('seed.claves_activas')}: <strong>12</strong>
       `;
     } else {
-      el.innerHTML = '<span style="color:var(--warn)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Sistema no configurado aún. Ejecuta el wizard de inicio.</span>';
+      el.innerHTML = `<span style="color:var(--warn)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> ${t('seed.no_configurado')}</span>`;
       document.getElementById('btn-regen').disabled = true;
     }
   } catch(e) {
-    el.innerHTML = '<span style="color:var(--muted)">No se pudo cargar el estado.</span>';
+    el.innerHTML = `<span style="color:var(--muted)">${t('seed.error_carga')}</span>`;
   }
 }
 
@@ -761,11 +761,11 @@ async function doRegenerate() {
   if (window.CENTINEL_API_BASE) {
     const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
     if (!seedValue) {
-      errEl.textContent = 'Ingresa la clave para autenticar.';
+      errEl.textContent = t('seed.ingresa_clave');
       return;
     }
 
-    if (btn) { btn.disabled = true; btn.textContent = 'Regenerando…'; }
+    if (btn) { btn.disabled = true; btn.textContent = t('seed.regenerando'); }
     document.getElementById('regen-confirm').style.display = 'none';
 
     try {
@@ -784,7 +784,7 @@ async function doRegenerate() {
       if (!r.ok) {
         const err = await r.json().catch(()=>({}));
         document.getElementById('regen-confirm').style.display = 'block';
-        errEl.textContent = err.detail || ('Error ' + r.status);
+        errEl.textContent = err.detail || (t('seed.error_prefix') + ' ' + r.status);
         return;
       }
 
@@ -803,15 +803,14 @@ async function doRegenerate() {
     } catch(e) {
       alert('Error: ' + e.message);
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Sí, regenerar ahora'; }
+      if (btn) { btn.disabled = false; btn.textContent = t('seed.si_regenerar'); }
     }
   } else {
     const workflowUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/regenerate-seeds.yml`;
     document.getElementById('regen-confirm').style.display = 'none';
-    errEl.innerHTML = `<span style="color:var(--warn)">En modo Pages no hay API local.<br>` +
+    errEl.innerHTML = `<span style="color:var(--warn)">${t('seed.modo_pages')}<br>` +
       `<a href="${workflowUrl}" target="_blank" rel="noopener" style="color:var(--accent)">` +
-      `Abre el workflow "Regenerate Admin Seeds"</a> en GitHub Actions.<br>` +
-      `Haz clic en "Run workflow", luego descarga el artifact de seeds (expira en 24h).</span>`;
+      `${t('seed.abre_workflow')}</a> ${t('seed.run_workflow_hint')}</span>`;
   }
 }
 
