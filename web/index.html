@@ -40,8 +40,9 @@ body {
    Purely decorative, sits behind all content. */
 body::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
+  min-height: 100%;
   z-index: -1;
   pointer-events: none;
   opacity: 0.025;
