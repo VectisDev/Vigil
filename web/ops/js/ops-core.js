@@ -229,6 +229,14 @@ const I18N = {
     'purge.eliminando':'Eliminando', 'purge.archivos_json':'archivos JSON',
     'purge.eliminados_ok':'snapshots eliminados. Cadena de hashes conservada intacta.',
     'purge.eliminados_parcial':'eliminados, {f} fallaron. Recarga para reintentar.',
+    'swarm.en_red':'EN RED', 'swarm.nodo':'nodo', 'swarm.nodos':'nodos', 'swarm.activo':'activo', 'swarm.activos':'activos',
+    'swarm.conectando':'CONECTANDO…', 'swarm.desconectado':'DESCONECTADO',
+    'swarm.conectar':'Conectar a la red', 'swarm.desconectar':'Desconectar', 'swarm.desconectando':'Desconectando…',
+    'swarm.confirm_desconectar':'¿Desconectar del enjambre? Tendrás que volver a conectar manualmente.',
+    'swarm.error_conectar':'Error al conectar', 'swarm.error':'Error',
+    'swarm.en_sync':'✓ en sync', 'swarm.diverge':'≠ diverge', 'swarm.kick':'Kick',
+    'swarm.consenso_alcanzado':'Consenso alcanzado —', 'swarm.comparten_merkle':'comparten el mismo Merkle root', 'swarm.datos_consistentes':'Los datos del CNE son consistentes en la red.',
+    'swarm.sin_consenso':'Sin consenso aún — esperando que más nodos sincronicen', 'swarm.coinciden':'coinciden',
   },
   en: {
     'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
@@ -293,6 +301,14 @@ const I18N = {
     'purge.eliminando':'Deleting', 'purge.archivos_json':'JSON files',
     'purge.eliminados_ok':'snapshots deleted. Hash chain preserved intact.',
     'purge.eliminados_parcial':'deleted, {f} failed. Reload to retry.',
+    'swarm.en_red':'ON NETWORK', 'swarm.nodo':'node', 'swarm.nodos':'nodes', 'swarm.activo':'active', 'swarm.activos':'active',
+    'swarm.conectando':'CONNECTING…', 'swarm.desconectado':'DISCONNECTED',
+    'swarm.conectar':'Connect to network', 'swarm.desconectar':'Disconnect', 'swarm.desconectando':'Disconnecting…',
+    'swarm.confirm_desconectar':'Disconnect from the swarm? You will need to reconnect manually.',
+    'swarm.error_conectar':'Connection error', 'swarm.error':'Error',
+    'swarm.en_sync':'✓ in sync', 'swarm.diverge':'≠ diverges', 'swarm.kick':'Kick',
+    'swarm.consenso_alcanzado':'Consensus reached —', 'swarm.comparten_merkle':'share the same Merkle root', 'swarm.datos_consistentes':'Electoral data is consistent across the network.',
+    'swarm.sin_consenso':'No consensus yet — waiting for more nodes to sync', 'swarm.coinciden':'match',
   }
 };
 function t(key, vars){
@@ -315,6 +331,7 @@ function refreshOpsLang(){
   try{ loadSeedStatus(); }catch(e){}
   try{ loadElectionStatus(); }catch(e){}
   try{ loadDataSize(); }catch(e){}
+  try{ loadSwarmStatus(); }catch(e){}
 }
 window.refreshOpsLang = refreshOpsLang;
 
