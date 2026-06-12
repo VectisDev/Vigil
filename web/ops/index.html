@@ -667,16 +667,16 @@
 
       <!-- ── 5 LOGS ── -->
       <div class="section" id="s4">
-        <div class="section-title">Logs y terminales <span class="sec-tip" data-tip="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoría. Todo queda grabado y no se puede borrar.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs &amp; terminals</span> <span class="sec-tip" data-tip-es="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoria. Todo queda grabado y no se puede borrar." data-tip-en="Real-time logs of all activity: monitoring events, security alerts and audit traces. Everything is recorded and cannot be deleted.">ⓘ</span></div>
         <hr class="section-sep">
 
         <!-- Log General -->
         <div class="terminal terminal--activity">
           <div class="terminal-hdr">
             <span class="term-title">
-              <span class="ots-dot ots-dot-off" id="log-live-dot" style="flex-shrink:0" title="Auto-refresco inactivo"></span>
+              <span class="ots-dot ots-dot-off" id="log-live-dot" style="flex-shrink:0" title="Auto-refresco inactivo / Auto-refresh inactive"></span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              Actividad Centinel
+              <span data-lang="es">Actividad Centinel</span><span data-lang="en">Centinel Activity</span>
             </span>
             <span class="section-badge" id="log-general-count" style="font-family:var(--mono)">—</span>
             <div id="log-chips" style="display:flex;gap:4px">
@@ -685,19 +685,19 @@
               <button class="chip active" data-lvl="CRITICAL" onclick="toggleChip(this)">CRITICAL</button>
               <button class="chip active" data-lvl="PANIC" onclick="toggleChip(this)">PANIC</button>
             </div>
-            <input type="search" id="log-search" class="term-search" placeholder="Buscar…" oninput="onLogSearch(this.value)">
+            <input type="search" id="log-search" class="term-search" placeholder="Buscar…" data-ph-es="Buscar…" data-ph-en="Search…" oninput="onLogSearch(this.value)">
             <select id="log-lines" onchange="renderLog()">
-              <option value="50">50 líneas</option>
-              <option value="100">100 líneas</option>
-              <option value="500">500 líneas</option>
-              <option value="0">Todas</option>
+              <option value="50" data-label-es="50 líneas" data-label-en="50 lines">50 líneas</option>
+              <option value="100" data-label-es="100 líneas" data-label-en="100 lines">100 líneas</option>
+              <option value="500" data-label-es="500 líneas" data-label-en="500 lines">500 líneas</option>
+              <option value="0" data-label-es="Todas" data-label-en="All">Todas</option>
             </select>
-            <button id="btn-log-live" class="term-live-btn" onclick="toggleLogLive()" title="Auto-refresco cada 30s">⏱ Live</button>
-            <button onclick="fetchLog()" title="Refrescar">↻</button>
-            <button onclick="toggleTimestamp()" title="Alternar timestamp relativo/absoluto">🕐</button>
+            <button id="btn-log-live" class="term-live-btn" onclick="toggleLogLive()" title="Auto-refresco cada 30s / Auto-refresh every 30s">⏱ Live</button>
+            <button onclick="fetchLog()" title="Refrescar / Refresh">↻</button>
+            <button onclick="toggleTimestamp()" title="Alternar timestamp relativo/absoluto / Toggle relative/absolute timestamp">🕐</button>
           </div>
           <div class="log-summary-bar" id="log-summary"></div>
-          <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th>Nivel</th><th>Mensaje</th><th>Regla / Kind</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Sin actividad registrada.<span class="log-empty-hint">Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.</span></td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Nivel</span><span data-lang="en">Level</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th><th><span data-lang="es">Regla / Kind</span><span data-lang="en">Rule / Kind</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><span data-lang="es">Sin actividad registrada.</span><span data-lang="en">No activity recorded.</span><span class="log-empty-hint"><span data-lang="es">Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.</span><span data-lang="en">Start monitoring with ▶ Start to see events here.</span></span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-general')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
           </div>
@@ -707,28 +707,28 @@
         <div class="terminal terminal--attack">
           <div class="terminal-hdr">
             <span class="term-title">
-              <span class="ots-dot ots-dot-off" id="attack-live-dot" style="flex-shrink:0" title="Auto-refresco inactivo"></span>
+              <span class="ots-dot ots-dot-off" id="attack-live-dot" style="flex-shrink:0" title="Auto-refresco inactivo / Auto-refresh inactive"></span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               Attack Logger
             </span>
             <span class="section-badge" id="log-attacks-count" style="font-family:var(--mono)">—</span>
             <select id="attack-filter" onchange="renderAttackLog()">
-              <option value="">Todos</option>
-              <option value="FLOOD">FLOOD — ráfaga excesiva</option>
-              <option value="BRUTE">BRUTE — fuerza bruta</option>
-              <option value="SCAN">SCAN — scanner malicioso</option>
-              <option value="PROXY_SUSPECT">PROXY_SUSPECT — Tor/proxy</option>
-              <option value="SUSPICIOUS">SUSPICIOUS — actividad anómala</option>
+              <option value="" data-label-es="Todos" data-label-en="All">Todos</option>
+              <option value="FLOOD" data-label-es="FLOOD — ráfaga excesiva" data-label-en="FLOOD — excessive burst">FLOOD — ráfaga excesiva</option>
+              <option value="BRUTE" data-label-es="BRUTE — fuerza bruta" data-label-en="BRUTE — brute force">BRUTE — fuerza bruta</option>
+              <option value="SCAN" data-label-es="SCAN — scanner malicioso" data-label-en="SCAN — malicious scanner">SCAN — scanner malicioso</option>
+              <option value="PROXY_SUSPECT" data-label-es="PROXY_SUSPECT — Tor/proxy" data-label-en="PROXY_SUSPECT — Tor/proxy">PROXY_SUSPECT — Tor/proxy</option>
+              <option value="SUSPICIOUS" data-label-es="SUSPICIOUS — actividad anómala" data-label-en="SUSPICIOUS — anomalous activity">SUSPICIOUS — actividad anómala</option>
             </select>
-            <input type="search" id="attack-search" class="term-search" placeholder="IP, ruta, UA…" oninput="onAttackSearch(this.value)">
-            <button id="btn-attack-live" class="term-live-btn" onclick="toggleAttackLive()" title="Auto-refresco cada 30s">⏱ Live</button>
-            <button onclick="fetchAttackLog()" title="Refrescar">↻</button>
+            <input type="search" id="attack-search" class="term-search" placeholder="IP, ruta, UA…" data-ph-es="IP, ruta, UA…" data-ph-en="IP, route, UA…" oninput="onAttackSearch(this.value)">
+            <button id="btn-attack-live" class="term-live-btn" onclick="toggleAttackLive()" title="Auto-refresco cada 30s / Auto-refresh every 30s">⏱ Live</button>
+            <button onclick="fetchAttackLog()" title="Refrescar / Refresh">↻</button>
           </div>
           <div class="log-summary-bar" id="attack-summary"></div>
-          <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th>Tipo</th><th>IP / Geo</th><th>Ruta</th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6">Sin ataques registrados.<span class="log-empty-hint">El sistema está vigilando — aparecerán aquí si se detecta actividad maliciosa.</span></td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Tipo</span><span data-lang="en">Type</span></th><th>IP / Geo</th><th><span data-lang="es">Ruta</span><span data-lang="en">Route</span></th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6"><span data-lang="es">Sin ataques registrados.</span><span data-lang="en">No attacks recorded.</span><span class="log-empty-hint"><span data-lang="es">El sistema está vigilando — aparecerán aquí si se detecta actividad maliciosa.</span><span data-lang="en">The system is watching — they will appear here if malicious activity is detected.</span></span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-attacks')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
-            <button onclick="generateIncidentReport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Reporte de incidente</button>
+            <button onclick="generateIncidentReport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> <span data-lang="es">Reporte de incidente</span><span data-lang="en">Incident report</span></button>
           </div>
         </div>
 
@@ -740,10 +740,10 @@
               Audit Trail
             </span>
             <span class="section-badge" id="log-audit-count" style="font-family:var(--mono)">—</span>
-            <input type="search" id="audit-search" class="term-search" placeholder="SHA, autor, mensaje…" oninput="onAuditSearch(this.value)">
-            <button onclick="fetchAuditTrail()" title="Refrescar">↻</button>
+            <input type="search" id="audit-search" class="term-search" placeholder="SHA, autor, mensaje…" data-ph-es="SHA, autor, mensaje…" data-ph-en="SHA, author, message…" oninput="onAuditSearch(this.value)">
+            <button onclick="fetchAuditTrail()" title="Refrescar / Refresh">↻</button>
           </div>
-          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th>Tiempo</th><th>Autor</th><th>Mensaje</th></tr></thead><tbody><tr class="log-empty"><td colspan="4">Historial de cambios en configuración.<span class="log-empty-hint">Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.</span></td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th><span data-lang="es">Tiempo</span><span data-lang="en">Time</span></th><th><span data-lang="es">Autor</span><span data-lang="en">Author</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><span data-lang="es">Historial de cambios en configuración.</span><span data-lang="en">Configuration change history.</span><span class="log-empty-hint"><span data-lang="es">Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.</span><span data-lang="en">Modify any control to connect your GitHub PAT and load the history.</span></span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-audit')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
           </div>
@@ -754,16 +754,16 @@
           <div class="terminal-hdr">
             <span class="term-title">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Acciones de sesión
+              <span data-lang="es">Acciones de sesión</span><span data-lang="en">Session Actions</span>
             </span>
-            <span class="section-badge" id="session-log-count" style="font-family:var(--mono)" title="Acciones registradas en esta sesión">0</span>
-            <button onclick="_renderSessionLog()" title="Refrescar">↻</button>
-            <button onclick="clearSessionLog()" title="Limpiar historial de sesión" style="color:var(--muted)">✕ Limpiar</button>
+            <span class="section-badge" id="session-log-count" style="font-family:var(--mono)" title="Acciones registradas en esta sesion / Actions recorded this session">0</span>
+            <button onclick="_renderSessionLog()" title="Refrescar / Refresh">↻</button>
+            <button onclick="clearSessionLog()" title="Limpiar historial de sesion / Clear session history" style="color:var(--muted)">✕ <span data-lang="es">Limpiar</span><span data-lang="en">Clear</span></button>
           </div>
           <div class="log-table-wrap">
             <table class="log-table" id="session-log-table">
-              <thead><tr><th>Timestamp</th><th>ID Operador</th><th>Acción</th></tr></thead>
-              <tbody><tr class="log-empty"><td colspan="3">Sin acciones registradas.<span class="log-empty-hint">Las acciones del operador aparecerán aquí en tiempo real.</span></td></tr></tbody>
+              <thead><tr><th>Timestamp</th><th><span data-lang="es">ID Operador</span><span data-lang="en">Operator ID</span></th><th><span data-lang="es">Acción</span><span data-lang="en">Action</span></th></tr></thead>
+              <tbody><tr class="log-empty"><td colspan="3"><span data-lang="es">Sin acciones registradas.</span><span data-lang="en">No actions recorded.</span><span class="log-empty-hint"><span data-lang="es">Las acciones del operador aparecerán aquí en tiempo real.</span><span data-lang="en">Operator actions will appear here in real time.</span></span></td></tr></tbody>
             </table>
           </div>
         </div>
