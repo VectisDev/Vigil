@@ -7,6 +7,7 @@
   --accent-glow:rgba(110,168,254,.18);--ok-glow:rgba(87,192,141,.18);
   --bad-glow:rgba(223,107,134,.18);--warn-glow:rgba(212,176,102,.18);
   --grid-line:rgba(110,168,254,.04);
+  --skel-a:#161b22;--skel-b:#1f2630;
 }
 [data-theme="light"]{
   --bg:#ffffff;--panel:#f4f4f2;--panel2:#ececea;--border:#e0e0dc;--fg:#0a0a0a;
@@ -15,6 +16,7 @@
   --accent-glow:rgba(26,86,219,.12);--ok-glow:rgba(42,157,110,.12);
   --bad-glow:rgba(200,16,46,.12);--warn-glow:rgba(176,125,32,.12);
   --grid-line:rgba(26,86,219,.03);
+  --skel-a:#eeeeec;--skel-b:#f8f8f6;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);
@@ -39,27 +41,38 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
 .lang-es [data-lang="es"].block{display:block}
 
 /* ── AUTH SCREEN ── */
-#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;padding:24px}
-.auth-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;
-  padding:36px 40px;width:100%;max-width:380px}
-.auth-card .logo{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;
+/* ── AUTH SCREEN — small dropdown under an "OPS" pill, not a full page ── */
+#auth-screen{position:relative;min-height:100vh;background:var(--bg)}
+.auth-nav{display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:56px;border-bottom:1px solid var(--border)}
+.auth-wordmark{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--fg)}
+.auth-ops-pill{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;background:var(--panel);border:1px solid var(--border);
+  border-radius:2px;padding:6px 12px;color:var(--fg);cursor:default}
+.auth-card{position:absolute;top:64px;right:24px;background:var(--panel);
+  border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.16);
+  padding:20px 22px;width:100%;max-width:300px;z-index:50}
+.auth-card .logo{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;
   text-transform:uppercase;margin-bottom:6px}
-.auth-card h1{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
-.auth-card .sub{font-size:13px;color:var(--muted);margin-bottom:28px}
-.auth-card label{display:block;font-size:11px;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.auth-card h1{font-size:17px;font-weight:700;letter-spacing:-.02em;margin-bottom:3px}
+.auth-card .sub{font-size:12px;color:var(--muted);margin-bottom:16px}
+.auth-card label{display:block;font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
 .auth-card input{width:100%;background:var(--bg);border:1px solid var(--border);
-  border-radius:8px;padding:10px 14px;color:var(--fg);font-size:14px;outline:none;
-  transition:.15s;margin-bottom:16px}
+  border-radius:2px;padding:9px 12px;color:var(--fg);font-size:13px;outline:none;
+  transition:.15s;margin-bottom:12px}
 .auth-card input:focus{border-color:var(--accent)}
 .auth-card input::placeholder{color:var(--muted)}
 .auth-card button.btn-primary{width:100%;background:var(--accent);color:#0f1115;border:none;
-  border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;
-  transition:.15s;margin-top:4px}
+  border-radius:2px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;
+  transition:.15s;margin-top:2px}
 .auth-card button.btn-primary:hover{opacity:.88}
 .auth-card button.btn-primary:disabled{opacity:.5;cursor:not-allowed}
-.auth-err{font-size:12px;color:var(--bad);margin-top:12px;min-height:18px;text-align:center}
+.auth-err{font-size:11px;color:var(--bad);margin-top:10px;min-height:16px;text-align:center}
+
+@media (max-width:480px){
+  .auth-card{left:16px;right:16px;max-width:none;top:64px}
+}
 
 /* ── HEADER ── */
 #admin-header{position:sticky;top:0;z-index:200;background:var(--panel);
@@ -426,7 +439,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
   }
   #main-area{padding:16px}
   .cards-grid{grid-template-columns:1fr 1fr}
-  .auth-card{padding:28px 20px}
 }
 @media(max-width:600px){
   #sidebar a{padding:8px 12px;font-size:11px}
@@ -435,7 +447,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
   .hdr-user{display:none}
   .modal-box{max-width:94vw!important;padding:20px 16px!important}
   .section-title{font-size:16px}
-  .auth-card{padding:24px 16px}
 }
 
 /* ── MISC ── */
@@ -627,7 +638,7 @@ body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
 @keyframes skel-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .sc-val.skel-pulse{
   color:transparent!important;
-  background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);
+  background:linear-gradient(90deg,var(--skel-a) 25%,var(--skel-b) 50%,var(--skel-a) 75%);
   background-size:200% 100%;
   animation:skel-shimmer 1.4s infinite linear;
   border-radius:3px;min-width:48px;display:inline-block;
@@ -635,7 +646,7 @@ body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
 }
 .sc-detail.skel-pulse{
   color:transparent!important;
-  background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);
+  background:linear-gradient(90deg,var(--skel-a) 25%,var(--skel-b) 50%,var(--skel-a) 75%);
   background-size:200% 100%;
   animation:skel-shimmer 1.4s .2s infinite linear;
   border-radius:2px;min-width:80px;height:10px;display:inline-block;
