@@ -630,3 +630,16 @@ body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
 .rules-refs ol li{margin-bottom:2px}
 .rules-refs ol li strong{color:var(--fg);font-weight:600}
 .rules-refs ol li code{font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(110,168,254,.08);padding:1px 4px;border-radius:2px}
+
+/* ── COUNTRY MAP (real geographic SVG, painted by JS) ── */
+.dep-national-badge{
+  display:flex;align-items:center;gap:8px;
+  background:var(--panel2);border:1px solid var(--accent);border-radius:8px;
+  padding:6px 12px;margin-bottom:10px;cursor:pointer;
+  font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--fg);
+  width:fit-content;transition:.15s;
+}
+.dep-national-badge:hover{background:rgba(255,255,255,.07)}
+.dep-national-badge .dep-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+#hn-ops-map-container svg path{cursor:pointer;transition:opacity .15s,filter .15s;stroke:var(--bg);stroke-width:0.6}
+#hn-ops-map-container svg path:hover{opacity:.82;filter:brightness(1.18)}
