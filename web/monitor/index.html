@@ -168,32 +168,6 @@ body {
 .badge-bad { background: rgba(200,16,46,.08)  !important; color: var(--bad-c);  border-color: rgba(200,16,46,.25)  !important; }
 
 /* ── PDF / EVIDENCE BUTTONS ───────────────────────────────── */
-#pdf-link {
-  color: var(--accent);
-  font-size: 11px;
-  text-decoration: none;
-  padding: 5px 11px;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  white-space: nowrap;
-  transition: .15s;
-  font-family: var(--mono);
-}
-#pdf-link:hover { border-color: var(--accent); }
-#evidence-btn {
-  font-family: var(--mono);
-  color: var(--ok-c) !important;
-  font-size: 11px !important;
-  padding: 5px 11px !important;
-  border: 1px solid rgba(42,157,110,.3) !important;
-  border-radius: 2px !important;
-  background: none !important;
-  cursor: pointer;
-  transition: .15s;
-  white-space: nowrap;
-}
-#evidence-btn:hover { border-color: var(--ok-c) !important; }
-
 /* ── CUSTOMIZE BUTTON ─────────────────────────────────────── */
 #customize-btn {
   background: var(--panel);
@@ -514,8 +488,6 @@ footer a { color: var(--accent); text-decoration: none; }
 <div id="statusbar">
   <span id="site-title"><a href="../">VIGIL</a> · Monitor</span>
   <span id="last-update">Actualizando…</span>
-  <a id="pdf-link" href="#" hidden></a>
-
   <button id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema / Toggle theme">
     <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
     <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -1411,9 +1383,6 @@ function _renderAll(data,snap){
   if(data.chain_records)renderChain(data.chain_records);
   const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
   document.getElementById('footer-merkle').textContent=mr;
-  const pdfUrl=snap?.report_pdf_url||(data._snapshots?.[0]?.raw_meta||{}).report_pdf_url||'../reports/latest.pdf';
-  const pdfLink=document.getElementById('pdf-link');
-  if(pdfLink){pdfLink.href=pdfUrl;pdfLink.hidden=false;}
   if(data.forensics)renderLastDigit(data.forensics);
   renderZScore(data.departments);
   renderParticipation(data.departments);
