@@ -35,9 +35,8 @@ body {
   position: relative;
 }
 
-/* ─── Ambient background: technical grid + slow scan line ──
-   A faint blueprint-style grid (always present, static) plus
-   a single hairline that drifts down the page on a long loop.
+/* ─── Ambient background: subtle film grain ─────────────────
+   A faint static noise texture over the white background.
    Purely decorative, sits behind all content. */
 body::before {
   content: "";
@@ -45,30 +44,9 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image:
-    repeating-linear-gradient(to right, rgba(10,10,10,0.05) 0 1px, transparent 1px 96px),
-    repeating-linear-gradient(to bottom, rgba(10,10,10,0.05) 0 1px, transparent 1px 96px);
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  left: 0; right: 0;
-  height: 140px;
-  top: -140px;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgba(200,16,46,0.05) 50%, transparent);
-  animation: scan-line 26s linear infinite;
-}
-
-@keyframes scan-line {
-  0%   { transform: translateY(0); }
-  100% { transform: translateY(calc(100vh + 140px)); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body::after { animation: none; opacity: 0; }
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
 }
 
 /* ─── Nav ────────────────────────────────────────────────── */
@@ -140,6 +118,31 @@ nav {
 .lang-toggle button:hover {
   border-color: var(--mid);
   background: var(--stone);
+}
+
+/* ─── Hero entrance animation ───────────────────────────────
+   Each hero element fades up in sequence on page load. */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-eyebrow,
+.hero-headline,
+.hero-headline-2,
+.hero-body,
+.hero-actions {
+  animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.hero-eyebrow      { animation-delay: 0.00s; }
+.hero-headline     { animation-delay: 0.08s; }
+.hero-headline-2   { animation-delay: 0.16s; }
+.hero-body         { animation-delay: 0.26s; }
+.hero-actions      { animation-delay: 0.36s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow, .hero-headline, .hero-headline-2, .hero-body, .hero-actions {
+    animation: none;
+  }
 }
 
 /* ─── Hero ───────────────────────────────────────────────── */
