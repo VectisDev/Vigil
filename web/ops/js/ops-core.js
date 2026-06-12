@@ -196,6 +196,17 @@ const I18N = {
     'ots.test_ok':'✓ Servidor responde (o CORS bloqueado — esto es normal, no indica error).',
     'ots.test_bad':'⚠ Sin respuesta. Puede ser CORS o entorno sin internet.',
     'ots.raiz':'raíz', 'ots.raices':'raíces', 'ots.pendiente':'pendiente', 'ots.pendientes':'pendientes', 'ots.de_anclaje':'de anclaje',
+    'log.sin_actividad':'Sin actividad registrada.', 'log.inicia_monitoreo':'Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.',
+    'log.sin_entradas_filtros':'Sin entradas con los filtros seleccionados.',
+    'log.sin_ataques':'Sin ataques registrados.', 'log.sistema_vigilando':'El sistema está vigilando — aparecerán aquí si se detecta actividad maliciosa.',
+    'log.sin_eventos_filtro':'Sin eventos para el filtro seleccionado.',
+    'log.sin_campos_extra':'Sin campos extra',
+    'log.sin_commits':'Sin commits de configuración.', 'log.sin_commits_busqueda':'Sin commits que coincidan con la búsqueda.',
+    'log.historial_cambios':'Historial de cambios en configuración.', 'log.modifica_control':'Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.',
+    'log.error':'Error',
+    'log.total':'total',
+    'log.auto_refresco_inactivo':'Auto-refresco inactivo', 'log.live_activo':'Live activo (30s) — clic para detener',
+    'log.sin_acciones':'Sin acciones registradas.', 'log.acciones_tiempo_real':'Las acciones del operador aparecerán aquí en tiempo real.',
   },
   en: {
     'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
@@ -227,6 +238,17 @@ const I18N = {
     'ots.test_ok':'✓ Server responds (or CORS blocked — this is normal, not an error).',
     'ots.test_bad':'⚠ No response. May be CORS or an offline environment.',
     'ots.raiz':'root', 'ots.raices':'roots', 'ots.pendiente':'pending', 'ots.pendientes':'pending', 'ots.de_anclaje':'to anchor',
+    'log.sin_actividad':'No activity recorded.', 'log.inicia_monitoreo':'Start monitoring with ▶ Start to see events here.',
+    'log.sin_entradas_filtros':'No entries match the selected filters.',
+    'log.sin_ataques':'No attacks recorded.', 'log.sistema_vigilando':'The system is watching — they will appear here if malicious activity is detected.',
+    'log.sin_eventos_filtro':'No events for the selected filter.',
+    'log.sin_campos_extra':'No extra fields',
+    'log.sin_commits':'No configuration commits.', 'log.sin_commits_busqueda':'No commits match the search.',
+    'log.historial_cambios':'Configuration change history.', 'log.modifica_control':'Modify any control to connect your GitHub PAT and load the history.',
+    'log.error':'Error',
+    'log.total':'total',
+    'log.auto_refresco_inactivo':'Auto-refresh inactive', 'log.live_activo':'Live active (30s) — click to stop',
+    'log.sin_acciones':'No actions recorded.', 'log.acciones_tiempo_real':'Operator actions will appear here in real time.',
   }
 };
 function t(key, vars){
@@ -242,6 +264,10 @@ function refreshOpsLang(){
   try{ if(DEPTS && DEPTS.length) buildDeptGrid(); }catch(e){}
   try{ _syncOtsBtn(); }catch(e){}
   try{ loadOtsStatus(); }catch(e){}
+  try{ renderLog(); }catch(e){}
+  try{ renderAttackLog(); }catch(e){}
+  try{ renderAuditTrail(); }catch(e){}
+  try{ _renderSessionLog(); }catch(e){}
 }
 window.refreshOpsLang = refreshOpsLang;
 
