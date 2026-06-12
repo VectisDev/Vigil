@@ -277,16 +277,11 @@ function setCard(id, val, detail, barPct, cls, showBar=true){
 // ══════════════════════════════════════════════════════════
 
 
-function buildDeptGrid(){
-  const grid = document.getElementById('dept-ep-grid');
-  if(!grid) return;
-  grid.innerHTML = '';
+let _opsMapSvgLoaded = false;
 
+async function buildDeptGrid(){
   // Defensive: DEPTS should always have entries (fallback list guarantees it)
-  if(!DEPTS || DEPTS.length === 0){
-    grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--muted);padding:12px 0">Cargando departamentos…</div>';
-    return;
-  }
+  if(!DEPTS || DEPTS.length === 0) return;
 
   // Update section label with live count
   const lbl = document.getElementById('dept-section-label');
@@ -294,23 +289,46 @@ function buildDeptGrid(){
   const divLabel = COUNTRY_META?.divisions_label || 'Divisiones';
   if (lbl) lbl.textContent = `${divLabel} — ${divCount + 1} endpoints (1 nacional + ${divCount})`;
 
-  // NACIONAL card first
-  const natCard = document.createElement('div');
-  natCard.className = 'dep-card dep-national';
-  natCard.style.gridColumn = '1 / -1';
-  natCard.innerHTML = `<div class="dep-abbr" style="font-size:10px">00 · NACIONAL</div><div class="dep-dot" style="background:var(--accent)"></div>`;
-  natCard.onclick = () => openMapPopup('00');
-  grid.appendChild(natCard);
+  await loadOpsCountryMap(ACTIVE_COUNTRY_CODE || 'HN');
+  bindMapPaths();
+  updateDeptGrid();
+}
 
-  DEPTS.filter(d => d.code !== '00').forEach(dept => {
-    const abbr = dept.abbr || dept.name.slice(0,2).toUpperCase();
-    const card = document.createElement('div');
-    card.className = 'dep-card';
-    card.id = `dep-card-${dept.code}`;
-    card.title = dept.name + ' (' + dept.code + ')';
-    card.innerHTML = `<div class="dep-abbr">${abbr}</div><div class="dep-dot" id="dep-dot-${dept.code}" style="background:#3a3f49"></div>`;
-    card.onclick = () => openMapPopup(dept.code);
-    grid.appendChild(card);
+async function loadOpsCountryMap(countryCode){
+  const container = document.getElementById('hn-ops-map-container');
+  if(!container) return;
+  const code = (countryCode || 'HN').toUpperCase();
+  // Avoid re-fetching if already loaded for this country
+  if(container.dataset.loadedCountry === code) { _opsMapSvgLoaded = true; return; }
+  try{
+    const r = await fetch(`../assets/maps/${code}.svg`);
+    if(!r.ok) throw new Error(r.status);
+    const svgText = await r.text();
+    container.innerHTML = svgText;
+    const svg = container.querySelector('svg');
+    if(svg){
+      svg.id = 'ops-hn-map';
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+      svg.style.display = 'block';
+    }
+    container.dataset.loadedCountry = code;
+    _opsMapSvgLoaded = true;
+  }catch(e){
+    console.warn('Ops map SVG not available for', code, e);
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0">Mapa no disponible para '+code+'</div>';
+    _opsMapSvgLoaded = false;
+  }
+}
+
+function bindMapPaths(){
+  const svg = document.getElementById('ops-hn-map');
+  if(!svg) return;
+  DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
+    const path = svg.getElementById(dept.iso);
+    if(!path) return;
+    path.title = dept.name + ' (' + dept.code + ')';
+    path.onclick = (evt) => openMapPopupAtEvent(dept.code, evt);
   });
 }
 function getEndpointUrl(code){
@@ -319,7 +337,7 @@ function getEndpointUrl(code){
 }
 
 function updateDeptGrid(){
-  if(!snapshotData) return;
+  const svg = document.getElementById('ops-hn-map');
   const epsRaw = snapshotData?.endpoints_status;
   const hasPipelineData = epsRaw && (Array.isArray(epsRaw) ? epsRaw.length > 0 : Object.keys(epsRaw).length > 0);
   const eps = hasPipelineData && !Array.isArray(epsRaw) ? epsRaw : {};
@@ -327,22 +345,29 @@ function updateDeptGrid(){
   const configured = (epCfg?.cne?.presidential_endpoints || [])
     .map(e => (e.department_code || '').toString().padStart(2,'0'));
 
-  DEPTS.filter(d => d.code !== '00').forEach(dept => {
-    const card = document.getElementById(`dep-card-${dept.code}`);
-    const dot  = document.getElementById(`dep-dot-${dept.code}`);
-    if(!card || !dot) return;
+  // NACIONAL badge dot
+  const natDot = document.getElementById('dep-dot-00');
+  if(natDot && snapshotData){
+    const natStatus = getEndpointStatus('00');
+    const natColor = {ok:'#57c08d',warn:'#d4b066',bad:'#df6b86',neutral:'var(--accent)'}[natStatus.cls]||'var(--accent)';
+    natDot.style.background = natColor;
+  }
+
+  if(!svg) return;
+
+  DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
+    const path = svg.getElementById(dept.iso);
+    if(!path) return;
     const epStatus = eps[dept.code];
-    let color = '#3a3f49', cls = '';
+    let color = '#3a3f49';
     if(configured.includes(dept.code)){
       if(!hasPipelineData){
-        // Pipeline hasn't run yet — show neutral grey, not warning
-        color = '#3a3f49'; cls = '';
-      } else if(epStatus?.ok){ color='#57c08d'; cls='dep-ok'; }
-      else if(epStatus && (epStatus.failures||0)>0){ color='#df6b86'; cls='dep-bad'; }
-      else { color='#d4b066'; cls='dep-warn'; }
+        color = '#3a3f49';
+      } else if(epStatus?.ok){ color='#57c08d'; }
+      else if(epStatus && (epStatus.failures||0)>0){ color='#df6b86'; }
+      else { color='#d4b066'; }
     }
-    dot.style.background = color;
-    card.className = 'dep-card' + (cls ? ' ' + cls : '');
+    path.style.fill = color;
   });
 }
 function updateStatusBadges(){
