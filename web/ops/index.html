@@ -771,45 +771,58 @@
 
       <!-- ── 6 MANUAL ── -->
       <div class="section" id="s5">
-        <div class="section-title">Manual <span class="sec-tip" data-tip="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automático.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Manual</span><span data-lang="en">Manual</span> <span class="sec-tip" data-tip-es="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automatico." data-tip-en="One-off manual operations: force an immediate scrape, pause or resume the scheduler, without waiting for the automatic cycle.">ⓘ</span></div>
         <hr class="section-sep">
         <details id="mini-manual">
-          <summary>Guía rápida del panel de administración</summary>
+          <summary><span data-lang="es">Guía rápida del panel de administración</span><span data-lang="en">Quick guide to the admin panel</span></summary>
           <div class="details-body">
             <div class="ctrl-section">
-              <h3>Configuración avanzada</h3>
+              <h3><span data-lang="es">Configuración avanzada</span><span data-lang="en">Advanced configuration</span></h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                Los parámetros de operación se configuran desde la sección <strong>Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
-                Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.
+                <span data-lang="es">Los parámetros de operación se configuran desde la sección <strong>Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
+                Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.</span>
+                <span data-lang="en">Operating parameters are configured from the <strong>Presets</strong> section. Load a preset to adjust the capture interval, requests/hour, election and safe modes.<br><br>
+                For detailed configuration, expand <strong>Advanced configuration</strong> in the Presets section: 5 tabs with access to individual endpoints, watchdog, rate limiter, network and detection rules.</span>
               </p>
-              <h3>El mapa de endpoints</h3>
+              <h3><span data-lang="es">El mapa de endpoints</span><span data-lang="en">The endpoint map</span></h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.
+                <span data-lang="es">Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.</span>
+                <span data-lang="en">Shows the 18 departments + NATIONAL of Honduras as geopositioned points. Color indicates the configured endpoint\u2019s status. Click any point to edit the URL or test the endpoint.</span>
               </p>
-              <h3>Cómo se guardan los cambios</h3>
+              <h3><span data-lang="es">Cómo se guardan los cambios</span><span data-lang="en">How changes are saved</span></h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                Cada cambio se guarda automáticamente 1.5 segundos después de modificarlo.<br>
+                <span data-lang="es">Cada cambio se guarda automáticamente 1.5 segundos después de modificarlo.<br>
                 1. Modifica cualquier control — el cambio se envía a GitHub automáticamente.<br>
                 2. La primera vez se te pide el GitHub PAT (solo en sessionStorage, desaparece al cerrar el browser).<br>
                 3. El sistema hace commit a <code>config/prod/</code> vía GitHub API.<br>
-                4. Los cambios toman efecto en el próximo ciclo (~15 min).
+                4. Los cambios toman efecto en el próximo ciclo (~15 min).</span>
+                <span data-lang="en">Every change is saved automatically 1.5 seconds after you modify it.<br>
+                1. Modify any control — the change is sent to GitHub automatically.<br>
+                2. The first time, you\u2019re asked for your GitHub PAT (sessionStorage only, disappears when you close the browser).<br>
+                3. The system commits to <code>config/prod/</code> via the GitHub API.<br>
+                4. Changes take effect on the next cycle (~15 min).</span>
               </p>
               <h3>Animal mode</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <strong>NORMAL</strong>: operación estándar.<br>
-                <strong>CAUTION</strong>: el sistema detectó condiciones adversas, reduce agresividad.<br>
-                <strong>SURVIVAL</strong>: modo mínimo, solo captura esencial, máxima resiliencia.
+                <strong>NORMAL</strong>: <span data-lang="es">operación estándar.</span><span data-lang="en">standard operation.</span><br>
+                <strong>CAUTION</strong>: <span data-lang="es">el sistema detectó condiciones adversas, reduce agresividad.</span><span data-lang="en">the system detected adverse conditions, reduces aggressiveness.</span><br>
+                <strong>SURVIVAL</strong>: <span data-lang="es">modo mínimo, solo captura esencial, máxima resiliencia.</span><span data-lang="en">minimal mode, essential capture only, maximum resilience.</span>
               </p>
-              <h3>Qué hacer si un endpoint queda rojo</h3>
+              <h3><span data-lang="es">Qué hacer si un endpoint queda rojo</span><span data-lang="en">What to do if an endpoint turns red</span></h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                1. Click en el punto en el mapa → "Probar ahora" para verificar si responde.<br>
+                <span data-lang="es">1. Click en el punto en el mapa → "Probar ahora" para verificar si responde.<br>
                 2. Si no responde: verifica la URL con el proveedor CNE.<br>
                 3. Actualiza la URL en el popup → "Guardar cambio" → se guarda automáticamente.<br>
-                4. Si es un fallo temporal, el circuit breaker se recupera automáticamente.
+                4. Si es un fallo temporal, el circuit breaker se recupera automáticamente.</span>
+                <span data-lang="en">1. Click the point on the map → "Test now" to check if it responds.<br>
+                2. If it doesn\u2019t respond: verify the URL with the electoral authority.<br>
+                3. Update the URL in the popup → "Save change" → it saves automatically.<br>
+                4. If it\u2019s a temporary failure, the circuit breaker recovers automatically.</span>
               </p>
-              <h3>Recuperar configuración anterior</h3>
+              <h3><span data-lang="es">Recuperar configuración anterior</span><span data-lang="en">Restoring a previous configuration</span></h3>
               <p style="font-size:13px;color:var(--muted)">
-                Todo cambio es un commit en <code>config/prod/</code>. Para revertir: ve a GitHub → <code>config/prod/endpoints.yaml</code> → History → elige el commit anterior → "Revert" o copia el contenido manualmente.
+                <span data-lang="es">Todo cambio es un commit en <code>config/prod/</code>. Para revertir: ve a GitHub → <code>config/prod/endpoints.yaml</code> → History → elige el commit anterior → "Revert" o copia el contenido manualmente.</span>
+                <span data-lang="en">Every change is a commit to <code>config/prod/</code>. To revert: go to GitHub → <code>config/prod/endpoints.yaml</code> → History → pick the previous commit → "Revert" or copy the content manually.</span>
               </p>
             </div>
           </div>
