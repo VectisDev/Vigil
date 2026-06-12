@@ -15,7 +15,10 @@ Uso / Usage:
     result = anchor_snapshot_chain(snapshots_dir="tests/fixtures/hnd_2025/")
     
     # Verificar un .ots existente / Verify an existing .ots
-    status = verify_anchor("tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots")
+    status = verify_anchor(
+        "tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots",
+        merkle_root="f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780",
+    )
 
 Architecture:
     1. Compute SHA-256 of every .json snapshot file.
@@ -67,7 +70,9 @@ class AnchorResult:
         merkle_root: SHA-256 Merkle root of all anchored files (hex).
         n_files: Number of files included in the Merkle tree.
         ots_path: Path to the saved .ots proof file.
-        calendar_used: OTS calendar server that accepted the submission.
+        calendar_used: First OTS calendar server that accepted the submission
+            (kept for backward compatibility).
+        calendars_used: All OTS calendar servers that accepted the submission.
         status: 'pending' | 'confirmed' | 'failed'
         bitcoin_tx: Bitcoin transaction hash (once confirmed).
         error: Error message if status == 'failed'.
@@ -76,6 +81,7 @@ class AnchorResult:
     n_files: int
     ots_path: Optional[str] = None
     calendar_used: Optional[str] = None
+    calendars_used: List[str] = field(default_factory=list)
     status: str = "pending"
     bitcoin_tx: Optional[str] = None
     error: Optional[str] = None
@@ -169,9 +175,12 @@ def anchor_snapshot_chain(
     root_bytes = bytes.fromhex(root_hex)
     logger.info("merkle_root=%s", root_hex)
 
-    # Step 3: Submit to OTS calendar / Paso 3: Enviar al calendario OTS
+    # Step 3: Submit to OTS calendars / Paso 3: Enviar a calendarios OTS
+    # Submit to ALL calendars (not just the first) — more independent
+    # attestations strengthen the proof and reduce single-calendar risk.
     try:
-        from opentimestamps.core.timestamp import Timestamp
+        from opentimestamps.core.timestamp import Timestamp, DetachedTimestampFile
+        from opentimestamps.core.op import OpSHA256
         from opentimestamps.calendar import RemoteCalendar
         from opentimestamps.core.serialize import StreamSerializationContext
     except ImportError:
@@ -183,7 +192,7 @@ def anchor_snapshot_chain(
         )
 
     ts = Timestamp(root_bytes)
-    calendar_used = None
+    calendars_used: list[str] = []
     last_error = None
 
     for cal_url in OTS_CALENDARS:
@@ -191,14 +200,13 @@ def anchor_snapshot_chain(
             cal = RemoteCalendar(cal_url)
             cal_ts = cal.submit(root_bytes)
             ts.merge(cal_ts)
-            calendar_used = cal_url
+            calendars_used.append(cal_url)
             logger.info("ots_submit_ok calendar=%s", cal_url)
-            break
         except Exception as exc:
             last_error = str(exc)
             logger.warning("ots_calendar_fail url=%s error=%s", cal_url, exc)
 
-    if calendar_used is None:
+    if not calendars_used:
         return AnchorResult(
             merkle_root=root_hex,
             n_files=len(files),
@@ -207,22 +215,30 @@ def anchor_snapshot_chain(
         )
 
     # Step 4: Serialize and save .ots / Paso 4: Serializar y guardar .ots
+    #
+    # IMPORTANT: a .ots file is a *DetachedTimestampFile* — it must start
+    # with the OpenTimestamps magic header + file_hash_op, followed by the
+    # Timestamp tree. Serializing the bare Timestamp (as done previously)
+    # produces a stream that `ots verify`/`ots info` reject with
+    # "is not a timestamp file". Always wrap with DetachedTimestampFile.
+    dtf = DetachedTimestampFile(OpSHA256(), ts)
     buf = io.BytesIO()
     ctx = StreamSerializationContext(buf)
-    ts.serialize(ctx)
+    dtf.serialize(ctx)
     ots_bytes = buf.getvalue()
 
     if output_path is None:
         output_path = snapshots_dir / "MERKLE_ROOT_HN2025.ots"
     output_path = Path(output_path)
     output_path.write_bytes(ots_bytes)
-    logger.info("ots_saved path=%s bytes=%d", output_path, len(ots_bytes))
+    logger.info("ots_saved path=%s bytes=%d calendars=%s", output_path, len(ots_bytes), calendars_used)
 
     return AnchorResult(
         merkle_root=root_hex,
         n_files=len(files),
         ots_path=str(output_path),
-        calendar_used=calendar_used,
+        calendar_used=calendars_used[0],
+        calendars_used=calendars_used,
         status="pending",
     )
 
@@ -230,13 +246,21 @@ def anchor_snapshot_chain(
 # ---------------------------------------------------------------------------
 # Public API: verify_anchor
 # ---------------------------------------------------------------------------
-def verify_anchor(ots_path: str | Path) -> dict:
+def verify_anchor(ots_path: str | Path, merkle_root: Optional[str] = None) -> dict:
     """
     Verifica un archivo .ots contra Bitcoin blockchain.
     Verify a .ots file against the Bitcoin blockchain.
 
     Args:
         ots_path: Ruta al archivo .ots / Path to the .ots file.
+        merkle_root: Raíz de Merkle (hex) que el .ots debe atestiguar. Si se
+            proporciona, se usa `ots verify -d <merkle_root>`, que no requiere
+            que el archivo original (los 64 snapshots) esté presente en disco
+            — solo el digest de 32 bytes que fue anclado.
+            Merkle root (hex) the .ots attests to. If provided, uses
+            `ots verify -d <merkle_root>`, which does not require the
+            original file (the 64 snapshots) to be present on disk — only
+            the 32-byte digest that was anchored.
 
     Returns:
         Dict with keys: status, merkle_root, bitcoin_block, bitcoin_tx, error.
@@ -248,12 +272,16 @@ def verify_anchor(ots_path: str | Path) -> dict:
     """
     try:
         import subprocess
+        cmd = ["ots", "verify"]
+        if merkle_root:
+            cmd += ["-d", merkle_root]
+        cmd.append(str(ots_path))
         result = subprocess.run(
-            ["ots", "verify", str(ots_path)],
+            cmd,
             capture_output=True, text=True, timeout=60,
         )
         output = result.stdout + result.stderr
-        if "Success!" in output or "Verified" in output:
+        if "Success!" in output or ("Verified" in output and "Pending" not in output):
             return {"status": "confirmed", "output": output.strip()}
         elif "Pending" in output or "pending" in output:
             return {"status": "pending", "output": output.strip()}
