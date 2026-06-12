@@ -97,6 +97,83 @@ nav {
 }
 .nav-links a:hover { color: var(--black); }
 
+/* ─── Ops login dropdown ─────────────────────────────────── */
+.ops-nav-item { position: relative; list-style: none; }
+.ops-nav-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mid);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+.ops-nav-btn:hover { color: var(--black); }
+.ops-login-card {
+  display: none;
+  position: absolute;
+  top: 28px;
+  right: 0;
+  width: 220px;
+  background: var(--white);
+  border: 1px solid var(--ash);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.10);
+  padding: 14px 16px;
+  z-index: 200;
+}
+.ops-login-card.open { display: block; }
+.olc-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+.ops-login-card input {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 13px;
+  background: var(--stone);
+  border: 1px solid var(--ash);
+  border-radius: 2px;
+  padding: 8px 10px;
+  color: var(--black);
+  outline: none;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+.ops-login-card input:focus { border-color: var(--mid); }
+.olc-submit {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  border-radius: 2px;
+  padding: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.olc-submit:hover { opacity: 0.85; }
+.olc-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.olc-err {
+  font-size: 11px;
+  color: var(--red);
+  margin-top: 8px;
+  min-height: 14px;
+  text-align: center;
+}
+
 .lang-toggle {
   display: flex;
   gap: 4px;
@@ -547,7 +624,19 @@ footer {
     <ul class="nav-links">
       <li><a href="monitor/">Monitor</a></li>
       <li><a href="lab/">Lab</a></li>
-      <li><a href="ops/">Ops</a></li>
+      <li class="ops-nav-item">
+        <button class="ops-nav-btn" onclick="toggleOpsLogin()" id="ops-nav-btn">Ops</button>
+        <div class="ops-login-card" id="ops-login-card">
+          <div class="olc-title">
+            <span data-lang="en" class="inline">Admin access</span><span data-lang="es" class="inline">Acceso administrador</span>
+          </div>
+          <input type="password" id="ops-login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doOpsLogin()">
+          <button class="olc-submit" id="ops-login-btn" onclick="doOpsLogin()">
+            <span data-lang="en" class="inline">Enter</span><span data-lang="es" class="inline">Entrar</span>
+          </button>
+          <div class="olc-err" id="ops-login-err"></div>
+        </div>
+      </li>
     </ul>
     <div class="lang-toggle">
       <button onclick="toggleLang()" id="btn-lang">ES</button>
@@ -772,6 +861,8 @@ function setLang(lang) {
   document.getElementById('page').className = 'lang-' + lang;
   // Button shows the language you'd switch TO
   document.getElementById('btn-lang').textContent = lang === 'en' ? 'ES' : 'EN';
+  document.getElementById('ops-login-pass').placeholder =
+    lang === 'en' ? 'Access key' : 'Clave de acceso';
   localStorage.setItem('vigil-lang', lang);
 }
 function toggleLang() {
@@ -781,6 +872,129 @@ function toggleLang() {
 // Restore preference
 const saved = localStorage.getItem('vigil-lang');
 if (saved === 'es') setLang('es');
+else setLang('en');
+
+/* ─── Ops login dropdown ──────────────────────────────────
+   Small popup under the "Ops" nav link. On successful auth,
+   stores the same session tokens ops/index.html checks for
+   (centinel_admin_tok/exp/role/seed_id/fp/gh-pat) and redirects
+   straight into the admin shell — skipping its own auth screen. */
+function toggleOpsLogin() {
+  const card = document.getElementById('ops-login-card');
+  const opening = !card.classList.contains('open');
+  card.classList.toggle('open', opening);
+  if (opening) document.getElementById('ops-login-pass').focus();
+}
+document.addEventListener('click', (e) => {
+  const item = document.querySelector('.ops-nav-item');
+  if (item && !item.contains(e.target)) {
+    document.getElementById('ops-login-card').classList.remove('open');
+  }
+});
+
+async function _sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function _pbkdf2Hex(password, salt, iterations) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    {name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256'}, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function _b64d(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
+function _hexToBytes(hex){ return new Uint8Array(hex.match(/.{2}/g).map(b=>parseInt(b,16))); }
+async function _deriveWrapKey(seedHash){
+  const km = await crypto.subtle.importKey('raw', _hexToBytes(seedHash), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'HKDF', hash:'SHA-256',
+     salt: new TextEncoder().encode('centinel-wrap-v1'),
+     info: new TextEncoder().encode('writer-pat')},
+    km, {name:'AES-GCM', length:256}, false, ['decrypt']
+  );
+}
+async function _aesgcmDecrypt(cipherObj, key){
+  const pt = await crypto.subtle.decrypt(
+    {name:'AES-GCM', iv: _b64d(cipherObj.iv)}, key, _b64d(cipherObj.enc));
+  return new TextDecoder().decode(pt);
+}
+async function _decryptWriterPat(candidateHash, slot, cfg){
+  try {
+    const wrap = cfg.wraps.find(w => w.slot === slot);
+    if(!wrap) return null;
+    const wrapKey      = await _deriveWrapKey(candidateHash);
+    const masterKeyB64 = await _aesgcmDecrypt({enc:wrap.enc, iv:wrap.iv}, wrapKey);
+    const masterKey    = await crypto.subtle.importKey(
+      'raw', _b64d(masterKeyB64), {name:'AES-GCM',length:256}, false, ['decrypt']);
+    return await _aesgcmDecrypt({enc:cfg.enc, iv:cfg.iv}, masterKey);
+  } catch(_) { return null; }
+}
+
+async function doOpsLogin() {
+  const lang = document.getElementById('page').className === 'lang-es' ? 'es' : 'en';
+  const pass = document.getElementById('ops-login-pass').value.trim();
+  const btn  = document.getElementById('ops-login-btn');
+  const err  = document.getElementById('ops-login-err');
+  const msgs = {
+    empty:   {en: 'Enter the access key.',        es: 'Ingresa la clave de acceso.'},
+    wrong:   {en: 'Incorrect key.',                es: 'Clave incorrecta.'},
+    load:    {en: 'Could not load configuration.', es: 'No se pudo cargar la configuración.'},
+    verify:  {en: 'Verifying…',                    es: 'Verificando…'},
+    enter:   {en: 'Enter',                         es: 'Entrar'},
+  };
+  if (!pass) { err.textContent = msgs.empty[lang]; return; }
+  btn.disabled = true;
+  err.textContent = '';
+  const restore = () => { btn.disabled = false; };
+  try {
+    const r = await fetch('access.json?t=' + Date.now());
+    if (!r.ok) { err.textContent = msgs.load[lang]; restore(); return; }
+    const ac = await r.json();
+    let candidate;
+    if ((ac.version || 0) >= 3 || ac.method === 'SHA-256') {
+      candidate = await _sha256Hex(pass);
+    } else {
+      candidate = await _pbkdf2Hex(pass, ac.salt || 'centinel-admin-salt-v1', ac.iterations || 600000);
+    }
+    const rawSeeds = ac.seeds || {};
+    let matchedRole = 'operador', matchedId = null, matchedPat = null, matchedSlot = null;
+    const matched = Array.isArray(rawSeeds)
+      ? rawSeeds.some((h, idx) => {
+          const label = 'S' + String(idx + 1).padStart(2, '0');
+          if (typeof h === 'string') {
+            if (h === candidate) { matchedId = label; matchedSlot = idx + 1; return true; }
+            return false;
+          }
+          if (h.hash === candidate) {
+            matchedRole = h.role || 'operador';
+            matchedId   = h.id   || label;
+            matchedPat  = h.pat  || null;
+            matchedSlot = h.slot || idx + 1;
+            return true;
+          }
+          return false;
+        })
+      : Object.entries(rawSeeds).some(([k, h]) => {
+          if (h === candidate) { matchedId = k; return true; }
+          return false;
+        });
+    if (!matched) { err.textContent = msgs.wrong[lang]; restore(); return; }
+    sessionStorage.setItem('centinel_admin_tok', 'operador');
+    sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
+    sessionStorage.setItem('centinel_role', matchedRole);
+    sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
+    sessionStorage.setItem('centinel_fp', candidate.slice(-6));
+    if (!matchedPat && ac.writer_pat && matchedSlot !== null) {
+      matchedPat = await _decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
+    }
+    if (matchedPat) sessionStorage.setItem('gh-pat', matchedPat);
+    location.href = 'ops/';
+  } catch (e) {
+    err.textContent = (lang === 'en' ? 'Error: ' : 'Error: ') + e.message;
+    restore();
+  }
+}
 </script>
 
 </body>
