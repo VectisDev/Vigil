@@ -1,6 +1,6 @@
 # arXiv Submission Package — CENTINEL
 
-**Estado:** Listo para envío — pendiente firma académica de Prof. Devis Alvarado  
+**Estado:** Listo para envío — sin bloqueantes  
 **Categorías:** cs.CY (primary) · stat.AP (secondary)  
 **DOI datos:** 10.5281/zenodo.20598892
 
@@ -46,5 +46,9 @@ We present CENTINEL (Centinela Electrónico Nacional Técnico Íntegro Neutral E
 ## Nota importante
 
 arXiv permite subir sin revisión por pares. El paper queda disponible públicamente 
-en 24 horas. Cuando Devis firme, actualizamos la versión con su nombre como co-autor.
+en 24 horas. La autoría actual ("CENTINEL Project; VectisDev") es correcta para
+enviar ahora — no se requiere ninguna firma externa. Si el Prof. Devis Alvarado
+confirma su rol de validación académica más adelante, se puede publicar una v2
+del preprint agregándolo como co-autor (arXiv permite revisiones de versión sin
+penalización).
 
