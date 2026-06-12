@@ -235,33 +235,39 @@
 
       <!-- ── 3 PRESETS ── -->
       <div class="section" id="s3">
-        <div class="section-title">Presets <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Presets</span><span data-lang="en">Presets</span> <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip-es="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada." data-tip-en="Quick configuration templates. Pick a preset based on the scenario (normal operation, election night, emergency…) or save your own custom configuration.">ⓘ</span></div>
         <hr class="section-sep">
 
         <!-- 409 conflict banner -->
         <div id="banner-409">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.
-          <button onclick="reloadShaAndReapply()">Recargar SHA y re-aplicar</button>
-          <button onclick="discardEdits()" style="background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:4px">Descartar</button>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> <span data-lang="es">La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.</span><span data-lang="en">The configuration changed while you were editing (another process made a commit). Your edits are preserved.</span>
+          <button onclick="reloadShaAndReapply()"><span data-lang="es">Recargar SHA y re-aplicar</span><span data-lang="en">Reload SHA and reapply</span></button>
+          <button onclick="discardEdits()" style="background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:4px"><span data-lang="es">Descartar</span><span data-lang="en">Discard</span></button>
         </div>
 
-        <p class="section-sub">Plantillas de configuración predefinidas.</p>
+        <p class="section-sub"><span data-lang="es">Plantillas de configuración predefinidas.</span><span data-lang="en">Predefined configuration templates.</span></p>
         <div class="info-box" style="margin-bottom:16px">
-          Los presets son <strong>plantillas de interfaz</strong> guardadas localmente en tu navegador.
+          <span data-lang="es">Los presets son <strong>plantillas de interfaz</strong> guardadas localmente en tu navegador.
           <strong>Cargar</strong> un preset rellena los controles pero <strong>no modifica el repositorio</strong>.
-          Cada cambio se guarda automáticamente en GitHub (requiere PAT la primera vez).
+          Cada cambio se guarda automáticamente en GitHub (requiere PAT la primera vez).</span>
+          <span data-lang="en">Presets are <strong>interface templates</strong> saved locally in your browser.
+          <strong>Loading</strong> a preset fills in the controls but <strong>does not modify the repository</strong>.
+          Every change is saved automatically to GitHub (requires PAT the first time).</span>
         </div>
         <div class="unlock-bar" id="unlock-bar">
           <div class="ub-icon" id="unlock-bar-icon">&#x1f512;</div>
           <div class="ub-text">
-            <strong id="unlock-bar-title">L&iacute;mites de seguridad activos</strong> &mdash; los controles no pueden exceder
+            <span data-lang="es"><strong id="unlock-bar-title">L&iacute;mites de seguridad activos</strong> &mdash; los controles no pueden exceder
             480 req/h, intervalo m&iacute;nimo 1s, burst m&aacute;ximo 8.
-            Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.
+            Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.</span>
+            <span data-lang="en"><strong>Security limits active</strong> &mdash; controls cannot exceed
+            480 req/h, minimum interval 1s, max burst 8.
+            To unlock, a responsibility signature with a commit to GitHub is required.</span>
           </div>
           <button id="btn-unlock-toggle" onclick="requestUnlock(!ceilingUnlocked)"
             style="flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bad);background:rgba(223,107,134,.12);color:var(--bad);transition:.15s"
-            title="Requiere doble verificación">
-            &#x26a0; Desbloquear límites
+            title="Requiere doble verificacion">
+            &#x26a0; <span data-lang="es">Desbloquear límites</span><span data-lang="en">Unlock limits</span>
           </button>
         </div>
         <!-- Panel de controles avanzados — visible solo con límites desbloqueados -->
@@ -269,19 +275,19 @@
           <div class="ctrl-section" style="border-color:rgba(212,176,102,.35);background:rgba(212,176,102,.04)">
             <h3 style="color:var(--warn)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
-              Controles de raspado ampliados
-              <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:6px">disponibles por desbloqueo operativo</span>
+              <span data-lang="es">Controles de raspado ampliados</span><span data-lang="en">Extended scraping controls</span>
+              <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:6px"><span data-lang="es">disponibles por desbloqueo operativo</span><span data-lang="en">available via operational unlock</span></span>
             </h3>
             <div class="ctrl-row">
-              <label>Intervalo de captura (min) <span data-tip="Frecuencia de escaneo. Sin límite inferior activo — valores muy bajos aumentan la carga en el servidor del CNE.">ⓘ</span></label>
+              <label><span data-lang="es">Intervalo de captura (min)</span><span data-lang="en">Capture interval (min)</span> <span class="sec-tip" data-tip-es="Frecuencia de escaneo. Sin limite inferior activo, valores muy bajos aumentan la carga en el servidor del CNE." data-tip-en="Scan frequency. No active lower limit, very low values increase load on the electoral authority server.">ⓘ</span></label>
               <div style="display:flex;align-items:center;gap:10px">
                 <input type="range" id="sl-interval3" min="0.5" max="60" step="0.5" value="10" oninput="syncSlider('interval',this.value)">
                 <span class="val-badge" id="vb-interval3">10</span>
-                <span style="font-size:11px;color:var(--muted)">min</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">min</span><span data-lang="en">min</span></span>
               </div>
             </div>
             <div class="ctrl-row">
-              <label>Requests por hora <span data-tip="Límite global de peticiones. Sin techo de 480 — el operador asume responsabilidad por impacto al servidor.">ⓘ</span></label>
+              <label><span data-lang="es">Requests por hora</span><span data-lang="en">Requests per hour</span> <span class="sec-tip" data-tip-es="Limite global de peticiones. Sin techo de 480, el operador asume responsabilidad por impacto al servidor." data-tip-en="Global request limit. No 480 ceiling, the operator assumes responsibility for server impact.">ⓘ</span></label>
               <div style="display:flex;align-items:center;gap:10px">
                 <input type="range" id="sl-rph3" min="60" max="1200" step="10" value="240" oninput="syncSlider('rph',this.value)">
                 <span class="val-badge" id="vb-rph3">240</span>
@@ -289,7 +295,7 @@
               </div>
             </div>
             <div class="ctrl-row">
-              <label>Ráfaga (burst) <span data-tip="Requests simultáneos permitidos antes de que el token bucket frene. Valores altos pueden saturar el servidor.">ⓘ</span></label>
+              <label><span data-lang="es">Ráfaga (burst)</span><span data-lang="en">Burst</span> <span class="sec-tip" data-tip-es="Requests simultaneos permitidos antes de que el token bucket frene. Valores altos pueden saturar el servidor." data-tip-en="Simultaneous requests allowed before the token bucket throttles. High values can saturate the server.">ⓘ</span></label>
               <div style="display:flex;align-items:center;gap:10px">
                 <input type="range" id="sl-capacity2" min="1" max="30" step="1" value="3" oninput="syncSlider('capacity',this.value)">
                 <span class="val-badge" id="vb-capacity2">3</span>
@@ -297,27 +303,27 @@
               </div>
             </div>
             <div class="ctrl-row">
-              <label>Jitter (seg) <span data-tip="Variación aleatoria en el timing de cada request. Evita patrones detectables y fingerprinting. 0 = sin jitter (timing exacto).">ⓘ</span></label>
+              <label>Jitter (<span data-lang="es">seg</span><span data-lang="en">sec</span>) <span class="sec-tip" data-tip-es="Variacion aleatoria en el timing de cada request. Evita patrones detectables y fingerprinting. 0 = sin jitter (timing exacto)." data-tip-en="Random variation in each requests timing. Avoids detectable patterns and fingerprinting. 0 = no jitter (exact timing).">ⓘ</span></label>
               <div style="display:flex;align-items:center;gap:10px">
                 <input type="range" id="sl-jitter" min="0" max="60" step="1" value="5" oninput="syncSlider('jitter',this.value)">
                 <span class="val-badge" id="vb-jitter">5</span>
-                <span style="font-size:11px;color:var(--muted)">seg</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">seg</span><span data-lang="en">sec</span></span>
               </div>
             </div>
             <div class="ctrl-row">
-              <label>Concurrencia <span data-tip="Endpoints consultados en paralelo por ciclo. Acelera la recolección pero aumenta la carga de red y en el servidor.">ⓘ</span></label>
+              <label><span data-lang="es">Concurrencia</span><span data-lang="en">Concurrency</span> <span class="sec-tip" data-tip-es="Endpoints consultados en paralelo por ciclo. Acelera la recoleccion pero aumenta la carga de red y en el servidor." data-tip-en="Endpoints queried in parallel per cycle. Speeds up collection but increases network and server load.">ⓘ</span></label>
               <div style="display:flex;align-items:center;gap:10px">
                 <input type="range" id="sl-concurrency" min="1" max="10" step="1" value="1" oninput="syncSlider('concurrency',this.value)">
                 <span class="val-badge" id="vb-concurrency">1</span>
-                <span style="font-size:11px;color:var(--muted)">paralelos</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">paralelos</span><span data-lang="en">parallel</span></span>
               </div>
             </div>
             <div class="ctrl-row">
-              <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
+              <label><span data-lang="es">Timeout por peticion (seg)</span><span data-lang="en">Per-request timeout (sec)</span> <span class="sec-tip" data-tip-es="Tiempo maximo de espera por endpoint antes de marcar como fallido." data-tip-en="Maximum wait time per endpoint before marking as failed.">ⓘ</span></label>
               <div style="display:flex;align-items:center;gap:10px">
                 <input type="range" id="sl-timeout2" min="5" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
                 <span class="val-badge" id="vb-timeout2">30</span>
-                <span style="font-size:11px;color:var(--muted)">seg</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">seg</span><span data-lang="en">sec</span></span>
               </div>
             </div>
           </div>
@@ -325,40 +331,40 @@
 
         <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
-          <input type="text" id="preset-name" placeholder="Nombre del preset…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
-          <button class="hdr-btn" onclick="saveCustomPreset()">Guardar estado actual como preset</button>
+          <input type="text" id="preset-name" placeholder="Nombre del preset…" data-ph-es="Nombre del preset…" data-ph-en="Preset name…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
+          <button class="hdr-btn" onclick="saveCustomPreset()"><span data-lang="es">Guardar estado actual como preset</span><span data-lang="en">Save current state as preset</span></button>
         </div>
 
         <!-- Configuración avanzada -->
         <button id="btn-adv-config" class="adv-config-trigger" onclick="toggleAdvancedConfig()">
           <span class="adv-lock">⚙</span>
-          <span id="adv-config-label">Configuración avanzada</span>
+          <span id="adv-config-label"><span data-lang="es">Configuración avanzada</span><span data-lang="en">Advanced configuration</span></span>
           <span class="adv-arrow" id="adv-config-arrow">▶</span>
         </button>
         <div id="advanced-config" style="display:none">
               <div class="tabs" id="cfg-tabs">
                 <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
-                <button onclick="showTab('t-capture')">Captura</button>
-                <button onclick="showTab('t-alerts')">Alertas</button>
-                <button onclick="showTab('t-network')">Red</button>
-                <button onclick="showTab('t-rules')">Reglas</button>
+                <button onclick="showTab('t-capture')"><span data-lang="es">Captura</span><span data-lang="en">Capture</span></button>
+                <button onclick="showTab('t-alerts')"><span data-lang="es">Alertas</span><span data-lang="en">Alerts</span></button>
+                <button onclick="showTab('t-network')"><span data-lang="es">Red</span><span data-lang="en">Network</span></button>
+                <button onclick="showTab('t-rules')"><span data-lang="es">Reglas</span><span data-lang="en">Rules</span></button>
               </div>
 
               <!-- Tab: Endpoints -->
               <div id="t-endpoints" class="tab-pane active">
                 <div class="ctrl-section">
-                  <h3>URL principal</h3>
+                  <h3><span data-lang="es">URL principal</span><span data-lang="en">Main URL</span></h3>
                   <div class="ctrl-row">
                     <label>CNE Main URL</label>
                     <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()" onblur="validateUrlField(this)">
                   </div>
                 </div>
                 <div class="ctrl-section" style="overflow-x:auto">
-                  <h3>Endpoints departamentales</h3>
+                  <h3><span data-lang="es">Endpoints departamentales</span><span data-lang="en">Departmental endpoints</span></h3>
                   <table class="data-table" id="endpoints-table">
                     <thead><tr>
-                      <th>Depto</th><th>Código</th><th>URL endpoint</th>
-                      <th>Estado</th><th>Último OK</th><th>Acciones</th>
+                      <th><span data-lang="es">Depto</span><span data-lang="en">Dept.</span></th><th><span data-lang="es">Código</span><span data-lang="en">Code</span></th><th>URL endpoint</th>
+                      <th><span data-lang="es">Estado</span><span data-lang="en">Status</span></th><th><span data-lang="es">Último OK</span><span data-lang="en">Last OK</span></th><th><span data-lang="es">Acciones</span><span data-lang="en">Actions</span></th>
                     </tr></thead>
                     <tbody id="endpoints-tbody"><!-- filled by JS --></tbody>
                   </table>
@@ -370,8 +376,8 @@
                 <div class="ctrl-section">
                   <h3>Watchdog</h3>
                   <div class="ctrl-row">
-                    <label>Intervalo de captura (min)
-                      <span data-tip="Frecuencia de escaneo de endpoints.">ⓘ</span>
+                    <label><span data-lang="es">Intervalo de captura (min)</span><span data-lang="en">Capture interval (min)</span>
+                      <span class="sec-tip" data-tip-es="Frecuencia de escaneo de endpoints." data-tip-en="Endpoint scan frequency.">ⓘ</span>
                     </label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-interval2" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
@@ -380,7 +386,7 @@
                   </div>
                   <div class="ctrl-row">
                     <label>Check interval watchdog (min)
-                      <span data-tip="Con qué frecuencia el watchdog verifica si el servicio principal sigue corriendo.">ⓘ</span>
+                      <span class="sec-tip" data-tip-es="Con que frecuencia el watchdog verifica si el servicio principal sigue corriendo." data-tip-en="How often the watchdog checks whether the main service is still running.">ⓘ</span>
                     </label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-wdcheck" min="1" max="15" step="1" value="3" oninput="syncSlider('wdcheck',this.value)">
@@ -388,8 +394,8 @@
                     </div>
                   </div>
                   <div class="ctrl-row">
-                    <label>Límite CPU (%)
-                      <span data-tip="El watchdog pausa capturas si el CPU supera este porcentaje.">ⓘ</span>
+                    <label><span data-lang="es">Límite CPU (%)</span><span data-lang="en">CPU limit (%)</span>
+                      <span class="sec-tip" data-tip-es="El watchdog pausa capturas si el CPU supera este porcentaje." data-tip-en="The watchdog pauses captures if CPU exceeds this percentage.">ⓘ</span>
                     </label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-cpu" min="50" max="95" step="1" value="80" oninput="syncSlider('cpu',this.value)">
@@ -397,8 +403,8 @@
                     </div>
                   </div>
                   <div class="ctrl-row">
-                    <label>Límite RAM (%)
-                      <span data-tip="El watchdog pausa capturas si la memoria supera este porcentaje.">ⓘ</span>
+                    <label><span data-lang="es">Límite RAM (%)</span><span data-lang="en">RAM limit (%)</span>
+                      <span class="sec-tip" data-tip-es="El watchdog pausa capturas si la memoria supera este porcentaje." data-tip-en="The watchdog pauses captures if memory exceeds this percentage.">ⓘ</span>
                     </label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-ram" min="50" max="95" step="1" value="90" oninput="syncSlider('ram',this.value)">
@@ -407,23 +413,23 @@
                   </div>
                 </div>
                 <div class="ctrl-section">
-                  <h3>Rate limiter <span class="ceiling-lock-badge" id="rate-lock-badge">🔒 requiere desbloqueo</span></h3>
+                  <h3>Rate limiter <span class="ceiling-lock-badge" id="rate-lock-badge">🔒 <span data-lang="es">requiere desbloqueo</span><span data-lang="en">requires unlock</span></span></h3>
                   <div class="ctrl-row">
-                    <label>Requests por hora <span data-tip="Límite global de peticiones al servidor de la CNE.">ⓘ</span></label>
+                    <label><span data-lang="es">Requests por hora</span><span data-lang="en">Requests per hour</span> <span class="sec-tip" data-tip-es="Limite global de peticiones al servidor del ente electoral." data-tip-en="Global request limit to the electoral authority server.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-rph2" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
                       <span class="val-badge" id="vb-rph2">240</span>
                     </div>
                   </div>
                   <div class="ctrl-row">
-                    <label>Capacidad de ráfaga <span data-tip="Número de requests permitidos en ráfaga antes de aplicar el rate limiter.">ⓘ</span></label>
+                    <label><span data-lang="es">Capacidad de ráfaga</span><span data-lang="en">Burst capacity</span> <span class="sec-tip" data-tip-es="Numero de requests permitidos en rafaga antes de aplicar el rate limiter." data-tip-en="Number of requests allowed in a burst before the rate limiter applies.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-capacity" min="1" max="10" step="1" value="3" oninput="syncSlider('capacity',this.value)">
                       <span class="val-badge" id="vb-capacity">3</span>
                     </div>
                   </div>
                   <div class="ctrl-row">
-                    <label>Timeout por petición (seg) <span data-tip="Tiempo máximo de espera por endpoint antes de marcar como fallido.">ⓘ</span></label>
+                    <label><span data-lang="es">Timeout por petición (seg)</span><span data-lang="en">Per-request timeout (sec)</span> <span class="sec-tip" data-tip-es="Tiempo maximo de espera por endpoint antes de marcar como fallido." data-tip-en="Maximum wait time per endpoint before marking as failed.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-timeout" min="10" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
                       <span class="val-badge" id="vb-timeout">30</span>
@@ -435,9 +441,9 @@
               <!-- Tab: Alertas -->
               <div id="t-alerts" class="tab-pane">
                 <div class="ctrl-section">
-                  <h3>Notificaciones</h3>
+                  <h3><span data-lang="es">Notificaciones</span><span data-lang="en">Notifications</span></h3>
                   <div class="ctrl-row">
-                    <label>Nivel mínimo de alerta</label>
+                    <label><span data-lang="es">Nivel mínimo de alerta</span><span data-lang="en">Minimum alert level</span></label>
                     <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
                       <option value="INFO">INFO</option>
                       <option value="WARNING" selected>WARNING</option>
@@ -446,33 +452,33 @@
                     </select>
                   </div>
                   <div class="toggle-row">
-                    <label data-tip="Crear Issue automático en GitHub ante fallos críticos de git push.">Auto-Issue en fallos de git ⓘ</label>
+                    <label class="sec-tip" data-tip-es="Crear Issue automatico en GitHub ante fallos criticos de git push." data-tip-en="Automatically create a GitHub Issue on critical git push failures."><span data-lang="es">Auto-Issue en fallos de git</span><span data-lang="en">Auto-Issue on git failures</span> i</label>
                     <label class="toggle"><input type="checkbox" id="tog-autoissue" onchange="markDirty()"><span class="toggle-slider"></span></label>
                   </div>
                 </div>
                 <div class="ctrl-section">
-                  <h3>Honeypot y detección de ataques</h3>
-                  <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Tipos de eventos registrados en el attack logger y su nivel de severidad.</p>
+                  <h3><span data-lang="es">Honeypot y detección de ataques</span><span data-lang="en">Honeypot &amp; attack detection</span></h3>
+                  <p style="font-size:12px;color:var(--muted);margin-bottom:14px"><span data-lang="es">Tipos de eventos registrados en el attack logger y su nivel de severidad.</span><span data-lang="en">Event types recorded in the attack logger and their severity level.</span></p>
                   <table class="data-table" style="margin-bottom:16px">
-                    <thead><tr><th>Tipo</th><th>Descripción</th><th>Severidad</th></tr></thead>
+                    <thead><tr><th><span data-lang="es">Tipo</span><span data-lang="en">Type</span></th><th><span data-lang="es">Descripción</span><span data-lang="en">Description</span></th><th><span data-lang="es">Severidad</span><span data-lang="en">Severity</span></th></tr></thead>
                     <tbody>
-                      <tr><td><code>FLOOD</code></td><td style="color:var(--muted)">Más de N requests por IP en ventana de tiempo</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
-                      <tr><td><code>BRUTE</code></td><td style="color:var(--muted)">Acceso a rutas de fuerza bruta (/admin, /login, /api/internal)</td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
-                      <tr><td><code>SCAN</code></td><td style="color:var(--muted)">User-agents de scanners (sqlmap, nmap, nikto, masscan…)</td><td><span class="badge badge-warn">WARNING</span></td></tr>
-                      <tr><td><code>PROXY_SUSPECT</code></td><td style="color:var(--muted)">Tráfico desde nodos Tor o cadenas de proxies</td><td><span class="badge badge-warn">WARNING</span></td></tr>
-                      <tr><td><code>SUSPICIOUS</code></td><td style="color:var(--muted)">Actividad anómala no clasificable en las anteriores</td><td><span class="badge badge-neutral">INFO</span></td></tr>
+                      <tr><td><code>FLOOD</code></td><td style="color:var(--muted)"><span data-lang="es">Más de N requests por IP en ventana de tiempo</span><span data-lang="en">More than N requests per IP within a time window</span></td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>BRUTE</code></td><td style="color:var(--muted)"><span data-lang="es">Acceso a rutas de fuerza bruta (/admin, /login, /api/internal)</span><span data-lang="en">Access to brute-force paths (/admin, /login, /api/internal)</span></td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>SCAN</code></td><td style="color:var(--muted)"><span data-lang="es">User-agents de scanners (sqlmap, nmap, nikto, masscan…)</span><span data-lang="en">Scanner user-agents (sqlmap, nmap, nikto, masscan…)</span></td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>PROXY_SUSPECT</code></td><td style="color:var(--muted)"><span data-lang="es">Tráfico desde nodos Tor o cadenas de proxies</span><span data-lang="en">Traffic from Tor nodes or proxy chains</span></td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>SUSPICIOUS</code></td><td style="color:var(--muted)"><span data-lang="es">Actividad anómala no clasificable en las anteriores</span><span data-lang="en">Anomalous activity not classifiable into the above</span></td><td><span class="badge badge-neutral">INFO</span></td></tr>
                     </tbody>
                   </table>
                   <div class="toggle-row">
-                    <label data-tip="Activa el honeypot para registrar todos los intentos de acceso no autorizados a rutas sensibles.">Honeypot activo ⓘ</label>
+                    <label class="sec-tip" data-tip-es="Activa el honeypot para registrar todos los intentos de acceso no autorizados a rutas sensibles." data-tip-en="Enables the honeypot to log all unauthorized access attempts to sensitive paths."><span data-lang="es">Honeypot activo</span><span data-lang="en">Honeypot active</span> i</label>
                     <label class="toggle"><input type="checkbox" id="tog-honeypot" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
                   </div>
                   <div class="ctrl-row">
-                    <label>Rutas honeypot monitoreadas <span data-tip="Separadas por comas. Cualquier acceso a estas rutas activa el logger.">ⓘ</span></label>
+                    <label><span data-lang="es">Rutas honeypot monitoreadas</span><span data-lang="en">Monitored honeypot paths</span> <span class="sec-tip" data-tip-es="Separadas por comas. Cualquier acceso a estas rutas activa el logger." data-tip-en="Comma-separated. Any access to these paths triggers the logger.">ⓘ</span></label>
                     <input type="text" id="inp-honeypot-routes" value="/debug,/admin,/api/internal" oninput="markDirty()">
                   </div>
                   <div class="ctrl-row">
-                    <label>Flood threshold (requests/IP) <span data-tip="Número de requests en la ventana de tiempo que activan clasificación FLOOD.">ⓘ</span></label>
+                    <label>Flood threshold (requests/IP) <span class="sec-tip" data-tip-es="Numero de requests en la ventana de tiempo que activan clasificacion FLOOD." data-tip-en="Number of requests within the time window that trigger FLOOD classification.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-flood" min="5" max="100" step="5" value="20" oninput="syncSlider('flood',this.value)">
                       <span class="val-badge" id="vb-flood">20</span>
@@ -484,9 +490,9 @@
               <!-- Tab: Red -->
               <div id="t-network" class="tab-pane">
                 <div class="ctrl-section">
-                  <h3>Retry por código HTTP <span class="ceiling-lock-badge" id="retry-lock-badge">🔒 requiere desbloqueo</span></h3>
+                  <h3><span data-lang="es">Retry por código HTTP</span><span data-lang="en">Retry by HTTP code</span> <span class="ceiling-lock-badge" id="retry-lock-badge">🔒 <span data-lang="es">requiere desbloqueo</span><span data-lang="en">requires unlock</span></span></h3>
                   <table class="data-table">
-                    <thead><tr><th>Código</th><th>Max intentos</th><th>Descripción</th></tr></thead>
+                    <thead><tr><th><span data-lang="es">Código</span><span data-lang="en">Code</span></th><th><span data-lang="es">Max intentos</span><span data-lang="en">Max retries</span></th><th><span data-lang="es">Descripción</span><span data-lang="en">Description</span></th></tr></thead>
                     <tbody>
                       <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="5" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
                       <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="5" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
@@ -500,7 +506,7 @@
               <!-- Tab: Reglas -->
               <div id="t-rules" class="tab-pane">
                 <details class="rules-refs">
-                  <summary>📚 Base académica — metodología estadística</summary>
+                  <summary>📚 <span data-lang="es">Base académica — metodología estadística</span><span data-lang="en">Academic foundation — statistical methodology</span></summary>
                   <ol>
                     <li><strong>Benford (1938)</strong> "The Law of Anomalous Numbers" — <em>Proc. American Philosophical Society</em>. Base de <code>benford_first_digit</code>, <code>benford_law</code>.</li>
                     <li><strong>Beber &amp; Scacco (2012)</strong> "What the Numbers Say: A Digit-Based Test for Election Fraud" — <em>Political Analysis</em> 20(2). Base de <code>last_digit_uniformity</code>.</li>
@@ -515,16 +521,16 @@
                   </ol>
                 </details>
                 <div class="ctrl-section">
-                  <h3>Parámetros globales</h3>
+                  <h3><span data-lang="es">Parámetros globales</span><span data-lang="en">Global parameters</span></h3>
                   <div class="ctrl-row">
-                    <label>Umbral Benford χ² <span data-tip="Umbral chi-cuadrado para la ley de Benford.">ⓘ</span></label>
+                    <label><span data-lang="es">Umbral Benford χ²</span><span data-lang="en">Benford χ² threshold</span> <span class="sec-tip" data-tip-es="Umbral chi-cuadrado para la ley de Benford." data-tip-en="Chi-squared threshold for Benford\u2019s law.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-benford2" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
                       <span class="val-badge" id="vb-benford2">5.99</span>
                     </div>
                   </div>
                   <div class="ctrl-row">
-                    <label>Umbral Z-score (σ) <span data-tip="Desviaciones estándar para activar alerta.">ⓘ</span></label>
+                    <label><span data-lang="es">Umbral Z-score (σ)</span><span data-lang="en">Z-score threshold (σ)</span> <span class="sec-tip" data-tip-es="Desviaciones estandar para activar alerta." data-tip-en="Standard deviations required to trigger an alert.">ⓘ</span></label>
                     <div style="display:flex;align-items:center;gap:10px">
                       <input type="range" id="sl-zscore2" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
                       <span class="val-badge" id="vb-zscore2">3.0</span>
@@ -532,8 +538,8 @@
                   </div>
                 </div>
                 <details open>
-                  <summary>🔴 CRITICAL — 15 reglas</summary>
-                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                  <summary>🔴 CRITICAL — <span data-lang="es">15 reglas</span><span data-lang="en">15 rules</span></summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Sev.</span><span data-lang="en">Sev.</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th><th><span data-lang="es">Parámetro clave</span><span data-lang="en">Key parameter</span></th></tr></thead><tbody>
                     <tr><td><code>benford_first_digit</code></td><td>Benford 1er dígito (MAD+χ²)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_first_digit" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_first_digit" value="0.015" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> mad_critical</td></tr>
                     <tr><td><code>last_digit_uniformity</code></td><td>Uniformidad último dígito</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-last_digit_uniformity" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-last_digit_uniformity" value="0.001" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_pvalue</td></tr>
                     <tr><td><code>granular_anomaly</code></td><td>Anomalías granulares (deltas, z-score)</td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-granular_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-granular_anomaly" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> zscore_threshold</td></tr>
@@ -552,8 +558,8 @@
                   </tbody></table></div>
                 </details>
                 <details open>
-                  <summary>🟠 High — 5 reglas</summary>
-                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                  <summary>🟠 High — <span data-lang="es">5 reglas</span><span data-lang="en">5 rules</span></summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Sev.</span><span data-lang="en">Sev.</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th><th><span data-lang="es">Parámetro clave</span><span data-lang="en">Key parameter</span></th></tr></thead><tbody>
                     <tr><td><code>basic_diff</code></td><td>Consistencia aritmética básica</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-basic_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-basic_diff" value="15" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> change_%</td></tr>
                     <tr><td><code>irreversibility</code></td><td>Irreversibilidad estadística</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-irreversibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-irreversibility" value="0.60" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_turnout</td></tr>
                     <tr><td><code>participation_anomaly</code></td><td>Anomalía de participación (saltos escrutinio)</td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> jump_%</td></tr>
@@ -562,8 +568,8 @@
                   </tbody></table></div>
                 </details>
                 <details>
-                  <summary>🟡 Medium / WARNING — 4 reglas</summary>
-                  <div class="details-body"><table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Sev.</th><th>Activa</th><th>Parámetro clave</th></tr></thead><tbody>
+                  <summary>🟡 Medium / WARNING — <span data-lang="es">4 reglas</span><span data-lang="en">4 rules</span></summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Sev.</span><span data-lang="en">Sev.</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th><th><span data-lang="es">Parámetro clave</span><span data-lang="en">Key parameter</span></th></tr></thead><tbody>
                     <tr><td><code>benford_law</code></td><td>Benford por candidato (χ²)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_law" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_law" value="0.05" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_threshold</td></tr>
                     <tr><td><code>large_numbers_convergence</code></td><td>Convergencia ley grandes números</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-large_numbers_convergence" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-large_numbers_convergence" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> z_threshold</td></tr>
                     <tr><td><code>ml_outliers</code></td><td>Outliers ML (Isolation Forest)</td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-ml_outliers" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-ml_outliers" value="0.1" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> contamination</td></tr>
@@ -571,10 +577,10 @@
                   </tbody></table></div>
                 </details>
                 <details>
-                  <summary>🔬 Research — 2 reglas experimentales</summary>
+                  <summary>🔬 Research — <span data-lang="es">2 reglas experimentales</span><span data-lang="en">2 experimental rules</span></summary>
                   <div class="details-body">
-                    <div class="info-box" style="margin-bottom:12px">Reglas en revisión académica antes de ser promovidas a producción. Solo para entornos de investigación.</div>
-                    <table class="data-table"><thead><tr><th>Clave</th><th>Nombre</th><th>Activa</th></tr></thead><tbody>
+                    <div class="info-box" style="margin-bottom:12px"><span data-lang="es">Reglas en revisión académica antes de ser promovidas a producción. Solo para entornos de investigación.</span><span data-lang="en">Rules under academic review before being promoted to production. Research environments only.</span></div>
+                    <table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th></tr></thead><tbody>
                       <tr><td><code>apply_benford_law</code></td><td>Ley de Benford — alternativa (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-apply_benford_law" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
                       <tr><td><code>check_distribution_chi2</code></td><td>Distribución partido/depto (chi²)</td><td><label class="toggle"><input type="checkbox" id="r-check_distribution_chi2" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
                     </tbody></table>
