@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/vigil-nav.css">
 <style>
 /* ── THEME TOKENS ─────────────────────────────────────────── */
 :root {
@@ -69,49 +70,7 @@ body {
 }
 
 /* ── BREADCRUMB ───────────────────────────────────────────── */
-#breadcrumb {
-  padding: 7px 24px;
-  font-size: 11px;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-#breadcrumb a { color: var(--muted); text-decoration: none; transition: color .15s; }
-#breadcrumb a:hover { color: var(--fg); }
-#breadcrumb .sep { opacity: .35; }
-
-/* ── STATUS BAR ───────────────────────────────────────────── */
-#statusbar {
-  padding: 0 24px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg);
-  transition: background var(--transition), border-color var(--transition);
-}
-#site-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fg);
-  white-space: nowrap;
-  margin-right: 6px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-family: var(--sans);
-}
-#site-title a { color: inherit; text-decoration: none; }
+/* Breadcrumb + titlebar viven en ../shared/vigil-nav.css (canonical) */
 #last-update { color: var(--muted); font-size: 11px; margin-left: auto; font-family: var(--mono); }
 
 /* ── THEME TOGGLE ─────────────────────────────────────────── */
@@ -150,7 +109,7 @@ body {
 [data-theme="light"] #theme-icon-moon { display: block; }
 
 /* ── BADGE CHIPS ──────────────────────────────────────────── */
-#statusbar .badge {
+#vigil-titlebar .badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -456,7 +415,7 @@ footer a { color: var(--accent); text-decoration: none; }
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media(max-width:768px) {
-  #statusbar { padding: 0 14px; gap: 8px; }
+  /* #statusbar mobile override moved to shared/vigil-nav.css */
   #status-row { padding: 10px 14px; gap: 8px; }
   .status-card { min-width: 120px; padding: 8px 12px; }
   main { padding: 16px 12px; }
@@ -474,19 +433,18 @@ footer a { color: var(--accent); text-decoration: none; }
   #map-side { width: min(320px,100vw); }
   .cand-name { width: 80px; }
   .tbl { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  #breadcrumb { padding: 6px 12px; }
+  /* #breadcrumb mobile override moved to shared/vigil-nav.css */
 }
 </style>
 </head>
 <body>
 
-<!-- ── BREADCRUMB ── -->
-<nav id="breadcrumb">
-  <a href="../">VIGIL</a><span class="sep">/</span><span>Monitor</span>
+<!-- ── VIGIL NAV (estandarizado, compartido con /ops/ y /lab/) ── -->
+<nav id="vigil-breadcrumb">
+  <a href="../">VIGIL</a><span class="vigil-sep">/</span><span>Monitor</span>
 </nav>
-<!-- ── STATUS BAR ── -->
-<div id="statusbar">
-  <span id="site-title"><a href="../">VIGIL</a> · Monitor</span>
+<div id="vigil-titlebar">
+  <span id="vigil-title"><a href="../">VIGIL</a> · Monitor</span>
   <span id="last-update">Actualizando…</span>
   <button id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema / Toggle theme">
     <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
