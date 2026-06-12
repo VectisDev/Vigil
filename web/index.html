@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VIGIL — Electoral Integrity Verification</title>
-<meta name="description" content="Open-source cryptographic electoral audit. Real-time anomaly detection. Zero cost. Any country in Latin America.">
+<title>VIGIL — Data Integrity Verification</title>
+<meta name="description" content="Open-source cryptographic verification of official public data. Real-time anomaly detection. Zero cost. Any country in Latin America.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -32,6 +32,34 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* ─── Ambient background drift ──────────────────────────────
+   Two extremely faint gradient fields that drift very slowly.
+   Purely decorative, sits behind all content. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(200,16,46,0.035), transparent 38%),
+    radial-gradient(circle at 82% 68%, rgba(10,10,10,0.03), transparent 42%);
+  background-repeat: no-repeat;
+  background-size: 140% 140%;
+  animation: ambient-drift 100s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-drift {
+  0%   { background-position: 0% 0%, 100% 100%; }
+  50%  { background-position: 15% 10%, 85% 85%; }
+  100% { background-position: 0% 20%, 100% 80%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
 }
 
 /* ─── Nav ────────────────────────────────────────────────── */
@@ -93,16 +121,16 @@ nav {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: none;
-  border: 1px solid transparent;
+  border: 1px solid var(--ash);
   border-radius: 2px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   cursor: pointer;
-  color: var(--dim);
+  color: var(--black);
   transition: all 0.15s;
 }
-.lang-toggle button.active {
-  color: var(--black);
-  border-color: var(--ash);
+.lang-toggle button:hover {
+  border-color: var(--mid);
+  background: var(--stone);
 }
 
 /* ─── Hero ───────────────────────────────────────────────── */
@@ -506,43 +534,41 @@ footer {
     <ul class="nav-links">
       <li><a href="monitor/">Monitor</a></li>
       <li><a href="lab/">Lab</a></li>
-      <li><a href="reports/hnd_2025.html">Honduras 2025</a></li>
       <li><a href="ops/">Ops</a></li>
     </ul>
     <div class="lang-toggle">
-      <button class="active" onclick="setLang('en')" id="btn-en">EN</button>
-      <button onclick="setLang('es')" id="btn-es">ES</button>
+      <button onclick="toggleLang()" id="btn-lang">ES</button>
     </div>
   </div>
 </nav>
 
 <!-- ─── Hero ────────────────────────────────────────────── -->
 <section class="hero">
-  <p class="hero-eyebrow" data-lang="en">Electoral integrity verification · Open source · Latin America</p>
-  <p class="hero-eyebrow" data-lang="es">Verificación de integridad electoral · Código abierto · América Latina</p>
+  <p class="hero-eyebrow" data-lang="en">Data integrity verification · Open source · Latin America</p>
+  <p class="hero-eyebrow" data-lang="es">Verificación de integridad de datos · Código abierto · América Latina</p>
 
   <h1 class="hero-headline" data-lang="en">
-    Electoral data can be <em>falsified.</em>
+    Data can be <em>falsified.</em>
   </h1>
   <h2 class="hero-headline-2" data-lang="en">
     Now it can be verified.
   </h2>
 
   <h1 class="hero-headline" data-lang="es">
-    Los datos electorales pueden ser <em>alterados.</em>
+    Los datos pueden ser <em>alterados.</em>
   </h1>
   <h2 class="hero-headline-2" data-lang="es">
     Ahora pueden ser verificados.
   </h2>
 
   <p class="hero-body" data-lang="en">
-    VIGIL captures every official publication from electoral authorities,
+    VIGIL captures every publication of official data,
     chains each snapshot cryptographically, and detects statistical anomalies —
     in real time, at zero cost, for any country in Latin America.
   </p>
 
   <p class="hero-body" data-lang="es">
-    VIGIL captura cada publicación oficial de las autoridades electorales,
+    VIGIL captura cada publicación de datos oficiales,
     encadena cada snapshot criptográficamente, y detecta anomalías estadísticas —
     en tiempo real, a costo cero, para cualquier país de América Latina.
   </p>
@@ -567,8 +593,8 @@ footer {
 <section class="evidence">
   <div class="evidence-inner">
 
-    <p class="evidence-label" data-lang="en">Honduras 2025 — first field audit</p>
-    <p class="evidence-label" data-lang="es">Honduras 2025 — primera auditoría de campo</p>
+    <p class="evidence-label" data-lang="en">Honduras 2025 — first retroactive audit</p>
+    <p class="evidence-label" data-lang="es">Honduras 2025 — primera auditoría retroactiva</p>
 
     <div class="stats-row">
       <div class="stat">
@@ -580,14 +606,14 @@ footer {
       </div>
       <div class="stat">
         <div class="stat-number">2,346</div>
-        <div class="stat-label" data-lang="en">Acts resolved at impossible speed</div>
+        <div class="stat-label" data-lang="en">Tally sheets processed at impossible speed</div>
         <div class="stat-label" data-lang="es">Actas resueltas a velocidad imposible</div>
         <div class="stat-sub" data-lang="en">39 acts/min — threshold is 10/min</div>
         <div class="stat-sub" data-lang="es">39 actas/min — umbral es 10/min</div>
       </div>
       <div class="stat">
         <div class="stat-number">+69.6%</div>
-        <div class="stat-label" data-lang="en">Lead gap grew during blackout</div>
+        <div class="stat-label" data-lang="en">The gap during during the blackout</div>
         <div class="stat-label" data-lang="es">Brecha aumentó durante el apagón</div>
         <div class="stat-sub" data-lang="en">While data was invisible to the public</div>
         <div class="stat-sub" data-lang="es">Mientras los datos eran invisibles al público</div>
@@ -639,15 +665,17 @@ footer {
     </div>
     <div class="why-item">
       <div class="why-number">03</div>
-      <div class="why-title" data-lang="en">One operator. Any country.</div>
-      <div class="why-title" data-lang="es">Un operador. Cualquier país.</div>
+      <div class="why-title" data-lang="en">One operator. Continental Scale.</div>
+      <div class="why-title" data-lang="es">Un operador. Escala Continental.</div>
       <div class="why-body" data-lang="en">
-        A journalist, academic, or civil society observer can audit a national election
-        from a laptop. Honduras, Guatemala, El Salvador, Mexico — one fork.
+        A single journalist, academic, or civil society observer can audit an entire national 
+        infrastructure from a laptop. Honduras, Guatemala, El Salvador, Mexico — 
+        one single architecture, zero deployment friction.
       </div>
       <div class="why-body" data-lang="es">
-        Un periodista, académico u observador de la sociedad civil puede auditar
-        una elección nacional desde un portátil. Honduras, Guatemala, México — un fork.
+        Un solo periodista, académico u observador de la sociedad civil puede auditar una 
+        infraestructura nacional completa desde una computadora portátil. Honduras, Guatemala, 
+        El Salvador, México: una sola arquitectura, cero fricciones de despliegue.
       </div>
     </div>
   </div>
@@ -729,9 +757,13 @@ footer {
 <script>
 function setLang(lang) {
   document.getElementById('page').className = 'lang-' + lang;
-  document.getElementById('btn-en').className = lang === 'en' ? 'active' : '';
-  document.getElementById('btn-es').className = lang === 'es' ? 'active' : '';
+  // Button shows the language you'd switch TO
+  document.getElementById('btn-lang').textContent = lang === 'en' ? 'ES' : 'EN';
   localStorage.setItem('vigil-lang', lang);
+}
+function toggleLang() {
+  const current = document.getElementById('page').className === 'lang-es' ? 'es' : 'en';
+  setLang(current === 'en' ? 'es' : 'en');
 }
 // Restore preference
 const saved = localStorage.getItem('vigil-lang');
