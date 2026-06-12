@@ -32,7 +32,7 @@ function _renderSessionLog(){
   if(countEl) countEl.textContent = String(log.length);
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   if(!log.length){
-    tbody.innerHTML='<tr class="log-empty"><td colspan="3">Sin acciones registradas.<span class="log-empty-hint">Las acciones de operador aparecerán aquí en tiempo real.</span></td></tr>';
+    tbody.innerHTML=`<tr class="log-empty"><td colspan="3">${t('log.sin_acciones')}<span class="log-empty-hint">${t('log.acciones_tiempo_real')}</span></td></tr>`;
     return;
   }
   const COLORS={'sesión iniciada':'var(--ok)','sesión cerrada':'var(--muted)','config aplicada':'var(--accent)',
@@ -807,7 +807,7 @@ function _renderLogSummary(){
   el.innerHTML = Object.entries(counts).map(([lvl,n])=>
     `<span class="sum-item"><span class="lpill ${PILL[lvl]}">${lvl}</span> <strong>${n}</strong></span>`
   ).join('<span class="sum-sep">·</span>')+
-  `<span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:var(--mono)">${logData.length} total</span>`;
+  `<span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:var(--mono)">${logData.length} ${t('log.total')}</span>`;
 }
 
 function _renderAttackSummary(){
@@ -820,7 +820,7 @@ function _renderAttackSummary(){
   el.innerHTML = Object.entries(counts).sort(([,a],[,b])=>b-a).map(([t,n])=>
     `<span class="sum-item"><span class="lpill ${PILL[t]||'lp-suspicious'}">${t}</span> <strong>${n}</strong></span>`
   ).join('<span class="sum-sep">·</span>')+
-  `<span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:var(--mono)">${attackData.length} total</span>`;
+  `<span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:var(--mono)">${attackData.length} ${t('log.total')}</span>`;
 }
 
 function buildAttackDetailRow(e){
@@ -831,7 +831,7 @@ function buildAttackDetailRow(e){
     ['user_agent', e.user_agent],
     ['freq_window', e.frequency_window_seconds?e.frequency_window_seconds+'s':null],
   ].filter(([,v])=>v!=null&&v!=='');
-  if(!fields.length) return '<span style="color:var(--muted);font-size:10px">Sin campos extra</span>';
+  if(!fields.length) return `<span style="color:var(--muted);font-size:10px">${t('log.sin_campos_extra')}</span>`;
   return `<dl class="attack-detail-grid">${fields.map(([k,v])=>`<dt>${escHtml(k)}</dt><dd>${escHtml(String(v).slice(0,400))}</dd>`).join('')}</dl>`;
 }
 
@@ -842,7 +842,7 @@ function renderLog(){
   const tbody = wrap.querySelector('tbody');
   if(!tbody) return;
   _renderLogSummary();
-  if(!logData.length){tbody.innerHTML=_emptyRow(4,'Sin actividad registrada.','Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.');return;}
+  if(!logData.length){tbody.innerHTML=_emptyRow(4,t('log.sin_actividad'),t('log.inicia_monitoreo'));return;}
   let slice = n===0 ? logData : logData.slice(-n);
   slice = slice.filter(e => activeFilters.has((e.level||'INFO').toUpperCase()));
   if(logSearch){
@@ -852,7 +852,7 @@ function renderLog(){
   const total=(n===0?logData:logData.slice(-n)).length;
   const countEl=document.getElementById('log-general-count');
   if(countEl) countEl.textContent = slice.length<total?`${slice.length} / ${total}`:`${total}`;
-  if(!slice.length){tbody.innerHTML=_emptyRow(4,'Sin entradas con los filtros seleccionados.');return;}
+  if(!slice.length){tbody.innerHTML=_emptyRow(4,t('log.sin_entradas_filtros'));return;}
   const PILL = {INFO:'lp-info',WARNING:'lp-warn',CRITICAL:'lp-crit',PANIC:'lp-panic'};
   tbody.innerHTML = slice.map(e=>{
     const lvl = (e.level||'INFO').toUpperCase();
@@ -883,7 +883,7 @@ function renderAttackLog(){
   const tbody = wrap.querySelector('tbody');
   if(!tbody) return;
   _renderAttackSummary();
-  if(!attackData.length){tbody.innerHTML=_emptyRow(6,'Sin ataques registrados.','El sistema está vigilando — aparecerán aquí si se detecta actividad maliciosa.');return;}
+  if(!attackData.length){tbody.innerHTML=_emptyRow(6,t('log.sin_ataques'),t('log.sistema_vigilando'));return;}
   let filtered = filter
     ? attackData.filter(e=>(e.type||e.classification||e.event||e.raw||'').toUpperCase().includes(filter))
     : attackData;
@@ -893,7 +893,7 @@ function renderAttackLog(){
   }
   const countEl=document.getElementById('log-attacks-count');
   if(countEl) countEl.textContent=filtered.length<attackData.length?`${filtered.length} / ${attackData.length}`:`${attackData.length}`;
-  if(!filtered.length){tbody.innerHTML=_emptyRow(6,'Sin eventos para el filtro seleccionado.');return;}
+  if(!filtered.length){tbody.innerHTML=_emptyRow(6,t('log.sin_eventos_filtro'));return;}
   const PILL = {FLOOD:'lp-flood',BRUTE:'lp-brute',SCAN:'lp-scan',PROXY_SUSPECT:'lp-proxy_suspect',SUSPICIOUS:'lp-suspicious'};
   tbody.innerHTML = filtered.flatMap(e=>{
     const type = (e.type||e.classification||e.event||'EVENT').toUpperCase();
@@ -917,7 +917,7 @@ function renderAuditTrail(){
   if(!wrap) return;
   const tbody = wrap.querySelector('tbody');
   if(!tbody) return;
-  if(!auditData.length){tbody.innerHTML=_emptyRow(4,'Sin commits de configuración.');return;}
+  if(!auditData.length){tbody.innerHTML=_emptyRow(4,t('log.sin_commits'));return;}
   let filtered=auditData;
   if(auditSearch){
     const q=auditSearch.toLowerCase();
@@ -925,7 +925,7 @@ function renderAuditTrail(){
   }
   const countEl=document.getElementById('log-audit-count');
   if(countEl) countEl.textContent=filtered.length<auditData.length?`${filtered.length} / ${auditData.length}`:`${auditData.length}`;
-  if(!filtered.length){tbody.innerHTML=_emptyRow(4,'Sin commits que coincidan con la búsqueda.');return;}
+  if(!filtered.length){tbody.innerHTML=_emptyRow(4,t('log.sin_commits_busqueda'));return;}
   tbody.innerHTML = filtered.map(c=>{
     const sha  = escHtml(c.sha.slice(0,7));
     const ts   = relTimestamps ? relTime(c.commit.author.date) : escHtml(c.commit.author.date);
@@ -941,18 +941,18 @@ async function fetchAuditTrail(){
   const tbody = wrap?.querySelector('tbody');
   const pat = sessionStorage.getItem('gh-pat');
   if(!pat){
-    if(tbody) tbody.innerHTML=_emptyRow(4,'Historial de cambios en configuración.','Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.');
+    if(tbody) tbody.innerHTML=_emptyRow(4,t('log.historial_cambios'),t('log.modifica_control'));
     return;
   }
   try{
     const r = await fetch(`${API_BASE}/commits?path=config/prod/&per_page=30`,{
       headers:{Authorization:`Bearer ${pat}`}
     });
-    if(!r.ok){if(tbody) tbody.innerHTML=`<tr class="log-empty"><td colspan="4">Error: ${r.status}</td></tr>`;return;}
+    if(!r.ok){if(tbody) tbody.innerHTML=`<tr class="log-empty"><td colspan="4">${t('log.error')}: ${r.status}</td></tr>`;return;}
     auditData = await r.json();
     renderAuditTrail();
   }catch(e){
-    if(tbody) tbody.innerHTML=`<tr class="log-empty"><td colspan="4">Error: ${escHtml(e.message)}</td></tr>`;
+    if(tbody) tbody.innerHTML=`<tr class="log-empty"><td colspan="4">${t('log.error')}: ${escHtml(e.message)}</td></tr>`;
   }
 }
 
@@ -970,13 +970,13 @@ function toggleLogLive(){
     clearInterval(_logLiveTimer);_logLiveTimer=null;
     btn?.classList.remove('live-on');
     if(dot){dot.className='ots-dot ots-dot-off';dot.style.animation='';}
-    if(btn) btn.title='Auto-refresco inactivo';
+    if(btn) btn.title=t('log.auto_refresco_inactivo');
   } else {
     fetchLog();
     _logLiveTimer=setInterval(fetchLog,30000);
     btn?.classList.add('live-on');
     if(dot){dot.className='ots-dot ots-dot-ok';dot.style.animation='ots-pulse 1.4s ease-in-out infinite';}
-    if(btn) btn.title='Live activo (30s) — clic para detener';
+    if(btn) btn.title=t('log.live_activo');
   }
 }
 
@@ -987,13 +987,13 @@ function toggleAttackLive(){
     clearInterval(_attackLiveTimer);_attackLiveTimer=null;
     btn?.classList.remove('live-on');
     if(dot){dot.className='ots-dot ots-dot-off';dot.style.animation='';}
-    if(btn) btn.title='Auto-refresco inactivo';
+    if(btn) btn.title=t('log.auto_refresco_inactivo');
   } else {
     fetchAttackLog();
     _attackLiveTimer=setInterval(fetchAttackLog,30000);
     btn?.classList.add('live-on');
     if(dot){dot.className='ots-dot ots-dot-ok';dot.style.animation='ots-pulse 1.4s ease-in-out infinite';}
-    if(btn) btn.title='Live activo (30s) — clic para detener';
+    if(btn) btn.title=t('log.live_activo');
   }
 }
 
