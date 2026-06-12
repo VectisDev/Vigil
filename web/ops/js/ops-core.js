@@ -641,12 +641,12 @@ function _updateMissionBar() {
   if (msCountry) msCountry.textContent = ACTIVE_COUNTRY_CODE || '—';
   if (msElec) {
     msElec.textContent = elMode ? 'ACTIVO' : 'INACTIVO';
-    msElec.className = `ms-val ${elMode ? 'alerta' : ''}`;
+    msElec.className = `cmd-stat-val ${elMode ? 'alerta' : ''}`;
   }
   if (msDefense) {
-    const defCls = {normal:'nominal', caution:'alerta', survival:'critico'}[animal] || '';
+    const defCls = {normal:'', caution:'alerta', survival:'critico'}[animal] || '';
     msDefense.textContent = animal.toUpperCase();
-    msDefense.className = `ms-val ${defCls}`;
+    msDefense.className = `cmd-stat-val ${defCls}`;
   }
   if (msNodes) msNodes.textContent = (nodeCount === '—' || nodeCount === '') ? '—' : nodeCount;
 
@@ -655,7 +655,9 @@ function _updateMissionBar() {
     return el && el.classList.contains('badge-bad');
   });
   msSystem.textContent = hasCritical ? 'ALERTA' : 'NOMINAL';
-  msSystem.className = `ms-val ${hasCritical ? 'critico' : 'nominal'}`;
+  msSystem.className = `ring-sys-val ${hasCritical ? 'alerta' : 'nominal'}`;
+  const ringWrap = document.getElementById('status-ring-wrap');
+  if (ringWrap) ringWrap.classList.toggle('ring-alert', hasCritical);
 }
 
 // ══════════════════════════════════════════════════════════
