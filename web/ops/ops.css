@@ -120,15 +120,25 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
 .section-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
 
 /* ── CARDS GRID ── */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
-.stat-card .sc-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px;justify-content:space-between}
-.stat-card .sc-val{font-size:22px;font-weight:700;margin-bottom:6px;font-variant-numeric:tabular-nums}
-.stat-card .sc-detail{font-size:12px;color:var(--muted);margin-bottom:10px}
-.stat-card .sc-bar{background:rgba(255,255,255,.06);border-radius:999px;height:4px;overflow:hidden;margin-bottom:12px}
+.status-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.stat-card .sc-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:8px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.stat-card .sc-val{font-size:18px;font-weight:700;margin-bottom:4px;font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em}
+.stat-card .sc-detail{font-size:11px;color:var(--muted);margin-bottom:8px}
+.stat-card .sc-bar{background:rgba(0,0,0,.06);border-radius:999px;height:4px;overflow:hidden;margin-bottom:10px}
 .stat-card .sc-bar-fill{height:100%;border-radius:999px;transition:.4s}
-.stat-card .sc-age{font-size:11px;color:var(--muted)}
+.stat-card .sc-age{font-size:10px;color:var(--muted)}
+
+/* ── Status row: hero metrics, landing-style big numbers ── */
+.status-card{padding:24px 26px}
+.status-card .sc-label{font-size:11px;margin-bottom:14px}
+.status-card .sc-val{font-size:38px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px;
+  font-family:var(--sans);font-variant-numeric:normal}
+.status-card .sc-detail{font-size:13px;margin-bottom:0}
+[data-theme="dark"] .stat-card .sc-bar{background:rgba(255,255,255,.06)}
 .val-ok{color:var(--ok)}
 .val-warn{color:var(--warn)}
 .val-bad{color:var(--bad)}
@@ -445,6 +455,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
   }
   #main-area{padding:16px}
   .cards-grid{grid-template-columns:1fr 1fr}
+  .status-cards-grid{grid-template-columns:1fr}
 }
 @media(max-width:600px){
   #sidebar a{padding:8px 12px;font-size:11px}
@@ -506,11 +517,11 @@ details .details-body{padding:12px 0 4px}
 /* ── SPACEX REDESIGN ── */
 #admin-header{height:var(--hdr-height);box-shadow:0 1px 0 0 rgba(var(--accent-tint),.1)}
 #admin-header .hdr-brand{letter-spacing:.2em;font-size:13px;color:var(--accent);text-shadow:0 0 14px var(--accent-glow)}
-#main-area{background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);background-size:40px 40px}
+#main-area{background:var(--bg)}
 .section-title{text-transform:uppercase;letter-spacing:.08em;font-size:12px}
 .stat-card{border-radius:2px!important;transition:box-shadow .2s}
-.stat-card:hover{box-shadow:0 0 0 1px var(--accent),0 0 12px var(--accent-glow)}
-.stat-card .sc-val{text-shadow:0 0 10px currentColor}
+.stat-card:hover{box-shadow:0 0 0 1px var(--accent)}
+
 .badge-ok{box-shadow:0 0 8px var(--ok-glow)}
 .badge-bad{box-shadow:0 0 8px var(--bad-glow)}
 .badge-warn{box-shadow:0 0 8px var(--warn-glow)}
