@@ -7,9 +7,12 @@
 <title>CENTINEL Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script src="../config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="ops.css">
 </head>
-<body>
+<body class="lang-es">
 
 <!-- ════════════════════ AUTH SCREEN ════════════════════ -->
 <div id="auth-screen">
@@ -32,38 +35,48 @@
     <span class="hdr-brand">CENTINEL</span>
     <span class="hdr-user" id="hdr-user">—</span>
     <span id="hdr-role"></span>
-    <button class="hdr-btn" onclick="reloadConfig()" title="Sincronizar configuración desde GitHub">↻ Sync config</button>
-    <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()">Salir</button>
+    <div id="vigil-toggles">
+      <div class="vigil-toggle">
+        <button id="btn-lang-es" class="active" onclick="setOpsLang('es')">ES</button>
+        <button id="btn-lang-en" onclick="setOpsLang('en')">EN</button>
+      </div>
+      <div class="vigil-toggle">
+        <button id="btn-theme-dark" class="active" onclick="setOpsTheme('dark')">Dark</button>
+        <button id="btn-theme-light" onclick="setOpsTheme('light')">Light</button>
+      </div>
+    </div>
+    <button class="hdr-btn" onclick="reloadConfig()" title="Sincronizar configuración desde GitHub" data-gtt-es="Sincronizar configuración desde GitHub" data-gtt-en="Sync configuration from GitHub"><span data-lang="es">↻ Sync config</span><span data-lang="en">↻ Sync config</span></button>
+    <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
   </div>
   <!-- MISSION BAR -->
   <div id="mission-bar">
     <span class="ms-item">
-      <span class="ms-label">SISTEMA</span>
+      <span class="ms-label"><span data-lang="es">SISTEMA</span><span data-lang="en">SYSTEM</span></span>
       <span class="ms-val" id="ms-system">—</span>
     </span>
     <span class="ms-sep">│</span>
     <span class="ms-item">
-      <span class="ms-label">PAÍS</span>
+      <span class="ms-label"><span data-lang="es">PAÍS</span><span data-lang="en">COUNTRY</span></span>
       <span class="ms-val" id="ms-country">—</span>
     </span>
     <span class="ms-sep">│</span>
     <span class="ms-item">
-      <span class="ms-label">MODO ELEC.</span>
+      <span class="ms-label"><span data-lang="es">MODO ELEC.</span><span data-lang="en">ELECTION MODE</span></span>
       <span class="ms-val" id="ms-elec">—</span>
     </span>
     <span class="ms-sep">│</span>
     <span class="ms-item">
-      <span class="ms-label">DEFENSAS</span>
+      <span class="ms-label"><span data-lang="es">DEFENSAS</span><span data-lang="en">DEFENSES</span></span>
       <span class="ms-val" id="ms-defense">—</span>
     </span>
     <span class="ms-sep">│</span>
     <span class="ms-item">
-      <span class="ms-label">NODOS</span>
+      <span class="ms-label"><span data-lang="es">NODOS</span><span data-lang="en">NODES</span></span>
       <span class="ms-val" id="ms-nodes">—</span>
     </span>
     <span class="ms-sep">│</span>
     <span class="ms-item">
-      <span class="ms-label">TIEMPO ACTIVO</span>
+      <span class="ms-label"><span data-lang="es">TIEMPO ACTIVO</span><span data-lang="en">UPTIME</span></span>
       <span class="ms-val" id="ms-uptime">—</span>
     </span>
     <span class="ms-sep">│</span>
@@ -88,29 +101,29 @@
   <div id="admin-content">
     <!-- SIDEBAR -->
     <nav id="sidebar">
-      <div class="sec-header">Operación</div>
-      <a href="#s1" onclick="scrollTo('s1')">Panel de control</a>
-      <a href="#s7" onclick="scrollTo('s7')">Red de Nodos</a>
-      <div class="sec-header">Configuración</div>
-      <a href="#s3" onclick="scrollTo('s3')">Presets</a>
-      <div class="sec-header">Integridad</div>
-      <a href="#s9" onclick="scrollTo('s9')">Anclaje Bitcoin</a>
-      <div class="sec-header">Monitoreo</div>
-      <a href="#s4" onclick="scrollTo('s4')">Logs y terminales</a>
-      <div class="sec-header">Cierre</div>
-      <a href="#s8" onclick="scrollTo('s8')">Cierre Electoral</a>
-      <div class="sec-header">Administración</div>
-      <a href="#s6" onclick="scrollTo('s6')">Acceso y Seeds</a>
-      <a href="#s5" onclick="scrollTo('s5')">Manual</a>
+      <div class="sec-header"><span data-lang="es">Operación</span><span data-lang="en">Operations</span></div>
+      <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
+      <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
+      <div class="sec-header"><span data-lang="es">Configuración</span><span data-lang="en">Configuration</span></div>
+      <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
+      <div class="sec-header"><span data-lang="es">Integridad</span><span data-lang="en">Integrity</span></div>
+      <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
+      <div class="sec-header"><span data-lang="es">Monitoreo</span><span data-lang="en">Monitoring</span></div>
+      <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
+      <div class="sec-header"><span data-lang="es">Cierre</span><span data-lang="en">Closeout</span></div>
+      <a href="#s8" onclick="scrollTo('s8')"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
+      <div class="sec-header"><span data-lang="es">Administración</span><span data-lang="en">Administration</span></div>
+      <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
+      <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
       <div id="sidebar-ops-zone">
         <div class="soz-sep"></div>
         <button id="btn-sidebar-iniciar" onclick="doIniciar()"
-          title="Iniciar monitoreo electoral">▶ INICIAR</button>
+          title="Iniciar monitoreo electoral">▶ <span data-lang="es">INICIAR</span><span data-lang="en">START</span></button>
         <button id="btn-sidebar-finalizar" onclick="openFinalizeModal()"
-          title="Finalizar ciclo electoral">◼ FINALIZAR</button>
+          title="Finalizar ciclo electoral">◼ <span data-lang="es">FINALIZAR</span><span data-lang="en">FINISH</span></button>
         <div class="soz-autosave" onclick="toggleAutoApply()"
           title="Auto-guardar: aplica cambios a GitHub automáticamente tras 1.5s de inactividad">
-          <span class="soz-autosave-label">Auto-guardar</span>
+          <span class="soz-autosave-label"><span data-lang="es">Auto-guardar</span><span data-lang="en">Auto-save</span></span>
           <span class="soz-autosave-val off" id="autosave-val">OFF</span>
         </div>
         <button id="btn-apply-now" onclick="autoApply()" style="display:none"
@@ -121,7 +134,7 @@
       <div id="sidebar-emergency-zone">
         <div class="sez-sep"></div>
         <button id="btn-sidebar-emg" onclick="openEmergencyModal()"
-          title="Parada de emergencia — doble confirmación requerida">⚠ EMERGENCIA</button>
+          title="Parada de emergencia — doble confirmación requerida">⚠ <span data-lang="es">EMERGENCIA</span><span data-lang="en">EMERGENCY</span></button>
       </div>
     </nav>
 
@@ -171,7 +184,7 @@
         <div id="adm-map-wrap" style="position:relative">
           <div id="dep-card-national" class="dep-national-badge" onclick="openMapPopup('00')" title="NACIONAL (00)">
             <span class="dep-dot" id="dep-dot-00" style="background:var(--accent)"></span>
-            <span>00 · NACIONAL</span>
+            <span data-lang="es">00 · NACIONAL</span><span data-lang="en">00 · NATIONAL</span>
           </div>
           <div id="hn-ops-map-container" style="max-width:420px;margin:8px auto;position:relative"></div>
           <div id="map-popup">
@@ -190,10 +203,10 @@
           </div>
         </div>
         <div class="map-legend">
-          <span><span class="dot" style="background:#57c08d"></span> OK (< 20 min)</span>
-          <span><span class="dot" style="background:#d4b066"></span> Tardío (20–60 min)</span>
-          <span><span class="dot" style="background:#df6b86"></span> Caído / Error</span>
-          <span><span class="dot" style="background:#3a3f49"></span> Sin configurar</span>
+          <span><span class="dot" style="background:#57c08d"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
+          <span><span class="dot" style="background:#d4b066"></span> <span data-lang="es">Tardío (20–60 min)</span><span data-lang="en">Delayed (20–60 min)</span></span>
+          <span><span class="dot" style="background:#df6b86"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
+          <span><span class="dot" style="background:#3a3f49"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
         </div>
         <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:20px;margin-bottom:6px">Estado del sistema</div>
         <div class="status-row">
@@ -2031,6 +2044,24 @@ async function executePurge() {
 const _origInitAll = initAll;
 initAll = async function() { await _origInitAll(); loadDataSize(); };
 
+</script>
+
+<script>
+/* ── VIGIL THEME + LANG TOGGLES (shared across monitor/lab/ops) ── */
+function setOpsTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('btn-theme-dark').className  = t==='dark'  ? 'active' : '';
+  document.getElementById('btn-theme-light').className = t==='light' ? 'active' : '';
+  localStorage.setItem('vigil-theme', t);
+}
+function setOpsLang(l){
+  document.body.className = 'lang-' + l;
+  document.getElementById('btn-lang-es').className = l==='es' ? 'active' : '';
+  document.getElementById('btn-lang-en').className = l==='en' ? 'active' : '';
+  localStorage.setItem('vigil-lang', l);
+}
+setOpsTheme(localStorage.getItem('vigil-theme') || 'dark');
+setOpsLang(localStorage.getItem('vigil-lang') || 'es');
 </script>
 </body>
 </html>
