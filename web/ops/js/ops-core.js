@@ -160,17 +160,84 @@ async function loadSnapshot(){
 // ══════════════════════════════════════════════════════════
 // SENSOR CARDS
 // ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+// I18N — shared with VIGIL toggle in HTML (window.OPS_LANG)
+// ══════════════════════════════════════════════════════════
+window.OPS_LANG = window.OPS_LANG || (localStorage.getItem('vigil-lang') || 'es');
+const I18N = {
+  es: {
+    'card.sha':'Cadena SHA-256', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
+    'card.benford':'Benford 1er dígito', 'card.zscore':'Z-Score máximo', 'card.ots':'OTS Bitcoin',
+    'card.cpu':'CPU Watchdog', 'card.ram':'Memoria', 'card.attacks':'Ataques detectados',
+    'card.endpoints':'Endpoints activos',
+    'val.sin_datos':'sin datos', 'val.integra':'ÍNTEGRA', 'val.rota':'ROTA',
+    'val.abierto':'ABIERTO', 'val.cerrado':'CERRADO',
+    'val.confirmado':'CONFIRMADO', 'val.pendiente':'PENDIENTE', 'val.error':'ERROR', 'val.desconocido':'DESCONOCIDO',
+    'val.eventos':'eventos', 'val.limite':'límite',
+    'det.pipeline_no_run':'Pipeline aún no ha ejecutado',
+    'det.fallos_consecutivos':'fallos consecutivos',
+    'det.ultimo':'Último',
+    'det.warning_critical':'{w} WARNING · {c} CRITICAL',
+    'det.fallando':'fallando',
+    'det.no_disponible':'Dato en tiempo real no disponible en Pages',
+    'tip.umbral':'Umbral — sincronizado con Configuración avanzada',
+    'badge.defensas':'DEFENSAS', 'badge.safemode':'SAFE MODE', 'badge.circuit':'CIRCUIT BREAKER',
+    'badge.election':'ELECTION MODE',
+    'badge.normal':'NORMAL', 'badge.caution':'PRECAUCIÓN', 'badge.survival':'SUPERVIVENCIA',
+    'badge.on':'ON', 'badge.off':'OFF', 'badge.abierto':'ABIERTO', 'badge.cerrado':'CERRADO',
+    'dept.label':'{div} — {total} endpoints (1 nacional + {n})',
+    'dept.divisiones':'Divisiones',
+  },
+  en: {
+    'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
+    'card.benford':'Benford 1st Digit', 'card.zscore':'Max Z-Score', 'card.ots':'OTS Bitcoin',
+    'card.cpu':'CPU Watchdog', 'card.ram':'Memory', 'card.attacks':'Attacks Detected',
+    'card.endpoints':'Active Endpoints',
+    'val.sin_datos':'no data', 'val.integra':'INTACT', 'val.rota':'BROKEN',
+    'val.abierto':'OPEN', 'val.cerrado':'CLOSED',
+    'val.confirmado':'CONFIRMED', 'val.pendiente':'PENDING', 'val.error':'ERROR', 'val.desconocido':'UNKNOWN',
+    'val.eventos':'events', 'val.limite':'limit',
+    'det.pipeline_no_run':'Pipeline has not run yet',
+    'det.fallos_consecutivos':'consecutive failures',
+    'det.ultimo':'Last',
+    'det.warning_critical':'{w} WARNING · {c} CRITICAL',
+    'det.fallando':'failing',
+    'det.no_disponible':'Real-time data not available on Pages',
+    'tip.umbral':'Threshold — synced with Advanced Configuration',
+    'badge.defensas':'DEFENSES', 'badge.safemode':'SAFE MODE', 'badge.circuit':'CIRCUIT BREAKER',
+    'badge.election':'ELECTION MODE',
+    'badge.normal':'NORMAL', 'badge.caution':'CAUTION', 'badge.survival':'SURVIVAL',
+    'badge.on':'ON', 'badge.off':'OFF', 'badge.abierto':'OPEN', 'badge.cerrado':'CLOSED',
+    'dept.label':'{div} — {total} endpoints (1 national + {n})',
+    'dept.divisiones':'Divisions',
+  }
+};
+function t(key, vars){
+  let s = (I18N[window.OPS_LANG]||I18N.es)[key] || key;
+  if(vars) for(const k in vars) s = s.replace('{'+k+'}', vars[k]);
+  return s;
+}
+function refreshOpsLang(){
+  window.OPS_LANG = localStorage.getItem('vigil-lang') || 'es';
+  try{ buildSensorCards(); }catch(e){}
+  try{ updateSensorCards(); }catch(e){}
+  try{ updateStatusBadges(); }catch(e){}
+  try{ if(DEPTS && DEPTS.length) buildDeptGrid(); }catch(e){}
+}
+window.refreshOpsLang = refreshOpsLang;
+
 const CARD_DEFS = [
-  {id:'sha',    label:'Cadena SHA-256',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
-  {id:'cb',     label:'Circuit Breaker',     icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'},
-  {id:'animal', label:'Animal Mode',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
-  {id:'benford',label:'Benford 1er dígito',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>', hasSlider:'benford', min:3, max:15, step:0.1},
-  {id:'zscore', label:'Z-Score máximo',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>', hasSlider:'zscore',  min:1.5,max:5,step:0.1},
-  {id:'ots',    label:'OTS Bitcoin',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
-  {id:'cpu',    label:'CPU Watchdog',        icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', hasSlider:'cpu',     min:50,max:95,step:1},
-  {id:'ram',    label:'Memoria',             icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>', hasSlider:'ram',     min:50,max:95,step:1},
-  {id:'attacks',label:'Ataques detectados',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'},
-  {id:'endpoints',label:'Endpoints activos', icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'},
+  {id:'sha',    labelKey:'card.sha',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
+  {id:'cb',     labelKey:'card.cb',     icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'},
+  {id:'animal', labelKey:'card.animal',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
+  {id:'benford',labelKey:'card.benford',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>', hasSlider:'benford', min:3, max:15, step:0.1},
+  {id:'zscore', labelKey:'card.zscore',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>', hasSlider:'zscore',  min:1.5,max:5,step:0.1},
+  {id:'ots',    labelKey:'card.ots',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
+  {id:'cpu',    labelKey:'card.cpu',        icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', hasSlider:'cpu',     min:50,max:95,step:1},
+  {id:'ram',    labelKey:'card.ram',             icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>', hasSlider:'ram',     min:50,max:95,step:1},
+  {id:'attacks',labelKey:'card.attacks',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'},
+  {id:'endpoints',labelKey:'card.endpoints', icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'},
 ];
 
 function buildSensorCards(){
@@ -179,8 +246,8 @@ function buildSensorCards(){
   grid.innerHTML = CARD_DEFS.map(def=>`
     <div class="stat-card" id="sc-${def.id}">
       <div class="sc-label">
-        <span>${def.icon} ${def.label}</span>
-        ${def.hasSlider?`<span data-tip="Umbral — sincronizado con Configuración avanzada" style="font-size:10px;cursor:help">ⓘ</span>`:''}
+        <span>${def.icon} ${t(def.labelKey)}</span>
+        ${def.hasSlider?`<span data-tip="${t('tip.umbral')}" style="font-size:10px;cursor:help">ⓘ</span>`:''}
       </div>
       <div class="sc-val val-neutral skel-pulse" id="scv-${def.id}">—</div>
       <div class="sc-detail skel-pulse" id="scd-${def.id}">—</div>
@@ -210,32 +277,33 @@ function updateSensorCards(){
   const hashOk = chain.integrity !== false;
   const hashStr = chain.latest_hash ? chain.latest_hash.slice(-8) : '—';
   if(!hasChainData){
-    setCard('sha', 'sin datos', 'Pipeline aún no ha ejecutado', 0, 'neutral', false);
+    setCard('sha', t('val.sin_datos'), t('det.pipeline_no_run'), 0, 'neutral', false);
   } else {
-    setCard('sha', hashOk?'ÍNTEGRA':'ROTA', hashStr, hashOk?100:0, hashOk?'ok':'bad');
+    setCard('sha', hashOk?t('val.integra'):t('val.rota'), hashStr, hashOk?100:0, hashOk?'ok':'bad');
   }
 
   // Circuit Breaker
   const cbOpen = cne.consecutive_failures >= 3;
   const cbFail = cne.consecutive_failures || 0;
-  setCard('cb', cbOpen?'ABIERTO':'CERRADO', `${cbFail} fallos consecutivos`, cbOpen?100:0, cbOpen?'bad':'ok');
+  setCard('cb', cbOpen?t('val.abierto'):t('val.cerrado'), `${cbFail} ${t('det.fallos_consecutivos')}`, cbOpen?100:0, cbOpen?'bad':'ok');
 
   // Animal mode
   const animal = ep?.healing?.animal_mode || 'normal';
   const animalCls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
-  setCard('animal', animal.toUpperCase(), '', 0, animalCls, false);
+  const animalLabel = {normal:t('badge.normal'), caution:t('badge.caution'), survival:t('badge.survival')}[animal] || animal.toUpperCase();
+  setCard('animal', animalLabel, '', 0, animalCls, false);
 
   // OTS
   const ots = chain.ots_status || 'unknown';
   const otsCls   = {confirmed:'ok',pending:'warn',error:'bad'}[ots]||'neutral';
-  const otsLabel = {confirmed:'CONFIRMADO',pending:'PENDIENTE',error:'ERROR'}[ots]||'DESCONOCIDO';
-  setCard('ots', otsLabel, chain.last_anchor ? `Último: ${relTime(chain.last_anchor)}` : '', 0, otsCls, false);
+  const otsLabel = {confirmed:t('val.confirmado'),pending:t('val.pendiente'),error:t('val.error')}[ots]||t('val.desconocido');
+  setCard('ots', otsLabel, chain.last_anchor ? `${t('det.ultimo')}: ${relTime(chain.last_anchor)}` : '', 0, otsCls, false);
 
   // Attacks
   const alerts = s?.alerts || [];
   const critical = alerts.filter(a=>a.level==='CRITICAL').length;
   const warnings = alerts.filter(a=>a.level==='WARNING').length;
-  setCard('attacks', alerts.length+' eventos', `${warnings} WARNING · ${critical} CRITICAL`, critical>0?100:warnings>0?50:0, critical>0?'bad':warnings>0?'warn':'ok');
+  setCard('attacks', `${alerts.length} ${t('val.eventos')}`, t('det.warning_critical',{w:warnings,c:critical}), critical>0?100:warnings>0?50:0, critical>0?'bad':warnings>0?'warn':'ok');
 
   // Endpoints — distinguish "no pipeline data yet" from "active failures"
   const epsRaw = s?.endpoints_status;
@@ -244,17 +312,17 @@ function updateSensorCards(){
   const okEps = eps.filter(e=>e.ok).length;
   const total = Math.max(1, DEPTS.length - 1);
   if(!hasEpData){
-    setCard('endpoints', 'sin datos', 'Pipeline aún no ha ejecutado', 0, 'neutral', false);
+    setCard('endpoints', t('val.sin_datos'), t('det.pipeline_no_run'), 0, 'neutral', false);
   } else {
-    setCard('endpoints', `${okEps}/${total}`, `${total-okEps} fallando`, okEps/total*100, okEps===total?'ok':okEps>total*0.8?'warn':'bad');
+    setCard('endpoints', `${okEps}/${total}`, `${total-okEps} ${t('det.fallando')}`, okEps/total*100, okEps===total?'ok':okEps>total*0.8?'warn':'bad');
   }
 
   // CPU/RAM — use watchdog limits as context
   const cpuLimit = wd?.max_cpu_percent || 80;
   const ramLimit = wd?.max_mem_percent || 90;
   // synthetic values (real values would come from a health endpoint)
-  setCard('cpu', cpuLimit+'% límite', 'Dato en tiempo real no disponible en Pages', 0, 'neutral', false);
-  setCard('ram', ramLimit+'% límite', 'Dato en tiempo real no disponible en Pages', 0, 'neutral', false);
+  setCard('cpu', `${cpuLimit}% ${t('val.limite')}`, t('det.no_disponible'), 0, 'neutral', false);
+  setCard('ram', `${ramLimit}% ${t('val.limite')}`, t('det.no_disponible'), 0, 'neutral', false);
 }
 
 function setCard(id, val, detail, barPct, cls, showBar=true){
@@ -277,58 +345,40 @@ function setCard(id, val, detail, barPct, cls, showBar=true){
 // ══════════════════════════════════════════════════════════
 
 
-let _opsMapSvgLoaded = false;
+function buildDeptGrid(){
+  const grid = document.getElementById('dept-ep-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
 
-async function buildDeptGrid(){
   // Defensive: DEPTS should always have entries (fallback list guarantees it)
-  if(!DEPTS || DEPTS.length === 0) return;
+  if(!DEPTS || DEPTS.length === 0){
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--muted);padding:12px 0">Cargando departamentos…</div>';
+    return;
+  }
 
   // Update section label with live count
   const lbl = document.getElementById('dept-section-label');
   const divCount = DEPTS.filter(d => d.code !== '00').length;
-  const divLabel = COUNTRY_META?.divisions_label || 'Divisiones';
-  if (lbl) lbl.textContent = `${divLabel} — ${divCount + 1} endpoints (1 nacional + ${divCount})`;
+  const divLabel = COUNTRY_META?.divisions_label || t('dept.divisiones');
+  if (lbl) lbl.textContent = t('dept.label', {div:divLabel, total:divCount+1, n:divCount});
 
-  await loadOpsCountryMap(ACTIVE_COUNTRY_CODE || 'HN');
-  bindMapPaths();
-  updateDeptGrid();
-}
+  // NACIONAL card first
+  const natCard = document.createElement('div');
+  natCard.className = 'dep-card dep-national';
+  natCard.style.gridColumn = '1 / -1';
+  natCard.innerHTML = `<div class="dep-abbr" style="font-size:10px">00 · NACIONAL</div><div class="dep-dot" style="background:var(--accent)"></div>`;
+  natCard.onclick = () => openMapPopup('00');
+  grid.appendChild(natCard);
 
-async function loadOpsCountryMap(countryCode){
-  const container = document.getElementById('hn-ops-map-container');
-  if(!container) return;
-  const code = (countryCode || 'HN').toUpperCase();
-  // Avoid re-fetching if already loaded for this country
-  if(container.dataset.loadedCountry === code) { _opsMapSvgLoaded = true; return; }
-  try{
-    const r = await fetch(`../assets/maps/${code}.svg`);
-    if(!r.ok) throw new Error(r.status);
-    const svgText = await r.text();
-    container.innerHTML = svgText;
-    const svg = container.querySelector('svg');
-    if(svg){
-      svg.id = 'ops-hn-map';
-      svg.style.width = '100%';
-      svg.style.height = 'auto';
-      svg.style.display = 'block';
-    }
-    container.dataset.loadedCountry = code;
-    _opsMapSvgLoaded = true;
-  }catch(e){
-    console.warn('Ops map SVG not available for', code, e);
-    container.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0">Mapa no disponible para '+code+'</div>';
-    _opsMapSvgLoaded = false;
-  }
-}
-
-function bindMapPaths(){
-  const svg = document.getElementById('ops-hn-map');
-  if(!svg) return;
-  DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
-    const path = svg.getElementById(dept.iso);
-    if(!path) return;
-    path.title = dept.name + ' (' + dept.code + ')';
-    path.onclick = (evt) => openMapPopupAtEvent(dept.code, evt);
+  DEPTS.filter(d => d.code !== '00').forEach(dept => {
+    const abbr = dept.abbr || dept.name.slice(0,2).toUpperCase();
+    const card = document.createElement('div');
+    card.className = 'dep-card';
+    card.id = `dep-card-${dept.code}`;
+    card.title = dept.name + ' (' + dept.code + ')';
+    card.innerHTML = `<div class="dep-abbr">${abbr}</div><div class="dep-dot" id="dep-dot-${dept.code}" style="background:#3a3f49"></div>`;
+    card.onclick = () => openMapPopup(dept.code);
+    grid.appendChild(card);
   });
 }
 function getEndpointUrl(code){
@@ -337,7 +387,7 @@ function getEndpointUrl(code){
 }
 
 function updateDeptGrid(){
-  const svg = document.getElementById('ops-hn-map');
+  if(!snapshotData) return;
   const epsRaw = snapshotData?.endpoints_status;
   const hasPipelineData = epsRaw && (Array.isArray(epsRaw) ? epsRaw.length > 0 : Object.keys(epsRaw).length > 0);
   const eps = hasPipelineData && !Array.isArray(epsRaw) ? epsRaw : {};
@@ -345,29 +395,22 @@ function updateDeptGrid(){
   const configured = (epCfg?.cne?.presidential_endpoints || [])
     .map(e => (e.department_code || '').toString().padStart(2,'0'));
 
-  // NACIONAL badge dot
-  const natDot = document.getElementById('dep-dot-00');
-  if(natDot && snapshotData){
-    const natStatus = getEndpointStatus('00');
-    const natColor = {ok:'#57c08d',warn:'#d4b066',bad:'#df6b86',neutral:'var(--accent)'}[natStatus.cls]||'var(--accent)';
-    natDot.style.background = natColor;
-  }
-
-  if(!svg) return;
-
-  DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
-    const path = svg.getElementById(dept.iso);
-    if(!path) return;
+  DEPTS.filter(d => d.code !== '00').forEach(dept => {
+    const card = document.getElementById(`dep-card-${dept.code}`);
+    const dot  = document.getElementById(`dep-dot-${dept.code}`);
+    if(!card || !dot) return;
     const epStatus = eps[dept.code];
-    let color = '#3a3f49';
+    let color = '#3a3f49', cls = '';
     if(configured.includes(dept.code)){
       if(!hasPipelineData){
-        color = '#3a3f49';
-      } else if(epStatus?.ok){ color='#57c08d'; }
-      else if(epStatus && (epStatus.failures||0)>0){ color='#df6b86'; }
-      else { color='#d4b066'; }
+        // Pipeline hasn't run yet — show neutral grey, not warning
+        color = '#3a3f49'; cls = '';
+      } else if(epStatus?.ok){ color='#57c08d'; cls='dep-ok'; }
+      else if(epStatus && (epStatus.failures||0)>0){ color='#df6b86'; cls='dep-bad'; }
+      else { color='#d4b066'; cls='dep-warn'; }
     }
-    path.style.fill = color;
+    dot.style.background = color;
+    card.className = 'dep-card' + (cls ? ' ' + cls : '');
   });
 }
 function updateStatusBadges(){
@@ -380,24 +423,25 @@ function updateStatusBadges(){
   const bAnimal = document.getElementById('badge-animal');
   if(bAnimal){
     const cls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
+    const animalLabel = {normal:t('badge.normal'), caution:t('badge.caution'), survival:t('badge.survival')}[animal] || animal.toUpperCase();
     bAnimal.className = `badge badge-${cls}`;
-    bAnimal.textContent = `DEFENSAS: ${animal.toUpperCase()}`;
+    bAnimal.textContent = `${t('badge.defensas')}: ${animalLabel}`;
   }
   const bSafe = document.getElementById('badge-safemode');
   if(bSafe){
     bSafe.className = `badge badge-${safe?'warn':'neutral'}`;
-    bSafe.textContent = `SAFE MODE: ${safe?'ON':'OFF'}`;
+    bSafe.textContent = `${t('badge.safemode')}: ${safe?t('badge.on'):t('badge.off')}`;
   }
   const bCb = document.getElementById('badge-circuit');
   if(bCb){
     bCb.className = `badge badge-${cbOpen?'bad':'ok'}`;
-    bCb.textContent = `CIRCUIT: ${cbOpen?'ABIERTO':'CERRADO'}`;
+    bCb.textContent = `${t('badge.circuit')}: ${cbOpen?t('badge.abierto'):t('badge.cerrado')}`;
   }
   const bEl = document.getElementById('badge-election');
   if(bEl){
     const elMode = document.getElementById('tog-election')?.checked || false;
     bEl.className = `badge badge-${elMode?'warn':'neutral'}`;
-    bEl.textContent = `ELECTION MODE: ${elMode?'ON':'OFF'}`;
+    bEl.textContent = `${t('badge.election')}: ${elMode?t('badge.on'):t('badge.off')}`;
   }
   _updateMissionBar();
 }
