@@ -879,11 +879,13 @@
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
       <div class="section" id="s7">
-        <div class="section-title">Red de Nodos <span class="sec-tip" data-tip="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demás para detectar cualquier manipulación en tiempo real.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span> <span class="sec-tip" data-tip-es="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demas para detectar cualquier manipulacion en tiempo real." data-tip-en="View of the P2P observer network. Each node independently validates the data and compares its result with others to detect any manipulation in real time.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
-          Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
-          el Merkle root con otros observadores para detectar manipulaciones en tiempo real.
+          <span data-lang="es">Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
+          el Merkle root con otros observadores para detectar manipulaciones en tiempo real.</span>
+          <span data-lang="en">Monitoring and control of the P2P swarm. Each node broadcasts its signed attestation and compares
+          its Merkle root with other observers to detect manipulation in real time.</span>
         </p>
 
         <!-- Estado + Control -->
@@ -892,27 +894,27 @@
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span id="swarm-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--muted)"></span>
               <div>
-                <span id="swarm-label" style="font-size:16px;font-weight:700;color:var(--muted)">DESCONECTADO</span>
-                <div id="swarm-hint" style="font-size:10px;color:var(--muted);margin-top:2px;opacity:.7">Red P2P de observadores — independiente del monitoreo. Conéctate antes o después de iniciar.</div>
+                <span id="swarm-label" style="font-size:16px;font-weight:700;color:var(--muted)"><span data-lang="es">DESCONECTADO</span><span data-lang="en">DISCONNECTED</span></span>
+                <div id="swarm-hint" style="font-size:10px;color:var(--muted);margin-top:2px;opacity:.7"><span data-lang="es">Red P2P de observadores — independiente del monitoreo. Conéctate antes o después de iniciar.</span><span data-lang="en">P2P observer network — independent of monitoring. Connect before or after starting.</span></div>
               </div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
               <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()" style="padding:10px 24px;font-size:13px">
-                Conectar a la red
+                <span data-lang="es">Conectar a la red</span><span data-lang="en">Connect to network</span>
               </button>
               <button class="hdr-btn" id="btn-disconnect" onclick="doSwarmDisconnect()" style="display:none;padding:10px 24px;font-size:13px">
-                Desconectar
+                <span data-lang="es">Desconectar</span><span data-lang="en">Disconnect</span>
               </button>
-              <button class="hdr-btn" onclick="refreshSwarmPanel()" style="padding:10px 14px;font-size:13px" title="Actualizar">↻</button>
+              <button class="hdr-btn" onclick="refreshSwarmPanel()" style="padding:10px 14px;font-size:13px" title="Actualizar / Refresh">↻</button>
             </div>
           </div>
           <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:10px;display:none">
-            <span>Mi nodo: </span>
-            <code id="swarm-node-id" style="cursor:pointer;color:var(--accent)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar"></code>
+            <span><span data-lang="es">Mi nodo</span><span data-lang="en">My node</span>: </span>
+            <code id="swarm-node-id" style="cursor:pointer;color:var(--accent)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar / Click to copy"></code>
             <span id="swarm-consensus-row" style="display:none">
-              &nbsp;&middot;&nbsp;Consenso: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
+              &nbsp;&middot;&nbsp;<span data-lang="es">Consenso</span><span data-lang="en">Consensus</span>: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
             </span>
-            <br>Último broadcast: <span id="swarm-last-bcast">—</span>
+            <br><span data-lang="es">Último broadcast</span><span data-lang="en">Last broadcast</span>: <span id="swarm-last-bcast">—</span>
           </div>
         </div>
 
@@ -921,34 +923,34 @@
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;border:1px solid var(--border)">
             <div style="text-align:center;padding:4px">
               <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-nodos">—</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">NODOS</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">NODOS</span><span data-lang="en">NODES</span></div>
             </div>
             <div style="text-align:center;padding:4px">
               <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-consenso">—</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">CONSENSO</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">CONSENSO</span><span data-lang="en">CONSENSUS</span></div>
             </div>
             <div style="text-align:center;padding:4px">
               <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-bft">—</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT TOLERANCIA</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT <span data-lang="es">TOLERANCIA</span><span data-lang="en">TOLERANCE</span></div>
             </div>
             <div style="text-align:center;padding:4px">
               <div style="font-size:22px;font-weight:700;color:#b08cf0" id="swarm-m-ring0">—</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 SEMILLA</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 <span data-lang="es">SEMILLA</span><span data-lang="en">SEED</span></div>
             </div>
             <div style="text-align:center;padding:4px">
               <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-ring1">—</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 CONFIABLE</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 <span data-lang="es">CONFIABLE</span><span data-lang="en">TRUSTED</span></div>
             </div>
             <div style="text-align:center;padding:4px">
               <div style="font-size:22px;font-weight:700;color:var(--bad)" id="swarm-m-compromised">—</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">COMPROMETIDOS</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">COMPROMETIDOS</span><span data-lang="en">COMPROMISED</span></div>
             </div>
           </div>
         </div>
 
         <!-- Nodos del enjambre (tarjetas visuales) -->
         <div class="ctrl-section" id="swarm-peers-section" style="display:none">
-          <h3>Nodos del enjambre (<span id="swarm-peer-count">0</span>)</h3>
+          <h3><span data-lang="es">Nodos del enjambre</span><span data-lang="en">Swarm nodes</span> (<span id="swarm-peer-count">0</span>)</h3>
           <div id="swarm-consensus-banner" style="display:none;margin:10px 0;padding:10px 14px;border-radius:8px;font-size:13px"></div>
           <div id="swarm-node-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px"></div>
           <div id="swarm-peers-table-wrap" style="overflow-x:auto;margin-top:12px;display:none">
@@ -956,10 +958,10 @@
               <thead>
                 <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
                   <th style="padding:6px 10px">Node ID</th>
-                  <th style="padding:6px 10px">País</th>
+                  <th style="padding:6px 10px"><span data-lang="es">País</span><span data-lang="en">Country</span></th>
                   <th style="padding:6px 10px">Snapshots</th>
                   <th style="padding:6px 10px">Merkle Root</th>
-                  <th style="padding:6px 10px">Sincronía</th>
+                  <th style="padding:6px 10px"><span data-lang="es">Sincronía</span><span data-lang="en">Sync</span></th>
                   <th style="padding:6px 10px">Timestamp</th>
                   <th style="padding:6px 10px"></th>
                 </tr>
@@ -971,31 +973,31 @@
 
         <!-- Coordinar enjambre -->
         <div class="ctrl-section" id="swarm-sala-section">
-          <h3>Coordinar enjambre</h3>
+          <h3><span data-lang="es">Coordinar enjambre</span><span data-lang="en">Coordinate swarm</span></h3>
           <div id="sala-pick" style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="hdr-btn primary" onclick="createSala()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              Invitar a otros →
+              <span data-lang="es">Invitar a otros →</span><span data-lang="en">Invite others →</span>
             </button>
             <button class="hdr-btn" onclick="salaTab('unirse')" style="flex:1;min-width:180px;padding:12px;font-size:13px">
-              Unirme a un enjambre →
+              <span data-lang="es">Unirme a un enjambre →</span><span data-lang="en">Join a swarm →</span>
             </button>
           </div>
           <div id="sala-crear-panel" style="display:none">
             <p style="font-size:12px;color:var(--ok);margin-bottom:14px">
-              Enjambre creado. Comparte esta invitación con los demás operadores.
+              <span data-lang="es">Enjambre creado. Comparte esta invitación con los demás operadores.</span><span data-lang="en">Swarm created. Share this invitation with the other operators.</span>
             </p>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Invitación para compartir</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px"><span data-lang="es">Invitación para compartir</span><span data-lang="en">Invitation to share</span></div>
             <div style="display:flex;gap:8px;align-items:stretch">
               <input id="sala-invite-text" type="text" readonly
                 style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
                   padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
                 onclick="this.select()" title="Clic para seleccionar">
-              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()">Copiar</button>
+              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()"><span data-lang="es">Copiar</span><span data-lang="en">Copy</span></button>
             </div>
             <div style="margin-top:14px;display:flex;gap:8px">
-              <button class="hdr-btn" onclick="salaTab('reset')" style="font-size:11px;color:var(--muted)">← Volver</button>
-              <button class="hdr-btn" onclick="createSala()">↻ Nuevo código</button>
-              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)">Ver detalles técnicos</button>
+              <button class="hdr-btn" onclick="salaTab('reset')" style="font-size:11px;color:var(--muted)">← <span data-lang="es">Volver</span><span data-lang="en">Back</span></button>
+              <button class="hdr-btn" onclick="createSala()">↻ <span data-lang="es">Nuevo código</span><span data-lang="en">New code</span></button>
+              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)"><span data-lang="es">Ver detalles técnicos</span><span data-lang="en">View technical details</span></button>
             </div>
             <div id="sala-tech-details" style="display:none;margin-top:10px">
               <div class="invite-box" id="sala-invite-json"></div>
@@ -1003,37 +1005,37 @@
           </div>
           <div id="sala-unirse-panel" style="display:none">
             <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
-              Pega aquí la invitación que te compartieron.
+              <span data-lang="es">Pega aquí la invitación que te compartieron.</span><span data-lang="en">Paste the invitation you were given here.</span>
             </p>
             <div style="display:flex;gap:8px;align-items:stretch">
-              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…"
+              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…" data-ph-es="Pega la invitación aquí…" data-ph-en="Paste the invitation here…"
                 style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
-              <button class="hdr-btn primary" onclick="joinSala()">Unirse →</button>
+              <button class="hdr-btn primary" onclick="joinSala()"><span data-lang="es">Unirse →</span><span data-lang="en">Join →</span></button>
             </div>
             <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
-            <button class="hdr-btn" onclick="salaTab('reset')" style="margin-top:12px;font-size:11px;color:var(--muted)">← Volver</button>
+            <button class="hdr-btn" onclick="salaTab('reset')" style="margin-top:12px;font-size:11px;color:var(--muted)">← <span data-lang="es">Volver</span><span data-lang="en">Back</span></button>
           </div>
         </div>
 
         <!-- Hallazgos con consenso multi-nodo -->
         <div class="ctrl-section" id="swarm-consensus-findings-section">
-          <h3>Hallazgos con consenso</h3>
+          <h3><span data-lang="es">Hallazgos con consenso</span><span data-lang="en">Consensus findings</span></h3>
           <p style="font-size:12px;color:var(--muted);margin:6px 0 12px">
-            Anomalías detectadas de forma independiente por 2 o más nodos del enjambre.
+            <span data-lang="es">Anomalías detectadas de forma independiente por 2 o más nodos del enjambre.</span><span data-lang="en">Anomalies detected independently by 2 or more swarm nodes.</span>
           </p>
           <div id="swarm-consensus-findings-wrap">
             <div style="font-size:12px;color:var(--muted);font-style:italic" id="swarm-consensus-empty">
-              Sin hallazgos con consenso aún.
+              <span data-lang="es">Sin hallazgos con consenso aún.</span><span data-lang="en">No consensus findings yet.</span>
             </div>
             <div style="overflow-x:auto;display:none" id="swarm-consensus-table-wrap">
               <table style="width:100%;border-collapse:collapse;font-size:12px">
                 <thead>
                   <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
-                    <th style="padding:6px 10px">Regla</th>
+                    <th style="padding:6px 10px"><span data-lang="es">Regla</span><span data-lang="en">Rule</span></th>
                     <th style="padding:6px 10px">Snapshot</th>
-                    <th style="padding:6px 10px">Nodos</th>
-                    <th style="padding:6px 10px">Severidad</th>
-                    <th style="padding:6px 10px">Último hallazgo</th>
+                    <th style="padding:6px 10px"><span data-lang="es">Nodos</span><span data-lang="en">Nodes</span></th>
+                    <th style="padding:6px 10px"><span data-lang="es">Severidad</span><span data-lang="en">Severity</span></th>
+                    <th style="padding:6px 10px"><span data-lang="es">Último hallazgo</span><span data-lang="en">Latest finding</span></th>
                   </tr>
                 </thead>
                 <tbody id="swarm-consensus-tbody"></tbody>
@@ -1046,25 +1048,25 @@
         <div class="ctrl-section">
           <h3 style="justify-content:space-between">
             <span>Reputación PBTM</span>
-            <button class="hdr-btn" onclick="loadReputationPanel()" style="font-size:11px;padding:3px 10px">↻</button>
+            <button class="hdr-btn" onclick="loadReputationPanel()" style="font-size:11px;padding:3px 10px" title="Actualizar / Refresh">↻</button>
           </h3>
           <div id="rep-ring-summary" style="display:none">
             <div style="display:flex;gap:16px;font-size:12px;margin-bottom:6px;flex-wrap:wrap">
               <span>Ring-0 <strong id="rep-r0-count" style="color:#b08cf0">—</strong></span>
               <span>Ring-1 <strong id="rep-r1-count" style="color:var(--ok)">—</strong></span>
               <span>Ring-2 <strong id="rep-r2-count" style="color:var(--muted)">—</strong></span>
-              <span style="color:var(--muted)">Total <strong id="rep-total" style="color:var(--fg)">—</strong></span>
+              <span style="color:var(--muted)"><span data-lang="es">Total</span><span data-lang="en">Total</span> <strong id="rep-total" style="color:var(--fg)">—</strong></span>
             </div>
             <div class="rep-ring-bar" id="rep-ring-bar"></div>
           </div>
           <div id="rep-nodes-list">
-            <div style="font-size:12px;color:var(--muted);font-style:italic">Sin datos — conecta el swarm para ver nodos.</div>
+            <div style="font-size:12px;color:var(--muted);font-style:italic"><span data-lang="es">Sin datos — conecta el swarm para ver nodos.</span><span data-lang="en">No data — connect the swarm to see nodes.</span></div>
           </div>
         </div>
 
         <!-- Actividad reciente -->
         <div class="ctrl-section" id="swarm-activity-section" style="display:none">
-          <h3>Actividad reciente</h3>
+          <h3><span data-lang="es">Actividad reciente</span><span data-lang="en">Recent activity</span></h3>
           <div id="swarm-activity-list" style="max-height:260px;overflow-y:auto"></div>
         </div>
 
@@ -1075,12 +1077,12 @@
         <div class="hist-modal-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
             <div>
-              <div style="font-size:13px;font-weight:700" id="hist-modal-title">Historial de reputación</div>
+              <div style="font-size:13px;font-weight:700" id="hist-modal-title"><span data-lang="es">Historial de reputación</span><span data-lang="en">Reputation history</span></div>
               <div style="font-size:11px;color:var(--muted);margin-top:2px" id="hist-modal-node"></div>
             </div>
             <button class="hdr-btn" onclick="closeSwarmHist()" style="padding:3px 10px;font-size:12px">✕</button>
           </div>
-          <div id="hist-modal-body"><div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div></div>
+          <div id="hist-modal-body"><div style="color:var(--muted);font-style:italic;font-size:12px"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></div></div>
         </div>
       </div>
 
