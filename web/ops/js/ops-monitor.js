@@ -1284,7 +1284,7 @@ async function loadElectionStatus() {
       if (banner) banner.style.display = '';
       if (openSec) openSec.style.display = 'none';
       const el = document.getElementById('ec-closed-at');
-      if (el) el.textContent = 'Cerrado: ' + (d.closed_at || '—');
+      if (el) el.textContent = t('ec.cerrado') + ': ' + (d.closed_at || '—');
       const em = document.getElementById('ec-merkle');
       if (em) em.textContent = d.merkle_root || '—';
       const ec = document.getElementById('ec-chain');
@@ -1293,8 +1293,8 @@ async function loadElectionStatus() {
       if (banner) banner.style.display = 'none';
       if (openSec) openSec.style.display = '';
       if (dot) dot.style.background = 'var(--ok)';
-      if (label) label.textContent = 'Elección en curso';
-      if (modeLine) modeLine.textContent = 'Modo: ' + (d.centinel_mode || '—') +
+      if (label) label.textContent = t('ec.eleccion_en_curso');
+      if (modeLine) modeLine.textContent = t('ec.modo') + ': ' + (d.centinel_mode || '—') +
         '  ·  Snapshots: ' + d.chain_length;
     }
   } catch(_) {}
@@ -1334,10 +1334,10 @@ async function doFinalizeElection() {
     pct = Math.min(pct + 0.4, 92);
     if (progressBar) progressBar.style.width = pct + '%';
     if (progressMsg) {
-      if (pct < 30) progressMsg.textContent = 'Iniciando raspe completo…';
-      else if (pct < 60) progressMsg.textContent = 'Descargando fuentes CNE…';
-      else if (pct < 85) progressMsg.textContent = 'Procesando y hasheando snapshots…';
-      else progressMsg.textContent = 'Finalizando cadena de hash…';
+      if (pct < 30) progressMsg.textContent = t('ec.iniciando_raspe');
+      else if (pct < 60) progressMsg.textContent = t('ec.descargando_fuentes');
+      else if (pct < 85) progressMsg.textContent = t('ec.procesando_hash');
+      else progressMsg.textContent = t('ec.finalizando_cadena');
     }
   }, 2000);
 
@@ -1352,7 +1352,7 @@ async function doFinalizeElection() {
 
     const d = await r.json();
     if (!r.ok) {
-      throw new Error(d.detail || 'Error desconocido');
+      throw new Error(d.detail || t('ec.error_desconocido'));
     }
 
     if (progressDiv) progressDiv.style.display = 'none';
@@ -1370,7 +1370,7 @@ async function doFinalizeElection() {
     if (progressDiv) progressDiv.style.display = 'none';
     if (errorDiv) {
       errorDiv.style.display = '';
-      errorDiv.textContent = 'Error: ' + err.message;
+      errorDiv.textContent = t('ec.error') + ': ' + err.message;
     }
     if (btnFinalize) btnFinalize.disabled = false;
   }
