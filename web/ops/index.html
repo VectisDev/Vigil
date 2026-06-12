@@ -106,20 +106,18 @@
   <div id="admin-content">
     <!-- SIDEBAR -->
     <nav id="sidebar">
-      <div class="sec-header"><span data-lang="es">Operación</span><span data-lang="en">Operations</span></div>
+      <div class="sec-header"><span data-lang="es">Vigilar</span><span data-lang="en">Monitor</span></div>
       <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
       <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
-      <div class="sec-header"><span data-lang="es">Configuración</span><span data-lang="en">Configuration</span></div>
-      <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
-      <div class="sec-header"><span data-lang="es">Integridad</span><span data-lang="en">Integrity</span></div>
-      <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
-      <div class="sec-header"><span data-lang="es">Monitoreo</span><span data-lang="en">Monitoring</span></div>
       <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
-      <div class="sec-header"><span data-lang="es">Cierre</span><span data-lang="en">Closeout</span></div>
-      <a href="#s8" onclick="scrollTo('s8')"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
-      <div class="sec-header"><span data-lang="es">Administración</span><span data-lang="en">Administration</span></div>
+      <div class="sec-header"><span data-lang="es">Configurar</span><span data-lang="en">Configure</span></div>
+      <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
       <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
+      <div class="sec-header"><span data-lang="es">Verificar</span><span data-lang="en">Verify</span></div>
+      <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
       <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
+      <div class="sec-header"><span data-lang="es">Cerrar elección</span><span data-lang="en">Close Election</span></div>
+      <a href="#s8" onclick="scrollTo('s8')"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
       <div id="sidebar-ops-zone">
         <div class="soz-sep"></div>
         <button id="btn-sidebar-iniciar" onclick="doIniciar()"
@@ -189,6 +187,7 @@
 
         <!-- Mapa de departamentos -->
         <div id="dept-section-label"><span data-lang="es">Divisiones electorales</span><span data-lang="en">Electoral divisions</span></div>
+        <div id="map-flex">
         <div id="adm-map-wrap" style="position:relative">
           <div id="dep-card-national" class="dep-national-badge" onclick="openMapPopup('00')" title="NACIONAL (00)">
             <span class="dep-dot" id="dep-dot-00" style="background:var(--accent)"></span>
@@ -209,6 +208,8 @@
               <button class="save" onclick="saveEndpointFromPopup()"><span data-lang="es">Guardar cambio</span><span data-lang="en">Save change</span></button>
             </div>
           </div>
+        </div>
+        <div id="map-narrative"><!-- filled by updateMapNarrative() --></div>
         </div>
         <div class="map-legend">
           <span><span class="dot" style="background:#57c08d"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
@@ -705,7 +706,7 @@
             <button onclick="toggleTimestamp()" title="Alternar timestamp relativo/absoluto / Toggle relative/absolute timestamp">🕐</button>
           </div>
           <div class="log-summary-bar" id="log-summary"></div>
-          <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Nivel</span><span data-lang="en">Level</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th><th><span data-lang="es">Regla / Kind</span><span data-lang="en">Rule / Kind</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><span data-lang="es">Sin actividad registrada.</span><span data-lang="en">No activity recorded.</span><span class="log-empty-hint"><span data-lang="es">Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.</span><span data-lang="en">Start monitoring with ▶ Start to see events here.</span></span></td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Nivel</span><span data-lang="en">Level</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th><th><span data-lang="es">Regla / Kind</span><span data-lang="en">Rule / Kind</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><svg class="log-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg><span class="log-empty-title"><span data-lang="es">Todo en calma — sin eventos que reportar.</span><span data-lang="en">All quiet — nothing to report.</span></span><span class="log-empty-hint"><span data-lang="es">Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.</span><span data-lang="en">Start monitoring with ▶ Start to see events here.</span></span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-general')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
           </div>
@@ -733,7 +734,7 @@
             <button onclick="fetchAttackLog()" title="Refrescar / Refresh">↻</button>
           </div>
           <div class="log-summary-bar" id="attack-summary"></div>
-          <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Tipo</span><span data-lang="en">Type</span></th><th>IP / Geo</th><th><span data-lang="es">Ruta</span><span data-lang="en">Route</span></th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6"><span data-lang="es">Sin ataques registrados.</span><span data-lang="en">No attacks recorded.</span><span class="log-empty-hint"><span data-lang="es">El sistema está vigilando — aparecerán aquí si se detecta actividad maliciosa.</span><span data-lang="en">The system is watching — they will appear here if malicious activity is detected.</span></span></td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Tipo</span><span data-lang="en">Type</span></th><th>IP / Geo</th><th><span data-lang="es">Ruta</span><span data-lang="en">Route</span></th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6"><svg class="log-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="log-empty-title"><span data-lang="es">Perímetro despejado.</span><span data-lang="en">Perimeter clear.</span></span><span class="log-empty-hint"><span data-lang="es">El sistema está vigilando activamente — cualquier actividad maliciosa aparecerá aquí.</span><span data-lang="en">The system is actively watching — any malicious activity will appear here.</span></span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-attacks')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
             <button onclick="generateIncidentReport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> <span data-lang="es">Reporte de incidente</span><span data-lang="en">Incident report</span></button>
@@ -751,7 +752,7 @@
             <input type="search" id="audit-search" class="term-search" placeholder="SHA, autor, mensaje…" data-ph-es="SHA, autor, mensaje…" data-ph-en="SHA, author, message…" oninput="onAuditSearch(this.value)">
             <button onclick="fetchAuditTrail()" title="Refrescar / Refresh">↻</button>
           </div>
-          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th><span data-lang="es">Tiempo</span><span data-lang="en">Time</span></th><th><span data-lang="es">Autor</span><span data-lang="en">Author</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><span data-lang="es">Historial de cambios en configuración.</span><span data-lang="en">Configuration change history.</span><span class="log-empty-hint"><span data-lang="es">Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.</span><span data-lang="en">Modify any control to connect your GitHub PAT and load the history.</span></span></td></tr></tbody></table></div>
+          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th><span data-lang="es">Tiempo</span><span data-lang="en">Time</span></th><th><span data-lang="es">Autor</span><span data-lang="en">Author</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><svg class="log-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span class="log-empty-title"><span data-lang="es">Sin cambios desde el último despliegue.</span><span data-lang="en">No changes since last deploy.</span></span><span class="log-empty-hint"><span data-lang="es">Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.</span><span data-lang="en">Modify any control to connect your GitHub PAT and load the history.</span></span></td></tr></tbody></table></div>
           <div class="log-footer">
             <button onclick="downloadPdf('log-audit')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
           </div>
