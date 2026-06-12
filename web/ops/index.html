@@ -40,14 +40,11 @@
     <span class="hdr-user" id="hdr-user">—</span>
     <span id="hdr-role"></span>
     <div id="vigil-toggles">
-      <div class="vigil-toggle">
-        <button id="btn-lang-es" class="active" onclick="setOpsLang('es')">ES</button>
-        <button id="btn-lang-en" onclick="setOpsLang('en')">EN</button>
-      </div>
-      <div class="vigil-toggle">
-        <button id="btn-theme-dark" onclick="setOpsTheme('dark')">Dark</button>
-        <button id="btn-theme-light" class="active" onclick="setOpsTheme('light')">Light</button>
-      </div>
+      <button id="theme-toggle" onclick="toggleOpsTheme()" title="Cambiar tema / Toggle theme">
+        <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button id="lang-toggle" onclick="toggleOpsLang()" title="Cambiar idioma / Switch language">EN</button>
     </div>
     <button class="hdr-btn" onclick="reloadConfig()" title="Sincronizar configuración desde GitHub" data-gtt-es="Sincronizar configuración desde GitHub" data-gtt-en="Sync configuration from GitHub"><span data-lang="es">↻ Sync config</span><span data-lang="en">↻ Sync config</span></button>
     <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
@@ -2095,16 +2092,22 @@ initAll = async function() { await _origInitAll(); loadDataSize(); };
 /* ── VIGIL THEME + LANG TOGGLES (shared across monitor/lab/ops) ── */
 function setOpsTheme(t){
   document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('btn-theme-dark').className  = t==='dark'  ? 'active' : '';
-  document.getElementById('btn-theme-light').className = t==='light' ? 'active' : '';
   localStorage.setItem('vigil-theme', t);
+}
+function toggleOpsTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setOpsTheme(cur === 'light' ? 'dark' : 'light');
 }
 function setOpsLang(l){
   document.body.className = 'lang-' + l;
-  document.getElementById('btn-lang-es').className = l==='es' ? 'active' : '';
-  document.getElementById('btn-lang-en').className = l==='en' ? 'active' : '';
+  const btn = document.getElementById('lang-toggle');
+  if(btn) btn.textContent = l === 'en' ? 'ES' : 'EN';
   localStorage.setItem('vigil-lang', l);
   if(window.refreshOpsLang) refreshOpsLang();
+}
+function toggleOpsLang(){
+  const cur = document.body.className === 'lang-en' ? 'en' : 'es';
+  setOpsLang(cur === 'en' ? 'es' : 'en');
 }
 setOpsTheme(localStorage.getItem('vigil-theme') || 'light');
 setOpsLang(localStorage.getItem('vigil-lang') || 'es');
