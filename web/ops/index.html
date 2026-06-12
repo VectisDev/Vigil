@@ -591,76 +591,76 @@
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
       <div class="section" id="s9">
-        <div class="section-title">Anclaje Bitcoin <span class="sec-tip" data-tip="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain vía OpenTimestamps para que cualquier auditor pueda verificar que los datos existían antes de cierto bloque, sin depender de Centinel.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de Centinel." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on Centinel.">ⓘ</span></div>
         <hr class="section-sep">
         <div class="ctrl-section" id="ots-section">
               <h3 style="justify-content:space-between">
                 <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                   OpenTimestamps
-                  <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin…"></span>
-                  <span id="ots-net-hint" class="ots-net-hint">probando red…</span>
+                  <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin... / Testing connectivity with Bitcoin calendars..."></span>
+                  <span id="ots-net-hint" class="ots-net-hint"><span data-lang="es">probando red…</span><span data-lang="en">probing network…</span></span>
                 </span>
                 <button id="btn-ots-toggle" onclick="onOtsToggle()"
                   style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
                   cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
-                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ Activo</button>
+                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ <span data-lang="es">Activo</span><span data-lang="en">Active</span></button>
               </h3>
               <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
                   <span id="ots-status-badge" class="badge badge-neutral">—</span>
-                  <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)">Último ancla: —</span>
+                  <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)"><span data-lang="es">Último ancla</span><span data-lang="en">Last anchor</span>: —</span>
                 </div>
                 <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
                 <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
               </div>
               <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span>Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el anclaje</strong> para evitar esperas innecesarias.</span>
+                <span><span data-lang="es">Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el anclaje</strong> para evitar esperas innecesarias.</span><span data-lang="en">Bitcoin calendars unreachable. In offline (air-gapped) environments, anchoring causes timeouts. <strong>Disable anchoring</strong> to avoid unnecessary waits.</span></span>
               </div>
               <input type="checkbox" id="tog-ots" checked style="display:none">
               <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-                <label>Servidor OTS <span class="tip-left" data-tip="Elige un servidor público gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios.">ⓘ</span></label>
+                <label><span data-lang="es">Servidor OTS</span><span data-lang="en">OTS server</span> <span class="tip-left sec-tip" data-tip-es="Elige un servidor publico gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios." data-tip-en="Choose a free public server or enter your own. Pools distribute the load across several calendars.">ⓘ</span></label>
                 <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
-                  <option value="https://a.pool.opentimestamps.org">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
+                  <option value="https://a.pool.opentimestamps.org" data-label-es="🏊 Pool A — a.pool.opentimestamps.org (recomendado)" data-label-en="🏊 Pool A — a.pool.opentimestamps.org (recommended)">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
                   <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
                   <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
                   <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
                   <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
                   <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
                   <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
-                  <option value="__custom__">✏️ Personalizado…</option>
+                  <option value="__custom__" data-label-es="✏️ Personalizado…" data-label-en="✏️ Custom…">✏️ Personalizado…</option>
                 </select>
-                <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+                <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" data-ph-es="https://mi-servidor-ots.org" data-ph-en="https://my-ots-server.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
               </div>
               <details>
-                <summary style="font-size:12px;font-weight:600;color:var(--muted)">¿Qué es OTS y cómo verificar?</summary>
+                <summary style="font-size:12px;font-weight:600;color:var(--muted)"><span data-lang="es">¿Qué es OTS y cómo verificar?</span><span data-lang="en">What is OTS and how to verify?</span></summary>
                 <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
-                  <p>Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</p>
-                  <p style="margin-top:8px"><strong>Calendarios usados (gratuitos, sin API key):</strong></p>
+                  <p><span data-lang="es">Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</span><span data-lang="en">Each checkpoint has a <strong>Merkle root</strong> (digital fingerprint). OTS sends it to 4 public calendars that include it in a Bitcoin transaction. Any auditor can verify the data existed before a certain block without relying on Centinel.</span></p>
+                  <p style="margin-top:8px"><strong><span data-lang="es">Calendarios usados (gratuitos, sin API key):</span><span data-lang="en">Calendars used (free, no API key):</span></strong></p>
                   <ul style="margin:4px 0 0 16px">
                     <li>alice.btc.calendar.opentimestamps.org</li>
                     <li>bob.btc.calendar.opentimestamps.org</li>
                     <li>finney.calendar.eternitywall.com</li>
                     <li>ots.btc.catallaxy.com</li>
                   </ul>
-                  <p style="margin-top:8px"><strong>Para verificar una prueba OTS:</strong></p>
+                  <p style="margin-top:8px"><strong><span data-lang="es">Para verificar una prueba OTS:</span><span data-lang="en">To verify an OTS proof:</span></strong></p>
                   <ol style="margin:4px 0 0 16px">
-                    <li>Descarga el archivo <code>.ots</code> del checkpoint</li>
+                    <li><span data-lang="es">Descarga el archivo <code>.ots</code> del checkpoint</span><span data-lang="en">Download the checkpoint\u2019s <code>.ots</code> file</span></li>
                     <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
-                    <li>O usa <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> online</li>
+                    <li><span data-lang="es">O usa</span><span data-lang="en">Or use</span> <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> <span data-lang="es">en línea</span><span data-lang="en">online</span></li>
                   </ol>
-                  <p style="margin-top:8px">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</p>
-                  <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px">Probar conectividad ahora</button>
+                  <p style="margin-top:8px"><span data-lang="es">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</span><span data-lang="en">If OTS is unavailable, snapshots continue normally and pending roots are retried on the next cycle.</span></p>
+                  <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px"><span data-lang="es">Probar conectividad ahora</span><span data-lang="en">Test connectivity now</span></button>
                   <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
                 </div>
               </details>
               <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px">
-                <button class="hdr-btn" onclick="exportCustodyReport()" title="Genera un informe PDF con el registro de sesión, estado OTS, alertas y commits — para auditoría o evidencia legal">
+                <button class="hdr-btn" onclick="exportCustodyReport()" title="Genera un informe PDF con el registro de sesion, estado OTS, alertas y commits, para auditoria o evidencia legal / Generates a PDF report with session log, OTS status, alerts and commits, for audit or legal evidence">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><rect x="3" y="19" width="18" height="2" rx="1"/></svg>
-                  Exportar cadena de custodia
+                  <span data-lang="es">Exportar cadena de custodia</span><span data-lang="en">Export custody chain</span>
                 </button>
-                <span style="font-size:11px;color:var(--muted)">Incluye sesión, OTS, alertas y commits de config</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">Incluye sesión, OTS, alertas y commits de config</span><span data-lang="en">Includes session, OTS, alerts and config commits</span></span>
               </div>
         </div>
       </div>
