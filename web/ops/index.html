@@ -166,10 +166,14 @@
         <!-- Tarjetas de estado -->
         <div class="cards-grid" id="sensor-cards"><!-- filled by JS --></div>
 
-        <!-- Grid de departamentos -->
+        <!-- Mapa de departamentos -->
         <div id="dept-section-label">Divisiones electorales</div>
         <div id="adm-map-wrap" style="position:relative">
-          <div id="dept-ep-grid"></div>
+          <div id="dep-card-national" class="dep-national-badge" onclick="openMapPopup('00')" title="NACIONAL (00)">
+            <span class="dep-dot" id="dep-dot-00" style="background:var(--accent)"></span>
+            <span>00 · NACIONAL</span>
+          </div>
+          <div id="hn-ops-map-container" style="max-width:420px;margin:8px auto;position:relative"></div>
           <div id="map-popup">
             <div class="mp-title">
               <span id="mp-dept-name">—</span>
