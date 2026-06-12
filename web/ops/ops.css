@@ -71,7 +71,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
 .auth-err{font-size:11px;color:var(--bad);margin-top:10px;min-height:16px;text-align:center}
 
 @media (max-width:480px){
-  .auth-card{left:16px;right:16px;max-width:none;top:64px}
+  .auth-card{right:12px;left:auto;max-width:240px;top:62px;padding:16px 18px}
 }
 
 /* ── HEADER ── */
