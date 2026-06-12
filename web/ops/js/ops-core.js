@@ -188,6 +188,14 @@ const I18N = {
     'badge.on':'ON', 'badge.off':'OFF', 'badge.abierto':'ABIERTO', 'badge.cerrado':'CERRADO',
     'dept.label':'{div} — {total} endpoints (1 nacional + {n})',
     'dept.divisiones':'Divisiones',
+    'ots.probing':'probando red…', 'ots.ok':'calendarios accesibles', 'ots.warn':'acceso parcial',
+    'ots.bad':'sin acceso (air-gapped?)', 'ots.off':'desactivado',
+    'ots.activo':'Activo', 'ots.inactivo':'Inactivo',
+    'ots.ultimo_ancla':'Último ancla', 'ots.cadena':'Cadena', 'ots.bloques':'bloques', 'ots.hash':'Hash',
+    'ots.probando':'Probando…',
+    'ots.test_ok':'✓ Servidor responde (o CORS bloqueado — esto es normal, no indica error).',
+    'ots.test_bad':'⚠ Sin respuesta. Puede ser CORS o entorno sin internet.',
+    'ots.raiz':'raíz', 'ots.raices':'raíces', 'ots.pendiente':'pendiente', 'ots.pendientes':'pendientes', 'ots.de_anclaje':'de anclaje',
   },
   en: {
     'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
@@ -211,6 +219,14 @@ const I18N = {
     'badge.on':'ON', 'badge.off':'OFF', 'badge.abierto':'OPEN', 'badge.cerrado':'CLOSED',
     'dept.label':'{div} — {total} endpoints (1 national + {n})',
     'dept.divisiones':'Divisions',
+    'ots.probing':'probing network…', 'ots.ok':'calendars reachable', 'ots.warn':'partial access',
+    'ots.bad':'no access (air-gapped?)', 'ots.off':'disabled',
+    'ots.activo':'Active', 'ots.inactivo':'Inactive',
+    'ots.ultimo_ancla':'Last anchor', 'ots.cadena':'Chain', 'ots.bloques':'blocks', 'ots.hash':'Hash',
+    'ots.probando':'Testing…',
+    'ots.test_ok':'✓ Server responds (or CORS blocked — this is normal, not an error).',
+    'ots.test_bad':'⚠ No response. May be CORS or an offline environment.',
+    'ots.raiz':'root', 'ots.raices':'roots', 'ots.pendiente':'pending', 'ots.pendientes':'pending', 'ots.de_anclaje':'to anchor',
   }
 };
 function t(key, vars){
@@ -224,6 +240,8 @@ function refreshOpsLang(){
   try{ updateSensorCards(); }catch(e){}
   try{ updateStatusBadges(); }catch(e){}
   try{ if(DEPTS && DEPTS.length) buildDeptGrid(); }catch(e){}
+  try{ _syncOtsBtn(); }catch(e){}
+  try{ loadOtsStatus(); }catch(e){}
 }
 window.refreshOpsLang = refreshOpsLang;
 
