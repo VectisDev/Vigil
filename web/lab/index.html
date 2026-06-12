@@ -7,6 +7,7 @@
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<link rel="stylesheet" href="../shared/vigil-nav.css">
 <style>
 :root{
   /* ── PALETA LABORATORIO — gris pizarra + oro + blanco hueso ── */
@@ -18,13 +19,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-size:14px;min-height:100vh}
 
-/* ── NAV ── */
-#breadcrumb{padding:10px 24px;background:var(--panel);border-bottom:1px solid var(--border);
-  font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
-#breadcrumb span{color:var(--fg)}
-#breadcrumb a{color:var(--muted);text-decoration:none}
-#breadcrumb a:hover{color:var(--fg)}
-#dl-btn{margin-left:auto;display:flex;gap:6px}
+/* ── NAV ── (breadcrumb + titlebar viven en ../shared/vigil-nav.css) */
+#dl-btn{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 .dl-pill{background:transparent;border:1px solid var(--border);color:var(--muted);
   border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;
   letter-spacing:.03em;transition:.15s}
@@ -32,7 +28,7 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 
 /* ── CONSOLA DE REPRODUCCIÓN FORENSE ── */
 #sim-control-bar{
-  position:sticky;top:0;z-index:150;
+  position:sticky;top:calc(var(--vigil-bc-height, 28px) + var(--vigil-titlebar-height, 52px));z-index:150;
   background:rgba(17,24,39,.97);backdrop-filter:blur(8px);
   border-bottom:2px solid rgba(212,175,55,.35);
   padding:8px 20px;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;overflow:hidden;
@@ -580,7 +576,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 .inj-dur-sel{background:var(--bg);border:1px solid var(--border);color:var(--txt);border-radius:4px;padding:2px 5px;font-size:10px;margin-left:4px}
 
 @media print{
-  #breadcrumb,#sim-control-bar,.section-title,
+  #vigil-breadcrumb,#vigil-titlebar,#sim-control-bar,.section-title,
   #thresh-section,#inj-section,#telem-section,
   .thresh-lock-panel,.inj-active-block,#anom-marker-row,#inj-topbar{display:none!important}
   body{background:#0f1115!important;color:#e7e9ec!important}
@@ -601,12 +597,13 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <button class="overlay-restore" onclick="restoreVis()">Restaurar visualización</button>
 </div>
 
-<!-- BREADCRUMB -->
-<div id="breadcrumb">
-  <a href="../">VIGIL</a>
-  <span class="sep">/</span>
-  <span>Simulación Forense Académica</span>
-  <span class="lab-env-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M9 3h6"/><path d="M9 3v7l-4.5 7.5A2 2 0 0 0 6 20h12a2 2 0 0 0 1.72-3L15 10V3"/><line x1="6.5" y1="15" x2="17.5" y2="15"/></svg>LABORATORIO</span>
+<!-- ── VIGIL NAV (estandarizado, compartido con /ops/ y /monitor/) ── -->
+<nav id="vigil-breadcrumb">
+  <a href="../">VIGIL</a><span class="vigil-sep">/</span><span>Lab</span>
+</nav>
+<div id="vigil-titlebar">
+  <span id="vigil-title"><a href="../">VIGIL</a> &middot; Lab</span>
+  <span class="lab-env-pill" style="margin-left:8px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M9 3h6"/><path d="M9 3v7l-4.5 7.5A2 2 0 0 0 6 20h12a2 2 0 0 0 1.72-3L15 10V3"/><line x1="6.5" y1="15" x2="17.5" y2="15"/></svg>LABORATORIO</span>
   <div id="dl-btn">
     <button class="dl-pill" onclick="downloadFullPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
     <button class="dl-pill" onclick="downloadPDF()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PDF</button>
