@@ -547,18 +547,61 @@ details .details-body{padding:12px 0 4px}
   background:rgba(87,192,141,.08);color:var(--ok);text-transform:uppercase;letter-spacing:.08em;
   transition:background .15s;white-space:nowrap}
 #unlock-alert-bar .uab-btn:hover{background:rgba(87,192,141,.18)}
-/* mission bar */
-#mission-bar{position:sticky;top:var(--hdr-height);z-index:199;height:28px;background:var(--panel);
-  border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;
-  font-family:var(--mono);font-size:10px;overflow:hidden;flex-shrink:0}
-.ms-item{display:flex;align-items:center;gap:5px;padding:0 10px}
-.ms-label{color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.ms-val{color:var(--fg);font-weight:600}
-.ms-val.nominal{color:var(--ok);text-shadow:0 0 6px var(--ok-glow)}
-.ms-val.alerta{color:var(--warn);text-shadow:0 0 6px var(--warn-glow)}
-.ms-val.critico{color:var(--bad);text-shadow:0 0 6px var(--bad-glow)}
-.ms-sep{color:var(--border);padding:0 2px}
-.ms-clock .ms-val{color:var(--accent);font-variant-numeric:tabular-nums}
+/* ── COMMAND HEADER ── estado global de un vistazo */
+#command-header{position:sticky;top:var(--hdr-height);z-index:199;background:var(--panel);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:32px;
+  padding:18px 24px;flex-shrink:0;flex-wrap:wrap}
+
+/* status ring */
+#status-ring-wrap{position:relative;width:92px;height:92px;flex-shrink:0}
+#status-ring{transform:rotate(-90deg)}
+#status-ring .ring-track{stroke:var(--border)}
+#status-ring .ring-fill{stroke:var(--ok);transition:stroke .3s ease,stroke-dashoffset .6s ease}
+#status-ring-wrap.ring-alert #status-ring .ring-fill{stroke:var(--bad)}
+#status-ring-wrap.ring-warn  #status-ring .ring-fill{stroke:var(--warn)}
+#status-ring-wrap.ring-alert{animation:ring-pulse 1.6s ease-in-out infinite}
+@keyframes ring-pulse{
+  0%,100%{filter:drop-shadow(0 0 0 transparent)}
+  50%{filter:drop-shadow(0 0 8px var(--bad-glow))}
+}
+#status-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:2px}
+.ring-sys-label{font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.ring-sys-val{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--fg);letter-spacing:.04em}
+.ring-sys-val.nominal{color:var(--ok)}
+.ring-sys-val.alerta{color:var(--bad)}
+
+/* hero stats */
+#command-stats{display:flex;gap:36px;flex-wrap:wrap}
+.cmd-stat{display:flex;flex-direction:column;gap:2px}
+.cmd-stat-val{font-family:var(--sans);font-size:32px;font-weight:700;color:var(--fg);
+  line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.cmd-stat-val.alerta{color:var(--warn)}
+.cmd-stat-val.critico{color:var(--bad)}
+.cmd-stat-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+
+/* secondary row (country / clocks) */
+#command-secondary{display:flex;gap:24px;margin-left:auto;flex-wrap:wrap}
+.cmd-sec-item{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.cmd-sec-label{font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.cmd-sec-item .ms-val{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--fg);
+  font-variant-numeric:tabular-nums}
+.cmd-sec-item .ms-val.nominal{color:var(--ok)}
+.cmd-sec-item .ms-val.alerta{color:var(--warn)}
+.cmd-sec-item .ms-val.critico{color:var(--bad)}
+
+@media (max-width:900px){
+  #command-header{gap:20px;padding:16px}
+  #command-stats{gap:20px}
+  .cmd-stat-val{font-size:24px}
+  #command-secondary{margin-left:0;width:100%;justify-content:flex-start;gap:20px}
+  .cmd-sec-item{align-items:flex-start}
+}
+@media (max-width:600px){
+  #status-ring-wrap{width:72px;height:72px}
+  #status-ring{width:72px;height:72px}
+  .cmd-stat-val{font-size:20px}
+}
 /* sidebar ops zone */
 #sidebar-ops-zone{padding:8px 12px 0;display:flex;flex-direction:column;gap:6px}
 .soz-sep{height:1px;background:var(--border);margin-bottom:4px}
