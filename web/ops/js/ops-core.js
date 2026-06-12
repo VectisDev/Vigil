@@ -207,6 +207,15 @@ const I18N = {
     'log.total':'total',
     'log.auto_refresco_inactivo':'Auto-refresco inactivo', 'log.live_activo':'Live activo (30s) — clic para detener',
     'log.sin_acciones':'Sin acciones registradas.', 'log.acciones_tiempo_real':'Las acciones del operador aparecerán aquí en tiempo real.',
+    'seed.configurado':'Sistema configurado', 'seed.pais':'País', 'seed.configurado_el':'Configurado',
+    'seed.ultima_regen':'Última regeneración', 'seed.nunca':'Nunca', 'seed.claves_activas':'Claves activas',
+    'seed.no_configurado':'Sistema no configurado aún. Ejecuta el wizard de inicio.',
+    'seed.error_carga':'No se pudo cargar el estado.',
+    'seed.ingresa_clave':'Ingresa la clave para autenticar.',
+    'seed.regenerando':'Regenerando…', 'seed.si_regenerar':'Sí, regenerar ahora',
+    'seed.error_prefix':'Error',
+    'seed.modo_pages':'En modo Pages no hay API local.', 'seed.abre_workflow':'Abre el workflow "Regenerate Admin Seeds"',
+    'seed.run_workflow_hint':'en GitHub Actions. Haz clic en "Run workflow", luego descarga el artifact de seeds (expira en 24h).',
   },
   en: {
     'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
@@ -249,6 +258,15 @@ const I18N = {
     'log.total':'total',
     'log.auto_refresco_inactivo':'Auto-refresh inactive', 'log.live_activo':'Live active (30s) — click to stop',
     'log.sin_acciones':'No actions recorded.', 'log.acciones_tiempo_real':'Operator actions will appear here in real time.',
+    'seed.configurado':'System configured', 'seed.pais':'Country', 'seed.configurado_el':'Configured',
+    'seed.ultima_regen':'Last regeneration', 'seed.nunca':'Never', 'seed.claves_activas':'Active keys',
+    'seed.no_configurado':'System not configured yet. Run the setup wizard.',
+    'seed.error_carga':'Could not load status.',
+    'seed.ingresa_clave':'Enter the key to authenticate.',
+    'seed.regenerando':'Regenerating…', 'seed.si_regenerar':'Yes, regenerate now',
+    'seed.error_prefix':'Error',
+    'seed.modo_pages':'No local API available in Pages mode.', 'seed.abre_workflow':'Open the "Regenerate Admin Seeds" workflow',
+    'seed.run_workflow_hint':'on GitHub Actions. Click "Run workflow", then download the seeds artifact (expires in 24h).',
   }
 };
 function t(key, vars){
@@ -268,6 +286,7 @@ function refreshOpsLang(){
   try{ renderAttackLog(); }catch(e){}
   try{ renderAuditTrail(); }catch(e){}
   try{ _renderSessionLog(); }catch(e){}
+  try{ loadSeedStatus(); }catch(e){}
 }
 window.refreshOpsLang = refreshOpsLang;
 
