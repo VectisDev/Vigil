@@ -189,6 +189,13 @@ const I18N = {
     'dept.label':'{div} — {total} endpoints (1 nacional + {n})',
     'dept.divisiones':'Divisiones',
     'dept.map_unavailable':'Mapa no disponible',
+    'map.narrative_ok':'Sin anomalías detectadas',
+    'map.narrative_ok_sub':'Todos los departamentos configurados reportan con normalidad.',
+    'map.narrative_down':'Caído',
+    'map.narrative_late':'Tardío',
+    'map.narrative_ok_dept':'OK',
+    'map.narrative_nodata':'Sin datos',
+    'map.narrative_last':'Último evento',
     'ots.probing':'probando red…', 'ots.ok':'calendarios accesibles', 'ots.warn':'acceso parcial',
     'ots.bad':'sin acceso (air-gapped?)', 'ots.off':'desactivado',
     'ots.activo':'Activo', 'ots.inactivo':'Inactivo',
@@ -262,6 +269,13 @@ const I18N = {
     'dept.label':'{div} — {total} endpoints (1 national + {n})',
     'dept.divisiones':'Divisions',
     'dept.map_unavailable':'Map unavailable',
+    'map.narrative_ok':'No anomalies detected',
+    'map.narrative_ok_sub':'All configured departments are reporting normally.',
+    'map.narrative_down':'Down',
+    'map.narrative_late':'Delayed',
+    'map.narrative_ok_dept':'OK',
+    'map.narrative_nodata':'No data',
+    'map.narrative_last':'Last event',
     'ots.probing':'probing network…', 'ots.ok':'calendars reachable', 'ots.warn':'partial access',
     'ots.bad':'no access (air-gapped?)', 'ots.off':'disabled',
     'ots.activo':'Active', 'ots.inactivo':'Inactive',
@@ -540,12 +554,60 @@ function updateDeptGrid(){
 
   // Map path fills
   const svg = document.getElementById('ops-hn-map');
-  if(!svg) return;
-  DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
-    const path = svg.querySelector('#'+dept.iso) || svg.getElementById(dept.iso);
-    if(!path) return;
-    path.style.fill = deptDotColor(dept.code, configured);
+  if(svg){
+    DEPTS.filter(d => d.code !== '00' && d.iso).forEach(dept => {
+      const path = svg.querySelector('#'+dept.iso) || svg.getElementById(dept.iso);
+      if(!path) return;
+      path.style.fill = deptDotColor(dept.code, configured);
+      path.classList.remove('dept-recent');
+    });
+  }
+
+  updateMapNarrative(svg, configured);
+}
+
+// Fase D — panel narrativo: identifica el evento más reciente/relevante
+// y resalta el departamento correspondiente sobre el mapa.
+function updateMapNarrative(svg, configured){
+  const panel = document.getElementById('map-narrative');
+  if(!panel) return;
+  const eps = snapshotData?.endpoints_status || {};
+  let pick = null; // {dept, status, severity}
+  const sevRank = {bad:2, warn:1, ok:0, neutral:-1};
+
+  DEPTS.filter(d => d.code !== '00' && configured.includes(d.code)).forEach(dept => {
+    const status = getEndpointStatus(dept.code);
+    if(!pick || sevRank[status.cls] > sevRank[pick.status.cls]){
+      pick = {dept, status};
+    }
   });
+
+  if(!pick || !snapshotData){
+    panel.innerHTML = `
+      <div class="mn-icon mn-icon-ok"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      <div class="mn-text">
+        <div class="mn-title" data-lang-es="Sin anomalías detectadas" data-lang-en="No anomalies detected">${t('map.narrative_ok')||'Sin anomalías detectadas'}</div>
+        <div class="mn-sub" data-lang-es="Todos los departamentos configurados reportan con normalidad." data-lang-en="All configured departments are reporting normally.">${t('map.narrative_ok_sub')||'Todos los departamentos configurados reportan con normalidad.'}</div>
+      </div>`;
+    return;
+  }
+
+  const {dept, status} = pick;
+  const sevClass = {bad:'mn-icon-bad', warn:'mn-icon-warn', ok:'mn-icon-ok', neutral:'mn-icon-ok'}[status.cls];
+  const verb = {bad:t('map.narrative_down')||'Caído', warn:t('map.narrative_late')||'Tardío', ok:t('map.narrative_ok_dept')||'OK', neutral:t('map.narrative_nodata')||'Sin datos'}[status.cls];
+
+  panel.innerHTML = `
+    <div class="mn-icon ${sevClass}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+    <div class="mn-text">
+      <div class="mn-title">${dept.name} <span class="mn-code">(${dept.code})</span></div>
+      <div class="mn-sub"><span class="badge badge-${status.cls}" style="margin-right:6px">${verb}</span>${t('map.narrative_last')||'Último evento'}: ${status.lastOk}</div>
+    </div>`;
+
+  // Auto-highlight on the map
+  if(svg && dept.iso && status.cls !== 'ok'){
+    const path = svg.querySelector('#'+dept.iso) || svg.getElementById(dept.iso);
+    if(path) path.classList.add('dept-recent');
+  }
 }
 
 // Single source of truth for the 4-color legend
@@ -564,33 +626,6 @@ function getEndpointUrl(code){
   return ep.find(e => (e.department_code||'').toString().padStart(2,'0') === code)?.url || '';
 }
 
-function updateDeptGrid(){
-  if(!snapshotData) return;
-  const epsRaw = snapshotData?.endpoints_status;
-  const hasPipelineData = epsRaw && (Array.isArray(epsRaw) ? epsRaw.length > 0 : Object.keys(epsRaw).length > 0);
-  const eps = hasPipelineData && !Array.isArray(epsRaw) ? epsRaw : {};
-  const epCfg = localConfig['config/prod/endpoints.yaml'] || {};
-  const configured = (epCfg?.cne?.presidential_endpoints || [])
-    .map(e => (e.department_code || '').toString().padStart(2,'0'));
-
-  DEPTS.filter(d => d.code !== '00').forEach(dept => {
-    const card = document.getElementById(`dep-card-${dept.code}`);
-    const dot  = document.getElementById(`dep-dot-${dept.code}`);
-    if(!card || !dot) return;
-    const epStatus = eps[dept.code];
-    let color = '#3a3f49', cls = '';
-    if(configured.includes(dept.code)){
-      if(!hasPipelineData){
-        // Pipeline hasn't run yet — show neutral grey, not warning
-        color = '#3a3f49'; cls = '';
-      } else if(epStatus?.ok){ color='#57c08d'; cls='dep-ok'; }
-      else if(epStatus && (epStatus.failures||0)>0){ color='#df6b86'; cls='dep-bad'; }
-      else { color='#d4b066'; cls='dep-warn'; }
-    }
-    dot.style.background = color;
-    card.className = 'dep-card' + (cls ? ' ' + cls : '');
-  });
-}
 function updateStatusBadges(){
   const ep = localConfig['config/prod/endpoints.yaml'] || {};
   const animal = ep?.healing?.animal_mode || 'normal';
