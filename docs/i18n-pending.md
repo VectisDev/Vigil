@@ -28,32 +28,8 @@ Toggle EN/ES: `#lang-toggle`, persistido en `localStorage.vigil-lang`.
 
 ## ⏳ PENDIENTE
 
-### Bloque P1 — Mensajes de control sueltos (~30 `logE`/`logSE`/`logSA`)
-Dispersos en distintos handlers (play/pause/stop/loop, exports PNG/CSV/BibTeX/ZIP, carga de dataset/sesión, errores). Mayormente strings simples sin interpolación compleja — candidatos directos para `_LOG_FULL_EN`.
-
-Lista (ES → agregar a `_LOG_FULL_EN`):
-- "Simulación iniciada — velocidad {N}×" / "Simulación pausada" / "Simulación detenida y reiniciada" / "Simulación completada"
-- "Loop activado" / "Loop desactivado"
-- "Sandbox Forense Académico listo — CENTINEL v1"
-- "Selecciona un dataset y presiona ▶ para iniciar la simulación"
-- "No hay gráficas — inicia la simulación primero" (×2)
-- "PNG del panel descargado" / "PNG de umbrales descargado" / "PNG de inyecciones descargado" / "PNG completo de la plataforma descargado"
-- "Canvas bloqueado — baja los shields (para esta página)" (×3 variantes)
-- "Log {panel} descargado como TXT"
-- "Abriendo diálogo de impresión — selecciona "Guardar como PDF""
-- "BibTeX descargado: centinel-{sid}.bib"
-- "Inicia la simulación para exportar estadísticas" / "Inicia la simulación primero"
-- "CSV descargado ({N} alertas · 24 umbrales)"
-- "JSZip no disponible — descargando CSV y BibTeX por separado"
-- "ZIP reproducible descargado: ..."
-- "Dataset "{label}" cargado — {N} snapshots"
-- "Sesión cargada: {label}"
-- "Error cargando sesión: " / "Dataset no encontrado: "
-- "Inyección programada: {label} en snapshot {idx}"
-- "Pre-registro de umbrales bloqueado por investigador" / "...cancelado — sliders bloqueados"
-- "Sistema de visualización restaurado"
-
-**Estimación:** bajo riesgo, ~1-2 horas. Mayormente strings completos sin lógica condicional compleja.
+### ✅ Bloque P1 — Mensajes de control sueltos — COMPLETADO
+Commit `85a996219453`. Las ~30 cadenas (play/pause/stop/loop, exports PNG/CSV/BibTeX/ZIP/TXT, carga dataset/sesión, pre-registro, errores) ahora pasan por `_trMsg`/`_LOG_FULL_EN`/`_LOG_PHRASES_EN`. Bonus: tags de "Inyecciones activas"/"Cancelar" ahora usan `evLabel()` y son bilingües. Verificado en vivo sin errores.
 
 ### Bloque P2 — Sección Swarm/Bizantino (la más grande restante)
 HTML: ~17,600 chars, 79 fragmentos visibles estáticos + ~10 funciones JS con contenido dinámico.
