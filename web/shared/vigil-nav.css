@@ -1,57 +1,32 @@
 /* ═══════════════════════════════════════════════════════════════
    VIGIL — Shared Navigation Header
    ───────────────────────────────────────────────────────────────
-   Canonical two-row header used by /ops/, /monitor/, /lab/.
-   Single source of truth — do NOT duplicate these rules in
-   page-specific CSS. Override only via CSS custom properties
-   defined on :root.
+   Canonical SINGLE-ROW header used by /monitor/ (and optionally
+   /ops/, /lab/). Single source of truth — do NOT duplicate these
+   rules in page-specific CSS. Override only via CSS custom
+   properties defined on :root.
 
    Estructura HTML esperada:
 
-     <nav id="vigil-breadcrumb">
-       <a href="../">VIGIL</a><span class="vigil-sep">/</span><span>SECCIÓN</span>
-     </nav>
      <div id="vigil-titlebar">
-       <span id="vigil-title">VIGIL · SECCIÓN</span>
+       <span id="vigil-title">
+         <a href="../">VIGIL</a><span class="vigil-sep">/</span><span>SECCIÓN</span>
+       </span>
        <!-- contenido específico de la página (botones, status) a la derecha -->
      </div>
 
+   "VIGIL" es el botón de regreso a la landing — ligeramente en
+   negrita para distinguirlo como interactivo, mientras el resto
+   del breadcrumb mantiene el estilo mono/uppercase/atenuado.
+
    Variables CSS leídas del :root del documento que lo incluye
-   (--bg, --panel, --border, --fg, --muted, --accent, --mono, --sans).
-   Si alguna no existe, se aplican fallbacks razonables.
+   (--bg, --border, --fg, --muted, --mono). Si alguna no existe,
+   se aplican fallbacks razonables.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── BREADCRUMB (fila superior, mono, pequeña) ── */
-#vigil-breadcrumb {
-  position: sticky;
-  top: 0;
-  z-index: 201;
-  height: var(--vigil-bc-height, 28px);
-  box-sizing: border-box;
-  padding: 7px 24px;
-  background: var(--bg, #ffffff);
-  border-bottom: 1px solid var(--border, #e0e0dc);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--mono, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted, #6b6b6b);
-}
-#vigil-breadcrumb a {
-  color: var(--muted, #6b6b6b);
-  text-decoration: none;
-  transition: color .15s;
-}
-#vigil-breadcrumb a:hover { color: var(--fg, #0a0a0a); }
-#vigil-breadcrumb .vigil-sep { opacity: .35; }
-
-/* ── TITLE BAR (fila principal: VIGIL · SECCIÓN + controles a la derecha) ── */
 #vigil-titlebar {
   position: sticky;
-  top: var(--vigil-bc-height, 28px);
+  top: 0;
   z-index: 200;
   height: var(--vigil-titlebar-height, 52px);
   box-sizing: border-box;
@@ -64,20 +39,30 @@
   flex-wrap: wrap;
   font-size: 13px;
 }
+
+/* breadcrumb-style section identifier — doubles as the back link */
 #vigil-title {
-  font-family: var(--sans, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
+  font-size: 12px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--fg, #0a0a0a);
+  color: var(--muted, #6b6b6b);
   white-space: nowrap;
   margin-right: 6px;
 }
-#vigil-title a { color: inherit; text-decoration: none; }
+#vigil-title a {
+  color: var(--muted, #6b6b6b);
+  text-decoration: none;
+  font-weight: 600; /* slightly bold — signals "this is the back button" */
+  transition: color .15s;
+}
+#vigil-title a:hover { color: var(--fg, #0a0a0a); }
+#vigil-title .vigil-sep { opacity: .35; }
 
 /* ── Mobile ── */
 @media (max-width: 600px) {
-  #vigil-breadcrumb { padding: 6px 12px; }
   #vigil-titlebar { padding: 0 12px; gap: 8px; }
 }
