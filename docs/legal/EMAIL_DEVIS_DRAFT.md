@@ -24,8 +24,9 @@ colaboración y co-autoría.
 3. **THRESHOLD_CALIBRATION_HN2025.md** — Calibración de umbrales contra
    63 snapshots reales del CNE (elecciones noviembre 2025).
 
-4. **Preprint arXiv (borrador PDF)** — Listo para envío, pendiente su
-   revisión y co-autoría con afiliación UPNFM.
+4. **Preprint arXiv (borrador PDF)** — Ya enviado a arXiv (sin
+   bloqueantes). Si usted confirma su rol de validación, podemos
+   publicar una v2 agregándolo como co-autor con afiliación UPNFM.
 
 5. **Dataset en Zenodo** — Los 64 archivos JSON del CNE están publicados
    con DOI permanente: https://doi.org/10.5281/zenodo.20598892
@@ -37,10 +38,11 @@ colaboración y co-autoría.
 - Aparecer como co-autor en el preprint arXiv con afiliación UPNFM.
 - Revisar el borrador de MOU adjunto para formalizar la colaboración.
 
-Su validación académica es el componente que falta para que CENTINEL
-sea tomado en serio por organismos como la OEA y el Carter Center,
-y para fortalecer la propuesta de financiamiento ante el Open Technology
-Fund (OTF) de Washington.
+Su validación académica fortalecería considerablemente la credibilidad
+de CENTINEL ante organismos como la OEA y el Carter Center, y la
+propuesta de financiamiento ante el Open Technology Fund (OTF) de
+Washington — aunque el proyecto avanza de forma independiente en
+todos sus frentes.
 
 Todo el código y datos son completamente reproducibles:
 
