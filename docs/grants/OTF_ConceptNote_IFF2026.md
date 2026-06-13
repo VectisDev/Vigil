@@ -5,7 +5,7 @@
 **Referencia:** IFF-2026-06  
 **Fecha de preparación:** 2026-06-07  
 **Solicitante:** Carlos Zelaya — Desarrollador Principal CENTINEL  
-**Patrocinador institucional:** IGETEL S.A. (en negociación)  
+**Patrocinador institucional:** IGETEL S.A. (relación de fiscal sponsor — personalidad jurídica e infraestructura bancaria; sin riesgo financiero para IGETEL)  
 **Estado:** Borrador — listo para completar formulario online en otf.opentech.fund
 
 ---
@@ -22,7 +22,7 @@
 
 ## CAMPO 2 — Describe tu proyecto en 1-3 oraciones
 
-En Honduras y Centroamérica, los datos electorales oficiales pueden ser publicados, alterados o suprimidos sin que periodistas, activistas ni ciudadanos tengan forma de detectarlo. **CENTINEL** es un sistema de software libre que captura, encadena criptográficamente y somete a 23 pruebas estadísticas y forenses cada publicación del organismo electoral — en tiempo real, a costo cero, sin depender de ninguna autoridad. En el análisis forense retroactivo sobre archivos JSON originales del CNE de las elecciones hondureñas de 2025, detectó automáticamente un apagón de 13 horas de datos y una tasa de resolución matemáticamente imposible de 39 actas por minuto.
+En Honduras y Centroamérica, los datos electorales oficiales pueden ser publicados, alterados o suprimidos sin que periodistas, activistas ni ciudadanos tengan forma de detectarlo. **CENTINEL** es un sistema de software libre que captura, encadena criptográficamente y somete a 23 pruebas estadísticas y forenses cada publicación del organismo electoral — de forma continua o retroactiva, a costo cero, sin depender de ninguna autoridad. En el análisis forense retroactivo sobre archivos JSON originales del CNE de las elecciones hondureñas de 2025, detectó automáticamente un apagón de 13 horas de datos y una tasa de resolución matemáticamente imposible de 39 actas por minuto.
 
 ---
 
@@ -101,7 +101,7 @@ Existen herramientas de observación electoral de NDI (DemTools), IFES y organis
 
 **Usuarios técnicos:** Observadores de misiones internacionales (OEA, Carter Center, UE) que necesitan herramientas independientes de verificación. Académicos de estadística electoral y ciencias políticas.
 
-**Beneficiarios indirectos:** Cualquier ciudadano de los países cubiertos cuyo derecho al voto puede ser mejor protegido cuando la manipulación de datos es técnicamente detectable y demostrable. La sola existencia de un sistema de auditoría en tiempo real genera disuasión.
+**Beneficiarios indirectos:** Cualquier ciudadano de los países cubiertos cuyo derecho al voto puede ser mejor protegido cuando la manipulación de datos es técnicamente detectable y demostrable. La sola existencia de un sistema de auditoría continuo y verificable genera disuasión.
 
 ---
 
