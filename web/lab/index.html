@@ -2040,6 +2040,11 @@ const _LOG_PHRASES_EN = [
   [' · consistencia acumulada · trust=',' · accumulated consistency · trust='],
   [' divergencia detectada (',' divergence detected ('],
   [') · β+5.0 · trust=',') · β+5.0 · trust='],
+  ['Red Swarm lista — 100 nodos · fan-out=3 · BFT=33','Swarm network ready — 100 nodes · fan-out=3 · BFT=33'],
+  [' (Honest) propuso DATA_SET_X',' (Honest) proposed DATA_SET_X'],
+  ['Consenso alcanzado: ','Consensus reached: '],
+  [' nodos honestos > ',' honest nodes > '],
+  [' bizantinos',' Byzantine'],
 ];
 _LOG_PHRASES_EN.sort((a,b)=>b[0].length-a[0].length);
 
@@ -3224,7 +3229,7 @@ function runByzantineSimulation(){
       }else{
         if(round===1){
           ByzantineState.nodes[i].proposedValue='DATA_SET_X';
-          ByzantineState.forensicLog.push(`R${round}: Node #${i} (Honest) propuso DATA_SET_X`);
+          ByzantineState.forensicLog.push(_trMsg(`R${round}: Node #${i} (Honest) propuso DATA_SET_X`));
         }
       }
       if(ByzantineState.nodes[i].proposedValue) proposedValues.push(ByzantineState.nodes[i].proposedValue);
@@ -3237,7 +3242,7 @@ function runByzantineSimulation(){
         }
       }
       ByzantineState.consensus=true;
-      ByzantineState.forensicLog.push(`✓ Consenso alcanzado: ${honestCount} nodos honestos > ${m} bizantinos`);
+      ByzantineState.forensicLog.push(_trMsg(`✓ Consenso alcanzado: ${honestCount} nodos honestos > ${m} bizantinos`));
     }
   }
   if(!ByzantineState.consensus){
@@ -4759,7 +4764,7 @@ async function loadLabThresholds(){
   // Init swarm panel
   updateSwarmKpis();
   renderSwarmViz();
-  logSE('OK','Red Swarm lista — 100 nodos · fan-out=3 · BFT=33');
+  logSE('OK',_trMsg('Red Swarm lista — 100 nodos · fan-out=3 · BFT=33'));
   logSE('INFO','Inicia la simulación para observar propagación gossip y detección Byzantine');
   logE('OK',_trMsg('Sandbox Forense Académico listo — CENTINEL v1'));
   logE('INFO',_trMsg('Selecciona un dataset y presiona ▶ para iniciar la simulación'));
