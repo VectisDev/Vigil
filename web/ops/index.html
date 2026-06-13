@@ -1783,7 +1783,7 @@ function showAdminShell(){
   document.getElementById('auth-screen').style.display='none';
   const shell = document.getElementById('admin-shell');
   shell.style.display='flex';
-  document.getElementById('hdr-user').textContent = 'Operador';
+  // hdr-user intentionally left empty (Operador label removed — redundant with breadcrumb)
   applyRoleUI();
   loadCustomPresets();
   initAll();
