@@ -916,14 +916,14 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- ══ SECTION 4.5 — SIMULACRO EN SWARM ═══════════════════════════════════════ -->
 <div class="section-title" id="swarm-section">
-  Simulacro en Swarm — Reputación PBTM
+  <span data-i18n="sw_section_title">Simulacro en Swarm — Reputación PBTM</span>
   <span class="badge b-pur" style="text-transform:none;font-size:9px;letter-spacing:0;padding:2px 8px">gossip · BFT · Beta</span>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>Swarm TXT</button>
 </div>
 <div class="card" style="padding:16px 18px">
   <!-- Controls row -->
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px">
-    <span style="font-size:12px;color:var(--muted);font-weight:600">Nodos (máx 12):</span>
+    <span style="font-size:12px;color:var(--muted);font-weight:600" data-i18n="sw_nodes_max12">Nodos (máx 12):</span>
     <div class="swarm-node-btns">
       <button class="swarm-node-btn" onclick="setSwarmNodes(2)">2</button>
       <button class="swarm-node-btn" onclick="setSwarmNodes(3)">3</button>
@@ -937,33 +937,33 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
       <button class="swarm-node-btn" onclick="setSwarmNodes(11)">11</button>
       <button class="swarm-node-btn" onclick="setSwarmNodes(12)">12</button>
     </div>
-    <span style="font-size:10px;color:var(--purple);font-weight:600" id="swarm-status-label">■ Swarm activo</span>
-    <button id="swarm-toggle-btn" class="swarm-toggle-btn" onclick="toggleSwarmConnect()">Desconectar</button>
-    <button class="swarm-outage-btn" onclick="simulateOutage()" title="Simula que 1-2 nodos pierden conexión (corte eléctrico, no traición)">⚡ Corte eléctrico</button>
+    <span style="font-size:10px;color:var(--purple);font-weight:600" id="swarm-status-label" data-i18n="sw_status_active">■ Swarm activo</span>
+    <button id="swarm-toggle-btn" class="swarm-toggle-btn" onclick="toggleSwarmConnect()" data-i18n="sw_disconnect">Desconectar</button>
+    <button class="swarm-outage-btn" onclick="simulateOutage()" title="Simula que 1-2 nodos pierden conexión (corte eléctrico, no traición)" data-i18n="sw_outage_btn" data-i18n-title="sw_outage_title">⚡ Corte eléctrico</button>
   </div>
 
   <!-- KPIs -->
   <div class="swarm-kpis">
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-nodes">6</span><span class="swarm-kpi-label">Nodos</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-rounds">2</span><span class="swarm-kpi-label">Rondas gossip</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-bft">1</span><span class="swarm-kpi-label">BFT tolerancia</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-ring0" style="color:#d4af37">1</span><span class="swarm-kpi-label">Ring-0 semilla</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-ring1" style="color:var(--ok)">0</span><span class="swarm-kpi-label">Ring-1 confiable</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-compromised" style="color:var(--ok)">0</span><span class="swarm-kpi-label">Comprometidos</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-msgs">6</span><span class="swarm-kpi-label">Msgs/tick</span></div>
-    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-consensus" style="color:var(--ok)">OK</span><span class="swarm-kpi-label">Consenso</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-nodes">6</span><span class="swarm-kpi-label" data-i18n="sw_kpi_nodes">Nodos</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-rounds">2</span><span class="swarm-kpi-label" data-i18n="sw_kpi_rounds">Rondas gossip</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-bft">1</span><span class="swarm-kpi-label" data-i18n="sw_kpi_bft">BFT tolerancia</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-ring0" style="color:#d4af37">1</span><span class="swarm-kpi-label" data-i18n="sw_ring0">Ring-0 semilla</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-ring1" style="color:var(--ok)">0</span><span class="swarm-kpi-label" data-i18n="sw_ring1">Ring-1 confiable</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-compromised" style="color:var(--ok)">0</span><span class="swarm-kpi-label" data-i18n="sw_compromised">Comprometidos</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-msgs">6</span><span class="swarm-kpi-label" data-i18n="sw_msgs_tick">Msgs/tick</span></div>
+    <div class="swarm-kpi"><span class="swarm-kpi-val" id="sw-consensus" style="color:var(--ok)">OK</span><span class="swarm-kpi-label" data-i18n="sw_consensus">Consenso</span></div>
   </div>
 
   <!-- Trust Rings Visualization -->
   <div style="margin-top:10px">
     <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:10px">
-      Anillos de Confianza (Modelo Beta Bayesiano)
+      <span data-i18n="sw_trust_rings_title">Anillos de Confianza (Modelo Beta Bayesiano)</span>
       <span style="font-weight:400;text-transform:none;letter-spacing:0;display:flex;gap:10px">
-        <span><span class="sn-r0" style="display:inline-block;vertical-align:middle;margin-right:3px"></span>Ring-0 semilla</span>
-        <span><span class="sn-r1" style="display:inline-block;vertical-align:middle;margin-right:3px"></span>Ring-1 confiable</span>
-        <span><span class="sn-r2" style="display:inline-block;vertical-align:middle;margin-right:3px"></span>Ring-2 observador</span>
-        <span style="color:var(--warn)">⚡ corte</span>
-        <span style="color:var(--bad)">✕ traición</span>
+        <span><span class="sn-r0" style="display:inline-block;vertical-align:middle;margin-right:3px"></span><span data-i18n="sw_ring0">Ring-0 semilla</span></span>
+        <span><span class="sn-r1" style="display:inline-block;vertical-align:middle;margin-right:3px"></span><span data-i18n="sw_ring1">Ring-1 confiable</span></span>
+        <span><span class="sn-r2" style="display:inline-block;vertical-align:middle;margin-right:3px"></span><span data-i18n="sw_ring2">Ring-2 observador</span></span>
+        <span style="color:var(--warn)" data-i18n="sw_legend_outage">⚡ corte</span>
+        <span style="color:var(--bad)" data-i18n="sw_legend_betrayal">✕ traición</span>
       </span>
     </div>
     <div id="rep-grid" class="rep-grid"></div>
@@ -972,155 +972,155 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <!-- Task Assignment -->
   <div style="margin-top:12px">
     <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
-      Asignación de tareas — CNE Honduras
-      <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">&nbsp;·&nbsp;determinista por orden de llegada · <span style="font-family:var(--mono)">fuente[i] → nodo[i % N]</span></span>
+      <span data-i18n="sw_task_assign_title">Asignación de tareas — CNE Honduras</span>
+      <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)" data-i18n="sw_task_assign_sub" data-i18n-html="1">&nbsp;·&nbsp;determinista por orden de llegada · <span style="font-family:var(--mono)">fuente[i] → nodo[i % N]</span></span>
     </div>
     <div id="task-table" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px"></div>
   </div>
 
   <div style="font-size:10px;color:var(--muted);margin-top:10px">
-    Máx 12 nodos · Fan-out=3 · BFT: tolera ⌊(N−1)/3⌋ fallos Byzantine · Reputación: Trust=(α+1)/(α+β+2) · Half-life α=14d, β=30d
+    <span data-i18n="sw_footer_note">Máx 12 nodos · Fan-out=3 · BFT: tolera ⌊(N−1)/3⌋ fallos Byzantine · Reputación: Trust=(α+1)/(α+β+2) · Half-life α=14d, β=30d</span>
   </div>
 
   <!-- Interaction with Other Swarms — NETWORK VISUALIZATION -->
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
     <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:10px">
-      Visualizador de Swarms — Red Descentralizada
-      <span style="font-size:8px;color:var(--muted);font-weight:400;text-transform:none">(Mira cómo se comunican los nodos entre swarms)</span>
+      <span data-i18n="sw_viz_title">Visualizador de Swarms — Red Descentralizada</span>
+      <span style="font-size:8px;color:var(--muted);font-weight:400;text-transform:none" data-i18n="sw_viz_sub">(Mira cómo se comunican los nodos entre swarms)</span>
     </div>
 
     <!-- Network Canvas Visualization -->
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;min-height:420px;position:relative">
       <canvas id="network-canvas" style="width:100%;height:400px;border-radius:6px;background:rgba(0,0,0,.2);display:block"></canvas>
       <div style="font-size:9px;color:var(--muted);margin-top:6px;padding:6px;background:rgba(55,65,81,.3);border-radius:4px;display:flex;gap:12px;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#22d3ee;flex-shrink:0"></span>LOCAL (nosotros)</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></span>Nodos honestos</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;border:1.5px solid #22d3ee;flex-shrink:0"></span>Embajador</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0"></span>Divergente</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:2px;background:#6ee7b7;flex-shrink:0;border-radius:1px"></span>Gossip</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#22d3ee;flex-shrink:0"></span><span data-i18n="sw_legend_local">LOCAL (nosotros)</span></span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></span><span data-i18n="sw_legend_honest">Nodos honestos</span></span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;border:1.5px solid #22d3ee;flex-shrink:0"></span><span data-i18n="sw_legend_ambassador">Embajador</span></span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0"></span><span data-i18n="sw_legend_divergent">Divergente</span></span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:2px;background:#6ee7b7;flex-shrink:0;border-radius:1px"></span><span data-i18n="sw_legend_gossip">Gossip</span></span>
       </div>
     </div>
 
     <!-- Controls Row -->
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;padding:10px;background:var(--panel);border-radius:8px">
-      <span style="font-size:12px;color:var(--muted);font-weight:600">Agregar swarm externo:</span>
+      <span style="font-size:12px;color:var(--muted);font-weight:600" data-i18n="sw_add_external">Agregar swarm externo:</span>
       <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
         <select id="ext-swarm-size" style="padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:11px">
-          <option value="1">1 nodo</option><option value="2">2 nodos</option><option value="3" selected>3 nodos</option>
-          <option value="4">4 nodos</option><option value="5">5 nodos</option><option value="6">6 nodos</option>
-          <option value="7">7 nodos</option><option value="8">8 nodos</option><option value="9">9 nodos</option>
-          <option value="10">10 nodos</option><option value="11">11 nodos</option><option value="12">12 nodos</option>
+          <option value="1" data-i18n="sw_opt_n1">1 nodo</option><option value="2" data-i18n="sw_opt_n2">2 nodos</option><option value="3" selected data-i18n="sw_opt_n3">3 nodos</option>
+          <option value="4" data-i18n="sw_opt_n4">4 nodos</option><option value="5" data-i18n="sw_opt_n5">5 nodos</option><option value="6" data-i18n="sw_opt_n6">6 nodos</option>
+          <option value="7" data-i18n="sw_opt_n7">7 nodos</option><option value="8" data-i18n="sw_opt_n8">8 nodos</option><option value="9" data-i18n="sw_opt_n9">9 nodos</option>
+          <option value="10" data-i18n="sw_opt_n10">10 nodos</option><option value="11" data-i18n="sw_opt_n11">11 nodos</option><option value="12" data-i18n="sw_opt_n12">12 nodos</option>
         </select>
-        <button class="swarm-node-btn" onclick="addExternalSwarm(parseInt(document.getElementById('ext-swarm-size').value))" style="font-size:11px;padding:6px 14px">+ Agregar</button>
-        <button class="swarm-node-btn" style="font-size:11px;padding:6px 12px;background:rgba(100,100,100,.3);margin-left:auto" onclick="clearExternalSwarms()" title="Limpiar todos los swarms externos">Limpiar</button>
+        <button class="swarm-node-btn" onclick="addExternalSwarm(parseInt(document.getElementById('ext-swarm-size').value))" style="font-size:11px;padding:6px 14px" data-i18n="sw_add_btn">+ Agregar</button>
+        <button class="swarm-node-btn" style="font-size:11px;padding:6px 12px;background:rgba(100,100,100,.3);margin-left:auto" onclick="clearExternalSwarms()" title="Limpiar todos los swarms externos" data-i18n="sw_clear_btn" data-i18n-title="sw_clear_title">Limpiar</button>
       </div>
       <span style="font-size:11px;color:var(--purple);font-weight:600" id="external-swarm-count">0 externos activos</span>
     </div>
 
     <!-- Swarm Cards -->
     <div style="margin-bottom:12px">
-      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Swarms en la Red</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px" data-i18n="sw_swarms_in_network">Swarms en la Red</div>
       <div id="external-swarms-viz" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:8px"></div>
     </div>
 
     <!-- Interaction Metrics -->
     <div style="margin-bottom:12px">
-      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Métricas de Interacción</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px" data-i18n="sw_interaction_metrics">Métricas de Interacción</div>
       <div id="swarm-interaction-metrics" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"></div>
     </div>
 
     <!-- Explanation -->
     <div style="font-size:10px;color:var(--muted);padding:10px;background:rgba(55,65,81,.3);border-radius:6px;line-height:1.5">
-      <strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> divergieron del consenso. El nodo <strong style="color:#22d3ee">cyan</strong> es LOCAL (nosotros). Los nodos con <strong style="color:#22d3ee">anillo cyan</strong> son <strong>embajadores</strong> — 2 por swarm, elegidos por trust, son los únicos que comunican hallazgos cross-swarm. Si uno cae, el otro cubre. Pasa el mouse sobre cualquier nodo para ver su estado.
+      <span data-i18n="sw_how_to_read" data-i18n-html="1"><strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> divergieron del consenso. El nodo <strong style="color:#22d3ee">cyan</strong> es LOCAL (nosotros). Los nodos con <strong style="color:#22d3ee">anillo cyan</strong> son <strong>embajadores</strong> — 2 por swarm, elegidos por trust, son los únicos que comunican hallazgos cross-swarm. Si uno cae, el otro cubre. Pasa el mouse sobre cualquier nodo para ver su estado.</span>
     </div>
   </div>
 
   <!-- DISTRIBUTED AUDIT — CROSS-SWARM VALIDATION -->
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
     <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:10px">
-      Auditoría Distribuida — Validación en Tiempo Real
-      <span style="font-size:8px;color:var(--muted);font-weight:400;text-transform:none">(Todos los swarms auditan simultáneamente)</span>
+      <span data-i18n="sw_audit_title">Auditoría Distribuida — Validación en Tiempo Real</span>
+      <span style="font-size:8px;color:var(--muted);font-weight:400;text-transform:none" data-i18n="sw_audit_sub">(Todos los swarms auditan simultáneamente)</span>
     </div>
 
     <!-- Election Timeline & Validation Progress -->
     <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
-      <div style="font-size:9px;color:var(--muted);font-weight:600;margin-bottom:8px">LÍNEA DE TIEMPO — Elección en Progreso</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:600;margin-bottom:8px" data-i18n="sw_timeline_title">LÍNEA DE TIEMPO — Elección en Progreso</div>
       <div style="position:relative;height:60px">
         <canvas id="audit-timeline-canvas" style="width:100%;height:60px;display:block;border-radius:4px;background:rgba(0,0,0,.2)"></canvas>
       </div>
       <div style="font-size:9px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between">
-        <span>Inicio</span>
-        <span id="audit-phase">Fase 1: Recopilación</span>
-        <span>Resultado</span>
+        <span data-i18n="sw_timeline_start">Inicio</span>
+        <span id="audit-phase" data-i18n="sw_phase1">Fase 1: Recopilación</span>
+        <span data-i18n="sw_timeline_result">Resultado</span>
       </div>
     </div>
 
     <!-- Validation Status per Swarm -->
     <div style="margin-bottom:12px">
-      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Estado de Validación por Swarm</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px" data-i18n="sw_validation_status">Estado de Validación por Swarm</div>
       <div id="audit-validation-status" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px"></div>
     </div>
 
     <!-- Data Checksums Being Verified -->
     <div style="margin-bottom:12px">
-      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Verificación de Checksums (Hash Validation)</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px" data-i18n="sw_checksums_title">Verificación de Checksums (Hash Validation)</div>
       <div id="audit-checksums" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:9px;font-family:var(--mono);max-height:120px;overflow-y:auto;color:var(--muted)">
-        <div style="opacity:.5">Esperando inicio de auditoría...</div>
+        <div style="opacity:.5" data-i18n="sw_audit_waiting">Esperando inicio de auditoría...</div>
       </div>
     </div>
 
     <!-- Control -->
     <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="swarm-node-btn" onclick="startAuditSimulation()" style="font-size:11px;padding:6px 12px">▶ Iniciar Auditoría Distribuida</button>
-      <button class="swarm-node-btn" style="font-size:11px;padding:6px 12px;background:rgba(100,100,100,.3)" onclick="resetAuditSimulation()" title="Limpiar estado de auditoría">✕ Limpiar</button>
+      <button class="swarm-node-btn" onclick="startAuditSimulation()" style="font-size:11px;padding:6px 12px" data-i18n="sw_start_audit">▶ Iniciar Auditoría Distribuida</button>
+      <button class="swarm-node-btn" style="font-size:11px;padding:6px 12px;background:rgba(100,100,100,.3)" onclick="resetAuditSimulation()" title="Limpiar estado de auditoría" data-i18n="sw_clear_audit" data-i18n-title="sw_clear_audit_title">✕ Limpiar</button>
     </div>
 
     <!-- Summary -->
     <div style="font-size:10px;color:var(--muted);padding:10px;background:rgba(55,65,81,.3);border-radius:6px;line-height:1.5">
-      <strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es Centinel auditando como lo hace en producción.
+      <span data-i18n="sw_whats_happening" data-i18n-html="1"><strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es Centinel auditando como lo hace en producción.</span>
     </div>
   </div>
 </div>
 
 <!-- ══ SECTION 4.6 — BYZANTINE RESILIENCE LAB ═════════════════════════════════════ -->
 <div class="section-title" id="byzantine-section">
-  Byzantine Resilience Lab — Academic Showcase
-  <span class="badge b-pur" style="text-transform:none;font-size:9px;letter-spacing:0;padding:2px 8px">BFT · Genuine · Reproducible</span>
+  <span data-i18n="byz_section_title">Byzantine Resilience Lab — Academic Showcase</span>
+  <span class="badge b-pur" style="text-transform:none;font-size:9px;letter-spacing:0;padding:2px 8px" data-i18n="byz_badge">BFT · Genuine · Reproducible</span>
   <button class="section-dl" onclick="downloadByzantineJSON()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>JSON</button>
 </div>
 <div class="card" style="padding:16px 18px">
   <!-- Controls row -->
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
     <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:12px;color:var(--muted);font-weight:600">Nodos totales (N):</span>
+      <span style="font-size:12px;color:var(--muted);font-weight:600" data-i18n="byz_total_nodes">Nodos totales (N):</span>
       <input type="range" min="2" max="12" value="6" id="byz-total-nodes" onchange="updateByzantineConfig()" style="width:120px">
       <span style="font-size:12px;color:var(--fg);font-weight:600" id="byz-total-display">6</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:12px;color:var(--muted);font-weight:600">Byzantine (M):</span>
+      <span style="font-size:12px;color:var(--muted);font-weight:600" data-i18n="byz_byzantine_m">Byzantine (M):</span>
       <input type="range" min="0" max="4" value="0" id="byz-byzantine-nodes" onchange="updateByzantineConfig()" style="width:120px">
       <span style="font-size:12px;color:var(--fg);font-weight:600" id="byz-byzantine-display">0</span>
     </div>
-    <button class="swarm-node-btn" onclick="runByzantineSimulation()" style="margin-left:auto">▶ Ejecutar</button>
+    <button class="swarm-node-btn" onclick="runByzantineSimulation()" style="margin-left:auto" data-i18n="byz_run">▶ Ejecutar</button>
   </div>
 
   <!-- BFT Threshold Display -->
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
       <div style="text-align:center;padding:8px">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">BFT Threshold</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px" data-i18n="byz_bft_threshold">BFT Threshold</div>
         <div style="font-size:20px;font-weight:700;color:var(--accent)" id="byz-threshold">1</div>
       </div>
       <div style="text-align:center;padding:8px">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Byzantine Nodes</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px" data-i18n="byz_byzantine_nodes">Byzantine Nodes</div>
         <div style="font-size:20px;font-weight:700;color:var(--fg)" id="byz-byzantine-count">0</div>
       </div>
       <div style="text-align:center;padding:8px">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Status</div>
-        <div style="font-size:18px;font-weight:700;color:var(--ok)" id="byz-status">Pending</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px" data-i18n="byz_status_label">Status</div>
+        <div style="font-size:18px;font-weight:700;color:var(--ok)" id="byz-status" data-i18n="byz_status_pending">Pending</div>
       </div>
       <div style="text-align:center;padding:8px">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Rounds</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px" data-i18n="byz_rounds_label">Rounds</div>
         <div style="font-size:20px;font-weight:700;color:var(--fg)" id="byz-rounds">0</div>
       </div>
     </div>
@@ -1128,19 +1128,19 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
   <!-- Visualization -->
   <div style="margin-bottom:12px">
-    <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Nodos y Estado de Consenso</div>
+    <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px" data-i18n="byz_nodes_consensus">Nodos y Estado de Consenso</div>
     <div id="byz-nodes-viz" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;min-height:100px"></div>
   </div>
 
   <!-- Forensic Trail -->
   <div style="margin-bottom:12px">
-    <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Forensic Trail (Reproducible)</div>
+    <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px" data-i18n="byz_forensic_trail">Forensic Trail (Reproducible)</div>
     <div id="byz-forensic-log" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:10px;color:var(--muted);max-height:150px;overflow-y:auto;font-family:var(--mono)"></div>
   </div>
 
   <!-- Academic Notes -->
   <div style="font-size:10px;color:var(--muted);padding:8px;background:rgba(55,65,81,.3);border-radius:6px">
-    <strong>Byzantine Fault Tolerance:</strong> Centinel alcanza consenso si y solo si Byzantine ≤ ⌊(N−1)/3⌋. Esta sección demuestra que cuando M > threshold, el consenso falla — garantía matemática verificada.
+    <span data-i18n="byz_note" data-i18n-html="1"><strong>Byzantine Fault Tolerance:</strong> Centinel alcanza consenso si y solo si Byzantine ≤ ⌊(N−1)/3⌋. Esta sección demuestra que cuando M > threshold, el consenso falla — garantía matemática verificada.</span>
   </div>
 </div>
 
@@ -1830,6 +1830,12 @@ const _LOG_FULL_EN = {
   'Pre-registro de umbrales bloqueado por investigador': 'Threshold pre-registration locked by researcher',
   'Pre-registro de umbrales cancelado — sliders bloqueados': 'Threshold pre-registration cancelled — sliders unlocked',
   'Sistema de visualización restaurado': 'Visualization system restored',
+
+  // ── P2.2: mensajes Swarm/Bizantino ──
+  'Red desconectada — telemetría suspendida': 'Network disconnected — telemetry suspended',
+  'Red reconectada — gossip activo': 'Network reconnected — gossip active',
+  'Estado de auditoría reiniciado': 'Audit state reset',
+  'Red Swarm reiniciada — todos los nodos sanos': 'Swarm network reset — all nodes healthy',
 };
 const _LOG_PHRASES_EN = [
   [' módulos comprometidos → AUTO-AUDIT FALLA → cuarentena',' modules compromised → AUTO-AUDIT FAILS → quarantine'],
@@ -2000,6 +2006,40 @@ const _LOG_PHRASES_EN = [
   ['Dataset no encontrado: ','Dataset not found: '],
   ['Inyección programada: ','Scheduled injection: '],
   [' en snapshot ',' at snapshot '],
+
+  // ── P2.2: fragmentos Swarm/Bizantino ──
+  ['[OUTAGE] Nodo #','[OUTAGE] Node #'],
+  [' — corte eléctrico detectado · β+0.1 (reversal pendiente)',' — power outage detected · β+0.1 (pending reversal)'],
+  ['[RESTORE] Nodo #','[RESTORE] Node #'],
+  [' — datos consistentes con el swarm · β revertido · α+1.0 · trust=',' — data consistent with swarm · β reverted · α+1.0 · trust='],
+  ['[BETRAYAL] Nodo #','[BETRAYAL] Node #'],
+  [' — retornó con datos DIVERGENTES · reclasificado como traición · β+5.0',' — returned with DIVERGENT data · reclassified as betrayal · β+5.0'],
+  ['Swarm externo añadido: ','External swarm added: '],
+  [' nodos · v',' nodes · v'],
+  ['… removido','… removed'],
+  ['[CONSENSUS] ','[CONSENSUS] '],
+  [' swarms confirman fingerprint snap#',' swarms confirm fingerprint snap#'],
+  [' — consenso alcanzado',' — consensus reached'],
+  [' swarms coinciden — ',' swarms agree — '],
+  [' divergen',' diverge'],
+  [' nodos confirmaron ',' nodes confirmed '],
+  [' en snap ',' on snap '],
+  ['… — hallazgo corroborado','… — finding corroborated'],
+  ['[GOSSIP] LOCAL(emb#','[GOSSIP] LOCAL(amb#'],
+  ['(emb#','(amb#'],
+  ['confirmación fingerprint (match ','fingerprint confirmation (match '],
+  ['] Nodo local especializado — reglas prioritarias: ','] Local node specialized — priority rules: '],
+  [' más)',' more)'],
+  ['Red reconfigurada: ','Network reconfigured: '],
+  [' nodos · fan-out=',' nodes · fan-out='],
+  ['Auditoría completada: ','Audit completed: '],
+  [' swarms, ',' swarms, '],
+  [' nodos validados, consenso alcanzado',' nodes validated, consensus reached'],
+  ['[PBTM] Nodo #','[PBTM] Node #'],
+  [' promovido a Ring-1 · trust=',' promoted to Ring-1 · trust='],
+  [' · consistencia acumulada · trust=',' · accumulated consistency · trust='],
+  [' divergencia detectada (',' divergence detected ('],
+  [') · β+5.0 · trust=',') · β+5.0 · trust='],
 ];
 _LOG_PHRASES_EN.sort((a,b)=>b[0].length-a[0].length);
 
@@ -2158,12 +2198,12 @@ function renderTaskTable(){
   const el=document.getElementById('task-table');
   if(!el) return;
   const n=SWARM._reps.length;
-  if(n===0){el.innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px">Sin nodos activos</div>';return;}
+  if(n===0){el.innerHTML=`<div style="font-size:10px;color:var(--muted);padding:4px">${currentLabLang()==='en'?'No active nodes':'Sin nodos activos'}</div>`;return;}
   // active nodes: exclude those in outage for display (they still hold their slot)
   const rows=SWARM._reps.map((r,slot)=>{
     const sources=HN_SOURCES.filter((_,i)=>i%n===slot);
     const isOut=r.status==='outage';
-    const covered=isOut?`<span style="color:var(--warn);font-size:9px">⚡ offline — tareas cubiertas por otros nodos</span>`
+    const covered=isOut?`<span style="color:var(--warn);font-size:9px">⚡ ${currentLabLang()==='en'?'offline — tasks covered by other nodes':'offline — tareas cubiertas por otros nodos'}</span>`
       :sources.map((s,i)=>`<span class="task-chip${i===0?' primary':''}">${s}</span>`).join('');
     return `<div class="task-row" style="${isOut?'opacity:.5':''}">
       <span style="display:flex;align-items:center;gap:5px;min-width:90px">
@@ -2197,7 +2237,7 @@ function setSwarmNodes(n){
   renderSwarmViz();
   renderRepGrid();
   renderTaskTable();
-  logSE('INFO',`Red reconfigurada: ${SWARM.nodes} nodos · fan-out=${SWARM.fanout} · BFT=${_swarmBFT(SWARM.nodes)}`);
+  logSE('INFO',_trMsg(`Red reconfigurada: ${SWARM.nodes} nodos · fan-out=${SWARM.fanout} · BFT=${_swarmBFT(SWARM.nodes)}`));
 }
 
 function simulateOutage(){
@@ -2211,7 +2251,7 @@ function simulateOutage(){
   victim.status='outage';
   victim.beta=+(victim.beta+0.1).toFixed(2);
   victim.outages++;
-  logSE('WARN',`[OUTAGE] Nodo #${victim.id} · arr:${victim.arrival} — corte eléctrico detectado · β+0.1 (reversal pendiente)`);
+  logSE('WARN',_trMsg(`[OUTAGE] Nodo #${victim.id} · arr:${victim.arrival} — corte eléctrico detectado · β+0.1 (reversal pendiente)`));
   // Schedule restoration in 3-6 ticks (simulated reconnect)
   const ticks=rnd(3,6);
   setTimeout(()=>{
@@ -2222,13 +2262,13 @@ function simulateOutage(){
       victim.beta=Math.max(1.0,+(victim.beta-0.1).toFixed(2));
       victim.alpha=+(victim.alpha+1.0).toFixed(2);
       if(_trustScore(victim)>=0.85&&victim.ring===2) victim.ring=1;
-      logSE('OK',`[RESTORE] Nodo #${victim.id} — datos consistentes con el swarm · β revertido · α+1.0 · trust=${(_trustScore(victim)*100).toFixed(0)}%`);
+      logSE('OK',_trMsg(`[RESTORE] Nodo #${victim.id} — datos consistentes con el swarm · β revertido · α+1.0 · trust=${(_trustScore(victim)*100).toFixed(0)}%`));
     }else{
       victim.status='betrayal';
       victim.beta=+(victim.beta+5.0).toFixed(2);
       victim.betrayals++;
       if(victim.ring===1) victim.ring=2;
-      logSE('CRITICAL',`[BETRAYAL] Nodo #${victim.id} — retornó con datos DIVERGENTES · reclasificado como traición · β+5.0`);
+      logSE('CRITICAL',_trMsg(`[BETRAYAL] Nodo #${victim.id} — retornó con datos DIVERGENTES · reclasificado como traición · β+5.0`));
     }
     renderRepGrid();
     renderTaskTable();
@@ -2244,14 +2284,15 @@ function toggleSwarmConnect(){
   SWARM.compromised=0;
   const btn=document.getElementById('swarm-toggle-btn');
   const lbl=document.getElementById('swarm-status-label');
+  const en=currentLabLang()==='en';
   if(SWARM.enabled){
-    if(btn){btn.textContent='Desconectar';btn.classList.remove('off');}
-    if(lbl){lbl.textContent='■ Swarm activo';lbl.style.color='var(--purple)';}
-    logSE('OK','Red reconectada — gossip activo');
+    if(btn){btn.textContent=en?'Disconnect':'Desconectar';btn.dataset.i18n='sw_disconnect';btn.classList.remove('off');}
+    if(lbl){lbl.textContent=en?'■ Swarm active':'■ Swarm activo';lbl.dataset.i18n='sw_status_active';lbl.style.color='var(--purple)';}
+    logSE('OK',_trMsg('Red reconectada — gossip activo'));
   }else{
-    if(btn){btn.textContent='Conectar';btn.classList.add('off');}
-    if(lbl){lbl.textContent='○ Swarm desconectado';lbl.style.color='var(--muted)';}
-    logSE('INFO','Red desconectada — telemetría suspendida');
+    if(btn){btn.textContent=en?'Connect':'Conectar';delete btn.dataset.i18n;btn.classList.add('off');}
+    if(lbl){lbl.textContent=en?'○ Swarm disconnected':'○ Swarm desconectado';delete lbl.dataset.i18n;lbl.style.color='var(--muted)';}
+    logSE('INFO',_trMsg('Red desconectada — telemetría suspendida'));
   }
   updateSwarmKpis();
   renderRepGrid();
@@ -2287,7 +2328,7 @@ function addExternalSwarm(nodes){
   updateInteractionMetrics();
   _rebuildNetworkClusters();
   _startNetworkLoop();
-  logSE('INFO',`Swarm externo añadido: ${swarmId} · ${newSwarm.nodes} nodos · v${newSwarm.version}`);
+  logSE('INFO',_trMsg(`Swarm externo añadido: ${swarmId} · ${newSwarm.nodes} nodos · v${newSwarm.version}`));
 }
 
 function clearExternalSwarms(){
@@ -2304,9 +2345,9 @@ function renderExternalSwarms(){
   const container=document.getElementById('external-swarms-viz');
   const countEl=document.getElementById('external-swarm-count');
   if(!container) return;
-  countEl.textContent=`${externalSwarms.length} externo${externalSwarms.length===1?'':'s'} activo${externalSwarms.length===1?'':'s'}`;
+  countEl.textContent=currentLabLang()==='en'?`${externalSwarms.length} external active`:`${externalSwarms.length} externo${externalSwarms.length===1?'':'s'} activo${externalSwarms.length===1?'':'s'}`;
   if(externalSwarms.length===0){
-    container.innerHTML='<div style="grid-column:1/-1;font-size:11px;color:var(--muted);padding:20px;text-align:center;opacity:.5">Ningún swarm externo — agregar para simular interacción descentralizada</div>';
+    container.innerHTML=`<div style="grid-column:1/-1;font-size:11px;color:var(--muted);padding:20px;text-align:center;opacity:.5">${currentLabLang()==='en'?'No external swarms — add one to simulate decentralized interaction':'Ningún swarm externo — agregar para simular interacción descentralizada'}</div>`;
     return;
   }
   container.innerHTML=externalSwarms.map(sw=>{
@@ -2321,13 +2362,13 @@ function renderExternalSwarms(){
         <button style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0;line-height:1" onclick="removeExternalSwarm('${sw.id}')">✕</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;color:var(--muted)">
-        <div>Nodos: <span style="color:var(--fg);font-weight:600">${sw.nodes}</span></div>
+        <div>${currentLabLang()==='en'?'Nodes':'Nodos'}: <span style="color:var(--fg);font-weight:600">${sw.nodes}</span></div>
         <div>V: <span style="color:var(--fg);font-weight:600">${sw.version}</span></div>
         <div>Ring-0/1/2: <span style="color:var(--fg)">${r0}/${r1}/${r2}</span></div>
-        <div>Latencia: <span style="color:var(--fg)">${sw.msgLatency.toFixed(1)}ms</span></div>
+        <div>${currentLabLang()==='en'?'Latency':'Latencia'}: <span style="color:var(--fg)">${sw.msgLatency.toFixed(1)}ms</span></div>
       </div>
       <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
-        <span style="font-size:9px;color:var(--muted)">Consenso:</span>
+        <span style="font-size:9px;color:var(--muted)">${currentLabLang()==='en'?'Consensus':'Consenso'}:</span>
         <span style="font-size:10px;font-weight:700;color:${healthColor}">${health}%</span>
       </div>
     </div>`;
@@ -2341,7 +2382,7 @@ function removeExternalSwarm(swarmId){
   renderExternalSwarms();
   updateInteractionMetrics();
   _rebuildNetworkClusters();
-  logSE('INFO',`Swarm ${swarmId.substring(0,8)}… removido`);
+  logSE('INFO',_trMsg(`Swarm ${swarmId.substring(0,8)}… removido`));
 }
 
 function updateInteractionMetrics(){
@@ -2362,27 +2403,27 @@ function updateInteractionMetrics(){
   const versionCompat=externalSwarms.every(s=>s.version===externalSwarms[0].version)?100:75;
   container.innerHTML=`
     <div style="background:var(--bg);border:1px solid rgba(110,231,183,.2);border-radius:6px;padding:8px;text-align:center">
-      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Nodos externos totales</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${currentLabLang()==="en"?"Total external nodes":"Nodos externos totales"}</div>
       <div style="font-size:18px;font-weight:700;color:var(--ok)">${totalExtNodes}</div>
     </div>
     <div style="background:var(--bg);border:1px solid rgba(252,165,165,.2);border-radius:6px;padding:8px;text-align:center">
-      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Latencia promedio</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${currentLabLang()==="en"?"Average latency":"Latencia promedio"}</div>
       <div style="font-size:18px;font-weight:700;color:var(--warn)">${avgLatency}ms</div>
     </div>
     <div style="background:var(--bg);border:1px solid rgba(212,175,55,.2);border-radius:6px;padding:8px;text-align:center">
-      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Salud de consenso</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${currentLabLang()==="en"?"Consensus health":"Salud de consenso"}</div>
       <div style="font-size:18px;font-weight:700;color:${healthColor}">${healthPct}%</div>
     </div>
     <div style="background:var(--bg);border:1px solid rgba(110,231,183,.2);border-radius:6px;padding:8px;text-align:center">
-      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Msgs cross-swarm/s</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${currentLabLang()==="en"?"Cross-swarm msgs/s":"Msgs cross-swarm/s"}</div>
       <div style="font-size:18px;font-weight:700;color:var(--ok)">${msgRate}</div>
     </div>
     <div style="background:var(--bg);border:1px solid rgba(201,162,39,.2);border-radius:6px;padding:8px;text-align:center">
-      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Compatibilidad versión</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${currentLabLang()==="en"?"Version compatibility":"Compatibilidad versión"}</div>
       <div style="font-size:18px;font-weight:700;color:${versionCompat===100?'var(--ok)':'var(--warn)'}">${versionCompat}%</div>
     </div>
     <div style="background:var(--bg);border:1px solid rgba(110,231,183,.2);border-radius:6px;padding:8px;text-align:center">
-      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Red descentralizada</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${currentLabLang()==="en"?"Decentralized network":"Red descentralizada"}</div>
       <div style="font-size:18px;font-weight:700;color:var(--ok)">${SWARM.nodes+totalExtNodes}</div>
     </div>
   `;
@@ -2923,12 +2964,12 @@ function _tickExternalSwarms(){
       const tgtCl=clusters.find(c=>c.id===target.id);
       const localAmb=local._ambassadorIds||[];
       const tgtAmb=tgtCl?tgtCl._ambassadorIds:[];
-      logSE('INFO',`[GOSSIP] LOCAL(emb#${localAmb[0]||0}) → ${target.id.substring(0,8)}(emb#${tgtAmb[0]||0}): snap#${SIM.idx} δ=${dv.toLocaleString()} votos`);
+      logSE('INFO',_trMsg(`[GOSSIP] LOCAL(emb#${localAmb[0]||0}) → ${target.id.substring(0,8)}(emb#${tgtAmb[0]||0}): snap#${SIM.idx} δ=${dv.toLocaleString()} votos`));
     }
     if(matchCount===total&&total>0){
-      logSE('OK',`[CONSENSUS] ${matchCount+1}/${total+1} swarms confirman fingerprint snap#${SIM.idx} — consenso alcanzado`);
+      logSE('OK',_trMsg(`[CONSENSUS] ${matchCount+1}/${total+1} swarms confirman fingerprint snap#${SIM.idx} — consenso alcanzado`));
     }else if(total>0){
-      logSE('WARN',`[CONSENSUS] ${matchCount+1}/${total+1} swarms coinciden — ${total-matchCount} divergen`);
+      logSE('WARN',_trMsg(`[CONSENSUS] ${matchCount+1}/${total+1} swarms coinciden — ${total-matchCount} divergen`));
     }
   }
   // Cross-swarm confirmation logs (every 10 ticks)
@@ -2937,7 +2978,7 @@ function _tickExternalSwarms(){
     const b=externalSwarms[(tick+1)%externalSwarms.length];
     if(a!==b){
       const m=a._lastFP===b._lastFP;
-      logSE(m?'OK':'WARN',`[GOSSIP] ${a.id.substring(0,8)} → ${b.id.substring(0,8)}: confirmación fingerprint (match ${m?'100':'DIVERGE'}%)`);
+      logSE(m?'OK':'WARN',_trMsg(`[GOSSIP] ${a.id.substring(0,8)} → ${b.id.substring(0,8)}: confirmación fingerprint (match ${m?'100':'DIVERGE'}%)`));
     }
   }
   updateInteractionMetrics();
@@ -3019,7 +3060,7 @@ function startAuditSimulation(){
       renderAuditTimeline();
       renderAuditValidationStatus();
       renderAuditChecksums();
-      logSE('INFO',`Auditoría completada: ${externalSwarms.length} swarms, ${auditState.totalNodes} nodos validados, consenso alcanzado`);
+      logSE('INFO',_trMsg(`Auditoría completada: ${externalSwarms.length} swarms, ${auditState.totalNodes} nodos validados, consenso alcanzado`));
     }
   };
   animate();
@@ -3102,12 +3143,12 @@ function renderAuditChecksums(){
   if(!container) return;
 
   if(auditState.checksums.length===0){
-    container.innerHTML='<div style="opacity:.5">Esperando fase de validación...</div>';
+    container.innerHTML=`<div style="opacity:.5">${currentLabLang()==='en'?'Waiting for validation phase...':'Esperando fase de validación...'}</div>`;
     return;
   }
 
   container.innerHTML=auditState.checksums.map(cs=>{
-    const status=cs.verified?'✓ VÁLIDO':'✗ INVÁLIDO';
+    const status=currentLabLang()==='en'?(cs.verified?'✓ VALID':'✗ INVALID'):(cs.verified?'✓ VÁLIDO':'✗ INVÁLIDO');
     const color=cs.verified?'rgba(16,185,129,.6)':'rgba(248,113,113,.6)';
     return `<div style="padding:4px;border-left:3px solid ${color};margin-bottom:3px;background:rgba(55,65,81,.2);border-radius:2px">
       <div style="display:flex;justify-content:space-between;gap:8px">
@@ -3127,7 +3168,7 @@ function resetAuditSimulation(){
   renderAuditTimeline();
   renderAuditValidationStatus();
   renderAuditChecksums();
-  logSE('INFO','Estado de auditoría reiniciado');
+  logSE('INFO',_trMsg('Estado de auditoría reiniciado'));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3269,7 +3310,7 @@ function updateSwarmKpis(){
   if(cEl){cEl.textContent=c;cEl.style.color=c===0?'var(--ok)':c>bft?'var(--bad)':'var(--warn)';}
   _setText('sw-msgs',_swarmMsgs(N));
   const cxEl=document.getElementById('sw-consensus');
-  if(cxEl){cxEl.textContent=ok?'OK':'FALLO';cxEl.style.color=ok?'var(--ok)':'var(--bad)';}
+  if(cxEl){cxEl.textContent=ok?'OK':_trMsg('FALLO');cxEl.style.color=ok?'var(--ok)':'var(--bad)';}
   // Ring counts from simulated reps
   const r0=SWARM._reps.filter(r=>r.ring===0).length;
   const r1=SWARM._reps.filter(r=>r.ring===1).length;
@@ -3297,8 +3338,8 @@ function _tickSwarm(){
       const r=candidates[t%candidates.length];
       r.alpha=+(r.alpha+1.0).toFixed(2);
       const ts=_trustScore(r);
-      if(ts>=0.85){ r.ring=1; logSE('OK',`[PBTM] Nodo #${r.id} promovido a Ring-1 · trust=${(ts*100).toFixed(0)}% · α=${r.alpha}`); }
-      else { logSE('INFO',`[PBTM] Nodo #${r.id} · consistencia acumulada · trust=${(ts*100).toFixed(0)}% · α=${r.alpha}`); }
+      if(ts>=0.85){ r.ring=1; logSE('OK',_trMsg(`[PBTM] Nodo #${r.id} promovido a Ring-1 · trust=${(ts*100).toFixed(0)}% · α=${r.alpha}`)); }
+      else { logSE('INFO',_trMsg(`[PBTM] Nodo #${r.id} · consistencia acumulada · trust=${(ts*100).toFixed(0)}% · α=${r.alpha}`)); }
     }
   }
   // Propagate active injection compromises into rep model
@@ -3310,7 +3351,7 @@ function _tickSwarm(){
         const r=ring2[rnd(0,ring2.length-1)];
         r.beta=+(r.beta+5.0).toFixed(2);r.betrayals++;r.status='betrayal';
         if(r.ring===1)r.ring=2;
-        logSE('CRITICAL',`[PBTM] Nodo #${r.id} divergencia detectada (${id}) · β+5.0 · trust=${(_trustScore(r)*100).toFixed(0)}%`);
+        logSE('CRITICAL',_trMsg(`[PBTM] Nodo #${r.id} divergencia detectada (${id}) · β+5.0 · trust=${(_trustScore(r)*100).toFixed(0)}%`));
       }
     }
   }
@@ -3371,7 +3412,7 @@ function _tickSwarm(){
   if(t===3 || (t%30===0 && N>1)){
     const mySpec=_SPECS[t%3];
     const myRules=_SPEC_RULES[mySpec].slice(0,2).join(', ');
-    logSE('INFO',`[SPEC:${mySpec}] Nodo local especializado — reglas prioritarias: ${myRules} (+${_SPEC_RULES[mySpec].length-2} más)`);
+    logSE('INFO',_trMsg(`[SPEC:${mySpec}] Nodo local especializado — reglas prioritarias: ${myRules} (+${_SPEC_RULES[mySpec].length-2} más)`));
   }
 
   // Urgent finding broadcast — when anomaly injections are active, emit broadcast
@@ -3403,7 +3444,7 @@ function _tickSwarm(){
     const rk=ruleMap2[id]||id.toLowerCase();
     const snapHex=[...Array(4)].map(()=>'0123456789abcdef'[rnd(0,15)]).join('');
     logSE(confirmedCount>=5?'CRITICAL':'WARN',
-      `[CONSENSUS] ${confirmedCount} nodos confirmaron ${rk} en snap ${snapHex}… — hallazgo corroborado`);
+      _trMsg(`[CONSENSUS] ${confirmedCount} nodos confirmaron ${rk} en snap ${snapHex}… — hallazgo corroborado`));
   }
 
   // Cooperative scraping — show task coordination with small swarm
@@ -3533,7 +3574,7 @@ function simStop(){
   _updateAcadPanel();
   SWARM.compromised=0; SWARM._tick=0;
   updateSwarmKpis(); renderSwarmViz();
-  logSE('INFO','Red Swarm reiniciada — todos los nodos sanos');
+  logSE('INFO',_trMsg('Red Swarm reiniciada — todos los nodos sanos'));
   logE('INFO',_trMsg('Simulación detenida y reiniciada'));
 }
 function simTick(){
@@ -6312,6 +6353,90 @@ const LAB_I18N = {
   bld_use:        ['▶ Usar en Lab','▶ Use in Lab'],
   bld_dl_dataset: ['⬇ Dataset .json','⬇ Dataset .json'],
   bld_dl_session: ['💾 Sesión completa','💾 Full session'],
+
+  // ── P2.1: Sección Swarm ──
+  sw_section_title: ['Simulacro en Swarm — Reputación PBTM','Swarm Simulation — PBTM Reputation'],
+  sw_nodes_max12:   ['Nodos (máx 12):','Nodes (max 12):'],
+  sw_status_active: ['■ Swarm activo','■ Swarm active'],
+  sw_disconnect:    ['Desconectar','Disconnect'],
+  sw_outage_btn:    ['⚡ Corte eléctrico','⚡ Power outage'],
+  sw_outage_title:  ['Simula que 1-2 nodos pierden conexión (corte eléctrico, no traición)','Simulates 1-2 nodes losing connection (power outage, not betrayal)'],
+  sw_kpi_nodes:     ['Nodos','Nodes'],
+  sw_kpi_rounds:    ['Rondas gossip','Gossip rounds'],
+  sw_kpi_bft:       ['BFT tolerancia','BFT tolerance'],
+  sw_ring0:         ['Ring-0 semilla','Ring-0 seed'],
+  sw_ring1:         ['Ring-1 confiable','Ring-1 trusted'],
+  sw_ring2:         ['Ring-2 observador','Ring-2 observer'],
+  sw_compromised:   ['Comprometidos','Compromised'],
+  sw_msgs_tick:     ['Msgs/tick','Msgs/tick'],
+  sw_consensus:     ['Consenso','Consensus'],
+  sw_trust_rings_title: ['Anillos de Confianza (Modelo Beta Bayesiano)','Trust Rings (Beta Bayesian Model)'],
+  sw_legend_outage:   ['⚡ corte','⚡ outage'],
+  sw_legend_betrayal: ['✕ traición','✕ betrayal'],
+  sw_task_assign_title: ['Asignación de tareas — CNE Honduras','Task assignment — CNE Honduras'],
+  sw_task_assign_sub: ['&nbsp;·&nbsp;determinista por orden de llegada · <span style="font-family:var(--mono)">fuente[i] → nodo[i % N]</span>',
+                       '&nbsp;·&nbsp;deterministic by arrival order · <span style="font-family:var(--mono)">source[i] → node[i % N]</span>'],
+  sw_footer_note: ['Máx 12 nodos · Fan-out=3 · BFT: tolera ⌊(N−1)/3⌋ fallos Byzantine · Reputación: Trust=(α+1)/(α+β+2) · Half-life α=14d, β=30d',
+                   'Max 12 nodes · Fan-out=3 · BFT: tolerates ⌊(N−1)/3⌋ Byzantine failures · Reputation: Trust=(α+1)/(α+β+2) · Half-life α=14d, β=30d'],
+  sw_viz_title: ['Visualizador de Swarms — Red Descentralizada','Swarm Visualizer — Decentralized Network'],
+  sw_viz_sub:   ['(Mira cómo se comunican los nodos entre swarms)','(Watch how nodes communicate across swarms)'],
+  sw_legend_local:      ['LOCAL (nosotros)','LOCAL (us)'],
+  sw_legend_honest:     ['Nodos honestos','Honest nodes'],
+  sw_legend_ambassador: ['Embajador','Ambassador'],
+  sw_legend_divergent:  ['Divergente','Divergent'],
+  sw_legend_gossip:     ['Gossip','Gossip'],
+  sw_add_external: ['Agregar swarm externo:','Add external swarm:'],
+  sw_add_btn:   ['+ Agregar','+ Add'],
+  sw_clear_btn: ['Limpiar','Clear'],
+  sw_clear_title: ['Limpiar todos los swarms externos','Clear all external swarms'],
+  sw_swarms_in_network: ['Swarms en la Red','Swarms in the Network'],
+  sw_interaction_metrics: ['Métricas de Interacción','Interaction Metrics'],
+  sw_how_to_read: ['<strong>Cómo leer esto:</strong> Cada círculo es un nodo. Los nodos <strong style="color:#10b981">verdes</strong> son honestos, los <strong style="color:#f87171">rojos</strong> divergieron del consenso. El nodo <strong style="color:#22d3ee">cyan</strong> es LOCAL (nosotros). Los nodos con <strong style="color:#22d3ee">anillo cyan</strong> son <strong>embajadores</strong> — 2 por swarm, elegidos por trust, son los únicos que comunican hallazgos cross-swarm. Si uno cae, el otro cubre. Pasa el mouse sobre cualquier nodo para ver su estado.',
+                   '<strong>How to read this:</strong> Each circle is a node. <strong style="color:#10b981">Green</strong> nodes are honest, <strong style="color:#f87171">red</strong> ones diverged from consensus. The <strong style="color:#22d3ee">cyan</strong> node is LOCAL (us). Nodes with a <strong style="color:#22d3ee">cyan ring</strong> are <strong>ambassadors</strong> — 2 per swarm, chosen by trust, the only ones that communicate cross-swarm findings. If one falls, the other covers. Hover over any node to see its status.'],
+  sw_audit_title: ['Auditoría Distribuida — Validación en Tiempo Real','Distributed Audit — Real-Time Validation'],
+  sw_audit_sub:   ['(Todos los swarms auditan simultáneamente)','(All swarms audit simultaneously)'],
+  sw_timeline_title: ['LÍNEA DE TIEMPO — Elección en Progreso','TIMELINE — Election in Progress'],
+  sw_timeline_start:  ['Inicio','Start'],
+  sw_phase1:          ['Fase 1: Recopilación','Phase 1: Collection'],
+  sw_timeline_result: ['Resultado','Result'],
+  sw_validation_status: ['Estado de Validación por Swarm','Validation Status per Swarm'],
+  sw_checksums_title: ['Verificación de Checksums (Hash Validation)','Checksum Verification (Hash Validation)'],
+  sw_audit_waiting: ['Esperando inicio de auditoría...','Waiting for audit to start...'],
+  sw_start_audit: ['▶ Iniciar Auditoría Distribuida','▶ Start Distributed Audit'],
+  sw_clear_audit: ['✕ Limpiar','✕ Clear'],
+  sw_clear_audit_title: ['Limpiar estado de auditoría','Clear audit state'],
+  sw_whats_happening: ['<strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es Centinel auditando como lo hace en producción.',
+                       '<strong>What is happening?</strong> Every node in every swarm validates the same dataset (votes, tally sheets, etc.) simultaneously. You see checksums being verified in real time. If ≥66% of honest nodes validate, consensus is reached and the result is safe. This is Centinel auditing the way it does in production.'],
+
+  // ── P2.1: opciones "N nodos" ──
+  sw_opt_n1:  ['1 nodo','1 node'],
+  sw_opt_n2:  ['2 nodos','2 nodes'],
+  sw_opt_n3:  ['3 nodos','3 nodes'],
+  sw_opt_n4:  ['4 nodos','4 nodes'],
+  sw_opt_n5:  ['5 nodos','5 nodes'],
+  sw_opt_n6:  ['6 nodos','6 nodes'],
+  sw_opt_n7:  ['7 nodos','7 nodes'],
+  sw_opt_n8:  ['8 nodos','8 nodes'],
+  sw_opt_n9:  ['9 nodos','9 nodes'],
+  sw_opt_n10: ['10 nodos','10 nodes'],
+  sw_opt_n11: ['11 nodos','11 nodes'],
+  sw_opt_n12: ['12 nodos','12 nodes'],
+
+  // ── P2.1: Byzantine Resilience Lab ──
+  byz_section_title: ['Byzantine Resilience Lab — Academic Showcase','Byzantine Resilience Lab — Academic Showcase'],
+  byz_badge:         ['BFT · Genuine · Reproducible','BFT · Genuine · Reproducible'],
+  byz_total_nodes:   ['Nodos totales (N):','Total nodes (N):'],
+  byz_byzantine_m:   ['Byzantine (M):','Byzantine (M):'],
+  byz_run:           ['▶ Ejecutar','▶ Run'],
+  byz_bft_threshold: ['BFT Threshold','BFT Threshold'],
+  byz_byzantine_nodes: ['Byzantine Nodes','Byzantine Nodes'],
+  byz_status_label:  ['Status','Status'],
+  byz_status_pending:['Pending','Pending'],
+  byz_rounds_label:  ['Rounds','Rounds'],
+  byz_nodes_consensus: ['Nodos y Estado de Consenso','Nodes and Consensus Status'],
+  byz_forensic_trail: ['Forensic Trail (Reproducible)','Forensic Trail (Reproducible)'],
+  byz_note: ['<strong>Byzantine Fault Tolerance:</strong> Centinel alcanza consenso si y solo si Byzantine ≤ ⌊(N−1)/3⌋. Esta sección demuestra que cuando M > threshold, el consenso falla — garantía matemática verificada.',
+             '<strong>Byzantine Fault Tolerance:</strong> Centinel reaches consensus if and only if Byzantine ≤ ⌊(N−1)/3⌋. This section demonstrates that when M > threshold, consensus fails — a mathematically verified guarantee.'],
 };
 
 function applyLabI18n(lang){
@@ -6322,6 +6447,10 @@ function applyLabI18n(lang){
     if(el.dataset.i18nAttr) el.setAttribute(el.dataset.i18nAttr, pair[idx]);
     else if(el.dataset.i18nHtml) el.innerHTML = pair[idx];
     else el.textContent = pair[idx];
+    if(el.dataset.i18nTitle){
+      const tpair=LAB_I18N[el.dataset.i18nTitle];
+      if(tpair) el.setAttribute('title', tpair[idx]);
+    }
   });
   // chart toggle bar labels
   if(typeof _buildToggleBar==='function') _buildToggleBar();
@@ -6343,6 +6472,11 @@ function applyLabI18n(lang){
   if(typeof _bldRenderInjTable==='function') _bldRenderInjTable();
   if(typeof renderAlerts==='function') renderAlerts();
   if(typeof renderActiveInjections==='function') renderActiveInjections();
+  if(typeof renderExternalSwarms==='function') renderExternalSwarms();
+  if(typeof updateInteractionMetrics==='function') updateInteractionMetrics();
+  if(typeof renderTaskTable==='function') renderTaskTable();
+  if(typeof updateSwarmKpis==='function') updateSwarmKpis();
+  if(typeof renderAuditChecksums==='function') renderAuditChecksums();
 }
 
 /* Re-etiqueta valores generados en runtime SIN recalcular (evita efectos
