@@ -4705,25 +4705,34 @@ function _getDatasetLabel(){
   return sel?sel.options[sel.selectedIndex]?.text||sel.value:'Desconocido';
 }
 
-// ── Citation text builders ────────────────────────────────────────────────
+// ── Citation text builders (bilingüe — usa currentLabLang()) ───────────────
 
 function _buildAPASoftware(){
   return `VectisDev. (2025). CENTINEL: Trustless electoral integrity verification [Software]. GitHub. https://github.com/vectisdev/centinel`;
 }
 function _buildAPASession(sid){
+  const en=currentLabLang()==='en';
   const ds=_getDatasetLabel();
   const now=new Date();
-  const dateStr=now.toLocaleDateString('es-HN',{year:'numeric',month:'long',day:'numeric'});
+  const dateStr=now.toLocaleDateString(en?'en-US':'es-HN',{year:'numeric',month:'long',day:'numeric'});
   const snap=SIM.idx+1;const total=SIM.snapshots.length;
-  return `CENTINEL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`;
+  return en
+    ? `CENTINEL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Electoral forensic analysis: ${ds} — Snapshot ${snap}/${total} [Sandbox session, session ID: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`
+    : `CENTINEL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`;
 }
 function _buildAPAData(){
+  const en=currentLabLang()==='en';
   const ds=_getDatasetLabel();
   if(ds.includes('HN 2025')||ds.includes('hnd'))
-    return `Tribunal Supremo Electoral de Honduras. (2025). Resultados electorales — Elecciones Generales Honduras 2025 [Conjunto de datos]. TSE. https://cne.hn/`;
-  return `VectisDev. (2025). Datos simulados de integridad electoral [Conjunto de datos sintéticos]. GitHub. https://github.com/vectisdev/centinel`;
+    return en
+      ? `Supreme Electoral Tribunal of Honduras. (2025). Election results — Honduras 2025 General Elections [Data set]. TSE. https://cne.hn/`
+      : `Tribunal Supremo Electoral de Honduras. (2025). Resultados electorales — Elecciones Generales Honduras 2025 [Conjunto de datos]. TSE. https://cne.hn/`;
+  return en
+    ? `VectisDev. (2025). Simulated electoral integrity data [Synthetic data set]. GitHub. https://github.com/vectisdev/centinel`
+    : `VectisDev. (2025). Datos simulados de integridad electoral [Conjunto de datos sintéticos]. GitHub. https://github.com/vectisdev/centinel`;
 }
 function _buildBibSoftware(){
+  const en=currentLabLang()==='en';
   return `@software{centinel2025,
   author    = {{VectisDev}},
   title     = {{CENTINEL}: Trustless Electoral Integrity Verification},
@@ -4731,34 +4740,52 @@ function _buildBibSoftware(){
   url       = {https://github.com/vectisdev/centinel},
   license   = {AGPL-3.0},
   version   = {0.4.0},
-  note      = {Sistema de auditoría electoral criptográfica para América Latina}
+  note      = {${en?'Cryptographic electoral audit system for Latin America':'Sistema de auditoría electoral criptográfica para América Latina'}}
 }`;
 }
 function _buildBibSession(sid){
+  const en=currentLabLang()==='en';
   const ds=_getDatasetLabel();
   const snap=SIM.idx+1;const total=SIM.snapshots.length;
   const now=new Date();
   return `@misc{centinel_session_${sid},
-  title     = {{CENTINEL} Forensic Lab --- Análisis forense electoral},
+  title     = {{CENTINEL} Forensic Lab --- ${en?'Electoral Forensic Analysis':'Análisis forense electoral'}},
   author    = {{CENTINEL Forensic Lab}},
   year      = {${now.getFullYear()}},
   month     = {${now.getMonth()+1}},
-  note      = {Dataset: ${ds}; Snapshot: ${snap}/${total}; ID de sesión: ${sid}; Alertas: ${simAlerts.length}},
+  note      = {Dataset: ${ds}; Snapshot: ${snap}/${total}; ${en?'Session ID':'ID de sesión'}: ${sid}; ${en?'Alerts':'Alertas'}: ${simAlerts.length}},
   url       = {https://vectisdev.github.io/centinel/lab/},
   urldate   = {${now.toISOString().slice(0,10)}}
 }`;
 }
 function _buildBibData(){
+  const en=currentLabLang()==='en';
   const ds=_getDatasetLabel();
   if(ds.includes('HN 2025')||ds.includes('hnd'))
-    return `@dataset{tse_hn2025,
+    return en
+      ? `@dataset{tse_hn2025,
+  author    = {{Supreme Electoral Tribunal of Honduras}},
+  title     = {Election Results --- 2025 General Elections},
+  year      = {2025},
+  url       = {https://cne.hn/},
+  note      = {Data processed by CENTINEL Engine v0.4.0}
+}`
+      : `@dataset{tse_hn2025,
   author    = {{Tribunal Supremo Electoral de Honduras}},
   title     = {Resultados Electorales --- Elecciones Generales 2025},
   year      = {2025},
   url       = {https://cne.hn/},
   note      = {Datos procesados por CENTINEL Engine v0.4.0}
 }`;
-  return `@dataset{centinel_sim2025,
+  return en
+    ? `@dataset{centinel_sim2025,
+  author    = {{VectisDev}},
+  title     = {Simulated Electoral Integrity Data},
+  year      = {2025},
+  url       = {https://github.com/vectisdev/centinel},
+  note      = {Synthetic time series with embedded anomalies for detector evaluation}
+}`
+    : `@dataset{centinel_sim2025,
   author    = {{VectisDev}},
   title     = {Datos Simulados de Integridad Electoral},
   year      = {2025},
@@ -4767,15 +4794,24 @@ function _buildBibData(){
 }`;
 }
 function _buildISOSoftware(){
-  return `VECTISDEV. CENTINEL: Trustless Electoral Integrity Verification [software]. 2025. Disponible en: <https://github.com/vectisdev/centinel> [consulta: ${new Date().toISOString().slice(0,10)}]`;
+  const en=currentLabLang()==='en';
+  return en
+    ? `VECTISDEV. CENTINEL: Trustless Electoral Integrity Verification [software]. 2025. Available at: <https://github.com/vectisdev/centinel> [accessed: ${new Date().toISOString().slice(0,10)}]`
+    : `VECTISDEV. CENTINEL: Trustless Electoral Integrity Verification [software]. 2025. Disponible en: <https://github.com/vectisdev/centinel> [consulta: ${new Date().toISOString().slice(0,10)}]`;
 }
 function _buildISOSession(sid){
+  const en=currentLabLang()==='en';
   const ds=_getDatasetLabel();
   const snap=SIM.idx+1;
-  return `CENTINEL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/centinel/lab/>`;
+  return en
+    ? `CENTINEL FORENSIC LAB. Forensic analysis: ${ds}, snapshot ${snap} [online session]. ${new Date().toISOString().slice(0,10)}. Session ID: ${sid}. Available at: <https://vectisdev.github.io/centinel/lab/>`
+    : `CENTINEL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/centinel/lab/>`;
 }
 
+let _lastCiteSid=null;
 function _populateCiteTexts(sid){
+  _lastCiteSid=sid;
+  const en=currentLabLang()==='en';
   const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
   set('cite-apa-software',_buildAPASoftware());
   set('cite-apa-session',_buildAPASession(sid));
@@ -4790,9 +4826,14 @@ function _populateCiteTexts(sid){
     const crit=simAlerts.filter(a=>a.sev==='CRITICAL').length;
     meta.innerHTML=`<strong style="color:var(--fg)">Session ID:</strong> <code style="font-family:var(--mono);color:var(--accent);font-size:13px">${sid}</code> &nbsp;·&nbsp; `
       +`<strong style="color:var(--fg)">Dataset:</strong> ${_getDatasetLabel()} &nbsp;·&nbsp; `
-      +`<strong style="color:var(--fg)">Snap:</strong> ${SIM.idx+1}/${SIM.snapshots.length} &nbsp;·&nbsp; `
-      +`<strong style="color:var(--fg)">Alertas CRITICAL:</strong> <span style="color:var(--bad)">${crit}</span>`;
+      +`<strong style="color:var(--fg)">${en?'Snapshot':'Snap'}:</strong> ${SIM.idx+1}/${SIM.snapshots.length} &nbsp;·&nbsp; `
+      +`<strong style="color:var(--fg)">${en?'CRITICAL Alerts':'Alertas CRITICAL'}:</strong> <span style="color:var(--bad)">${crit}</span>`;
   }
+}
+/* Re-popula el modal de citación si está abierto al cambiar de idioma */
+function _refreshCiteIfOpen(){
+  const ov=document.getElementById('cite-overlay');
+  if(ov && ov.classList.contains('open') && _lastCiteSid) _populateCiteTexts(_lastCiteSid);
 }
 
 let _citeFormat='apa';
@@ -4815,7 +4856,7 @@ function copyCite(blockId){
   const el=document.getElementById(`cite-${blockId}`);if(!el)return;
   const text=el.textContent;
   const btn=el.closest('.cite-block')?.querySelector('.cite-copy-btn');
-  const flash=()=>{if(btn){const o=btn.textContent;btn.textContent='✓ Copiado';btn.classList.add('copied');setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},2000);}};
+  const flash=()=>{if(btn){const o=btn.textContent;btn.textContent=LAB_I18N.cite_copied[currentLabLang()==='en'?1:0];btn.classList.add('copied');setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},2000);}};
   if(navigator.clipboard){navigator.clipboard.writeText(text).then(flash).catch(()=>{});}
   else{const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');flash();}
 }
@@ -5805,6 +5846,7 @@ const LAB_I18N = {
                           'Your message will be sent as an Issue to the project repository. Requires a GitHub account.'],
   cfg_feedback_placeholder:['Tu comentario, sugerencia o reporte de problema…','Your comment, suggestion, or bug report…'],
   cfg_feedback_btn:      ['Abrir issue en GitHub →','Open GitHub issue →'],
+  cite_copied:           ['✓ Copiado','✓ Copied'],
 };
 
 function applyLabI18n(lang){
@@ -5825,6 +5867,7 @@ function applyLabI18n(lang){
     if(lbl) lbl.textContent = LAB_I18N[pinBtn.dataset.pinned==='1'?'pin_on':'pin_off'][idx];
   }
   relabelDynamic(lang);
+  if(typeof _refreshCiteIfOpen==='function') _refreshCiteIfOpen();
 }
 
 /* Re-etiqueta valores generados en runtime SIN recalcular (evita efectos
