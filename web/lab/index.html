@@ -5527,40 +5527,40 @@ function toggleSection(id){
 <div id="meth-overlay" onclick="closeMethodologySidebar()"></div>
 <div id="meth-drawer">
   <div class="meth-hdr">
-    <h3>📖 Metodología científica</h3>
+    <h3 data-i18n="meth_h3">📖 Metodología científica</h3>
     <button onclick="closeMethodologySidebar()">✕</button>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Fundamento matemático</div>
-    <p class="meth-p">CENTINEL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.</p>
+    <div class="meth-section-title" data-i18n="meth_s1_title">Fundamento matemático</div>
+    <p class="meth-p" data-i18n="meth_s1_body">CENTINEL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.</p>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Teorema T1 — Integridad de cadena</div>
-    <p class="meth-p">Cada snapshot incluye el SHA-256 del anterior. Una modificación retroactiva invalida toda la cadena posterior — detectable offline sin acceso a la fuente original.</p>
+    <div class="meth-section-title" data-i18n="meth_t1_title">Teorema T1 — Integridad de cadena</div>
+    <p class="meth-p" data-i18n="meth_t1_body">Cada snapshot incluye el SHA-256 del anterior. Una modificación retroactiva invalida toda la cadena posterior — detectable offline sin acceso a la fuente original.</p>
     <code class="meth-code">H_n = SHA256(data_n ‖ H_{n-1})</code>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Teorema T2 — Ley de Benford</div>
-    <p class="meth-p">Los primeros dígitos de datos electorales orgánicos siguen la distribución logarítmica de Benford. La desviación χ² &gt; umbral indica manipulación numérica sistemática.</p>
+    <div class="meth-section-title" data-i18n="meth_t2_title">Teorema T2 — Ley de Benford</div>
+    <p class="meth-p" data-i18n="meth_t2_body">Los primeros dígitos de datos electorales orgánicos siguen la distribución logarítmica de Benford. La desviación χ² &gt; umbral indica manipulación numérica sistemática.</p>
     <code class="meth-code">P(d) = log₁₀(1 + 1/d),  d ∈ {1,…,9}</code>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Teorema T3 — Inconsistencia de participación</div>
-    <p class="meth-p">La participación acumulada es monótonamente no-decreciente. Una caída indica actas retiradas — evento imposible en un escrutinio legítimo.</p>
+    <div class="meth-section-title" data-i18n="meth_t3_title">Teorema T3 — Inconsistencia de participación</div>
+    <p class="meth-p" data-i18n="meth_t3_body">La participación acumulada es monótonamente no-decreciente. Una caída indica actas retiradas — evento imposible en un escrutinio legítimo.</p>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Teorema T4 — Anclaje temporal Bitcoin</div>
-    <p class="meth-p">La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en CENTINEL.</p>
+    <div class="meth-section-title" data-i18n="meth_t4_title">Teorema T4 — Anclaje temporal Bitcoin</div>
+    <p class="meth-p" data-i18n="meth_t4_body">La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en CENTINEL.</p>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Detectores implementados</div>
-    <ul class="meth-list">
+    <div class="meth-section-title" data-i18n="meth_det_title">Detectores implementados</div>
+    <ul class="meth-list" data-i18n="meth_det_list" data-i18n-html="1">
       <li>Ley de Benford (primeros dígitos, χ²)</li>
       <li>Participación imposible (&gt;100%)</li>
       <li>Turno out delta anómalo</li>
@@ -5577,13 +5577,13 @@ function toggleSection(id){
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Validación académica</div>
-    <p class="meth-p">Validación de 500 corridas publicada. Análisis de falsos positivos activo. Colaboración en curso con la <strong>Universidad Pedagógica Nacional Francisco Morazán (UPNFM)</strong>, Honduras.</p>
-    <p class="meth-p">Piloto de producción: <strong>Elecciones generales Honduras 2025</strong>.</p>
+    <div class="meth-section-title" data-i18n="meth_val_title">Validación académica</div>
+    <p class="meth-p" data-i18n="meth_val_body1" data-i18n-html="1">Validación de 500 corridas publicada. Análisis de falsos positivos activo. Colaboración en curso con la <strong>Universidad Pedagógica Nacional Francisco Morazán (UPNFM)</strong>, Honduras.</p>
+    <p class="meth-p" data-i18n="meth_val_body2" data-i18n-html="1">Piloto de producción: <strong>Elecciones generales Honduras 2025</strong>.</p>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Referencias</div>
+    <div class="meth-section-title" data-i18n="meth_refs_title">Referencias</div>
     <ul class="meth-list">
       <li>Benford, F. (1938). The law of anomalous numbers. <em>Proceedings of the American Philosophical Society</em>, 78(4), 551–572.</li>
       <li>Nakamoto, S. (2008). Bitcoin: A peer-to-peer electronic cash system.</li>
@@ -5594,14 +5594,14 @@ function toggleSection(id){
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Reproducibilidad</div>
-    <p class="meth-p">Toda sesión genera un ZIP reproducible: configuración de umbrales, alertas, inyecciones activas, metadatos y cita bibliográfica. Cualquier investigador puede reproducir el análisis exacto a partir del ZIP.</p>
-    <button class="dl-pill" style="margin-top:8px" onclick="downloadReproZip()">⬇ Descargar paquete de reproducibilidad</button>
+    <div class="meth-section-title" data-i18n="meth_repro_title">Reproducibilidad</div>
+    <p class="meth-p" data-i18n="meth_repro_body">Toda sesión genera un ZIP reproducible: configuración de umbrales, alertas, inyecciones activas, metadatos y cita bibliográfica. Cualquier investigador puede reproducir el análisis exacto a partir del ZIP.</p>
+    <button class="dl-pill" style="margin-top:8px" onclick="downloadReproZip()" data-i18n="meth_repro_btn">⬇ Descargar paquete de reproducibilidad</button>
   </div>
 
   <div class="meth-section">
-    <div class="meth-section-title">Contacto académico</div>
-    <p class="meth-p">Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.</p>
+    <div class="meth-section-title" data-i18n="meth_contact_title">Contacto académico</div>
+    <p class="meth-p" data-i18n="meth_contact_body" data-i18n-html="1">Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.</p>
   </div>
 </div>
 
@@ -5865,6 +5865,40 @@ const LAB_I18N = {
   acad_lbl_alerts:    ['Alertas totales','Total alerts'],
   acad_lbl_crit:      ['Alertas CRITICAL','CRITICAL alerts'],
   acad_lbl_thresh:    ['Umbrales activos','Active thresholds'],
+
+  // ── Capa 3d: Drawer de Metodología ──
+  meth_h3:        ['📖 Metodología científica','📖 Scientific Methodology'],
+  meth_s1_title:  ['Fundamento matemático','Mathematical Foundation'],
+  meth_s1_body:   ['CENTINEL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.',
+                   'CENTINEL implements 25+ independent statistical detectors. Each snapshot is checked against analyst-configurable thresholds; an anomaly requires multiple detectors to agree (k-of-n consensus), eliminating isolated false positives.'],
+  meth_t1_title:  ['Teorema T1 — Integridad de cadena','Theorem T1 — Chain Integrity'],
+  meth_t1_body:   ['Cada snapshot incluye el SHA-256 del anterior. Una modificación retroactiva invalida toda la cadena posterior — detectable offline sin acceso a la fuente original.',
+                   'Each snapshot includes the SHA-256 of the previous one. A retroactive modification invalidates the entire subsequent chain — detectable offline without access to the original source.'],
+  meth_t2_title:  ['Teorema T2 — Ley de Benford','Theorem T2 — Benford\'s Law'],
+  meth_t2_body:   ['Los primeros dígitos de datos electorales orgánicos siguen la distribución logarítmica de Benford. La desviación χ² &gt; umbral indica manipulación numérica sistemática.',
+                   'The leading digits of organic electoral data follow Benford\'s logarithmic distribution. A χ² deviation &gt; threshold indicates systematic numerical manipulation.'],
+  meth_t3_title:  ['Teorema T3 — Inconsistencia de participación','Theorem T3 — Turnout Inconsistency'],
+  meth_t3_body:   ['La participación acumulada es monótonamente no-decreciente. Una caída indica actas retiradas — evento imposible en un escrutinio legítimo.',
+                   'Cumulative turnout is monotonically non-decreasing. A drop indicates withdrawn tally sheets — an impossible event in a legitimate count.'],
+  meth_t4_title:  ['Teorema T4 — Anclaje temporal Bitcoin','Theorem T4 — Bitcoin Time Anchoring'],
+  meth_t4_body:   ['La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en CENTINEL.',
+                   'The Merkle root of the snapshot set is anchored to the Bitcoin blockchain via OpenTimestamps. The mined block proves the data existed before that block — without requiring trust in CENTINEL.'],
+  meth_det_title: ['Detectores implementados','Implemented Detectors'],
+  meth_det_list:  ['<li>Ley de Benford (primeros dígitos, χ²)</li><li>Participación imposible (&gt;100%)</li><li>Turno out delta anómalo</li><li>Consistencia de cadena de hash</li><li>Estancamiento de datos (throttling)</li><li>Última hora surge (madrugada)</li><li>Empate estadístico imposible</li><li>Cascada de espejos</li><li>Participación bimodal anormal</li><li>Volatilidad de liderazgo</li><li>Datos idénticos multi-tick</li><li>14 detectores adicionales configurables</li>',
+                   '<li>Benford\'s Law (leading digits, χ²)</li><li>Impossible turnout (&gt;100%)</li><li>Anomalous turnout delta</li><li>Hash chain consistency</li><li>Data stagnation (throttling)</li><li>Late-night surge</li><li>Impossible statistical tie</li><li>Mirror cascade</li><li>Abnormal bimodal turnout</li><li>Leadership volatility</li><li>Identical multi-tick data</li><li>14 additional configurable detectors</li>'],
+  meth_val_title: ['Validación académica','Academic Validation'],
+  meth_val_body1: ['Validación de 500 corridas publicada. Análisis de falsos positivos activo. Colaboración en curso con la <strong>Universidad Pedagógica Nacional Francisco Morazán (UPNFM)</strong>, Honduras.',
+                   '500-run validation published. Active false-positive analysis. Ongoing collaboration with the <strong>Universidad Pedagógica Nacional Francisco Morazán (UPNFM)</strong>, Honduras.'],
+  meth_val_body2: ['Piloto de producción: <strong>Elecciones generales Honduras 2025</strong>.',
+                   'Production pilot: <strong>Honduras 2025 General Elections</strong>.'],
+  meth_refs_title:['Referencias','References'],
+  meth_repro_title:['Reproducibilidad','Reproducibility'],
+  meth_repro_body: ['Toda sesión genera un ZIP reproducible: configuración de umbrales, alertas, inyecciones activas, metadatos y cita bibliográfica. Cualquier investigador puede reproducir el análisis exacto a partir del ZIP.',
+                    'Every session generates a reproducible ZIP: threshold configuration, alerts, active injections, metadata and bibliographic citation. Any researcher can reproduce the exact analysis from the ZIP.'],
+  meth_repro_btn: ['⬇ Descargar paquete de reproducibilidad','⬇ Download reproducibility package'],
+  meth_contact_title:['Contacto académico','Academic Contact'],
+  meth_contact_body: ['Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.',
+                       'For research collaborations, independent validation, or doctoral thesis use: open an issue on <strong>github.com/vectisdev/centinel</strong> with the <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code> label.'],
 };
 
 function applyLabI18n(lang){
