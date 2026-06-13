@@ -139,3 +139,4 @@ workflow `Resilience Mirror`. Las entradas son append-only.
 | 2026-06-13T02:12:12Z | push | `1a9656bab0e6` | [✓](https://codeberg.org/VectisDev/centinel/commit/1a9656bab0e62138ce49787c74ac74999a1c9c21) | [✓](https://archive.org/details/centinel-mirror-2026-06) |
 | 2026-06-13T02:18:52Z | push | `4f69e4a4a18f` | [✓](https://codeberg.org/VectisDev/centinel/commit/4f69e4a4a18fc2beba23ec76007411df64f017d3) | [✓](https://archive.org/details/centinel-mirror-2026-06) |
 | 2026-06-13T02:19:21Z | push | `e3f6e9377a6e` | [✓](https://codeberg.org/VectisDev/centinel/commit/e3f6e9377a6e991c53431795a756bfaa6543ff38) | [✓](https://archive.org/details/centinel-mirror-2026-06) |
+| 2026-06-13T02:25:59Z | push | `25a483476c32` | [✓](https://codeberg.org/VectisDev/centinel/commit/25a483476c32e5fa5da18437b50d16b0e48986d9) | [✓](https://archive.org/details/centinel-mirror-2026-06) |
