@@ -5358,7 +5358,7 @@ function togglePinCharts(){
     btn.classList.toggle('active',pinned);
     btn.dataset.pinned=pinned?'1':'0';
     const txt=btn.querySelector('.pin-label');
-    if(txt) txt.textContent=LAB_I18N[pinned?'pin_on':'pin_off'][currentLabLang()];
+    if(txt) txt.textContent=LAB_I18N[pinned?'pin_on':'pin_off'][currentLabLang()==='en'?1:0];
   }
   // auto-expand if collapsed
   if(pinned){
