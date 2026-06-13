@@ -1809,6 +1809,27 @@ const _LOG_FULL_EN = {
   'Throttling / Estancamiento': 'Throttling / Stagnation',
   'ALERTA': 'ALERT',
   'CRÍTICO': 'CRITICAL',
+  'Simulación pausada': 'Simulation paused',
+  'Simulación detenida y reiniciada': 'Simulation stopped and reset',
+  'Simulación completada': 'Simulation complete',
+  'Loop — reiniciando desde snapshot 1': 'Loop — restarting from snapshot 1',
+  'Loop — red gossip reiniciada': 'Loop — gossip network reset',
+  'Sandbox Forense Académico listo — CENTINEL v1': 'Academic Forensic Sandbox ready — CENTINEL v1',
+  'Selecciona un dataset y presiona ▶ para iniciar la simulación': 'Select a dataset and press ▶ to start the simulation',
+  'No hay gráficas — inicia la simulación primero': 'No charts available — start the simulation first',
+  'PNG del panel descargado': 'Panel PNG downloaded',
+  'PNG de umbrales descargado': 'Thresholds PNG downloaded',
+  'PNG de inyecciones descargado': 'Injections PNG downloaded',
+  'PNG completo de la plataforma descargado': 'Full platform PNG downloaded',
+  'Canvas bloqueado — baja los shields para esta página': 'Canvas blocked — lower shields for this page',
+  'Canvas bloqueado — baja los shields': 'Canvas blocked — lower shields',
+  'Abriendo diálogo de impresión — selecciona "Guardar como PDF"': 'Opening print dialog — select "Save as PDF"',
+  'Inicia la simulación para exportar estadísticas': 'Start the simulation to export statistics',
+  'Inicia la simulación primero': 'Start the simulation first',
+  'JSZip no disponible — descargando CSV y BibTeX por separado': 'JSZip not available — downloading CSV and BibTeX separately',
+  'Pre-registro de umbrales bloqueado por investigador': 'Threshold pre-registration locked by researcher',
+  'Pre-registro de umbrales cancelado — sliders bloqueados': 'Threshold pre-registration cancelled — sliders unlocked',
+  'Sistema de visualización restaurado': 'Visualization system restored',
 };
 const _LOG_PHRASES_EN = [
   [' módulos comprometidos → AUTO-AUDIT FALLA → cuarentena',' modules compromised → AUTO-AUDIT FAILS → quarantine'],
@@ -1961,6 +1982,24 @@ const _LOG_PHRASES_EN = [
   ['% vs predicción ','% vs prediction '],
   ['LLN: z=','LLN: z='],
   ['σ → convergencia anómala (n=','σ → anomalous convergence (n='],
+  ['Dataset listo: ','Dataset ready: '],
+  [' snapshots cargados',' snapshots loaded'],
+  ['Simulación iniciada — velocidad ','Simulation started — speed '],
+  ['Loop activado','Loop enabled'],
+  ['Loop desactivado','Loop disabled'],
+  [' nodos comprometidos al cierre',' nodes compromised at close'],
+  ['Log ','Log '],
+  [' descargado como TXT',' downloaded as TXT'],
+  ['BibTeX descargado: ','BibTeX downloaded: '],
+  ['CSV descargado (','CSV downloaded ('],
+  [' alertas · 24 umbrales)',' alerts · 24 thresholds)'],
+  ['ZIP reproducible descargado: ','Reproducible ZIP downloaded: '],
+  ['" cargado — ','" loaded — '],
+  ['Sesión cargada: ','Session loaded: '],
+  ['Error cargando sesión: ','Error loading session: '],
+  ['Dataset no encontrado: ','Dataset not found: '],
+  ['Inyección programada: ','Scheduled injection: '],
+  [' en snapshot ',' at snapshot '],
 ];
 _LOG_PHRASES_EN.sort((a,b)=>b[0].length-a[0].length);
 
@@ -3414,7 +3453,7 @@ async function loadDataset(url, rawData=null){
   simStop();
   if (rawData !== null || (typeof url === 'string' && url.startsWith('__custom__'))) {
     const data = rawData !== null ? rawData : _CUSTOM_DATASETS[url];
-    if (!data) { logE('CRITICAL','Dataset no encontrado: '+url); return; }
+    if (!data) { logE('CRITICAL',_trMsg('Dataset no encontrado: ')+url); return; }
     SERIES = data;
     SIM.snapshots=deepClone(SERIES.snapshots);
     document.getElementById('sim-scrubber').max=String(SIM.snapshots.length-1);
@@ -3427,7 +3466,7 @@ async function loadDataset(url, rawData=null){
         ).join('');
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
-    logE('OK',`Dataset listo: ${SIM.snapshots.length} snapshots cargados`);
+    logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
     return;
   }
@@ -3448,7 +3487,7 @@ async function loadDataset(url, rawData=null){
         ).join('');
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
-    logE('OK',`Dataset listo: ${SIM.snapshots.length} snapshots cargados`);
+    logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
   }catch(e){logE('CRITICAL','Error cargando dataset: '+e.message);}
 }
@@ -3468,13 +3507,13 @@ function simPlay(){
   btn.textContent='⏸';btn.classList.add('active');
   clearInterval(SIM.timer);
   SIM.timer=setInterval(simTick,TICK_MS[SIM.speed]||(SIM.speed<=10?200:4));
-  logE('INFO',`Simulación iniciada — velocidad ${SIM.speed}×`);
+  logE('INFO',_trMsg(`Simulación iniciada — velocidad ${SIM.speed}×`));
 }
 function simPause(){
   SIM.state='paused';clearInterval(SIM.timer);
   const btn=document.getElementById('btn-play');
   btn.textContent='▶';btn.classList.remove('active');
-  updateBadge();logE('INFO','Simulación pausada');
+  updateBadge();logE('INFO',_trMsg('Simulación pausada'));
   renderSimFrame(SIM.idx); // always render full charts on pause regardless of speed
 }
 function simStop(){
@@ -3495,18 +3534,18 @@ function simStop(){
   SWARM.compromised=0; SWARM._tick=0;
   updateSwarmKpis(); renderSwarmViz();
   logSE('INFO','Red Swarm reiniciada — todos los nodos sanos');
-  logE('INFO','Simulación detenida y reiniciada');
+  logE('INFO',_trMsg('Simulación detenida y reiniciada'));
 }
 function simTick(){
   if(SIM.idx>=SIM.snapshots.length-1){
     if(SIM.loop){
       SIM.idx=0;SIM.snapshots=deepClone(SERIES.snapshots);
-      logE('INFO','Loop — reiniciando desde snapshot 1');
-      logSE('INFO','Loop — red gossip reiniciada');
+      logE('INFO',_trMsg('Loop — reiniciando desde snapshot 1'));
+      logSE('INFO',_trMsg('Loop — red gossip reiniciada'));
     }else{
       simPause();
-      logE('OK','Simulación completada');
-      logSE('OK',`Simulación completada · ${SWARM.compromised} nodos comprometidos al cierre`);
+      logE('OK',_trMsg('Simulación completada'));
+      logSE('OK',_trMsg(`Simulación completada · ${SWARM.compromised} nodos comprometidos al cierre`));
       return;
     }
   }
@@ -3521,7 +3560,7 @@ function toggleLoop(){
   btn.classList.toggle('active',SIM.loop);
   btn.style.color=SIM.loop?'var(--purple)':'';
   btn.style.borderColor=SIM.loop?'var(--purple)':'';
-  logE('INFO',`Loop ${SIM.loop?'activado':'desactivado'}`);
+  logE('INFO',_trMsg(`Loop ${SIM.loop?'activado':'desactivado'}`));
 }
 function simJumpTo(val){
   SIM.idx=parseInt(val);updateScrubber();
@@ -4445,7 +4484,7 @@ function lockThresholds(){
   document.getElementById('thresh-lock-stat').innerHTML='<span class="badge b-ok">hipótesis bloqueada</span>';
   document.getElementById('thresh-sliders').classList.add('unlocked');
   localStorage.setItem('centinel_acad_prereg',JSON.stringify({txt,ts:new Date().toISOString()}));
-  logE('INFO','Pre-registro de umbrales bloqueado por investigador');
+  logE('INFO',_trMsg('Pre-registro de umbrales bloqueado por investigador'));
 }
 function unlockThresholds(){
   if(!confirm('¿Borrar la hipótesis y deshabilitar los sliders? Esta acción no se puede deshacer.'))return;
@@ -4457,7 +4496,7 @@ function unlockThresholds(){
   document.getElementById('thresh-lock-stat').innerHTML='';
   document.getElementById('thresh-sliders').classList.remove('unlocked');
   localStorage.removeItem('centinel_acad_prereg');
-  logE('INFO','Pre-registro de umbrales cancelado — sliders bloqueados');
+  logE('INFO',_trMsg('Pre-registro de umbrales cancelado — sliders bloqueados'));
 }
 function resetThresholds(){RULES_DEFS.forEach(r=>{TV[r.id]=r.def;
   const sl=document.getElementById('sl-'+r.id);if(sl)sl.value=r.def;
@@ -4514,7 +4553,7 @@ function injectEvent(id){
     scheduledInjections.push({id,paramVal,atIdx});
     activeInjections.push({id,label:ev.label,mode:'programada',atIdx,schedRef:scheduledInjections.length-1});
     renderActiveInjections();
-    logE('INFO',`Inyección programada: ${ev.label} en snapshot ${atIdx}`);
+    logE('INFO',_trMsg(`Inyección programada: ${evLabel(id)} en snapshot ${atIdx}`));
   }
 }
 function applyScheduledInjections(idx){
@@ -4536,21 +4575,22 @@ function renderActiveInjections(){
   });
   if(!n){topbar.style.display='none';topbar.innerHTML='';return;}
   // Populate per-block badge rows + topbar
+  const en=currentLabLang()==='en';
   activeInjections.forEach((inj,i)=>{
     const block=inj.id[0].toLowerCase();
     const el=document.getElementById('inj-active-block-'+block);
     if(!el)return;
     const schedCls=inj.mode==='programada'?'sched':'';
-    const label=inj.id+': '+inj.label.split(' ').slice(0,3).join(' ')+(inj.mode==='programada'?` @snap${inj.atIdx+1}`:'');
-    el.innerHTML+=`<span class="inj-tag ${schedCls}">${label}<button onclick="cancelInjection(${i})" title="Cancelar">×</button></span>`;
+    const label=inj.id+': '+evLabel(inj.id).split(' ').slice(0,3).join(' ')+(inj.mode==='programada'?` @snap${inj.atIdx+1}`:'');
+    el.innerHTML+=`<span class="inj-tag ${schedCls}">${label}<button onclick="cancelInjection(${i})" title="${en?'Cancel':'Cancelar'}">×</button></span>`;
   });
   // Mini topbar
   topbar.style.display='flex';
-  topbar.innerHTML=`<span id="inj-topbar-label">Inyecciones activas (${n}):</span>`+
+  topbar.innerHTML=`<span id="inj-topbar-label">${en?'Active injections':'Inyecciones activas'} (${n}):</span>`+
     activeInjections.map((inj,i)=>{
       const schedCls=inj.mode==='programada'?'sched':'';
-      const shortLabel=inj.id+' · '+inj.label.split(' ').slice(0,3).join(' ')+(inj.mode==='programada'?` @snap${inj.atIdx+1}`:'');
-      return `<span class="inj-tag-top ${schedCls}">${shortLabel}<button onclick="cancelInjection(${i})" title="Cancelar inyección">×</button></span>`;
+      const shortLabel=inj.id+' · '+evLabel(inj.id).split(' ').slice(0,3).join(' ')+(inj.mode==='programada'?` @snap${inj.atIdx+1}`:'');
+      return `<span class="inj-tag-top ${schedCls}">${shortLabel}<button onclick="cancelInjection(${i})" title="${en?'Cancel injection':'Cancelar inyección'}">×</button></span>`;
     }).join('');
 }
 
@@ -4626,7 +4666,7 @@ function renderInjGrid(gridId,block){
 function restoreVis(){
   document.getElementById('vis-overlay').classList.remove('show');
   if(SIM.snapshots[SIM.idx])SIM.snapshots[SIM.idx]._vis_down=false;
-  logE('OK','Sistema de visualización restaurado');
+  logE('OK',_trMsg('Sistema de visualización restaurado'));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4680,8 +4720,8 @@ async function loadLabThresholds(){
   renderSwarmViz();
   logSE('OK','Red Swarm lista — 100 nodos · fan-out=3 · BFT=33');
   logSE('INFO','Inicia la simulación para observar propagación gossip y detección Byzantine');
-  logE('OK','Sandbox Forense Académico listo — CENTINEL v1');
-  logE('INFO','Selecciona un dataset y presiona ▶ para iniciar la simulación');
+  logE('OK',_trMsg('Sandbox Forense Académico listo — CENTINEL v1'));
+  logE('INFO',_trMsg('Selecciona un dataset y presiona ▶ para iniciar la simulación'));
 })();
 
 // ── shared canvas helpers ────────────────────────────────────────────────────
@@ -4755,7 +4795,7 @@ function downloadPNG(){
   const IDS=['s-chart-cand','s-chart-timeline','s-chart-benford','s-chart-lastdigit',
              's-chart-zscore','s-chart-participation','s-chart-nullblank'];
   const cs=IDS.map(id=>document.getElementById(id)).filter(c=>c&&c.width>0&&c.offsetWidth>0);
-  if(!cs.length){logE('WARN','No hay gráficas — inicia la simulación primero');return;}
+  if(!cs.length){logE('WARN',_trMsg('No hay gráficas — inicia la simulación primero'));return;}
   const PAD=20,GAP=10,S=2;
   const W=cs[0].offsetWidth;
   const rows=_chartRows(cs);
@@ -4790,15 +4830,15 @@ function downloadPNG(){
     a.href=out.toDataURL('image/png');
     a.download=`centinel-panel-snap${SIM.idx+1}.png`;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
-    logE('OK','PNG del panel descargado');
-  }catch(e){logE('WARN','Canvas bloqueado — baja los shields para esta página');}
+    logE('OK',_trMsg('PNG del panel descargado'));
+  }catch(e){logE('WARN',_trMsg('Canvas bloqueado — baja los shields para esta página'));}
 }
 
 function downloadFullPNG(){
   const IDS=['s-chart-cand','s-chart-timeline','s-chart-benford','s-chart-lastdigit',
              's-chart-zscore','s-chart-participation','s-chart-nullblank'];
   const cs=IDS.map(id=>document.getElementById(id)).filter(c=>c&&c.width>0&&c.offsetWidth>0);
-  if(!cs.length){logE('WARN','No hay gráficas — inicia la simulación primero');return;}
+  if(!cs.length){logE('WARN',_trMsg('No hay gráficas — inicia la simulación primero'));return;}
   const PAD=20,GAP=10,S=2;
   const W=cs[0].offsetWidth;
   const rows=_chartRows(cs);
@@ -4859,8 +4899,8 @@ function downloadFullPNG(){
     a.href=out.toDataURL('image/png');
     a.download=`centinel-completo-snap${SIM.idx+1}.png`;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
-    logE('OK','PNG completo de la plataforma descargado');
-  }catch(e){logE('WARN','Canvas bloqueado — baja los shields para esta página');}
+    logE('OK',_trMsg('PNG completo de la plataforma descargado'));
+  }catch(e){logE('WARN',_trMsg('Canvas bloqueado — baja los shields para esta página'));}
 }
 
 function _makePNG(title, lines, filename){
@@ -4888,7 +4928,7 @@ function _makePNG(title, lines, filename){
     const a=document.createElement('a');
     a.href=out.toDataURL('image/png');a.download=filename;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
-  }catch(e){logE('WARN','Canvas bloqueado — baja los shields');}
+  }catch(e){logE('WARN',_trMsg('Canvas bloqueado — baja los shields'));}
 }
 
 function downloadUmbralesPNG(){
@@ -4901,7 +4941,7 @@ function downloadUmbralesPNG(){
     lines.push(`  ${on?'✓':'✗'} ${r.label}: ${val}${r.unit||''}  [${r.min}–${r.max}]`);
   });
   _makePNG('Umbrales de Sensibilidad de Reglas',lines,`centinel-umbrales-snap${SIM.idx+1}.png`);
-  logE('OK','PNG de umbrales descargado');
+  logE('OK',_trMsg('PNG de umbrales descargado'));
 }
 
 function downloadMatrizPNG(){
@@ -4921,7 +4961,7 @@ function downloadMatrizPNG(){
     }
   }
   _makePNG('Matriz de Inyección de Eventos — Estado actual',lines,`centinel-inyecciones-snap${SIM.idx+1}.png`);
-  logE('OK','PNG de inyecciones descargado');
+  logE('OK',_trMsg('PNG de inyecciones descargado'));
 }
 
 function downloadTelemTxt(panel){
@@ -4933,11 +4973,11 @@ function downloadTelemTxt(panel){
   a.download=`centinel-${panel}-snap${SIM.idx+1}.txt`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
-  logE('OK',`Log ${panel} descargado como TXT`);
+  logE('OK',_trMsg(`Log ${panel} descargado como TXT`));
 }
 
 function downloadPDF(){
-  logE('INFO','Abriendo diálogo de impresión — selecciona "Guardar como PDF"');
+  logE('INFO',_trMsg('Abriendo diálogo de impresión — selecciona "Guardar como PDF"'));
   window.print();
 }
 
@@ -5170,11 +5210,11 @@ async function downloadBib(){
   a.download=`centinel-${sid}.bib`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
-  logE('OK',`BibTeX descargado: centinel-${sid}.bib`);
+  logE('OK',_trMsg(`BibTeX descargado: centinel-${sid}.bib`));
 }
 
 async function downloadCSV(){
-  if(!SIM.snapshots.length){logE('WARN','Inicia la simulación para exportar estadísticas');return;}
+  if(!SIM.snapshots.length){logE('WARN',_trMsg('Inicia la simulación para exportar estadísticas'));return;}
   const sid=await _ensureSessionId();
   const ds=_getDatasetLabel();const snap=SIM.idx+1;const ts=new Date().toISOString();
   const esc=s=>{const v=String(s);return v.includes(',')||v.includes('"')||v.includes('\n')?'"'+v.replace(/"/g,'""')+'"':v;};
@@ -5211,15 +5251,15 @@ async function downloadCSV(){
   a.download=`centinel-estadisticas-${sid}.csv`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
-  logE('OK',`CSV descargado (${simAlerts.length} alertas · 24 umbrales)`);
+  logE('OK',_trMsg(`CSV descargado (${simAlerts.length} alertas · 24 umbrales)`));
 }
 
 async function downloadReproZip(){
-  if(!SIM.snapshots.length){logE('WARN','Inicia la simulación primero');return;}
+  if(!SIM.snapshots.length){logE('WARN',_trMsg('Inicia la simulación primero'));return;}
   const sid=await _ensureSessionId();
   const ds=_getDatasetLabel();const ts=new Date().toISOString();const snap=SIM.idx+1;
   if(typeof JSZip==='undefined'){
-    logE('WARN','JSZip no disponible — descargando CSV y BibTeX por separado');
+    logE('WARN',_trMsg('JSZip no disponible — descargando CSV y BibTeX por separado'));
     downloadCSV();downloadBib();return;
   }
   const zip=new JSZip();
@@ -5287,7 +5327,7 @@ async function downloadReproZip(){
     a.href=URL.createObjectURL(blob);a.download=`centinel-repro-${sid}.zip`;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(a.href);
-    logE('OK',`ZIP reproducible descargado: centinel-repro-${sid}.zip (${(blob.size/1024).toFixed(1)} KB)`);
+    logE('OK',_trMsg(`ZIP reproducible descargado: centinel-repro-${sid}.zip (${(blob.size/1024).toFixed(1)} KB)`));
   });
 }
 
@@ -5566,7 +5606,7 @@ function bldUseInLab(){
     _addToDatasetSelector(cfg.label,ds);
     loadDataset('__custom__:inline',ds);
     closeBuilder();
-    logE('OK',`Dataset "${cfg.label}" cargado — ${ds.snapshots.length} snapshots`);
+    logE('OK',_trMsg(`Dataset "${cfg.label}" cargado — ${ds.snapshots.length} snapshots`));
   }catch(e){alert('Error generando dataset: '+e.message);}
 }
 function bldDownloadDataset(){
@@ -5618,8 +5658,8 @@ function loadLabSession(input){
       if(session.thresholds) _importThresholds(session.thresholds);
       if(session.hypothesis&&typeof _restoreHypothesis==='function')
         _restoreHypothesis(session.hypothesis,session.hypothesis_hash);
-      logE('OK',`Sesión cargada: ${session.label??file.name}`);
-    }catch(err){logE('CRITICAL','Error cargando sesión: '+err.message);}
+      logE('OK',_trMsg(`Sesión cargada: ${session.label??file.name}`));
+    }catch(err){logE('CRITICAL',_trMsg('Error cargando sesión: ')+err.message);}
   };
   reader.readAsText(file);
   input.value='';
@@ -6302,6 +6342,7 @@ function applyLabI18n(lang){
   if(typeof _bldRenderEventGrid==='function') _bldRenderEventGrid();
   if(typeof _bldRenderInjTable==='function') _bldRenderInjTable();
   if(typeof renderAlerts==='function') renderAlerts();
+  if(typeof renderActiveInjections==='function') renderActiveInjections();
 }
 
 /* Re-etiqueta valores generados en runtime SIN recalcular (evita efectos
