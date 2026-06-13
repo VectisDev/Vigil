@@ -642,19 +642,19 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- CONSOLA DE REPRODUCCIÓN FORENSE -->
 <div id="sim-control-bar">
-  <span class="dataset-label">Dataset</span>
+  <span class="dataset-label" data-i18n="ds_label">Dataset</span>
   <select class="dataset-select" id="dataset-select" onchange="loadDataset(this.value)">
-    <optgroup label="Mis datasets" id="custom-datasets-group" style="display:none"></optgroup>
-    <optgroup label="Datos reales">
+    <optgroup label="Mis datasets" id="custom-datasets-group" data-i18n="ds_og_mine" data-i18n-attr="label" style="display:none"></optgroup>
+    <optgroup label="Datos reales" data-i18n="ds_og_real" data-i18n-attr="label">
       <option value="../data/hnd_2025_series.json">HN 2025 · 30 nov 2025 · 64 snaps</option>
     </optgroup>
-    <optgroup label="Simulación estándar · 5 min · 576 snaps">
-      <option value="../data/sim_eleccion_limpia_5min.json">Limpia — sin anomalías</option>
-      <option value="../data/sim_eleccion_anomala_5min.json">Con anomalías embebidas [GT]</option>
+    <optgroup label="Simulación estándar · 5 min · 576 snaps" data-i18n="ds_og_std" data-i18n-attr="label">
+      <option value="../data/sim_eleccion_limpia_5min.json" data-i18n="ds_opt_clean">Limpia — sin anomalías</option>
+      <option value="../data/sim_eleccion_anomala_5min.json" data-i18n="ds_opt_anom">Con anomalías embebidas [GT]</option>
     </optgroup>
-    <optgroup label="Adversarial HN 2025 · 28 días · 5 min · 8 064 snaps">
-      <option value="../data/sim_mes_adversarial_5min.json">Calibrada — limpia</option>
-      <option value="../data/sim_mes_adversarial_anomala_5min.json">Calibrada — con anomalías [GT]</option>
+    <optgroup label="Adversarial HN 2025 · 28 días · 5 min · 8 064 snaps" data-i18n="ds_og_adv" data-i18n-attr="label">
+      <option value="../data/sim_mes_adversarial_5min.json" data-i18n="ds_opt_calclean">Calibrada — limpia</option>
+      <option value="../data/sim_mes_adversarial_anomala_5min.json" data-i18n="ds_opt_calanom">Calibrada — con anomalías [GT]</option>
     </optgroup>
   </select>
 
@@ -1145,13 +1145,13 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 </div>
 
 <!-- ══ SECTION 5 — TELEMETRÍA 4 CANALES ════════════════════════════════════════ -->
-<div class="section-title">Centro de Telemetría</div>
+<div class="section-title" data-i18n="telem_title">Centro de Telemetría</div>
 <div class="telem-section-buttons">
   <button class="section-dl" onclick="downloadTelemTxt('engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SA Engine</button>
   <button class="section-dl" onclick="downloadTelemTxt('attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SA Attack</button>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Engine</button>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Attack</button>
-  <button class="section-dl" id="btn-attack-sound" onclick="toggleAttackSound()" title="Activar/desactivar beep al detectar ataque" style="margin-left:6px">🔇 Sonido</button>
+  <button class="section-dl" id="btn-attack-sound" onclick="toggleAttackSound()" title="Activar/desactivar beep al detectar ataque" style="margin-left:6px">🔇 <span data-i18n="telem_sound">Sonido</span></button>
 </div>
 <div class="telem-wrap">
   <!-- ─ Row 1: Standalone ─ -->
@@ -1180,7 +1180,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <div class="telem-panel" id="panel-sw-attack" style="border-color:rgba(176,140,240,.3)">
     <h4><span class="attack-dot" style="width:8px;height:8px;background:var(--warn);border-radius:50%;display:inline-block;flex-shrink:0"></span>Attack Logger</h4>
     <div class="telem-log" id="telem-swarm-attack">
-      <div class="tl-muted" style="opacity:.4;font-style:italic" id="telem-swarm-attack-empty">Sin ataques detectados — inyecta B1/B2/B11/B12 para activar</div>
+      <div class="tl-muted" style="opacity:.4;font-style:italic" id="telem-swarm-attack-empty" data-i18n="telem_no_attacks">Sin ataques detectados — inyecta B1/B2/B11/B12 para activar</div>
     </div>
   </div>
 </div>
@@ -5754,19 +5754,19 @@ function toggleSection(id){
 <!-- ===== SAVE SESSION NAME MODAL ===== -->
 <div id="save-session-overlay" onclick="if(event.target===this)closeSaveSessionModal()">
   <div id="save-session-card">
-    <h3>💾 Guardar sesión</h3>
-    <p style="margin:0;font-size:12px;color:var(--txt-dim)">Escribe un nombre para identificar esta sesión. El archivo descargado podrá recargarse en cualquier momento para restaurar el estado exacto del lab.</p>
-    <input type="text" id="save-session-name" placeholder="Ej: HN 2025 escenario C6" maxlength="80">
+    <h3 data-i18n="ss_h3">💾 Guardar sesión</h3>
+    <p style="margin:0;font-size:12px;color:var(--txt-dim)" data-i18n="ss_body">Escribe un nombre para identificar esta sesión. El archivo descargado podrá recargarse en cualquier momento para restaurar el estado exacto del lab.</p>
+    <input type="text" id="save-session-name" data-i18n="ss_placeholder" data-i18n-attr="placeholder" placeholder="Ej: HN 2025 escenario C6" maxlength="80">
     <div class="ss-actions">
-      <button class="ss-cancel" onclick="closeSaveSessionModal()">Cancelar</button>
-      <button class="ss-ok" onclick="confirmSaveSession()">Descargar</button>
+      <button class="ss-cancel" onclick="closeSaveSessionModal()" data-i18n="ss_cancel">Cancelar</button>
+      <button class="ss-ok" onclick="confirmSaveSession()" data-i18n="ss_download">Descargar</button>
     </div>
   </div>
 </div>
 <!-- ===== LAB WATERMARK BADGE ===== -->
 <div id="lab-watermark-badge">
   <span class="lab-wm-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M9 3v7l-4.5 7.5A2 2 0 0 0 6 20h12a2 2 0 0 0 1.72-3L15 10V3"/><line x1="6.5" y1="15" x2="17.5" y2="15"/></svg></span>
-  <span>LAB · SIMULACIÓN<br><small style="opacity:.7">Datos no oficiales</small></span>
+  <span data-i18n="wm_badge" data-i18n-html="1">LAB · SIMULACIÓN<br><small style="opacity:.7">Datos no oficiales</small></span>
 </div>
 <script>
 /* ── VIGIL THEME TOGGLE (igual que monitor/ops) ── */
@@ -5899,6 +5899,31 @@ const LAB_I18N = {
   meth_contact_title:['Contacto académico','Academic Contact'],
   meth_contact_body: ['Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.',
                        'For research collaborations, independent validation, or doctoral thesis use: open an issue on <strong>github.com/vectisdev/centinel</strong> with the <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code> label.'],
+
+  // ── Capa 3e: dataset select, telemetría, sesión, watermark ──
+  ds_label:     ['Dataset','Dataset'],
+  ds_og_mine:   ['Mis datasets','My datasets'],
+  ds_og_real:   ['Datos reales','Real data'],
+  ds_og_std:    ['Simulación estándar · 5 min · 576 snaps','Standard simulation · 5 min · 576 snaps'],
+  ds_og_adv:    ['Adversarial HN 2025 · 28 días · 5 min · 8 064 snaps','Adversarial HN 2025 · 28 days · 5 min · 8,064 snaps'],
+  ds_opt_clean:   ['Limpia — sin anomalías','Clean — no anomalies'],
+  ds_opt_anom:    ['Con anomalías embebidas [GT]','With embedded anomalies [GT]'],
+  ds_opt_calclean:['Calibrada — limpia','Calibrated — clean'],
+  ds_opt_calanom: ['Calibrada — con anomalías [GT]','Calibrated — with anomalies [GT]'],
+
+  telem_title:      ['Centro de Telemetría','Telemetry Center'],
+  telem_sound:      ['Sonido','Sound'],
+  telem_no_attacks: ['Sin ataques detectados — inyecta B1/B2/B11/B12 para activar','No attacks detected — inject B1/B2/B11/B12 to trigger'],
+
+  ss_h3:         ['💾 Guardar sesión','💾 Save session'],
+  ss_body:       ['Escribe un nombre para identificar esta sesión. El archivo descargado podrá recargarse en cualquier momento para restaurar el estado exacto del lab.',
+                  'Enter a name to identify this session. The downloaded file can be reloaded at any time to restore the exact lab state.'],
+  ss_placeholder:['Ej: HN 2025 escenario C6','E.g.: HN 2025 scenario C6'],
+  ss_cancel:     ['Cancelar','Cancel'],
+  ss_download:   ['Descargar','Download'],
+
+  wm_badge: ['LAB · SIMULACIÓN<br><small style="opacity:.7">Datos no oficiales</small>',
+             'LAB · SIMULATION<br><small style="opacity:.7">Unofficial data</small>'],
 };
 
 function applyLabI18n(lang){
