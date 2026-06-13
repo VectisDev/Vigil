@@ -659,9 +659,9 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   </select>
 
   <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
-  <button class="dl-pill" onclick="openBuilder()" title="Construir dataset personalizado"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Construir</button>
-  <button class="dl-pill" onclick="saveLabSession()" title="Guardar configuración completa de esta sesión"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>Sesión</button>
-  <label class="dl-pill" style="cursor:pointer;margin:0" title="Cargar sesión guardada"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Cargar
+  <button class="dl-pill" onclick="openBuilder()" title="Construir dataset personalizado"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span data-i18n="ds_build">Construir</span></button>
+  <button class="dl-pill" onclick="saveLabSession()" title="Guardar configuración completa de esta sesión"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg><span data-i18n="ds_session">Sesión</span></button>
+  <label class="dl-pill" style="cursor:pointer;margin:0" title="Cargar sesión guardada"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span data-i18n="ds_load">Cargar</span>
     <input type="file" accept=".json" style="display:none" onchange="loadLabSession(this)">
   </label>
 
@@ -694,27 +694,27 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <div class="page">
 
 <!-- ══ SECTION 1 — KPIs ══════════════════════════════════════════════════════ -->
-<div class="section-title">Indicadores de la Simulación</div>
+<div class="section-title" data-i18n="sec_kpi_title">Indicadores de la Simulación</div>
 <div class="grid4">
   <div class="kpi-card">
-    <div class="kpi-label">Actas Divulgadas</div>
+    <div class="kpi-label" data-i18n="kpi_actas">Actas Divulgadas</div>
     <div class="kpi-val" id="k-actas">—</div>
     <div class="kpi-sub" id="k-actas-sub">de — totales</div>
     <div class="kpi-bar"><div class="kpi-bar-fill" id="k-actas-bar" style="width:0%"></div></div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-label">Votos Válidos</div>
+    <div class="kpi-label" data-i18n="kpi_votos">Votos Válidos</div>
     <div class="kpi-val" id="k-votos">—</div>
     <div class="kpi-sub" id="k-votos-sub">—</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-label">% Escrutinio</div>
+    <div class="kpi-label" data-i18n="kpi_pct">% Escrutinio</div>
     <div class="kpi-val" id="k-pct">—</div>
     <div class="kpi-sub" id="k-pct-sub">—</div>
     <div class="kpi-bar"><div class="kpi-bar-fill" id="k-pct-bar" style="width:0%;background:var(--purple)"></div></div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-label">Integridad de Cadena</div>
+    <div class="kpi-label" data-i18n="kpi_int">Integridad de Cadena</div>
     <div class="kpi-val" id="k-int">—</div>
     <div class="kpi-sub" id="k-int-sub">—</div>
   </div>
@@ -726,8 +726,8 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- ══ ENDPOINT STATUS MATRIX ═══════════════════════════════════════════════ -->
 <div class="card" style="margin-top:14px;margin-bottom:14px">
   <h2 style="margin:0 0 0 0;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--accent)">
-    Estado por Departamento
-    <span class="info-tip" title="Verde = íntegro, amarillo = anomalía estadística, rojo = cadena rota, oscuro = sin datos / offline. Se actualiza en cada tick de la simulación.">i</span>
+    <span data-i18n="dept_title">Estado por Departamento</span>
+    <span class="info-tip" data-i18n="dept_tooltip" data-i18n-attr="title" title="Verde = íntegro, amarillo = anomalía estadística, rojo = cadena rota, oscuro = sin datos / offline. Se actualiza en cada tick de la simulación.">i</span>
   </h2>
   <div class="lab-dept-grid" id="lab-dept-grid"></div>
 </div>
@@ -738,9 +738,9 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <button class="section-collapse-btn" id="btn-col-forense" onclick="toggleSection('forense')" title="Colapsar / expandir">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
   </button>
-  Panel de Visualización Forense
+  <span data-i18n="forense_title">Panel de Visualización Forense</span>
   <button class="section-dl" id="btn-pin-charts" onclick="togglePinCharts()" title="Fijar gráficos como panel lateral derecho">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>Fijar</button>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg><span class="pin-label">Fijar</span></button>
   <button class="section-dl" onclick="downloadPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
 </div>
 <div class="section-body" id="sec-body-forense">
@@ -1278,19 +1278,19 @@ let historyMargin = [];
 let historyAnomalyCounts = {};
 
 const CHART_DEFS=[
-  {id:'s-chart-cand',label:'Partidos'},
-  {id:'s-chart-timeline',label:'Timeline'},
-  {id:'s-chart-benford',label:'Benford'},
-  {id:'s-chart-lastdigit',label:'Últ.Dígito'},
-  {id:'s-chart-zscore',label:'Z-score'},
-  {id:'s-chart-participation',label:'Escrutinio'},
-  {id:'s-chart-nullblank',label:'Nulos/Dept'},
-  {id:'s-chart-velocity',label:'Velocidad'},
-  {id:'s-chart-leader',label:'Líder'},
-  {id:'s-chart-trend',label:'Tendencia'},
-  {id:'s-chart-anomaly-profile',label:'Anomalías'},
-  {id:'s-chart-invalids',label:'Nulos/T'},
-  {id:'s-chart-margin',label:'Margen'},
+  {id:'s-chart-cand',label:'Partidos',labelEn:'Parties'},
+  {id:'s-chart-timeline',label:'Timeline',labelEn:'Timeline'},
+  {id:'s-chart-benford',label:'Benford',labelEn:'Benford'},
+  {id:'s-chart-lastdigit',label:'Últ.Dígito',labelEn:'Last Digit'},
+  {id:'s-chart-zscore',label:'Z-score',labelEn:'Z-score'},
+  {id:'s-chart-participation',label:'Escrutinio',labelEn:'Counted'},
+  {id:'s-chart-nullblank',label:'Nulos/Dept',labelEn:'Null/Dept'},
+  {id:'s-chart-velocity',label:'Velocidad',labelEn:'Speed'},
+  {id:'s-chart-leader',label:'Líder',labelEn:'Leader'},
+  {id:'s-chart-trend',label:'Tendencia',labelEn:'Trend'},
+  {id:'s-chart-anomaly-profile',label:'Anomalías',labelEn:'Anomalies'},
+  {id:'s-chart-invalids',label:'Nulos/T',labelEn:'Null/Time'},
+  {id:'s-chart-margin',label:'Margen',labelEn:'Margin'},
 ];
 let chartPrefs={};
 function _loadChartPrefs(){
@@ -1322,7 +1322,8 @@ function _applyChartPrefs(){
 function _buildToggleBar(){
   const bar=document.getElementById('chart-toggle-bar');
   if(!bar)return;
-  bar.innerHTML=CHART_DEFS.map(d=>`<span class="chart-chip${_isChartVisible(d.id)?'':' off'}" data-chart-id="${d.id}" onclick="toggleChartVis('${d.id}')">${d.label}</span>`).join('');
+  const en=currentLabLang()==='en';
+  bar.innerHTML=CHART_DEFS.map(d=>`<span class="chart-chip${_isChartVisible(d.id)?'':' off'}" data-chart-id="${d.id}" onclick="toggleChartVis('${d.id}')">${en?d.labelEn:d.label}</span>`).join('');
   _applyChartPrefs();
 }
 
@@ -5355,10 +5356,9 @@ function togglePinCharts(){
   document.body.classList.toggle('charts-pinned',pinned);
   if(btn){
     btn.classList.toggle('active',pinned);
-    // update label — last child is the text node "Fijar"/"Desfijar"
-    const nodes=[...btn.childNodes];
-    const txt=nodes.find(n=>n.nodeType===3);
-    if(txt) txt.textContent=pinned?'Desfijar':'Fijar';
+    btn.dataset.pinned=pinned?'1':'0';
+    const txt=btn.querySelector('.pin-label');
+    if(txt) txt.textContent=LAB_I18N[pinned?'pin_on':'pin_off'][currentLabLang()];
   }
   // auto-expand if collapsed
   if(pinned){
@@ -5743,12 +5743,91 @@ function toggleTheme() {
 setTheme(localStorage.getItem('vigil-theme') || 'dark');
 
 /* ── VIGIL LANGUAGE TOGGLE (igual que monitor/ops) ── */
+function currentLabLang(){ return document.documentElement.getAttribute('lang')==='en' ? 'en':'es'; }
+
+/* Diccionario de UI estática — Capa 2 (paneles/indicadores/etiquetas principales).
+   Modales, metodología y mensajes de simulación dinámicos quedan para Capa 3. */
+const LAB_I18N = {
+  ds_build:     ['Construir','Build'],
+  ds_session:   ['Sesión','Session'],
+  ds_load:      ['Cargar','Load'],
+  sec_kpi_title:['Indicadores de la Simulación','Simulation Indicators'],
+  kpi_actas:    ['Actas Divulgadas','Records Published'],
+  kpi_votos:    ['Votos Válidos','Valid Votes'],
+  kpi_pct:      ['% Escrutinio','% Counted'],
+  kpi_int:      ['Integridad de Cadena','Chain Integrity'],
+  dept_title:   ['Estado por Departamento','Status by Department'],
+  dept_tooltip: ['Verde = íntegro, amarillo = anomalía estadística, rojo = cadena rota, oscuro = sin datos / offline. Se actualiza en cada tick de la simulación.',
+                 'Green = intact, yellow = statistical anomaly, red = broken chain, dark = no data / offline. Updates on every simulation tick.'],
+  forense_title:['Panel de Visualización Forense','Forensic Visualization Panel'],
+  pin_off:      ['Fijar','Pin'],
+  pin_on:       ['Desfijar','Unpin'],
+  // valores dinámicos de KPIs/badge (relabelDynamic)
+  dyn_votos_validos:  ['votos válidos','valid votes'],
+  dyn_datos_parciales:['⚠ datos parciales','⚠ partial data'],
+  dyn_cadena_integra: ['cadena íntegra','chain intact'],
+  dyn_cadena_comprometida:['cadena comprometida','chain compromised'],
+  dyn_firma_invalida: ['firma inválida','invalid signature'],
+  dyn_chain_fork:     ['chain fork detectado','chain fork detected'],
+  dyn_simulando:      ['SIMULANDO','RUNNING'],
+  dyn_pausado:        ['PAUSADO','PAUSED'],
+  dyn_detenido:       ['DETENIDO','STOPPED'],
+  dyn_truncado:       ['TRUNCADO','TRUNCATED'],
+  dyn_cuarentena:     ['CUARENTENA','QUARANTINE'],
+};
+
+function applyLabI18n(lang){
+  const idx = lang==='en' ? 1 : 0;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.dataset.i18n, pair=LAB_I18N[key];
+    if(!pair)return;
+    if(el.dataset.i18nAttr) el.setAttribute(el.dataset.i18nAttr, pair[idx]);
+    else el.textContent = pair[idx];
+  });
+  // chart toggle bar labels
+  if(typeof _buildToggleBar==='function') _buildToggleBar();
+  // pin button current state
+  const pinBtn=document.getElementById('btn-pin-charts');
+  if(pinBtn){
+    const lbl=pinBtn.querySelector('.pin-label');
+    if(lbl) lbl.textContent = LAB_I18N[pinBtn.dataset.pinned==='1'?'pin_on':'pin_off'][idx];
+  }
+  relabelDynamic(lang);
+}
+
+/* Re-etiqueta valores generados en runtime SIN recalcular (evita efectos
+   secundarios como duplicar entradas de log o re-evaluar reglas). */
+function relabelDynamic(lang){
+  const idx = lang==='en' ? 1 : 0;
+  const other = lang==='en' ? 0 : 1;
+  const swap = (el, ...keys) => {
+    if(!el) return;
+    const cur = el.textContent.trim();
+    for(const k of keys){
+      const pair = LAB_I18N[k];
+      if(pair && cur === pair[other]){ el.textContent = pair[idx]; return; }
+    }
+  };
+  swap(document.getElementById('k-votos-sub'), 'dyn_votos_validos','dyn_datos_parciales');
+  swap(document.getElementById('k-int-sub'), 'dyn_cadena_integra','dyn_cadena_comprometida','dyn_firma_invalida','dyn_chain_fork');
+  swap(document.getElementById('k-votos'), 'dyn_truncado');
+  swap(document.getElementById('k-int'), 'dyn_cuarentena');
+  swap(document.getElementById('sim-badge'), 'dyn_simulando','dyn_pausado','dyn_detenido');
+  // "de 12,345 totales" <-> "of 12,345 total"
+  const kas=document.getElementById('k-actas-sub');
+  if(kas){
+    if(lang==='en') kas.textContent = kas.textContent.replace(/^de /,'of ').replace(/ totales$/,' total');
+    else kas.textContent = kas.textContent.replace(/^of /,'de ').replace(/ total$/,' totales');
+  }
+}
+
 function setLang(l) {
   document.documentElement.setAttribute('lang', l);
   document.body.classList.remove('lang-en', 'lang-es');
   document.body.classList.add('lang-' + l);
   document.getElementById('lang-toggle').textContent = l === 'en' ? 'ES' : 'EN';
   localStorage.setItem('vigil-lang', l);
+  applyLabI18n(l);
 }
 function toggleLang() {
   const current = localStorage.getItem('vigil-lang') || 'es';
