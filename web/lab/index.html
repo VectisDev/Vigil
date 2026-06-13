@@ -868,16 +868,16 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <button class="section-collapse-btn collapsed" id="btn-col-matriz" onclick="toggleSection('matriz')" title="Colapsar / expandir">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
   </button>
-  Matriz de Inyección de Eventos
+  <span data-i18n="inj_matrix_title">Matriz de Inyección de Eventos</span>
   <button class="section-dl" onclick="downloadMatrizPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
 </div>
 <div class="section-body collapsed" id="sec-body-matriz">
 
 <div class="inj-mode-bar">
-  <button class="inj-mode-btn on" id="btn-inj-instant" onclick="setInjMode('instant')">Inmediata</button>
-  <button class="inj-mode-btn" id="btn-inj-sched" onclick="setInjMode('scheduled')">Programada</button>
+  <button class="inj-mode-btn on" id="btn-inj-instant" onclick="setInjMode('instant')" data-i18n="inj_mode_instant">Inmediata</button>
+  <button class="inj-mode-btn" id="btn-inj-sched" onclick="setInjMode('scheduled')" data-i18n="inj_mode_sched">Programada</button>
   <div id="inj-schedule-wrap">
-    en snapshot nº <input type="number" id="inj-sched-idx" min="0" max="575" value="100" style="width:70px">
+    <span data-i18n="inj_sched_prefix">en snapshot nº</span> <input type="number" id="inj-sched-idx" min="0" max="575" value="100" style="width:70px">
     <span style="font-size:10px;color:var(--muted)">(0–575)</span>
   </div>
 </div>
@@ -885,8 +885,8 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- Bloque A -->
 <div class="inj-block">
   <div class="inj-block-title">
-    <span class="badge b-bad">A</span> Anomalías del Sitio Origen — Vectores del Scraper
-    <span style="font-size:10px;color:var(--muted)">Fallos extrínsecos de la infraestructura de datos</span>
+    <span class="badge b-bad">A</span> <span data-i18n="inj_block_a_title">Anomalías del Sitio Origen — Vectores del Scraper</span>
+    <span style="font-size:10px;color:var(--muted)" data-i18n="inj_block_a_sub">Fallos extrínsecos de la infraestructura de datos</span>
   </div>
   <div class="inj-active-block" id="inj-active-block-a"></div>
   <div class="inj-grid" id="inj-grid-a"></div>
@@ -895,8 +895,8 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- Bloque B -->
 <div class="inj-block">
   <div class="inj-block-title">
-    <span class="badge b-warn">B</span> Escenario Red Team — Ataques a CENTINEL
-    <span style="font-size:10px;color:var(--muted)">Una defensa por tarjeta · escala hasta el punto de quiebre</span>
+    <span class="badge b-warn">B</span> <span data-i18n="inj_block_b_title">Escenario Red Team — Ataques a CENTINEL</span>
+    <span style="font-size:10px;color:var(--muted)" data-i18n="inj_block_b_sub">Una defensa por tarjeta · escala hasta el punto de quiebre</span>
   </div>
   <div class="inj-active-block" id="inj-active-block-b"></div>
   <div class="inj-grid" id="inj-grid-b"></div>
@@ -905,8 +905,8 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- Bloque C -->
 <div class="inj-block">
   <div class="inj-block-title">
-    <span class="badge b-pur">C</span> Anomalías Electorales Estadísticas
-    <span style="font-size:10px;color:var(--muted)">Patrones de fraude/error para evaluar mecanismos de detección</span>
+    <span class="badge b-pur">C</span> <span data-i18n="inj_block_c_title">Anomalías Electorales Estadísticas</span>
+    <span style="font-size:10px;color:var(--muted)" data-i18n="inj_block_c_sub">Patrones de fraude/error para evaluar mecanismos de detección</span>
   </div>
   <div class="inj-active-block" id="inj-active-block-c"></div>
   <div class="inj-grid" id="inj-grid-c"></div>
@@ -1685,6 +1685,38 @@ const EVENTS = {
       logE('CRITICAL',`Mesa fantasma: actas_divulgadas=${s.actas_divulgadas} > totales=${s.actas_totales} → CRITICAL`);}
   },
 };
+
+const EVENTS_EN = {
+  A1:{label:'Endpoint Disconnection',desc:'Selectively shuts down data endpoints; halts the increase in tally sheets.',breakpoint:'No new data → blackout activated',param:{label:'Endpoints'}},
+  A2:{label:'Data Rollback',desc:'Reverts published tallies and votes to a previous state (non-monotonic timestamp).',breakpoint:'Negative snapshot jump → Benford gap → reversal alert',param:{label:'Snapshots back'}},
+  A3:{label:'Visualization System Outage',desc:'Simulates total collapse of the external data delivery system.',breakpoint:'Visualization offline → all charts frozen',param:null},
+  A4:{label:'Massive Hold-and-Release',desc:'Freezes the flow of tally sheets then releases them all at once (massive burst).',breakpoint:'Velocity spike → processing_speed alert → critical snapshot_jump',param:{label:'Held tally sheets'}},
+  A5:{label:'Geographic Blackout',desc:'All tally sheets from one department stop arriving simultaneously.',breakpoint:'Geographic CV spike → critical dispersion',param:{label:'Intensity'}},
+  A6:{label:'Timestamp Desynchronization',desc:'Consecutive non-monotonic timestamps or jumps into the future.',breakpoint:'Trend analysis collapsed → inconsistent timeline',param:{label:'Drift (min)'}},
+  A7:{label:'Tally Sheet Duplication',desc:'Same batch of tally sheets repeated with different vote counts (duplicate detection).',breakpoint:'Inflated votes → Benford violation → mesa_reconciliation alert',param:{label:'Duplicated tally sheets'}},
+  A8:{label:'Partial / Truncated Data',desc:'JSON payloads with null or missing critical fields.',breakpoint:'basic_diff alert → table_consistency violation',param:{label:'Probability %'}},
+  A9:{label:'Artificial CNE Throttling',desc:'Only 1 tally update every N ticks (artificially reduced cadence).',breakpoint:'Participation anomaly → latency detected',param:{label:'Ticks between updates'}},
+  B1:{label:'Sustained DDoS',desc:'Simulates massive request load. Evaluates rate limiting and Static-First architecture.',breakpoint:'> 100k req/s → Rate limiter exhausted → logs show "503 flooding"',param:{label:'Intensity (req/s)'}},
+  B2:{label:'Honeypot Activation',desc:'Requests to trap routes (/admin, /debug, /.git). Evaluates perimeter detection.',breakpoint:'No escalation → "Honeypot muted" (false negative)',param:{label:'Attempts per tick'}},
+  B3:{label:'Tampering / In-Transit Alteration',desc:'Injects altered votes and incorrect SHA-256 hash. Evaluates chain integrity.',breakpoint:'100% alteration → 0% integrity → chain "BROKEN"',param:{label:'% tally sheets altered'}},
+  B4:{label:'Fake Hash Injection',desc:'Inserts a forged block. Evaluates Merkle tree verification.',breakpoint:'Persistent Merkle root mismatch → chain verification = FAIL',param:null},
+  B5:{label:'CDN Mirror Contamination',desc:'One or more mirrors serve modified data. Evaluates multi-mirror consensus.',breakpoint:'≥50% contaminated → consensus impossible → offline mode',param:{label:'Compromised mirrors'}},
+  B6:{label:'Cache Poisoning',desc:'Fake TTL: stale data served for N ticks. Evaluates data freshness.',breakpoint:'TTL > 60min → >25% divergence from real source → consistency alert',param:{label:'Fake TTL (min)'}},
+  B7:{label:'Time Synchronization Attack',desc:'Manipulates timestamps to create false stability in trend analysis.',breakpoint:'All timestamps equal → trend analysis collapsed',param:{label:'Distortion (min)'}},
+  B8:{label:'OTS Anchor Forgery',desc:'Attempts to replace the Bitcoin-anchored Merkle root. Evaluates OTS immutability.',breakpoint:'Always fails (OTS immutable) — shows "OTS anchor mismatch"',param:null},
+  B9:{label:'Ed25519 Signature Bypass',desc:'Injects payload without a valid operator signature. Evaluates signature verification.',breakpoint:'Checkpoint rejected → KPI shows "Invalid signature"',param:null},
+  B10:{label:'Binary Tampering (Auto-audit)',desc:'Simulates a binary hash different from baseline. Evaluates integrity self-audit.',breakpoint:'Auto-audit fails → all signals red → quarantine mode',param:{label:'Compromised modules'}},
+  B11:{label:'Zero-Trust Middleware Bypass',desc:'Requests with forged headers (X-Forwarded-For, fake Origin). Evaluates middleware.',breakpoint:'Middleware doesn\'t filter → "ZT bypass" in log → unauthorized data',param:{label:'Forged headers'}},
+  B12:{label:'Mirror Cascade Collapse',desc:'Contaminates mirrors 1→2→3 in consecutive ticks until consensus is impossible.',breakpoint:'3rd mirror contaminated → system enters local-only mode',param:{label:'Cascade speed (ticks)'}},
+  B13:{label:'Chain Fork',desc:'Two nodes receive different versions of the same snapshot — fork detected.',breakpoint:'Persistent fork → ingestion paused until reconciliation',param:null},
+};
+/* Helpers: devuelven metadata de EVENTS en el idioma activo (fallback a ES) */
+function evMeta(id){return (currentLabLang()==='en' && EVENTS_EN[id]) ? EVENTS_EN[id] : EVENTS[id];}
+function evLabel(id){return evMeta(id).label;}
+function evDesc(id){return evMeta(id).desc;}
+function evBreakpoint(id){return evMeta(id).breakpoint;}
+function evParamLabel(id){const m=evMeta(id);return m.param?m.param.label:(EVENTS[id].param?EVENTS[id].param.label:'');}
+
 
 // Final party percentages (for uniformity injection)
 const PARTIDOS_FINAL=[
@@ -4288,17 +4320,18 @@ function _updateSliderColor(input, detectAt, breachAt) {
 function renderInjGrid(gridId,block){
   const container=document.getElementById(gridId);
   const evs=Object.entries(EVENTS).filter(([,e])=>e.block===block);
+  const en=currentLabLang()==='en';
   container.innerHTML=evs.map(([id,ev])=>{
     const btnCls=block==='B'?'b':block==='C'?'c':'';
     const durOpts=[
-      {v:'instant',l:'Instantáneo'},{v:1,l:'1 snap'},{v:3,l:'3 snaps'},
+      {v:'instant',l:en?'Instant':'Instantáneo'},{v:1,l:'1 snap'},{v:3,l:'3 snaps'},
       {v:6,l:'6 snaps'},{v:12,l:'12 snaps'},{v:24,l:'24 snaps'}
     ].map(o=>`<option value="${o.v}"${o.v==='instant'?' selected':''}>${o.l}</option>`).join('');
     const realLabelHtml=ev.param?.realLabel
-      ?`<div class="inj-real-label">⚙ Real: ${ev.param.realLabel}</div>`:'';
+      ?`<div class="inj-real-label">⚙ ${en?'Real':'Real'}: ${ev.param.realLabel}</div>`:'';
     const paramHtml=ev.param?`
       <div class="inj-param-row">
-        <span style="flex:0;white-space:nowrap;font-size:9px">${ev.param.label}</span>
+        <span style="flex:0;white-space:nowrap;font-size:9px">${evParamLabel(id)}</span>
         <input type="range" class="inj-param-range"
           min="${ev.param.min}" max="${ev.param.max}" value="${ev.param.def}"
           data-ev="${id}"
@@ -4307,18 +4340,18 @@ function renderInjGrid(gridId,block){
         <span class="inj-param-val">${ev.param.def}${ev.param.unit||''}</span>
       </div>${realLabelHtml}`:'';
     const durHtml=`<div style="display:flex;align-items:center;gap:4px;margin-top:4px">
-        <span style="font-size:9px;color:var(--txt-dim)">Duración:</span>
+        <span style="font-size:9px;color:var(--txt-dim)">${en?'Duration':'Duración'}:</span>
         <select class="inj-dur-sel" id="inj-dur-${id}">${durOpts}</select>
       </div>`;
     return `<div class="inj-card" data-ev="${id}">
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="inj-card-label">${id}: ${ev.label}</span>
+        <span class="inj-card-label">${id}: ${evLabel(id)}</span>
       </div>
-      <div class="inj-card-desc">${ev.desc}</div>
-      <div class="breaking-badge">⚡ ${ev.breakpoint}</div>
+      <div class="inj-card-desc">${evDesc(id)}</div>
+      <div class="breaking-badge">⚡ ${evBreakpoint(id)}</div>
       ${paramHtml}
       ${durHtml}
-      <button class="inj-btn ${btnCls}" onclick="injectEvent('${id}')">Inyectar</button>
+      <button class="inj-btn ${btnCls}" onclick="injectEvent('${id}')">${en?'Inject':'Inyectar'}</button>
     </div>`;
   }).join('');
   // Init slider colors after DOM insertion
@@ -5158,12 +5191,14 @@ function bldTab(n){
 }
 function _bldRenderEventGrid(){
   const grid=document.getElementById('bld-event-grid');
-  if(!grid||grid.children.length>0) return;
+  if(!grid) return;
+  const en=currentLabLang()==='en';
+  grid.innerHTML='';
   Object.entries(EVENTS).forEach(([id,ev])=>{
     const card=document.createElement('div');
     card.className='bld-ev-card';
-    card.innerHTML=`<span class="ev-code">${id}</span><span class="ev-lbl">${ev.label}</span>
-      <button class="bld-ev-btn" onclick="bldAddEvent('${id}')">+ Añadir</button>`;
+    card.innerHTML=`<span class="ev-code">${id}</span><span class="ev-lbl">${evLabel(id)}</span>
+      <button class="bld-ev-btn" onclick="bldAddEvent('${id}')">+ ${en?'Add':'Añadir'}</button>`;
     grid.appendChild(card);
   });
 }
@@ -5182,8 +5217,11 @@ function _bldRenderInjTable(){
   const empty=document.getElementById('bld-inj-empty');
   const table=document.getElementById('bld-inj-table');
   const tbody=document.getElementById('bld-inj-body');
+  const en=currentLabLang()==='en';
   if(!_BLD_INJECTIONS.length){
-    empty.style.display='';table.style.display='none';return;
+    empty.style.display='';table.style.display='none';
+    empty.textContent=LAB_I18N.bld_inj_empty[en?1:0];
+    return;
   }
   empty.style.display='none';table.style.display='';
   tbody.innerHTML='';
@@ -5191,17 +5229,17 @@ function _bldRenderInjTable(){
     const ev=EVENTS[inj.eventId];
     const cfg=_bldGetConfig();
     const totalDays=Math.max(1,Math.ceil(cfg.durationHours/24));
-    let dayOpts='';for(let d=0;d<totalDays;d++) dayOpts+=`<option value="${d}"${inj.dayOffset===d?' selected':''}>Día ${d+1}</option>`;
+    let dayOpts='';for(let d=0;d<totalDays;d++) dayOpts+=`<option value="${d}"${inj.dayOffset===d?' selected':''}>${en?'Day':'Día'} ${d+1}</option>`;
     let hrOpts='';for(let h=0;h<24;h++) hrOpts+=`<option value="${h}"${inj.hour===h?' selected':''}>${String(h).padStart(2,'0')}:00</option>`;
     const durOptions=[
-      {v:0,l:'Puntual'},{v:30,l:'30 min'},{v:60,l:'1 h'},{v:180,l:'3 h'},
-      {v:360,l:'6 h'},{v:720,l:'12 h'},{v:-1,l:'Personalizado'}
+      {v:0,l:en?'One-time':'Puntual'},{v:30,l:'30 min'},{v:60,l:'1 h'},{v:180,l:'3 h'},
+      {v:360,l:'6 h'},{v:720,l:'12 h'},{v:-1,l:en?'Custom':'Personalizado'}
     ];
     let durOpts=durOptions.map(o=>`<option value="${o.v}"${inj.durationMin===o.v?' selected':''}>${o.l}</option>`).join('');
     const paramHtml=ev.param?`<input type="range" min="${ev.param.min}" max="${ev.param.max}" step="${ev.param.step||1}" value="${inj.param??ev.param.def}" style="width:80px" oninput="_BLD_INJECTIONS[${i}].param=+this.value">`:'—';
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><code style="font-size:11px">${inj.eventId}</code></td>
-      <td>${ev.label}</td>
+      <td>${evLabel(inj.eventId)}</td>
       <td><select onchange="_BLD_INJECTIONS[${i}].dayOffset=+this.value;_bldRenderTimeline()">${dayOpts}</select></td>
       <td><select onchange="_BLD_INJECTIONS[${i}].hour=+this.value;_bldRenderTimeline()">${hrOpts}</select></td>
       <td><select onchange="_BLD_INJECTIONS[${i}].durationMin=+this.value;_bldRenderTimeline()">${durOpts}</select></td>
@@ -5640,56 +5678,56 @@ function toggleSection(id){
 <div id="builder-overlay" onclick="if(event.target===this)closeBuilder()">
   <div id="builder-card">
     <div class="bld-hdr">
-      <h2>🔧 Construir dataset personalizado</h2>
+      <h2 data-i18n="bld_h2">🔧 Construir dataset personalizado</h2>
       <button class="bld-close" onclick="closeBuilder()">✕</button>
     </div>
     <div class="bld-tabs">
-      <button class="bld-tab active" onclick="bldTab(0)">1 · Parámetros</button>
-      <button class="bld-tab" onclick="bldTab(1)">2 · Anomalías</button>
-      <button class="bld-tab" onclick="bldTab(2)">3 · Vista previa</button>
+      <button class="bld-tab active" onclick="bldTab(0)" data-i18n="bld_tab1">1 · Parámetros</button>
+      <button class="bld-tab" onclick="bldTab(1)" data-i18n="bld_tab2">2 · Anomalías</button>
+      <button class="bld-tab" onclick="bldTab(2)" data-i18n="bld_tab3">3 · Vista previa</button>
     </div>
 
     <!-- PASO 1 -->
     <div class="bld-step active" id="bld-step-0">
       <div class="bld-form-row">
         <div class="bld-field">
-          <label>País / elección</label>
+          <label data-i18n="bld_lbl_country">País / elección</label>
           <select id="bld-country" onchange="bldUpdateSnaps()">
-            <option value="HN">Honduras 🇭🇳 (19 167 actas)</option>
-            <option value="GT">Guatemala 🇬🇹 (22 000 actas)</option>
-            <option value="SV">El Salvador 🇸🇻 (10 500 actas)</option>
-            <option value="NI">Nicaragua 🇳🇮 (13 000 actas)</option>
-            <option value="MX">México 🇲🇽 (170 000 actas)</option>
-            <option value="CO">Colombia 🇨🇴 (110 000 actas)</option>
+            <option value="HN" data-i18n="bld_opt_hn">Honduras 🇭🇳 (19 167 actas)</option>
+            <option value="GT" data-i18n="bld_opt_gt">Guatemala 🇬🇹 (22 000 actas)</option>
+            <option value="SV" data-i18n="bld_opt_sv">El Salvador 🇸🇻 (10 500 actas)</option>
+            <option value="NI" data-i18n="bld_opt_ni">Nicaragua 🇳🇮 (13 000 actas)</option>
+            <option value="MX" data-i18n="bld_opt_mx">México 🇲🇽 (170 000 actas)</option>
+            <option value="CO" data-i18n="bld_opt_co">Colombia 🇨🇴 (110 000 actas)</option>
           </select>
         </div>
         <div class="bld-field">
-          <label>Fecha de inicio del conteo</label>
+          <label data-i18n="bld_lbl_startdate">Fecha de inicio del conteo</label>
           <input type="date" id="bld-start-date" value="2025-11-30">
         </div>
       </div>
       <div class="bld-form-row full">
         <div class="bld-field">
-          <label>Duración del proceso</label>
+          <label data-i18n="bld_lbl_duration">Duración del proceso</label>
           <div class="bld-radio-row" id="bld-dur-radios">
             <label><input type="radio" name="bld-dur" value="12" onchange="bldDurChange()"> 12 h</label>
             <label><input type="radio" name="bld-dur" value="24" onchange="bldDurChange()" checked> 24 h</label>
             <label><input type="radio" name="bld-dur" value="48" onchange="bldDurChange()"> 48 h</label>
-            <label><input type="radio" name="bld-dur" value="168" onchange="bldDurChange()"> 7 días</label>
-            <label><input type="radio" name="bld-dur" value="672" onchange="bldDurChange()"> 28 días</label>
-            <label><input type="radio" name="bld-dur" value="custom" onchange="bldDurChange()"> Personalizado</label>
+            <label><input type="radio" name="bld-dur" value="168" onchange="bldDurChange()"> <span data-i18n="bld_7d">7 días</span></label>
+            <label><input type="radio" name="bld-dur" value="672" onchange="bldDurChange()"> <span data-i18n="bld_28d">28 días</span></label>
+            <label><input type="radio" name="bld-dur" value="custom" onchange="bldDurChange()"> <span data-i18n="bld_custom">Personalizado</span></label>
           </div>
           <div id="bld-custom-dur" style="display:none;margin-top:8px;display:flex;gap:8px;align-items:center">
-            <span style="font-size:12px;color:var(--txt-dim)">Días:</span>
+            <span style="font-size:12px;color:var(--txt-dim)" data-i18n="bld_days">Días:</span>
             <input type="number" id="bld-custom-days" min="1" max="90" value="3" style="width:60px" oninput="bldUpdateSnaps()">
-            <span style="font-size:12px;color:var(--txt-dim)">Horas adicionales:</span>
+            <span style="font-size:12px;color:var(--txt-dim)" data-i18n="bld_extra_hours">Horas adicionales:</span>
             <input type="number" id="bld-custom-hours" min="0" max="23" value="0" style="width:60px" oninput="bldUpdateSnaps()">
           </div>
         </div>
       </div>
       <div class="bld-form-row">
         <div class="bld-field">
-          <label>Intervalo entre snapshots</label>
+          <label data-i18n="bld_lbl_interval">Intervalo entre snapshots</label>
           <div class="bld-radio-row">
             <label><input type="radio" name="bld-int" value="5" onchange="bldUpdateSnaps()" checked> 5 min</label>
             <label><input type="radio" name="bld-int" value="10" onchange="bldUpdateSnaps()"> 10 min</label>
@@ -5699,54 +5737,54 @@ function toggleSection(id){
           <div class="bld-snap-info" id="bld-snap-info">288 snapshots · ~0.8 MB</div>
         </div>
         <div class="bld-field">
-          <label>Escrutinio final <span class="bld-scrut-val" id="bld-scrut-val">85%</span></label>
+          <label><span data-i18n="bld_lbl_scrutiny">Escrutinio final</span> <span class="bld-scrut-val" id="bld-scrut-val">85%</span></label>
           <input type="range" id="bld-scrutiny" min="0" max="100" value="85" oninput="document.getElementById('bld-scrut-val').textContent=this.value+'%'">
         </div>
       </div>
       <div class="bld-form-row full">
         <div class="bld-field">
-          <label>Etiqueta del dataset</label>
-          <input type="text" id="bld-label" value="Mi elección" placeholder="Nombre para identificar este dataset">
+          <label data-i18n="bld_lbl_dslabel">Etiqueta del dataset</label>
+          <input type="text" id="bld-label" value="Mi elección" data-i18n="bld_ph_dslabel" data-i18n-attr="placeholder" placeholder="Nombre para identificar este dataset">
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;padding-top:8px">
-        <button class="bld-btn primary" onclick="bldTab(1)">Siguiente →</button>
+        <button class="bld-btn primary" onclick="bldTab(1)" data-i18n="bld_next">Siguiente →</button>
       </div>
     </div>
 
     <!-- PASO 2 -->
     <div class="bld-step" id="bld-step-1">
-      <p style="font-size:12px;color:var(--txt-dim);margin:0 0 10px">Haz clic en + para añadir un ataque/anomalía al dataset. Puedes configurar cuándo y cuánto dura.</p>
+      <p style="font-size:12px;color:var(--txt-dim);margin:0 0 10px" data-i18n="bld_step2_intro">Haz clic en + para añadir un ataque/anomalía al dataset. Puedes configurar cuándo y cuánto dura.</p>
       <div class="bld-event-grid" id="bld-event-grid"></div>
       <div id="bld-inj-wrap" style="margin-top:14px">
-        <div id="bld-inj-empty" style="font-size:12px;color:var(--txt-dim);text-align:center;padding:12px">Sin anomalías — dataset limpio</div>
+        <div id="bld-inj-empty" style="font-size:12px;color:var(--txt-dim);text-align:center;padding:12px" data-i18n="bld_inj_empty">Sin anomalías — dataset limpio</div>
         <table class="bld-inj-table" id="bld-inj-table" style="display:none">
           <thead><tr>
-            <th>Código</th><th>Nombre</th><th>Día inicio</th><th>Hora inicio</th>
-            <th>Duración</th><th>Intensidad</th><th></th>
+            <th data-i18n="bld_th_code">Código</th><th data-i18n="bld_th_name">Nombre</th><th data-i18n="bld_th_day">Día inicio</th><th data-i18n="bld_th_hour">Hora inicio</th>
+            <th data-i18n="bld_th_dur">Duración</th><th data-i18n="bld_th_intensity">Intensidad</th><th></th>
           </tr></thead>
           <tbody id="bld-inj-body"></tbody>
         </table>
       </div>
-      <div class="bld-timeline" id="bld-timeline" style="margin-top:12px" title="Timeline de anomalías"></div>
+      <div class="bld-timeline" id="bld-timeline" style="margin-top:12px" title="Timeline de anomalías" data-i18n="bld_timeline_title" data-i18n-attr="title"></div>
       <div style="display:flex;justify-content:space-between;padding-top:12px">
-        <button class="bld-btn secondary" onclick="bldTab(0)">← Anterior</button>
-        <button class="bld-btn primary" onclick="bldTab(2)">Siguiente →</button>
+        <button class="bld-btn secondary" onclick="bldTab(0)" data-i18n="bld_prev">← Anterior</button>
+        <button class="bld-btn primary" onclick="bldTab(2)" data-i18n="bld_next">Siguiente →</button>
       </div>
     </div>
 
     <!-- PASO 3 -->
     <div class="bld-step" id="bld-step-2">
-      <div class="bld-summary" id="bld-summary">Calculando…</div>
+      <div class="bld-summary" id="bld-summary" data-i18n="bld_calculating">Calculando…</div>
       <div style="display:flex;justify-content:space-between;padding-top:8px;margin-bottom:8px">
-        <button class="bld-btn secondary" onclick="bldTab(1)">← Anterior</button>
+        <button class="bld-btn secondary" onclick="bldTab(1)" data-i18n="bld_prev">← Anterior</button>
       </div>
     </div>
 
     <div class="bld-actions">
-      <button class="bld-btn primary" onclick="bldUseInLab()">▶ Usar en Lab</button>
-      <button class="bld-btn secondary" onclick="bldDownloadDataset()">⬇ Dataset .json</button>
-      <button class="bld-btn secondary" onclick="bldDownloadSession()">💾 Sesión completa</button>
+      <button class="bld-btn primary" onclick="bldUseInLab()" data-i18n="bld_use">▶ Usar en Lab</button>
+      <button class="bld-btn secondary" onclick="bldDownloadDataset()" data-i18n="bld_dl_dataset">⬇ Dataset .json</button>
+      <button class="bld-btn secondary" onclick="bldDownloadSession()" data-i18n="bld_dl_session">💾 Sesión completa</button>
     </div>
   </div>
 </div>
@@ -5924,6 +5962,58 @@ const LAB_I18N = {
 
   wm_badge: ['LAB · SIMULACIÓN<br><small style="opacity:.7">Datos no oficiales</small>',
              'LAB · SIMULATION<br><small style="opacity:.7">Unofficial data</small>'],
+
+  // ── Capa 3f: Matriz de Inyección ──
+  inj_matrix_title: ['Matriz de Inyección de Eventos','Event Injection Matrix'],
+  inj_mode_instant: ['Inmediata','Immediate'],
+  inj_mode_sched:   ['Programada','Scheduled'],
+  inj_sched_prefix: ['en snapshot nº','at snapshot #'],
+  inj_block_a_title:['Anomalías del Sitio Origen — Vectores del Scraper','Source-Site Anomalies — Scraper Vectors'],
+  inj_block_a_sub:  ['Fallos extrínsecos de la infraestructura de datos','Extrinsic data-infrastructure failures'],
+  inj_block_b_title:['Escenario Red Team — Ataques a CENTINEL','Red Team Scenario — Attacks on CENTINEL'],
+  inj_block_b_sub:  ['Una defensa por tarjeta · escala hasta el punto de quiebre','One defense per card · escalates to the breaking point'],
+  inj_block_c_title:['Anomalías Electorales Estadísticas','Statistical Electoral Anomalies'],
+  inj_block_c_sub:  ['Patrones de fraude/error para evaluar mecanismos de detección','Fraud/error patterns to evaluate detection mechanisms'],
+
+  // ── Capa 3f: Builder de dataset ──
+  bld_h2:   ['🔧 Construir dataset personalizado','🔧 Build custom dataset'],
+  bld_tab1: ['1 · Parámetros','1 · Parameters'],
+  bld_tab2: ['2 · Anomalías','2 · Anomalies'],
+  bld_tab3: ['3 · Vista previa','3 · Preview'],
+  bld_lbl_country:  ['País / elección','Country / election'],
+  bld_opt_hn: ['Honduras 🇭🇳 (19 167 actas)','Honduras 🇭🇳 (19,167 tally sheets)'],
+  bld_opt_gt: ['Guatemala 🇬🇹 (22 000 actas)','Guatemala 🇬🇹 (22,000 tally sheets)'],
+  bld_opt_sv: ['El Salvador 🇸🇻 (10 500 actas)','El Salvador 🇸🇻 (10,500 tally sheets)'],
+  bld_opt_ni: ['Nicaragua 🇳🇮 (13 000 actas)','Nicaragua 🇳🇮 (13,000 tally sheets)'],
+  bld_opt_mx: ['México 🇲🇽 (170 000 actas)','Mexico 🇲🇽 (170,000 tally sheets)'],
+  bld_opt_co: ['Colombia 🇨🇴 (110 000 actas)','Colombia 🇨🇴 (110,000 tally sheets)'],
+  bld_lbl_startdate: ['Fecha de inicio del conteo','Count start date'],
+  bld_lbl_duration:  ['Duración del proceso','Process duration'],
+  bld_7d:     ['7 días','7 days'],
+  bld_28d:    ['28 días','28 days'],
+  bld_custom: ['Personalizado','Custom'],
+  bld_days:   ['Días:','Days:'],
+  bld_extra_hours: ['Horas adicionales:','Extra hours:'],
+  bld_lbl_interval: ['Intervalo entre snapshots','Interval between snapshots'],
+  bld_lbl_scrutiny: ['Escrutinio final','Final count'],
+  bld_lbl_dslabel:  ['Etiqueta del dataset','Dataset label'],
+  bld_ph_dslabel:   ['Nombre para identificar este dataset','Name to identify this dataset'],
+  bld_next: ['Siguiente →','Next →'],
+  bld_prev: ['← Anterior','← Previous'],
+  bld_step2_intro: ['Haz clic en + para añadir un ataque/anomalía al dataset. Puedes configurar cuándo y cuánto dura.',
+                    'Click + to add an attack/anomaly to the dataset. You can configure when and how long it lasts.'],
+  bld_inj_empty: ['Sin anomalías — dataset limpio','No anomalies — clean dataset'],
+  bld_th_code: ['Código','Code'],
+  bld_th_name: ['Nombre','Name'],
+  bld_th_day:  ['Día inicio','Start day'],
+  bld_th_hour: ['Hora inicio','Start hour'],
+  bld_th_dur:  ['Duración','Duration'],
+  bld_th_intensity: ['Intensidad','Intensity'],
+  bld_timeline_title: ['Timeline de anomalías','Anomaly timeline'],
+  bld_calculating: ['Calculando…','Calculating…'],
+  bld_use:        ['▶ Usar en Lab','▶ Use in Lab'],
+  bld_dl_dataset: ['⬇ Dataset .json','⬇ Dataset .json'],
+  bld_dl_session: ['💾 Sesión completa','💾 Full session'],
 };
 
 function applyLabI18n(lang){
@@ -5946,6 +6036,13 @@ function applyLabI18n(lang){
   relabelDynamic(lang);
   if(typeof _refreshCiteIfOpen==='function') _refreshCiteIfOpen();
   if(typeof _updateAcadPanel==='function') _updateAcadPanel();
+  if(typeof renderInjGrid==='function'){
+    renderInjGrid('inj-grid-a','A');
+    renderInjGrid('inj-grid-b','B');
+    renderInjGrid('inj-grid-c','C');
+  }
+  if(typeof _bldRenderEventGrid==='function') _bldRenderEventGrid();
+  if(typeof _bldRenderInjTable==='function') _bldRenderInjTable();
 }
 
 /* Re-etiqueta valores generados en runtime SIN recalcular (evita efectos
