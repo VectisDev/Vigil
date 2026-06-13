@@ -5411,72 +5411,72 @@ function toggleSection(id){
 <div id="cite-overlay" onclick="if(event.target===this)closeCitationModal()">
   <div id="cite-card">
     <div class="cite-hdr">
-      <h3>📚 Citar análisis — CENTINEL Lab</h3>
+      <h3 data-i18n="cite_h3">📚 Citar análisis — CENTINEL Lab</h3>
       <button onclick="closeCitationModal()">✕</button>
     </div>
     <div class="cite-session-meta" id="cite-session-meta"></div>
     <div class="cite-format-tab">
-      <button class="cite-tab-btn on" id="cite-tab-apa" onclick="showCiteFormat('apa')">APA 7ª ed.</button>
+      <button class="cite-tab-btn on" id="cite-tab-apa" onclick="showCiteFormat('apa')" data-i18n="cite_tab_apa">APA 7ª ed.</button>
       <button class="cite-tab-btn" id="cite-tab-bibtex" onclick="showCiteFormat('bibtex')">BibTeX</button>
       <button class="cite-tab-btn" id="cite-tab-iso" onclick="showCiteFormat('iso')">ISO 690</button>
     </div>
 
     <div id="cite-panel-apa">
-      <div class="cite-section-title">Software</div>
+      <div class="cite-section-title" data-i18n="cite_software">Software</div>
       <div class="cite-block">
-        <div class="cite-block-label">APA 7ª edición</div>
+        <div class="cite-block-label" data-i18n="cite_apa_ed">APA 7ª edición</div>
         <div class="cite-text" id="cite-apa-software"></div>
-        <button class="cite-copy-btn" onclick="copyCite('apa-software')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('apa-software')" data-i18n="cite_copy">Copiar</button>
       </div>
-      <div class="cite-section-title">Esta sesión de análisis</div>
+      <div class="cite-section-title" data-i18n="cite_this_session">Esta sesión de análisis</div>
       <div class="cite-block">
-        <div class="cite-block-label">APA 7ª edición — sesión específica</div>
+        <div class="cite-block-label" data-i18n="cite_apa_session">APA 7ª edición — sesión específica</div>
         <div class="cite-text" id="cite-apa-session"></div>
-        <button class="cite-copy-btn" onclick="copyCite('apa-session')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('apa-session')" data-i18n="cite_copy">Copiar</button>
       </div>
-      <div class="cite-section-title">Datos electorales</div>
+      <div class="cite-section-title" data-i18n="cite_electoral_data">Datos electorales</div>
       <div class="cite-block">
-        <div class="cite-block-label">APA 7ª edición — dataset</div>
+        <div class="cite-block-label" data-i18n="cite_apa_dataset">APA 7ª edición — dataset</div>
         <div class="cite-text" id="cite-apa-data"></div>
-        <button class="cite-copy-btn" onclick="copyCite('apa-data')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('apa-data')" data-i18n="cite_copy">Copiar</button>
       </div>
     </div>
 
     <div id="cite-panel-bibtex" style="display:none">
       <div class="cite-block">
-        <div class="cite-block-label">BibTeX — software</div>
+        <div class="cite-block-label" data-i18n="cite_bib_software">BibTeX — software</div>
         <div class="cite-text" id="cite-bib-software"></div>
-        <button class="cite-copy-btn" onclick="copyCite('bib-software')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('bib-software')" data-i18n="cite_copy">Copiar</button>
       </div>
       <div class="cite-block">
-        <div class="cite-block-label">BibTeX — sesión</div>
+        <div class="cite-block-label" data-i18n="cite_bib_session">BibTeX — sesión</div>
         <div class="cite-text" id="cite-bib-session"></div>
-        <button class="cite-copy-btn" onclick="copyCite('bib-session')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('bib-session')" data-i18n="cite_copy">Copiar</button>
       </div>
       <div class="cite-block">
-        <div class="cite-block-label">BibTeX — datos</div>
+        <div class="cite-block-label" data-i18n="cite_bib_data">BibTeX — datos</div>
         <div class="cite-text" id="cite-bib-data"></div>
-        <button class="cite-copy-btn" onclick="copyCite('bib-data')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('bib-data')" data-i18n="cite_copy">Copiar</button>
       </div>
     </div>
 
     <div id="cite-panel-iso" style="display:none">
       <div class="cite-block">
-        <div class="cite-block-label">ISO 690:2021 — software</div>
+        <div class="cite-block-label" data-i18n="cite_iso_software">ISO 690:2021 — software</div>
         <div class="cite-text" id="cite-iso-software"></div>
-        <button class="cite-copy-btn" onclick="copyCite('iso-software')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('iso-software')" data-i18n="cite_copy">Copiar</button>
       </div>
       <div class="cite-block">
-        <div class="cite-block-label">ISO 690:2021 — sesión</div>
+        <div class="cite-block-label" data-i18n="cite_iso_session">ISO 690:2021 — sesión</div>
         <div class="cite-text" id="cite-iso-session"></div>
-        <button class="cite-copy-btn" onclick="copyCite('iso-session')">Copiar</button>
+        <button class="cite-copy-btn" onclick="copyCite('iso-session')" data-i18n="cite_copy">Copiar</button>
       </div>
     </div>
 
     <div class="cite-dl-row">
-      <button class="dl-pill" onclick="downloadBib()">⬇ .bib completo</button>
-      <button class="dl-pill" onclick="downloadCSV()">⬇ CSV estadísticas</button>
-      <button class="dl-pill" onclick="downloadReproZip()">⬇ ZIP reproducible</button>
+      <button class="dl-pill" onclick="downloadBib()" data-i18n="cite_dl_bib">⬇ .bib completo</button>
+      <button class="dl-pill" onclick="downloadCSV()" data-i18n="cite_dl_csv">⬇ CSV estadísticas</button>
+      <button class="dl-pill" onclick="downloadReproZip()" data-i18n="cite_dl_zip">⬇ ZIP reproducible</button>
     </div>
   </div>
 </div>
@@ -5567,15 +5567,15 @@ function toggleSection(id){
 <div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
   <div id="settings-card">
     <div class="cfg-hdr">
-      <h3>⚙ Configuración de cuenta</h3>
+      <h3 data-i18n="cfg_h3">⚙ Configuración de cuenta</h3>
       <button onclick="closeSettings()">✕</button>
     </div>
-    <div class="cfg-email">Sesión activa como <strong id="settings-email-val"></strong></div>
+    <div class="cfg-email"><span data-i18n="cfg_session_as">Sesión activa como</span> <strong id="settings-email-val"></strong></div>
 
     <!-- ACCESO -->
     <div class="cfg-section">
-      <div class="cfg-section-title">Seed de acceso</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.6">
+      <div class="cfg-section-title" data-i18n="cfg_seed_title">Seed de acceso</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6" data-i18n="cfg_seed_body" data-i18n-html="1">
         Los seeds de acceso se gestionan desde el servidor con <code style="background:var(--bg);padding:1px 4px;border-radius:3px">make wizard</code>.<br>
         No se almacenan datos de usuario — solo hashes PBKDF2 locales.
       </div>
@@ -5583,12 +5583,12 @@ function toggleSection(id){
 
     <!-- COMENTARIOS Y CONTACTO -->
     <div class="cfg-section">
-      <div class="cfg-section-title">Comentarios y contacto</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
+      <div class="cfg-section-title" data-i18n="cfg_feedback_title">Comentarios y contacto</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px" data-i18n="cfg_feedback_body">
         Tu mensaje se enviará como un Issue al repositorio del proyecto. Requiere cuenta de GitHub.
       </div>
-      <textarea id="cfg-feedback-msg" class="cfg-textarea" placeholder="Tu comentario, sugerencia o reporte de problema…"></textarea>
-      <button class="cfg-btn" onclick="sendFeedback()">Abrir issue en GitHub →</button>
+      <textarea id="cfg-feedback-msg" class="cfg-textarea" data-i18n="cfg_feedback_placeholder" data-i18n-attr="placeholder" placeholder="Tu comentario, sugerencia o reporte de problema…"></textarea>
+      <button class="cfg-btn" onclick="sendFeedback()" data-i18n="cfg_feedback_btn">Abrir issue en GitHub →</button>
       <div id="cfg-feedback-stat" class="cfg-msg"></div>
     </div>
   </div>
@@ -5774,6 +5774,37 @@ const LAB_I18N = {
   dyn_detenido:       ['DETENIDO','STOPPED'],
   dyn_truncado:       ['TRUNCADO','TRUNCATED'],
   dyn_cuarentena:     ['CUARENTENA','QUARANTINE'],
+
+  // ── Capa 3a: modal de citación ──
+  cite_h3:            ['📚 Citar análisis — CENTINEL Lab','📚 Cite this analysis — CENTINEL Lab'],
+  cite_tab_apa:       ['APA 7ª ed.','APA 7th ed.'],
+  cite_software:      ['Software','Software'],
+  cite_apa_ed:        ['APA 7ª edición','APA 7th edition'],
+  cite_this_session:  ['Esta sesión de análisis','This analysis session'],
+  cite_apa_session:   ['APA 7ª edición — sesión específica','APA 7th edition — session-specific'],
+  cite_electoral_data:['Datos electorales','Electoral data'],
+  cite_apa_dataset:   ['APA 7ª edición — dataset','APA 7th edition — dataset'],
+  cite_bib_software:  ['BibTeX — software','BibTeX — software'],
+  cite_bib_session:   ['BibTeX — sesión','BibTeX — session'],
+  cite_bib_data:      ['BibTeX — datos','BibTeX — data'],
+  cite_iso_software:  ['ISO 690:2021 — software','ISO 690:2021 — software'],
+  cite_iso_session:   ['ISO 690:2021 — sesión','ISO 690:2021 — session'],
+  cite_dl_bib:        ['⬇ .bib completo','⬇ Full .bib'],
+  cite_dl_csv:        ['⬇ CSV estadísticas','⬇ Stats CSV'],
+  cite_dl_zip:        ['⬇ ZIP reproducible','⬇ Reproducible ZIP'],
+  cite_copy:          ['Copiar','Copy'],
+
+  // ── Capa 3a: modal de configuración ──
+  cfg_h3:                ['⚙ Configuración de cuenta','⚙ Account settings'],
+  cfg_session_as:        ['Sesión activa como','Logged in as'],
+  cfg_seed_title:        ['Seed de acceso','Access seed'],
+  cfg_seed_body:         ['Los seeds de acceso se gestionan desde el servidor con <code style="background:var(--bg);padding:1px 4px;border-radius:3px">make wizard</code>.<br>No se almacenan datos de usuario — solo hashes PBKDF2 locales.',
+                          'Access seeds are managed server-side with <code style="background:var(--bg);padding:1px 4px;border-radius:3px">make wizard</code>.<br>No user data is stored — only local PBKDF2 hashes.'],
+  cfg_feedback_title:    ['Comentarios y contacto','Feedback & contact'],
+  cfg_feedback_body:     ['Tu mensaje se enviará como un Issue al repositorio del proyecto. Requiere cuenta de GitHub.',
+                          'Your message will be sent as an Issue to the project repository. Requires a GitHub account.'],
+  cfg_feedback_placeholder:['Tu comentario, sugerencia o reporte de problema…','Your comment, suggestion, or bug report…'],
+  cfg_feedback_btn:      ['Abrir issue en GitHub →','Open GitHub issue →'],
 };
 
 function applyLabI18n(lang){
@@ -5782,6 +5813,7 @@ function applyLabI18n(lang){
     const key=el.dataset.i18n, pair=LAB_I18N[key];
     if(!pair)return;
     if(el.dataset.i18nAttr) el.setAttribute(el.dataset.i18nAttr, pair[idx]);
+    else if(el.dataset.i18nHtml) el.innerHTML = pair[idx];
     else el.textContent = pair[idx];
   });
   // chart toggle bar labels
