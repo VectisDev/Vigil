@@ -1187,36 +1187,36 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- ══ SECTION 6 — HERRAMIENTAS ACADÉMICAS ════════════════════════════════════ -->
 <div class="section-title" id="acad-section">
-  Herramientas Académicas
-  <button class="section-dl" onclick="downloadCSV()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>CSV estadísticas</button>
+  <span data-i18n="acad_section_title">Herramientas Académicas</span>
+  <button class="section-dl" onclick="downloadCSV()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg><span data-i18n="acad_csv">CSV estadísticas</span></button>
   <button class="section-dl" onclick="downloadBib()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>.bib</button>
-  <button class="section-dl" onclick="openMethodologySidebar()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Metodología</button>
+  <button class="section-dl" onclick="openMethodologySidebar()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><span data-i18n="acad_methodology">Metodología</span></button>
 </div>
 
 <div class="card">
   <div class="acad-session-row">
     <div style="flex:1;min-width:260px">
-      <div class="acad-label">ID de Sesión</div>
+      <div class="acad-label" data-i18n="acad_session_id">ID de Sesión</div>
       <div class="acad-val" id="acad-session-id">—</div>
-      <div class="acad-hint">
+      <div class="acad-hint" data-i18n="acad_hint" data-i18n-html="1">
         SHA-256 de dataset · snapshot · umbrales · hipótesis · tiempo.<br>
         Estable, reproducible y citable en apéndices de tesis o <em>supplementary material</em>.
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">
-      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="openCitationModal()">📚 Cita APA / BibTeX / ISO 690</button>
-      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadCSV()">⬇ CSV — estadísticas y alertas</button>
-      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadReproZip()">⬇ ZIP — paquete reproducible</button>
-      <button class="dl-pill" style="width:220px;text-align:center" onclick="openMethodologySidebar()">📖 Referencias y metodología</button>
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="openCitationModal()" data-i18n="acad_btn_cite">📚 Cita APA / BibTeX / ISO 690</button>
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadCSV()" data-i18n="acad_btn_csv">⬇ CSV — estadísticas y alertas</button>
+      <button class="dl-pill acad-pill" style="width:220px;text-align:center" onclick="downloadReproZip()" data-i18n="acad_btn_zip">⬇ ZIP — paquete reproducible</button>
+      <button class="dl-pill" style="width:220px;text-align:center" onclick="openMethodologySidebar()" data-i18n="acad_btn_meth">📖 Referencias y metodología</button>
     </div>
   </div>
   <div id="acad-prereq-row" class="acad-prereq-row" style="display:none">
-    <span class="badge b-ok">✓ Hipótesis pre-registrada</span>
+    <span class="badge b-ok" data-i18n="acad_prereg_badge">✓ Hipótesis pre-registrada</span>
     <span class="acad-muted" id="acad-prereq-ts"></span>
   </div>
   <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap">
     <div>
-      <div class="acad-label">Dataset activo</div>
+      <div class="acad-label" data-i18n="acad_lbl_dataset">Dataset activo</div>
       <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-dataset-label">—</div>
     </div>
     <div>
@@ -1224,15 +1224,15 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
       <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-snap-label">—</div>
     </div>
     <div>
-      <div class="acad-label">Alertas totales</div>
+      <div class="acad-label" data-i18n="acad_lbl_alerts">Alertas totales</div>
       <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-alerts-label">—</div>
     </div>
     <div>
-      <div class="acad-label">Alertas CRITICAL</div>
+      <div class="acad-label" data-i18n="acad_lbl_crit">Alertas CRITICAL</div>
       <div style="font-size:12px;color:var(--bad);margin-top:2px" id="acad-crit-label">—</div>
     </div>
     <div>
-      <div class="acad-label">Umbrales activos</div>
+      <div class="acad-label" data-i18n="acad_lbl_thresh">Umbrales activos</div>
       <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-thresh-label">—</div>
     </div>
   </div>
@@ -4693,7 +4693,8 @@ function _updateAcadPanel(){
         const obj=JSON.parse(stored);
         preregRow.style.display='flex';
         const tsEl=document.getElementById('acad-prereq-ts');
-        if(tsEl)tsEl.textContent=`Registrada: ${new Date(obj.ts).toLocaleString('es-HN')}`;
+        const _en=currentLabLang()==='en';
+        if(tsEl)tsEl.textContent=`${_en?'Registered':'Registrada'}: ${new Date(obj.ts).toLocaleString(_en?'en-US':'es-HN')}`;
       }catch(e){}
     }else{preregRow.style.display='none';}
   }
@@ -4702,7 +4703,7 @@ function _updateAcadPanel(){
 
 function _getDatasetLabel(){
   const sel=document.getElementById('dataset-select');
-  return sel?sel.options[sel.selectedIndex]?.text||sel.value:'Desconocido';
+  return sel?sel.options[sel.selectedIndex]?.text||sel.value:(currentLabLang()==='en'?'Unknown':'Desconocido');
 }
 
 // ── Citation text builders (bilingüe — usa currentLabLang()) ───────────────
@@ -5847,6 +5848,23 @@ const LAB_I18N = {
   cfg_feedback_placeholder:['Tu comentario, sugerencia o reporte de problema…','Your comment, suggestion, or bug report…'],
   cfg_feedback_btn:      ['Abrir issue en GitHub →','Open GitHub issue →'],
   cite_copied:           ['✓ Copiado','✓ Copied'],
+
+  // ── Capa 3c: Herramientas Académicas ──
+  acad_section_title: ['Herramientas Académicas','Academic Tools'],
+  acad_csv:           ['CSV estadísticas','Stats CSV'],
+  acad_methodology:   ['Metodología','Methodology'],
+  acad_session_id:    ['ID de Sesión','Session ID'],
+  acad_hint:          ['SHA-256 de dataset · snapshot · umbrales · hipótesis · tiempo.<br>Estable, reproducible y citable en apéndices de tesis o <em>supplementary material</em>.',
+                       'SHA-256 of dataset · snapshot · thresholds · hypothesis · time.<br>Stable, reproducible and citable in thesis appendices or <em>supplementary material</em>.'],
+  acad_btn_cite:      ['📚 Cita APA / BibTeX / ISO 690','📚 Cite APA / BibTeX / ISO 690'],
+  acad_btn_csv:       ['⬇ CSV — estadísticas y alertas','⬇ CSV — stats and alerts'],
+  acad_btn_zip:       ['⬇ ZIP — paquete reproducible','⬇ ZIP — reproducibility package'],
+  acad_btn_meth:      ['📖 Referencias y metodología','📖 References and methodology'],
+  acad_prereg_badge:  ['✓ Hipótesis pre-registrada','✓ Pre-registered hypothesis'],
+  acad_lbl_dataset:   ['Dataset activo','Active dataset'],
+  acad_lbl_alerts:    ['Alertas totales','Total alerts'],
+  acad_lbl_crit:      ['Alertas CRITICAL','CRITICAL alerts'],
+  acad_lbl_thresh:    ['Umbrales activos','Active thresholds'],
 };
 
 function applyLabI18n(lang){
@@ -5868,6 +5886,7 @@ function applyLabI18n(lang){
   }
   relabelDynamic(lang);
   if(typeof _refreshCiteIfOpen==='function') _refreshCiteIfOpen();
+  if(typeof _updateAcadPanel==='function') _updateAcadPanel();
 }
 
 /* Re-etiqueta valores generados en runtime SIN recalcular (evita efectos
