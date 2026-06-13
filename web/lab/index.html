@@ -1710,6 +1710,17 @@ const EVENTS_EN = {
   B11:{label:'Zero-Trust Middleware Bypass',desc:'Requests with forged headers (X-Forwarded-For, fake Origin). Evaluates middleware.',breakpoint:'Middleware doesn\'t filter → "ZT bypass" in log → unauthorized data',param:{label:'Forged headers'}},
   B12:{label:'Mirror Cascade Collapse',desc:'Contaminates mirrors 1→2→3 in consecutive ticks until consensus is impossible.',breakpoint:'3rd mirror contaminated → system enters local-only mode',param:{label:'Cascade speed (ticks)'}},
   B13:{label:'Chain Fork',desc:'Two nodes receive different versions of the same snapshot — fork detected.',breakpoint:'Persistent fork → ingestion paused until reconciliation',param:null},
+
+  C1:{label:'Progressive Lead Injection',desc:'A candidate systematically gains extra votes per snapshot.',breakpoint:'Asymmetric benefit detector → CRITICAL after N snapshots',param:{label:'Extra votes / snap'}},
+  C2:{label:'Rounded Votes (Ballot Stuffing)',desc:'Totals rounded to a multiple of N → violates Benford and last-digit uniformity.',breakpoint:'Benford MAD spike → last-digit χ² → CRITICAL',param:{label:'Round to multiple of'}},
+  C3:{label:'Abnormal Turnout by Zone',desc:'A department jumps to impossible turnout in one tick.',breakpoint:'Participation_anomaly_advanced z-score > 3σ → CRITICAL',param:{label:'Forced turnout %'}},
+  C4:{label:'Extreme Vote Concentration',desc:'A candidate gets >90% of all new tally sheets in a zone.',breakpoint:'Extreme departmental Z-score → geographic_dispersion CRITICAL',param:{label:'Affected polling stations'}},
+  C5:{label:'Null Vote Campaign',desc:'Systematic spike of null votes in opposition zones.',breakpoint:'null_blank_votes: critical_pct exceeded → CRITICAL',param:{label:'Multiplier factor'}},
+  C6:{label:'Late-Night Acceleration (2-4 AM)',desc:'40% of pending tally sheets arrive in a single overnight tick.',breakpoint:'processing_speed: max_actas_per_15min exceeded → CRITICAL',param:{label:'Overnight tally sheets'}},
+  C7:{label:'Suspicious Polling-Station Uniformity',desc:'Identical candidate percentages for N ticks → fabricated data.',breakpoint:'last_digit_uniformity χ² spike → runs_test → CRITICAL',param:null},
+  C8:{label:'Post-Blackout Result Inversion',desc:'After a blackout, the leading candidate changes abruptly.',breakpoint:'trend_shift critical + asymmetric_benefit → CRITICAL',param:null},
+  C9:{label:'Coordinated Party Swing',desc:'Exactly +N% for one party in every department simultaneously.',breakpoint:'geographic_dispersion: too uniform → runs_test → CRITICAL',param:{label:'Coordinated votes / snap'}},
+  C10:{label:'Ghost Polling Station / Impossible Count',desc:'actas_divulgadas exceeds actas_totales — polling stations that don\'t exist.',breakpoint:'turnout_impossible rule → immediate CRITICAL',param:{label:'Ghost tally sheets'}},
 };
 /* Helpers: devuelven metadata de EVENTS en el idioma activo (fallback a ES) */
 function evMeta(id){return (currentLabLang()==='en' && EVENTS_EN[id]) ? EVENTS_EN[id] : EVENTS[id];}
@@ -1717,6 +1728,121 @@ function evLabel(id){return evMeta(id).label;}
 function evDesc(id){return evMeta(id).desc;}
 function evBreakpoint(id){return evMeta(id).breakpoint;}
 function evParamLabel(id){const m=evMeta(id);return m.param?m.param.label:(EVENTS[id].param?EVENTS[id].param.label:'');}
+
+const _LOG_FULL_EN = {
+  'Sistema de visualización caído — modo offline activo': 'Visualization system down — offline mode active',
+  'Apagón geográfico: Francisco Morazán sin actas': 'Geographic blackout: Francisco Morazán has no tally sheets',
+  'Francisco Morazán: sin datos': 'Francisco Morazán: no data',
+  'Ataque OTS: intento de suplantar ancla Bitcoin → RECHAZADO (OTS inmutable)': 'OTS attack: attempt to spoof Bitcoin anchor → REJECTED (OTS immutable)',
+  'Firma Ed25519 inválida — checkpoint rechazado': 'Invalid Ed25519 signature — checkpoint rejected',
+  'Firma de operador inválida — checkpoint rechazado por verificador': 'Invalid operator signature — checkpoint rejected by verifier',
+  'Hash falso: divergencia de Merkle root → chain fork rechazado': 'Fake hash: Merkle root divergence → chain fork rejected',
+  'Merkle root mismatch — bloque forjado detectado': 'Merkle root mismatch — forged block detected',
+  'Consenso imposible — modo solo-local': 'Consensus impossible — local-only mode',
+  'Fork de cadena detectado — motor pausado hasta reconciliación': 'Chain fork detected — engine paused until reconciliation',
+  'Chain fork: dos versiones del snapshot divergen — ingesta suspendida': 'Chain fork: two versions of the snapshot diverge — ingestion suspended',
+  'Uniformidad sospechosa: todos los % idénticos al teórico → fabricación de datos': 'Suspicious uniformity: all % identical to theoretical → fabricated data',
+  'Candidato líder cambia post-apagón → trend_shift CRITICAL': 'Leading candidate changes post-blackout → trend_shift CRITICAL',
+  'Inversión de resultados: partido[0] y [1] intercambiados post-apagón': 'Result inversion: party[0] and [1] swapped post-blackout',
+};
+const _LOG_PHRASES_EN = [
+  [' módulos comprometidos → AUTO-AUDIT FALLA → cuarentena',' modules compromised → AUTO-AUDIT FAILS → quarantine'],
+  ['Sincronización temporal: timestamps distorsionados ±','Time synchronization: timestamps distorted ±'],
+  [' votos uniformes para partido[0] en todos los dptos',' uniform votes for party[0] across all departments'],
+  ['Rollback: datos revertidos al estado del snapshot ','Rollback: data reverted to the state of snapshot '],
+  ['% votos alterados → SHA-256 mismatch → integridad ','% votes altered → SHA-256 mismatch → integrity '],
+  [' — violación Benford y último dígito inminente',' — Benford and last-digit violation imminent'],
+  [' endpoints desconectados — blackout activado',' endpoints disconnected — blackout activated'],
+  ['/5 espejos contaminados — consenso imposible','/5 mirrors contaminated — consensus impossible'],
+  [' actas a las 2–4 AM → velocidad 8× la normal',' tally sheets at 2–4 AM → 8× normal speed'],
+  ['% probabilidad de campos nulos por snapshot','% probability of null fields per snapshot'],
+  ['Inyección progresiva: partido[0] acumula +','Progressive injection: party[0] accumulates +'],
+  ['Concentración: partido[0] obtiene 93% en ','Concentration: party[0] obtains 93% in '],
+  ['% actas alteradas — cadena comprometida','% tally sheets altered — chain compromised'],
+  [' módulos con hash diferente al baseline',' modules with hash different from baseline'],
+  [' mesas — dispersión geográfica crítica',' polling stations — critical geographic dispersion'],
+  [' — umbral null_blank_critical superado',' — null_blank_critical threshold exceeded'],
+  [' peticiones a rutas trampa capturadas',' requests to trap routes captured'],
+  ['Abstención anormal: participación ','Abnormal turnout: participation '],
+  [' — campaña de nulización detectada',' — nullification campaign detected'],
+  [' actas → processing_speed CRÍTICO',' tally sheets → processing_speed CRITICAL'],
+  [' snapshots — reversión detectada',' snapshots — reversal detected'],
+  ['Mesa fantasma: actas_divulgadas=','Ghost polling station: actas_divulgadas='],
+  [' actas — velocidad 5× la normal',' tally sheets — 5× normal speed'],
+  ['Throttling: actualización cada ','Throttling: update every '],
+  [' cabeceras forjadas penetraron',' forged headers got through'],
+  ['Hold-and-Release: reteniendo ','Hold-and-Release: holding '],
+  ['Desincronización: timestamp +','Desynchronization: timestamp +'],
+  ['Hold-and-Release: burst de ','Hold-and-Release: burst of '],
+  ['/5 espejos contaminados — ','/5 mirrors contaminated — '],
+  ['Participación forzada a ','Forced turnout to '],
+  [' mesas → z-score extremo',' polling stations → extreme z-score'],
+  ['⚠ Rate limiter EXHAUSTO','⚠ Rate limiter EXHAUSTED'],
+  ['Rate limiter superado: ','Rate limiter exceeded: '],
+  ['Zero-trust middleware: ','Zero-trust middleware: '],
+  ['Aceleración nocturna: +','Night acceleration: +'],
+  [' cabeceras forjadas — ',' forged headers — '],
+  ['Arrastre coordinado: +','Coordinated swing: +'],
+  ['Liberación masiva de ','Massive release of '],
+  [' actas duplicadas — +',' duplicated tally sheets — +'],
+  ['divergencia detectada','divergence detected'],
+  ['min → datos obsoletos','min → stale data'],
+  ['Votos redondeados a ×','Votes rounded to ×'],
+  ['min — monotonía rota','min — monotonicity broken'],
+  ['Caché venenoso: TTL=','Poisoned cache: TTL='],
+  ['Honeypot trigger → ','Honeypot trigger → '],
+  ['divergencia crítica','critical divergence'],
+  ['Zero-trust bypass: ','Zero-trust bypass: '],
+  ['Partido[0]: 93% en ','Party[0]: 93% in '],
+  ['Campaña de nulos: ×','Null vote campaign: ×'],
+  ['CONSENSO IMPOSIBLE','CONSENSUS IMPOSSIBLE'],
+  ['Binary integrity: ','Binary integrity: '],
+  ['% en zona afectada','% in affected zone'],
+  ['Conteo imposible: ','Impossible count: '],
+  ['Datos revertidos ','Data reverted '],
+  ['Datos truncados: ','Truncated data: '],
+  ['Cascada espejos: ','Mirror cascade: '],
+  [' comprometidos — ',' compromised — '],
+  [' actas liberadas',' tally sheets released'],
+  ['monitoreo activo','active monitoring'],
+  ['BYPASS DETECTADO','BYPASS DETECTED'],
+  ['% → z-score > 3σ','% → z-score > 3σ'],
+  [' actas — ciclo ',' tally sheets — cycle '],
+  [' votos inflados',' inflated votes'],
+  [' votos fantasma',' phantom votes'],
+  ['LÍMITE SUPERADO','LIMIT EXCEEDED'],
+  ['Inyección A1: ','Injection A1: '],
+  ['Duplicación: +','Duplication: +'],
+  ['⚠ CADENA ROTA','⚠ CHAIN BROKEN'],
+  ['Votos nulos ×','Null votes ×'],
+  ['Auto-audit: ','Auto-audit: '],
+  ['Honeypots: ','Honeypots: '],
+  ['Tampering: ','Tampering: '],
+  ['Caché: TTL=','Cache: TTL='],
+  [' > totales=',' > total='],
+  [' → CRITICAL',' → CRITICAL'],
+  [' actas → +',' tally sheets → +'],
+  [' req/s — ',' req/s — '],
+  ['filtradas','filtered'],
+  ['mitigado','mitigated'],
+  [' ticks',' ticks'],
+  ['DDoS: ','DDoS: '],
+  ['min — ','min — '],
+  [' votos',' votes'],
+  [' actas',' tally sheets'],
+  ['CDN: ','CDN: '],
+];
+
+/* Traduce mensajes de log forense (logE/logA/logSE/logSA/pushAlert) a inglés
+   por sustitución de frases — preserva valores interpolados (números, IDs).
+   Render-time translation; el español permanece como fuente de verdad. */
+function _trMsg(s){
+  if(currentLabLang()!=='en'||typeof s!=='string') return s;
+  if(_LOG_FULL_EN[s]) return _LOG_FULL_EN[s];
+  let out=s;
+  for(const [es,en] of _LOG_PHRASES_EN) out=out.split(es).join(en);
+  return out;
+}
 
 
 // Final party percentages (for uniformity injection)
@@ -1783,24 +1909,24 @@ function _triggerAttackAlert(panelId){
 // Standalone logs
 function logE(sev,msg){
   const cls={INFO:'tl-muted',WARN:'tl-warn',CRITICAL:'tl-bad',OK:'tl-ok'}[sev]||'tl-muted';
-  appendLog('telem-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] ${msg}`);
+  appendLog('telem-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] ${_trMsg(msg)}`);
 }
 function logA(sev,ip,vector,cm){
   const cls={ALERT:'tl-bad',CRITICAL:'tl-bad',WARN:'tl-warn',INFO:'tl-muted'}[sev]||'tl-muted';
   const ua=['Mozilla/5.0 (Scrapy)','python-req/2.31','Go-http/2.0','curl/7.88','libwww/6.72'][rnd(0,4)];
-  appendLog('telem-attack',cls,`[${tsLog()}] IP=${ip} | ${vector} | UA:${ua} | → ${cm}`);
+  appendLog('telem-attack',cls,`[${tsLog()}] IP=${ip} | ${_trMsg(vector)} | UA:${ua} | → ${_trMsg(cm)}`);
   _triggerAttackAlert('panel-sa-attack');
 }
 // Swarm logs
 function logSE(sev,msg){
   const cls={INFO:'tl-muted',WARN:'tl-warn',CRITICAL:'tl-bad',OK:'tl-ok'}[sev]||'tl-muted';
-  appendLog('telem-swarm-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] [N:${SWARM.nodes}] ${msg}`);
+  appendLog('telem-swarm-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] [N:${SWARM.nodes}] ${_trMsg(msg)}`);
 }
 function logSA(sev,ip,vector,cm){
   const empty=document.getElementById('telem-swarm-attack-empty');
   if(empty) empty.remove();
   const cls={ALERT:'tl-bad',CRITICAL:'tl-bad',WARN:'tl-warn',INFO:'tl-muted'}[sev]||'tl-muted';
-  appendLog('telem-swarm-attack',cls,`[${tsLog()}] [N:${SWARM.nodes}] IP=${ip} | ${vector} | → ${cm}`);
+  appendLog('telem-swarm-attack',cls,`[${tsLog()}] [N:${SWARM.nodes}] IP=${ip} | ${_trMsg(vector)} | → ${_trMsg(cm)}`);
   _triggerAttackAlert('panel-sw-attack');
 }
 
@@ -3146,7 +3272,7 @@ function renderAlerts(){
   tbody.innerHTML=simAlerts.slice(-50).reverse().map(a=>{
     const cls=a.sev==='CRITICAL'?'b-bad':a.sev==='HIGH'?'b-warn':'b-ok';
     return `<tr><td>${a.ts}</td><td>${a.tipo}</td>
-      <td><span class="badge ${cls}">${a.sev}</span></td><td>${a.desc}</td></tr>`;
+      <td><span class="badge ${cls}">${a.sev}</span></td><td>${_trMsg(a.desc)}</td></tr>`;
   }).join('');
 }
 
@@ -6044,6 +6170,7 @@ function applyLabI18n(lang){
   }
   if(typeof _bldRenderEventGrid==='function') _bldRenderEventGrid();
   if(typeof _bldRenderInjTable==='function') _bldRenderInjTable();
+  if(typeof renderAlerts==='function') renderAlerts();
 }
 
 /* Re-etiqueta valores generados en runtime SIN recalcular (evita efectos
