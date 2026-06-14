@@ -61,6 +61,15 @@ access, and with cryptographic proof any third party can verify offline."
   11 form fields using the internet freedom narrative reframe.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Explicit authorization from Carlos exists for this specific funding action, with date — invocation examples are templates, not standing permission.
+- [ ] Donor alignment claims are checked against the funder's actual current guidelines (search if uncertain — programs close/change, e.g. MOSS hiatus, cohort deadlines).
+- [ ] No claim implies an unconfirmed dependency (fiscal sponsor, academic co-author) is settled — phrase as "in progress" / "exploring" if that's the true state.
+- [ ] "Real-time" framing avoided unless literally accurate for the specific claim (coordinate with public-relations-agent).
+- [ ] Resubmission/reapplication consequences were checked, not assumed — confirm whether a given funder penalizes reapplication before advising on timing.
+
 ## Output Requirements
 
 Every response must include:
