@@ -63,6 +63,15 @@ without sacrificing clarity, reproducibility, or academic defensibility.
   JSONs and report FP rate before/after the Z-score unification.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] The rule version number was actually incremented and the changelog entry written — not just "should be versioned".
+- [ ] Regression suite was run against the 96 HN 2025 JSONs and the FP rate before/after is reported with real numbers (coordinate with qa-engineering-agent for execution).
+- [ ] Backward compatibility: the previous rule version is still importable/runnable if anything in the engine depends on it, or migration path is documented.
+- [ ] Graceful degradation verified: feed the rule a snapshot missing the fields it needs and confirm it returns empty, not an error.
+- [ ] If a hardcoded threshold was touched, it's now in `command_center/rules.yaml` with justification, not left hardcoded.
+
 ## Output Requirements
 
 Every response must include:
