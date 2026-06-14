@@ -55,6 +55,14 @@ academic presence: working papers, pre-prints, journal submissions.
   64 original CNE JSON files with proper metadata and DOI request.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] The Reproducibility Checklist items were actually followed end-to-end at least once (or the gap is named explicitly), not just listed.
+- [ ] Any "real-time" vs. "retroactive" framing in academic text matches what the system actually did (coordinate with public-relations-agent).
+- [ ] Co-authorship/affiliation claims (e.g. UPNFM, Prof. Devis) reflect the current confirmed status — never presented as settled if pending.
+- [ ] Statistical claims trace back to stats-phd-agent's calibration evidence, not restated from memory.
+
 ## Output Requirements
 
 Every response must include:
