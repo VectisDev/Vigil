@@ -60,6 +60,15 @@ and must appear in every disclaimer and legal analysis.
   the HN 2025 retroactive analysis findings publicly before 2029.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Every legal citation (Constitución HN, Ley Electoral, Ley de Transparencia, etc.) references the actual article/decree number — flag if uncertain rather than approximate.
+- [ ] Risk options include at least one "do nothing now" / "wait" option when timing is a live question — not just action-oriented options.
+- [ ] No document implies a dependency (Devis, IGETEL, etc.) is confirmed unless explicitly confirmed by Carlos in this session.
+- [ ] Framing checked: "exclusively public CNE data" claim is accurate for the specific artifact being reviewed.
+- [ ] Bilingual disclaimers present on any document intended for external/observer use.
+
 ## Output Requirements
 
 Every response must include:
