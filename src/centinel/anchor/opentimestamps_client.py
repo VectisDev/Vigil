@@ -261,18 +261,24 @@ class OpenTimestampsClient:
 
 
 class MultichainAnchor:
+    """Anchors checkpoints using OpenTimestamps (Bitcoin), Zero Cost.
 
+    ES: Ancla checkpoints usando OpenTimestamps (Bitcoin), Costo Cero.
 
     Design:
     - Primary: OpenTimestamps (fast, free, proven)
     - Non-fatal: if both fail, publish without anchor (lower assurance)
     """
 
+    def __init__(self, testnet: bool = False) -> None:
         """Initialize multi-chain anchor (OTS Bitcoin only)."""
         self.ots_client = OpenTimestampsClient(use_testnet=testnet)
         self.testnet = testnet
 
     def anchor_checkpoint(self, checkpoint: dict) -> dict:
+        """Anchor a checkpoint's merkle root via OpenTimestamps.
+
+        ES: Ancla la raíz Merkle de un checkpoint vía OpenTimestamps.
 
         Args:
             checkpoint: Checkpoint dict with merkle_root
