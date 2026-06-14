@@ -50,11 +50,19 @@ import types
 # (centinel_engine, structlog) do not cause ImportError.
 # ES: Instala stubs en tiempo de colección para evitar ImportError.
 def _install_stub_modules() -> None:
-    """Install stub modules for optional dependencies."""
+    """Install stub modules for optional dependencies that fail to import.
+
+    Instala stubs solo para dependencias opcionales que fallen al
+    importarse; los modulos reales (cuando existen e importan
+    correctamente) tienen siempre prioridad para no contaminar
+    sys.modules y romper otros archivos de test que importen los
+    modulos reales.
+    """
     # scripts.download_and_hash stub -- avoids 8-level import chain
-    if "scripts.download_and_hash" not in sys.modules:
+    try:
+        import scripts.download_and_hash  # noqa: F401
+    except ImportError:
         import importlib.machinery as _imm
-        import random as _rng_mod
         _dah = types.ModuleType("scripts.download_and_hash")
         _dah.__spec__ = _imm.ModuleSpec("scripts.download_and_hash", None)  # type: ignore[attr-defined]
         def _build_request_headers(config: dict, low_profile: dict, rng: object) -> dict:
@@ -74,7 +82,9 @@ def _install_stub_modules() -> None:
         _dah.build_request_headers = _build_request_headers  # type: ignore[attr-defined]
         sys.modules["scripts.download_and_hash"] = _dah
 
-    if "centinel_engine" not in sys.modules:
+    try:
+        from centinel_engine.config_loader import load_config  # noqa: F401
+    except ImportError:
         ce = types.ModuleType("centinel_engine")
         ce_cfg = types.ModuleType("centinel_engine.config_loader")
         def _load_config(file_name: str = "", env: str = "prod") -> dict:
@@ -82,7 +92,10 @@ def _install_stub_modules() -> None:
         ce_cfg.load_config = _load_config  # type: ignore[attr-defined]
         sys.modules["centinel_engine"] = ce
         sys.modules["centinel_engine.config_loader"] = ce_cfg
-    if "structlog" not in sys.modules:
+
+    try:
+        import structlog  # noqa: F401
+    except ImportError:
         import logging as _logging
         import importlib.machinery as _imm
         sl = types.ModuleType("structlog")
@@ -91,7 +104,10 @@ def _install_stub_modules() -> None:
         sys.modules["structlog"] = sl
 
     # centinel.download stub (write_atomic)
-    if "centinel.download" not in sys.modules:
+    try:
+        import centinel.download  # noqa: F401
+    except ImportError:
+        import importlib.machinery as _imm
         import centinel as _c
         cd = types.ModuleType("centinel.download")
         cd.__spec__ = _imm.ModuleSpec("centinel.download", None)  # type: ignore[attr-defined]
@@ -104,7 +120,8 @@ def _install_stub_modules() -> None:
         sys.modules["centinel.download"] = cd
         setattr(_c, "download", cd)
 
-    # centinel.defense package stub (logger)
+    # centinel.defense / centinel.core stubs -- only for modules that
+    # fail to import for real (e.g. partial forks missing these files).
     import importlib.machinery as _imm
     for _mod_name in (
         "centinel.defense",
@@ -118,22 +135,28 @@ def _install_stub_modules() -> None:
         "centinel.core.connectivity",
         "centinel.core.normalize",
     ):
-        if _mod_name not in sys.modules:
-            import logging as _ll
-            _m = types.ModuleType(_mod_name)
-            _m.__spec__ = _imm.ModuleSpec(_mod_name, None)  # type: ignore[attr-defined]
-            _m.logger = _ll.getLogger("centinel")  # type: ignore[attr-defined]
-            # Common stubs for various functions these modules expose
-            for _attr in (
-                "build_rotating_request_profile",
-                "trigger_post_hash_backup",
-                "sign_hash_record",
-                "is_safe_outbound_url",
-                "diagnose_and_record",
-                "validate_cne_response",
-            ):
-                setattr(_m, _attr, lambda *a, **kw: None)  # type: ignore[misc]
-            sys.modules[_mod_name] = _m
+        if _mod_name in sys.modules:
+            continue
+        try:
+            __import__(_mod_name)
+            continue
+        except ImportError:
+            pass
+        import logging as _ll
+        _m = types.ModuleType(_mod_name)
+        _m.__spec__ = _imm.ModuleSpec(_mod_name, None)  # type: ignore[attr-defined]
+        _m.logger = _ll.getLogger("centinel")  # type: ignore[attr-defined]
+        # Common stubs for various functions these modules expose
+        for _attr in (
+            "build_rotating_request_profile",
+            "trigger_post_hash_backup",
+            "sign_hash_record",
+            "is_safe_outbound_url",
+            "diagnose_and_record",
+            "validate_cne_response",
+        ):
+            setattr(_m, _attr, lambda *a, **kw: None)  # type: ignore[misc]
+        sys.modules[_mod_name] = _m
 
     # centinel.paths: provided by real src/centinel/paths.py on PYTHONPATH
 
