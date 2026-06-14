@@ -125,7 +125,7 @@ class FederationCoordinator:
             witness_urls: List of witness base URLs
             timeout: HTTP request timeout (seconds)
             enable_logging: Enable forensic logging
-            consensus_threshold: Min witnesses that must agree (default 75%).
+            consensus_threshold: Min witnesses that must agree (default: simple majority, N//2 + 1).
             operator_public_keys: dict witness_id → Ed25519 public key bytes
                 (32 raw bytes). If provided, attestation signatures are
                 verified before counting toward consensus.
@@ -138,11 +138,11 @@ class FederationCoordinator:
         self.election_mode = election_mode
         self.attestations: dict[str, WitnessAttestation] = {}
         self.comparisons: list[MerkleComparison] = []
-        # D13.3: 75% threshold (min 2)
+        # D13.3: simple-majority threshold (min 2): N//2 + 1
         if consensus_threshold is not None:
             self.consensus_threshold = consensus_threshold
         else:
-            self.consensus_threshold = max(2, int(len(witness_urls) * 0.75) + 1)
+            self.consensus_threshold = max(2, (len(witness_urls) // 2) + 1)
         # D13.2: operator public keys for signature verification
         self.operator_public_keys = operator_public_keys or {}
         logger.info(
