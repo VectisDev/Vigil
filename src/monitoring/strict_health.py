@@ -104,6 +104,14 @@ else:
     APIRouter = None
     FastAPI = None
     JSONResponse = None
+
+if find_spec("boto3"):
+    import boto3
+    from botocore.exceptions import BotoCoreError, ClientError
+else:
+    boto3 = None
+    BotoCoreError = Exception
+    ClientError = Exception
 from dateutil import parser as date_parser
 
 from centinel.checkpointing import CheckpointConfig, CheckpointManager
@@ -373,6 +381,115 @@ def _check_storage_writable() -> dict[str, Any]:
     return {"ok": False, "message": "storage_not_writable", "path": data_dir}
 
 
+def _get_bucket_name() -> str:
+    """Return configured S3 mirror bucket name, or empty string when unset.
+
+    Devuelve el nombre del bucket S3 del mirror configurado, o cadena
+    vacia si no esta configurado.
+
+    The S3 mirror is an optional operator feature (see web/ops/ AWS mirror
+    panel) — empty/missing config means the feature is disabled, which is
+    the Zero Cost default and not a health failure.
+    """
+    return (os.getenv("VIGIL_AWS_S3_BUCKET") or os.getenv("AWS_S3_BUCKET") or "").strip()
+
+
+def _build_s3_config() -> dict[str, str] | None:
+    """Build S3 client kwargs from environment, or None if not configured.
+
+    Construye los kwargs del cliente S3 desde el entorno, o None si no
+    esta configurado.
+    """
+    bucket = _get_bucket_name()
+    access_key = os.getenv("AWS_ACCESS_KEY_ID", "").strip()
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY", "").strip()
+    if not bucket or not access_key or not secret_key:
+        return None
+    config: dict[str, str] = {"bucket": bucket}
+    region = os.getenv("AWS_REGION", "").strip()
+    if region:
+        config["region_name"] = region
+    return config
+
+
+def _build_s3_client() -> Any | None:
+    """Build a boto3 S3 client if the optional mirror is configured.
+
+    Construye un cliente S3 de boto3 si el mirror opcional esta
+    configurado.
+
+    Returns:
+        A boto3 S3 client, or ``None`` when boto3 is unavailable or the
+        mirror is unconfigured (Zero Cost default — not a health failure).
+    """
+    if boto3 is None:
+        return None
+    config = _build_s3_config()
+    if config is None:
+        return None
+    client_kwargs = {k: v for k, v in config.items() if k != "bucket"}
+    try:
+        return boto3.client("s3", **client_kwargs)
+    except (BotoCoreError, ClientError, ValueError) as exc:  # noqa: BLE001
+        logger.warning("s3_client_init_failed error=%s", exc)
+        return None
+
+
+def _check_bucket_latency(client: Any | None) -> dict[str, Any]:
+    """Check S3 mirror bucket reachability and latency, if configured.
+
+    Verifica accesibilidad y latencia del bucket S3 del mirror, si esta
+    configurado.
+
+    Skipped (ok=True) when the optional S3 mirror is not configured —
+    absence of this feature is never a health failure.
+    """
+    if client is None:
+        return {"ok": True, "message": "s3_mirror_not_configured", "skipped": True}
+    config = _build_s3_config()
+    bucket = (config or {}).get("bucket", "")
+    started = time.monotonic()
+    try:
+        client.head_bucket(Bucket=bucket)
+    except (BotoCoreError, ClientError) as exc:  # noqa: BLE001
+        return {"ok": False, "message": "s3_bucket_unreachable", "error": str(exc)}
+    latency_ms = round((time.monotonic() - started) * 1000, 2)
+    return {"ok": True, "message": "bucket_latency_ok", "latency_ms": latency_ms}
+
+
+def _check_storage_write(client: Any | None) -> dict[str, Any]:
+    """Check that local storage is writable, plus optional S3 mirror write.
+
+    Verifica que el almacenamiento local sea escribible, mas la escritura
+    opcional al mirror S3.
+
+    The S3 portion is skipped (ok=True) when the optional mirror is not
+    configured — local storage is always the source of truth.
+    """
+    local_check = _check_storage_writable()
+    if not local_check.get("ok", False):
+        return local_check
+    if client is None:
+        return {**local_check, "s3_mirror": "not_configured"}
+    config = _build_s3_config()
+    bucket = (config or {}).get("bucket", "")
+    key = _get_write_test_key()
+    try:
+        client.put_object(Bucket=bucket, Key=key, Body=b"vigil_health_check")
+    except (BotoCoreError, ClientError) as exc:  # noqa: BLE001
+        return {"ok": False, "message": "s3_write_failed", "error": str(exc)}
+    return {**local_check, "s3_mirror": "write_ok"}
+
+
+def _get_write_test_key() -> str:
+    """Return the S3 object key used for write health checks.
+
+    Devuelve la clave de objeto S3 usada para verificaciones de escritura.
+    """
+    run_id = _get_run_id() or "healthcheck"
+    return f"healthchecks/{run_id}.txt"
+
+
 def _load_checkpoint_payload(
     manager: CheckpointManager,
 ) -> Tuple[dict[str, Any] | None, str]:
@@ -600,7 +717,14 @@ async def is_healthy_strict() -> tuple[bool, dict[str, Any]]:
             if not last_acta_check.get("ok", False):
                 diagnostics["failures"].append(last_acta_check.get("message", "last_acta_failed"))
 
-    storage_check = _check_storage_writable()
+    s3_client = _build_s3_client()
+
+    bucket_latency_check = _check_bucket_latency(s3_client)
+    diagnostics["checks"]["bucket_latency"] = bucket_latency_check
+    if not bucket_latency_check.get("ok", False):
+        diagnostics["failures"].append(bucket_latency_check.get("message", "bucket_latency_failed"))
+
+    storage_check = _check_storage_write(s3_client)
     diagnostics["checks"]["storage"] = storage_check
     if not storage_check.get("ok", False):
         diagnostics["failures"].append(storage_check.get("message", "storage_not_writable"))
