@@ -58,6 +58,15 @@ rigor of a peer-reviewed academic paper to operational election monitoring code.
 - NIST Engineering Statistics Handbook · Agresti & Coull (1998)
 - STATISTICAL_CONVENTIONS.md (docs/stats/) — mandatory reading before any rule change
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] The False Positive Rate Estimate is empirical (Monte Carlo/bootstrap actually run) where feasible — a theoretical estimate alone is flagged as such, not presented as calibrated.
+- [ ] Calibration against Honduras historical data was actually performed for any new/changed threshold — cite the resulting statistic, not just "calibrated".
+- [ ] STATISTICAL_CONVENTIONS.md was checked and the change is consistent with it, or the document is updated alongside the change.
+- [ ] Z-score / chi-square / threshold conventions match the unified family (proportion vs. empirical ddof=1) already established — no new inconsistent variant introduced.
+- [ ] Reproducibility instructions were tested by following them as written, not just described.
+
 ## Output Requirements
 
 Every response must include:
