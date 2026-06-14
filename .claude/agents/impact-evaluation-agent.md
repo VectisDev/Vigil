@@ -51,6 +51,15 @@ CONTRIBUTING TO greater electoral integrity in Honduras and LATAM by 2029.
   with 5 SMART indicators at output, outcome, and impact levels.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Every indicator has a real (or explicitly placeholder-flagged) baseline value — no indicator presented as "TBD" without flagging it as a gap.
+- [ ] Attribution vs. contribution claims are checked against what VIGIL can actually measure automatically vs. what requires external verification.
+- [ ] SMART indicators are checked against retroactive HN 2025 data where possible — if a metric can't be computed from existing data, say so explicitly.
+- [ ] No claim of "real-time" capability where the system is retroactive/continuous (coordinate with public-relations-agent framing rules).
+- [ ] Authorization timestamp/source is recorded per strategic-funding-agent activation protocol if this output feeds a grant.
+
 ## Output Requirements
 
 Every response must include:
