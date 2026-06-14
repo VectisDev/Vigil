@@ -59,6 +59,14 @@ complete operational visibility through structured logs and metrics.
   retroactive analysis: polling intervals, gaps, uptime percentage.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Benchmark numbers (latency, throughput, polling cycle time) come from an actual run or the most recent real measurement on record — not a theoretical estimate presented as measured.
+- [ ] Failure scenarios in "Resilience Mechanisms" were checked against what the current code actually does, not what an ideal implementation would do.
+- [ ] RTO/RPO figures are consistent with the GitHub Actions free-tier constraints (e.g. job duration limits) — coordinate with treasurer-agent if a number implies paid infrastructure.
+- [ ] Any new watchdog/alerting logic was checked for false-positive potential under normal network jitter, not just the failure case it targets.
+
 ## Output Requirements
 
 Every response must include:
