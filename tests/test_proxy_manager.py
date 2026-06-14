@@ -108,11 +108,19 @@ class TestUserAgentPool:
     """Tests for the User-Agent pool / Pruebas del pool de User-Agents."""
 
     def test_pool_has_at_least_50_entries(self) -> None:
-        """UA pool contains >= 50 real User-Agent strings.
+        """UA pool contains the full set of transparent, self-identifying UAs.
 
-        Bilingual: Pool de UA contiene >= 50 cadenas User-Agent reales.
+        Bilingual: Pool de UA contiene el conjunto completo de UAs
+        transparentes y auto-identificables.
+
+        Design note: VIGIL's ethical-scraping design (see README "Ethical
+        scraping" principle) uses a small pool of honest, self-identifying
+        User-Agents that link back to the repository, rather than a large
+        pool of anonymizing browser UAs. This test was updated from
+        ">= 50" (old anonymization design) to "== len(USER_AGENT_POOL)"
+        to match the current transparent design.
         """
-        assert len(USER_AGENT_POOL) >= 50
+        assert len(USER_AGENT_POOL) == 5
 
     def test_all_entries_are_strings(self) -> None:
         """All pool entries are non-empty strings.
@@ -124,28 +132,39 @@ class TestUserAgentPool:
             assert len(ua) > 10
 
     def test_entries_look_like_real_uas(self) -> None:
-        """Pool entries contain Mozilla/ prefix typical of real browsers.
+        """Pool entries are transparent, self-identifying VIGIL UAs.
 
-        Bilingual: Entradas del pool contienen prefijo Mozilla/ tipico de navegadores reales.
+        Bilingual: Entradas del pool son UAs de VIGIL transparentes y
+        auto-identificables.
+
+        Design note: updated from a Mozilla/5.0-prefix check (old
+        anonymization design) to verify the current transparent
+        identification design — every UA self-identifies as VIGIL and
+        links to the repository.
         """
-        mozilla_count = sum(1 for ua in USER_AGENT_POOL if ua.startswith("Mozilla/5.0"))
-        assert mozilla_count == len(USER_AGENT_POOL)
+        vigil_count = sum(1 for ua in USER_AGENT_POOL if ua.startswith("VIGIL-"))
+        repo_link_count = sum(1 for ua in USER_AGENT_POOL if "github.com/VectisDev/centinel" in ua)
+        assert vigil_count == len(USER_AGENT_POOL)
+        assert repo_link_count == len(USER_AGENT_POOL)
 
     def test_pool_has_variety(self) -> None:
-        """Pool contains multiple browser families (Chrome, Firefox, Safari, Edge).
+        """Pool contains multiple distinct VIGIL bot roles.
 
-        Bilingual: Pool contiene multiples familias de navegadores (Chrome, Firefox, Safari, Edge).
+        Bilingual: Pool contiene multiples roles distintos de bots VIGIL.
+
+        Design note: updated from browser-family variety (Chrome, Firefox,
+        Safari, Edge — old anonymization design) to verify variety of
+        transparently-named bot roles (Engine, Healer, Monitor, Watchdog),
+        consistent with the current self-identification design.
         """
-        has_chrome = any(
-            "Chrome/" in ua and "Edg/" not in ua and "OPR/" not in ua for ua in USER_AGENT_POOL
-        )
-        has_firefox = any("Firefox/" in ua for ua in USER_AGENT_POOL)
-        has_safari = any("Safari/" in ua and "Chrome/" not in ua for ua in USER_AGENT_POOL)
-        has_edge = any("Edg/" in ua for ua in USER_AGENT_POOL)
-        assert has_chrome
-        assert has_firefox
-        assert has_safari
-        assert has_edge
+        has_engine = any(ua.startswith("VIGIL-Engine/") for ua in USER_AGENT_POOL)
+        has_healer = any("Healer" in ua for ua in USER_AGENT_POOL)
+        has_monitor = any("Monitor" in ua for ua in USER_AGENT_POOL)
+        has_watchdog = any("Watchdog" in ua for ua in USER_AGENT_POOL)
+        assert has_engine
+        assert has_healer
+        assert has_monitor
+        assert has_watchdog
 
 
 # ---------------------------------------------------------------------------
@@ -160,15 +179,18 @@ class TestUARotation:
         """Multiple calls return different UAs (with high probability).
 
         Bilingual: Multiples llamadas retornan UAs diferentes (con alta probabilidad).
+
+        Design note: pool size is 5 (transparent self-identification
+        design, see TestUserAgentPool), so 20 calls cannot yield more than
+        5 unique UAs. Updated from "> 5" (assumed a 50+ entry pool) to
+        "> 1 and <= len(USER_AGENT_POOL)".
         """
         mgr = ProxyAndUAManager(rotation_every_n=100)
         uas = set()
         for _ in range(20):
             _, ua = mgr.rotate_proxy_and_ua()
             uas.add(ua)
-        # With 50+ UAs, 20 calls should produce multiple unique ones /
-        # Con 50+ UAs, 20 llamadas deberian producir multiples unicos
-        assert len(uas) > 5
+        assert 1 < len(uas) <= len(USER_AGENT_POOL)
 
     def test_ua_is_from_pool(self) -> None:
         """Returned UA is always from the pool.
@@ -289,9 +311,12 @@ class TestManagerStats:
         """Stats report the UA pool size.
 
         Bilingual: Estadisticas reportan tamano del pool de UA.
+
+        Design note: pool size is 5 (transparent self-identification
+        design). Updated from ">= 50" (old anonymization design).
         """
         mgr = ProxyAndUAManager()
-        assert mgr.stats["ua_pool_size"] >= 50
+        assert mgr.stats["ua_pool_size"] == len(USER_AGENT_POOL)
 
 
 # ---------------------------------------------------------------------------
