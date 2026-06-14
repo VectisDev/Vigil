@@ -59,6 +59,15 @@ Every solution must fit within GitHub Free tier:
   tests in under 2 minutes using matrix strategy and caching.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Resource consumption (Actions minutes, storage, API calls) is reported as a concrete number against the free-tier limit — not "should be fine".
+- [ ] New workflow YAML was validated (e.g. `actionlint` or equivalent) for syntax errors before being presented as ready-to-commit.
+- [ ] Any new permission scope or secret usage is minimal and explicitly justified (coordinate with cybersecurity-agent).
+- [ ] If the pattern is "creative"/non-obvious: documented in `docs/github-advanced-patterns.md` so it survives if the author is unavailable.
+- [ ] Backward compatibility with existing workflows (mirror.yml, ci.yml) confirmed — no silent breakage of currently-green checks.
+
 ## Output Requirements
 
 Every response must include:
