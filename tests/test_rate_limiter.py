@@ -81,12 +81,17 @@ class TestConstruction:
         """Default limiter has expected configuration.
 
         Bilingual: Limitador por defecto tiene configuracion esperada.
+
+        Design note: defaults were tightened (burst 3->5 is wrong direction;
+        actually burst increased to 5 but min_interval tightened 8.0->6.0)
+        as part of the hard-ceiling rate limiting redesign. Updated to match
+        DEFAULT_BURST=5 / DEFAULT_MIN_INTERVAL=6.0.
         """
         rl = TokenBucketRateLimiter()
         stats = rl.stats
         assert stats["rate_interval"] == 10.0
-        assert stats["burst"] == 3
-        assert stats["min_interval"] == 8.0
+        assert stats["burst"] == 5
+        assert stats["min_interval"] == 6.0
         assert stats["max_interval"] == 12.0
 
     def test_custom_parameters(self) -> None:
@@ -121,9 +126,13 @@ class TestConstruction:
         """Negative min_interval raises ValueError.
 
         Bilingual: min_interval negativo lanza ValueError.
+
+        Design note: enforce_ceiling=True (default) clamps min_interval to
+        HARD_CEILING_MIN_INTERVAL before validation, so this test disables
+        the ceiling to exercise _validate_limits directly.
         """
         with pytest.raises(ValueError, match="min_interval must be >= 0"):
-            TokenBucketRateLimiter(min_interval=-1)
+            TokenBucketRateLimiter(min_interval=-1, enforce_ceiling=False)
 
 
 # ---------------------------------------------------------------------------
@@ -154,9 +163,16 @@ class TestTokenConsumption:
 
         Anti-fingerprinting jitter neutralized (see test above).
         Bilingual: Jitter de seguridad neutralizado para probar burst.
+
+        Design note: enforce_ceiling=True (default) would clamp
+        min_interval=0.0 up to HARD_CEILING_MIN_INTERVAL (2.0s), adding
+        ~2s of mandatory spacing per call and breaking this timing
+        assertion. Disabled here to test burst behavior in isolation.
         """
         monkeypatch.setattr("centinel_engine.rate_limiter.random.uniform", lambda *_a: 0.0)
-        rl = TokenBucketRateLimiter(rate_interval=1.0, burst=3, min_interval=0.0, max_interval=5.0)
+        rl = TokenBucketRateLimiter(
+            rate_interval=1.0, burst=3, min_interval=0.0, max_interval=5.0, enforce_ceiling=False
+        )
         total_wait = 0.0
         for _ in range(3):
             total_wait += rl.wait()
