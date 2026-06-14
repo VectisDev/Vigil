@@ -1,6 +1,6 @@
 # VectisDev.md — Instrucciones Permanentes de Desarrollo
 
-**Proyecto CENTINEL** — Auditoría Electoral Criptográfica y Estadística en Tiempo Real
+**Proyecto VIGIL** *(anteriormente CENTINEL)* — Auditoría Electoral Criptográfica y Estadística
 **Visión**: Estándar de referencia para auditoría electoral independiente en Honduras 2029
 y arquitectura escalable para toda Latinoamérica.
 **Estado**: Desarrollo confidencial de alto rigor técnico y forense.
@@ -14,7 +14,7 @@ sin negociación, sin excepciones temporales.
 
 | Rama      | Rol                                                          |
 |-----------|--------------------------------------------------------------|
-| `main`    | Producción — siempre idéntica a dev-v12, merge vía script    |
+| `main`    | Producción — siempre idéntica a dev-v12, commits directos en paralelo |
 | `dev-v12` | Integración — única rama de desarrollo activa                |
 
 **Regla de ramas**: Solo `dev-v12` y `main`. Ambas deben estar siempre a la par.
@@ -34,10 +34,12 @@ de reglas, modificación criptográfica, o decisión de arquitectura:
 | `@crypto-security-agent` | Integridad criptográfica | Toda cadena de evidencia requiere auditoría |
 | `@user-privacy-agent` | Privacidad y anonimato | Todo output requiere revisión de PII |
 | `@systems-architecture-agent` | Coherencia del sistema | Todo cambio de arquitectura requiere ADR |
+| `@public-relations-agent` | Consistencia de marca y framing | Todo documento/correo/UI dirigido a terceros |
+| `@qa-engineering-agent` | Salud de tests y CI | Todo cambio en `src/` o `web/ops/` |
 
 ---
 
-## Equipo de Agentes — 18 Agentes de Clase Mundial
+## Equipo de Agentes — 20 Agentes de Clase Mundial
 
 Todos calibrados para el estándar OTF, NDI, Carter Center, OEA y UPNFM.
 
@@ -82,6 +84,13 @@ Todos calibrados para el estándar OTF, NDI, Carter Center, OEA y UPNFM.
 | 15 | `@github-ecosystem-agent`       | GitHub avanzado, CI/CD, zero-cost          | Cambios en workflows/infra |
 | 16 | `@treasurer-agent`              | Fiscalización Costo Cero absoluto          | Cualquier propuesta de infraestructura |
 
+### Agentes de Comunicación y Calidad (incorporados 2026-06-13)
+
+| #  | Agente                          | Rol Principal                              | Activación |
+|----|---------------------------------|--------------------------------------------|------------|
+| 19 | `@public-relations-agent`       | Consistencia de marca, framing, comunicaciones externas | **Todo documento/correo/UI dirigido a terceros** |
+| 20 | `@qa-engineering-agent`         | Suite de tests, cobertura, salud CI/CD      | **Todo cambio que toque `src/` o `web/ops/`; obligatorio antes de mergear refactor/v13-clean-core** |
+
 ### Agentes Restringidos — Solo con Aprobación Explícita de Carlos Zelaya
 
 | #  | Agente                          | Rol Principal                              | Activación |
@@ -102,9 +111,15 @@ Todos calibrados para el estándar OTF, NDI, Carter Center, OEA y UPNFM.
 4. `@treasurer-agent` en cualquier propuesta que mencione infraestructura externa.
 5. `@strategic-funding-agent` y `@impact-evaluation-agent`: requieren mensaje
    explícito "AUTORIZADO POR CARLOS ZELAYA - [fecha]".
-6. Todo código generado: docstrings **bilingües** (English/Spanish), fórmulas KaTeX,
+6. `@public-relations-agent` revisa SIEMPRE, antes de envío: nombre del proyecto
+   (VIGIL), framing tiempo-real/retroactivo, y estado real de dependencias
+   (Devis, IGETEL, etc.) en cualquier documento, correo o UI hacia terceros.
+7. `@qa-engineering-agent` ejecuta la suite relevante y reporta números exactos
+   (X/Y) ANTES de que cualquier cambio en `src/` o `web/ops/` se considere
+   completo. Obligatorio y bloqueante para `refactor/v13-clean-core`.
+8. Todo código generado: docstrings **bilingües** (English/Spanish), fórmulas KaTeX,
    comentarios bilingües en secciones críticas.
-7. Compatibilidad absoluta con cadena de hashes existente — nunca romper.
+9. Compatibilidad absoluta con cadena de hashes existente — nunca romper.
 
 ---
 
@@ -144,24 +159,23 @@ aprobado, ese formato reemplaza este estándar y VectisDev.md se actualiza.
 
 ---
 
-## Regla de PRs — OBLIGATORIA
+## Regla de Sincronización de Ramas — OBLIGATORIA
 
-**Siempre crear DOS PRs simultáneos para cualquier feature branch:**
+**Todo cambio se commitea directamente a ambas ramas activas, en el mismo momento:**
 
-1. **PR → `main`** (base: `main`)
-2. **PR → `dev-v12`** (base: `dev-v12`)
+1. `main`
+2. `dev-v12` (rama de desarrollo más reciente — actualizar este nombre cuando
+   se abra una `dev-v13` u otra posterior, manteniendo siempre la convención
+   "rama de desarrollo más reciente + main al unísono")
 
-**Auto-merge**: automático cuando CI verde + sin conflictos + todos los checks passing.
-
-```
-feature-branch
-├── PR #A → main
-└── PR #B → dev-v12
-```
+No se usa flujo de Pull Requests para mantener `main`/`dev-v12` sincronizadas —
+el commit directo a ambas ramas, en la misma operación, es el mecanismo vigente.
+Pull Requests siguen siendo apropiados para colaboradores externos que trabajen
+sobre un fork.
 
 ---
 
-## Principios de Diseño de CENTINEL
+## Principios de Diseño de VIGIL
 
 | Principio | Descripción |
 |-----------|-------------|
@@ -176,11 +190,11 @@ feature-branch
 
 ## Contexto Honduras 2029
 
-CENTINEL está diseñado primordialmente para las elecciones generales de Honduras
+VIGIL está diseñado primordialmente para las elecciones generales de Honduras
 en noviembre 2029: ~16,000 mesas de votación, 18 departamentos + nacional,
 nivel presidencial, con datos públicos del CNE en formato JSON/TREP.
 
-La arquitectura y los estándares de CENTINEL son deliberadamente genéricos
+La arquitectura y los estándares de VIGIL son deliberadamente genéricos
 y configurables para ser adoptados en cualquier país de Latinoamérica con
 feeds electorales públicos estructurados.
 
