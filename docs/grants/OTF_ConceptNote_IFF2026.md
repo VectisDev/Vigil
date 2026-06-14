@@ -1,28 +1,28 @@
 # OTF Internet Freedom Fund — IFF-2026-06
-## CENTINEL Concept Note
+## VIGIL Concept Note
+*(anteriormente conocido como CENTINEL)*
 
 **Convocatoria:** Open Technology Fund — Internet Freedom Fund  
 **Referencia:** IFF-2026-06  
 **Fecha de preparación:** 2026-06-07  
-**Solicitante:** Carlos Zelaya — Desarrollador Principal CENTINEL  
-**Patrocinador institucional:** IGETEL S.A. (relación de fiscal sponsor — personalidad jurídica e infraestructura bancaria; sin riesgo financiero para IGETEL)  
+**Solicitante:** Carlos Zelaya — Desarrollador Principal VIGIL  
 **Estado:** Borrador — listo para completar formulario online en otf.opentech.fund
 
 ---
 
-> **Nota de uso:** Este documento contiene las respuestas preparadas para cada campo del formulario OTF IFF-2026-06. Copiar cada sección directamente al campo correspondiente. El documento también sirve como referencia del posicionamiento estratégico de CENTINEL ante fondos de internet freedom.
+> **Nota de uso:** Este documento contiene las respuestas preparadas para cada campo del formulario OTF IFF-2026-06. Copiar cada sección directamente al campo correspondiente. El documento también sirve como referencia del posicionamiento estratégico de VIGIL ante fondos de internet freedom.
 
 ---
 
 ## CAMPO 1 — Título del proyecto
 
-**CENTINEL — Protección Criptográfica del Acceso a Información Electoral**
+**VIGIL — Protección Criptográfica del Acceso a Información Electoral**
 
 ---
 
 ## CAMPO 2 — Describe tu proyecto en 1-3 oraciones
 
-En Honduras y Centroamérica, los datos electorales oficiales pueden ser publicados, alterados o suprimidos sin que periodistas, activistas ni ciudadanos tengan forma de detectarlo. **CENTINEL** es un sistema de software libre que captura, encadena criptográficamente y somete a 23 pruebas estadísticas y forenses cada publicación del organismo electoral — de forma continua o retroactiva, a costo cero, sin depender de ninguna autoridad. En el análisis forense retroactivo sobre archivos JSON originales del CNE de las elecciones hondureñas de 2025, detectó automáticamente un apagón de 13 horas de datos y una tasa de resolución matemáticamente imposible de 39 actas por minuto.
+En Honduras y Centroamérica, los datos electorales oficiales pueden ser publicados, alterados o suprimidos sin que periodistas, activistas ni ciudadanos tengan forma de detectarlo. **VIGIL** es un sistema de software libre que captura, encadena criptográficamente y somete a 23 pruebas estadísticas y forenses cada publicación del organismo electoral — de forma continua o retroactiva, a costo cero, sin depender de ninguna autoridad. En el análisis forense retroactivo sobre archivos JSON originales del CNE de las elecciones hondureñas de 2025, detectó automáticamente un apagón de 13 horas de datos y una tasa de resolución matemáticamente imposible de 39 actas por minuto.
 
 ---
 
@@ -30,9 +30,9 @@ En Honduras y Centroamérica, los datos electorales oficiales pueden ser publica
 
 En elecciones de entornos con instituciones débiles, los organismos electorales controlan el flujo de información con asimetría total: publican datos cuando quieren, en el formato que quieren, y pueden alterar o suprimir publicaciones sin dejar rastro verificable. Periodistas que cubren elecciones en Honduras, Guatemala o Nicaragua no tienen herramientas para demostrar, con evidencia matemáticamente irrefutable, que un dato cambió después de ser publicado, que hubo un apagón de información deliberado, o que la velocidad de procesamiento de actas es físicamente imposible.
 
-Esta asimetría de información protege a actores que manipulan el proceso y silencia a quienes intentan reportarlo: sin evidencia técnica, las denuncias son tratadas como opiniones políticas. CENTINEL elimina esta asimetría. Usando exclusivamente datos que el propio Estado publica, genera prueba criptográfica de integridad que cualquier periodista, defensor de derechos u observador puede verificar de forma independiente, offline y sin acreditación institucional alguna.
+Esta asimetría de información protege a actores que manipulan el proceso y silencia a quienes intentan reportarlo: sin evidencia técnica, las denuncias son tratadas como opiniones políticas. VIGIL elimina esta asimetría. Usando exclusivamente datos que el propio Estado publica, genera prueba criptográfica de integridad que cualquier periodista, defensor de derechos u observador puede verificar de forma independiente, offline y sin acreditación institucional alguna.
 
-En el análisis forense retroactivo sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30 de noviembre de 2025, el motor de CENTINEL detectó automáticamente: 41 brechas de comunicación, incluyendo 6 apagones nocturnos de más de 10 horas; y una tasa de resolución de 39.15 actas por minuto — 4 veces el límite físico plausible. Cualquier periodista puede reproducir estos hallazgos con un solo comando, usando los mismos archivos originales del CNE. CENTINEL no requiere infraestructura propia, no genera costos operativos y puede ser desplegado en cualquier país de la región.
+En el análisis forense retroactivo sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30 de noviembre de 2025, el motor de VIGIL detectó automáticamente: 41 brechas de comunicación, incluyendo 6 apagones nocturnos de más de 10 horas; y una tasa de resolución de 39.15 actas por minuto — 4 veces el límite físico plausible. Cualquier periodista puede reproducir estos hallazgos con un solo comando, usando los mismos archivos originales del CNE. VIGIL no requiere infraestructura propia, no genera costos operativos y puede ser desplegado en cualquier país de la región.
 
 ---
 
@@ -58,17 +58,17 @@ El financiamiento se destinaría a: (1) validación académica independiente con
 
 ---
 
-## CAMPO 6 — ¿Existen proyectos similares? ¿En qué se diferencia CENTINEL?
+## CAMPO 6 — ¿Existen proyectos similares? ¿En qué se diferencia VIGIL?
 
-Existen herramientas de observación electoral de NDI (DemTools), IFES y organismos regionales, pero ninguna comparte las propiedades fundamentales de CENTINEL:
+Existen herramientas de observación electoral de NDI (DemTools), IFES y organismos regionales, pero ninguna comparte las propiedades fundamentales de VIGIL:
 
-- **Costo cero:** DemTools y sistemas similares requieren servidores, personal técnico y presupuesto. CENTINEL opera exclusivamente en la capa gratuita de GitHub. Cualquier periodista puede operar una instancia sin presupuesto.
+- **Costo cero:** DemTools y sistemas similares requieren servidores, personal técnico y presupuesto. VIGIL opera exclusivamente en la capa gratuita de GitHub. Cualquier periodista puede operar una instancia sin presupuesto.
 
-- **Verificabilidad criptográfica:** Ninguna herramienta conocida genera una cadena SHA-256 encadenada verificable offline por terceros. CENTINEL incluye `verify_chain.py`, un script de 0 dependencias que cualquier persona puede usar para verificar la integridad de todos los datos capturados.
+- **Verificabilidad criptográfica:** Ninguna herramienta conocida genera una cadena SHA-256 encadenada verificable offline por terceros. VIGIL incluye `verify_chain.py`, un script de 0 dependencias que cualquier persona puede usar para verificar la integridad de todos los datos capturados.
 
 - **Resistencia a la censura:** El diseño de swarm federado (P2P) garantiza que no existe un punto central que una autoridad pueda presionar, bloquear o capturar. El código fuente, bajo licencia AGPL-3.0, no puede ser privatizado.
 
-- **Operación sin acreditación:** Un periodista freelance sin acreditación oficial puede operar CENTINEL y generar evidencia técnicamente equivalente a la de un observador institucional.
+- **Operación sin acreditación:** Un periodista freelance sin acreditación oficial puede operar VIGIL y generar evidencia técnicamente equivalente a la de un observador institucional.
 
 ---
 
@@ -119,13 +119,11 @@ Global: misiones OEA, UE, Carter Center (observadores internacionales).
 
 ## CAMPO 11 — ¿Por qué ustedes son las personas correctas?
 
-El equipo ha demostrado capacidad técnica real, no solo teórica: el motor forense de CENTINEL fue aplicado retroactivamente sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30/11/2025, detectando automáticamente hallazgos estadísticos reproducibles por cualquier tercero con los mismos archivos públicos.
+El equipo ha demostrado capacidad técnica real, no solo teórica: el motor forense de VIGIL fue aplicado retroactivamente sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30/11/2025, detectando automáticamente hallazgos estadísticos reproducibles por cualquier tercero con los mismos archivos públicos.
 
 **Capacidad técnica:** El motor de 23 reglas estadísticas y forenses está implementado, documentado y cuenta con 526 tests automatizados. La arquitectura criptográfica (SHA-256 encadenado, Ed25519, PBKDF2) ha sido revisada internamente. El código es completamente abierto bajo licencia AGPL-3.0.
 
 **Respaldo académico:** Colaboración iniciada con el Prof. Devis Alvarado, investigador de la Universidad Pedagógica Nacional Francisco Morazán (UPNFM), para validación estadística independiente de la metodología.
-
-**Respaldo institucional hondureño:** IGETEL S.A. (Ingeniería en Telecomunicaciones y Sistemas, parte del Grupo ITEL de Centroamérica) identificada como organización patrocinadora — empresa líder en telecomunicaciones e ingeniería tecnológica en Honduras con más de 20 años de operación regional.
 
 **Contexto local irreemplazable:** El equipo opera desde Honduras, con conocimiento directo del contexto electoral centroamericano, los patrones históricos del CNE y las necesidades reales de los periodistas y observadores locales.
 
@@ -145,5 +143,5 @@ El equipo ha demostrado capacidad técnica real, no solo teórica: el motor fore
 
 ---
 
-*CENTINEL — AGPL-3.0 — github.com/vectisdev/centinel*  
-*Documento preparado por el equipo CENTINEL · Junio 2026*
+*VIGIL — AGPL-3.0 — github.com/vectisdev/centinel (repositorio aún bajo el nombre histórico CENTINEL; migración de nombre en curso)*  
+*Documento preparado por el equipo VIGIL · Junio 2026*
