@@ -84,7 +84,7 @@ def _create_test_db(tmp_path: Path, *, canonical_json: str = '{"valid": true}'):
             null_votes INTEGER NOT NULL DEFAULT 0,
             blank_votes INTEGER NOT NULL DEFAULT 0,
             candidates_json TEXT NOT NULL DEFAULT '[]',
-            tx_hash TEXT,
+            tx_hash TEXT
         )
     """)
     conn.execute(
