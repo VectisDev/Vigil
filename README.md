@@ -1,8 +1,9 @@
 <p align="center">
-  <img src="web/assets/logo.svg" alt="CENTINEL — Trustless Electoral Integrity" width="700">
+  <img src="web/assets/logo.svg" alt="VIGIL — Trustless Electoral Integrity" width="700">
 </p>
 
-# CENTINEL
+# VIGIL
+*(anteriormente conocido como CENTINEL / formerly known as CENTINEL)*
 ### Trustless Electoral Integrity Verification — Latin America
 *Verificación Confiable de Integridad Electoral — América Latina*
 
@@ -19,7 +20,7 @@
 ---
 
 > Electoral authorities publish results that citizens must accept on trust.
-> **CENTINEL eliminates that required trust** — permanently, cryptographically, at zero cost.
+> **VIGIL eliminates that required trust** — permanently, cryptographically, at zero cost.
 
 A single operator can audit a national election from a laptop.
 Every capture is chained and signed cryptographically.
@@ -28,9 +29,9 @@ Bitcoin blockchain anchoring via OpenTimestamps is implemented. HN 2025 dataset 
 
 > *Auditoría electoral independiente y reproducible, sin dependencia institucional, sin infraestructura dedicada y sin coste operativo. Un solo operador puede auditar una elección nacional desde un portátil.*
 
-> **Neutrality disclaimer:** CENTINEL does not assert fraud. It detects statistical anomalies in publicly available electoral data and provides cryptographic proof of data integrity for independent human evaluation. The project is politically neutral, open-source, and reproducible.
+> **Neutrality disclaimer:** VIGIL does not assert fraud. It detects statistical anomalies in publicly available electoral data and provides cryptographic proof of data integrity for independent human evaluation. The project is politically neutral, open-source, and reproducible.
 >
-> **Declaración de neutralidad:** CENTINEL no afirma fraude. Detecta anomalías estadísticas en datos electorales públicos y proporciona prueba criptográfica de integridad de datos para evaluación humana independiente. El proyecto es políticamente neutral, de código abierto y reproducible.
+> **Declaración de neutralidad:** VIGIL no afirma fraude. Detecta anomalías estadísticas en datos electorales públicos y proporciona prueba criptográfica de integridad de datos para evaluación humana independiente. El proyecto es políticamente neutral, de código abierto y reproducible.
 
 <!-- INSTANCE-STATUS-START -->
 
@@ -74,9 +75,9 @@ It will be available on the next push to `main`.
 
 ---
 
-## Why CENTINEL?
+## Why VIGIL?
 
-| | Traditional NGO Observer | CENTINEL |
+| | Traditional NGO Observer | VIGIL |
 |--|--------------------------|----------|
 | **Cost** | $10K – $500K per election | **Zero** — GitHub Actions free tier |
 | **Independence** | Requires access, funding, accreditation | **Complete** — no permission needed |
@@ -98,7 +99,7 @@ It will be available on the next push to `main`.
 >
 > El siguiente análisis es una **demostración forense post-mortem** realizada sobre 64 archivos JSON del CNE descargados manualmente el **4 de diciembre de 2025**, tras concluir el evento electoral. Es un **análisis retroactivo, no una auditoría en vivo**. La cadena criptográfica se construyó ex-post sobre los archivos capturados y demuestra las capacidades de detección del motor sobre datos electorales reales — no constituye evidencia observacional del proceso electoral en vivo. La captura continua en vivo es el objetivo operacional para Honduras 2029.
 
-CENTINEL applied its forensic engine retroactively to **64 original JSON files from the CNE** (elecciones 30/11/2025). These are the same files published by the State — unmodified, no privileged access required. The forensic engine detected:
+VIGIL applied its forensic engine retroactively to **64 original JSON files from the CNE** (elecciones 30/11/2025). These are the same files published by the State — unmodified, no privileged access required. The forensic engine detected:
 
 | Finding | Detail |
 |---------|--------|
@@ -122,13 +123,13 @@ make reproduce-2025-audit
 python verify/verify_chain.py tests/fixtures/hnd_2025/
 ```
 
-*CENTINEL does not assert fraud. It detects statistical anomalies and provides cryptographic proof of data integrity for independent human evaluation.*
+*VIGIL does not assert fraud. It detects statistical anomalies and provides cryptographic proof of data integrity for independent human evaluation.*
 
-*CENTINEL no afirma fraude. Detecta anomalías estadísticas y proporciona prueba criptográfica de integridad de datos para evaluación humana independiente.*
+*VIGIL no afirma fraude. Detecta anomalías estadísticas y proporciona prueba criptográfica de integridad de datos para evaluación humana independiente.*
 
-> **Scope clarification / Aclaración de alcance.** CENTINEL is positioned as **public electoral evidence preservation infrastructure** — not as an electoral authority, observer, or arbiter of disputes. The system captures, chains, and anchors publicly published data so that any third party can verify it offline, independently, and without the project's cooperation. The interpretation of detected anomalies is reserved for qualified observers, courts, and the public.
+> **Scope clarification / Aclaración de alcance.** VIGIL is positioned as **public electoral evidence preservation infrastructure** — not as an electoral authority, observer, or arbiter of disputes. The system captures, chains, and anchors publicly published data so that any third party can verify it offline, independently, and without the project's cooperation. The interpretation of detected anomalies is reserved for qualified observers, courts, and the public.
 >
-> CENTINEL se posiciona como **infraestructura de preservación de evidencia electoral pública** — no como autoridad electoral, observador ni árbitro de disputas. El sistema captura, encadena y ancla datos publicados públicamente para que cualquier tercero pueda verificarlos offline, de forma independiente y sin cooperación del proyecto. La interpretación de las anomalías detectadas queda reservada para observadores calificados, tribunales y la opinión pública.
+> VIGIL se posiciona como **infraestructura de preservación de evidencia electoral pública** — no como autoridad electoral, observador ni árbitro de disputas. El sistema captura, encadena y ancla datos publicados públicamente para que cualquier tercero pueda verificarlos offline, de forma independiente y sin cooperación del proyecto. La interpretación de las anomalías detectadas queda reservada para observadores calificados, tribunales y la opinión pública.
 
 ---
 
@@ -149,7 +150,7 @@ Adding a new country requires only a preset in [`src/centinel/countries.py`](src
 
 ## What it solves
 
-Electoral authorities publish results that citizens must accept on trust. CENTINEL eliminates that required trust: it captures published data, chains it cryptographically, and allows any third party to verify — reproducibly and offline — that data was not altered after publication.
+Electoral authorities publish results that citizens must accept on trust. VIGIL eliminates that required trust: it captures published data, chains it cryptographically, and allows any third party to verify — reproducibly and offline — that data was not altered after publication.
 
 | Property | Guarantee |
 |----------|-----------|
@@ -201,7 +202,7 @@ centinel cron --interval 30s # Continuous automated capture
 
 ## Defense architecture
 
-CENTINEL applies defense in depth: each layer mitigates a distinct class of threat.
+VIGIL applies defense in depth: each layer mitigates a distinct class of threat.
 
 | Layer | Function | Threat mitigated |
 |-------|----------|-----------------|
@@ -247,7 +248,7 @@ Version **0.1 — pre-pilot.** Cryptographic core stable; academic review initia
 
 ## Data architecture
 
-CENTINEL separates code (this repository) from captured electoral data (`centinel-data`). Data is published automatically to an independent repository on each capture — any auditor can verify it without running the engine.
+VIGIL separates code (this repository) from captured electoral data (`centinel-data`). Data is published automatically to an independent repository on each capture — any auditor can verify it without running the engine.
 
 **Data repository:** <!-- CENTINEL_DATA_URL -->*(auto-configured when you fork)*<!-- /CENTINEL_DATA_URL -->
 
@@ -274,7 +275,7 @@ CENTINEL separates code (this repository) from captured electoral data (`centine
 
 ## For grant reviewers and bounty programs
 
-CENTINEL is designed for zero operating cost, maximum verifiability, and AGPL-3.0 licensing that prevents capture or privatization.
+VIGIL is designed for zero operating cost, maximum verifiability, and AGPL-3.0 licensing that prevents capture or privatization.
 
 **Relevant materials:**
 - [Theory of Change](docs/architecture/THEORY_OF_CHANGE.md) — impact logic model
@@ -294,11 +295,11 @@ CENTINEL is designed for zero operating cost, maximum verifiability, and AGPL-3.
 
 ## License
 
-**GNU AGPL-3.0.** Free, auditable, and redistribution-guaranteed software: any derivative must remain open. This license is deliberate — it ensures CENTINEL cannot be captured, closed, or privatized by any actor, public or private.
+**GNU AGPL-3.0.** Free, auditable, and redistribution-guaranteed software: any derivative must remain open. This license is deliberate — it ensures VIGIL cannot be captured, closed, or privatized by any actor, public or private.
 
 ---
 
-**CENTINEL** · Electoral auditing as a citizen right, not an institutional privilege · `vectisdev`
+**VIGIL** · Electoral auditing as a citizen right, not an institutional privilege · `vectisdev`
 
 <!-- FORK-GUIDE-START -->
 ---
