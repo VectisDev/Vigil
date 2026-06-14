@@ -43,7 +43,6 @@ Notes:
 
 import hashlib
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -355,102 +354,110 @@ class TestComputeExpectedHash:
 
 
 class TestVerifyAnchor:
-    """Pruebas de verify_anchor con Web3 mockeado."""
+    """Pruebas de verify_anchor (stub post-Arbitrum, Zero Cost / OTS-only).
 
-    def test_missing_rpc_url(self):
+    English: Tests for verify_anchor (post-Arbitrum stub, Zero Cost / OTS-only).
+
+    Arbitrum/web3 anchoring was permanently removed (Zero Cost principle).
+    verify_anchor() is now a deliberate stub that always returns
+    valid=False with error="use_anchoring_module", directing callers to
+    centinel.core.anchoring.verify_ots_proof(). These tests lock in that
+    contract so a future change can't silently re-enable a paid path.
+    """
+
+    def test_returns_stub_result(self):
         from centinel.core.custody import verify_anchor
 
-        result = verify_anchor("0x123", rpc_url="", contract_address="0xc")
-        assert result.valid is False
-        assert result.error == "missing_rpc_url"
-
-    def _build_mock_web3(self, receipt):
-        """Helper para construir un Web3 mock."""
-        mock_instance = MagicMock()
-        mock_instance.is_connected.return_value = True
-        mock_instance.keccak.return_value = b"\x01" * 32
-        mock_instance.eth.get_transaction_receipt.return_value = receipt
-        mock_module = MagicMock()
-        mock_module.Web3.return_value = mock_instance
-        mock_module.Web3.HTTPProvider.return_value = MagicMock()
-        return mock_module, mock_instance
-
-    def test_successful_verification(self):
-        import importlib
-        import sys
-
-        expected_root = "0x" + "ab" * 32
-        event_sig = b"\x01" * 32
-
-        mock_receipt = {
-            "status": 1,
-            "blockNumber": 12345,
-            "logs": [
-                {
-                    "topics": [event_sig, bytes.fromhex("ab" * 32)],
-                    "data": (0).to_bytes(32, "big"),
-                }
-            ],
-        }
-
-        mock_web3_mod, mock_inst = self._build_mock_web3(mock_receipt)
-        mock_inst.keccak.return_value = event_sig
-
-        with patch.dict(sys.modules, {"web3": mock_web3_mod}):
-            # Re-import to pick up mock
-            import centinel.core.custody as custody_mod
-
-            importlib.reload(custody_mod)
-
-            result = custody_mod.verify_anchor(
-                "0xtx123",
-                expected_root,
-                rpc_url="https://rpc",
-                contract_address="0xcontract",
-            )
-
-        assert result.valid is True
-        assert result.block_number == 12345
-
-        # Restore module
-        importlib.reload(custody_mod)
-
-    def test_root_mismatch(self):
-        import importlib
-        import sys
-
-        event_sig = b"\x01" * 32
-
-        mock_receipt = {
-            "status": 1,
-            "blockNumber": 100,
-            "logs": [
-                {
-                    "topics": [event_sig, bytes.fromhex("cc" * 32)],
-                    "data": (0).to_bytes(32, "big"),
-                }
-            ],
-        }
-
-        mock_web3_mod, mock_inst = self._build_mock_web3(mock_receipt)
-        mock_inst.keccak.return_value = event_sig
-
-        with patch.dict(sys.modules, {"web3": mock_web3_mod}):
-            import centinel.core.custody as custody_mod
-
-            importlib.reload(custody_mod)
-
-            result = custody_mod.verify_anchor(
-                "0xtx",
-                "0x" + "dd" * 32,
-                rpc_url="https://rpc",
-                contract_address="0xcontract",
-            )
+        result = verify_anchor("0xtx123", "0x" + "ab" * 32)
 
         assert result.valid is False
-        assert result.error == "root_mismatch"
+        assert result.tx_hash == "0xtx123"
+        assert result.expected_root == "0x" + "ab" * 32
+        assert result.error == "use_anchoring_module"
+        assert result.ots_proof_file is None
+        assert result.bitcoin_block_height is None
 
-        importlib.reload(custody_mod)
+    def test_handles_missing_expected_root(self):
+        from centinel.core.custody import verify_anchor
+
+        result = verify_anchor("0xtx123")
+
+        assert result.valid is False
+        assert result.expected_root == ""
+        assert result.error == "use_anchoring_module"
+
+    def test_ignores_legacy_kwargs_for_api_compatibility(self):
+        """contract_address / max_retries son aceptados pero ignorados.
+
+        English: contract_address / max_retries are accepted but ignored.
+        Retained only so any not-yet-migrated caller doesn't raise
+        TypeError; both are scheduled for removal in v13.
+        """
+        from centinel.core.custody import verify_anchor
+
+        result = verify_anchor(
+            "0xtx123",
+            "0x" + "ab" * 32,
+            contract_address="0xcontract",
+            max_retries=5,
+        )
+
+        assert result.valid is False
+        assert result.error == "use_anchoring_module"
+
+
+class TestVerifyAnchorFromLog:
+    """Pruebas de verify_anchor_from_log."""
+
+    def test_missing_log_file(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        result = verify_anchor_from_log(tmp_path / "does_not_exist.json")
+
+        assert result.valid is False
+        assert result.error is not None
+        assert result.error.startswith("log_read_error")
+
+    def test_invalid_json(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        log_file = tmp_path / "anchor.json"
+        log_file.write_text("{not valid json", encoding="utf-8")
+
+        result = verify_anchor_from_log(log_file)
+
+        assert result.valid is False
+        assert result.error is not None
+        assert result.error.startswith("log_read_error")
+
+    def test_missing_tx_hash(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        log_file = tmp_path / "anchor.json"
+        log_file.write_text(json.dumps({"root": "0x" + "ab" * 32}), encoding="utf-8")
+
+        result = verify_anchor_from_log(log_file)
+
+        assert result.valid is False
+        assert result.error == "missing_tx_hash_in_log"
+        assert result.expected_root == "0x" + "ab" * 32
+
+    def test_delegates_to_verify_anchor(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        log_file = tmp_path / "anchor.json"
+        log_file.write_text(
+            json.dumps({"tx_hash": "0xtx123", "root": "0x" + "ab" * 32}),
+            encoding="utf-8",
+        )
+
+        result = verify_anchor_from_log(log_file)
+
+        # Delegates to the verify_anchor stub -> use_anchoring_module
+        assert result.valid is False
+        assert result.tx_hash == "0xtx123"
+        assert result.expected_root == "0x" + "ab" * 32
+        assert result.error == "use_anchoring_module"
 
 
 # ---------------------------------------------------------------------------
