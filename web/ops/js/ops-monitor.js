@@ -4,17 +4,17 @@
 function _logTxtContent(id){
   const ts = new Date().toISOString();
   if(id==='log-general'){
-    const hdr = `# CENTINEL — Actividad (alerts.json)\n# Exportado: ${ts}\n# Entradas: ${logData.length}\n${'─'.repeat(72)}\n`;
+    const hdr = `# VIGIL — Actividad (alerts.json)\n# Exportado: ${ts}\n# Entradas: ${logData.length}\n${'─'.repeat(72)}\n`;
     const rows = logData.map(e=>`${e.timestamp||'—'}\t${(e.level||'INFO').padEnd(8)}\t${e.message||e.description||''}\t${[e.rule_id,e.kind,e.dept_code].filter(Boolean).join('|')||''}`).join('\n');
     return hdr + rows;
   }
   if(id==='log-attacks'){
-    const hdr = `# CENTINEL — Attack Log (attack_log.jsonl)\n# Exportado: ${ts}\n# Entradas: ${attackData.length}\n${'─'.repeat(72)}\n`;
+    const hdr = `# VIGIL — Attack Log (attack_log.jsonl)\n# Exportado: ${ts}\n# Entradas: ${attackData.length}\n${'─'.repeat(72)}\n`;
     const rows = attackData.map(e=>JSON.stringify(e)).join('\n');
     return hdr + rows;
   }
   if(id==='log-audit'){
-    const hdr = `# CENTINEL — Audit Trail (commits de configuración)\n# Exportado: ${ts}\n# Entradas: ${auditData.length}\n${'─'.repeat(72)}\n`;
+    const hdr = `# VIGIL — Audit Trail (commits de configuración)\n# Exportado: ${ts}\n# Entradas: ${auditData.length}\n${'─'.repeat(72)}\n`;
     const rows = auditData.map(c=>`${c.sha.slice(0,7)}\t${c.commit.author.date}\t${c.commit.author.name||''}\t${c.commit.message.split('\n')[0]}`).join('\n');
     return hdr + rows;
   }
@@ -32,7 +32,7 @@ function downloadTxt(id, filename){
 
 function downloadPdf(id){
   const exported = new Date().toISOString();
-  const TITLES = {'log-general':'Actividad Centinel (alerts.json)','log-attacks':'Attack Log (attack_log.jsonl)','log-audit':'Audit Trail — Commits de configuración'};
+  const TITLES = {'log-general':'Actividad VIGIL (alerts.json)','log-attacks':'Attack Log (attack_log.jsonl)','log-audit':'Audit Trail — Commits de configuración'};
   const title = TITLES[id]||'Log';
 
   let tableHead = '', tableRows = '';
@@ -62,7 +62,7 @@ function downloadPdf(id){
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
-<title>CENTINEL — ${esc(title)}</title>
+<title>VIGIL — ${esc(title)}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;color:#1a1a1a;background:#fff;padding:32px}
@@ -81,11 +81,11 @@ tr:nth-child(even) td{background:#fafafa}
 @media print{body{padding:16px}@page{margin:20mm}}
 </style></head><body>
 <div class="header">
-  <h1>CENTINEL — ${esc(title)}</h1>
+  <h1>VIGIL — ${esc(title)}</h1>
   <div class="meta">Exportado: ${esc(exported)} &nbsp;·&nbsp; Repo: ${esc(REPO_OWNER)}/${esc(REPO_NAME)} &nbsp;·&nbsp; Entradas: ${id==='log-general'?logData.length:id==='log-attacks'?attackData.length:auditData.length}</div>
 </div>
 <table><thead>${tableHead}</thead><tbody>${tableRows}</tbody></table>
-<div class="footer"><span>CENTINEL — Sistema de Monitoreo Electoral</span><span>${esc(exported)}</span></div>
+<div class="footer"><span>VIGIL — Sistema de Monitoreo Electoral</span><span>${esc(exported)}</span></div>
 <script>window.onload=()=>window.print();<\/script>
 </body></html>`;
 
@@ -112,7 +112,7 @@ function generateIncidentReport(){
   const byType = attackData.reduce((acc,e)=>{const t=(e.type||e.classification||'UNKNOWN').toUpperCase();acc[t]=(acc[t]||0)+1;return acc;},{});
   const summary = Object.entries(byType).map(([k,v])=>`  ${k.padEnd(16)} ${v} eventos`).join('\n');
   const lines   = attackData.map(e=>JSON.stringify(e)).join('\n');
-  const report  = `CENTINEL — REPORTE DE INCIDENTE\n${'═'.repeat(60)}\nGenerado:  ${ts}\nRepo:      ${REPO_OWNER}/${REPO_NAME}\nEventos:   ${attackData.length}\n\nRESUMEN POR TIPO:\n${summary||'  (sin datos)'}\n\n${'─'.repeat(60)}\nDETALLE JSONL (attack_log.jsonl):\n${'─'.repeat(60)}\n${lines}`;
+  const report  = `VIGIL — REPORTE DE INCIDENTE\n${'═'.repeat(60)}\nGenerado:  ${ts}\nRepo:      ${REPO_OWNER}/${REPO_NAME}\nEventos:   ${attackData.length}\n\nRESUMEN POR TIPO:\n${summary||'  (sin datos)'}\n\n${'─'.repeat(60)}\nDETALLE JSONL (attack_log.jsonl):\n${'─'.repeat(60)}\n${lines}`;
   const blob = new Blob([report],{type:'text/plain;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -164,7 +164,7 @@ function exportCustodyReport(){
                   document.getElementById('inp-main-url-easy')?.value || '—';
 
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
-<title>CENTINEL — Cadena de Custodia Electoral</title>
+<title>VIGIL — Cadena de Custodia Electoral</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;color:#1a1a1a;background:#fff;padding:32px}
@@ -190,7 +190,7 @@ tr:nth-child(even) td{background:#fafafa}
 @media print{body{padding:16px}@page{margin:18mm}h2{page-break-after:avoid}}
 </style></head><body>
 <div class="header">
-  <h1>CENTINEL — Cadena de Custodia Electoral</h1>
+  <h1>VIGIL — Cadena de Custodia Electoral</h1>
   <div class="meta">Generado: ${esc(ts)} &nbsp;·&nbsp; Repo: ${esc(REPO_OWNER)}/${esc(REPO_NAME)} &nbsp;·&nbsp; Clave: ${esc(seedId)} &nbsp;·&nbsp; Rol: ${esc(role.toUpperCase())}</div>
 </div>
 
@@ -227,7 +227,7 @@ tr:nth-child(even) td{background:#fafafa}
   <strong>Nota de integridad:</strong> Este informe fue generado por la clave <strong>${esc(seedId)}</strong> (rol: ${esc(role)}) a las ${esc(ts)}. Las marcas de tiempo OTS están ancladas en la blockchain de Bitcoin y pueden verificarse independientemente en <em>opentimestamps.org</em> sin depender de este sistema.
 </div>
 
-<div class="footer"><span>CENTINEL — Sistema de Monitoreo Electoral · ${esc(REPO_OWNER)}/${esc(REPO_NAME)}</span><span>Generado: ${esc(ts)}</span></div>
+<div class="footer"><span>VIGIL — Sistema de Monitoreo Electoral · ${esc(REPO_OWNER)}/${esc(REPO_NAME)}</span><span>Generado: ${esc(ts)}</span></div>
 <script>window.onload=()=>window.print();<\/script>
 </body></html>`;
 
@@ -420,11 +420,11 @@ async function doIniciar() {
     } else {
       const err = await r.json().catch(() => ({}));
       const detail = err.detail || 'Error al iniciar el pipeline.';
-      _setPipelineUI(false, null, '❌ ' + detail + ' (Verifica que Centinel esté corriendo en el servidor)');
+      _setPipelineUI(false, null, '❌ ' + detail + ' (Verifica que VIGIL esté corriendo en el servidor)');
     }
   } catch (_) {
     // Offline / GitHub Pages — show clear message
-    _setPipelineUI(false, null, '❌ Panel en modo offline. Para iniciar el monitoreo, ejecuta Centinel en el servidor local y recarga.');
+    _setPipelineUI(false, null, '❌ Panel en modo offline. Para iniciar el monitoreo, ejecuta VIGIL en el servidor local y recarga.');
   } finally {
     if (btn) btn.disabled = false;
   }
