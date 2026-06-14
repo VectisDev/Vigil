@@ -600,7 +600,7 @@
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
       <div class="section" id="s9">
-        <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de Centinel." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on Centinel.">ⓘ</span></div>
+        <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de VIGIL." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on VIGIL.">ⓘ</span></div>
         <hr class="section-sep">
         <div class="ctrl-section" id="ots-section">
               <h3 style="justify-content:space-between">
@@ -645,7 +645,7 @@
               <details>
                 <summary style="font-size:12px;font-weight:600;color:var(--muted)"><span data-lang="es">¿Qué es OTS y cómo verificar?</span><span data-lang="en">What is OTS and how to verify?</span></summary>
                 <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
-                  <p><span data-lang="es">Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de Centinel.</span><span data-lang="en">Each checkpoint has a <strong>Merkle root</strong> (digital fingerprint). OTS sends it to 4 public calendars that include it in a Bitcoin transaction. Any auditor can verify the data existed before a certain block without relying on Centinel.</span></p>
+                  <p><span data-lang="es">Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de VIGIL.</span><span data-lang="en">Each checkpoint has a <strong>Merkle root</strong> (digital fingerprint). OTS sends it to 4 public calendars that include it in a Bitcoin transaction. Any auditor can verify the data existed before a certain block without relying on VIGIL.</span></p>
                   <p style="margin-top:8px"><strong><span data-lang="es">Calendarios usados (gratuitos, sin API key):</span><span data-lang="en">Calendars used (free, no API key):</span></strong></p>
                   <ul style="margin:4px 0 0 16px">
                     <li>alice.btc.calendar.opentimestamps.org</li>
@@ -672,7 +672,69 @@
                 <span style="font-size:11px;color:var(--muted)"><span data-lang="es">Incluye sesión, OTS, alertas y commits de config</span><span data-lang="en">Includes session, OTS, alerts and config commits</span></span>
               </div>
         </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             MIRROR EXTERNO OPCIONAL — AMAZON S3 (Costo Cero NO aplica aquí)
+             VIGIL no usa ni requiere AWS. Esta es una opción del operador,
+             desactivada por defecto, con doble confirmación informada.
+        ══════════════════════════════════════════════════════════ -->
+        <div class="ctrl-section" id="aws-mirror-section" style="margin-top:16px;border-color:rgba(212,176,102,.25)">
+          <h3 style="justify-content:space-between">
+            <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2z"/></svg>
+              <span data-lang="es">Mirror externo — Amazon S3</span><span data-lang="en">External mirror — Amazon S3</span>
+              <span class="badge badge-neutral" id="aws-status-badge"><span data-lang="es">Desactivado</span><span data-lang="en">Disabled</span></span>
+              <span class="sec-tip" data-tip-es="Opción del operador para replicar snapshots a un bucket S3 propio, además de los mirrors gratuitos (Codeberg, Internet Archive). VIGIL no necesita esto para operar — es exclusivamente para quien quiera almacenamiento adicional bajo su control." data-tip-en="Operator option to replicate snapshots to your own S3 bucket, in addition to the free mirrors (Codeberg, Internet Archive). VIGIL does not need this to operate — it is purely for operators who want extra storage under their own control.">ⓘ</span>
+            </span>
+            <button id="btn-aws-toggle" onclick="onAwsToggle()"
+              style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
+              cursor:pointer;transition:background .15s;border:1px solid var(--border);
+              background:transparent;color:var(--muted);white-space:nowrap">
+              <span data-lang="es">Configurar</span><span data-lang="en">Configure</span>
+            </button>
+          </h3>
+
+          <div class="info-box" style="border-color:rgba(212,176,102,.3);background:rgba(212,176,102,.04)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;color:var(--warn)"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+            <span data-lang="es"><strong>VIGIL es y seguirá siendo Costo Cero.</strong> Esta opción es completamente
+            independiente de la operación del proyecto y está <strong>desactivada por defecto</strong>.
+            Si la activas, AWS facturará a <strong>tu propia cuenta</strong> — VIGIL no recibe, gestiona
+            ni necesita esos fondos. No estamos en contra de plataformas de pago: si quieres almacenamiento
+            adicional bajo tu control, esta es la puerta. Solo queremos que decidas con información completa.</span>
+            <span data-lang="en"><strong>VIGIL is and will remain Zero Cost.</strong> This option is completely
+            independent from the project's operation and is <strong>disabled by default</strong>.
+            If you enable it, AWS will bill <strong>your own account</strong> — VIGIL does not receive, manage,
+            or need those funds. We have nothing against paid platforms: if you want extra storage under your
+            control, this is the door. We just want you to decide with full information.</span>
+          </div>
+
+          <div id="aws-config-panel" style="display:none;margin-top:12px">
+            <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+              <label><span data-lang="es">Nombre del bucket S3</span><span data-lang="en">S3 bucket name</span></label>
+              <input type="text" id="inp-aws-bucket" placeholder="mi-mirror-vigil" oninput="markDirty()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+            </div>
+            <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;margin-top:10px">
+              <label><span data-lang="es">Región AWS</span><span data-lang="en">AWS region</span></label>
+              <input type="text" id="inp-aws-region" placeholder="us-east-1" oninput="markDirty()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+            </div>
+            <p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6">
+              <span data-lang="es">Las credenciales (Access Key / Secret Key) <strong>nunca</strong> se escriben aquí ni en este
+              repositorio. Se configuran como <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_ACCESS_KEY_ID</code> /
+              <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_SECRET_ACCESS_KEY</code> en
+              <strong>GitHub Secrets de tu propio fork</strong>. VIGIL nunca ve, transmite ni almacena tus credenciales AWS.</span>
+              <span data-lang="en">Credentials (Access Key / Secret Key) are <strong>never</strong> entered here or stored in this
+              repository. They are configured as <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_ACCESS_KEY_ID</code> /
+              <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_SECRET_ACCESS_KEY</code> in
+              <strong>your own fork's GitHub Secrets</strong>. VIGIL never sees, transmits, or stores your AWS credentials.</span>
+            </p>
+            <button class="hdr-btn" id="btn-aws-enable" onclick="requestAwsEnable()" style="margin-top:12px;border-color:var(--warn);color:var(--warn)">
+              <span data-lang="es">Activar mirror S3…</span><span data-lang="en">Enable S3 mirror…</span>
+            </button>
+            <span id="aws-enabled-hint" style="display:none;font-size:11px;color:var(--ok);margin-left:8px"></span>
+          </div>
+        </div>
       </div>
+
 
       <!-- ── 5 LOGS ── -->
       <div class="section" id="s4">
@@ -1327,6 +1389,67 @@
     <div class="modal-btns">
       <button class="hdr-btn" onclick="closeDiffModal()">Cancelar</button>
       <button class="hdr-btn primary" onclick="confirmApply()">Confirmar y aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ AWS S3 MIRROR — CONFIRMACIÓN INFORMADA (opcional, fuera de Costo Cero) ════ -->
+<div id="aws-modal">
+  <div class="modal-box" style="max-width:600px">
+    <h2 style="color:var(--warn);font-size:17px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:22px">&#x26a0;</span> <span data-lang="es">CONFIRMACIÓN — MIRROR S3 (FUERA DE COSTO CERO)</span><span data-lang="en">CONFIRMATION — S3 MIRROR (OUTSIDE ZERO COST)</span>
+    </h2>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:6px">
+      <span data-lang="es">Estás por activar la replicación de snapshots hacia un <strong>bucket de Amazon S3</strong>
+      que pertenece y se factura a <strong>tu propia cuenta de AWS</strong>.</span>
+      <span data-lang="en">You are about to enable snapshot replication to an <strong>Amazon S3 bucket</strong>
+      owned and billed to <strong>your own AWS account</strong>.</span>
+    </p>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:12px">
+      <span data-lang="es">Al proceder, confirmas que entiendes lo siguiente:</span>
+      <span data-lang="en">By proceeding, you confirm you understand the following:</span>
+    </p>
+    <div style="padding:0 8px;margin-bottom:14px">
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap"><span data-lang="es">Costo:</span><span data-lang="en">Cost:</span></strong>
+        <span data-lang="es">Amazon S3 <strong>genera cargos</strong> en tu cuenta de AWS por almacenamiento, solicitudes
+          y transferencia de datos. VIGIL no estima, factura, ni cubre estos costos bajo ninguna circunstancia.</span>
+        <span data-lang="en">Amazon S3 <strong>generates charges</strong> on your AWS account for storage, requests and
+          data transfer. VIGIL does not estimate, bill, or cover these costs under any circumstance.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap"><span data-lang="es">Independencia:</span><span data-lang="en">Independence:</span></strong>
+        <span data-lang="es">Esta función es <strong>completamente opcional</strong> y adicional a los mirrors
+          gratuitos ya activos (Codeberg, Internet Archive). Desactivarla en cualquier momento no afecta
+          la operación central de VIGIL.</span>
+        <span data-lang="en">This feature is <strong>fully optional</strong> and additional to the already-active
+          free mirrors (Codeberg, Internet Archive). Disabling it at any time does not affect VIGIL's
+          core operation.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap"><span data-lang="es">Credenciales:</span><span data-lang="en">Credentials:</span></strong>
+        <span data-lang="es">Tus credenciales AWS se configuran exclusivamente como <strong>GitHub Secrets en tu
+          propio fork</strong> — nunca se introducen en este panel ni en este repositorio.</span>
+        <span data-lang="en">Your AWS credentials are configured exclusively as <strong>GitHub Secrets in your
+          own fork</strong> — they are never entered into this panel or this repository.</span>
+      </div>
+    </div>
+    <div class="unlock-check">
+      <input type="checkbox" id="aws-accept-chk" onchange="updateAwsBtn()">
+      <label for="aws-accept-chk">
+        <span data-lang="es">He leído y entiendo que activar esta opción generará cargos en mi propia cuenta
+          de AWS, y que VIGIL no tiene ninguna responsabilidad sobre dichos cargos.</span>
+        <span data-lang="en">I have read and understand that enabling this option will generate charges on my
+          own AWS account, and that VIGIL bears no responsibility for those charges.</span>
+      </label>
+    </div>
+    <div class="auth-err" id="aws-err"></div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeAwsModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+      <button class="hdr-btn" id="aws-confirm-btn" disabled onclick="executeAwsEnable()"
+        style="background:var(--warn);color:#000;font-weight:700">
+        <span data-lang="es">Confirmar y activar</span><span data-lang="en">Confirm and enable</span>
+      </button>
     </div>
   </div>
 </div>
