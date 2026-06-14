@@ -52,11 +52,11 @@ DEFAULT_ROTATION_EVERY_N = 5
 ROTATION_TRIGGER_CODES = {403, 429}
 
 USER_AGENT_POOL = (
-    "Centinel-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
-    "Centinel-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
-    "Centinel-Electoral-Monitor/1.0 (public-data-audit; +https://github.com/VectisDev/centinel)",
-    "Centinel-Engine/1.0 (Decreto-170-2006-HN; +https://github.com/VectisDev/centinel)",
-    "Centinel-Watchdog/1.0 (electoral-transparency; +https://github.com/VectisDev/centinel)",
+    "VIGIL-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
+    "VIGIL-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
+    "VIGIL-Electoral-Monitor/1.0 (public-data-audit; +https://github.com/VectisDev/centinel)",
+    "VIGIL-Engine/1.0 (Decreto-170-2006-HN; +https://github.com/VectisDev/centinel)",
+    "VIGIL-Watchdog/1.0 (electoral-transparency; +https://github.com/VectisDev/centinel)",
 )
 
 _ACCEPT_POOL = (
