@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from centinel.anchor.opentimestamps_client import (
+    MultichainAnchor,
     OpenTimestampsClient,
     TimestampProof,
 )
@@ -203,11 +204,12 @@ class TestOpenTimestampsClient:
         assert "checkpoint_hash" in records[0]
 
 
+class TestMultichainAnchor:
     """Test multi-chain anchor with fallback."""
 
     def test_multichain_creation(self):
         """Create multi-chain anchor."""
-
+        anchor = MultichainAnchor()
         assert anchor.testnet is False
         assert anchor.ots_client is not None
 
@@ -227,6 +229,7 @@ class TestOpenTimestampsClient:
             "merkle_root": "abc123" * 10 + "abcd",
         }
 
+        anchor = MultichainAnchor()
         result = anchor.anchor_checkpoint(checkpoint)
 
         assert result["bitcoin_tx"] == "tx123"
@@ -238,6 +241,7 @@ class TestOpenTimestampsClient:
         """Anchor checkpoint without merkle root."""
         checkpoint = {"timestamp": "2026-05-16T00:00:00Z"}
 
+        anchor = MultichainAnchor()
         result = anchor.anchor_checkpoint(checkpoint)
 
         # Should return unchanged (non-fatal)
@@ -252,6 +256,8 @@ class TestOpenTimestampsClient:
             "merkle_root": "abc123" * 10 + "abcd",
         }
 
+        mock_stamp.return_value = None
+        anchor = MultichainAnchor()
         result = anchor.anchor_checkpoint(checkpoint)
 
         # Should return checkpoint unchanged (non-fatal)
