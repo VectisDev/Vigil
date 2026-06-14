@@ -103,7 +103,7 @@ def test_rate_limiter_blocks_burst() -> None:
     Bilingual: El rate limiter debe bloquear tráfico en ráfaga tras agotar tokens.
     """
     limiter = TokenBucketRateLimiter(
-        rate_interval=0.12, burst=1, min_interval=0.0, max_interval=1.0
+        rate_interval=0.12, burst=1, min_interval=0.0, max_interval=1.0, enforce_ceiling=False
     )
 
     start = time.monotonic()
