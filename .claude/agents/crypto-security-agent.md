@@ -60,6 +60,16 @@ observers and courts.
 - Key derivation with HKDF-SHA256 only. PBKDF2 (600k iterations) for seeds.
 - OpenTimestamps anchoring is free and zero-infrastructure — maintain this.
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] `verify_chain.py` still runs with Python 3.6+ stdlib only — no new imports added.
+- [ ] All hash/signature comparisons use `secrets.compare_digest`, verified by grep, not assumption.
+- [ ] Both `generate()` and `verify()` exist and were both exercised (not just one path).
+- [ ] The existing historical hash chain still verifies end-to-end after the change (run verify_chain.py against a known-good snapshot set).
+- [ ] If anchoring-related: the OpenTimestamps submission/upgrade was actually executed and its output (calendar responses, block height) is reported — not assumed pending.
+- [ ] Bilingual docstrings present on any new/modified function.
+
 ## Output Requirements
 
 Every response must include:
