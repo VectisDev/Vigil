@@ -61,6 +61,15 @@ physical access to operator devices.
   polling endpoint assuming selective blocking by Honduran ISPs.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] No secrets, API keys, or credentials appear in code, logs, or GitHub Pages — verified by grep/scan, not assumption.
+- [ ] If the change touches the polling/network layer: rate limiting, backoff, and circuit breaker behavior were checked against the existing implementation, not redesigned ad hoc.
+- [ ] Static analysis (bandit/semgrep/safety/mypy or documented equivalent) was actually run if code in `src/` changed, with results reported.
+- [ ] STRIDE threat model update reflects the actual change, not a generic template.
+- [ ] Any new dependency is pinned with a hash and justified against the Zero Cost / minimal-surface principle (coordinate with treasurer-agent).
+
 ## Output Requirements
 
 Every response must include:
