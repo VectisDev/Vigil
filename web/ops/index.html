@@ -168,7 +168,7 @@
             <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()"><span data-lang="es">Cambiar país</span><span data-lang="en">Change country</span></button>
           </div>
           <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip-es="La dirección principal del sitio de resultados electorales. Centinel descubre los datos automáticamente — no necesitas saber nada más." data-tip-en="The main address of the electoral results site. Centinel discovers the data automatically, you don't need to know anything else."><span data-lang="es">Sitio de resultados</span><span data-lang="en">Results site</span> <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip-es="La dirección principal del sitio de resultados electorales. VIGIL descubre los datos automáticamente — no necesitas saber nada más." data-tip-en="The main address of the electoral results site. VIGIL discovers the data automatically, you don't need to know anything else."><span data-lang="es">Sitio de resultados</span><span data-lang="en">Results site</span> <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
             <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" data-ph-es="https://resultados.organismo-electoral.gov" data-ph-en="https://results.electoral-authority.gov" oninput="onEasyUrlInput(this.value)" onblur="validateUrlField(this)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
             <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap"><span data-lang="es">Descubrir endpoints</span><span data-lang="en">Discover endpoints</span></button>
           </div>
@@ -747,7 +747,7 @@
             <span class="term-title">
               <span class="ots-dot ots-dot-off" id="log-live-dot" style="flex-shrink:0" title="Auto-refresco inactivo / Auto-refresh inactive"></span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              <span data-lang="es">Actividad Centinel</span><span data-lang="en">Centinel Activity</span>
+              <span data-lang="es">Actividad VIGIL</span><span data-lang="en">VIGIL Activity</span>
             </span>
             <span class="section-badge" id="log-general-count" style="font-family:var(--mono)">—</span>
             <div id="log-chips" style="display:flex;gap:4px">
@@ -1471,7 +1471,7 @@
       <span style="font-size:22px">&#x26a0;</span> ADVERTENCIA DE SEGURIDAD OPERATIVA
     </h2>
     <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:6px">
-      Est&aacute;s por desactivar los <strong>l&iacute;mites de cortes&iacute;a digital de f&aacute;brica</strong> de CENTINEL.<br>
+      Est&aacute;s por desactivar los <strong>l&iacute;mites de cortes&iacute;a digital de f&aacute;brica</strong> de VIGIL.<br>
       Por dise&ntilde;o original, este software opera bajo un <strong>Modo Electoral Seguro</strong> que
       respeta las directivas del servidor (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">robots.txt</code>),
       los frenos de saturaci&oacute;n (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">Retry-After</code>)
@@ -1494,7 +1494,7 @@
       </div>
       <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
         <strong style="color:var(--warn);white-space:nowrap">Desvinculaci&oacute;n:</strong>
-        <span>Eximes a la suite CENTINEL y a sus desarrolladores de cualquier implicaci&oacute;n
+        <span>Eximes a la suite VIGIL y a sus desarrolladores de cualquier implicaci&oacute;n
           por el uso derivado de esta sesi&oacute;n.</span>
       </div>
     </div>
@@ -1661,16 +1661,16 @@ async function loadDepartments(code) {
 // ══════════════════════════════════════════════════════════
 // PRESETS
 // ══════════════════════════════════════════════════════════
-// Hard ceiling: CENTINEL presets never exceed these values.
+// Hard ceiling: VIGIL presets never exceed these values.
 // Only "custom" presets (user-created) can bypass them — under operator responsibility.
 const HARD_CEILING = { maxRph: 480, minInterval: 1, maxBurst: 8 };
 
-const UNLOCK_LEGAL_TEXT = `ADVERTENCIA DE SEGURIDAD OPERATIVA — CENTINEL
+const UNLOCK_LEGAL_TEXT = `ADVERTENCIA DE SEGURIDAD OPERATIVA — VIGIL
 ═══════════════════════════════════════════════════
 
 Fecha/hora: {{TIMESTAMP}}
 
-El operador está desactivando los límites de cortesía digital de fábrica de CENTINEL.
+El operador está desactivando los límites de cortesía digital de fábrica de VIGIL.
 Por diseño original, este software opera bajo un Modo Electoral Seguro que respeta
 las directivas del servidor (robots.txt), los frenos de saturación (Retry-After) y
 se identifica honestamente ante la infraestructura auditada.
@@ -1689,7 +1689,7 @@ Al proceder con esta acción, el operador declara conscientemente:
     - Pérdida de datos por rate limiting del servidor remoto
     - Posibles implicaciones legales por acceso excesivo a infraestructura pública
 
-  ● DESVINCULACIÓN: Exime a la suite CENTINEL y a sus desarrolladores de cualquier
+  ● DESVINCULACIÓN: Exime a la suite VIGIL y a sus desarrolladores de cualquier
     implicación por el uso derivado de esta sesión.
 
   ● COMPROMISO: Se compromete a reactivar los límites de seguridad tan pronto como
