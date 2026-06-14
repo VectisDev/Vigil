@@ -87,7 +87,7 @@ def test_load_config_reads_yaml(tmp_path, monkeypatch):
                 },
                 "alerts": {
                     "critical_anomaly_types": ["FOO"],
-                }
+                },
                 "rules": {"global_enabled": True},
             }
         ),
@@ -156,7 +156,7 @@ def test_load_config_rejects_invalid_master_switch(tmp_path, monkeypatch):
                     "network": "polygon-mumbai",
                     "private_key": "0x...",
                 },
-                "alerts": {"critical_anomaly_types": ["FOO"]}
+                "alerts": {"critical_anomaly_types": ["FOO"]},
                 "rules": {"global_enabled": True},
             }
         ),
