@@ -83,6 +83,15 @@ rules_engine input + visualization input
   schema deviations, encoding anomalies.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Schema validation was run against actual sample data (real or representative), not just defined.
+- [ ] Graceful degradation was tested: feed the pipeline a record with missing/malformed fields and confirm it degrades silently per the project invariant, rather than erroring.
+- [ ] If touching the 96-JSON HN 2025 historical set: confirm no mutation of the original fixtures — work on copies, document this explicitly.
+- [ ] Country-scalability claim is checked against at least one non-Honduras preset in `countries.py`, not asserted abstractly.
+- [ ] Bilingual docstrings present on new/modified Pydantic models and validators.
+
 ## Output Requirements
 
 Every response must include:
