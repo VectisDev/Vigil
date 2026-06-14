@@ -1,32 +1,619 @@
 """
-CENTINEL — Pipeline Runner
+VIGIL — Pipeline Runner
 ===========================
-Punto de entrada del pipeline de auditoría electoral.
+Punto de entrada del pipeline de auditoria electoral.
 Electoral audit pipeline entry point.
 
 Functions:
   - resolve_poll_interval_seconds: Return polling interval from config
   - resolve_poll_jitter_factor:    Return jitter factor from config
+  - safe_run_pipeline / run_pipeline: Resilient pipeline execution with
+    checkpointing, auto-resume, and chaos-injection support for testing.
 """
 
 from __future__ import annotations
 
+import argparse
+import fcntl
+import hashlib
 import json
 import logging
 import os
+import random
+import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+import requests
+
+from centinel.anchor.opentimestamps_client import MultichainAnchor
+from centinel.core.anchoring_payload import build_diff_summary, compute_anchor_root
+from centinel.core.custody import run_startup_verification
+from centinel.core.transparency import compute_merkle_root
+from centinel.defense import logger as core_logger
+from centinel.defense.advanced_security import load_manager
+from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
+from centinel.defense.security import DefensiveSecurityManager, SecurityConfig
+from centinel.paths import iter_all_hashes, iter_all_snapshots
+from centinel.utils.config_loader import load_config as load_pipeline_config
+from centinel_engine import proxy_manager, secure_backup, vital_signs
+from centinel_engine.config_loader import load_config as load_engine_config
+from centinel_engine.rate_limiter import get_rate_limiter
+from centinel_engine.secure_backup import BackupScheduler
+from scripts.download_and_hash import is_master_switch_on, normalize_master_switch
+
 
 logger = logging.getLogger("centinel.pipeline")
+
+DATA_DIR = Path("data")
+TEMP_DIR = DATA_DIR / "temp"
+HASH_DIR = Path("hashes")
+ANALYSIS_DIR = Path("analysis")
+REPORTS_DIR = Path("reports")
+ANCHOR_LOG_DIR = Path("logs") / "anchors"
+STATE_PATH = DATA_DIR / "pipeline_state.json"
+PIPELINE_CHECKPOINT_PATH = TEMP_DIR / "pipeline_checkpoint.json"
+FAILURE_CHECKPOINT_PATH = TEMP_DIR / "checkpoint.json"
+HEARTBEAT_PATH = DATA_DIR / "heartbeat.json"
+SECURITY_CONFIG_PATH = Path("command_center") / "security_config.yaml"
+ATTACK_CONFIG_PATH = Path("command_center") / "attack_config.yaml"
+ADVANCED_SECURITY_CONFIG_PATH = Path("command_center") / "advanced_security_config.yaml"
+RESILIENCE_STAGE_ORDER = [
+    "start",
+    "healthcheck",
+    "download",
+    "normalize",
+    "analyze",
+    "report",
+    "anchor",
+]
 
 
 def log_event(log: logging.Logger, level: int, event: str, **kwargs: Any) -> None:
     """Structured log event. / Evento de log estructurado."""
     log.log(level, event, extra=kwargs)
+
+
+def utcnow() -> datetime:
+    """Get current UTC time. / Obtiene hora UTC actual."""
+    return datetime.now(timezone.utc)
+
+
+def update_heartbeat(status: str = "ok", details: dict[str, Any] | None = None) -> None:
+    """Update heartbeat file for monitoring. / Actualiza archivo heartbeat para monitoreo."""
+    payload = {
+        "updated_at": utcnow().isoformat(),
+        "status": status,
+        "pid": os.getpid(),
+    }
+    if details:
+        payload["details"] = details
+    try:
+        HEARTBEAT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    except OSError as exc:
+        logger.warning("heartbeat_write_failed path=%s error=%s", HEARTBEAT_PATH, exc)
+
+
+def load_state() -> dict[str, Any]:
+    """Load pipeline state when present. / Carga estado del pipeline si existe."""
+    if not STATE_PATH.exists():
+        return {}
+    try:
+        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        logger.error("pipeline_state_invalid path=%s error=%s", STATE_PATH, exc)
+        return {}
+
+
+def save_state(state: dict[str, Any]) -> None:
+    """Save pipeline state. / Guarda el estado del pipeline."""
+    STATE_PATH.write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+
+def load_pipeline_checkpoint() -> dict[str, Any]:
+    """Load the pipeline checkpoint when present. / Carga checkpoint del pipeline si existe."""
+    if not PIPELINE_CHECKPOINT_PATH.exists():
+        return {}
+    try:
+        return json.loads(PIPELINE_CHECKPOINT_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        logger.error(
+            "pipeline_checkpoint_invalid path=%s error=%s",
+            PIPELINE_CHECKPOINT_PATH,
+            exc,
+        )
+        return {}
+
+
+def save_pipeline_checkpoint(payload: dict[str, Any]) -> None:
+    """Persist intermediate pipeline state to disk. / Guarda estado intermedio del pipeline en disco."""
+    PIPELINE_CHECKPOINT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def clear_pipeline_checkpoint() -> None:
+    """Remove the checkpoint once the pipeline completes successfully.
+
+    Elimina el checkpoint si el pipeline finalizo correctamente.
+    """
+    if PIPELINE_CHECKPOINT_PATH.exists():
+        PIPELINE_CHECKPOINT_PATH.unlink()
+
+
+def load_resilience_checkpoint() -> dict[str, Any]:
+    """Load checkpoint from data/temp/checkpoint.json.
+
+    Carga checkpoint desde data/temp/checkpoint.json.
+    """
+    if not FAILURE_CHECKPOINT_PATH.exists():
+        return {}
+    try:
+        payload = json.loads(FAILURE_CHECKPOINT_PATH.read_text(encoding="utf-8"))
+        return payload if isinstance(payload, dict) else {}
+    except json.JSONDecodeError:
+        logger.warning("resilience_checkpoint_invalid path=%s", FAILURE_CHECKPOINT_PATH)
+        return {}
+
+
+def collect_snapshot_index(limit: int = 19) -> list[dict[str, Any]]:
+    """Generate a JSON index with recent snapshots. / Genera indice JSON con snapshots recientes."""
+    all_snapshots = iter_all_snapshots(data_root=DATA_DIR)
+    snapshots = sorted(all_snapshots, key=lambda p: p.stat().st_mtime, reverse=True)
+    index: list[dict[str, Any]] = []
+    for snapshot in snapshots[:limit]:
+        index.append(
+            {
+                "file": str(snapshot.relative_to(DATA_DIR)),
+                "mtime": snapshot.stat().st_mtime,
+            }
+        )
+    return index
+
+
+def build_defensive_state_snapshot() -> dict[str, Any]:
+    """Build persisted state for defensive shutdown.
+
+    Construye estado persistible para shutdown defensivo.
+    """
+    all_snaps = iter_all_snapshots(data_root=DATA_DIR)
+    latest_snapshot = all_snaps[-1] if all_snaps else None
+    all_hashes = iter_all_hashes(hash_root=HASH_DIR)
+    recent_hashes = [str(p.relative_to(HASH_DIR)) for p in reversed(all_hashes[-10:])]
+    queued_urls: list[str] = []
+    config = load_pipeline_config()
+    endpoints = config.get("endpoints") if isinstance(config, dict) else None
+    if isinstance(endpoints, dict):
+        queued_urls = [str(url) for url in endpoints.values()][:25]
+    return {
+        "latest_snapshot": latest_snapshot.name if latest_snapshot else None,
+        "recent_hash_files": recent_hashes,
+        "queued_urls": queued_urls,
+        "recent_snapshots": collect_snapshot_index(limit=10),
+        "checkpoint": load_pipeline_checkpoint(),
+        "heartbeat": json.loads(HEARTBEAT_PATH.read_text(encoding="utf-8")) if HEARTBEAT_PATH.exists() else {},
+    }
+
+
+def load_rules_thresholds() -> dict[str, Any]:
+    """Load rules from config/prod/rules.yaml. / Carga reglas desde config/prod/rules.yaml."""
+    try:
+        payload = load_engine_config("rules.yaml", env="prod")
+        return payload if isinstance(payload, dict) else {}
+    except ValueError as exc:
+        logger.warning("rules_yaml_invalid error=%s", exc)
+        return {}
+
+
+def load_security_settings() -> dict[str, Any]:
+    """Load security settings from rules.yaml.
+
+    Carga configuracion de seguridad desde rules.yaml.
+    """
+    rules_thresholds = load_rules_thresholds()
+    security = rules_thresholds.get("security", {}) if isinstance(rules_thresholds, dict) else {}
+    return security if isinstance(security, dict) else {}
+
+
+def load_resilience_settings(config: dict[str, Any]) -> dict[str, Any]:
+    """Load resilience settings from main config.
+
+    Carga configuracion de resiliencia desde el config principal.
+    """
+    resilience = config.get("resilience", {}) if isinstance(config, dict) else {}
+    return resilience if isinstance(resilience, dict) else {}
+
+
+def load_circuit_breaker_settings(config: dict[str, Any]) -> dict[str, Any]:
+    """Load circuit breaker settings. / Carga configuracion de circuit breaker."""
+    breaker = config.get("circuit_breaker", {}) if isinstance(config, dict) else {}
+    return breaker if isinstance(breaker, dict) else {}
+
+
+def load_low_profile_settings(config: dict[str, Any]) -> dict[str, Any]:
+    """Load low-profile settings. / Carga configuracion low-profile."""
+    low_profile = config.get("low_profile", {}) if isinstance(config, dict) else {}
+    return low_profile if isinstance(low_profile, dict) else {}
+
+
+def resolve_alert_paths(config: dict[str, Any]) -> tuple[Path, Path]:
+    """Resolve paths for critical alerts. / Resuelve rutas para alertas criticas."""
+    alerts_config = config.get("alerts", {}) if isinstance(config, dict) else {}
+    if not isinstance(alerts_config, dict):
+        alerts_config = {}
+    alerts_log_path = Path(alerts_config.get("log_path", "alerts.log"))
+    alerts_output_path = Path(alerts_config.get("output_path", "data/alerts.json"))
+    return alerts_log_path, alerts_output_path
+
+
+def build_chaos_rng(resilience: dict[str, Any]) -> random.Random:
+    """Build random generator for chaos. / Construye generador aleatorio para caos."""
+    chaos_settings = resilience.get("chaos", {}) if isinstance(resilience, dict) else {}
+    if not isinstance(chaos_settings, dict):
+        return random.Random()
+    seed = chaos_settings.get("seed")
+    return random.Random(seed)
+
+
+def maybe_inject_chaos_failure(stage: str, resilience: dict[str, Any], rng: random.Random) -> None:
+    """Inject chaos failure when enabled. / Inyecta falla caotica si esta habilitado."""
+    chaos_settings = resilience.get("chaos", {}) if isinstance(resilience, dict) else {}
+    if not isinstance(chaos_settings, dict):
+        return
+    if not chaos_settings.get("enabled", False):
+        return
+    failure_rate = float(chaos_settings.get("failure_rate", 0.0))
+    if failure_rate <= 0:
+        return
+    if rng.random() < min(max(failure_rate, 0.0), 1.0):
+        raise RuntimeError(f"chaos_injected stage={stage}")
+
+
+def build_auto_resume_settings(resilience: dict[str, Any]) -> dict[str, Any]:
+    """Normalize auto-resume settings. / Normaliza configuracion de auto-resume."""
+    auto_resume = resilience.get("auto_resume", {}) if isinstance(resilience, dict) else {}
+    if not isinstance(auto_resume, dict):
+        auto_resume = {}
+    return {
+        "enabled": bool(auto_resume.get("enabled", True)),
+        "max_attempts": int(auto_resume.get("max_attempts", 3)),
+        "backoff_base_seconds": float(auto_resume.get("backoff_base_seconds", 5)),
+        "backoff_max_seconds": float(auto_resume.get("backoff_max_seconds", 60)),
+        "retry_on": str(auto_resume.get("retry_on", "any")).lower(),
+    }
+
+
+def compute_backoff_delay(attempt: int, base_seconds: float, max_seconds: float) -> float:
+    """Compute exponential backoff delay. / Calcula backoff exponencial."""
+    if attempt <= 0:
+        return 0.0
+    delay = base_seconds * (2 ** (attempt - 1))
+    return min(max(delay, 0.0), max_seconds)
+
+
+def resolve_max_json_limit(config: dict[str, Any]) -> int:
+    """Resolve presidential JSON limit. / Resuelve limite de JSON presidenciales."""
+    rules_thresholds = load_rules_thresholds()
+    return int(rules_thresholds.get("max_json_presidenciales", config.get("max_sources_per_cycle", 19)))
+
+
+def build_snapshot_queue(limit: int) -> list[Path]:
+    """Build ordered snapshot list. / Construye lista ordenada de snapshots."""
+    snapshots = iter_all_snapshots(data_root=DATA_DIR)
+    return snapshots[-limit:]
+
+
+def run_command(command: list[str], description: str, env: dict[str, str] | None = None) -> None:
+    """Execute a system command. / Ejecuta un comando del sistema."""
+    if not command:
+        raise ValueError("Command list cannot be empty.")
+    executable = shutil.which(command[0])
+    if not executable:
+        raise FileNotFoundError(f"Command not found: {command[0]}")
+    full_command = [executable, *command[1:]]
+    print(f"[+] {description}: {' '.join(full_command)}")
+    subprocess.run(full_command, check=True, env=env)  # nosec B603
+
+
+def latest_file(directory: Path, pattern: str) -> Path | None:
+    """Get newest file by pattern. / Obtiene archivo mas reciente por patron."""
+    files = sorted(directory.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
+    return files[0] if files else None
+
+
+def compute_content_hash(snapshot_path: Path) -> str:
+    """Compute snapshot content hash. / Calcula hash de contenido del snapshot."""
+    payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    normalized = json.dumps(payload, sort_keys=True).encode("utf-8")
+    return hashlib.sha256(normalized).hexdigest()
+
+
+def should_normalize(snapshot_path: Path) -> bool:
+    """Determine if normalization is required. / Determina si requiere normalizacion."""
+    payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    return "resultados" in payload and "estadisticas" in payload
+
+
+def build_alerts(anomalies: list[dict[str, Any]], *, severity: str = "HIGH") -> list[dict[str, Any]]:
+    """Build alerts from anomalies. / Construye alertas desde anomalias."""
+    if not anomalies:
+        return []
+
+    files = [a.get("file") for a in anomalies if a.get("file")]
+    from_file = min(files) if files else "unknown"
+    to_file = max(files) if files else "unknown"
+    alerts = []
+    for anomaly in anomalies:
+        rule = anomaly.get("type", "ANOMALY")
+        description = anomaly.get("description") or anomaly.get("descripcion")
+        alert = {"rule": rule, "severity": severity}
+        if description:
+            alert["description"] = description
+        alerts.append(alert)
+
+    return [
+        {
+            "from": from_file,
+            "to": to_file,
+            "alerts": alerts,
+        }
+    ]
+
+
+def emit_critical_alerts(
+    critical_anomalies: list[dict[str, Any]],
+    config: dict[str, Any],
+    *,
+    run_id: str,
+) -> None:
+    """Emit critical alerts to JSON and log. / Emite alertas criticas en JSON y log."""
+    if not critical_anomalies:
+        return
+    alerts_payload = build_alerts(critical_anomalies, severity="CRITICAL")
+    alerts_log_path, alerts_output_path = resolve_alert_paths(config)
+    alerts_output_path.parent.mkdir(parents=True, exist_ok=True)
+    alerts_output_path.write_text(json.dumps(alerts_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    alerts_log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_lines = [
+        json.dumps(
+            {
+                "timestamp": utcnow().isoformat(),
+                "run_id": run_id,
+                "severity": "CRITICAL",
+                "rule": alert.get("rule"),
+                "description": alert.get("description", ""),
+            },
+            ensure_ascii=False,
+        )
+        for window in alerts_payload
+        for alert in window.get("alerts", [])
+    ]
+    if log_lines:
+        with alerts_log_path.open("a", encoding="utf-8") as handle:
+            handle.write("\n".join(log_lines) + "\n")
+    log_event(
+        logger,
+        logging.CRITICAL,
+        "critical_alerts_detected",
+        run_id=run_id,
+        count=len(critical_anomalies),
+    )
+
+
+def critical_rules(config: dict[str, Any]) -> set[str]:
+    """Resolve critical rules from configuration. / Resuelve reglas criticas desde configuracion."""
+    raw_rules = config.get("alerts", {}).get("critical_anomaly_types", [])
+    if isinstance(raw_rules, str):
+        raw_list = [rule.strip() for rule in raw_rules.split(",") if rule.strip()]
+    else:
+        raw_list = [str(rule).strip() for rule in raw_rules if str(rule).strip()]
+    return {rule.upper() for rule in raw_list}
+
+
+def filter_critical_anomalies(anomalies: list[dict[str, Any]], config: dict[str, Any]) -> list[dict[str, Any]]:
+    """Filter critical anomalies by rules. / Filtra anomalias criticas segun reglas."""
+    rules = critical_rules(config)
+    if not rules:
+        return anomalies
+    return [anomaly for anomaly in anomalies if anomaly.get("type", "").upper() in rules]
+
+
+def should_generate_report(state: dict[str, Any], now: datetime) -> bool:
+    """Determine if report cadence allows generation. / Determina si generar reporte por cadencia."""
+    last_report = state.get("last_report_at")
+    if not last_report:
+        return True
+    last_dt = datetime.fromisoformat(last_report)
+    elapsed = now - last_dt
+    return elapsed >= timedelta(hours=1)
+
+
+def update_daily_summary(state: dict[str, Any], now: datetime, anomalies_count: int) -> None:
+    """Update daily summary. / Actualiza resumen diario."""
+    today = now.date().isoformat()
+    daily = state.get("daily_summary", {})
+    if daily.get("date") != today:
+        if daily:
+            summary_path = REPORTS_DIR / f"daily_summary_{daily['date']}.txt"
+            summary_lines = [
+                f"Resumen diario {daily['date']} UTC",
+                f"Ejecuciones: {daily.get('runs', 0)}",
+                f"Anomalias detectadas: {daily.get('anomalies', 0)}",
+            ]
+            summary_path.write_text("\n".join(summary_lines), encoding="utf-8")
+
+        daily = {"date": today, "runs": 0, "anomalies": 0}
+
+    daily["runs"] += 1
+    daily["anomalies"] += anomalies_count
+    state["daily_summary"] = daily
+
+
+def perform_cne_preflight_request(
+    config: dict[str, Any],
+    proxy: dict[str, str] | None,
+    user_agent: str,
+    timeout: float = 10.0,
+    request_headers: dict[str, str] | None = None,
+) -> int:
+    """Perform the preflight CNE request with proxy and User-Agent integration.
+
+    Bilingual: Ejecuta el request preflight al CNE con integracion de proxy
+    y User-Agent.
+
+    Args:
+        config: Pipeline configuration dictionary.
+        proxy: Proxy dictionary for ``requests`` or ``None`` for direct mode.
+        user_agent: User-Agent string selected by proxy manager.
+        timeout: Timeout in seconds for the preflight request.
+        request_headers: Optional pre-built header mapping for anti-fingerprinting.
+
+    Returns:
+        HTTP status code from the preflight request.
+
+    Raises:
+        ValueError: If no endpoint can be resolved from config.
+        requests.RequestException: If the HTTP request fails.
+    """
+    endpoints = config.get("endpoints", {}) if isinstance(config, dict) else {}
+    if not isinstance(endpoints, dict):
+        endpoints = {}
+    preflight_url = (
+        config.get("healthcheck_url")
+        or config.get("base_url")
+        or endpoints.get("nacional")
+        or endpoints.get("fallback_nacional")
+    )
+    if not preflight_url:
+        raise ValueError("Missing preflight URL for CNE connectivity check")
+
+    headers: dict[str, str] = dict(request_headers or {"User-Agent": user_agent})
+    response = requests.head(
+        str(preflight_url),
+        timeout=timeout,
+        allow_redirects=True,
+        headers=headers,
+        proxies=proxy,
+    )
+    return int(response.status_code)
+
+
+def process_snapshot_queue(
+    snapshots: list[Path],
+    checkpoint: dict[str, Any],
+    *,
+    run_id: str,
+) -> tuple[list[str], int, Path | None]:
+    """Process snapshots with advanced checkpointing.
+
+    Procesa snapshots con checkpointing avanzado.
+    """
+    processed_hashes = list(checkpoint.get("processed_hashes", []))
+    start_index = int(checkpoint.get("current_index", 0))
+    snapshot_index = collect_snapshot_index(limit=len(snapshots))
+    latest_snapshot: Path | None = snapshots[-1] if snapshots else None
+
+    for idx in range(start_index, len(snapshots)):
+        snapshot_path = snapshots[idx]
+        try:
+            content_hash = compute_content_hash(snapshot_path)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(
+                "snapshot_hash_failed path=%s error=%s",
+                snapshot_path,
+                exc,
+            )
+            continue
+        processed_hashes.append(content_hash)
+        save_resilience_checkpoint(
+            run_id,
+            "checkpoint",
+            latest_snapshot=snapshot_path,
+            content_hash=content_hash,
+            processed_hashes=processed_hashes,
+            snapshot_index=snapshot_index,
+            current_index=idx + 1,
+        )
+
+    return processed_hashes, start_index, latest_snapshot
+
+
+def save_resilience_checkpoint(
+    run_id: str,
+    stage: str | None,
+    *,
+    latest_snapshot: Path | None = None,
+    content_hash: str | None = None,
+    error: str | None = None,
+    processed_hashes: list[str] | None = None,
+    snapshot_index: list[dict[str, Any]] | None = None,
+    current_index: int | None = None,
+) -> None:
+    """Persist intermediate state with hashes and JSON index.
+
+    Guarda estado intermedio con hashes e indice JSON.
+    """
+    existing = load_resilience_checkpoint()
+    payload = {
+        **existing,
+        "run_id": run_id,
+        "stage": stage or "unknown",
+        "timestamp": utcnow().isoformat(),
+        "hashes": collect_recent_hashes(),
+        "snapshot_index": snapshot_index or collect_snapshot_index(),
+        "latest_snapshot": (
+            str(latest_snapshot.relative_to(DATA_DIR))
+            if latest_snapshot and DATA_DIR in latest_snapshot.parents
+            else latest_snapshot.name if latest_snapshot else existing.get("latest_snapshot")
+        ),
+        "last_content_hash": content_hash or existing.get("last_content_hash"),
+    }
+    if error:
+        payload["error"] = error
+    if processed_hashes is not None:
+        payload["processed_hashes"] = processed_hashes
+    if current_index is not None:
+        payload["current_index"] = current_index
+    FAILURE_CHECKPOINT_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def collect_recent_hashes(limit: int = 19) -> list[dict[str, Any]]:
+    """Collect recent hashes for checkpoint. / Recolecta hashes recientes para checkpoint."""
+    all_h = iter_all_hashes(hash_root=HASH_DIR)
+    hash_files = list(reversed(all_h))[:limit]
+    hashes: list[dict[str, Any]] = []
+    for hash_file in hash_files:
+        try:
+            payload = json.loads(hash_file.read_text(encoding="utf-8"))
+            hashes.append(
+                {
+                    "file": hash_file.name,
+                    "hash": payload.get("hash"),
+                    "chained_hash": payload.get("chained_hash"),
+                }
+            )
+        except json.JSONDecodeError:
+            logger.warning("checkpoint_hash_invalid path=%s", hash_file)
+    return hashes
+
+
+def clear_resilience_checkpoint() -> None:
+    """Remove checkpoint when pipeline completes. / Elimina checkpoint cuando el pipeline completa."""
+    if FAILURE_CHECKPOINT_PATH.exists():
+        FAILURE_CHECKPOINT_PATH.unlink()
+
+
+def should_run_stage(current_stage: str, start_stage: str) -> bool:
+    """Determine if a stage should run when resuming.
+
+    Determina si una etapa debe ejecutarse al reanudar.
+    """
+    try:
+        return RESILIENCE_STAGE_ORDER.index(current_stage) >= RESILIENCE_STAGE_ORDER.index(start_stage)
+    except ValueError:
+        return True
 
 
 def resolve_poll_interval_seconds(config: dict[str, Any]) -> float:
@@ -205,29 +792,618 @@ def _anchor_snapshot(
     anchor_hashes = compute_anchor_root(current_payload, diff_summary, rules_payload)
     root_hash = anchor_hashes["root_hash"]
 
-    # Submit Merkle root to Bitcoin via OpenTimestamps (T3 external anchor)
-    ots_proof = submit_to_opentimestamps(root_hash)
-    if ots_proof is not None:
+    # Submit root hash to Bitcoin via OpenTimestamps (Zero Cost anchoring)
+    anchor = MultichainAnchor()
+    checkpoint = anchor.anchor_checkpoint({"timestamp": now.isoformat(), "merkle_root": root_hash})
+    if checkpoint.get("anchor_chain") == "bitcoin":
         ots_dir = ANCHOR_LOG_DIR / "ots"
         ots_dir.mkdir(parents=True, exist_ok=True)
         ts_slug = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         ots_path = ots_dir / f"{ts_slug}_{root_hash[:12]}.ots"
-        ots_path.write_bytes(ots_proof.raw_proof)
+        ots_path.write_text(str(checkpoint.get("ots_proof", "")), encoding="utf-8")
         proof_meta = ots_dir / f"{ts_slug}_{root_hash[:12]}.json"
-        proof_meta.write_text(json.dumps(ots_proof.to_dict(), indent=2), encoding="utf-8")
+        proof_meta.write_text(json.dumps(checkpoint, indent=2, default=str), encoding="utf-8")
         logger.info(
-            "ots_proof_saved path=%s server=%s",
+            "ots_proof_saved path=%s bitcoin_tx=%s",
             ots_path,
-            ots_proof.timestamp_server,
+            checkpoint.get("bitcoin_tx", "pending"),
         )
     else:
         logger.warning("ots_proof_unavailable root_hash=%s", root_hash[:16])
 
 
+def _has_private_key(arbitrum_config: dict[str, Any]) -> bool:
+    """Determine if a private key is available.
+
+    Determina si hay private key disponible.
+
+    Note: Arbitrum anchoring was removed (Zero Cost); retained only so
+    ``_anchor_if_due`` can short-circuit cleanly when ``arbitrum.enabled``
+    is left in legacy configs.
+    """
+    raw_key = arbitrum_config.get("private_key")
+    placeholder_values = {"", None, "0x...", "REPLACE_ME"}
+    if raw_key not in placeholder_values:
+        return True
+    return bool(os.getenv("ARBITRUM_PRIVATE_KEY"))
+
+
+def _read_hashes_for_anchor(batch_size: int) -> list[str]:
+    """Read recent hashes for anchoring. / Lee hashes recientes para anclaje."""
+    all_h = iter_all_hashes(hash_root=HASH_DIR)
+    hash_files_desc = list(reversed(all_h))
+    selected = list(reversed(hash_files_desc[:batch_size]))
+    hashes: list[str] = []
+    for hash_file in selected:
+        try:
+            payload = json.loads(hash_file.read_text(encoding="utf-8"))
+            hash_value = payload.get("hash") or payload.get("chained_hash")
+            if hash_value:
+                hashes.append(hash_value)
+        except json.JSONDecodeError:
+            logger.warning("hash_file_invalid path=%s", hash_file)
+    return hashes
+
+
+def _should_anchor(state: dict[str, Any], now: datetime, interval_minutes: int) -> bool:
+    """Determine whether to anchor based on interval.
+
+    Determina si debe anclarse segun intervalo.
+    """
+    last_anchor = state.get("last_anchor_at")
+    if not last_anchor:
+        return True
+    try:
+        last_dt = datetime.fromisoformat(last_anchor)
+    except ValueError:
+        return True
+    return now - last_dt >= timedelta(minutes=interval_minutes)
+
+
+def _anchor_if_due(config: dict[str, Any], state: dict[str, Any], now: datetime) -> None:
+    """Execute legacy hash-batch anchoring when due (Zero Cost: no-op).
+
+    Ejecuta anclaje de hashes si corresponde (Costo Cero: no-op).
+
+    Arbitrum batch anchoring was removed; per-snapshot OTS anchoring via
+    ``_anchor_snapshot``/``MultichainAnchor`` is the current mechanism. This
+    function remains as a guarded no-op for legacy configs that still set
+    ``arbitrum.enabled``.
+    """
+    arbitrum_config = config.get("arbitrum", {})
+    if not arbitrum_config.get("enabled", False):
+        return
+    if not _has_private_key(arbitrum_config):
+        logger.warning("anchor_skipped_missing_private_key")
+        return
+
+    interval_minutes = int(arbitrum_config.get("interval_minutes", 15))
+    batch_size = int(arbitrum_config.get("batch_size", 19))
+    if not _should_anchor(state, now, interval_minutes):
+        return
+
+    hashes = _read_hashes_for_anchor(batch_size)
+    if len(hashes) < batch_size:
+        logger.warning(
+            "anchor_skipped_not_enough_hashes expected=%s actual=%s",
+            batch_size,
+            len(hashes),
+        )
+        return
+
+    logger.info("anchor_skipped_arbitrum_removed")
+    return
+
+
+def _generate_and_upload_pdf(output_filename: str = "vigil_informe.pdf") -> str | None:
+    """Run generate_report.py --upload and return the public URL printed to stdout.
+
+    Ejecuta generate_report.py --upload y devuelve la URL publica impresa en stdout.
+    """
+    try:
+        result = subprocess.run(
+            [sys.executable, "scripts/generate_report.py", "--upload", "--sign", "--output", output_filename],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        for line in result.stdout.splitlines():
+            if line.startswith("PDF uploaded:"):
+                return line.split(":", 1)[1].strip()
+        if result.returncode != 0:
+            logger.warning("generate_report_failed stderr=%s", result.stderr[:300])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("generate_report_error error=%s", exc)
+    return None
+
+
+def run_pipeline(config: dict[str, Any]) -> None:
+    """Execute the full resilient pipeline run.
+
+    Bilingual: Ejecuta una corrida completa del pipeline resiliente.
+
+    Notes:
+        - Integrates rate_limiter + proxy_manager before each CNE HTTP request.
+        - Runs secure_backup on successful scrape and in fail-safe finally flow.
+        - Never breaks main loop due to backup/proxy hook failures.
+    """
+    now = utcnow()
+    resilience_settings = load_resilience_settings(config)
+    chaos_rng = build_chaos_rng(resilience_settings)
+    state = load_state()
+    checkpoint = load_pipeline_checkpoint()
+    resilience_checkpoint = load_resilience_checkpoint()
+    run_id = checkpoint.get("run_id") or resilience_checkpoint.get("run_id") or now.strftime("%Y%m%d%H%M%S")
+    start_stage = "start"
+    latest_snapshot: Path | None = None
+    content_hash: str | None = None
+    resume_stage = resilience_checkpoint.get("stage")
+    resume_snapshot_name = resilience_checkpoint.get("latest_snapshot")
+    if (
+        resume_stage in RESILIENCE_STAGE_ORDER
+        and resume_snapshot_name
+        and resume_stage not in {"start", "healthcheck", "download"}
+    ):
+        candidate_snapshot = DATA_DIR / resume_snapshot_name
+        if candidate_snapshot.exists():
+            latest_snapshot = candidate_snapshot
+            content_hash = resilience_checkpoint.get("last_content_hash")
+            start_stage = resume_stage
+            log_event(
+                logger,
+                logging.INFO,
+                "pipeline_resume",
+                run_id=run_id,
+                stage=resume_stage,
+                snapshot=resume_snapshot_name,
+            )
+    save_pipeline_checkpoint({"run_id": run_id, "stage": "start", "at": now.isoformat()})
+    save_resilience_checkpoint(
+        run_id,
+        "start",
+        latest_snapshot=latest_snapshot,
+        content_hash=content_hash,
+    )
+    log_event(logger, logging.INFO, "pipeline_start", run_id=run_id)
+
+    enable_backup: bool = bool(config.get("ENABLE_BACKUP", True))
+    rate_limiter = get_rate_limiter()
+    runtime_vital_config: dict[str, Any] = {**vital_signs.load_vital_signs_config("prod"), **config}
+    consecutive_failures: int = 0
+    scrape_status: dict[str, Any] = {
+        "consecutive_failures": 0,
+        "success_history": [],
+        "latency_history": [],
+        "hash_chain_valid": True,
+        "high_pressure_since": None,
+        "policy_block_since": None,
+    }
+
+    try:
+        if should_run_stage("healthcheck", start_stage):
+            save_pipeline_checkpoint({"run_id": run_id, "stage": "healthcheck", "at": utcnow().isoformat()})
+            save_resilience_checkpoint(run_id, "healthcheck")
+            maybe_inject_chaos_failure("healthcheck", resilience_settings, chaos_rng)
+            waited = rate_limiter.wait()
+            if waited > 0:
+                log_event(logger, logging.DEBUG, "rate_limiter_waited", seconds=round(waited, 2))
+
+            # Cumplimiento Ley Transparencia 170-2006: solo datos publicos agregados, rate-limits eticos siempre respetados
+            predicted_mode = vital_signs.predict_mode(runtime_vital_config, scrape_status)
+            if predicted_mode == "conservative":
+                time.sleep(900)
+            elif predicted_mode == "hibernation":
+                try:
+                    backup_state = secure_backup.backup_critical()
+                    scrape_status["hash_chain_valid"] = bool(backup_state.get("hash_chain_valid", True))
+                except Exception as backup_exc:  # noqa: BLE001
+                    log_event(logger, logging.WARNING, "hibernation_backup_failed", error=str(backup_exc))
+                time.sleep(3600)
+
+            if float(scrape_status.get("request_pressure", 0.0)) > 8.0:
+                config["max_concurrent_requests"] = 1
+
+            proxy_dict, user_agent = proxy_manager.get_proxy_and_ua()
+            request_headers = proxy_manager.get_proxy_ua_manager().build_request_headers(user_agent)
+            proxy_url = (proxy_dict or {}).get("https")
+            log_event(
+                logger,
+                logging.DEBUG,
+                "proxy_ua_rotated",
+                proxy=proxy_url or "direct",
+                ua=user_agent[:60],
+            )
+
+            request_started_at = time.monotonic()
+            status_code: int | None = None
+            health_ok = False
+            try:
+                status_code = perform_cne_preflight_request(
+                    config, proxy_dict, user_agent, request_headers=request_headers
+                )
+                health_ok = status_code < 400
+                consecutive_failures = 0 if health_ok else consecutive_failures + 1
+                _now_iso = utcnow().isoformat()
+                state["cne_last_attempt_at"] = _now_iso
+                state["cne_last_status_code"] = status_code
+                if health_ok:
+                    state["cne_last_successful_scrape_at"] = _now_iso
+                    state.pop("cne_first_unreachable_at", None)
+                    state["cne_consecutive_failures"] = 0
+                else:
+                    is_new_blackout = not state.get("cne_first_unreachable_at")
+                    if is_new_blackout:
+                        state["cne_first_unreachable_at"] = _now_iso
+                        _trigger_emergency_publish(reason="cne_blackout_start")
+                    state["cne_consecutive_failures"] = consecutive_failures
+            except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+                TimeoutError,
+                ConnectionError,
+            ) as exc:
+                consecutive_failures += 1
+                try:
+                    proxy_manager.mark_proxy_bad(proxy_dict)
+                except Exception as proxy_exc:  # noqa: BLE001
+                    log_event(logger, logging.WARNING, "proxy_mark_bad_failed", error=str(proxy_exc))
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "healthcheck_request_exception",
+                    run_id=run_id,
+                    error=str(exc),
+                )
+                rate_limiter.notify_response(status_code, success=False)
+                scrape_status = vital_signs.update_status_after_scrape(
+                    scrape_status,
+                    success=False,
+                    latency=max(0.0, time.monotonic() - request_started_at),
+                    status_code=status_code,
+                    config=runtime_vital_config,
+                )
+                scrape_status["consecutive_failures"] = consecutive_failures
+                vital_state = vital_signs.check_vital_signs(runtime_vital_config, scrape_status)
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "vital_signs_after_critical_exception",
+                    run_id=run_id,
+                    mode=vital_state.get("mode"),
+                    recommended_delay=vital_state.get("recommended_delay_seconds"),
+                )
+            latency = max(0.0, time.monotonic() - request_started_at)
+            rate_limiter.notify_response(status_code, success=bool(health_ok))
+
+            if status_code in {429, 403} or (status_code is not None and 500 <= status_code <= 599):
+                consecutive_failures += 1
+                try:
+                    proxy_manager.mark_proxy_bad(proxy_dict)
+                except Exception as proxy_exc:  # noqa: BLE001
+                    log_event(logger, logging.WARNING, "proxy_mark_bad_failed", error=str(proxy_exc))
+
+            if consecutive_failures > 0:
+                scrape_status = vital_signs.update_status_after_scrape(
+                    scrape_status,
+                    success=False,
+                    latency=latency,
+                    status_code=status_code,
+                    config=runtime_vital_config,
+                )
+                scrape_status["consecutive_failures"] = consecutive_failures
+                vital_state = vital_signs.check_vital_signs(runtime_vital_config, scrape_status)
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "vital_signs_after_failure",
+                    run_id=run_id,
+                    mode=vital_state.get("mode"),
+                    recommended_delay=vital_state.get("recommended_delay_seconds"),
+                )
+            else:
+                scrape_status = vital_signs.update_status_after_scrape(
+                    scrape_status,
+                    success=True,
+                    latency=latency,
+                    status_code=status_code,
+                    config=runtime_vital_config,
+                )
+
+            download_cmd = [sys.executable, "scripts/download_and_hash.py"]
+            if not health_ok:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "healthcheck_failed_fallback_mock",
+                    run_id=run_id,
+                )
+                download_cmd.append("--mock")
+
+            if should_run_stage("download", start_stage):
+                save_pipeline_checkpoint({"run_id": run_id, "stage": "download", "at": utcnow().isoformat()})
+                save_resilience_checkpoint(run_id, "download")
+                maybe_inject_chaos_failure("download", resilience_settings, chaos_rng)
+                retry_config_path = config.get("retry_config_path") or os.getenv(
+                    "RETRY_CONFIG_PATH", "config/prod/retry_config.yaml"
+                )
+                download_env = os.environ.copy()
+                download_env["RETRY_CONFIG_PATH"] = retry_config_path
+                run_command(download_cmd, "descarga + hash", env=download_env)
+
+        max_json = resolve_max_json_limit(config)
+        snapshots = build_snapshot_queue(max_json)
+        if snapshots:
+            process_snapshot_queue(
+                snapshots,
+                resilience_checkpoint,
+                run_id=run_id,
+            )
+
+        if latest_snapshot is None:
+            all_snaps = iter_all_snapshots(data_root=DATA_DIR)
+            latest_snapshot = snapshots[-1] if snapshots else (all_snaps[-1] if all_snaps else None)
+        if not latest_snapshot:
+            print("[!] No se encontro snapshot para procesar")
+            log_event(logger, logging.WARNING, "snapshot_missing", run_id=run_id)
+            return
+
+        content_hash = content_hash or compute_content_hash(latest_snapshot)
+        if state.get("last_content_hash") == content_hash:
+            state["last_run_at"] = now.isoformat()
+            save_state(state)
+            print("[i] Snapshot duplicado detectado, se omite procesamiento")
+            log_event(logger, logging.INFO, "snapshot_duplicate", run_id=run_id)
+            return
+
+        state["last_content_hash"] = content_hash
+        state["last_snapshot"] = latest_snapshot.name
+
+        if should_run_stage("normalize", start_stage):
+            save_pipeline_checkpoint({"run_id": run_id, "stage": "normalize", "at": utcnow().isoformat()})
+            save_resilience_checkpoint(
+                run_id,
+                "normalize",
+                latest_snapshot=latest_snapshot,
+                content_hash=content_hash,
+            )
+            maybe_inject_chaos_failure("normalize", resilience_settings, chaos_rng)
+            if should_normalize(latest_snapshot):
+                run_command(
+                    [sys.executable, "scripts/normalize_presidential.py"],
+                    "normalizacion",
+                )
+            else:
+                print("[i] Normalizacion omitida: estructura no compatible")
+                log_event(logger, logging.INFO, "normalize_skipped", run_id=run_id)
+
+        if should_run_stage("analyze", start_stage):
+            save_pipeline_checkpoint({"run_id": run_id, "stage": "analyze", "at": utcnow().isoformat()})
+            save_resilience_checkpoint(
+                run_id,
+                "analyze",
+                latest_snapshot=latest_snapshot,
+                content_hash=content_hash,
+            )
+            maybe_inject_chaos_failure("analyze", resilience_settings, chaos_rng)
+            run_command([sys.executable, "scripts/analyze_rules.py"], "analisis")
+
+        anomalies_path = Path("anomalies_report.json")
+        anomalies = []
+        if anomalies_path.exists():
+            anomalies = json.loads(anomalies_path.read_text(encoding="utf-8"))
+
+        critical_anomalies = filter_critical_anomalies(anomalies, config)
+        alerts = build_alerts(critical_anomalies, severity="CRITICAL")
+        (ANALYSIS_DIR / "alerts.json").write_text(json.dumps(alerts, indent=2), encoding="utf-8")
+        emit_critical_alerts(critical_anomalies, config, run_id=run_id)
+        if critical_anomalies:
+            _trigger_emergency_publish(reason="critical_anomaly")
+
+        if should_run_stage("report", start_stage):
+            save_pipeline_checkpoint({"run_id": run_id, "stage": "report", "at": utcnow().isoformat()})
+            save_resilience_checkpoint(
+                run_id,
+                "report",
+                latest_snapshot=latest_snapshot,
+                content_hash=content_hash,
+            )
+            maybe_inject_chaos_failure("report", resilience_settings, chaos_rng)
+            if should_generate_report(state, now):
+                run_command([sys.executable, "scripts/summarize_findings.py"], "reportes")
+                state["last_report_at"] = now.isoformat()
+                pdf_url = _generate_and_upload_pdf("vigil_informe_nacional.pdf")
+                if pdf_url:
+                    state["last_report_pdf_url"] = pdf_url
+            else:
+                print("[i] Reporte omitido por cadencia")
+                log_event(logger, logging.INFO, "report_skipped", run_id=run_id)
+
+        if should_run_stage("anchor", start_stage):
+            save_resilience_checkpoint(
+                run_id,
+                "anchor",
+                latest_snapshot=latest_snapshot,
+                content_hash=content_hash,
+            )
+            maybe_inject_chaos_failure("anchor", resilience_settings, chaos_rng)
+            _anchor_snapshot(config, state, now, latest_snapshot)
+            _anchor_if_due(config, state, now)
+
+        _publish_forensics(
+            config,
+            now,
+            extra_meta=(
+                {"report_pdf_url": state.get("last_report_pdf_url")} if state.get("last_report_pdf_url") else None
+            ),
+        )
+
+        scrape_status = vital_signs.update_status_after_scrape(
+            scrape_status,
+            success=True,
+            latency=0.0,
+            status_code=200,
+            config=runtime_vital_config,
+        )
+        update_daily_summary(state, now, len(anomalies))
+        state["last_run_at"] = now.isoformat()
+        save_state(state)
+        clear_pipeline_checkpoint()
+        clear_resilience_checkpoint()
+
+        if enable_backup:
+            try:
+                backup_result = secure_backup.backup_critical()
+                log_event(
+                    logger,
+                    logging.INFO,
+                    "post_scrape_backup",
+                    run_id=run_id,
+                    local=backup_result.get("local", False),
+                    files=len(backup_result.get("files_backed_up", [])),
+                )
+            except Exception as backup_exc:  # noqa: BLE001
+                log_event(logger, logging.WARNING, "post_scrape_backup_failed", error=str(backup_exc))
+
+        log_event(logger, logging.INFO, "pipeline_complete", run_id=run_id)
+    except Exception as exc:  # noqa: BLE001
+        log_event(
+            logger,
+            logging.ERROR,
+            "pipeline_failed",
+            run_id=run_id,
+            error=str(exc),
+        )
+        save_resilience_checkpoint(
+            run_id,
+            checkpoint.get("stage") or "error",
+            latest_snapshot=latest_snapshot,
+            content_hash=content_hash,
+            error=str(exc),
+        )
+        raise
+    finally:
+        if enable_backup:
+            try:
+                secure_backup.backup_critical()
+            except Exception as backup_exc:  # noqa: BLE001
+                log_event(logger, logging.WARNING, "final_backup_failed", error=str(backup_exc))
+
+
+def safe_run_pipeline(config: dict[str, Any], security_manager: DefensiveSecurityManager | None = None) -> bool:
+    """Run pipeline with protection against network failures.
+
+    Ejecuta pipeline con proteccion contra fallas de red.
+    """
+    # Prevent concurrent runs (e.g. GitHub Actions schedule + workflow_dispatch overlap)
+    _lock_fd = open("/tmp/vigil_pipeline.lock", "w")  # noqa: SIM115  # nosec B108
+    try:
+        fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        log_event(logger, logging.WARNING, "pipeline_already_running_skipping")
+        return False
+
+    resilience_settings = load_resilience_settings(config)
+    auto_resume = build_auto_resume_settings(resilience_settings)
+    attempt = 0
+    while True:
+        try:
+            run_pipeline(config)
+            return True
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+            TimeoutError,
+            ConnectionError,
+        ) as exc:
+            checkpoint = load_pipeline_checkpoint()
+            run_id = checkpoint.get("run_id", utcnow().strftime("%Y%m%d%H%M%S"))
+            stage = checkpoint.get("stage")
+            log_event(
+                logger,
+                logging.ERROR,
+                "pipeline_network_failure",
+                run_id=run_id,
+                stage=stage or "unknown",
+                error=str(exc),
+            )
+            if security_manager:
+                security_manager.record_http_error(timeout=True)
+                security_manager.record_log_error()
+            save_resilience_checkpoint(run_id, stage, error=str(exc))
+            retry_on = auto_resume["retry_on"]
+            retryable = retry_on in {"any", "network"}
+            attempt += 1
+            if not auto_resume["enabled"] or not retryable or attempt >= auto_resume["max_attempts"]:
+                return False
+            delay = compute_backoff_delay(
+                attempt,
+                auto_resume["backoff_base_seconds"],
+                auto_resume["backoff_max_seconds"],
+            )
+            log_event(
+                logger,
+                logging.WARNING,
+                "pipeline_auto_resume_wait",
+                run_id=run_id,
+                attempt=attempt,
+                delay_seconds=delay,
+            )
+            time.sleep(delay)
+        except Exception as exc:  # noqa: BLE001
+            checkpoint = load_pipeline_checkpoint()
+            run_id = checkpoint.get("run_id", utcnow().strftime("%Y%m%d%H%M%S"))
+            stage = checkpoint.get("stage")
+            log_event(
+                logger,
+                logging.ERROR,
+                "pipeline_failure",
+                run_id=run_id,
+                stage=stage or "unknown",
+                error=str(exc),
+            )
+            if security_manager:
+                security_manager.record_log_error()
+            save_resilience_checkpoint(run_id, stage, error=str(exc))
+            attempt += 1
+            if not auto_resume["enabled"] or auto_resume["retry_on"] != "any":
+                return False
+            if attempt >= auto_resume["max_attempts"]:
+                return False
+            delay = compute_backoff_delay(
+                attempt,
+                auto_resume["backoff_base_seconds"],
+                auto_resume["backoff_max_seconds"],
+            )
+            log_event(
+                logger,
+                logging.WARNING,
+                "pipeline_auto_resume_wait",
+                run_id=run_id,
+                attempt=attempt,
+                delay_seconds=delay,
+            )
+            time.sleep(delay)
+
+
+def _make_swarm_attack_hook():
+    """Build the swarm-wide attack finding broadcast hook, if configured.
+
+    Construye el hook de difusion de hallazgos de ataque al swarm, si esta
+    configurado.
+
+    Returns:
+        A callable hook for ``AttackLogConfig.finding_broadcast_hook``, or
+        ``None`` when swarm gossip broadcasting is not configured (Zero
+        Cost default: local-only attack logging, no broadcast).
+    """
+    return None
+
+
 def main():
     """/** Punto de entrada principal. / Main entry point. **"""
     parser = argparse.ArgumentParser(
-        description="Pipeline Proyecto C.E.N.T.I.N.E.L.: descarga → normaliza → hash → análisis → reportes → alertas"
+        description="Pipeline Proyecto VIGIL: descarga -> normaliza -> hash -> analisis -> reportes -> alertas"
     )
     parser.add_argument("--once", action="store_true", help="Ejecuta una sola vez y sale")
     parser.add_argument(
