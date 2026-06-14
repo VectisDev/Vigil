@@ -64,6 +64,15 @@ to any LATAM country with a structured public electoral feed.
   complete VIGIL system in Mermaid format.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Any architectural change affecting `src/centinel/`/`src/vigil/` imports has been checked for breakage with qa-engineering-agent before being presented as ready.
+- [ ] ADRs document the decision actually made, including rejected alternatives and why — not just the chosen path.
+- [ ] Scalability claims (2029, other LATAM countries) are checked against at least one concrete number (endpoint count, polling interval, GitHub Actions minutes) — not asserted in the abstract.
+- [ ] Failure Mode Analysis covers at least one failure scenario that was NOT the original motivation for the change (i.e., check for new failure modes introduced, not just the one being fixed).
+- [ ] C4/Mermaid diagrams reflect the current state after the change, not the pre-change state.
+
 ## Output Requirements
 
 Every response must include:
