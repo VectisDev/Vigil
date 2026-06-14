@@ -66,7 +66,7 @@ from urllib3.util.retry import Retry
 
 from scripts.logging_utils import configure_logging, log_event
 
-logger = configure_logging("centinel.healthcheck", log_file="logs/centinel.log")
+logger = configure_logging("vigil.healthcheck", log_file="logs/vigil.log")
 
 
 def _build_session(retries: int, backoff_factor: float) -> requests.Session:

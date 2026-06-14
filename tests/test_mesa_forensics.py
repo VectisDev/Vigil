@@ -20,19 +20,19 @@ import copy
 
 import pytest
 
-from centinel.core.mesa_forensics import (
+from vigil.core.mesa_forensics import (
     candidate_delta,
     index_mesas,
     mesa_candidate_votes,
     mesa_fingerprint,
     primary_beneficiary,
 )
-from centinel.core.rules import (
+from vigil.core.rules import (
     late_mesa_rule,
     mesa_impossibility_rule,
     mesa_reconciliation_rule,
 )
-from centinel.core.rules.common import collect_all_mesas
+from vigil.core.rules.common import collect_all_mesas
 
 
 @pytest.fixture()

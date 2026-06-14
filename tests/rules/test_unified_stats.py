@@ -20,14 +20,14 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'centinel', 'core', 'rules'))
 
-from centinel.core.rules.severity import Severity
-from centinel.core.rules.zscore_unified import (
+from vigil.core.rules.severity import Severity
+from vigil.core.rules.zscore_unified import (
     zscore_proportion,
     zscore_empirical,
     Z_THRESHOLD_WARNING,
     Z_THRESHOLD_CRITICAL,
 )
-from centinel.core.rules.benford_unified import (
+from vigil.core.rules.benford_unified import (
     benford_canonical,
     benford_experimental_first_digit,
     benford_batch,

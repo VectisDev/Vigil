@@ -2,7 +2,7 @@
 
 import pytest
 
-from centinel.federation.task_partitioner import TaskPartitioner, HN_SOURCES
+from vigil.federation.task_partitioner import TaskPartitioner, HN_SOURCES
 
 
 TOTAL_SOURCES = len(HN_SOURCES)  # 19

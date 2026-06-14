@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from centinel.core.endpoint_monitor import (
+from vigil.core.endpoint_monitor import (
     EndpointMonitor,
     EndpointSchema,
     SchemaChange,

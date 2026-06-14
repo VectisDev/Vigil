@@ -44,7 +44,7 @@ from unittest.mock import patch
 
 import pytest
 
-from centinel.api.main import (
+from vigil.api.main import (
     fetch_latest_snapshot,
     fetch_snapshot_by_hash,
     load_alerts_payload,
@@ -172,9 +172,9 @@ class TestLoadAlertsCorruptedJson:
         alerts_file = tmp_path / "alerts.json"
         alerts_file.write_text("{BROKEN", encoding="utf-8")
 
-        with patch("centinel.api.main.ALERTS_JSON", alerts_file), patch(
-            "centinel.api.main.ALERTS_LOG", tmp_path / "nonexistent.log"
-        ), patch("centinel.api.main.logger") as mock_logger:
+        with patch("vigil.api.main.ALERTS_JSON", alerts_file), patch(
+            "vigil.api.main.ALERTS_LOG", tmp_path / "nonexistent.log"
+        ), patch("vigil.api.main.logger") as mock_logger:
             result = load_alerts_payload()
 
         assert result == []
@@ -186,8 +186,8 @@ class TestLoadAlertsCorruptedJson:
         alerts_file = tmp_path / "alerts.json"
         alerts_file.write_text('[{"alert": "test"}]', encoding="utf-8")
 
-        with patch("centinel.api.main.ALERTS_JSON", alerts_file), patch(
-            "centinel.api.main.ALERTS_LOG", tmp_path / "nonexistent.log"
+        with patch("vigil.api.main.ALERTS_JSON", alerts_file), patch(
+            "vigil.api.main.ALERTS_LOG", tmp_path / "nonexistent.log"
         ):
             result = load_alerts_payload()
 
@@ -204,7 +204,7 @@ class TestStorageCanonicalJsonValidation:
 
     def test_canonical_json_is_always_valid(self):
         """Verify snapshot_to_canonical_json always produces valid JSON."""
-        from centinel.core.normalize import normalize_snapshot, snapshot_to_canonical_json
+        from vigil.core.normalize import normalize_snapshot, snapshot_to_canonical_json
 
         raw = {
             "cargo": "presidencial",

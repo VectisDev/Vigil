@@ -37,7 +37,7 @@ Notes:
 
 import pytest
 
-from centinel.utils import config_loader
+from vigil.utils import config_loader
 
 yaml = pytest.importorskip("yaml")
 
@@ -79,7 +79,7 @@ def test_load_config_reads_yaml(tmp_path, monkeypatch):
                         "scope": "NATIONAL",
                     }
                 ],
-                "logging": {"level": "INFO", "file": "centinel.log"},
+                "logging": {"level": "INFO", "file": "vigil.log"},
                 "blockchain": {
                     "enabled": False,
                     "network": "polygon-mumbai",
@@ -150,7 +150,7 @@ def test_load_config_rejects_invalid_master_switch(tmp_path, monkeypatch):
                 "sources": [
                     {"name": "custom", "department_code": "99", "level": "NAT", "scope": "NATIONAL"}
                 ],
-                "logging": {"level": "INFO", "file": "centinel.log"},
+                "logging": {"level": "INFO", "file": "vigil.log"},
                 "blockchain": {
                     "enabled": False,
                     "network": "polygon-mumbai",

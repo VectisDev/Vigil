@@ -78,7 +78,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from centinel.defense.security_utils import is_safe_outbound_url, pin_dns_resolution, resolve_outbound_target
+from vigil.defense.security_utils import is_safe_outbound_url, pin_dns_resolution, resolve_outbound_target
 
 import requests
 import urllib3
@@ -87,10 +87,10 @@ import yaml
 # Lazy imports – these modules pull in heavy optional deps (httpx, etc.)
 # that may not be installed in lightweight CI test environments.
 # Imported on first use in the functions that need them.
-# from centinel.proxy_handler import get_proxy_rotator
-# from centinel.schemas import validate_snapshot
+# from vigil.proxy_handler import get_proxy_rotator
+# from vigil.schemas import validate_snapshot
 
-LOGGER = logging.getLogger("centinel.collector")
+LOGGER = logging.getLogger("vigil.collector")
 DEFAULT_CONFIG_PATH = Path("command_center/config.yaml")
 
 # ── Cooperative scraping constants ────────────────────────────────────────────
@@ -255,7 +255,7 @@ def validate_collected_payloads(
 
     Valida payloads contra el esquema canónico.
     """
-    from centinel.schemas import validate_snapshot  # lazy import
+    from vigil.schemas import validate_snapshot  # lazy import
 
     valid_payloads: list[dict[str, Any]] = []
     invalid_count = 0
@@ -321,7 +321,7 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
         scraping_profile.get("user_agents", []) if isinstance(scraping_profile.get("user_agents"), list) else []
     )
     user_agents = [str(agent) for agent in user_agents if str(agent).strip()]
-    from centinel.proxy_handler import get_proxy_rotator  # lazy import
+    from vigil.proxy_handler import get_proxy_rotator  # lazy import
     rotator = get_proxy_rotator(LOGGER)
 
     if not sources:

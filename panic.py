@@ -96,7 +96,7 @@ from typing import Any
 
 import yaml
 
-from centinel.paths import iter_all_hashes
+from vigil.paths import iter_all_hashes
 from monitoring.alerts import dispatch_alert
 from scripts.logging_utils import configure_logging
 
@@ -112,7 +112,7 @@ CONFIG_PATHS = [
     Path("config.yaml"),
 ]
 
-logger = configure_logging("centinel.panic", log_file="logs/centinel.log")
+logger = configure_logging("vigil.panic", log_file="logs/vigil.log")
 
 
 def utc_now() -> datetime:

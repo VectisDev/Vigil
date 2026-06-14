@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from centinel.federation.hash_chain import (
+from vigil.federation.hash_chain import (
     commit_to_hash_chain,
     serialize_chain_snapshot,
 )

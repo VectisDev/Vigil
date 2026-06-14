@@ -67,10 +67,10 @@ from pathlib import Path
 
 from dateutil import parser
 
-from centinel.utils.logging_config import setup_logging
+from vigil.utils.logging_config import setup_logging
 
 setup_logging()
-logger = logging.getLogger("centinel.replay")
+logger = logging.getLogger("vigil.replay")
 
 
 def parse_timestamp(path: Path, payload: dict) -> datetime | None:

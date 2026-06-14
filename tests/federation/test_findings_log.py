@@ -2,13 +2,13 @@
 
 import pytest
 
-from centinel.federation.findings_log import FederationAnomalyLog
-from centinel.federation.attack_log import FederationAttackLog
+from vigil.federation.findings_log import FederationAnomalyLog
+from vigil.federation.attack_log import FederationAttackLog
 
 
 def _finding(fid="f001", node="n1", severity="HIGH", ftype="anomaly", rule="benford"):
     """Create a minimal FindingPayload-like object via the gossip dataclass."""
-    from centinel.federation.gossip import FindingPayload
+    from vigil.federation.gossip import FindingPayload
 
     return FindingPayload(
         finding_id=fid,
@@ -108,7 +108,7 @@ def test_eviction_respects_max_capacity():
 
 
 def test_eviction_keeps_newest():
-    from centinel.federation.gossip import FindingPayload
+    from vigil.federation.gossip import FindingPayload
 
     def _ts_finding(fid, ts):
         return FindingPayload(
@@ -153,7 +153,7 @@ def test_consensus_summary_requires_min_nodes():
 
 
 def _attack(fid="a001", node="n1", rule="replay_attack"):
-    from centinel.federation.gossip import FindingPayload
+    from vigil.federation.gossip import FindingPayload
 
     return FindingPayload(
         finding_id=fid,

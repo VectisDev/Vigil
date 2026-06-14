@@ -32,7 +32,7 @@ Notes:
 import asyncio
 import json
 
-from centinel.recovery import RecoveryDecisionType, RecoveryManager
+from vigil.recovery import RecoveryDecisionType, RecoveryManager
 
 
 def test_recovery_checksum_mismatch_reprocess(tmp_path) -> None:

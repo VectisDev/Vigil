@@ -15,7 +15,7 @@ It corresponds to the analysis in docs/research/REPUTATION-MODEL.md §4.
 
 import pytest
 
-from centinel.federation.reputation import ReputationEngine, _RING1_SCORE
+from vigil.federation.reputation import ReputationEngine, _RING1_SCORE
 
 
 SYBIL_COUNT = 50

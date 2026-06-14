@@ -99,7 +99,7 @@ from urllib.parse import urlparse
 import requests
 import yaml
 from dateutil import parser as date_parser
-from centinel.downloader import (
+from vigil.downloader import (
     StructuredLogger,
     build_alert_hook,
     load_retry_config,
@@ -107,22 +107,22 @@ from centinel.downloader import (
     request_with_retry,
     should_skip_snapshot,
 )
-from centinel.download import write_atomic
-from centinel.paths import (
+from vigil.download import write_atomic
+from vigil.paths import (
     ensure_source_dirs,
     hash_filename,
     resolve_source_id,
     snapshot_filename,
 )
 from scripts.circuit_breaker import CircuitBreaker
-from centinel.defense.fetcher import build_rotating_request_profile
-from centinel.defense.hasher import trigger_post_hash_backup
+from vigil.defense.fetcher import build_rotating_request_profile
+from vigil.defense.hasher import trigger_post_hash_backup
 
 from monitoring.health import get_health_state
 from scripts.logging_utils import configure_logging, log_event
-from centinel.core.custody import sign_hash_record
+from vigil.core.custody import sign_hash_record
 
-logger = configure_logging("centinel.download", log_file="logs/centinel.log")
+logger = configure_logging("vigil.download", log_file="logs/vigil.log")
 
 DEFAULT_CONFIG_PATH = "config.yaml"
 COMMAND_CENTER_PATH = Path("command_center") / "config.yaml"
@@ -358,7 +358,7 @@ def download_with_retries(
     """/** Descarga con reintentos configurables (tenacity). / Download with configurable retries (tenacity). **"""
     retry_config = load_retry_config(DEFAULT_RETRY_CONFIG_PATH)
     session = requests.Session()
-    structured_logger = StructuredLogger("centinel.download")
+    structured_logger = StructuredLogger("vigil.download")
     alert_hook = build_alert_hook(structured_logger)
     try:
         return request_with_retry(
@@ -388,7 +388,7 @@ def fetch_with_retry(
 
     try:
         retry_config = load_retry_config(DEFAULT_RETRY_CONFIG_PATH)
-        structured_logger = StructuredLogger("centinel.download")
+        structured_logger = StructuredLogger("vigil.download")
         alert_hook = build_alert_hook(structured_logger)
         return request_with_retry(
             session,
@@ -545,7 +545,7 @@ def _is_cne_endpoint(endpoint: str, config: dict[str, Any]) -> bool:
     y, opcionalmente, validacion de resolucion a IP publica (mitigando DNS
     rebinding y spoofing por substring).
     """
-    from centinel.defense.security_utils import is_safe_outbound_url
+    from vigil.defense.security_utils import is_safe_outbound_url
 
     domains = config.get("cne_domains") or ["cne.hn"]
     enforce_public_ip = bool(config.get("enforce_public_ip_resolution", True))
@@ -617,7 +617,7 @@ def process_sources(
     _force_full = os.getenv("CENTINEL_FORCE_FULL_CYCLE", "0") == "1"
     retry_payload = resolve_retry_policy(config)
     retry_config = retry_payload["retry_config"]
-    structured_logger = StructuredLogger("centinel.download")
+    structured_logger = StructuredLogger("vigil.download")
     alert_hook = build_alert_hook(structured_logger)
     breaker_settings = config.get("download_circuit_breaker", {}) or {}
     breaker = CircuitBreaker.load_state(BREAKER_STATE_PATH) or CircuitBreaker(
@@ -722,7 +722,7 @@ def process_sources(
                 # bounded — it must never raise into or stall the capture
                 # loop that has to run for a month.
                 try:
-                    from centinel.core.connectivity import diagnose_and_record
+                    from vigil.core.connectivity import diagnose_and_record
 
                     diagnose_and_record(
                         endpoint,
@@ -786,7 +786,7 @@ def process_sources(
             # EN: CNE schema validation before persisting — detects poisoned responses or API
             #     changes. CENTINEL_STRICT_VALIDATION=1 rejects; default warns only.
             try:
-                from centinel.core.normalize import validate_cne_response as _validate_cne
+                from vigil.core.normalize import validate_cne_response as _validate_cne
                 _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
                 if isinstance(_raw_for_validation, dict):
                     _cne_errors = _validate_cne(_raw_for_validation, source_id)

@@ -70,11 +70,11 @@ def slugify(name):
 
 def get_departments():
     """Return list of (cne_code, slug) for the selected country."""
-    # Try to load from centinel.countries (repo is checked out)
+    # Try to load from vigil.countries (repo is checked out)
     try:
         repo_root = Path(__file__).resolve().parent.parent.parent
         sys.path.insert(0, str(repo_root / "src"))
-        from centinel.countries import LATAM_COUNTRIES
+        from vigil.countries import LATAM_COUNTRIES
         preset = LATAM_COUNTRIES.get(COUNTRY)
         if preset:
             cne_map = preset.build_cne_map()

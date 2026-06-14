@@ -4,7 +4,7 @@ Wizard step: write country config, generate endpoints/sources, and
 produce web/data/departments.json for the UI panels.
 
 Called by setup-wizard.yml with CENTINEL_COUNTRY env var set.
-Reads src/centinel/countries.py as the single source of truth.
+Reads src/vigil/countries.py as the single source of truth.
 """
 import json
 import os
@@ -29,7 +29,7 @@ sys.path.insert(0, str(repo_root / "src"))
 
 preset = None
 try:
-    from centinel.countries import LATAM_COUNTRIES
+    from vigil.countries import LATAM_COUNTRIES
     preset = LATAM_COUNTRIES.get(COUNTRY)
     if preset:
         print(f"✓ Loaded preset for {COUNTRY}: {preset.name} ({len(preset.divisions)} divisions)")

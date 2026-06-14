@@ -47,7 +47,7 @@ sys.path.insert(0, str(repo_root / "src"))
 
 preset = None
 try:
-    from centinel.countries import LATAM_COUNTRIES
+    from vigil.countries import LATAM_COUNTRIES
     preset = LATAM_COUNTRIES.get(COUNTRY)
     if preset:
         print(f"✓ Preset cargado: {preset.name} ({len(preset.divisions)} divisiones)")
@@ -86,7 +86,7 @@ def _probe(url: str, timeout: int = TIMEOUT) -> bool:
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "CENTINEL-Electoral-Auditor/1.0 (audit@centinel.app)",
+                "User-Agent": "CENTINEL-Electoral-Auditor/1.0 (audit@vigil.app)",
                 "Accept":     "application/json",
             },
         )

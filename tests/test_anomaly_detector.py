@@ -5,7 +5,7 @@ ES: Pruebas para el módulo de Detección de Anomalías.
 """
 
 import pytest
-from centinel.core.anomaly_detector import AnomalyDetector, detect_anomalies
+from vigil.core.anomaly_detector import AnomalyDetector, detect_anomalies
 
 
 class TestAnomalyDetectorBenford:

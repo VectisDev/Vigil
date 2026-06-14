@@ -31,7 +31,7 @@ Notes:
 
 import logging
 
-from centinel.proxy_handler import ProxyInfo, ProxyRotator
+from vigil.proxy_handler import ProxyInfo, ProxyRotator
 
 
 def test_proxy_rotator_falls_back_to_direct_after_failures() -> None:

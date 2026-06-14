@@ -46,8 +46,8 @@ import json
 from pathlib import Path
 
 from scripts import hash as hash_script
-from centinel.core.hashchain import compute_hash
-from centinel.core.custody import generate_operator_keypair
+from vigil.core.hashchain import compute_hash
+from vigil.core.custody import generate_operator_keypair
 
 
 def test_compute_hash_matches_sha256_for_single_payload():

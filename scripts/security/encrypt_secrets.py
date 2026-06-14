@@ -73,7 +73,7 @@ from dotenv import load_dotenv
 
 from scripts.logging_utils import configure_logging, log_event
 
-logger = configure_logging("centinel.security", log_file="logs/centinel.log")
+logger = configure_logging("vigil.security", log_file="logs/vigil.log")
 
 DEFAULT_ENV_PATHS = (
     Path(".env"),

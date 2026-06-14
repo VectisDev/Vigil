@@ -83,8 +83,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from centinel.paths import iter_all_hashes
-from centinel.core.hashchain import compute_hash
+from vigil.paths import iter_all_hashes
+from vigil.core.hashchain import compute_hash
 
 
 @dataclass
@@ -180,7 +180,7 @@ def _validate_hash_dir(hashes_dir: Path, data_dir: Path) -> ValidationResult:
     if not entries:
         return ValidationResult(ok=False, error_snapshot="sin_hashes")
 
-    from centinel.paths import SNAPSHOTS_SUBDIR
+    from vigil.paths import SNAPSHOTS_SUBDIR
 
     previous_hash: str | None = None
     for entry in entries:

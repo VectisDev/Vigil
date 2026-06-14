@@ -346,7 +346,7 @@ def main() -> None:
     # Load country preset to get the validated election minimum
     try:
         sys.path.insert(0, str(REPO_ROOT / "src"))
-        from centinel.countries import get_country_preset as _get_preset  # type: ignore
+        from vigil.countries import get_country_preset as _get_preset  # type: ignore
 
         _preset = _get_preset(new_country)
         _election_min = _preset.election_interval_seconds

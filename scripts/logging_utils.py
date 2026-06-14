@@ -80,7 +80,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from centinel_engine.config_loader import load_config
 
-from centinel.defense import logger as core_logger
+from vigil.defense import logger as core_logger
 
 SENSITIVE_FIELDS = {
     "votos",
@@ -240,7 +240,7 @@ def _load_security_settings() -> dict[str, Any]:
 
 def configure_logging(logger_name: str, log_file: str | None = None, level: int | None = None) -> logging.Logger:
     """/** Configura logging seguro con rotación y salida JSONL. / Configure secure logging with rotation and JSONL output. **/"""
-    log_path = log_file or os.getenv("LOG_FILE", "logs/centinel.jsonl")
+    log_path = log_file or os.getenv("LOG_FILE", "logs/vigil.jsonl")
     log_level = level or getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
 
     logger = logging.getLogger(logger_name)

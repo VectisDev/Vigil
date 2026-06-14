@@ -84,11 +84,11 @@ from typing import Any
 
 import yaml
 
-from centinel.paths import iter_all_hashes, SNAPSHOTS_SUBDIR
+from vigil.paths import iter_all_hashes, SNAPSHOTS_SUBDIR
 from scripts.logging_utils import configure_logging, log_event
-from centinel.core.hashchain import compute_hash
+from vigil.core.hashchain import compute_hash
 
-logger = configure_logging("centinel.bootstrap", log_file="logs/centinel.log")
+logger = configure_logging("vigil.bootstrap", log_file="logs/vigil.log")
 
 COMMAND_CENTER_DIR = Path("command_center")
 CONFIG_TEMPLATE_PATH = COMMAND_CENTER_DIR / "config.yaml.example"

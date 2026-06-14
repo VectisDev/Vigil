@@ -65,7 +65,7 @@ from pathlib import Path
 from typing import Any, Deque, Optional
 
 
-_LOGGER = logging.getLogger("centinel.circuit_breaker")
+_LOGGER = logging.getLogger("vigil.circuit_breaker")
 
 _STATE_SECRET_FILENAME = ".circuit_breaker_secret"
 

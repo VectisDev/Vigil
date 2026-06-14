@@ -72,8 +72,8 @@ from pathlib import Path
 
 import psutil
 
-from centinel.defense.advanced_security import AlertManager
-from centinel.defense.security import SecurityConfig, send_admin_alert
+from vigil.defense.advanced_security import AlertManager
+from vigil.defense.security import SecurityConfig, send_admin_alert
 
 DEFAULT_COMMAND = [sys.executable, "scripts/run_pipeline.py"]
 CONFIG_PATH = Path("command_center/security_config.yaml")
@@ -171,7 +171,7 @@ def main() -> int:
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     command = args.command or DEFAULT_COMMAND
-    return run_supervisor(command, logging.getLogger("centinel.supervisor"))
+    return run_supervisor(command, logging.getLogger("vigil.supervisor"))
 
 
 if __name__ == "__main__":

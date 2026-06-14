@@ -103,37 +103,37 @@ def _install_stub_modules() -> None:
         sl.get_logger = lambda *a, **kw: _logging.getLogger("centinel")  # type: ignore[attr-defined]
         sys.modules["structlog"] = sl
 
-    # centinel.download stub (write_atomic)
+    # vigil.download stub (write_atomic)
     try:
-        import centinel.download  # noqa: F401
+        import vigil.download  # noqa: F401
     except ImportError:
         import importlib.machinery as _imm
-        import centinel as _c
-        cd = types.ModuleType("centinel.download")
-        cd.__spec__ = _imm.ModuleSpec("centinel.download", None)  # type: ignore[attr-defined]
+        import vigil as _c
+        cd = types.ModuleType("vigil.download")
+        cd.__spec__ = _imm.ModuleSpec("vigil.download", None)  # type: ignore[attr-defined]
         def _write_atomic(path: object, data: object, **kw: object) -> None:
             import pathlib, json as _json
             p = pathlib.Path(str(path))
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(_json.dumps(data) if not isinstance(data, str) else data)
         cd.write_atomic = _write_atomic  # type: ignore[attr-defined]
-        sys.modules["centinel.download"] = cd
+        sys.modules["vigil.download"] = cd
         setattr(_c, "download", cd)
 
-    # centinel.defense / centinel.core stubs -- only for modules that
+    # vigil.defense / vigil.core stubs -- only for modules that
     # fail to import for real (e.g. partial forks missing these files).
     import importlib.machinery as _imm
     for _mod_name in (
-        "centinel.defense",
-        "centinel.defense.logger",
-        "centinel.defense.security",
-        "centinel.defense.attack_logger",
-        "centinel.defense.fetcher",
-        "centinel.defense.hasher",
-        "centinel.defense.security_utils",
-        "centinel.core.custody",
-        "centinel.core.connectivity",
-        "centinel.core.normalize",
+        "vigil.defense",
+        "vigil.defense.logger",
+        "vigil.defense.security",
+        "vigil.defense.attack_logger",
+        "vigil.defense.fetcher",
+        "vigil.defense.hasher",
+        "vigil.defense.security_utils",
+        "vigil.core.custody",
+        "vigil.core.connectivity",
+        "vigil.core.normalize",
     ):
         if _mod_name in sys.modules:
             continue
@@ -158,7 +158,7 @@ def _install_stub_modules() -> None:
             setattr(_m, _attr, lambda *a, **kw: None)  # type: ignore[misc]
         sys.modules[_mod_name] = _m
 
-    # centinel.paths: provided by real src/centinel/paths.py on PYTHONPATH
+    # vigil.paths: provided by real src/centinel/paths.py on PYTHONPATH
 
 _install_stub_modules()
 
@@ -169,7 +169,7 @@ import pytest
 import responses
 import yaml
 
-from centinel.downloader import load_retry_config
+from vigil.downloader import load_retry_config
 
 
 @pytest.fixture()
@@ -261,7 +261,7 @@ def watchdog_config_path(tmp_path: Path) -> Path:
         "data_dir": str(tmp_path / "data"),
         "heartbeat_path": str(tmp_path / "data" / "heartbeat.json"),
         "state_path": str(tmp_path / "data" / "watchdog_state.json"),
-        "log_path": str(tmp_path / "logs" / "centinel.log"),
+        "log_path": str(tmp_path / "logs" / "vigil.log"),
         "lock_files": [str(tmp_path / "data" / "temp" / "pipeline.lock")],
     }
     config_path = tmp_path / "watchdog.yaml"
@@ -324,7 +324,7 @@ def kwargs_logger() -> logging.Logger:
     """
     prev_class = logging.getLoggerClass()
     logging.setLoggerClass(_KwargsLogger)
-    logger = logging.getLogger("centinel.test.proxy")
+    logger = logging.getLogger("vigil.test.proxy")
     logging.setLoggerClass(prev_class)
     logger.setLevel(logging.DEBUG)
     return logger

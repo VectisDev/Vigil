@@ -29,7 +29,7 @@ Notes:
 - Prioritize operational clarity and behavior traceability.
 """
 
-from centinel.core.anchoring_payload import build_diff_summary
+from vigil.core.anchoring_payload import build_diff_summary
 
 
 def test_build_diff_summary_previous_none_returns_no_changes() -> None:

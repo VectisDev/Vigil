@@ -34,9 +34,9 @@ Notes:
 import csv
 import json
 
-from centinel.core.hashchain import compute_hash
-from centinel.core.normalize import normalize_snapshot, snapshot_to_canonical_json
-from centinel.core.storage import LocalSnapshotStore
+from vigil.core.hashchain import compute_hash
+from vigil.core.normalize import normalize_snapshot, snapshot_to_canonical_json
+from vigil.core.storage import LocalSnapshotStore
 
 
 def test_store_snapshot_creates_index(tmp_path):

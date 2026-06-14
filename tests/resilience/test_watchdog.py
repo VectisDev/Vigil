@@ -72,7 +72,7 @@ def test_watchdog_heartbeat_miss_triggers_failure_and_recovery_log(
     assert "heartbeat_stale" in reason
 
     state: dict[str, object] = {"failures": {}}
-    logger = logging.getLogger("centinel.watchdog.test")
+    logger = logging.getLogger("vigil.watchdog.test")
 
     with caplog.at_level(logging.INFO):
         watchdog._record_failures({"heartbeat": reason}, state, logger)
@@ -138,7 +138,7 @@ def test_watchdog_handle_failure_invokes_restart_hooks(
     monkeypatch.setattr(watchdog, "_terminate_pipeline", fake_terminate)
     monkeypatch.setattr(watchdog, "_start_pipeline", fake_start)
 
-    logger = logging.getLogger("centinel.watchdog.test")
+    logger = logging.getLogger("vigil.watchdog.test")
     watchdog._handle_failure(config, ["heartbeat:stale"], logger)
 
     assert calls["alert"] == 1

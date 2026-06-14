@@ -45,7 +45,7 @@ from typing import List
 import httpx
 import pytest
 
-from centinel import proxy_handler
+from vigil import proxy_handler
 
 
 @dataclass

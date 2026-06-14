@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from centinel.anchor.opentimestamps_client import (
+from vigil.anchor.opentimestamps_client import (
     MultichainAnchor,
     OpenTimestampsClient,
     TimestampProof,
@@ -213,7 +213,7 @@ class TestMultichainAnchor:
         assert anchor.testnet is False
         assert anchor.ots_client is not None
 
-    @patch("centinel.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
+    @patch("vigil.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
     def test_anchor_checkpoint_success(self, mock_stamp):
         """Anchor checkpoint successfully."""
         proof = TimestampProof(
@@ -236,7 +236,7 @@ class TestMultichainAnchor:
         assert result["ots_proof"] == "proof"
         assert result["anchor_chain"] == "bitcoin"
 
-    @patch("centinel.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
+    @patch("vigil.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
     def test_anchor_checkpoint_no_merkle(self, mock_stamp):
         """Anchor checkpoint without merkle root."""
         checkpoint = {"timestamp": "2026-05-16T00:00:00Z"}
@@ -248,7 +248,7 @@ class TestMultichainAnchor:
         assert "bitcoin_tx" not in result
         assert mock_stamp.call_count == 0
 
-    @patch("centinel.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
+    @patch("vigil.anchor.opentimestamps_client.OpenTimestampsClient.stamp")
     def test_anchor_checkpoint_ots_fails(self, mock_stamp):
         """Anchor checkpoint when OTS fails (no fallback configured)."""
         checkpoint = {

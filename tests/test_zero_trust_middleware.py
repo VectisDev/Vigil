@@ -44,7 +44,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
-from centinel.api.middleware import ZeroTrustMiddleware, _is_production_environment
+from vigil.api.middleware import ZeroTrustMiddleware, _is_production_environment
 
 
 def test_is_production_environment_true(monkeypatch):
@@ -63,11 +63,11 @@ def test_is_production_environment_false(monkeypatch):
 def test_warn_when_zero_trust_disabled_in_production(monkeypatch, caplog):
     monkeypatch.setenv("ENV", "prod")
     monkeypatch.setattr(
-        "centinel.api.middleware._load_security_config", lambda: {"zero_trust": False}
+        "vigil.api.middleware._load_security_config", lambda: {"zero_trust": False}
     )
 
     app = FastAPI()
-    with caplog.at_level(logging.WARNING, logger="centinel.middleware"):
+    with caplog.at_level(logging.WARNING, logger="vigil.middleware"):
         ZeroTrustMiddleware(app)
 
     assert "zero_trust_disabled_in_production" in caplog.text
@@ -75,7 +75,7 @@ def test_warn_when_zero_trust_disabled_in_production(monkeypatch, caplog):
 
 def test_ignores_forwarded_for_when_proxy_not_trusted(monkeypatch, caplog):
     monkeypatch.setattr(
-        "centinel.api.middleware._load_security_config",
+        "vigil.api.middleware._load_security_config",
         lambda: {
             "zero_trust": True,
             "zero_trust_config": {
@@ -93,7 +93,7 @@ def test_ignores_forwarded_for_when_proxy_not_trusted(monkeypatch, caplog):
     app.add_middleware(ZeroTrustMiddleware)
     client = TestClient(app)
 
-    with caplog.at_level(logging.WARNING, logger="centinel.middleware"):
+    with caplog.at_level(logging.WARNING, logger="vigil.middleware"):
         response = client.get("/whoami", headers={"x-forwarded-for": "203.0.113.88"})
     assert response.status_code == 200
     assert "zero_trust_untrusted_proxy_ignored" in caplog.text
@@ -101,7 +101,7 @@ def test_ignores_forwarded_for_when_proxy_not_trusted(monkeypatch, caplog):
 
 def test_rejects_invalid_content_length(monkeypatch):
     monkeypatch.setattr(
-        "centinel.api.middleware._load_security_config",
+        "vigil.api.middleware._load_security_config",
         lambda: {
             "zero_trust": True,
             "zero_trust_config": {},

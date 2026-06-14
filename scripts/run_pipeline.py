@@ -30,16 +30,16 @@ from typing import Any
 
 import requests
 
-from centinel.anchor.opentimestamps_client import MultichainAnchor
-from centinel.core.anchoring_payload import build_diff_summary, compute_anchor_root
-from centinel.core.custody import run_startup_verification
-from centinel.core.transparency import compute_merkle_root
-from centinel.defense import logger as core_logger
-from centinel.defense.advanced_security import load_manager
-from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
-from centinel.defense.security import DefensiveSecurityManager, SecurityConfig
-from centinel.paths import iter_all_hashes, iter_all_snapshots
-from centinel.utils.config_loader import load_config as load_pipeline_config
+from vigil.anchor.opentimestamps_client import MultichainAnchor
+from vigil.core.anchoring_payload import build_diff_summary, compute_anchor_root
+from vigil.core.custody import run_startup_verification
+from vigil.core.transparency import compute_merkle_root
+from vigil.defense import logger as core_logger
+from vigil.defense.advanced_security import load_manager
+from vigil.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
+from vigil.defense.security import DefensiveSecurityManager, SecurityConfig
+from vigil.paths import iter_all_hashes, iter_all_snapshots
+from vigil.utils.config_loader import load_config as load_pipeline_config
 from centinel_engine import proxy_manager, secure_backup, vital_signs
 from centinel_engine.config_loader import load_config as load_engine_config
 from centinel_engine.rate_limiter import get_rate_limiter
@@ -47,7 +47,7 @@ from centinel_engine.secure_backup import BackupScheduler
 from scripts.download_and_hash import is_master_switch_on, normalize_master_switch
 
 
-logger = logging.getLogger("centinel.pipeline")
+logger = logging.getLogger("vigil.pipeline")
 
 DATA_DIR = Path("data")
 TEMP_DIR = DATA_DIR / "temp"
@@ -737,7 +737,7 @@ def _publish_forensics(config: dict[str, Any], now: datetime, extra_meta: dict |
     Siempre no fatal: SQLite local + cadena de hashes son la fuente de verdad.
     """
     try:
-        from centinel.sync import forensics_publisher
+        from vigil.sync import forensics_publisher
 
         snapshots = iter_all_snapshots(data_root=DATA_DIR)
         if not snapshots:

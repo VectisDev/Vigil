@@ -31,7 +31,7 @@ from typing import Any, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
-    from centinel.core.rules import (
+    from vigil.core.rules import (
         benford_law_rule,
         benford_first_digit_rule,
         last_digit_uniformity_rule,

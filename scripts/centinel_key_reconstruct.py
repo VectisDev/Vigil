@@ -41,8 +41,8 @@ from pathlib import Path
 from typing import List
 
 try:
-    from centinel.core.crypto.centinel_shamir import combine_shares
-    from centinel.core.crypto.centinel_share_format import parse_share, ShareFormatError
+    from vigil.core.crypto.centinel_shamir import combine_shares
+    from vigil.core.crypto.centinel_share_format import parse_share, ShareFormatError
 except ModuleNotFoundError:
     from centinel_shamir import combine_shares  # type: ignore[no-redef]
     from centinel_share_format import parse_share, ShareFormatError  # type: ignore[no-redef]

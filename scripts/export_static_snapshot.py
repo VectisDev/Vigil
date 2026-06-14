@@ -151,7 +151,7 @@ def _build_endpoint_health(root: Path) -> dict:
     try:
         import sys as _sys
         _sys.path.insert(0, str(root / "src"))
-        from centinel.sync.forensics_publisher import build_endpoint_health_block
+        from vigil.sync.forensics_publisher import build_endpoint_health_block
         return build_endpoint_health_block(root / "config" / "prod" / "endpoints.yaml")
     except Exception:
         return empty

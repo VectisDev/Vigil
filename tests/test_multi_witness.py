@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from centinel.federation.multi_witness import (
+from vigil.federation.multi_witness import (
     ConsensusReport,
     FederationCoordinator,
     MerkleComparison,

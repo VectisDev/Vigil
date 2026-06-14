@@ -25,7 +25,7 @@ classifiers = [
   "Natural Language :: English",
   "Natural Language :: Spanish"
 ]
-packages = [{ include = "centinel", from = "src" }]
+packages = [{ include = "vigil", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
@@ -96,7 +96,7 @@ skips = ["B101", "B110"]
 exclude = ["chaos_test.py", "scripts/chaos_test.py"]
 
 [tool.poetry.scripts]
-centinel = "centinel.cli:main"
+vigil = "vigil.cli:main"
 command-center = "command_center.main:main"
 watchdog-daemon = "scripts.watchdog_daemon:main"
 

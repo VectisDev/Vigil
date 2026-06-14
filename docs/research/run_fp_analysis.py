@@ -9,8 +9,8 @@ import json, sys
 import numpy as np
 sys.path.insert(0, 'src')
 
-from centinel.core.rules.benford_unified import benford_canonical, benford_experimental_first_digit
-from centinel.core.rules.zscore_unified import zscore_proportion, zscore_empirical
+from vigil.core.rules.benford_unified import benford_canonical, benford_experimental_first_digit
+from vigil.core.rules.zscore_unified import zscore_proportion, zscore_empirical
 
 rng = np.random.default_rng(seed=2025)
 N = 500

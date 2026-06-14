@@ -74,7 +74,7 @@ from typing import Any
 
 from centinel_engine.config_loader import load_config
 
-logger = logging.getLogger("centinel.summarize")
+logger = logging.getLogger("vigil.summarize")
 
 
 def _configure_logging() -> None:

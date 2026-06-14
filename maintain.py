@@ -103,7 +103,7 @@ import yaml
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 
-from src.centinel.checkpointing import CheckpointConfig, CheckpointManager
+from src.vigil.checkpointing import CheckpointConfig, CheckpointManager
 from src.monitoring.strict_health import (
     get_recent_health_diagnostics,
     is_healthy_strict,

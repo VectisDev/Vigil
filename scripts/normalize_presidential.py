@@ -56,7 +56,7 @@ import logging
 import re
 from pathlib import Path
 
-from centinel.paths import iter_all_snapshots
+from vigil.paths import iter_all_snapshots
 from scripts.logging_utils import configure_logging, log_event
 
 INPUT_DIR = Path("data")

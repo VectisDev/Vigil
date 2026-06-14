@@ -53,7 +53,7 @@ def _build_country_departments() -> tuple[list[str], dict[str, str]]:
         _src = os.path.join(os.path.dirname(__file__), "..", "src")
         if _src not in sys.path:
             sys.path.insert(0, _src)
-        from centinel.countries import get_country_preset
+        from vigil.countries import get_country_preset
         import unicodedata
 
         country_code = os.environ.get("CENTINEL_COUNTRY", "HN")

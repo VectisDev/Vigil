@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from centinel.sync import forensics_publisher as fp
+from vigil.sync import forensics_publisher as fp
 
 
 def _cne_snapshot(inconsistentes: str, votos: dict[str, str]) -> dict:

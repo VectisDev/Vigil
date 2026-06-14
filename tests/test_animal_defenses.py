@@ -4,7 +4,7 @@ Tests for Animal Defenses
 """
 
 import pytest
-from centinel.core.animal_defenses import AnimalDefense, DefenseStatus, ALL_DEFENSES
+from vigil.core.animal_defenses import AnimalDefense, DefenseStatus, ALL_DEFENSES
 
 
 class TestAnimalDefenseEnum:

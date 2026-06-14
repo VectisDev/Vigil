@@ -41,8 +41,8 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from centinel.core.rules.registry import RuleDefinition, _RULE_REGISTRY
-from centinel.core.rules_engine import RulesEngine
+from vigil.core.rules.registry import RuleDefinition, _RULE_REGISTRY
+from vigil.core.rules_engine import RulesEngine
 
 
 def _make_rule_def(tag: str, bucket: List[str]) -> RuleDefinition:
@@ -79,7 +79,7 @@ def test_engine_respects_global_enabled(monkeypatch):
     """
     called: List[str] = []
     monkeypatch.setattr(
-        "centinel.core.rules_engine.list_rules",
+        "vigil.core.rules_engine.list_rules",
         lambda: [_make_rule_def("dummy", called)],
     )
 
@@ -98,7 +98,7 @@ def test_engine_filters_enabled_rules(monkeypatch):
     """
     called: List[str] = []
     monkeypatch.setattr(
-        "centinel.core.rules_engine.list_rules",
+        "vigil.core.rules_engine.list_rules",
         lambda: [
             _make_rule_def("alpha", called),
             _make_rule_def("beta", called),
@@ -129,7 +129,7 @@ def test_all_rules_enabled_by_default(monkeypatch):
     """
     called: List[str] = []
     monkeypatch.setattr(
-        "centinel.core.rules_engine.list_rules",
+        "vigil.core.rules_engine.list_rules",
         lambda: [
             _make_rule_def("turnout_impossible", called),
         ],
@@ -148,7 +148,7 @@ def test_all_legacy_rules_registered():
     English:
         Verify that all 21 rules (13 original + 7 legacy + 1 forensic) are registered.
     """
-    from centinel.core import rules_engine  # noqa: F401 — triggers imports
+    from vigil.core import rules_engine  # noqa: F401 — triggers imports
 
     registered_keys = {r.config_key for r in _RULE_REGISTRY}
 
@@ -195,7 +195,7 @@ def test_research_rules_disabled_by_default(monkeypatch):
     """
     called: List[str] = []
     monkeypatch.setattr(
-        "centinel.core.rules_engine.list_rules",
+        "vigil.core.rules_engine.list_rules",
         lambda: [
             _make_rule_def("basic_diff", called),
             _make_rule_def("turnout_impossible", called),
@@ -217,7 +217,7 @@ def test_research_rules_enabled_with_flag(monkeypatch):
     """
     called: List[str] = []
     monkeypatch.setattr(
-        "centinel.core.rules_engine.list_rules",
+        "vigil.core.rules_engine.list_rules",
         lambda: [
             _make_rule_def("basic_diff", called),
             _make_rule_def("turnout_impossible", called),

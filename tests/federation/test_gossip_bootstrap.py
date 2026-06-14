@@ -8,7 +8,7 @@ import socket
 
 import pytest
 
-from centinel.federation import gossip
+from vigil.federation import gossip
 
 
 def test_bootstrap_from_mdns_returns_list_with_default_env(monkeypatch):

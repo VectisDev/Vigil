@@ -14,7 +14,7 @@ from datetime import datetime
 
 import pytest
 
-from centinel.core.auto_audit import AutoAudit, AuditReport, HealthCheckResult
+from vigil.core.auto_audit import AutoAudit, AuditReport, HealthCheckResult
 
 
 class TestAutoAuditBasics:

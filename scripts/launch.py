@@ -98,7 +98,7 @@ def _ensure_deps() -> Path:
 
     _run(str(vpy), "-m", "pip", "install", "--quiet", "-r", str(req_file))
 
-    # Install the package itself in editable mode so `centinel.*` is importable
+    # Install the package itself in editable mode so `vigil.*` is importable
     _run(str(vpy), "-m", "pip", "install", "--quiet", "-e", str(REPO_ROOT))
 
     marker.touch()
@@ -115,7 +115,7 @@ def _start_server(python: Path) -> subprocess.Popen:
 
     cmd = [
         str(python), "-m", "uvicorn",
-        "centinel.api.main:app",
+        "vigil.api.main:app",
         "--host", HOST,
         "--port", str(PORT),
         "--log-level", "warning",

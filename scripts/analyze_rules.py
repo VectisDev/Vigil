@@ -84,13 +84,13 @@ import unicodedata
 from pathlib import Path
 from typing import Any, Optional
 
-from centinel.paths import iter_all_snapshots
+from vigil.paths import iter_all_snapshots
 
 import yaml
 
-from centinel.core.rules.common import extract_candidate_votes, extract_total_votes
-from centinel.core.rules_engine import RulesEngine
-from centinel.utils.config_loader import CONFIG_PATH, load_config
+from vigil.core.rules.common import extract_candidate_votes, extract_total_votes
+from vigil.core.rules_engine import RulesEngine
+from vigil.utils.config_loader import CONFIG_PATH, load_config
 
 ANALYSIS_DIR = Path("analysis")
 

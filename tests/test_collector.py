@@ -163,9 +163,9 @@ def test_run_collection_writes_report(tmp_path: Path, monkeypatch):
         def mark_failure(self, _proxy, _reason):
             return None
 
-    # collector imports get_proxy_rotator lazily from centinel.proxy_handler;
+    # collector imports get_proxy_rotator lazily from vigil.proxy_handler;
     # patch it at the source so the lazy import picks up the fake.
-    monkeypatch.setattr("centinel.proxy_handler.get_proxy_rotator", lambda _logger: _Rotator())
+    monkeypatch.setattr("vigil.proxy_handler.get_proxy_rotator", lambda _logger: _Rotator())
 
     code = collector.run_collection(config_path=config_path, retry_path=retry_path)
 

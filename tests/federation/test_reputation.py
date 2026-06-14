@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from centinel.federation.reputation import (
+from vigil.federation.reputation import (
     ReputationEngine,
     NodeReputation,
     _RING1_SCORE,

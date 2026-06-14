@@ -61,8 +61,8 @@ from typing import List
 # Dual-mode imports: package (installed) or standalone (air-gapped ceremony).
 # Importaciones dual-mode: paquete (instalado) o standalone (ceremonia air-gapped).
 try:
-    from centinel.core.crypto.centinel_shamir import split_secret
-    from centinel.core.crypto.centinel_share_format import serialize_share
+    from vigil.core.crypto.centinel_shamir import split_secret
+    from vigil.core.crypto.centinel_share_format import serialize_share
 except ModuleNotFoundError:
     # Air-gapped mode: run from same directory as the crypto modules.
     # Modo air-gapped: ejecutar desde el mismo directorio que los módulos.
