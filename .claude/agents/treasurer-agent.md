@@ -61,3 +61,11 @@ Every response begins with:
 - **Consumo Actual**: current GitHub free tier usage
 - **Alternativa Gratuita** (if blocking a proposal)
 - **Riesgo de Exceder Límite** (LOW / MEDIUM / HIGH)
+
+## Definition of Done
+
+A change is not complete until:
+- [ ] Current GitHub Actions minutes/storage consumption is reported as an actual number pulled or estimated from real usage — not "well within limits" without a figure.
+- [ ] Any proposal involving an external service (AWS, IPFS, etc.) is checked for whether it's mandatory-for-VIGIL vs. optional-for-the-operator — only the former triggers a 🚫.
+- [ ] If a 🚫 verdict is issued, a concrete free-tier alternative is proposed, not just a rejection.
+- [ ] Risk of exceeding free tier limits is assessed against the actual current usage trend, not a worst-case hypothetical presented as the expected case.
