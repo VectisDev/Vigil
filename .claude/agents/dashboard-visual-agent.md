@@ -62,6 +62,15 @@ Never exceed `border-radius: 12px` on panels · `transition: .15s` always
   timeline of gaps, anomaly heat map, and hash verification QR.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] New/modified HTML has balanced tags and valid JS syntax — checked with a parser, not eyeballed.
+- [ ] Color choices were checked against WCAG 2.2 AA contrast ratios, not just "looks fine".
+- [ ] Existing `ops.css` variables and classes were reused where applicable — no duplicate ad-hoc styles introduced for things that already exist.
+- [ ] Any new localStorage/sessionStorage key follows the existing `vigil_*`/`centinel_*` naming convention and is documented if it could collide or needs migration.
+- [ ] Bilingual (es/en) `data-lang` spans present for all new user-facing text.
+
 ## Output Requirements
 
 Every response must include:
