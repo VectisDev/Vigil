@@ -1010,3 +1010,139 @@ function onAuditSearch(val){
   _sdTimer=setTimeout(renderAuditTrail,150);
 }
 
+
+// ══════════════════════════════════════════════════════════
+// MIRROR EXTERNO OPCIONAL — AMAZON S3 (Costo Cero no aplica aquí)
+// VIGIL no requiere ni gestiona AWS. Esta es una opción del operador,
+// desactivada por defecto, con doble confirmación informada antes de
+// activarse: 1) abrir el panel de configuración, 2) aceptar el modal
+// de costo/responsabilidad explícitamente.
+// ══════════════════════════════════════════════════════════
+
+let awsMirrorEnabled = false;
+
+function _loadAwsState(){
+  try{
+    const raw = localStorage.getItem('vigil_aws_mirror');
+    if(raw){
+      const st = JSON.parse(raw);
+      awsMirrorEnabled = !!st.enabled;
+      if(st.bucket){
+        const b = document.getElementById('inp-aws-bucket');
+        if(b) b.value = st.bucket;
+      }
+      if(st.region){
+        const r = document.getElementById('inp-aws-region');
+        if(r) r.value = st.region;
+      }
+    }
+  }catch(_){}
+  _syncAwsBtn();
+}
+
+function _syncAwsBtn(){
+  const badge = document.getElementById('aws-status-badge');
+  const hint  = document.getElementById('aws-enabled-hint');
+  if(badge){
+    badge.className = awsMirrorEnabled ? 'badge badge-ok' : 'badge badge-neutral';
+    badge.innerHTML = awsMirrorEnabled
+      ? '<span data-lang="es">Activo</span><span data-lang="en">Active</span>'
+      : '<span data-lang="es">Desactivado</span><span data-lang="en">Disabled</span>';
+  }
+  if(hint){
+    hint.style.display = awsMirrorEnabled ? '' : 'none';
+    hint.textContent = awsMirrorEnabled
+      ? (currentLang==='en' ? '✓ S3 mirror enabled — billing applies to your AWS account' : '✓ Mirror S3 activo — la facturación aplica a tu cuenta de AWS')
+      : '';
+  }
+}
+
+// Step 1: just expand/collapse the config panel — no commitment yet
+function onAwsToggle(){
+  const panel = document.getElementById('aws-config-panel');
+  if(!panel) return;
+  const opening = panel.style.display === 'none';
+  panel.style.display = opening ? 'block' : 'none';
+  const btn = document.getElementById('btn-aws-toggle');
+  if(btn){
+    btn.innerHTML = opening
+      ? '<span data-lang="es">Ocultar</span><span data-lang="en">Hide</span>'
+      : '<span data-lang="es">Configurar</span><span data-lang="en">Configure</span>';
+  }
+}
+
+// Step 2: open the informed-consent modal — nothing is enabled yet
+function requestAwsEnable(){
+  const bucket = document.getElementById('inp-aws-bucket')?.value?.trim() || '';
+  const region = document.getElementById('inp-aws-region')?.value?.trim() || '';
+  const err = document.getElementById('aws-err');
+  if(err) err.textContent = '';
+  if(!bucket || !region){
+    if(err) err.textContent = (currentLang==='en')
+      ? 'Enter a bucket name and AWS region first.'
+      : 'Ingresa primero el nombre del bucket y la región de AWS.';
+    return;
+  }
+  document.getElementById('aws-accept-chk').checked = false;
+  updateAwsBtn();
+  document.getElementById('aws-modal').classList.add('open');
+}
+
+function updateAwsBtn(){
+  const btn = document.getElementById('aws-confirm-btn');
+  if(btn) btn.disabled = !document.getElementById('aws-accept-chk').checked;
+}
+
+function closeAwsModal(){
+  document.getElementById('aws-modal').classList.remove('open');
+}
+
+// Step 3: explicit confirm — only now is the (local) preference recorded.
+// This NEVER touches AWS credentials and NEVER makes a request to AWS.
+// It only records the operator's informed choice + bucket/region for
+// reference by the operator's own deployment scripts (which read
+// AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY from THEIR fork's GitHub Secrets).
+function executeAwsEnable(){
+  const bucket = document.getElementById('inp-aws-bucket')?.value?.trim() || '';
+  const region = document.getElementById('inp-aws-region')?.value?.trim() || '';
+  const now = new Date().toISOString();
+
+  awsMirrorEnabled = true;
+  try{
+    localStorage.setItem('vigil_aws_mirror', JSON.stringify({
+      enabled: true, bucket, region, acceptedAt: now
+    }));
+  }catch(_){}
+
+  closeAwsModal();
+  _syncAwsBtn();
+  auditLog('mirror S3 opcional activado', `bucket=${bucket} region=${region} (facturación: cuenta AWS del operador)`);
+
+  const msgs = (currentLang==='en')
+    ? [
+        '✓ S3 mirror preference saved locally',
+        `✓ Bucket: ${bucket} (${region})`,
+        '✓ Remember: configure AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY as GitHub Secrets in your fork',
+        '✓ Billing applies to your own AWS account — VIGIL remains Zero Cost',
+      ]
+    : [
+        '✓ Preferencia de mirror S3 guardada localmente',
+        `✓ Bucket: ${bucket} (${region})`,
+        '✓ Recuerda: configura AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY como GitHub Secrets en tu fork',
+        '✓ La facturación aplica a tu propia cuenta de AWS — VIGIL sigue siendo Costo Cero',
+      ];
+  showResultModal(msgs, false);
+}
+
+// Allow disabling without any modal — turning it off never needs confirmation
+function disableAwsMirror(){
+  awsMirrorEnabled = false;
+  try{
+    const raw = localStorage.getItem('vigil_aws_mirror');
+    const st = raw ? JSON.parse(raw) : {};
+    st.enabled = false;
+    localStorage.setItem('vigil_aws_mirror', JSON.stringify(st));
+  }catch(_){}
+  _syncAwsBtn();
+  auditLog('mirror S3 opcional desactivado', '');
+}
