@@ -105,6 +105,7 @@ def _install_stub_modules() -> None:
         setattr(_c, "download", cd)
 
     # centinel.defense package stub (logger)
+    import importlib.machinery as _imm
     for _mod_name in (
         "centinel.defense",
         "centinel.defense.logger",
