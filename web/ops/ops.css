@@ -410,9 +410,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
   transform:none;font-size:11px;line-height:1.65;z-index:1001}
 
 /* ── DIFF MODAL ── */
-#diff-modal,#pat-modal,#result-modal,#unlock-modal{display:none;position:fixed;inset:0;z-index:500;
+#diff-modal,#pat-modal,#result-modal,#unlock-modal,#aws-modal{display:none;position:fixed;inset:0;z-index:500;
   align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
-#diff-modal.open,#pat-modal.open,#result-modal.open,#unlock-modal.open{display:flex}
+#diff-modal.open,#pat-modal.open,#result-modal.open,#unlock-modal.open,#aws-modal.open{display:flex}
 .unlock-bar{display:flex;align-items:center;gap:14px;padding:14px 18px;
   background:rgba(223,107,134,.06);border:1px solid rgba(223,107,134,.25);
   border-radius:10px;margin-bottom:20px}
