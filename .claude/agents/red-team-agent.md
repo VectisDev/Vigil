@@ -72,6 +72,14 @@ Goal: publish a paper proving VIGIL generates systematic false positives.
   system — fixed salt, public hash oracle in access.json.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Each of the 3 attacker perspectives (state actor, grant reviewer, forensic mathematician) was genuinely applied — not all findings attributed to one perspective by default.
+- [ ] Every "Critical Finding" includes a concrete reproduction path or argument an adversary could actually make, not a hypothetical category.
+- [ ] Findings are checked against what has ALREADY been fixed in this session/repo — don't re-report resolved issues as open.
+- [ ] "Fixes Required Before Release" are technically feasible within Zero Cost / current architecture — don't recommend fixes that violate other agents' non-negotiables without flagging the conflict.
+
 ## Output Requirements
 
 Every response must include:
