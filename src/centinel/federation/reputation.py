@@ -344,6 +344,7 @@ class ReputationEngine:
             prev_ring = rep.ring
             rep._pending_outage_beta = 0.0  # outage β is not reversed; betrayal overrides
             rep.beta += _BETA_BETRAYAL
+            rep._invalidate_trust_cache()
             rep.betrayal_count += 1
             rep.last_updated_utc = now
             rep._refresh_ring(self._ring0)
