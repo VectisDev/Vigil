@@ -57,6 +57,14 @@ before the team is ready to go public.
   identifying information that could expose contributors prematurely.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Any document destined for external sharing was actually scanned for names, emails, file paths, or commit metadata that could deanonymize contributors — not assumed clean.
+- [ ] If recommending opsec measures (proton emails, VPN, etc.), confirm whether they're already in place vs. aspirational — don't present a wishlist as current state.
+- [ ] git history / commit author fields checked for leakage when relevant (coordinate with user-privacy-agent's grep pattern).
+- [ ] Residual risk is stated even when mitigations are strong — "zero risk" is never an acceptable conclusion.
+
 ## Output Requirements
 
 Every response must include:
