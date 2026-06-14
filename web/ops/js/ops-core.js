@@ -340,6 +340,7 @@ function refreshOpsLang(){
   try{ if(DEPTS && DEPTS.length) buildDeptGrid(); }catch(e){}
   try{ _syncOtsBtn(); }catch(e){}
   try{ loadOtsStatus(); }catch(e){}
+  try{ _loadAwsState(); }catch(e){}
   try{ renderLog(); }catch(e){}
   try{ renderAttackLog(); }catch(e){}
   try{ renderAuditTrail(); }catch(e){}
