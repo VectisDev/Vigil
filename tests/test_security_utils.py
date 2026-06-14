@@ -55,14 +55,14 @@ def test_pin_dns_resolution_does_not_monkeypatch_global_getaddrinfo(
     original = socket.getaddrinfo
 
     def _fake_getaddrinfo(host, port, *args, **kwargs):
-        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("203.0.113.42", port))]
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
 
     monkeypatch.setattr(socket, "getaddrinfo", _fake_getaddrinfo)
     target = OutboundTarget(
         url="https://webhook.example.com/notify",
         host="webhook.example.com",
         port=443,
-        resolved_ips=frozenset({"203.0.113.42"}),
+        resolved_ips=frozenset({"93.184.216.34"}),
     )
 
     with pin_dns_resolution(target):
