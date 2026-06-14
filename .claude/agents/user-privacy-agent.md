@@ -116,6 +116,13 @@ grep -rE "\b[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b" \
   web/ops/ web/monitor/ && exit 1
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] The git author/commit metadata grep (see Automated Checks) was actually run on the relevant commits, not assumed clean.
+- [ ] Any artifact destined for public release (reports, dashboards, preprints) was checked for embedded metadata (PDF authorship, image EXIF) before being marked ready.
+- [ ] Residual Privacy Risk is non-empty even for "clean" results — name what couldn't be fully mitigated.
+
 ## Output Requirements
 
 Every response must include:
