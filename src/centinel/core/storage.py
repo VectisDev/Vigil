@@ -122,11 +122,7 @@ class LocalSnapshotStore:
         except (json.JSONDecodeError, TypeError) as exc:
             raise ValueError(f"canonical_json generation produced invalid JSON: {exc}") from exc
         snapshot_hash = compute_hash(canonical_json, previous_hash=previous_hash)
-        tx_hash = None
-        # tx_hash = publish_hash_to_chain() — REMOVED (Zero Cost)
-    tx_hash = None  # OTS handles anchoring: centinel.core.anchoring
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("blockchain_publish_failed error=%s", exc)
+        tx_hash = None  # OTS handles anchoring: centinel.core.anchoring (Zero Cost)
         department_code = snapshot.meta.department_code
         table_name = self._department_table_name(department_code)
         self._ensure_department_table(table_name)
@@ -155,7 +151,7 @@ class LocalSnapshotStore:
                     candidates_json,
                     tx_hash
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,  # nosec B608 - validated by _assert_safe_identifier.
                 (
                     snapshot.meta.timestamp_utc,
@@ -181,7 +177,7 @@ class LocalSnapshotStore:
                     previous_hash,
                     tx_hash
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     department_code,
@@ -261,7 +257,6 @@ class LocalSnapshotStore:
                     "previous_hash": row["previous_hash"],
                     "snapshot": snapshot_data,
                     "tx_hash": row["tx_hash"],
-                                        "": row[""],
                 }
             )
         Path(output_path).write_text(json.dumps(payload, ensure_ascii=False, indent=2))
@@ -293,7 +288,6 @@ class LocalSnapshotStore:
             "candidates_json",
             "canonical_json",
             "tx_hash",
-            "",
         ]
         with Path(output_path).open("w", newline="", encoding="utf-8") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -346,12 +340,11 @@ class LocalSnapshotStore:
                 table_name TEXT NOT NULL,
                 hash TEXT NOT NULL,
                 previous_hash TEXT,
-                tx_hash TEXT TEXT TEXT,
+                tx_hash TEXT,
                 PRIMARY KEY (department_code, timestamp_utc)
             )
             """)
         self._ensure_column("snapshot_index", "tx_hash", "TEXT")
-        self._ensure_column("snapshot_index", "", "TEXT")
 
     def _ensure_department_table(self, table_name: str) -> None:
         """Crea la tabla de snapshots de un departamento si falta.
@@ -377,7 +370,7 @@ class LocalSnapshotStore:
                 null_votes INTEGER NOT NULL,
                 blank_votes INTEGER NOT NULL,
                 candidates_json TEXT NOT NULL,
-                tx_hash TEXT TEXT TEXT
+                tx_hash TEXT
             )
             """,  # nosec B608 - validated by _assert_safe_identifier.
         )
@@ -387,7 +380,6 @@ class LocalSnapshotStore:
             f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table_name}(timestamp_utc)"  # nosec B608 - validated by _assert_safe_identifier.
         )
         self._ensure_column(table_name, "tx_hash", "TEXT")
-        self._ensure_column(table_name, "", "TEXT")
 
     _TABLE_NAME_RE = re.compile(r"^[A-Za-z0-9_]+$")
 
