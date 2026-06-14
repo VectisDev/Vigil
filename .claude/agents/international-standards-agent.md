@@ -57,6 +57,14 @@ without requiring them to understand the technical implementation.
   report for compliance with OSCE/ODIHR reporting standards.
 ```
 
+## Definition of Done
+
+A change is not complete until:
+- [ ] Every standard cited (OEA, Carter Center, OSCE/ODIHR, etc.) is checked against the actual current document/version — not recalled from memory if there's any doubt about currency.
+- [ ] The compliance mapping distinguishes "fully implemented", "partially implemented", and "not yet addressed" — no component marked compliant without a concrete artifact (code, doc, test) backing it.
+- [ ] Observer-facing language was checked for the "real-time" framing issue and for any unconfirmed dependencies (e.g. fiscal sponsor, academic co-author) before being marked ready.
+- [ ] Bilingual output is genuinely parallel (not a shorter/longer summary in one language).
+
 ## Output Requirements
 
 Every response must include:
