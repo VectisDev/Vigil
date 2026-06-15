@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CENTINEL — Despliegue en GitHub</title>
+<title>VIGIL — Despliegue en GitHub</title>
 <style>
 :root {
   --bg:#0f1115; --panel:#15171c; --panel2:#1a1d23;
@@ -120,7 +120,7 @@ input::placeholder{color:var(--muted);}
 
 <!-- ── 1. Bienvenida ── -->
 <div class="screen active" id="s1">
-  <div class="logo">CENTINEL — Despliegue automático</div>
+  <div class="logo">VIGIL — Despliegue automático</div>
   <h1>Vigilancia electoral en 5 minutos</h1>
   <p class="sub">Sin instalar nada. Todo queda en tu cuenta de GitHub.</p>
   <div class="dots">
@@ -150,7 +150,7 @@ input::placeholder{color:var(--muted);}
 
 <!-- ── 2. Token GitHub ── -->
 <div class="screen" id="s2">
-  <div class="logo">CENTINEL — Paso 1 de 4</div>
+  <div class="logo">VIGIL — Paso 1 de 4</div>
   <h1>Conectar tu cuenta de GitHub</h1>
   <p class="sub">Necesitamos un token para crear el repositorio en tu cuenta.</p>
   <div class="dots">
@@ -164,7 +164,7 @@ input::placeholder{color:var(--muted);}
       autocomplete="off" spellcheck="false">
     <div class="hint" style="margin-top:-10px;margin-bottom:16px;">
       Necesitas permisos: <strong>repo</strong> y <strong>workflow</strong>.
-      <a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Centinel+Deploy" target="_blank">
+      <a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Vigil+Deploy" target="_blank">
         Crear token <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg>
       </a>
     </div>
@@ -180,7 +180,7 @@ input::placeholder{color:var(--muted);}
 
 <!-- ── 3. País + Configuración ── -->
 <div class="screen" id="s3">
-  <div class="logo">CENTINEL — Paso 2 de 4</div>
+  <div class="logo">VIGIL — Paso 2 de 4</div>
   <h1>Configura tu nodo</h1>
   <p class="sub">Elige el país y el nombre del repositorio de datos.</p>
   <div class="dots">
@@ -234,7 +234,7 @@ input::placeholder{color:var(--muted);}
 
 <!-- ── 4. Despliegue ── -->
 <div class="screen" id="s4">
-  <div class="logo">CENTINEL — Paso 3 de 4</div>
+  <div class="logo">VIGIL — Paso 3 de 4</div>
   <h1>Desplegando en GitHub</h1>
   <p class="sub">Creando tu repositorio de datos y configurando los workflows…</p>
   <div class="dots">
@@ -256,7 +256,7 @@ input::placeholder{color:var(--muted);}
 
 <!-- ── 5. Seeds PDF ── -->
 <div class="screen" id="s5">
-  <div class="logo">CENTINEL — Paso 4 de 4</div>
+  <div class="logo">VIGIL — Paso 4 de 4</div>
   <h1>Descarga tus seeds de acceso</h1>
   <p class="sub">Son las llaves del panel de administración. Guárdalas en un lugar seguro.</p>
   <div class="dots">
@@ -288,7 +288,7 @@ input::placeholder{color:var(--muted);}
 
 <!-- ── 6. Listo ── -->
 <div class="screen" id="s6">
-  <div class="logo">CENTINEL — ¡Listo!</div>
+  <div class="logo">VIGIL — ¡Listo!</div>
   <h1>Tu nodo está activo</h1>
   <p class="sub">GitHub Actions comenzará a monitorear el CNE en los próximos 15 minutos.</p>
   <div class="dots">
@@ -469,7 +469,7 @@ async function createRepo() {
     const endpoint = isOrg ? `/orgs/${owner}/repos` : '/user/repos';
     await gh('POST', endpoint, {
       name: STATE.repo,
-      description: 'Centinel — Auditoría electoral automatizada ' + STATE.country + ' ' + STATE.year,
+      description: 'VIGIL — Auditoría electoral automatizada ' + STATE.country + ' ' + STATE.year,
       private: false,
       auto_init: true,
     });
@@ -536,7 +536,7 @@ jobs:
       - name: Checkout Centinel Engine
         uses: actions/checkout@v4
         with:
-          repository: VectisDev/centinel
+          repository: VectisDev/vigil
           path: _engine
           ref: main
 
@@ -619,7 +619,7 @@ async function pushDashboard() {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Centinel — ${STATE.country} ${STATE.year}</title>
+<title>VIGIL — ${STATE.country} ${STATE.year}</title>
 <style>
 :root{--bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;--muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -647,7 +647,7 @@ footer a{color:var(--accent);}
 <body>
 <div style="max-width:800px;margin:0 auto;">
   <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">
-    CENTINEL — AUDITORÍA ELECTORAL AUTÓNOMA
+    VIGIL — AUDITORÍA ELECTORAL AUTÓNOMA
   </div>
   <h1>Panel de Transparencia · ${STATE.country} ${STATE.year}</h1>
   <p class="sub">Datos descargados del CNE y verificados con hash chain SHA-256.</p>
@@ -661,7 +661,7 @@ footer a{color:var(--accent);}
   </div>
   <footer style="margin-top:32px;">
     Datos: <a href="${raw}" target="_blank">snapshot.json</a> ·
-    Motor: <a href="https://github.com/VectisDev/centinel" target="_blank">VectisDev/centinel</a> ·
+    Motor: <a href="https://github.com/VectisDev/vigil" target="_blank">VectisDev/vigil</a> ·
     Datos: <a href="https://github.com/${STATE.owner||STATE.user}/${STATE.repo}" target="_blank">${STATE.owner||STATE.user}/${STATE.repo}</a>
   </footer>
 </div>
@@ -868,7 +868,7 @@ async function downloadPDF() {
   doc.setFillColor(15,17,21);
   doc.rect(0,0,W,50,'F');
   doc.setTextColor(255,255,255);
-  doc.text('CENTINEL — SEEDS DE ACCESO', M, y+10);
+  doc.text('VIGIL — SEEDS DE ACCESO', M, y+10);
   doc.setFontSize(10);
   doc.setFont('helvetica','normal');
   doc.setTextColor(139,146,156);
