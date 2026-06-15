@@ -441,22 +441,22 @@ footer a { color: var(--accent); text-decoration: none; }
 
 <!-- ── VIGIL NAV (estandarizado, una fila) ── -->
 <div id="vigil-titlebar">
-  <span id="vigil-title"><a href="../">VIGIL</a><span class="vigil-sep">/</span><span>Monitor</span></span>
-  <span id="last-update">Actualizando…</span>
+  <span id="vigil-title"><a href="../">VIGIL</a><span class="vigil-sep">/</span><span data-i18n="nav_monitor">Monitor</span></span>
+  <span id="last-update" data-i18n="status_updating">Actualizando…</span>
   <button id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema / Toggle theme">
     <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
     <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
   <button id="lang-toggle" onclick="toggleLang()" title="Cambiar idioma / Switch language">EN</button>
-  <button id="customize-btn" onclick="toggleDrawer()" data-gtt="Muestra u oculta secciones del panel. Tus preferencias se guardan en el navegador."><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Personalizar</button>
+  <button id="customize-btn" onclick="toggleDrawer()" data-gtt="Muestra u oculta secciones del panel. Tus preferencias se guardan en el navegador." data-i18n="customize_btn" data-i18n-attr="data-gtt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="customize_label">Personalizar</span></button>
 </div>
 <!-- ── STATUS CARDS ROW ── -->
 <div id="status-row">
-  <div id="alert-badge" class="status-card sc-ok" data-gtt="Estado general del sistema de auditoría. NORMAL = sin anomalías detectadas en el último ciclo."><span class="dot dot-ok"></span>SISTEMA NORMAL</div>
-  <div id="chain-badge" class="status-card sc-ok" data-gtt="Integridad de la cadena SHA-256. Cada snapshot está enlazado criptográficamente al anterior. Si un dato fue alterado, la cadena se rompe aquí."><span class="dot dot-ok"></span>CADENA ÍNTEGRA</div>
-  <div id="ots-badge" class="status-card sc-warn" data-gtt="Estado del anclaje a Bitcoin vía OpenTimestamps (OTS). VERIFICANDO = el timestamp fue enviado y está esperando confirmación en la blockchain (~1h)."><span class="dot dot-warn"></span>OTS VERIFICANDO</div>
-  <div id="mirror-badge" class="status-card sc-ok" data-gtt="Espejos de respaldo activos. Si GitHub Pages cae, los datos siguen disponibles en nodos alternativos."><span class="dot dot-ok"></span>ESPEJOS —</div>
-  <div id="ep-national-badge" class="status-card sc-ok" hidden data-gtt="Estado del endpoint nacional del CNE. Verde = responde. Rojo = sin datos, tiempo de blackout registrado con hash."><span class="dot dot-ok"></span>CNE —</div>
+  <div id="alert-badge" class="status-card sc-ok" data-gtt="Estado general del sistema de auditoría. NORMAL = sin anomalías detectadas en el último ciclo." data-i18n="sc_normal_tip" data-i18n-attr="data-gtt"><span class="dot dot-ok"></span><span data-i18n="sc_normal_label">SISTEMA NORMAL</span></div>
+  <div id="chain-badge" class="status-card sc-ok" data-gtt="Integridad de la cadena SHA-256. Cada snapshot está enlazado criptográficamente al anterior. Si un dato fue alterado, la cadena se rompe aquí." data-i18n="sc_chain_tip" data-i18n-attr="data-gtt"><span class="dot dot-ok"></span><span data-i18n="sc_chain_label">CADENA ÍNTEGRA</span></div>
+  <div id="ots-badge" class="status-card sc-warn" data-gtt="Estado del anclaje a Bitcoin vía OpenTimestamps (OTS). VERIFICANDO = el timestamp fue enviado y está esperando confirmación en la blockchain (~1h)." data-i18n="sc_ots_tip" data-i18n-attr="data-gtt"><span class="dot dot-warn"></span><span data-i18n="sc_ots_label">OTS VERIFICANDO</span></div>
+  <div id="mirror-badge" class="status-card sc-ok" data-gtt="Espejos de respaldo activos. Si GitHub Pages cae, los datos siguen disponibles en nodos alternativos." data-i18n="sc_mirror_tip" data-i18n-attr="data-gtt"><span class="dot dot-ok"></span><span data-i18n="sc_mirror_label">ESPEJOS —</span></div>
+  <div id="ep-national-badge" class="status-card sc-ok" hidden data-gtt="Estado del endpoint nacional del CNE. Verde = responde. Rojo = sin datos, tiempo de blackout registrado con hash." data-i18n="sc_cne_tip" data-i18n-attr="data-gtt"><span class="dot dot-ok"></span>CNE —</div>
 </div>
 <!-- ── OPS LINE ── -->
 <!-- ── GLOBAL TOOLTIP ── -->
@@ -464,7 +464,7 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── CUSTOMIZE DRAWER ── -->
 <div id="customize-drawer">
   <button id="drawer-close" onclick="toggleDrawer()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <h3>Personalizar panel</h3>
+  <h3 data-i18n="drawer_title">Personalizar panel</h3>
   <div id="drawer-items"></div>
 </div>
 
@@ -473,66 +473,66 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── KPIs ── -->
 <div class="grid4">
   <div class="card" id="kpi-actas">
-    <h2>Registros divulgados (JSON CNE)</h2>
+    <h2><h2 data-i18n="kpi_actas_h">Registros divulgados (JSON CNE)</h2>
     <div class="kpi-val" id="v-actas">—</div>
-    <div class="kpi-label" id="l-actas" data-tip-key="kpi-registros">de — registros totales</div>
+    <div class="kpi-label" id="l-actas" data-tip-key="kpi-registros" data-i18n="kpi_actas_label">de — registros totales</div>
     <div class="progress-bar"><div class="progress-fill" id="prog-actas" style="width:0%"></div></div>
   </div>
   <div class="card">
-    <h2>Total votos</h2>
+    <h2><h2 data-i18n="kpi_votos_h">Total votos</h2>
     <div class="kpi-val" id="v-votos">—</div>
-    <div class="kpi-label" data-tip-key="kpi-votos">votos contabilizados</div>
+    <div class="kpi-label" data-tip-key="kpi-votos"><div data-i18n="kpi_votos_label">votos contabilizados</div>
   </div>
   <div class="card">
-    <h2>Participación</h2>
+    <h2><h2 data-i18n="kpi_part_h">Participación</h2>
     <div class="kpi-val" id="v-part">—</div>
-    <div class="kpi-label" id="l-part" data-tip-key="kpi-participacion">del padrón electoral</div>
+    <div class="kpi-label" id="l-part" data-tip-key="kpi-participacion" data-i18n="kpi_part_label">del padrón electoral</div>
   </div>
   <div class="card" id="kpi-int">
-    <h2>Integridad</h2>
+    <h2><h2 data-i18n="kpi_int_h">Integridad</h2>
     <div class="kpi-val" id="v-int">—</div>
-    <div class="kpi-label" data-tip-key="kpi-integridad">cadena criptográfica</div>
+    <div class="kpi-label" data-tip-key="kpi-integridad"><div data-i18n="kpi_int_label">cadena criptográfica</div>
   </div>
 </div>
 
 <!-- ── VENTAJA DEL LÍDER ── -->
 <div class="card" data-section="margin">
-  <h2>Ventaja del candidato líder</h2>
+  <h2><h2 data-i18n="margin_h">Ventaja del candidato líder</h2>
   <div style="display:flex;align-items:center;gap:40px;flex-wrap:wrap;padding:4px 0">
     <div>
       <div class="kpi-val" id="v-margin-leader" style="font-size:26px">—</div>
-      <div class="kpi-label">candidato líder</div>
+      <div class="kpi-label"><div data-i18n="margin_leader_label">candidato líder</div>
     </div>
     <div>
       <div class="kpi-val" id="v-margin-pct" style="font-size:26px">—</div>
-      <div class="kpi-label">ventaja sobre el 2°</div>
+      <div class="kpi-label"><div data-i18n="margin_pct_label">ventaja sobre el 2°</div>
     </div>
     <div>
       <div class="kpi-val" id="v-margin-votes" style="font-size:26px">—</div>
-      <div class="kpi-label">votos de diferencia</div>
+      <div class="kpi-label"><div data-i18n="margin_votes_label">votos de diferencia</div>
     </div>
   </div>
 </div>
 
 <!-- ── REGISTROS INCONSISTENTES BAJO MICROSCOPIO ── -->
 <div class="card" id="incons-card" data-section="incons">
-  <h2 id="incons-title">Registros inconsistentes — bajo vigilancia permanente</h2>
+  <h2 id="incons-title" data-i18n="incons_title">Registros inconsistentes — bajo vigilancia permanente</h2>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:18px;align-items:end">
     <div>
       <div class="kpi-val" id="v-incons" style="font-size:42px">—</div>
-      <div class="kpi-label">registros inconsistentes</div>
+      <div class="kpi-label"><div data-i18n="incons_total_label">registros inconsistentes</div>
     </div>
     <div>
       <div class="kpi-val" id="v-incons-pct" style="font-size:42px">—</div>
-      <div class="kpi-label">del total divulgado</div>
+      <div class="kpi-label"><div data-i18n="incons_pct_label">del total divulgado</div>
     </div>
     <div>
       <div class="kpi-val" id="v-incons-trend" style="font-size:28px;font-weight:700">—</div>
-      <div class="kpi-label">tendencia desde el inicio</div>
+      <div class="kpi-label"><div data-i18n="incons_trend_label">tendencia desde el inicio</div>
     </div>
   </div>
   <canvas id="chart-incons" height="70"></canvas>
-  <div class="forensic-note" id="incons-note" style="margin-top:14px">
+  <div class="forensic-note" id="incons-note" style="margin-top:14px" data-i18n="incons_note">
     El motor comenzará a registrar en el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.
   </div>
 </div>
@@ -540,12 +540,12 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── CANDIDATOS + MAPA ── -->
 <div class="grid2" data-section="candidates">
   <div class="card">
-    <h2>Distribución de candidatos</h2>
+    <h2><h2 data-i18n="cand_dist_h">Distribución de candidatos</h2>
     <div id="cand-list"></div>
     <canvas id="chart-cand" height="180" style="margin-top:14px"></canvas>
   </div>
   <div class="card" id="map-wrap">
-    <h2>Estado por departamento</h2>
+    <h2><h2 data-i18n="map_status_h">Estado por departamento</h2>
     <div id="map-svg-wrap" style="position:relative;width:100%;max-width:480px;margin:0 auto">
       <div id="hn-map-container" style="width:100%"></div>
       <div id="map-tooltip" style="position:absolute;display:none;background:var(--panel);border:1px solid var(--border);
@@ -558,53 +558,53 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── PANEL LATERAL DEPARTAMENTO ── -->
 <div id="map-side">
   <button id="map-side-close"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <button id="map-side-back" class="back-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Volver</button>
+  <button id="map-side-back" class="back-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> <span data-i18n="back_label">Volver</span></button>
   <h2 id="side-title" style="font-size:18px;font-weight:700;margin-bottom:16px">—</h2>
   <div id="side-content"></div>
 </div>
 
 <!-- ── SERIE TEMPORAL ── -->
 <div class="card" data-section="timeline">
-  <h2>Progreso de registros en el tiempo</h2>
+  <h2><h2 data-i18n="timeline_h">Progreso de registros en el tiempo</h2>
   <canvas id="chart-timeline" height="120"></canvas>
 </div>
 
 <!-- ── BENFORD ── -->
 <div class="card" data-section="benford">
-  <h2>Ley de Benford — Primer dígito de votos</h2>
+  <h2><h2 data-i18n="benford_h">Ley de Benford — Primer dígito de votos</h2>
   <canvas id="chart-benford" height="140"></canvas>
-  <div id="benford-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
+  <div id="benford-stats" style="margin-top:10px;font-size:12px;color:var(--muted)" data-i18n="calculating">Calculando…</div>
 </div>
 
 <!-- ── ÚLTIMO DÍGITO ── -->
 <div class="card" data-section="lastdigit">
-  <h2>Distribución del último dígito</h2>
+  <h2><h2 data-i18n="lastdigit_h">Distribución del último dígito</h2>
   <canvas id="chart-lastdigit" height="140"></canvas>
-  <div id="lastdigit-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
+  <div id="lastdigit-stats" style="margin-top:10px;font-size:12px;color:var(--muted)" data-i18n="calculating">Calculando…</div>
 </div>
 
 <!-- ── Z-SCORE POR DEPARTAMENTO ── -->
 <div class="card" data-section="zscore">
-  <h2>Z-score por departamento</h2>
+  <h2><h2 data-i18n="zscore_h">Z-score por departamento</h2>
   <canvas id="chart-zscore" height="200"></canvas>
 </div>
 
 <!-- ── PARTICIPACIÓN POR DEPARTAMENTO ── -->
 <div class="card" data-section="participation">
-  <h2>Participación por departamento (%)</h2>
+  <h2><h2 data-i18n="participation_dept_h">Participación por departamento (%)</h2>
   <canvas id="chart-participation" height="200"></canvas>
 </div>
 
 <!-- ── NULOS Y BLANCOS POR DEPARTAMENTO ── -->
 <div class="card" data-section="nullblank">
-  <h2>Nulos y blancos por departamento</h2>
+  <h2><h2 data-i18n="nullblank_dept_h">Nulos y blancos por departamento</h2>
   <canvas id="chart-nullblank" height="200"></canvas>
 </div>
 
 <!-- ── ENDPOINTS CNE ── -->
 <div class="card" data-section="endpoints">
-  <h2>Estado endpoints CNE
-    <span class="info-tip" data-tooltip="Conectividad en tiempo real de los 19 endpoints del CNE (1 nacional + 18 departamentales). Verde = responde. Amarillo = degradado. Rojo = sin respuesta. El pipeline continúa aunque algún endpoint falle.">i</span>
+  <h2 data-i18n="endpoints_h">Estado endpoints CNE
+    <span class="info-tip" data-tooltip="Conectividad en tiempo real de los 19 endpoints del CNE (1 nacional + 18 departamentales). Verde = responde. Amarillo = degradado. Rojo = sin respuesta. El pipeline continúa aunque algún endpoint falle." data-i18n="endpoints_tip" data-i18n-attr="data-tooltip">i</span>
   </h2>
   <div id="ep-card-summary" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
   <div id="ep-card-grid"></div>
@@ -613,74 +613,74 @@ footer a { color: var(--accent); text-decoration: none; }
 
 <!-- ── ALERTAS ── -->
 <div class="card" id="alerts-card" data-section="alerts">
-  <h2>Alertas activas</h2>
+  <h2><h2 data-i18n="alerts_h">Alertas activas</h2>
   <table class="tbl">
-    <thead><tr><th>Hora</th><th>Depto</th><th>Severidad</th><th>Tipo</th><th>Descripción</th></tr></thead>
-    <tbody id="alerts-body"><tr><td colspan="5" style="color:var(--muted);text-align:center">Sin alertas registradas</td></tr></tbody>
+    <thead><tr><th data-i18n="th_hora">Hora</th><th data-i18n="th_depto">Depto</th><th data-i18n="th_severidad">Severidad</th><th data-i18n="th_tipo">Tipo</th><th data-i18n="th_descripcion">Descripción</th></tr></thead>
+    <tbody id="alerts-body"><tr><td colspan="5" data-i18n="no_alerts_registered" style="color:var(--muted);text-align:center">Sin alertas registradas</td></tr></tbody>
   </table>
 </div>
 
 <!-- ── DETECTORES FORENSES ── -->
 <div class="card" data-section="forensics">
-  <h2>Análisis forense en tiempo real</h2>
+  <h2><h2 data-i18n="forensics_h">Análisis forense en tiempo real</h2>
   <div id="forensic-list" style="display:grid;gap:12px"></div>
 </div>
 
 <!-- ── VELOCIDAD DE ESCRUTINIO ── -->
 <div class="card" data-section="velocity">
-  <h2>Velocidad de escrutinio (votos/minuto)</h2>
+  <h2><h2 data-i18n="velocity_h">Velocidad de escrutinio (votos/minuto)</h2>
   <canvas id="chart-velocity" height="140"></canvas>
-  <div id="velocity-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Tasa de ingreso de votos entre capturas consecutivas.</div>
+  <div id="velocity-note" data-i18n="velocity_note" style="margin-top:10px;font-size:12px;color:var(--muted)">Tasa de ingreso de votos entre capturas consecutivas.</div>
 </div>
 
 <!-- ── EVOLUCIÓN DEL LIDERAZGO ── -->
 <div class="card" data-section="leader">
-  <h2>Evolución del liderazgo</h2>
+  <h2><h2 data-i18n="leader_h">Evolución del liderazgo</h2>
   <canvas id="chart-leader" height="140"></canvas>
-  <div id="leader-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Porcentaje del candidato líder en cada captura.</div>
+  <div id="leader-note" data-i18n="leader_note" style="margin-top:10px;font-size:12px;color:var(--muted)">Porcentaje del candidato líder en cada captura.</div>
 </div>
 
 <!-- ── NULOS Y BLANCOS EN EL TIEMPO ── -->
 <div class="card" data-section="invalids">
-  <h2>Votos nulos y blancos en el tiempo (%)</h2>
+  <h2><h2 data-i18n="invalids_h">Votos nulos y blancos en el tiempo (%)</h2>
   <canvas id="chart-invalids" height="140"></canvas>
-  <div id="invalids-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Proporción de votos inválidos sobre el total de votos emitidos.</div>
+  <div id="invalids-note" data-i18n="invalids_note" style="margin-top:10px;font-size:12px;color:var(--muted)">Proporción de votos inválidos sobre el total de votos emitidos.</div>
 </div>
 
 <!-- ── PERFIL DE ANOMALÍAS ── -->
 <div class="card" data-section="anomaly-profile">
-  <h2>Perfil de anomalías detectadas</h2>
+  <h2><h2 data-i18n="anomaly_profile_h">Perfil de anomalías detectadas</h2>
   <canvas id="chart-anomaly-profile" height="200"></canvas>
-  <div id="anomaly-profile-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Distribución de alertas por categoría, ordenadas por frecuencia.</div>
+  <div id="anomaly-profile-note" data-i18n="anomaly_profile_note" style="margin-top:10px;font-size:12px;color:var(--muted)">Distribución de alertas por categoría, ordenadas por frecuencia.</div>
 </div>
 
 <!-- ── CADENA CRIPTOGRÁFICA ── -->
 <div class="card" data-section="chain">
-  <h2>Cadena criptográfica — últimos registros</h2>
+  <h2><h2 data-i18n="chain_h">Cadena criptográfica — últimos registros</h2>
   <table class="tbl" id="chain-table">
-    <thead><tr><th>#</th><th>Hash SHA-256</th><th>Capturado</th><th>Depto</th><th>OTS</th></tr></thead>
-    <tbody id="chain-body"><tr><td colspan="5" style="color:var(--muted);text-align:center">Cargando…</td></tr></tbody>
+    <thead><tr><th>#</th><th data-i18n="th_hash">Hash SHA-256</th><th data-i18n="th_capturado">Capturado</th><th>Depto</th><th>OTS</th></tr></thead>
+    <tbody id="chain-body"><tr><td colspan="5" data-i18n="loading" style="color:var(--muted);text-align:center">Cargando…</td></tr></tbody>
   </table>
   <div style="margin-top:14px">
-    <a href="../verifier/index.html" style="color:var(--accent);font-size:13px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg> Verificar cadena offline (sin servidor)</a>
+    <a href="../verifier/index.html" style="color:var(--accent);font-size:13px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg> <span data-i18n="verify_chain_link">Verificar cadena offline (sin servidor)</span></a>
   </div>
 </div>
 
 </main>
 
 <footer>
-  <div>Merkle root actual</div>
+  <div data-i18n="merkle_root_label">Merkle root actual</div>
   <div class="merkle-box">
     <span id="footer-merkle" style="font-size:11px">—</span>
-    <button class="copy-btn" onclick="copyMerkle()">Copiar</button>
-    <a id="ots-link" href="#" style="font-size:11px;color:var(--accent)">Ver prueba OTS ↗</a>
+    <button class="copy-btn" onclick="copyMerkle()" data-i18n="copy_label">Copiar</button>
+    <a id="ots-link" href="#" style="font-size:11px;color:var(--accent)"><span data-i18n="ots_proof_link">Ver prueba OTS ↗</span></a>
   </div>
   <div style="margin-top:16px">
-    CENTINEL Electoral Honduras — Datos bajo
+    <span data-i18n="footer_brand">VIGIL Electoral Honduras — Datos bajo</span>
     <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a> —
-    <a href="../verifier/index.html">Verificador independiente</a>
+    <a href="../verifier/index.html"><span data-i18n="footer_verifier_link">Verificador independiente</span></a>
     <!-- Mapa: @svg-maps/honduras (VictorCazanave/svg-maps), CC BY 4.0 -->
-    · Prueba de Inmutabilidad mediante OpenTimestamps (OTS) anclada a la red de Bitcoin.
+    <span data-i18n="footer_ots_note">· Prueba de Inmutabilidad mediante OpenTimestamps (OTS) anclada a la red de Bitcoin.</span>
   </div>
 </footer>
 <script>
@@ -1038,7 +1038,7 @@ function renderBenford(benford){
 // ── ALERTAS ──
 function renderAlerts(alerts){
   const body=document.getElementById('alerts-body');
-  if(!alerts||alerts.length===0){body.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center">Sin alertas activas</td></tr>';return;}
+  if(!alerts||alerts.length===0){body.innerHTML=`<tr><td colspan="5" style="color:var(--muted);text-align:center">${mLang('no_alerts_active')}</td></tr>`;return;}
   body.innerHTML=alerts.map(a=>`
     <tr>
       <td>${new Date(a.created_at).toLocaleTimeString('es-HN')}</td>
@@ -1246,14 +1246,14 @@ function renderInconsistentActs(forensics, national){
 // ── CADENA CRIPTOGRÁFICA ──
 function renderChain(records){
   const body=document.getElementById('chain-body');
-  if(!records||records.length===0){body.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center">Sin registros</td></tr>';return;}
+  if(!records||records.length===0){body.innerHTML=`<tr><td colspan="5" style="color:var(--muted);text-align:center">${mLang('no_records')}</td></tr>`;return;}
   body.innerHTML=records.map((r,i)=>`
     <tr>
       <td>${r.idx||r.chain_length||i+1}</td>
       <td title="${r.hash||r.chain_hash}">${truncHash(r.hash||r.chain_hash)}</td>
       <td>${new Date(r.captured_at).toLocaleString('es-HN')}</td>
       <td>${r.dept_code||'Nacional'}</td>
-      <td style="color:${r.ots==='confirmado'?'var(--ok)':'var(--warn)'}">${r.ots||'pendiente'}</td>
+      <td style="color:${r.ots==='confirmado'?'var(--ok)':'var(--warn)'}">${r.ots==='confirmado'?mLang('ots_confirmed'):mLang('ots_pending')}</td>
     </tr>`).join('');
 }
 
@@ -1334,8 +1334,8 @@ function _renderAll(data,snap){
     renderBenford(data.forensics.benford);
     renderForensics(data.forensics);
   }
-  if(data._alerts)renderAlerts(data._alerts);
-  if(data.chain_records)renderChain(data.chain_records);
+  if(data._alerts){window._lastAlerts=data._alerts;renderAlerts(data._alerts);}
+  if(data.chain_records){window._lastChainRecords=data.chain_records;renderChain(data.chain_records);}
   const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
   document.getElementById('footer-merkle').textContent=mr;
   if(data.forensics)renderLastDigit(data.forensics);
@@ -1468,7 +1468,7 @@ function renderAnomalyProfile(alerts){
   if(!el)return;
   if(!alerts||alerts.length===0){
     if(charts.anomalyProfile){charts.anomalyProfile.destroy();charts.anomalyProfile=null;}
-    if(note)note.textContent='Sin alertas registradas en este ciclo.';
+    if(note)note.textContent=mLang('no_alerts_cycle');
     return;
   }
   const sevOrder={LOW:1,MEDIUM:2,HIGH:3,CRITICAL:4};
@@ -1600,7 +1600,7 @@ async function downloadEvidenceBundle(){
     if(snap.forensics?.ots_proof){
       zip.file('ots_proof.json',JSON.stringify(snap.forensics.ots_proof,null,2));
     }
-    zip.file('VERIFY.txt',`CENTINEL — Instrucciones de Verificación / Verification Instructions
+    zip.file('VERIFY.txt',`VIGIL — Instrucciones de Verificación / Verification Instructions
 ======================================================================
 
 ES: Este paquete contiene evidencia criptográficamente verificable de monitoreo
@@ -1903,6 +1903,109 @@ function toggleTheme() {
 const savedTheme = localStorage.getItem('vigil-theme') || 'dark';
 setTheme(savedTheme);
 
+const MONITOR_I18N = {
+  nav_monitor:        ['Monitor','Monitor'],
+  status_updating:    ['Actualizando…','Updating…'],
+  customize_btn:      ['Muestra u oculta secciones del panel. Tus preferencias se guardan en el navegador.',
+                        'Shows or hides panel sections. Your preferences are saved in the browser.'],
+  customize_label:    ['Personalizar','Customize'],
+  drawer_title:       ['Personalizar panel','Customize panel'],
+  sc_normal_label:    ['SISTEMA NORMAL','SYSTEM NORMAL'],
+  sc_normal_tip:      ['Estado general del sistema de auditoría. NORMAL = sin anomalías detectadas en el último ciclo.',
+                        'Overall audit system status. NORMAL = no anomalies detected in the last cycle.'],
+  sc_chain_label:     ['CADENA ÍNTEGRA','CHAIN INTACT'],
+  sc_chain_tip:       ['Integridad de la cadena SHA-256. Cada snapshot está enlazado criptográficamente al anterior. Si un dato fue alterado, la cadena se rompe aquí.',
+                        'SHA-256 chain integrity. Each snapshot is cryptographically linked to the previous one. If data was altered, the chain breaks here.'],
+  sc_ots_label:       ['OTS VERIFICANDO','OTS VERIFYING'],
+  sc_ots_tip:         ['Estado del anclaje a Bitcoin vía OpenTimestamps (OTS). VERIFICANDO = el timestamp fue enviado y está esperando confirmación en la blockchain (~1h).',
+                        'Bitcoin anchoring status via OpenTimestamps (OTS). VERIFYING = the timestamp was submitted and is awaiting blockchain confirmation (~1h).'],
+  sc_mirror_label:    ['ESPEJOS —','MIRRORS —'],
+  sc_mirror_tip:      ['Espejos de respaldo activos. Si GitHub Pages cae, los datos siguen disponibles en nodos alternativos.',
+                        'Active backup mirrors. If GitHub Pages goes down, data remains available on alternate nodes.'],
+  sc_cne_tip:         ['Estado del endpoint nacional del CNE. Verde = responde. Rojo = sin datos, tiempo de blackout registrado con hash.',
+                        'CNE national endpoint status. Green = responding. Red = no data, blackout time logged with hash.'],
+  kpi_actas_h:        ['Registros divulgados (JSON CNE)','Records published (CNE JSON)'],
+  kpi_actas_label:    ['de — registros totales','of — total records'],
+  kpi_votos_h:        ['Total votos','Total votes'],
+  kpi_votos_label:    ['votos contabilizados','votes counted'],
+  kpi_part_h:         ['Participación','Turnout'],
+  kpi_part_label:     ['del padrón electoral','of registered voters'],
+  kpi_int_h:          ['Integridad','Integrity'],
+  kpi_int_label:      ['cadena criptográfica','cryptographic chain'],
+  margin_h:           ['Ventaja del candidato líder',"Leading candidate's margin"],
+  margin_leader_label:['candidato líder','leading candidate'],
+  margin_pct_label:   ['ventaja sobre el 2°','lead over 2nd place'],
+  margin_votes_label: ['votos de diferencia','vote difference'],
+  incons_title:       ['Registros inconsistentes — bajo vigilancia permanente','Inconsistent records — under permanent watch'],
+  incons_total_label: ['registros inconsistentes','inconsistent records'],
+  incons_pct_label:   ['del total divulgado','of total published'],
+  incons_trend_label: ['tendencia desde el inicio','trend since start'],
+  incons_note:        ['El motor comenzará a registrar en el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.',
+                        'The engine will begin logging on the first capture cycle. Any sustained growth is a warning signal.'],
+  cand_dist_h:        ['Distribución de candidatos','Candidate distribution'],
+  map_status_h:       ['Estado por departamento','Status by department'],
+  back_label:         ['Volver','Back'],
+  timeline_h:         ['Progreso de registros en el tiempo','Record progress over time'],
+  benford_h:          ['Ley de Benford — Primer dígito de votos',"Benford's Law — First digit of votes"],
+  lastdigit_h:        ['Distribución del último dígito','Last digit distribution'],
+  calculating:        ['Calculando…','Calculating…'],
+  zscore_h:           ['Z-score por departamento','Z-score by department'],
+  participation_dept_h: ['Participación por departamento (%)','Turnout by department (%)'],
+  nullblank_dept_h:   ['Nulos y blancos por departamento','Null/blank votes by department'],
+  endpoints_h:        ['Estado endpoints CNE','CNE endpoint status'],
+  endpoints_tip:      ['Conectividad en tiempo real de los 19 endpoints del CNE (1 nacional + 18 departamentales). Verde = responde. Amarillo = degradado. Rojo = sin respuesta. El pipeline continúa aunque algún endpoint falle.',
+                        'Real-time connectivity of the 19 CNE endpoints (1 national + 18 departmental). Green = responding. Yellow = degraded. Red = no response. The pipeline continues even if an endpoint fails.'],
+  alerts_h:           ['Alertas activas','Active alerts'],
+  th_hora:            ['Hora','Time'],
+  th_depto:           ['Depto','Dept.'],
+  th_severidad:       ['Severidad','Severity'],
+  th_tipo:            ['Tipo','Type'],
+  th_descripcion:     ['Descripción','Description'],
+  no_alerts_registered: ['Sin alertas registradas','No alerts logged'],
+  forensics_h:        ['Análisis forense en tiempo real','Real-time forensic analysis'],
+  velocity_h:         ['Velocidad de escrutinio (votos/minuto)','Counting speed (votes/minute)'],
+  velocity_note:      ['Tasa de ingreso de votos entre capturas consecutivas.','Rate of vote intake between consecutive captures.'],
+  leader_h:           ['Evolución del liderazgo','Leadership evolution'],
+  leader_note:        ['Porcentaje del candidato líder en cada captura.',"Leading candidate's percentage in each capture."],
+  invalids_h:         ['Votos nulos y blancos en el tiempo (%)','Null and blank votes over time (%)'],
+  invalids_note:      ['Proporción de votos inválidos sobre el total de votos emitidos.','Proportion of invalid votes over total votes cast.'],
+  anomaly_profile_h:  ['Perfil de anomalías detectadas','Detected anomaly profile'],
+  anomaly_profile_note: ['Distribución de alertas por categoría, ordenadas por frecuencia.','Distribution of alerts by category, ordered by frequency.'],
+  chain_h:            ['Cadena criptográfica — últimos registros','Cryptographic chain — latest records'],
+  th_hash:            ['Hash SHA-256','SHA-256 Hash'],
+  th_capturado:       ['Capturado','Captured'],
+  loading:            ['Cargando…','Loading…'],
+  verify_chain_link:  ['Verificar cadena offline (sin servidor)','Verify chain offline (no server)'],
+  merkle_root_label:  ['Merkle root actual','Current Merkle root'],
+  copy_label:         ['Copiar','Copy'],
+  ots_proof_link:     ['Ver prueba OTS ↗','View OTS proof ↗'],
+  footer_brand:       ['VIGIL Electoral Honduras — Datos bajo','VIGIL Electoral Honduras — Data under'],
+  footer_verifier_link: ['Verificador independiente','Independent verifier'],
+  footer_ots_note:    ['· Prueba de Inmutabilidad mediante OpenTimestamps (OTS) anclada a la red de Bitcoin.',
+                        '· Immutability proof via OpenTimestamps (OTS) anchored to the Bitcoin network.'],
+  no_alerts_active:   ['Sin alertas activas','No active alerts'],
+  no_records:         ['Sin registros','No records'],
+  no_alerts_cycle:    ['Sin alertas registradas en este ciclo.','No alerts logged in this cycle.'],
+  ots_pending:        ['pendiente','pending'],
+  ots_confirmed:      ['confirmado','confirmed'],
+};
+
+function applyMonitorI18n(lang){
+  const idx = lang==='en' ? 1 : 0;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.dataset.i18n, pair=MONITOR_I18N[key];
+    if(!pair)return;
+    if(el.dataset.i18nAttr) el.setAttribute(el.dataset.i18nAttr, pair[idx]);
+    else if(el.dataset.i18nHtml) el.innerHTML = pair[idx];
+    else el.textContent = pair[idx];
+  });
+  if(typeof renderAlerts==='function' && window._lastAlerts) renderAlerts(window._lastAlerts);
+  if(typeof renderChain==='function' && window._lastChainRecords) renderChain(window._lastChainRecords);
+}
+
+function currentMonitorLang(){ return document.documentElement.getAttribute('lang')==='en' ? 'en':'es'; }
+function mLang(key){ const pair=MONITOR_I18N[key]; return pair ? pair[currentMonitorLang()==='en'?1:0] : key; }
+
 /* ── VIGIL LANGUAGE TOGGLE ── */
 function setLang(l) {
   document.documentElement.setAttribute('lang', l);
@@ -1910,6 +2013,7 @@ function setLang(l) {
   document.body.classList.add('lang-' + l);
   document.getElementById('lang-toggle').textContent = l === 'en' ? 'ES' : 'EN';
   localStorage.setItem('vigil-lang', l);
+  applyMonitorI18n(l);
 }
 function toggleLang() {
   const current = localStorage.getItem('vigil-lang') || 'es';
