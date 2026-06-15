@@ -3,33 +3,41 @@ healing:
   safe_mode_active: false
   animal_mode: normal
 cne:
-  main_url: https://escrutinio.tse.gob.sv/api/presidencial/nacional
+  main_url: https://resultadosgenerales2025.cne.hn/api/presidencial/nacional
   presidential_endpoints:
     - department_code: 1
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/01
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/01
     - department_code: 2
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/02
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/02
     - department_code: 3
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/03
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/03
     - department_code: 4
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/04
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/04
     - department_code: 5
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/05
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/05
     - department_code: 6
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/06
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/06
     - department_code: 7
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/07
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/07
     - department_code: 8
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/08
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/08
     - department_code: 9
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/09
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/09
     - department_code: 10
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/10
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/10
     - department_code: 11
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/11
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/11
     - department_code: 12
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/12
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/12
     - department_code: 13
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/13
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/13
     - department_code: 14
-      url: https://escrutinio.tse.gob.sv/api/presidencial/departamento/14
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/14
+    - department_code: 15
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/15
+    - department_code: 16
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/16
+    - department_code: 17
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/17
+    - department_code: 18
+      url: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/18
