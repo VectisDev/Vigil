@@ -321,13 +321,22 @@ def kwargs_logger() -> logging.Logger:
 
     Created via the logging manager so it propagates to root and
     is captured by pytest's ``caplog`` fixture.
+    
+    CRITICAL FIX (dev-v12): Restore logging class after use to prevent
+    test isolation pollution. Previously, setLoggerClass() was called but
+    never reverted, causing all subsequent logging to use _KwargsLogger
+    even in tests that didn't use this fixture.
     """
     prev_class = logging.getLoggerClass()
     logging.setLoggerClass(_KwargsLogger)
-    logger = logging.getLogger("centinel.test.proxy")
-    logging.setLoggerClass(prev_class)
-    logger.setLevel(logging.DEBUG)
-    return logger
+    try:
+        logger = logging.getLogger("centinel.test.proxy")
+        logger.setLevel(logging.DEBUG)
+        yield logger
+    finally:
+        # CRITICAL: Restore original logger class to prevent
+        # contamination of subsequent tests.
+        logging.setLoggerClass(prev_class)
 
 
 @pytest.fixture()
