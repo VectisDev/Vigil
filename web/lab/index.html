@@ -735,11 +735,11 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- ══ SECTION 2 — CHARTS ════════════════════════════════════════════════════ -->
 <div id="charts-panel">
 <div class="section-title">
-  <button class="section-collapse-btn" id="btn-col-forense" onclick="toggleSection('forense')" title="Colapsar / expandir">
+  <button class="section-collapse-btn" id="btn-col-forense" onclick="toggleSection('forense')" title="Colapsar / expandir" data-i18n="collapse_tooltip" data-i18n-attr="title">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
   </button>
   <span data-i18n="forense_title">Panel de Visualización Forense</span>
-  <button class="section-dl" id="btn-pin-charts" onclick="togglePinCharts()" title="Fijar gráficos como panel lateral derecho">
+  <button class="section-dl" id="btn-pin-charts" onclick="togglePinCharts()" data-i18n="pin_tooltip" data-i18n-attr="title" title="Fijar gráficos como panel lateral derecho">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg><span class="pin-label">Fijar</span></button>
   <button class="section-dl" onclick="downloadPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
 </div>
@@ -814,10 +814,10 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- Forensic detector cards -->
 <div class="subsection-label" id="rules-grid-label">
-  <button class="section-collapse-btn" id="btn-col-rules" onclick="toggleSection('rules')" title="Colapsar / expandir" style="margin-right:4px">
+  <button class="section-collapse-btn" id="btn-col-rules" onclick="toggleSection('rules')" title="Colapsar / expandir" data-i18n="collapse_tooltip" data-i18n-attr="title" style="margin-right:4px">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
   </button>
-  Grid de Reglas Activas — Estado de Salud
+  <span data-i18n="rules_grid_title">Grid de Reglas Activas — Estado de Salud</span>
 </div>
 <div class="section-body" id="sec-body-rules">
 <div id="s-forensic-list" style="margin-bottom:14px"></div>
@@ -825,12 +825,13 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- Alerts table -->
 <div class="card" style="margin-bottom:14px">
-  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Tabla de Alertas</div>
-  <div id="alerts-empty" style="color:var(--muted);font-size:12px;padding:12px 0">Sin alertas activas</div>
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px" data-i18n="alerts_table_title">Tabla de Alertas</div>
+  <div id="alerts-empty" style="color:var(--muted);font-size:12px;padding:12px 0" data-i18n="alerts_empty">Sin alertas activas</div>
   <table class="alerts-tbl" id="alerts-table" style="display:none">
     <thead><tr>
-      <th>Tiempo</th><th>Tipo</th><th>Severidad</th><th>Descripción</th>
+      <th data-i18n="alerts_th_time">Tiempo</th><th data-i18n="alerts_th_type">Tipo</th><th data-i18n="alerts_th_sev">Severidad</th><th data-i18n="alerts_th_desc">Descripción</th>
     </tr></thead>
+
     <tbody id="alerts-tbody"></tbody>
   </table>
 </div>
@@ -839,22 +840,22 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- ══ SECTION 3 — THRESHOLDS ════════════════════════════════════════════════ -->
 <div class="section-title">
-  <button class="section-collapse-btn collapsed" id="btn-col-umbrales" onclick="toggleSection('umbrales')" title="Colapsar / expandir">
+  <button class="section-collapse-btn collapsed" id="btn-col-umbrales" onclick="toggleSection('umbrales')" title="Colapsar / expandir" data-i18n="collapse_tooltip" data-i18n-attr="title">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
   </button>
-  Umbrales de Sensibilidad de Reglas
+  <span data-i18n="thresh_section_title">Umbrales de Sensibilidad de Reglas</span>
   <button class="section-dl" onclick="downloadUmbralesPNG()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>PNG</button>
 </div>
 <div class="section-body collapsed" id="sec-body-umbrales">
 <div class="thresh-lock-panel">
-  <h4>Pre-registro de Hipótesis</h4>
-  <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
+  <h4 data-i18n="thresh_prereg_title">Pre-registro de Hipótesis</h4>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:8px" data-i18n="thresh_prereg_body">
     Registra tu hipótesis antes de ajustar los umbrales. Una vez bloqueada, no se puede modificar (previene p-hacking).
   </div>
-  <textarea id="thresh-prereg-text" placeholder="Hipótesis de investigación: ej. 'Si se reduce el umbral de Benford MAD a 0.005, el motor detectará la anomalía de ballot stuffing antes del snapshot 100 en la serie anómala.'"></textarea>
+  <textarea id="thresh-prereg-text" data-i18n="thresh_prereg_placeholder" data-i18n-attr="placeholder" placeholder="Hipótesis de investigación: ej. 'Si se reduce el umbral de Benford MAD a 0.005, el motor detectará la anomalía de ballot stuffing antes del snapshot 100 en la serie anómala.'"></textarea>
   <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
-    <button class="lock-btn" id="thresh-lock-btn" onclick="lockThresholds()">Bloquear hipótesis y habilitar sliders</button>
-    <button class="lock-btn" id="thresh-unlock-btn" onclick="unlockThresholds()" style="display:none;background:transparent;border-color:var(--muted);color:var(--muted)">Desbloquear y borrar hipótesis</button>
+    <button class="lock-btn" id="thresh-lock-btn" onclick="lockThresholds()" data-i18n="thresh_lock_btn">Bloquear hipótesis y habilitar sliders</button>
+    <button class="lock-btn" id="thresh-unlock-btn" onclick="unlockThresholds()" style="display:none;background:transparent;border-color:var(--muted);color:var(--muted)" data-i18n="thresh_unlock_btn">Desbloquear y borrar hipótesis</button>
     <span id="thresh-lock-stat"></span>
   </div>
 </div>
@@ -865,7 +866,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- ══ SECTION 4 — INJECTION MATRIX ══════════════════════════════════════════ -->
 <div class="section-title">
-  <button class="section-collapse-btn collapsed" id="btn-col-matriz" onclick="toggleSection('matriz')" title="Colapsar / expandir">
+  <button class="section-collapse-btn collapsed" id="btn-col-matriz" onclick="toggleSection('matriz')" title="Colapsar / expandir" data-i18n="collapse_tooltip" data-i18n-attr="title">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
   </button>
   <span data-i18n="inj_matrix_title">Matriz de Inyección de Eventos</span>
@@ -1151,13 +1152,13 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <button class="section-dl" onclick="downloadTelemTxt('attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SA Attack</button>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-engine')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Engine</button>
   <button class="section-dl" onclick="downloadTelemTxt('swarm-attack')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>SW Attack</button>
-  <button class="section-dl" id="btn-attack-sound" onclick="toggleAttackSound()" title="Activar/desactivar beep al detectar ataque" style="margin-left:6px">🔇 <span data-i18n="telem_sound">Sonido</span></button>
+  <button class="section-dl" id="btn-attack-sound" onclick="toggleAttackSound()" data-i18n="telem_sound_tooltip" data-i18n-attr="title" title="Activar/desactivar beep al detectar ataque" style="margin-left:6px">🔇 <span data-i18n="telem_sound">Sonido</span></button>
 </div>
 <div class="telem-wrap">
   <!-- ─ Row 1: Standalone ─ -->
   <div class="telem-row-label">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    Standalone
+    <span data-i18n="telem_standalone">Standalone</span>
   </div>
   <div class="telem-panel">
     <h4><span style="width:8px;height:8px;background:var(--ok);border-radius:50%;display:inline-block;flex-shrink:0"></span>Engine Telemetry</h4>
@@ -1170,7 +1171,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   <!-- ─ Row 2: Swarm ─ -->
   <div class="telem-row-label">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/><line x1="5" y1="17" x2="19" y2="17"/></svg>
-    Swarm
+    <span data-i18n="telem_swarm">Swarm</span>
     <span id="sw-telem-node-count" style="color:var(--purple);font-weight:700;font-style:normal;text-transform:none;letter-spacing:0">(6 nodos)</span>
   </div>
   <div class="telem-panel" style="border-color:rgba(176,140,240,.3)">
@@ -1730,6 +1731,106 @@ function evBreakpoint(id){return evMeta(id).breakpoint;}
 function evParamLabel(id){const m=evMeta(id);return m.param?m.param.label:(EVENTS[id].param?EVENTS[id].param.label:'');}
 
 const _LOG_FULL_EN = {
+  // ── Forensic Visualization Panel — chart titles, dataset labels, axes ──
+  'Votos por Partido': 'Votes by Party',
+  'Votos': 'Votes',
+  'votos': 'votes',
+  'Actas acumuladas': 'Accumulated tally sheets',
+  'Anomalías': 'Anomalies',
+  'Actas Acumuladas y Eventos Anómalos en el Tiempo': 'Accumulated Tally Sheets and Anomalous Events Over Time',
+  'Actas': 'Tally sheets',
+  'Esperado %': 'Expected %',
+  'Observado %': 'Observed %',
+  'Ley de Benford — Distribución del Primer Dígito': "Benford's Law — First-Digit Distribution",
+  'n insuficiente (<15 muestras)': 'n insufficient (<15 samples)',
+  'n insuficiente': 'n insufficient',
+  'Uniforme': 'Uniform',
+  'Uniforme 10%': 'Uniform 10%',
+  'Uniformidad del Último Dígito': 'Last-Digit Uniformity',
+  'Z-score': 'Z-score',
+  'Z-score de Participación por Departamento': 'Turnout Z-score by Department',
+  '% Escrutinio': '% Counted',
+  'Escrutinio por Departamento (%)': 'Tally Progress by Department (%)',
+  'Nulos': 'Null',
+  'Blancos': 'Blank',
+  'Votos Nulos y Blancos por Departamento': 'Null and Blank Votes by Department',
+  'Actas/intervalo': 'Tally sheets/interval',
+  'Velocidad de Escrutinio (actas/intervalo)': 'Tally Processing Speed (tally sheets/interval)',
+  '% Líder': '% Leader',
+  '%': '%',
+  'Real': 'Actual',
+  'Proyectada': 'Projected',
+  'Tendencia Esperada vs Real (Actas)': 'Expected vs Actual Trend (Tally Sheets)',
+  'Sin anomalías': 'No anomalies',
+  'Ocurrencias': 'Occurrences',
+  'Perfil de Anomalías Acumuladas': 'Accumulated Anomaly Profile',
+  '% Nulos': '% Null',
+  '% Blancos': '% Blank',
+  '% Nulos + Blancos en el Tiempo': '% Null + Blank Over Time',
+  'Margen positivo': 'Positive margin',
+  'Margen negativo': 'Negative margin',
+  'Margen': 'Margin',
+  // anomaly-profile category labels
+  'Retroceso': 'Rollback',
+  'Hold & Release': 'Hold & Release',
+  'Benford': 'Benford',
+  'Nocturno': 'Nocturnal',
+  'Uniformidad': 'Uniformity',
+  'Duplicación': 'Duplication',
+  'Timestamp': 'Timestamp',
+  'Cadena': 'Chain',
+  'CDN': 'CDN',
+  'Concentración': 'Concentration',
+  'Geo Blackout': 'Geo Blackout',
+  'Binario': 'Binary',
+  'ZT Bypass': 'ZT Bypass',
+  'Mesa Fantasma': 'Ghost Polling Station',
+  'Nacional': 'National',
+  'Cadena rota': 'Broken chain',
+  'Sin datos': 'No data',
+  'Anomalía estadística': 'Statistical anomaly',
+  'OK': 'OK',
+  'actas': 'tally sheets',
+  // ── Rule Sensitivity Thresholds — group names & slider labels ──
+  'Benford (1er dígito)': 'Benford (1st digit)',
+  'Benford (ley candidatos)': 'Benford (candidate law)',
+  'Anomalía granular': 'Granular anomaly',
+  'Participación anómala': 'Anomalous turnout',
+  'Participación avanzada': 'Advanced turnout',
+  'Tasa inconsistencia': 'Inconsistency rate',
+  'Dispersión geográfica': 'Geographic dispersion',
+  'Correlación part.-voto': 'Turnout-vote correlation',
+  'Corrida aleatoria': 'Runs test',
+  'Grandes números': 'Law of Large Numbers',
+  'Diferencia básica': 'Basic difference',
+  'MAD warning': 'MAD warning',
+  'MAD critical': 'MAD critical',
+  'Chi² p-valor': 'Chi² p-value',
+  'Desviación %': 'Deviation %',
+  'Chi² p-valor crítico': 'Chi² critical p-value',
+  'Z-score umbral': 'Z-score threshold',
+  'Delta % alerta': 'Alert Δ%',
+  'Margen mín reversión': 'Min reversal margin',
+  'Salto máx %': 'Max jump %',
+  'Ventana (min)': 'Window (min)',
+  'Warning %': 'Warning %',
+  'Critical %': 'Critical %',
+  'Salto escrutinio': 'Tally jump',
+  'Media histórica': 'Historical mean',
+  'Stdev histórica': 'Historical stdev',
+  'Máx actas / 15min': 'Max tally sheets / 15min',
+  'Inconsistencia critical': 'Critical inconsistency',
+  'Escalada Δ': 'Δ escalation',
+  'CV crítico': 'Critical CV',
+  'Correlación R crítica': 'Critical R correlation',
+  'P-valor crítico': 'Critical p-value',
+  'Umbral tendencia': 'Trend threshold',
+  'Z umbral': 'Z threshold',
+  'Cambio relativo votos': 'Relative vote change',
+  'Escribe tu hipótesis primero.': 'Write your hypothesis first.',
+  'hipótesis bloqueada': 'hypothesis locked',
+  '¿Borrar la hipótesis y deshabilitar los sliders? Esta acción no se puede deshacer.': 'Delete the hypothesis and disable the sliders? This action cannot be undone.',
+
   'Sistema de visualización caído — modo offline activo': 'Visualization system down — offline mode active',
   'Apagón geográfico: Francisco Morazán sin actas': 'Geographic blackout: Francisco Morazán has no tally sheets',
   'Francisco Morazán: sin datos': 'Francisco Morazán: no data',
@@ -1838,6 +1939,111 @@ const _LOG_FULL_EN = {
   'Red Swarm reiniciada — todos los nodos sanos': 'Swarm network reset — all nodes healthy',
 };
 const _LOG_PHRASES_EN = [
+  // ── Forensic Visualization Panel — dynamic titles & stats ──
+  ['Evolución del Liderazgo — ','Leadership Over Time — '],
+  ['Margen 1° vs 2° — ','1st vs 2nd Margin — '],
+  ['⚠ Umbral violado','⚠ Threshold violated'],
+  ['⚠ Violación detectada','⚠ Violation detected'],
+
+  // ── Grid de Reglas Activas — Estado de Salud (renderForensics) ──
+  ['⚠ Campos ausentes: ','⚠ Missing fields: '],
+  ['validos/nulos/blancos',"valid/null/blank"],
+  [' — datos truncados',' — truncated data'],
+  ['Todos los campos críticos presentes','All critical fields present'],
+  ['Datos insuficientes (n=','Insufficient data (n='],
+  ['Datos insuficientes (min 50 obs)','Insufficient data (min 50 obs)'],
+  ['Datos insuficientes','Insufficient data'],
+  ['Historial insuficiente (min 20 snaps)','Insufficient history (min 20 snaps)'],
+  [' | umbral p<',' | threshold p<'],
+  ['MAD=','MAD='],
+  ['warn>','warn>'],
+  ['crit>','crit>'],
+  ['Sin saltos anómalos — umbral ','No anomalous jumps — threshold '],
+  ['% del total de actas','% of total tally sheets'],
+  ['Actual 15 min: ','Last 15 min: '],
+  [' actas | límite ',' tally sheets | limit '],
+  ['Tasa nulos: ','Null rate: '],
+  ['Sin saltos — umbral ','No jumps — threshold '],
+  ['% por snap | escrutinio actual ','% per snap | current tally '],
+  ['Salto snapshot: +','Snapshot jump: +'],
+  [' actas (+',' tally sheets (+'],
+  ['%) en 5 min — umbral ','%) in 5 min — threshold '],
+  ['Salto escrutinio: +','Tally jump: +'],
+  ['% en 5 min — umbral ','% in 5 min — threshold '],
+  [' | μ=',' | μ='],
+  ['% σ=','% σ='],
+  ['% | escrutinio=','% | tally='],
+  ['% de actas inconsistentes | umbral crit ','% of inconsistent tally sheets | crit threshold '],
+  ['% | Δ umbral ','% | Δ threshold '],
+  ['Sin reversiones — umbral ','No reversals — threshold '],
+  [' votos | umbral ',' votes | threshold '],
+  ['Cambio > ','Change > '],
+  ['% en candidato detectado','% in candidate detected'],
+  ['Sin saltos > ','No jumps > '],
+  ['% en último snap','% in last snap'],
+  ['Cambio relativo > ','Relative change > '],
+  ['Sin cambios relativos > ','No relative changes > '],
+  ['CV departamental: ','Departmental CV: '],
+  [' | umbral z>',' | threshold z>'],
+  ['σ | ','σ | '],
+  ['anomalía detectada en ≥1 dpto','anomaly detected in ≥1 department'],
+  ['distribución normal','normal distribution'],
+  [' | umbral |R|>',' | threshold |R|>'],
+  [' | umbral ',' | threshold '],
+  ['Corridas=','Runs='],
+  [' | z=',' | z='],
+  [' | p=',' | p='],
+  [' | n=',' | n='],
+  ['Desv=','Dev='],
+  ['% vs tendencia ','% vs trend '],
+  ['z=','z='],
+  ['Blackout geográfico: ','Geographic blackout: '],
+  ['depto desconocido','unknown department'],
+  ['Patrón hold-and-release activo o detectado','Hold-and-release pattern active or detected'],
+  ['Sin stagnación seguida de liberación masiva','No stagnation followed by mass release'],
+  ['Hash SHA-256 íntegro — ','SHA-256 hash intact — '],
+  ['fork detectado','fork detected'],
+  ['firma inválida','invalid signature'],
+  ['hash adulterado','tampered hash'],
+  ['cadena rota','broken chain'],
+  [' actas > ',' tally sheets > '],
+  [' total — ',' total — '],
+  ['mesa fantasma detectada','ghost polling station detected'],
+  ['conteo imposible','impossible count'],
+  ['Conteo dentro de límites','Count within limits'],
+  ['Distribución de votos perfectamente teórica — posible fabricación','Perfectly theoretical vote distribution — possible fabrication'],
+  ['Varianza normal en distribución de votos','Normal variance in vote distribution'],
+  [' endpoints desconectados',' endpoints disconnected'],
+  ['Todos los endpoints activos','All endpoints active'],
+  [' espejos contaminados | umbral consenso: ≥3 | ',' mirrors contaminated | consensus threshold: ≥3 | '],
+  ['⚠ MODO SOLO-LOCAL','⚠ LOCAL-ONLY MODE'],
+  ['TTL falso: ','Fake TTL: '],
+  ['min | umbral crítico: >60min','min | critical threshold: >60min'],
+  ['Caché alineada con origen real','Cache aligned with real origin'],
+  ['⚠ Intento de suplantar ancla Bitcoin — RECHAZADO (OTS inmutable)','⚠ Attempt to spoof Bitcoin anchor — REJECTED (OTS immutable)'],
+  ['Ancla OTS íntegra','OTS anchor intact'],
+  [' cabeceras forjadas | umbral bypass: ≥5 | ',' forged headers | bypass threshold: ≥5 | '],
+  ['filtradas por middleware','filtered by middleware'],
+  ['Todas las peticiones autenticadas','All requests authenticated'],
+  ['Drift detectado: +','Drift detected: +'],
+  ['min — timeline no monótona','min — non-monotonic timeline'],
+  ['Timestamps monótonos','Monotonic timestamps'],
+  [' módulos con hash ≠ baseline — CUARENTENA ACTIVADA',' modules with hash ≠ baseline — QUARANTINE ACTIVATED'],
+  ['Hash de binario íntegro','Binary hash intact'],
+  [' req/s | umbral: 100k req/s | ',' req/s | threshold: 100k req/s | '],
+  ['⚠ RATE LIMITER SUPERADO','⚠ RATE LIMITER EXCEEDED'],
+  ['mitigado','mitigated'],
+  ['Sin tráfico anómalo detectado','No anomalous traffic detected'],
+  [' actas duplicadas → +',' duplicated tally sheets → +'],
+  [' votos inflados',' inflated votes'],
+  ['Sin duplicados detectados','No duplicates detected'],
+  ['Partido[0]: 93% en ','Party[0]: 93% in '],
+  [' mesas — z-score extremo',' polling stations — extreme z-score'],
+  ['Distribución proporcional por mesa','Proportional distribution per polling station'],
+  ['CNE: cadencia artificial detectada — conteo detenido deliberadamente','CNE: artificial cadence detected — count deliberately halted'],
+  ['Cadencia de actualización normal','Normal update cadence'],
+  [' votos',' votes'],
+
   [' módulos comprometidos → AUTO-AUDIT FALLA → cuarentena',' modules compromised → AUTO-AUDIT FAILS → quarantine'],
   ['Sincronización temporal: timestamps distorsionados ±','Time synchronization: timestamps distorted ±'],
   [' votos uniformes para partido[0] en todos los dptos',' uniform votes for party[0] across all departments'],
@@ -1989,6 +2195,7 @@ const _LOG_PHRASES_EN = [
   ['LLN: z=','LLN: z='],
   ['σ → convergencia anómala (n=','σ → anomalous convergence (n='],
   ['Dataset listo: ','Dataset ready: '],
+  ['Cargando dataset: ','Loading dataset: '],
   [' snapshots cargados',' snapshots loaded'],
   ['Simulación iniciada — velocidad ','Simulation started — speed '],
   ['Loop activado','Loop enabled'],
@@ -2237,7 +2444,7 @@ function setSwarmNodes(n){
     b.classList.toggle('active',v===SWARM.nodes);
   });
   const lbl=document.getElementById('sw-telem-node-count');
-  if(lbl) lbl.textContent=`(${SWARM.nodes} nodos)`;
+  if(lbl) lbl.textContent = currentLabLang()==='en' ? `(${SWARM.nodes} nodes)` : `(${SWARM.nodes} nodos)`;
   updateSwarmKpis();
   renderSwarmViz();
   renderRepGrid();
@@ -3516,7 +3723,7 @@ async function loadDataset(url, rawData=null){
     _updateAcadPanel();
     return;
   }
-  logE('INFO','Cargando dataset: '+url);
+  logE('INFO',_trMsg('Cargando dataset: ')+url);
   try{
     const r=await fetch(url);
     if(!r.ok)throw new Error(r.status);
@@ -3739,8 +3946,8 @@ function renderDeptGrid(snap,depts){
   let nacColor=nacChainOk?(nacAnomaly?'#d4b066':'#57c08d'):'#df6b86';
   const nacOffline=snap.blackout;
   if(nacOffline)nacColor='#24272e';
-  const chips=[{abbr:'NAC',name:'Nacional',color:nacColor,tooltip:'Nacional · '+
-    (chainBroken?'Cadena rota':nacOffline?'Sin datos':nacAnomaly?'Anomalía estadística':'OK')}];
+  const chips=[{abbr:'NAC',name:_trMsg('Nacional'),color:nacColor,tooltip:_trMsg('Nacional')+' · '+
+    _trMsg(chainBroken?'Cadena rota':nacOffline?'Sin datos':nacAnomaly?'Anomalía estadística':'OK')}];
   depts.forEach((d,i)=>{
     const offline=(snap._geo_blackout&&i===0)||(cascadeLevel>0&&i<cascadeLevel);
     let color;
@@ -3748,8 +3955,8 @@ function renderDeptGrid(snap,depts){
     else if(chainBroken)color='#df6b86';
     else if(Math.abs(d.zscore)>2.5)color='#d4b066';
     else color='#57c08d';
-    const status=offline?'Sin datos':chainBroken?'Cadena rota':Math.abs(d.zscore)>2.5?`z=${d.zscore}`:'OK';
-    chips.push({abbr:DEPT_ABBR[i],name:d.name,color,tooltip:`${d.name} · ${status} · actas ${d.actas.toLocaleString()}`});
+    const status=offline?_trMsg('Sin datos'):chainBroken?_trMsg('Cadena rota'):Math.abs(d.zscore)>2.5?`z=${d.zscore}`:'OK';
+    chips.push({abbr:DEPT_ABBR[i],name:d.name,color,tooltip:`${d.name} · ${status} · ${_trMsg('actas')} ${d.actas.toLocaleString()}`});
   });
   grid.innerHTML=chips.map(c=>
     `<div class="lab-dept-cell" style="background:${c.color}" title="${c.tooltip}">${c.abbr}</div>`
@@ -4042,6 +4249,7 @@ function renderSimFrame(idx){
   if(_isChartVisible('s-chart-nullblank'))renderNullBlank(depts);
   renderDeptGrid(snap,depts);
   renderForensics(snap,benf,lastd,last10,{mad,runs,trend,llnz,depts});
+  _lastForensicsArgs=[snap,benf,lastd,last10,{mad,runs,trend,llnz,depts}];
   if(_isChartVisible('s-chart-velocity'))renderVelocity();
   if(_isChartVisible('s-chart-leader'))renderLeader(snap);
   if(_isChartVisible('s-chart-trend'))renderTrendChart();
@@ -4082,9 +4290,9 @@ function renderCandidates(snap){
       ctx.restore();
     });
   }};
-  mk('s-chart-cand',{type:'bar',data:{labels:labs,datasets:[{label:'Votos',data,backgroundColor:bgs,borderRadius:5}]},
+  mk('s-chart-cand',{type:'bar',data:{labels:labs,datasets:[{label:_trMsg('Votos'),data,backgroundColor:bgs,borderRadius:5}]},
     plugins:[barLabelPlugin],
-    options:{...CHART_OPT,layout:{padding:{top:28}},plugins:{title:{display:true,text:'Votos por Partido',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}},legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString('es-HN')} votos (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
+    options:{...CHART_OPT,layout:{padding:{top:28}},plugins:{title:{display:true,text:_trMsg('Votos por Partido'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}},legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString('es-HN')} ${_trMsg('votos')} (${snap.partidos[c.dataIndex]?.pct||0}%)`}}}}});
 }
 
 function renderTimeline(){
@@ -4092,14 +4300,14 @@ function renderTimeline(){
   const a=historyTimeline.map(h=>h.actas);
   const an=historyTimeline.map(h=>h.anom);
   mk('s-chart-timeline',{type:'line',data:{labels:labs,datasets:[
-    {label:'Actas acumuladas',data:a,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0,yAxisID:'y'},
-    {label:'Anomalías',data:an,borderColor:'#df6b86',fill:false,tension:.1,pointRadius:2,yAxisID:'y2'}]},
+    {label:_trMsg('Actas acumuladas'),data:a,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0,yAxisID:'y'},
+    {label:_trMsg('Anomalías'),data:an,borderColor:'#df6b86',fill:false,tension:.1,pointRadius:2,yAxisID:'y2'}]},
     options:{...CHART_OPT,plugins:{...CHART_OPT.plugins,
       decimation:{enabled:true,algorithm:'lttb',samples:400,threshold:400},
-      title:{display:true,text:'Actas Acumuladas y Eventos Anómalos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}}},scales:{
+      title:{display:true,text:_trMsg('Actas Acumuladas y Eventos Anómalos en el Tiempo'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}}},scales:{
       x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:9}},grid:{color:'#1c1f26'}},
-      y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Actas',color:'#8b929c'}},
-      y2:{position:'right',ticks:{color:'#df6b86'},grid:{drawOnChartArea:false},title:{display:true,text:'Anomalías',color:'#df6b86'}}}}});
+      y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('Actas'),color:'#8b929c'}},
+      y2:{position:'right',ticks:{color:'#df6b86'},grid:{drawOnChartArea:false},title:{display:true,text:_trMsg('Anomalías'),color:'#df6b86'}}}}});
 }
 
 function renderBenford(benf,snap){
@@ -4109,14 +4317,14 @@ function renderBenford(benf,snap){
   const violated=TE.benford_chi_pvalue&&benf.pval<TV.benford_chi_pvalue;
   const obsBg=violated?'rgba(223,107,134,.7)':'rgba(110,168,254,.7)';
   mk('s-chart-benford',{type:'bar',data:{labels:labs,datasets:[
-    {label:'Esperado %',data:exp,backgroundColor:'rgba(110,168,254,.25)',borderColor:'#6ea8fe',borderWidth:1},
-    {label:'Observado %',data:obs,backgroundColor:obsBg,borderColor:'#6ea8fe',borderWidth:1}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:'Ley de Benford — Distribución del Primer Dígito',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{labels:{color:'#8b929c',font:{size:10}}}},
+    {label:_trMsg('Esperado %'),data:exp,backgroundColor:'rgba(110,168,254,.25)',borderColor:'#6ea8fe',borderWidth:1},
+    {label:_trMsg('Observado %'),data:obs,backgroundColor:obsBg,borderColor:'#6ea8fe',borderWidth:1}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('Ley de Benford — Distribución del Primer Dígito'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
   const stats=document.getElementById('s-benford-stats');
-  if(benf.N<15){stats.innerHTML='<span style="color:var(--muted)">n insuficiente (&lt;15 muestras)</span>';return;}
+  if(benf.N<15){stats.innerHTML=`<span style="color:var(--muted)">${_trMsg('n insuficiente (<15 muestras)')}</span>`;return;}
   stats.innerHTML=`χ² = ${benf.chi2.toFixed(2)} | p = ${benf.pval.toFixed(3)} | n=${benf.N} → `+
-    (violated?'<span style="color:var(--bad)">⚠ Umbral violado</span>':'<span style="color:var(--ok)">Normal</span>');
+    (violated?`<span style="color:var(--bad)">${_trMsg('⚠ Umbral violado')}</span>`:'<span style="color:var(--ok)">Normal</span>');
 }
 
 function renderLastDigit(lastd,snap){
@@ -4126,21 +4334,21 @@ function renderLastDigit(lastd,snap){
   const bg=obs.map((_,i)=>violated&&(i===0||i===5)?'rgba(223,107,134,.7)':'rgba(176,140,240,.5)');
   mk('s-chart-lastdigit',{type:'bar',data:{labels:labs,datasets:[
     {label:'Uniforme 10%',data:new Array(10).fill(10),backgroundColor:'rgba(87,192,141,.2)',borderColor:'#57c08d',borderWidth:1},
-    {label:'Observado %',data:obs,backgroundColor:bg,borderWidth:0}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:'Uniformidad del Último Dígito',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{labels:{color:'#8b929c',font:{size:10}}}},
+    {label:_trMsg('Observado %'),data:obs,backgroundColor:bg,borderWidth:0}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('Uniformidad del Último Dígito'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
   const stats=document.getElementById('s-lastdigit-stats');
-  stats.innerHTML=lastd.N<20?'<span style="color:var(--muted)">n insuficiente</span>':
+  stats.innerHTML=lastd.N<20?`<span style="color:var(--muted)">${_trMsg('n insuficiente')}</span>`:
     `χ² = ${lastd.chi2.toFixed(2)} | p = ${lastd.pval.toFixed(3)} → `+
-    (violated?'<span style="color:var(--bad)">⚠ Violación detectada</span>':'<span style="color:var(--ok)">Uniforme</span>');
+    (violated?`<span style="color:var(--bad)">${_trMsg('⚠ Violación detectada')}</span>`:`<span style="color:var(--ok)">${_trMsg('Uniforme')}</span>`);
 }
 
 function renderZScore(depts){
   const labs=depts.map(d=>d.name.split(' ')[0]);
   const zs=depts.map(d=>d.zscore);
   const bgs=zs.map(z=>Math.abs(z)>TV.zscore_thr?'rgba(223,107,134,.7)':'rgba(110,168,254,.5)');
-  mk('s-chart-zscore',{type:'bar',data:{labels:labs,datasets:[{label:'Z-score',data:zs,backgroundColor:bgs,borderRadius:3}]},
-    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Z-score de Participación por Departamento',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
+  mk('s-chart-zscore',{type:'bar',data:{labels:labs,datasets:[{label:_trMsg('Z-score'),data:zs,backgroundColor:bgs,borderRadius:3}]},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:_trMsg('Z-score de Participación por Departamento'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'}}}}});
 }
@@ -4149,8 +4357,8 @@ function renderParticipation(depts){
   const labs=depts.map(d=>d.name.split(' ')[0]);
   const pcts=depts.map(d=>parseFloat(d.pct.toFixed(1)));
   const bgs=pcts.map(p=>p>95?'rgba(223,107,134,.7)':p>80?'rgba(110,168,254,.5)':'rgba(87,192,141,.5)');
-  mk('s-chart-participation',{type:'bar',data:{labels:labs,datasets:[{label:'% Escrutinio',data:pcts,backgroundColor:bgs,borderRadius:3}]},
-    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Escrutinio por Departamento (%)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
+  mk('s-chart-participation',{type:'bar',data:{labels:labs,datasets:[{label:_trMsg('% Escrutinio'),data:pcts,backgroundColor:bgs,borderRadius:3}]},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:_trMsg('Escrutinio por Departamento (%)'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'},max:110},
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'}}}}});
 }
@@ -4158,9 +4366,9 @@ function renderParticipation(depts){
 function renderNullBlank(depts){
   const labs=depts.map(d=>d.name.split(' ')[0]);
   mk('s-chart-nullblank',{type:'bar',data:{labels:labs,datasets:[
-    {label:'Nulos',data:depts.map(d=>d.nulos),backgroundColor:'rgba(223,107,134,.6)',borderRadius:2},
-    {label:'Blancos',data:depts.map(d=>d.blancos),backgroundColor:'rgba(212,176,102,.5)',borderRadius:2}]},
-    options:{...CHART_OPT,indexAxis:'y',plugins:{...CHART_OPT.plugins,title:{display:true,text:'Votos Nulos y Blancos por Departamento',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}}},
+    {label:_trMsg('Nulos'),data:depts.map(d=>d.nulos),backgroundColor:'rgba(223,107,134,.6)',borderRadius:2},
+    {label:_trMsg('Blancos'),data:depts.map(d=>d.blancos),backgroundColor:'rgba(212,176,102,.5)',borderRadius:2}]},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{...CHART_OPT.plugins,title:{display:true,text:_trMsg('Votos Nulos y Blancos por Departamento'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'},stacked:true},
              y:{ticks:{color:'#8b929c',font:{size:8}},grid:{color:'#1c1f26'},stacked:true}}}});
 }
@@ -4174,8 +4382,8 @@ function renderVelocity(){
   const thr=mean+2*std;
   const bgs=data.map(v=>v>thr?'rgba(223,107,134,.8)':'rgba(34,211,238,.6)');
   mk('s-chart-velocity',{type:'bar',data:{labels:labs,datasets:[
-    {label:'Actas/intervalo',data,backgroundColor:bgs,borderRadius:2}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:'Velocidad de Escrutinio (actas/intervalo)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+    {label:_trMsg('Actas/intervalo'),data,backgroundColor:bgs,borderRadius:2}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('Velocidad de Escrutinio (actas/intervalo)'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{display:false},annotation:thr>0?{annotations:{thrLine:{type:'line',yMin:thr,yMax:thr,borderColor:'rgba(223,107,134,.5)',borderWidth:1,borderDash:[4,4],label:{display:true,content:`2σ=${Math.round(thr)}`,position:'end',color:'#df6b86',font:{size:8}}}}}:undefined},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
@@ -4191,11 +4399,11 @@ function renderLeader(snap){
     pts.push(changed?6:0);
   }
   mk('s-chart-leader',{type:'line',data:{labels:labs,datasets:[
-    {label:'% Líder',data:historyLeadPct,borderColor:'rgba(176,140,240,.7)',pointBackgroundColor:colors,pointRadius:pts,fill:true,backgroundColor:'rgba(176,140,240,.08)',tension:.3}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:`Evolución del Liderazgo — ${historyLeader[historyLeader.length-1]||'?'}`,color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+    {label:_trMsg('% Líder'),data:historyLeadPct,borderColor:'rgba(176,140,240,.7)',pointBackgroundColor:colors,pointRadius:pts,fill:true,backgroundColor:'rgba(176,140,240,.08)',tension:.3}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg(`Evolución del Liderazgo — ${historyLeader[historyLeader.length-1]||'?'}`),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
-             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'%',color:'#8b929c'}}}}});
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('%'),color:'#8b929c'}}}}});
 }
 
 function renderTrendChart(){
@@ -4212,31 +4420,31 @@ function renderTrendChart(){
     predicted=real.map((_,i)=>Math.round(first+(last-first)*i/(n-1)));
   }
   mk('s-chart-trend',{type:'line',data:{labels:labs,datasets:[
-    {label:'Real',data:real,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0},
-    {label:'Proyectada',data:predicted,borderColor:'rgba(139,146,156,.5)',borderDash:[5,3],fill:'-1',backgroundColor:'rgba(223,107,134,.08)',tension:.3,pointRadius:0}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:'Tendencia Esperada vs Real (Actas)',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+    {label:_trMsg('Real'),data:real,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0},
+    {label:_trMsg('Proyectada'),data:predicted,borderColor:'rgba(139,146,156,.5)',borderDash:[5,3],fill:'-1',backgroundColor:'rgba(223,107,134,.08)',tension:.3,pointRadius:0}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('Tendencia Esperada vs Real (Actas)'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
 }
 
 function renderAnomalyProfile(){
-  const anomLabels={'_rollback':'Retroceso','_hold_release':'Hold & Release','_benford_biased':'Benford',
-    '_nocturnal':'Nocturno','_uniformidad_sospechosa':'Uniformidad','_duplication':'Duplicación',
-    '_ts_drift':'Timestamp','_chain_broken_pct':'Cadena','_cdn_mirrors_poisoned':'CDN',
-    '_concentration':'Concentración','_geo_blackout':'Geo Blackout','_binary_tampered':'Binario',
-    '_zt_bypass_attempt':'ZT Bypass','_mesa_fantasma':'Mesa Fantasma'};
+  const anomLabels={'_rollback':_trMsg('Retroceso'),'_hold_release':_trMsg('Hold & Release'),'_benford_biased':_trMsg('Benford'),
+    '_nocturnal':_trMsg('Nocturno'),'_uniformidad_sospechosa':_trMsg('Uniformidad'),'_duplication':_trMsg('Duplicación'),
+    '_ts_drift':_trMsg('Timestamp'),'_chain_broken_pct':_trMsg('Cadena'),'_cdn_mirrors_poisoned':_trMsg('CDN'),
+    '_concentration':_trMsg('Concentración'),'_geo_blackout':_trMsg('Geo Blackout'),'_binary_tampered':_trMsg('Binario'),
+    '_zt_bypass_attempt':_trMsg('ZT Bypass'),'_mesa_fantasma':_trMsg('Mesa Fantasma')};
   const entries=Object.entries(historyAnomalyCounts).map(([k,v])=>({key:k,label:anomLabels[k]||k,count:v})).sort((a,b)=>b.count-a.count);
   if(entries.length===0){
-    mk('s-chart-anomaly-profile',{type:'bar',data:{labels:['Sin anomalías'],datasets:[{data:[0],backgroundColor:'rgba(87,192,141,.3)'}]},
-      options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Perfil de Anomalías Acumuladas',color:'#8b929c',font:{size:11,weight:'600'}},legend:{display:false}}}});
+    mk('s-chart-anomaly-profile',{type:'bar',data:{labels:[_trMsg('Sin anomalías')],datasets:[{data:[0],backgroundColor:'rgba(87,192,141,.3)'}]},
+      options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:_trMsg('Perfil de Anomalías Acumuladas'),color:'#8b929c',font:{size:11,weight:'600'}},legend:{display:false}}}});
     return;
   }
   const labs=entries.map(e=>e.label);
   const data=entries.map(e=>e.count);
   const bgs=data.map(v=>v>=10?'rgba(223,107,134,.7)':v>=3?'rgba(212,176,102,.6)':'rgba(110,168,254,.5)');
-  mk('s-chart-anomaly-profile',{type:'bar',data:{labels:labs,datasets:[{label:'Ocurrencias',data,backgroundColor:bgs,borderRadius:3}]},
-    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:'Perfil de Anomalías Acumuladas',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
+  mk('s-chart-anomaly-profile',{type:'bar',data:{labels:labs,datasets:[{label:_trMsg('Ocurrencias'),data,backgroundColor:bgs,borderRadius:3}]},
+    options:{...CHART_OPT,indexAxis:'y',plugins:{title:{display:true,text:_trMsg('Perfil de Anomalías Acumuladas'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}}}}});
 }
@@ -4245,12 +4453,12 @@ function renderInvalids(){
   if(historyInvalids.length<2)return;
   const labs=historyInvalids.map(h=>h.ts);
   mk('s-chart-invalids',{type:'line',data:{labels:labs,datasets:[
-    {label:'% Nulos',data:historyInvalids.map(h=>h.nulPct),borderColor:'rgba(223,107,134,.7)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0},
-    {label:'% Blancos',data:historyInvalids.map(h=>h.blaPct),borderColor:'rgba(156,163,175,.6)',backgroundColor:'rgba(156,163,175,.08)',fill:true,tension:.3,pointRadius:0}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:'% Nulos + Blancos en el Tiempo',color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+    {label:_trMsg('% Nulos'),data:historyInvalids.map(h=>h.nulPct),borderColor:'rgba(223,107,134,.7)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0},
+    {label:_trMsg('% Blancos'),data:historyInvalids.map(h=>h.blaPct),borderColor:'rgba(156,163,175,.6)',backgroundColor:'rgba(156,163,175,.08)',fill:true,tension:.3,pointRadius:0}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('% Nulos + Blancos en el Tiempo'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
-             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'%',color:'#8b929c'}}}}});
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('%'),color:'#8b929c'}}}}});
 }
 
 function renderMarginChart(){
@@ -4260,15 +4468,39 @@ function renderMarginChart(){
   const posData=data.map(v=>v>=0?v:null);
   const negData=data.map(v=>v<0?v:null);
   mk('s-chart-margin',{type:'line',data:{labels:labs,datasets:[
-    {label:'Margen positivo',data:posData,borderColor:'rgba(87,192,141,.8)',backgroundColor:'rgba(87,192,141,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
-    {label:'Margen negativo',data:negData,borderColor:'rgba(223,107,134,.8)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
-    {label:'Margen',data,borderColor:'rgba(176,140,240,.6)',fill:false,tension:.3,pointRadius:0}]},
-    options:{...CHART_OPT,plugins:{title:{display:true,text:`Margen 1° vs 2° — ${historyMargin[historyMargin.length-1]?.leader||''}`,color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+    {label:_trMsg('Margen positivo'),data:posData,borderColor:'rgba(87,192,141,.8)',backgroundColor:'rgba(87,192,141,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
+    {label:_trMsg('Margen negativo'),data:negData,borderColor:'rgba(223,107,134,.8)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
+    {label:_trMsg('Margen'),data,borderColor:'rgba(176,140,240,.6)',fill:false,tension:.3,pointRadius:0}]},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg(`Margen 1° vs 2° — ${historyMargin[historyMargin.length-1]?.leader||''}`),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
       legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
-             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:'Votos',color:'#8b929c'}}}}});
+             y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('Votos'),color:'#8b929c'}}}}});
 }
 
+let _lastForensicsArgs=null;
+/* Re-renders all visible Chart.js panels in the new language. Charts are
+   only redrawn at simulation-tick time, so a language switch on a paused
+   sim would otherwise leave titles/labels in the previous language —
+   this re-runs the relevant render*() with cached last-known data. */
+function _redrawVisibleCharts(){
+  const a=_lastForensicsArgs;
+  const snap=a?a[0]:null, benf=a?a[1]:null, lastd=a?a[2]:null, ext=a?a[4]:{};
+  const depts=ext?ext.depts:null;
+  if(snap&&depts)renderDeptGrid(snap,depts);
+  if(snap&&_isChartVisible('s-chart-cand'))renderCandidates(snap);
+  if(_isChartVisible('s-chart-timeline'))renderTimeline();
+  if(benf&&snap&&_isChartVisible('s-chart-benford'))renderBenford(benf,snap);
+  if(lastd&&snap&&_isChartVisible('s-chart-lastdigit'))renderLastDigit(lastd,snap);
+  if(depts&&_isChartVisible('s-chart-zscore'))renderZScore(depts);
+  if(depts&&_isChartVisible('s-chart-participation'))renderParticipation(depts);
+  if(depts&&_isChartVisible('s-chart-nullblank'))renderNullBlank(depts);
+  if(_isChartVisible('s-chart-velocity'))renderVelocity();
+  if(snap&&_isChartVisible('s-chart-leader'))renderLeader(snap);
+  if(_isChartVisible('s-chart-trend'))renderTrendChart();
+  if(_isChartVisible('s-chart-anomaly-profile'))renderAnomalyProfile();
+  if(_isChartVisible('s-chart-invalids'))renderInvalids();
+  if(_isChartVisible('s-chart-margin'))renderMarginChart();
+}
 function renderForensics(snap,benf,lastd,last10,ext){
   const cd=snap._cd||{};
   const {mad,runs,trend,llnz,depts}=ext||{};
@@ -4471,7 +4703,7 @@ function renderForensics(snap,benf,lastd,last10,ext){
 
 function emitEngineEvents(snap,idx,benf,lastd,ext){
   const {mad,runs,trend,llnz}=ext||{};
-  if(idx%6===0)logE('INFO',`SHA-256 verificado ✓ snap ${idx} — hash=${fakeHash(idx).slice(0,12)}…`);
+  if(idx%6===0)logE('INFO',_trMsg(`SHA-256 verificado ✓ snap ${idx} — hash=${fakeHash(idx).slice(0,12)}…`));
   if(snap.blackout||snap._geo_blackout)logE('CRITICAL',`Apagón detectado — snap ${idx}`);
   if(benf.N>=15&&benf.pval<TV.benford_chi_pvalue&&TE.benford_chi_pvalue){
     const k='benford_chi';const last=_alertLast[k]||0;
@@ -4522,18 +4754,18 @@ function emitEngineEvents(snap,idx,benf,lastd,ext){
 // ═══════════════════════════════════════════════════════════════════════════
 function lockThresholds(){
   const txt=document.getElementById('thresh-prereg-text').value.trim();
-  if(!txt){alert('Escribe tu hipótesis primero.');return;}
+  if(!txt){alert(_trMsg('Escribe tu hipótesis primero.'));return;}
   threshLocked=true;
   document.getElementById('thresh-prereg-text').setAttribute('readonly','');
   document.getElementById('thresh-lock-btn').style.display='none';
   document.getElementById('thresh-unlock-btn').style.display='';
-  document.getElementById('thresh-lock-stat').innerHTML='<span class="badge b-ok">hipótesis bloqueada</span>';
+  document.getElementById('thresh-lock-stat').innerHTML=`<span class="badge b-ok">${_trMsg('hipótesis bloqueada')}</span>`;
   document.getElementById('thresh-sliders').classList.add('unlocked');
   localStorage.setItem('centinel_acad_prereg',JSON.stringify({txt,ts:new Date().toISOString()}));
   logE('INFO',_trMsg('Pre-registro de umbrales bloqueado por investigador'));
 }
 function unlockThresholds(){
-  if(!confirm('¿Borrar la hipótesis y deshabilitar los sliders? Esta acción no se puede deshacer.'))return;
+  if(!confirm(_trMsg('¿Borrar la hipótesis y deshabilitar los sliders? Esta acción no se puede deshacer.')))return;
   threshLocked=false;
   const ta=document.getElementById('thresh-prereg-text');
   ta.value='';ta.removeAttribute('readonly');
@@ -4560,9 +4792,9 @@ function renderThresholdSliders(){
   document.getElementById('thresh-sliders-container').innerHTML=
     Object.entries(grps).map(([g,rules])=>`
       <div class="thresh-group">
-        <div class="thresh-group-label">${g}</div>
+        <div class="thresh-group-label">${_trMsg(g)}</div>
         ${rules.map(r=>`<div class="rule-row">
-          <span class="rule-name">${r.label}</span>
+          <span class="rule-name">${_trMsg(r.label)}</span>
           <input type="checkbox" class="rule-chk" ${TE[r.id]?'checked':''} onchange="toggleTE('${r.id}',this.checked)">
           <input type="range" class="rule-slider" id="sl-${r.id}"
             min="${r.min}" max="${r.max}" step="${r.step}" value="${r.def}"
@@ -4765,7 +4997,7 @@ async function loadLabThresholds(){
   updateSwarmKpis();
   renderSwarmViz();
   logSE('OK',_trMsg('Red Swarm lista — 100 nodos · fan-out=3 · BFT=33'));
-  logSE('INFO','Inicia la simulación para observar propagación gossip y detección Byzantine');
+  logSE('INFO',_trMsg('Inicia la simulación para observar propagación gossip y detección Byzantine'));
   logE('OK',_trMsg('Sandbox Forense Académico listo — CENTINEL v1'));
   logE('INFO',_trMsg('Selecciona un dataset y presiona ▶ para iniciar la simulación'));
 })();
@@ -6184,8 +6416,24 @@ const LAB_I18N = {
   dept_tooltip: ['Verde = íntegro, amarillo = anomalía estadística, rojo = cadena rota, oscuro = sin datos / offline. Se actualiza en cada tick de la simulación.',
                  'Green = intact, yellow = statistical anomaly, red = broken chain, dark = no data / offline. Updates on every simulation tick.'],
   forense_title:['Panel de Visualización Forense','Forensic Visualization Panel'],
+  rules_grid_title:['Grid de Reglas Activas — Estado de Salud','Active Rules Grid — Health Status'],
+  alerts_table_title:['Tabla de Alertas','Alerts Table'],
+  alerts_empty:['Sin alertas activas','No active alerts'],
+  alerts_th_time:['Tiempo','Time'],
+  alerts_th_type:['Tipo','Type'],
+  alerts_th_sev:['Severidad','Severity'],
+  alerts_th_desc:['Descripción','Description'],
+  thresh_section_title:['Umbrales de Sensibilidad de Reglas','Rule Sensitivity Thresholds'],
+  thresh_prereg_title:['Pre-registro de Hipótesis','Hypothesis Pre-registration'],
+  thresh_prereg_body:['Registra tu hipótesis antes de ajustar los umbrales. Una vez bloqueada, no se puede modificar (previene p-hacking).',
+                       'Register your hypothesis before adjusting the thresholds. Once locked, it cannot be modified (prevents p-hacking).'],
+  thresh_prereg_placeholder:["Hipótesis de investigación: ej. 'Si se reduce el umbral de Benford MAD a 0.005, el motor detectará la anomalía de ballot stuffing antes del snapshot 100 en la serie anómala.'",
+                              "Research hypothesis: e.g. 'If the Benford MAD threshold is reduced to 0.005, the engine will detect the ballot-stuffing anomaly before snapshot 100 in the anomalous series.'"],
+  thresh_lock_btn:['Bloquear hipótesis y habilitar sliders','Lock hypothesis and enable sliders'],
+  thresh_unlock_btn:['Desbloquear y borrar hipótesis','Unlock and delete hypothesis'],
   pin_off:      ['Fijar','Pin'],
   pin_on:       ['Desfijar','Unpin'],
+  pin_tooltip:  ['Fijar gráficos como panel lateral derecho','Pin charts as right-side panel'],
   // valores dinámicos de KPIs/badge (relabelDynamic)
   dyn_votos_validos:  ['votos válidos','valid votes'],
   dyn_datos_parciales:['⚠ datos parciales','⚠ partial data'],
@@ -6295,7 +6543,11 @@ const LAB_I18N = {
 
   telem_title:      ['Centro de Telemetría','Telemetry Center'],
   telem_sound:      ['Sonido','Sound'],
+  collapse_tooltip: ['Colapsar / expandir','Collapse / expand'],
+  telem_sound_tooltip: ['Activar/desactivar beep al detectar ataque','Toggle beep on attack detection'],
   telem_no_attacks: ['Sin ataques detectados — inyecta B1/B2/B11/B12 para activar','No attacks detected — inject B1/B2/B11/B12 to trigger'],
+  telem_standalone:['Standalone','Standalone'],
+  telem_swarm:      ['Swarm','Swarm'],
 
   ss_h3:         ['💾 Guardar sesión','💾 Save session'],
   ss_body:       ['Escribe un nombre para identificar esta sesión. El archivo descargado podrá recargarse en cualquier momento para restaurar el estado exacto del lab.',
@@ -6466,6 +6718,11 @@ function applyLabI18n(lang){
     if(lbl) lbl.textContent = LAB_I18N[pinBtn.dataset.pinned==='1'?'pin_on':'pin_off'][idx];
   }
   relabelDynamic(lang);
+  {const lbl=document.getElementById('sw-telem-node-count');
+   if(lbl) lbl.textContent = lang==='en' ? `(${SWARM.nodes} nodes)` : `(${SWARM.nodes} nodos)`;}
+  if(typeof renderThresholdSliders==='function') renderThresholdSliders();
+  _redrawVisibleCharts();
+  if(typeof renderForensics==='function' && _lastForensicsArgs) renderForensics(..._lastForensicsArgs);
   if(typeof _refreshCiteIfOpen==='function') _refreshCiteIfOpen();
   if(typeof _updateAcadPanel==='function') _updateAcadPanel();
   if(typeof renderInjGrid==='function'){
