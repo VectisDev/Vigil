@@ -452,7 +452,8 @@ def _check_bucket_latency(client: Any | None) -> dict[str, Any]:
     try:
         client.head_bucket(Bucket=bucket)
     except (BotoCoreError, ClientError) as exc:  # noqa: BLE001
-        return {"ok": False, "message": "s3_bucket_unreachable", "error": str(exc)}
+        logger.exception("strict_health_s3_bucket_latency_failed error=%s", exc)
+        return {"ok": False, "message": "s3_bucket_unreachable"}
     latency_ms = round((time.monotonic() - started) * 1000, 2)
     return {"ok": True, "message": "bucket_latency_ok", "latency_ms": latency_ms}
 
@@ -477,7 +478,8 @@ def _check_storage_write(client: Any | None) -> dict[str, Any]:
     try:
         client.put_object(Bucket=bucket, Key=key, Body=b"vigil_health_check")
     except (BotoCoreError, ClientError) as exc:  # noqa: BLE001
-        return {"ok": False, "message": "s3_write_failed", "error": str(exc)}
+        logger.exception("strict_health_s3_write_failed error=%s", exc)
+        return {"ok": False, "message": "s3_write_failed"}
     return {**local_check, "s3_mirror": "write_ok"}
 
 
