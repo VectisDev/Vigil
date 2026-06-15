@@ -576,8 +576,17 @@ function updateMapNarrative(svg, configured){
   let pick = null; // {dept, status, severity}
   const sevRank = {bad:2, warn:1, ok:0, neutral:-1};
 
+  // Solo se promueve un departamento al panel narrativo si tiene una
+  // severidad real (warn/bad). 'neutral' (sin datos) y 'ok' nunca deben
+  // mostrarse aquí — de lo contrario el primer departamento configurado
+  // (Atlántida) aparece por defecto como "Sin datos" sin ninguna razón.
+  // Only promote a department to the narrative panel if it has real
+  // severity (warn/bad). 'neutral' (no data) and 'ok' must never surface
+  // here, otherwise the first configured department (Atlántida) shows up
+  // by default as "Sin datos" for no actual reason.
   DEPTS.filter(d => d.code !== '00' && configured.includes(d.code)).forEach(dept => {
     const status = getEndpointStatus(dept.code);
+    if(sevRank[status.cls] <= 0) return; // skip 'neutral' and 'ok'
     if(!pick || sevRank[status.cls] > sevRank[pick.status.cls]){
       pick = {dept, status};
     }
