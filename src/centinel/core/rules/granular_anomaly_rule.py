@@ -77,6 +77,12 @@ from centinel.core.rules.common import (
     parse_timestamp,
 )
 from centinel.core.rules.registry import rule
+from centinel.core.rules.zscore_unified import (  # noqa: E402 — unified Z-score conventions
+    zscore_empirical,
+    Z_THRESHOLD_WARNING,
+    Z_THRESHOLD_CRITICAL,
+    Severity as SeverityZScore,
+)
 
 
 def _extract_level(data: dict) -> Optional[str]:
@@ -220,17 +226,36 @@ def _first_digit(values: Iterable[int]) -> List[int]:
 def _compute_zscores(series: pd.Series) -> pd.Series:
     """Calcula z-scores con manejo de series vacías o varianza cero.
 
+    Implementa Familia B de zscore_unified.py pero vectorizada para pandas.Series.
+    Fórmula: Z = (x - x̄) / s, donde s = std(series, ddof=1)
+    
     Retorna cero cuando la desviación estándar no es válida para evitar NaN.
+    
+    Alineación con zscore_unified.zscore_empirical():
+    - Usa ddof=1 (Bessel correction) — estadísticamente insesgado.
+    - Umbrales unificados: |Z| > 2.576 (WARNING, p<0.01)
+                          |Z| > 3.291 (CRITICAL, p<0.001)
+      Ver docs/stats/STATISTICAL_CONVENTIONS.md Family B.
 
     English:
         Compute z-scores with empty-series and zero-variance handling.
+        
+        Implements Family B from zscore_unified.py but vectorized for pandas.Series.
+        Formula: Z = (x - x̄) / s, where s = std(series, ddof=1)
 
         Returns zeros when the standard deviation is invalid to avoid NaN.
+        
+        Alignment with zscore_unified.zscore_empirical():
+        - Uses ddof=1 (Bessel correction) — statistically unbiased.
+        - Unified thresholds: |Z| > 2.576 (WARNING, p<0.01)
+                             |Z| > 3.291 (CRITICAL, p<0.001)
+          See docs/stats/STATISTICAL_CONVENTIONS.md Family B.
     """
     if series.empty:
         return series
     mean = series.mean()
     # ddof=1 MANDATORY — Bessel correction for unbiased variance estimator.
+    # Consistency with zscore_unified.zscore_empirical() Family B.
     # dev-v10 used ddof=0 (population std) which underestimates σ → inflated Z → excess FP.
     # Fixed in dev-v11/v12. See docs/stats/STATISTICAL_CONVENTIONS.md Family B.
     std = series.std(ddof=1)
@@ -285,7 +310,14 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     negative_threshold = int(config.get("negative_delta_threshold", 0))
     delta_pct_alert = float(config.get("delta_pct_alert", 3.0))
     delta_pct_window = int(config.get("delta_pct_time_window_minutes", 30))
-    z_threshold = float(config.get("zscore_threshold", 3.0))
+    # DEPRECATED: zscore_threshold in config — now uses unified thresholds from zscore_unified
+    # WARNING: |Z| > 2.576 (p < 0.01)
+    # CRITICAL: |Z| > 3.291 (p < 0.001)
+    # For backward compatibility, config.zscore_threshold fallback still accepted but is ignored
+    # in favor of unified thresholds. See docs/stats/STATISTICAL_CONVENTIONS.md Family B.
+    # _config_z = float(config.get("zscore_threshold", 3.0))  # DEPRECATED — kept only for reference
+    z_threshold_warning = Z_THRESHOLD_WARNING
+    z_threshold_critical = Z_THRESHOLD_CRITICAL
     z_min_abs = int(config.get("zscore_min_abs_delta", 100))
     z_min_groups = int(config.get("zscore_min_departments", 5))
     benford_p_threshold = float(config.get("benford_pvalue_threshold", 0.05))
@@ -429,15 +461,22 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
                     )
                 )
                 zscore_candidates = zscore_candidates.reset_index(drop=True)
-                z_outliers = zscore_candidates[
+                # Use unified thresholds: WARNING (2.576, p<0.01) and CRITICAL (3.291, p<0.001)
+                # Instead of single threshold, classify severity by which threshold exceeded
+                z_alerts = zscore_candidates[
                     (zscore_candidates["delta_abs"].abs() >= z_min_abs)
-                    & (zscore_candidates["zscore"].abs() >= z_threshold)
+                    & (zscore_candidates["zscore"].abs() >= z_threshold_warning)
                 ]
-                for _, row in z_outliers.iterrows():
+                for _, row in z_alerts.iterrows():
+                    zscore_abs = abs(row["zscore"])
+                    if zscore_abs >= z_threshold_critical:
+                        severity_str = "CRITICAL"
+                    else:
+                        severity_str = "WARNING"
                     alerts.append(
                         {
-                            "type": "Outlier Z-Score",
-                            "severity": "High",
+                            "type": "Outlier Z-Score (unified thresholds)",
+                            "severity": severity_str,
                             "department": row["department"],
                             "election_level": row["election_level"],
                             "timestamp": current_ts.isoformat() if current_ts else None,
@@ -445,6 +484,10 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
                             "current_value": int(row["total_votes_current"] or 0),
                             "delta_abs": int(row["delta_abs"]),
                             "delta_pct": row["delta_pct"],
+                            "zscore": round(row["zscore"], 4),
+                            "zscore_family": "empirical (Family B — ddof=1)",
+                            "threshold_warning": z_threshold_warning,
+                            "threshold_critical": z_threshold_critical,
                             "justification": (
                                 "El delta de votos es un outlier estadístico. "
                                 f"z_score={row['zscore']:.2f}, "
