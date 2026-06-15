@@ -14,13 +14,15 @@ sin negociación, sin excepciones temporales.
 
 | Rama      | Rol                                                          |
 |-----------|--------------------------------------------------------------|
-| `main`    | Producción — siempre idéntica a dev-v12, commits directos en paralelo |
-| `dev-v12` | Integración — única rama de desarrollo activa                |
+| `main`    | Producción — siempre idéntica a dev-v13, commits directos en paralelo |
+| `dev-v13` | Integración — única rama de desarrollo activa                |
 
-**Regla de ramas**: Solo `dev-v12` y `main`. Ambas deben estar siempre a la par.
-Todo trabajo nuevo va a `dev-v12`. Push a ambas simultáneamente al completar.
+**Regla de ramas**: Solo dev-v13 y main. Ambas deben estar siempre a la par. Todo trabajo nuevo va a dev-v13. Push a ambas simultáneamente al completar.
 
----
+> dev-v12 queda retirada como rama de desarrollo activa (historial preservado,
+> sin nuevos commits). dev-v13 es la sucesora directa y absorbe la regla de
+> sincronización con main.
+
 
 ## Agentes Core Obligatorios
 
@@ -164,8 +166,8 @@ aprobado, ese formato reemplaza este estándar y VectisDev.md se actualiza.
 **Todo cambio se commitea directamente a ambas ramas activas, en el mismo momento:**
 
 1. `main`
-2. `dev-v12` (rama de desarrollo más reciente — actualizar este nombre cuando
-   se abra una `dev-v13` u otra posterior, manteniendo siempre la convención
+2. `dev-v13` (rama de desarrollo más reciente — actualizar este nombre cuando
+   se abra una `dev-v14` u otra posterior, manteniendo siempre la convención
    "rama de desarrollo más reciente + main al unísono")
 
 No se usa flujo de Pull Requests para mantener `main`/`dev-v12` sincronizadas —

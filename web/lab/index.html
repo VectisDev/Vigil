@@ -896,7 +896,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- Bloque B -->
 <div class="inj-block">
   <div class="inj-block-title">
-    <span class="badge b-warn">B</span> <span data-i18n="inj_block_b_title">Escenario Red Team — Ataques a CENTINEL</span>
+    <span class="badge b-warn">B</span> <span data-i18n="inj_block_b_title">Escenario Red Team — Ataques a VIGIL</span>
     <span style="font-size:10px;color:var(--muted)" data-i18n="inj_block_b_sub">Una defensa por tarjeta · escala hasta el punto de quiebre</span>
   </div>
   <div class="inj-active-block" id="inj-active-block-b"></div>
@@ -1082,7 +1082,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
     <!-- Summary -->
     <div style="font-size:10px;color:var(--muted);padding:10px;background:rgba(55,65,81,.3);border-radius:6px;line-height:1.5">
-      <span data-i18n="sw_whats_happening" data-i18n-html="1"><strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es Centinel auditando como lo hace en producción.</span>
+      <span data-i18n="sw_whats_happening" data-i18n-html="1"><strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es VIGIL auditando como lo hace en producción.</span>
     </div>
   </div>
 </div>
@@ -1150,7 +1150,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
   <!-- Academic Notes -->
   <div style="font-size:10px;color:var(--muted);padding:8px;background:rgba(55,65,81,.3);border-radius:6px">
-    <span data-i18n="byz_note" data-i18n-html="1"><strong>Byzantine Fault Tolerance:</strong> Centinel alcanza consenso si y solo si Byzantine ≤ ⌊(N−1)/3⌋. Esta sección demuestra que cuando M > threshold, el consenso falla — garantía matemática verificada.</span>
+    <span data-i18n="byz_note" data-i18n-html="1"><strong>Byzantine Fault Tolerance:</strong> VIGIL alcanza consenso si y solo si Byzantine ≤ ⌊(N−1)/3⌋. Esta sección demuestra que cuando M > threshold, el consenso falla — garantía matemática verificada.</span>
   </div>
 </div>
 </div><!-- /sec-body-byzantine -->
@@ -1932,7 +1932,7 @@ const _LOG_FULL_EN = {
   'Simulación completada': 'Simulation complete',
   'Loop — reiniciando desde snapshot 1': 'Loop — restarting from snapshot 1',
   'Loop — red gossip reiniciada': 'Loop — gossip network reset',
-  'Sandbox Forense Académico listo — CENTINEL v1': 'Academic Forensic Sandbox ready — CENTINEL v1',
+  'Sandbox Forense Académico listo — VIGIL v1': 'Academic Forensic Sandbox ready — VIGIL v1',
   'Selecciona un dataset y presiona ▶ para iniciar la simulación': 'Select a dataset and press ▶ to start the simulation',
   'No hay gráficas — inicia la simulación primero': 'No charts available — start the simulation first',
   'PNG del panel descargado': 'Panel PNG downloaded',
@@ -5015,7 +5015,7 @@ async function loadLabThresholds(){
   renderSwarmViz();
   logSE('OK',_trMsg('Red Swarm lista — 100 nodos · fan-out=3 · BFT=33'));
   logSE('INFO',_trMsg('Inicia la simulación para observar propagación gossip y detección Byzantine'));
-  logE('OK',_trMsg('Sandbox Forense Académico listo — CENTINEL v1'));
+  logE('OK',_trMsg('Sandbox Forense Académico listo — VIGIL v1'));
   logE('INFO',_trMsg('Selecciona un dataset y presiona ▶ para iniciar la simulación'));
 })();
 
@@ -5106,7 +5106,7 @@ function downloadPNG(){
   ctx.scale(S,S);
   ctx.fillStyle='#0f1115';ctx.fillRect(0,0,W+PAD*2,totalH);
   ctx.fillStyle='#b08cf0';ctx.font='bold 14px system-ui';
-  ctx.fillText('CENTINEL Electoral Honduras',PAD,PAD+12);
+  ctx.fillText('VIGIL Electoral Honduras',PAD,PAD+12);
   ctx.fillStyle='#8b929c';ctx.font='11px system-ui';
   ctx.fillText(`Panel Forense · Snap ${SIM.idx+1}/${SIM.snapshots.length} · ${new Date().toLocaleString('es-HN')}`,PAD,PAD+28);
   let y=PAD+40;
@@ -5152,7 +5152,7 @@ function downloadFullPNG(){
   ctx.fillStyle='#0f1115';ctx.fillRect(0,0,W+PAD*2,totalH);
   // Branding
   ctx.fillStyle='#b08cf0';ctx.font='bold 16px system-ui';
-  ctx.fillText('CENTINEL Electoral Honduras',PAD,PAD+14);
+  ctx.fillText('VIGIL Electoral Honduras',PAD,PAD+14);
   ctx.fillStyle='#8b929c';ctx.font='11px system-ui';
   ctx.fillText(`Simulación Forense Académica · Snap ${SIM.idx+1}/${SIM.snapshots.length} · ${new Date().toLocaleString('es-HN')}`,PAD,PAD+30);
   let y=PAD+40;
@@ -5335,7 +5335,7 @@ function _getDatasetLabel(){
 // ── Citation text builders (bilingüe — usa currentLabLang()) ───────────────
 
 function _buildAPASoftware(){
-  return `VectisDev. (2025). CENTINEL: Trustless electoral integrity verification [Software]. GitHub. https://github.com/vectisdev/centinel`;
+  return `VectisDev. (2025). VIGIL: Trustless electoral integrity verification [Software]. GitHub. https://github.com/vectisdev/vigil`;
 }
 function _buildAPASession(sid){
   const en=currentLabLang()==='en';
@@ -5344,8 +5344,8 @@ function _buildAPASession(sid){
   const dateStr=now.toLocaleDateString(en?'en-US':'es-HN',{year:'numeric',month:'long',day:'numeric'});
   const snap=SIM.idx+1;const total=SIM.snapshots.length;
   return en
-    ? `CENTINEL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Electoral forensic analysis: ${ds} — Snapshot ${snap}/${total} [Sandbox session, session ID: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`
-    : `CENTINEL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`;
+    ? `VIGIL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Electoral forensic analysis: ${ds} — Snapshot ${snap}/${total} [Sandbox session, session ID: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`
+    : `VIGIL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`;
 }
 function _buildAPAData(){
   const en=currentLabLang()==='en';
@@ -5355,16 +5355,16 @@ function _buildAPAData(){
       ? `Supreme Electoral Tribunal of Honduras. (2025). Election results — Honduras 2025 General Elections [Data set]. TSE. https://cne.hn/`
       : `Tribunal Supremo Electoral de Honduras. (2025). Resultados electorales — Elecciones Generales Honduras 2025 [Conjunto de datos]. TSE. https://cne.hn/`;
   return en
-    ? `VectisDev. (2025). Simulated electoral integrity data [Synthetic data set]. GitHub. https://github.com/vectisdev/centinel`
-    : `VectisDev. (2025). Datos simulados de integridad electoral [Conjunto de datos sintéticos]. GitHub. https://github.com/vectisdev/centinel`;
+    ? `VectisDev. (2025). Simulated electoral integrity data [Synthetic data set]. GitHub. https://github.com/vectisdev/vigil`
+    : `VectisDev. (2025). Datos simulados de integridad electoral [Conjunto de datos sintéticos]. GitHub. https://github.com/vectisdev/vigil`;
 }
 function _buildBibSoftware(){
   const en=currentLabLang()==='en';
   return `@software{centinel2025,
   author    = {{VectisDev}},
-  title     = {{CENTINEL}: Trustless Electoral Integrity Verification},
+  title     = {{VIGIL}: Trustless Electoral Integrity Verification},
   year      = {2025},
-  url       = {https://github.com/vectisdev/centinel},
+  url       = {https://github.com/vectisdev/vigil},
   license   = {AGPL-3.0},
   version   = {0.4.0},
   note      = {${en?'Cryptographic electoral audit system for Latin America':'Sistema de auditoría electoral criptográfica para América Latina'}}
@@ -5376,8 +5376,8 @@ function _buildBibSession(sid){
   const snap=SIM.idx+1;const total=SIM.snapshots.length;
   const now=new Date();
   return `@misc{centinel_session_${sid},
-  title     = {{CENTINEL} Forensic Lab --- ${en?'Electoral Forensic Analysis':'Análisis forense electoral'}},
-  author    = {{CENTINEL Forensic Lab}},
+  title     = {{VIGIL} Forensic Lab --- ${en?'Electoral Forensic Analysis':'Análisis forense electoral'}},
+  author    = {{VIGIL Forensic Lab}},
   year      = {${now.getFullYear()}},
   month     = {${now.getMonth()+1}},
   note      = {Dataset: ${ds}; Snapshot: ${snap}/${total}; ${en?'Session ID':'ID de sesión'}: ${sid}; ${en?'Alerts':'Alertas'}: ${simAlerts.length}},
@@ -5395,44 +5395,44 @@ function _buildBibData(){
   title     = {Election Results --- 2025 General Elections},
   year      = {2025},
   url       = {https://cne.hn/},
-  note      = {Data processed by CENTINEL Engine v0.4.0}
+  note      = {Data processed by VIGIL Engine v0.4.0}
 }`
       : `@dataset{tse_hn2025,
   author    = {{Tribunal Supremo Electoral de Honduras}},
   title     = {Resultados Electorales --- Elecciones Generales 2025},
   year      = {2025},
   url       = {https://cne.hn/},
-  note      = {Datos procesados por CENTINEL Engine v0.4.0}
+  note      = {Datos procesados por VIGIL Engine v0.4.0}
 }`;
   return en
     ? `@dataset{centinel_sim2025,
   author    = {{VectisDev}},
   title     = {Simulated Electoral Integrity Data},
   year      = {2025},
-  url       = {https://github.com/vectisdev/centinel},
+  url       = {https://github.com/vectisdev/vigil},
   note      = {Synthetic time series with embedded anomalies for detector evaluation}
 }`
     : `@dataset{centinel_sim2025,
   author    = {{VectisDev}},
   title     = {Datos Simulados de Integridad Electoral},
   year      = {2025},
-  url       = {https://github.com/vectisdev/centinel},
+  url       = {https://github.com/vectisdev/vigil},
   note      = {Serie temporal sintética con anomalías embebidas para evaluación de detectores}
 }`;
 }
 function _buildISOSoftware(){
   const en=currentLabLang()==='en';
   return en
-    ? `VECTISDEV. CENTINEL: Trustless Electoral Integrity Verification [software]. 2025. Available at: <https://github.com/vectisdev/centinel> [accessed: ${new Date().toISOString().slice(0,10)}]`
-    : `VECTISDEV. CENTINEL: Trustless Electoral Integrity Verification [software]. 2025. Disponible en: <https://github.com/vectisdev/centinel> [consulta: ${new Date().toISOString().slice(0,10)}]`;
+    ? `VECTISDEV. VIGIL: Trustless Electoral Integrity Verification [software]. 2025. Available at: <https://github.com/vectisdev/vigil> [accessed: ${new Date().toISOString().slice(0,10)}]`
+    : `VECTISDEV. VIGIL: Trustless Electoral Integrity Verification [software]. 2025. Disponible en: <https://github.com/vectisdev/vigil> [consulta: ${new Date().toISOString().slice(0,10)}]`;
 }
 function _buildISOSession(sid){
   const en=currentLabLang()==='en';
   const ds=_getDatasetLabel();
   const snap=SIM.idx+1;
   return en
-    ? `CENTINEL FORENSIC LAB. Forensic analysis: ${ds}, snapshot ${snap} [online session]. ${new Date().toISOString().slice(0,10)}. Session ID: ${sid}. Available at: <https://vectisdev.github.io/centinel/lab/>`
-    : `CENTINEL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/centinel/lab/>`;
+    ? `VIGIL FORENSIC LAB. Forensic analysis: ${ds}, snapshot ${snap} [online session]. ${new Date().toISOString().slice(0,10)}. Session ID: ${sid}. Available at: <https://vectisdev.github.io/centinel/lab/>`
+    : `VIGIL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/centinel/lab/>`;
 }
 
 let _lastCiteSid=null;
@@ -5491,7 +5491,7 @@ function copyCite(blockId){
 async function downloadBib(){
   const sid=await _ensureSessionId();
   const content=[
-    '% CENTINEL Forensic Lab — BibTeX citation package',
+    '% VIGIL Forensic Lab — BibTeX citation package',
     `% Session ID : ${sid}`,
     `% Generated  : ${new Date().toISOString()}`,
     '% URL        : https://vectisdev.github.io/centinel/lab/',
@@ -5514,7 +5514,7 @@ async function downloadCSV(){
   const ds=_getDatasetLabel();const snap=SIM.idx+1;const ts=new Date().toISOString();
   const esc=s=>{const v=String(s);return v.includes(',')||v.includes('"')||v.includes('\n')?'"'+v.replace(/"/g,'""')+'"':v;};
   const rows=[];
-  rows.push(['# CENTINEL Forensic Lab — Exportación de estadísticas']);
+  rows.push(['# VIGIL Forensic Lab — Exportación de estadísticas']);
   rows.push(['# Session ID',sid]);rows.push(['# Dataset',ds]);
   rows.push(['# Snapshot',`${snap}/${SIM.snapshots.length}`]);rows.push(['# Generado',ts]);
   rows.push(['# URL','https://vectisdev.github.io/centinel/lab/']);rows.push([]);
@@ -5561,7 +5561,7 @@ async function downloadReproZip(){
   const hyp=document.getElementById('thresh-prereg-text')?.value||'';
   // README
   zip.file('README.txt',[
-    'CENTINEL Forensic Lab — Paquete de Reproducibilidad',
+    'VIGIL Forensic Lab — Paquete de Reproducibilidad',
     '='.repeat(54),'',
     `Session ID : ${sid}`,`Dataset    : ${ds}`,
     `Snapshot   : ${snap}/${SIM.snapshots.length}`,`Generado   : ${ts}`,
@@ -5582,7 +5582,7 @@ async function downloadReproZip(){
     'CITAR ESTE SOFTWARE (APA 7ª ed.)','-'.repeat(40),
     _buildAPASoftware(),'',
     'LICENCIA','-'.repeat(40),
-    'CENTINEL — AGPL-3.0 · https://github.com/vectisdev/centinel',
+    'CENTINEL — AGPL-3.0 · https://github.com/vectisdev/vigil',
     'Datos electorales: propiedad del TSE de Honduras (uso académico).',
   ].join('\n'));
   // session.json
@@ -5599,7 +5599,7 @@ async function downloadReproZip(){
     active_injections:activeInjections.map(i=>({id:i.id,label:i.label,mode:i.mode,snapshot:i.atIdx+1})),
     scheduled_injections:scheduledInjections.map(s=>({id:s.id,snapshot:s.atIdx+1,param:s.paramVal})),
     alert_summary:{total:simAlerts.length,critical:simAlerts.filter(a=>a.sev==='CRITICAL').length,high:simAlerts.filter(a=>a.sev==='HIGH').length},
-    software:{name:'CENTINEL',version:'0.4.0',license:'AGPL-3.0',url:'https://github.com/vectisdev/centinel'},
+    software:{name:'CENTINEL',version:'0.4.0',license:'AGPL-3.0',url:'https://github.com/vectisdev/vigil'},
   },null,2));
   // thresholds.csv
   const thHdr='rule_id,grupo,etiqueta,valor,unidad,habilitado,min,max,default';
@@ -5613,7 +5613,7 @@ async function downloadReproZip(){
   zip.file('injections.json',JSON.stringify({active:activeInjections,scheduled:scheduledInjections},null,2));
   // citation.bib
   zip.file('citation.bib',[
-    '% CENTINEL Forensic Lab — BibTeX citation package',
+    '% VIGIL Forensic Lab — BibTeX citation package',
     `% Session ID : ${sid}`,`% Generated  : ${ts}`,'',
     _buildBibSoftware(),'',_buildBibSession(sid),'',_buildBibData(),
   ].join('\n'));
@@ -5643,7 +5643,7 @@ function _addWatermark(ctx,W,y0){
   ctx.fillStyle='#8b929c';ctx.font='9px system-ui';
   const sid=_sessionId||'—';const ds=_getDatasetLabel().slice(0,35);
   const snap=SIM.idx+1;
-  const wt=`CENTINEL Forensic Lab · Session ${sid} · ${ds} · Snap ${snap} · vectisdev.github.io/centinel/lab/`;
+  const wt=`VIGIL Forensic Lab · Session ${sid} · ${ds} · Snap ${snap} · vectisdev.github.io/centinel/lab/`;
   ctx.fillText(wt.slice(0,120),10,y0+14);
 }
 
@@ -6012,7 +6012,7 @@ function sendFeedback(){
   if(!msg){document.getElementById('cfg-feedback-msg').focus();return;}
   const ds=document.getElementById('dataset-select')?.options[document.getElementById('dataset-select').selectedIndex]?.text||'—';
   const body=`**Mensaje:**\n${msg}\n\n---\n**Snap:** ${SIM.idx+1}/${SIM.snapshots.length}  \n**Dataset:** ${ds}  \n**Fecha:** ${new Date().toISOString()}`;
-  const url='https://github.com/VectisDev/centinel/issues/new'
+  const url='https://github.com/VectisDev/vigil/issues/new'
     +'?labels=sandbox-feedback'
     +'&title='+encodeURIComponent('[Sandbox] Comentario de usuario')
     +'&body='+encodeURIComponent(body);
@@ -6084,7 +6084,7 @@ function toggleSection(id){
 <div id="cite-overlay" onclick="if(event.target===this)closeCitationModal()">
   <div id="cite-card">
     <div class="cite-hdr">
-      <h3 data-i18n="cite_h3">📚 Citar análisis — CENTINEL Lab</h3>
+      <h3 data-i18n="cite_h3">📚 Citar análisis — VIGIL Lab</h3>
       <button onclick="closeCitationModal()">✕</button>
     </div>
     <div class="cite-session-meta" id="cite-session-meta"></div>
@@ -6164,7 +6164,7 @@ function toggleSection(id){
 
   <div class="meth-section">
     <div class="meth-section-title" data-i18n="meth_s1_title">Fundamento matemático</div>
-    <p class="meth-p" data-i18n="meth_s1_body">CENTINEL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.</p>
+    <p class="meth-p" data-i18n="meth_s1_body">VIGIL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.</p>
   </div>
 
   <div class="meth-section">
@@ -6186,7 +6186,7 @@ function toggleSection(id){
 
   <div class="meth-section">
     <div class="meth-section-title" data-i18n="meth_t4_title">Teorema T4 — Anclaje temporal Bitcoin</div>
-    <p class="meth-p" data-i18n="meth_t4_body">La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en CENTINEL.</p>
+    <p class="meth-p" data-i18n="meth_t4_body">La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en VIGIL.</p>
   </div>
 
   <div class="meth-section">
@@ -6220,7 +6220,7 @@ function toggleSection(id){
       <li>Nakamoto, S. (2008). Bitcoin: A peer-to-peer electronic cash system.</li>
       <li>Merkle, R. C. (1988). A digital signature based on a conventional encryption function. <em>CRYPTO</em>.</li>
       <li>OpenTimestamps: <em>opentimestamps.org</em></li>
-      <li>CENTINEL Methodology: <em>docs/research/METHODOLOGY.md</em></li>
+      <li>VIGIL Methodology: <em>docs/research/METHODOLOGY.md</em></li>
     </ul>
   </div>
 
@@ -6232,7 +6232,7 @@ function toggleSection(id){
 
   <div class="meth-section">
     <div class="meth-section-title" data-i18n="meth_contact_title">Contacto académico</div>
-    <p class="meth-p" data-i18n="meth_contact_body" data-i18n-html="1">Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.</p>
+    <p class="meth-p" data-i18n="meth_contact_body" data-i18n-html="1">Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/vigil</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.</p>
   </div>
 </div>
 
@@ -6465,7 +6465,7 @@ const LAB_I18N = {
   dyn_cuarentena:     ['CUARENTENA','QUARANTINE'],
 
   // ── Capa 3a: modal de citación ──
-  cite_h3:            ['📚 Citar análisis — CENTINEL Lab','📚 Cite this analysis — CENTINEL Lab'],
+  cite_h3:            ['📚 Citar análisis — VIGIL Lab','📚 Cite this analysis — VIGIL Lab'],
   cite_tab_apa:       ['APA 7ª ed.','APA 7th ed.'],
   cite_software:      ['Software','Software'],
   cite_apa_ed:        ['APA 7ª edición','APA 7th edition'],
@@ -6516,8 +6516,8 @@ const LAB_I18N = {
   // ── Capa 3d: Drawer de Metodología ──
   meth_h3:        ['📖 Metodología científica','📖 Scientific Methodology'],
   meth_s1_title:  ['Fundamento matemático','Mathematical Foundation'],
-  meth_s1_body:   ['CENTINEL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.',
-                   'CENTINEL implements 25+ independent statistical detectors. Each snapshot is checked against analyst-configurable thresholds; an anomaly requires multiple detectors to agree (k-of-n consensus), eliminating isolated false positives.'],
+  meth_s1_body:   ['VIGIL implementa 25+ detectores estadísticos independientes. Cada snapshot es verificado contra umbrales configurables por el analista; una anomalía requiere que múltiples detectores coincidan (consenso k-de-n), eliminando falsos positivos aislados.',
+                   'VIGIL implements 25+ independent statistical detectors. Each snapshot is checked against analyst-configurable thresholds; an anomaly requires multiple detectors to agree (k-of-n consensus), eliminating isolated false positives.'],
   meth_t1_title:  ['Teorema T1 — Integridad de cadena','Theorem T1 — Chain Integrity'],
   meth_t1_body:   ['Cada snapshot incluye el SHA-256 del anterior. Una modificación retroactiva invalida toda la cadena posterior — detectable offline sin acceso a la fuente original.',
                    'Each snapshot includes the SHA-256 of the previous one. A retroactive modification invalidates the entire subsequent chain — detectable offline without access to the original source.'],
@@ -6528,8 +6528,8 @@ const LAB_I18N = {
   meth_t3_body:   ['La participación acumulada es monótonamente no-decreciente. Una caída indica actas retiradas — evento imposible en un escrutinio legítimo.',
                    'Cumulative turnout is monotonically non-decreasing. A drop indicates withdrawn tally sheets — an impossible event in a legitimate count.'],
   meth_t4_title:  ['Teorema T4 — Anclaje temporal Bitcoin','Theorem T4 — Bitcoin Time Anchoring'],
-  meth_t4_body:   ['La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en CENTINEL.',
-                   'The Merkle root of the snapshot set is anchored to the Bitcoin blockchain via OpenTimestamps. The mined block proves the data existed before that block — without requiring trust in CENTINEL.'],
+  meth_t4_body:   ['La raíz Merkle del conjunto de snapshots se ancla a la blockchain de Bitcoin vía OpenTimestamps. El bloque minado prueba que los datos existían antes de ese bloque — sin requerir confianza en VIGIL.',
+                   'The Merkle root of the snapshot set is anchored to the Bitcoin blockchain via OpenTimestamps. The mined block proves the data existed before that block — without requiring trust in VIGIL.'],
   meth_det_title: ['Detectores implementados','Implemented Detectors'],
   meth_det_list:  ['<li>Ley de Benford (primeros dígitos, χ²)</li><li>Participación imposible (&gt;100%)</li><li>Turno out delta anómalo</li><li>Consistencia de cadena de hash</li><li>Estancamiento de datos (throttling)</li><li>Última hora surge (madrugada)</li><li>Empate estadístico imposible</li><li>Cascada de espejos</li><li>Participación bimodal anormal</li><li>Volatilidad de liderazgo</li><li>Datos idénticos multi-tick</li><li>14 detectores adicionales configurables</li>',
                    '<li>Benford\'s Law (leading digits, χ²)</li><li>Impossible turnout (&gt;100%)</li><li>Anomalous turnout delta</li><li>Hash chain consistency</li><li>Data stagnation (throttling)</li><li>Late-night surge</li><li>Impossible statistical tie</li><li>Mirror cascade</li><li>Abnormal bimodal turnout</li><li>Leadership volatility</li><li>Identical multi-tick data</li><li>14 additional configurable detectors</li>'],
@@ -6544,8 +6544,8 @@ const LAB_I18N = {
                     'Every session generates a reproducible ZIP: threshold configuration, alerts, active injections, metadata and bibliographic citation. Any researcher can reproduce the exact analysis from the ZIP.'],
   meth_repro_btn: ['⬇ Descargar paquete de reproducibilidad','⬇ Download reproducibility package'],
   meth_contact_title:['Contacto académico','Academic Contact'],
-  meth_contact_body: ['Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/centinel</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.',
-                       'For research collaborations, independent validation, or doctoral thesis use: open an issue on <strong>github.com/vectisdev/centinel</strong> with the <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code> label.'],
+  meth_contact_body: ['Para colaboraciones de investigación, validación independiente o uso en tesis doctoral: abrir issue en <strong>github.com/vectisdev/vigil</strong> con etiqueta <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code>.',
+                       'For research collaborations, independent validation, or doctoral thesis use: open an issue on <strong>github.com/vectisdev/vigil</strong> with the <code style="background:var(--bg);padding:1px 4px;border-radius:3px">research</code> label.'],
 
   // ── Capa 3e: dataset select, telemetría, sesión, watermark ──
   ds_label:     ['Dataset','Dataset'],
@@ -6583,7 +6583,7 @@ const LAB_I18N = {
   inj_sched_prefix: ['en snapshot nº','at snapshot #'],
   inj_block_a_title:['Anomalías del Sitio Origen — Vectores del Scraper','Source-Site Anomalies — Scraper Vectors'],
   inj_block_a_sub:  ['Fallos extrínsecos de la infraestructura de datos','Extrinsic data-infrastructure failures'],
-  inj_block_b_title:['Escenario Red Team — Ataques a CENTINEL','Red Team Scenario — Attacks on CENTINEL'],
+  inj_block_b_title:['Escenario Red Team — Ataques a VIGIL','Red Team Scenario — Attacks on VIGIL'],
   inj_block_b_sub:  ['Una defensa por tarjeta · escala hasta el punto de quiebre','One defense per card · escalates to the breaking point'],
   inj_block_c_title:['Anomalías Electorales Estadísticas','Statistical Electoral Anomalies'],
   inj_block_c_sub:  ['Patrones de fraude/error para evaluar mecanismos de detección','Fraud/error patterns to evaluate detection mechanisms'],
@@ -6679,8 +6679,8 @@ const LAB_I18N = {
   sw_start_audit: ['▶ Iniciar Auditoría Distribuida','▶ Start Distributed Audit'],
   sw_clear_audit: ['✕ Limpiar','✕ Clear'],
   sw_clear_audit_title: ['Limpiar estado de auditoría','Clear audit state'],
-  sw_whats_happening: ['<strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es Centinel auditando como lo hace en producción.',
-                       '<strong>What is happening?</strong> Every node in every swarm validates the same dataset (votes, tally sheets, etc.) simultaneously. You see checksums being verified in real time. If ≥66% of honest nodes validate, consensus is reached and the result is safe. This is Centinel auditing the way it does in production.'],
+  sw_whats_happening: ['<strong>¿Qué está sucediendo?</strong> Todos los nodos de todos los swarms validan el mismo conjunto de datos (votación, actas, etc.) simultáneamente. Ves checksums siendo verificados en tiempo real. Si ≥66% de nodos honestos validan, el consenso se alcanza y el resultado es seguro. Esto es VIGIL auditando como lo hace en producción.',
+                       '<strong>What is happening?</strong> Every node in every swarm validates the same dataset (votes, tally sheets, etc.) simultaneously. You see checksums being verified in real time. If ≥66% of honest nodes validate, consensus is reached and the result is safe. This is VIGIL auditing the way it does in production.'],
 
   // ── P2.1: opciones "N nodos" ──
   sw_opt_n1:  ['1 nodo','1 node'],
@@ -6709,8 +6709,8 @@ const LAB_I18N = {
   byz_rounds_label:  ['Rounds','Rounds'],
   byz_nodes_consensus: ['Nodos y Estado de Consenso','Nodes and Consensus Status'],
   byz_forensic_trail: ['Forensic Trail (Reproducible)','Forensic Trail (Reproducible)'],
-  byz_note: ['<strong>Byzantine Fault Tolerance:</strong> Centinel alcanza consenso si y solo si Byzantine ≤ ⌊(N−1)/3⌋. Esta sección demuestra que cuando M > threshold, el consenso falla — garantía matemática verificada.',
-             '<strong>Byzantine Fault Tolerance:</strong> Centinel reaches consensus if and only if Byzantine ≤ ⌊(N−1)/3⌋. This section demonstrates that when M > threshold, consensus fails — a mathematically verified guarantee.'],
+  byz_note: ['<strong>Byzantine Fault Tolerance:</strong> VIGIL alcanza consenso si y solo si Byzantine ≤ ⌊(N−1)/3⌋. Esta sección demuestra que cuando M > threshold, el consenso falla — garantía matemática verificada.',
+             '<strong>Byzantine Fault Tolerance:</strong> VIGIL reaches consensus if and only if Byzantine ≤ ⌊(N−1)/3⌋. This section demonstrates that when M > threshold, consensus fails — a mathematically verified guarantee.'],
 };
 
 function applyLabI18n(lang){
