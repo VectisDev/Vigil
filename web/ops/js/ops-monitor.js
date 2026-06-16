@@ -822,29 +822,19 @@ async function reloadConfig(){
 }
 
 // Sidebar scroll
+// scrollTo — view-aware: if the target section lives in another phase view,
+// switch to that view first (setView lives in ops-command.js), then scroll.
 function scrollTo(id){
   const el = document.getElementById(id);
-  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  if(el){
+    const phase = el.closest('[data-phase]')?.dataset.phase;
+    if(phase && typeof setView==='function') setView(phase, {scroll:false});
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+  }
   document.querySelectorAll('#sidebar a').forEach(a=>{
     a.classList.toggle('active', a.getAttribute('href')==='#'+id);
   });
 }
-
-// Active sidebar highlight — scroll-position based, reliable for any section height
-function _updateSidebarActive(){
-  const ids = ['s1','s7','s3','s9','s4','s8','s6','s5'];
-  const offset = 90; // header + mission bar height
-  let current = ids[0];
-  for(const id of ids){
-    const el = document.getElementById(id);
-    if(el && el.getBoundingClientRect().top <= offset) current = id;
-  }
-  document.querySelectorAll('#sidebar a').forEach(a=>{
-    a.classList.toggle('active', a.getAttribute('href')==='#'+current);
-  });
-}
-document.addEventListener('scroll', _updateSidebarActive, {passive:true});
-_updateSidebarActive();
 
 // ── 8 Red de Nodos ────────────────────────────────────────────────────────────
 let _swarmPollTimer = null;
