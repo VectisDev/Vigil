@@ -510,10 +510,10 @@ body.mode-citizen .citizen-semaphore { display: grid !important; }
   text-transform: uppercase; letter-spacing: .08em; color: var(--fg); margin-bottom: 6px;
 }
 .conf-desc { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.6; }
-.conf-factors { margin-top: 10px; display: grid; gap: 4px; }
+.conf-factors { margin-top: 10px; display: grid; gap: 4px; min-width: 0; }
 .conf-factor {
   font-family: var(--mono); font-size: 10px; color: var(--muted);
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden;
 }
 .conf-factor-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
@@ -591,7 +591,7 @@ body.mode-citizen .citizen-semaphore { display: grid !important; }
 .card-highlight { animation: highlight-glow 1.5s ease forwards; }
 
 /* ── DIAGNOSTIC MINI-CARDS ───────────────────────────────── */
-.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; }
+#timeseries-diag-grid { grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; }
 .diag-card {
   background: var(--panel2); border: 1px solid var(--border); border-radius: 2px;
   padding: 12px 14px; text-align: center;
@@ -609,7 +609,7 @@ body.mode-citizen .citizen-semaphore { display: grid !important; }
 
 /* ── CONF FACTOR BAR ─────────────────────────────────────── */
 .conf-factor-bar {
-  flex: 1; height: 6px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 0 6px;
+  flex: 1; height: 6px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 0 6px; min-width: 0;
 }
 .conf-factor-fill { height: 100%; border-radius: 2px; transition: width .4s ease; }
 
