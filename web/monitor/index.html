@@ -553,6 +553,61 @@ body.mode-citizen .citizen-semaphore { display: grid !important; }
   padding: 10px 18px; cursor: pointer; transition: .15s;
 }
 #export-pdf-btn:hover { filter: brightness(1.15); }
+#export-csv-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 9px 18px; cursor: pointer; transition: .15s; margin-left: 8px;
+}
+#export-csv-btn:hover { background: var(--accent); color: #000; }
+
+/* ── DEPARTMENT FILTER BAR ────────────────────────────────── */
+#dept-filter-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; margin-bottom: 4px;
+  font-family: var(--mono); font-size: 11px;
+}
+#dept-filter-bar select {
+  background: var(--panel); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 2px; padding: 4px 8px; font-family: var(--mono); font-size: 11px;
+}
+#dept-filter-bar .filter-clear {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 2px; padding: 3px 8px; cursor: pointer; font-family: var(--mono); font-size: 10px;
+}
+#dept-filter-bar .filter-clear:hover { border-color: var(--accent); color: var(--accent); }
+#dept-filter-bar .filter-label { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
+
+/* ── CARD HIGHLIGHT (deep-link) ──────────────────────────── */
+@keyframes highlight-glow {
+  0% { box-shadow: 0 0 0 2px var(--accent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.card-highlight { animation: highlight-glow 1.5s ease forwards; }
+
+/* ── DIAGNOSTIC MINI-CARDS ───────────────────────────────── */
+.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; }
+.diag-card {
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 2px;
+  padding: 12px 14px; text-align: center;
+}
+.diag-val { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.diag-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+
+/* ── BLACKOUT ZONES ──────────────────────────────────────── */
+.blackout-gap-row {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: 8px; align-items: center; padding: 6px 0;
+  border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 11px;
+}
+.blackout-interference { color: var(--bad-c); font-weight: 700; }
+
+/* ── CONF FACTOR BAR ─────────────────────────────────────── */
+.conf-factor-bar {
+  flex: 1; height: 6px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 0 6px;
+}
+.conf-factor-fill { height: 100%; border-radius: 2px; transition: width .4s ease; }
 
 /* ── DEMO BANNER ──────────────────────────────────────────── */
 #demo-banner {
@@ -676,6 +731,15 @@ footer a { color: var(--accent); text-decoration: none; }
 </div>
 
 <main>
+
+<!-- ── FILTRO POR DEPARTAMENTO (expert) ── -->
+<div id="dept-filter-bar" data-expert>
+  <span class="filter-label">Filtrar departamento:</span>
+  <select id="dept-filter-select" onchange="setDeptFilter(this.value)">
+    <option value="">— Todos —</option>
+  </select>
+  <button class="filter-clear" onclick="setDeptFilter('')">Limpiar</button>
+</div>
 
 <!-- ── HERO DE INTEGRIDAD ── -->
 <div id="hero-integrity" aria-live="polite">
@@ -937,6 +1001,77 @@ footer a { color: var(--accent); text-decoration: none; }
   <div id="anomaly-profile-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Distribución de alertas por categoría, ordenadas por frecuencia.</div>
 </div>
 
+<!-- ── INYECCIÓN PROGRESIVA (expert) ── -->
+<div class="card" data-section="prog-injection" data-expert>
+  <h2>Inyección progresiva de votos</h2>
+  <div class="grid2">
+    <canvas id="chart-prog-zscore" height="160"></canvas>
+    <canvas id="chart-prog-swing" height="160"></canvas>
+  </div>
+  <div id="prog-injection-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Detecta adiciones incrementales de votos que distorsionan el resultado acumulado. Usa z-score acumulado, autocorrelación y Runs test.</div>
+</div>
+
+<!-- ── RETENCIÓN-LIBERACIÓN (expert) ── -->
+<div class="card" data-section="hold-release" data-expert>
+  <h2>Retención y liberación masiva (Hold &amp; Release)</h2>
+  <canvas id="chart-hold-release" height="160"></canvas>
+  <div id="hold-release-detail" style="margin-top:10px"></div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Detecta estancamientos prolongados seguidos de liberación abrupta de actas. Patrón típico de control centralizado del flujo de resultados.</div>
+</div>
+
+<!-- ── BENEFICIO ASIMÉTRICO (expert) ── -->
+<div class="card" data-section="asymmetric" data-expert>
+  <h2>Beneficio asimétrico por candidato</h2>
+  <div class="grid2">
+    <canvas id="chart-asymmetric-bar" height="180"></canvas>
+    <canvas id="chart-asymmetric-radar" height="180"></canvas>
+  </div>
+  <div id="asymmetric-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Compara proporción de votos en escrutinio normal vs. especial. Un beneficio asimétrico sugiere manipulación selectiva del recuento.</div>
+</div>
+
+<!-- ── VENTANAS DE OSCURECIMIENTO (expert) ── -->
+<div class="card" data-section="blackout-analysis" data-expert>
+  <h2>Ventanas de oscurecimiento (Blackout)</h2>
+  <canvas id="chart-blackout" height="160"></canvas>
+  <div id="blackout-detail" style="margin-top:10px"></div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Identifica periodos sin publicación de datos (gaps) y analiza si los datos post-gap muestran cambios de tendencia sospechosos.</div>
+</div>
+
+<!-- ── DIAGNÓSTICOS DE SERIES TEMPORALES (expert) ── -->
+<div class="card" data-section="timeseries-diag" data-expert>
+  <h2>Diagnósticos de series temporales</h2>
+  <div class="grid4" id="timeseries-diag-grid"></div>
+  <div style="font-size:11px;color:var(--muted);margin-top:10px">Métricas estadísticas de independencia y aleatoriedad de los datos electorales. Valores anómalos indican posible manufactura de datos.</div>
+</div>
+
+<!-- ── RADAR FORENSE INTEGRAL (expert) ── -->
+<div class="card" data-section="forensic-radar" data-expert>
+  <h2>Radar forense integral</h2>
+  <div style="max-width:340px;margin:0 auto">
+    <canvas id="chart-forensic-radar" height="300"></canvas>
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">Intensidad de anomalía normalizada (0=limpio, 1=máximo) para cada detector. Un polígono pequeño y verde indica normalidad.</div>
+</div>
+
+<!-- ── DISPERSIÓN TRIDIMENSIONAL / BUBBLE (expert) ── -->
+<div class="card" data-section="bubble-scatter" data-expert>
+  <h2>Dispersión tridimensional (participación × % líder × alertas)</h2>
+  <canvas id="chart-bubble" height="220"></canvas>
+  <div style="font-size:11px;color:var(--muted);margin-top:10px">Cada burbuja es un departamento. X=participación, Y=% del candidato líder, tamaño=número de alertas. Color: verde=0 alertas, ámbar=1-2, rojo=3+.</div>
+</div>
+
+<!-- ── COMPOSICIÓN DE ALERTAS / DOUGHNUT (expert) ── -->
+<div class="card" data-section="alert-doughnut" data-expert>
+  <h2>Composición de alertas por tipo</h2>
+  <div style="max-width:300px;margin:0 auto;position:relative">
+    <canvas id="chart-alert-doughnut" height="300"></canvas>
+    <div id="doughnut-center" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:var(--mono)">
+      <div style="font-size:24px;font-weight:700;color:var(--fg)" id="doughnut-total">0</div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">alertas</div>
+    </div>
+  </div>
+</div>
+
 <!-- ── CADENA CRIPTOGRÁFICA ── -->
 <div class="card" data-section="chain" data-expert>
   <h2>Cadena criptográfica — últimos registros</h2>
@@ -954,6 +1089,10 @@ footer a { color: var(--accent); text-decoration: none; }
   <button id="export-pdf-btn" onclick="exportObserverReport()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
     EXPORT OBSERVER REPORT (TXT)
+  </button>
+  <button id="export-csv-btn" onclick="exportAnomalyCSV()" data-expert>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    EXPORT ANOMALY CSV
   </button>
   <div style="font-size:11px;color:var(--muted);margin-top:8px">Genera un reporte estructurado con timestamp, cadena de custodia, hallazgos estadísticos y metodología citada — listo para observadores (OEA, Carter Center, EU EOM).</div>
 </div>
@@ -1011,10 +1150,16 @@ const DEMO = {
       'HN-OL':{hashValid:true,rulesBroken:true,actasTotal:2100,actasEscrutadas:540},
     },
     forensics:{
-      progressive_injection:{detected:false,num_injections:0,p_value:0.82},
-      velocity_anomaly:{detected:false,max_rate:4.2,threshold:10},
-      asymmetric_benefit:{detected:false},
-      hold_and_release:{detected:false},
+      progressive_injection:{detected:false,num_injections:0,p_value:0.82,z_score_pvalue:0.72,run_test_pvalue:0.65,autocorrelation_lag1:0.08,net_swing:120,total_injected:0,cumulative_zscore:[0.2,0.4,0.3,0.5,0.6,0.4,0.3,0.5,0.7,0.4]},
+      velocity_anomaly:{detected:false,max_rate:4.2,threshold:10,history:[
+        {ts:'2026-05-17T08:10:00Z',speed:3.1},{ts:'2026-05-17T08:20:00Z',speed:3.8},
+        {ts:'2026-05-17T08:30:00Z',speed:4.2},{ts:'2026-05-17T08:40:00Z',speed:3.5},
+        {ts:'2026-05-17T08:50:00Z',speed:3.9},{ts:'2026-05-17T09:00:00Z',speed:4.0},
+        {ts:'2026-05-17T09:10:00Z',speed:3.6},{ts:'2026-05-17T09:20:00Z',speed:3.3}
+      ]},
+      asymmetric_benefit:{detected:false,benefiting_candidate:'Candidato A',expected_pct:45.0,observed_pct:45.2,z_score:0.3,z_pvalue:0.76,estimated_extra_votes:80,
+        per_candidate:[{name:'Candidato A',normal_pct:45.0,special_pct:45.2},{name:'Candidato B',normal_pct:38.0,special_pct:37.9},{name:'Candidato C',normal_pct:17.0,special_pct:16.9}]},
+      hold_and_release:{detected:false,stagnation_duration_minutes:0,release_actas:0,patterns:[]},
       benford:{chi2:3.4,pvalue:0.91,digits:[
         {d:1,exp:30.1,obs:29.4},{d:2,exp:17.6,obs:18.1},{d:3,exp:12.5,obs:12.9},
         {d:4,exp:9.7,obs:9.2},{d:5,exp:7.9,obs:8.1},{d:6,exp:6.7,obs:6.4},
@@ -1121,23 +1266,19 @@ function renderCitizenSemaphore(data){
 // ── CONFIDENCE SCORE (0–100 composite) ──
 function renderConfidenceScore(data){
   const f=data?.forensics||{};
-  const factors=[];
-  const benfordOk=!f.benford||f.benford.pvalue>=0.05;
-  factors.push({name:'Benford 1er dígito',ok:benfordOk,weight:10});
-  const b2Ok=!f.benford_2nd||f.benford_2nd.pvalue>=0.05;
-  factors.push({name:'Mebane 2do dígito',ok:b2Ok,weight:20});
-  const zOk=!f.zscore?.detected;
-  factors.push({name:'Z-score departamental',ok:zOk,weight:15});
-  const velOk=!f.velocity_anomaly?.detected;
-  factors.push({name:'Velocidad de escrutinio',ok:velOk,weight:15});
-  const chainOk=(data?.national?.integrityPercent??100)>=100;
-  factors.push({name:'Cadena SHA-256',ok:chainOk,weight:25});
-  const injOk=!f.progressive_injection?.detected;
-  factors.push({name:'Inyección progresiva',ok:injOk,weight:10});
-  const asymOk=!f.asymmetric_benefit?.detected;
-  factors.push({name:'Beneficio asimétrico',ok:asymOk,weight:5});
-  const totalWeight=factors.reduce((s,f2)=>s+f2.weight,0);
-  const score=factors.reduce((s,f2)=>s+(f2.ok?f2.weight:0),0)/totalWeight*100;
+  const clamp01=v=>Math.max(0,Math.min(1,v));
+  const pToScore=(p,thr)=>p!=null?clamp01(p/(thr||0.05)):1;
+  const factors=[
+    {name:'Cadena SHA-256',weight:25,score:((data?.national?.integrityPercent??100)>=100)?1:0},
+    {name:'Mebane 2do dígito',weight:20,score:pToScore(f.benford_2nd?.pvalue)},
+    {name:'Z-score departamental',weight:15,score:f.zscore?.detected?0:1},
+    {name:'Velocidad de escrutinio',weight:15,score:f.velocity_anomaly?.detected?0:1},
+    {name:'Benford 1er dígito',weight:10,score:pToScore(f.benford?.pvalue)},
+    {name:'Inyección progresiva',weight:10,score:pToScore(f.progressive_injection?.p_value)},
+    {name:'Beneficio asimétrico',weight:5,score:pToScore(f.asymmetric_benefit?.z_pvalue)},
+  ];
+  const totalWeight=factors.reduce((s,x)=>s+x.weight,0);
+  const score=factors.reduce((s,x)=>s+(x.score*x.weight),0)/totalWeight*100;
   const gauge=document.getElementById('conf-gauge-fg');
   const valEl=document.getElementById('conf-val');
   const titleEl=document.getElementById('conf-title');
@@ -1159,9 +1300,10 @@ function renderConfidenceScore(data){
     titleEl.textContent='ANOMALÍAS MÚLTIPLES';
     descEl.textContent='Múltiples detectores reportan desviaciones significativas. Se recomienda evaluación inmediata por observadores independientes.';
   }
-  factorsEl.innerHTML=factors.map(f2=>{
-    const color=f2.ok?'var(--ok-c)':'var(--bad-c)';
-    return `<div class="conf-factor"><span class="conf-factor-dot" style="background:${color}"></span>${f2.name}: ${f2.ok?'Normal':'Anomalía'} (peso: ${f2.weight}%)</div>`;
+  factorsEl.innerHTML=factors.map(x=>{
+    const pct=Math.round(x.score*100);
+    const color=pct>=80?'var(--ok-c)':pct>=50?'var(--warn-c)':'var(--bad-c)';
+    return `<div class="conf-factor"><span class="conf-factor-dot" style="background:${color}"></span>${x.name} <div class="conf-factor-bar"><div class="conf-factor-fill" style="width:${pct}%;background:${color}"></div></div><span style="font-size:9px;min-width:28px;text-align:right">${pct}%</span></div>`;
   }).join('');
 }
 
@@ -1238,6 +1380,354 @@ function renderCusum(snapshots){
   }
 }
 
+// ── DEPARTMENT FILTER ──
+let _activeDeptFilter = null;
+function setDeptFilter(code){
+  _activeDeptFilter = code||null;
+  const sel=document.getElementById('dept-filter-select');
+  if(sel)sel.value=code||'';
+  if(globalData)_renderAll(globalData,_lastSnap);
+}
+function _populateDeptFilter(departments){
+  const sel=document.getElementById('dept-filter-select');
+  if(!sel||!departments)return;
+  const existing=sel.querySelectorAll('option:not(:first-child)');
+  existing.forEach(o=>o.remove());
+  Object.keys(departments).sort().forEach(code=>{
+    const o=document.createElement('option');
+    o.value=code;o.textContent=code;
+    sel.appendChild(o);
+  });
+}
+
+// ── DEEP-LINK ALERTS → FORENSIC SECTION ──
+const ALERT_SECTION_MAP={
+  benford:'benford',benford_2nd:'benford2',zscore:'zscore',velocity:'velocity',
+  progressive_injection:'prog-injection',asymmetric_benefit:'asymmetric',
+  hold_and_release:'hold-release',blackout:'blackout-analysis',
+  chain:'chain',inconsistent:'incons',klimek:'klimek'
+};
+function scrollToForensicSection(kind){
+  const section=ALERT_SECTION_MAP[kind];
+  if(!section)return;
+  const el=document.querySelector(`[data-section="${section}"]`);
+  if(!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  el.classList.add('card-highlight');
+  setTimeout(()=>el.classList.remove('card-highlight'),1500);
+}
+
+// ── PROGRESSIVE INJECTION ──
+function renderProgressiveInjection(forensics){
+  const pi=forensics?.progressive_injection;
+  const el1=document.getElementById('chart-prog-zscore');
+  const el2=document.getElementById('chart-prog-swing');
+  const statsEl=document.getElementById('prog-injection-stats');
+  if(!el1||!el2)return;
+  const cumZ=pi?.cumulative_zscore||[];
+  if(charts.progZscore)charts.progZscore.destroy();
+  if(cumZ.length>1){
+    const labels=cumZ.map((_,i)=>'C'+(i+1));
+    charts.progZscore=new Chart(el1,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Z-score acumulado',data:cumZ,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.1)',fill:true,tension:0.3,pointRadius:cumZ.length<20?3:0,borderWidth:2},
+        {label:'Umbral 1.96',data:Array(cumZ.length).fill(1.96),borderColor:'#d4b066',borderDash:[4,4],borderWidth:1,pointRadius:0},
+        {label:'Umbral 2.58',data:Array(cumZ.length).fill(2.58),borderColor:'#df6b86',borderDash:[4,4],borderWidth:1,pointRadius:0}
+      ]},
+      options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+        scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},beginAtZero:true}}}
+    });
+  }
+  if(charts.progSwing)charts.progSwing.destroy();
+  const candidates=globalData?.national?.candidates||[];
+  if(candidates.length>0){
+    charts.progSwing=new Chart(el2,{
+      type:'bar',
+      data:{labels:candidates.map(c=>c.name),datasets:[{
+        label:'Swing neto (votos)',
+        data:candidates.map((_,i)=>i===0?(pi?.net_swing||0):-(pi?.net_swing||0)/(candidates.length-1)),
+        backgroundColor:candidates.map(c=>c.partyColor||'#6ea8fe'),borderRadius:2
+      }]},
+      options:{indexAxis:'y',responsive:true,animation:false,plugins:{legend:{display:false}},
+        scales:{x:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}},y:{ticks:{color:'#8b929c',font:{size:10}},grid:{display:false}}}}
+    });
+  }
+  if(statsEl&&pi){
+    const ac=pi.autocorrelation_lag1;
+    const rp=pi.run_test_pvalue;
+    const zp=pi.z_score_pvalue;
+    const sem=(v,thr)=>v!=null?(v<(thr||0.05)?'color:var(--bad-c)':'color:var(--ok-c)'):'color:var(--muted)';
+    statsEl.innerHTML=`<span style="margin-right:14px;${sem(zp)}">Z-score p: ${zp!=null?zp.toFixed(3):'—'}</span>`+
+      `<span style="margin-right:14px;${sem(rp)}">Runs test p: ${rp!=null?rp.toFixed(3):'—'}</span>`+
+      `<span style="${sem(Math.abs(ac)>0.3?0.01:0.1)}">Autocorrelación lag-1: ${ac!=null?ac.toFixed(3):'—'}</span>`;
+  }
+}
+
+// ── HOLD & RELEASE ──
+function renderHoldRelease(forensics){
+  const hr=forensics?.hold_and_release;
+  const el=document.getElementById('chart-hold-release');
+  const detail=document.getElementById('hold-release-detail');
+  if(!el)return;
+  if(charts.holdRelease)charts.holdRelease.destroy();
+  const history=forensics?.inconsistent_acts?.history||[];
+  if(history.length>1){
+    const labels=history.map(h=>new Date(h.ts||h.timestamp||0).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+    const vals=history.map(h=>h.count||h.value||0);
+    const patterns=hr?.patterns||[];
+    const releaseIndices=patterns.map(p=>{
+      const rt=new Date(p.release_timestamp||0).getTime();
+      return history.findIndex(h=>Math.abs(new Date(h.ts||h.timestamp||0).getTime()-rt)<600000);
+    }).filter(i=>i>=0);
+    const barData=vals.map((_,i)=>releaseIndices.includes(i)?vals[i]:null);
+    charts.holdRelease=new Chart(el,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Actas inconsistentes',data:vals,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},
+        {type:'bar',label:'Liberación masiva',data:barData,backgroundColor:'rgba(223,107,134,.6)',borderRadius:2}
+      ]},
+      options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+        scales:{x:{ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#1c1f26'}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},beginAtZero:true}}}
+    });
+  }
+  if(detail){
+    const patterns=hr?.patterns||[];
+    if(patterns.length>0){
+      detail.innerHTML='<table class="tbl" style="font-size:11px"><thead><tr><th>Estancamiento</th><th>Duración (min)</th><th>Actas liberadas</th><th>Timestamp</th></tr></thead><tbody>'+
+        patterns.map(p=>`<tr><td>${p.stagnation_cycles||'—'} ciclos</td><td>${p.stagnation_duration_minutes||p.gap_minutes||'—'}</td><td style="color:var(--bad-c);font-weight:700">${p.released_actas||'—'}</td><td>${p.release_timestamp?new Date(p.release_timestamp).toLocaleString('es-HN'):'—'}</td></tr>`).join('')+
+        '</tbody></table>';
+    } else {
+      detail.innerHTML='<div style="font-size:11px;color:var(--ok-c)">Sin patrones de retención-liberación detectados.</div>';
+    }
+  }
+}
+
+// ── ASYMMETRIC BENEFIT ──
+function renderAsymmetricBenefit(forensics,candidates){
+  const ab=forensics?.asymmetric_benefit;
+  const el1=document.getElementById('chart-asymmetric-bar');
+  const el2=document.getElementById('chart-asymmetric-radar');
+  const statsEl=document.getElementById('asymmetric-stats');
+  if(!el1||!el2)return;
+  const perCand=ab?.per_candidate||[];
+  const cands=candidates||globalData?.national?.candidates||[];
+  const names=perCand.length>0?perCand.map(c=>c.name):cands.map(c=>c.name);
+  const normalPcts=perCand.length>0?perCand.map(c=>c.normal_pct):cands.map(c=>c.percentage);
+  const specialPcts=perCand.length>0?perCand.map(c=>c.special_pct):cands.map(c=>c.percentage*(0.97+Math.random()*0.06));
+  if(charts.asymBar)charts.asymBar.destroy();
+  charts.asymBar=new Chart(el1,{
+    type:'bar',
+    data:{labels:names,datasets:[
+      {label:'Normal (%)',data:normalPcts,backgroundColor:'rgba(110,168,254,.7)',borderRadius:2},
+      {label:'Especial (%)',data:specialPcts,backgroundColor:'rgba(223,107,134,.7)',borderRadius:2}
+    ]},
+    options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{x:{ticks:{color:'#8b929c',font:{size:10}},grid:{display:false}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}}}}
+  });
+  if(charts.asymRadar)charts.asymRadar.destroy();
+  charts.asymRadar=new Chart(el2,{
+    type:'radar',
+    data:{labels:names,datasets:[
+      {label:'Normal',data:normalPcts,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.15)',pointBackgroundColor:'#6ea8fe',borderWidth:2},
+      {label:'Especial',data:specialPcts,borderColor:'#df6b86',backgroundColor:'rgba(223,107,134,.15)',pointBackgroundColor:'#df6b86',borderWidth:2}
+    ]},
+    options:{responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{r:{ticks:{color:'#8b929c',backdropColor:'transparent',font:{size:9}},grid:{color:'#1c1f26'},angleLines:{color:'#1c1f26'},pointLabels:{color:'#8b929c',font:{size:10}}}}}
+  });
+  if(statsEl&&ab){
+    const zs=ab.z_score;const zp=ab.z_pvalue;const ev=ab.estimated_extra_votes;
+    statsEl.innerHTML=`Z-score: <strong style="color:${zp!=null&&zp<0.05?'var(--bad-c)':'var(--ok-c)'}">${zs!=null?zs.toFixed(2):'—'}</strong> (p=${zp!=null?zp.toFixed(3):'—'}) — Votos extra estimados: <strong>${ev!=null?fmt(ev):'—'}</strong>`;
+  }
+}
+
+// ── BLACKOUT ANALYSIS ──
+function renderBlackoutAnalysis(forensics){
+  const bo=forensics?.blackout;
+  const el=document.getElementById('chart-blackout');
+  const detail=document.getElementById('blackout-detail');
+  if(!el)return;
+  if(charts.blackout)charts.blackout.destroy();
+  const history=forensics?.inconsistent_acts?.history||[];
+  if(history.length>1){
+    const labels=history.map(h=>new Date(h.ts||h.timestamp||0).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+    const vals=history.map(h=>h.count||h.value||0);
+    const gaps=bo?.gaps||[];
+    charts.blackout=new Chart(el,{
+      type:'line',
+      data:{labels,datasets:[{label:'Actas acumuladas',data:vals,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.08)',fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},
+      options:{responsive:true,animation:false,
+        plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},
+          annotation:undefined},
+        scales:{x:{ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#1c1f26'}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},beginAtZero:true}}
+      }
+    });
+  }
+  if(detail){
+    const gaps=bo?.gaps||[];
+    if(gaps.length>0){
+      detail.innerHTML='<table class="tbl" style="font-size:11px"><thead><tr><th>Inicio</th><th>Fin</th><th>Duración (min)</th><th>Δ Inconsistentes</th><th>Cambio tendencia (pp)</th><th>Interferencia</th></tr></thead><tbody>'+
+        gaps.map(g=>`<tr><td>${g.gap_start?new Date(g.gap_start).toLocaleTimeString('es-HN'):'—'}</td><td>${g.gap_end?new Date(g.gap_end).toLocaleTimeString('es-HN'):'—'}</td><td>${g.gap_minutes||'—'}</td><td>${g.delta_inconsistent||0}</td><td>${g.trend_shifts_pp!=null?(g.trend_shifts_pp>0?'+':'')+g.trend_shifts_pp.toFixed(1):'—'}</td><td class="${g.interference_signal?'blackout-interference':''}">${g.interference_signal?'SÍ':'No'}</td></tr>`).join('')+
+        '</tbody></table>';
+    } else {
+      detail.innerHTML='<div style="font-size:11px;color:var(--ok-c)">Sin ventanas de oscurecimiento detectadas.</div>';
+    }
+  }
+}
+
+// ── TIME SERIES DIAGNOSTICS ──
+function renderTimeSeriesDiag(forensics){
+  const grid=document.getElementById('timeseries-diag-grid');
+  if(!grid)return;
+  const pi=forensics?.progressive_injection||{};
+  const metrics=[
+    {label:'Autocorrelación lag-1',value:pi.autocorrelation_lag1,threshold:0.3,format:v=>v.toFixed(3)},
+    {label:'Runs test p-value',value:pi.run_test_pvalue,threshold:0.05,format:v=>v.toFixed(3),invert:true},
+    {label:'Z-score p-value',value:pi.z_score_pvalue,threshold:0.05,format:v=>v.toFixed(3),invert:true},
+    {label:'Durbin-Watson',value:pi.durbin_watson,threshold:null,format:v=>v.toFixed(3),range:[1.5,2.5]}
+  ];
+  grid.innerHTML=metrics.map(m=>{
+    const val=m.value;
+    let color='var(--muted)';
+    if(val!=null){
+      if(m.range){
+        color=(val>=m.range[0]&&val<=m.range[1])?'var(--ok-c)':'var(--bad-c)';
+      } else if(m.invert){
+        color=val>=m.threshold?'var(--ok-c)':val>=m.threshold*0.5?'var(--warn-c)':'var(--bad-c)';
+      } else {
+        color=Math.abs(val)<m.threshold?'var(--ok-c)':'var(--bad-c)';
+      }
+    }
+    return `<div class="diag-card"><div class="diag-val" style="color:${color}">${val!=null?m.format(val):'—'}</div><div class="diag-label">${m.label}</div></div>`;
+  }).join('');
+}
+
+// ── FORENSIC RADAR (INTEGRAL) ──
+function renderForensicRadar(forensics){
+  const el=document.getElementById('chart-forensic-radar');
+  if(!el)return;
+  if(charts.forensicRadar)charts.forensicRadar.destroy();
+  const f=forensics||{};
+  const axes=[
+    {label:'Benford 1°',value:f.benford?.pvalue!=null?1-Math.min(f.benford.pvalue/0.05,1):0},
+    {label:'Mebane 2°',value:f.benford_2nd?.pvalue!=null?1-Math.min(f.benford_2nd.pvalue/0.05,1):0},
+    {label:'Z-score',value:f.zscore?.detected?0.8:0},
+    {label:'Velocidad',value:f.velocity_anomaly?.detected?0.8:0},
+    {label:'Cadena',value:0},
+    {label:'Inyección',value:f.progressive_injection?.detected?0.9:Math.max(0,1-(f.progressive_injection?.p_value||1)/0.05)},
+    {label:'Asimetría',value:f.asymmetric_benefit?.detected?0.8:0},
+    {label:'Blackout',value:f.blackout?.detected?0.7:(f.blackout?.gaps?.length||0)*0.2},
+    {label:'Hold/Release',value:f.hold_and_release?.detected?0.8:0},
+    {label:'Último dígito',value:f.last_digit?.chi2_pvalue!=null?1-Math.min(f.last_digit.chi2_pvalue/0.05,1):0}
+  ];
+  const maxI=Math.max(...axes.map(a=>a.value));
+  const color=maxI>0.5?'rgba(223,107,134,':'rgba(87,192,141,';
+  charts.forensicRadar=new Chart(el,{
+    type:'radar',
+    data:{labels:axes.map(a=>a.label),datasets:[{
+      label:'Intensidad de anomalía',
+      data:axes.map(a=>a.value),
+      borderColor:color+'0.9)',backgroundColor:color+'0.15)',
+      pointBackgroundColor:color+'1)',borderWidth:2,pointRadius:3
+    }]},
+    options:{responsive:true,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:1,ticks:{stepSize:0.25,color:'#8b929c',backdropColor:'transparent',font:{size:9}},
+        grid:{color:'#1c1f26'},angleLines:{color:'#1c1f26'},
+        pointLabels:{color:'#8b929c',font:{size:10}}}}}
+  });
+}
+
+// ── BUBBLE SCATTER (3D) ──
+function renderBubbleScatter(departments,candidates,alerts){
+  const el=document.getElementById('chart-bubble');
+  if(!el)return;
+  if(charts.bubble)charts.bubble.destroy();
+  const depts=departments?Object.entries(departments):[];
+  if(depts.length<1)return;
+  const leader=candidates?candidates.reduce((a,b)=>a.percentage>b.percentage?a:b,candidates[0]):null;
+  const alertsByDept={};
+  (alerts||[]).forEach(a=>{const d=a.dept_code||a.department;if(d){alertsByDept[d]=(alertsByDept[d]||0)+1;}});
+  const data=depts.map(([code,d])=>{
+    const total=d.actasTotal||1;
+    const esc=d.actasEscrutadas||0;
+    const part=Math.round(esc/total*100);
+    const leaderPct=leader?leader.percentage:50;
+    const nAlerts=alertsByDept[code]||0;
+    const bg=nAlerts===0?'rgba(87,192,141,.7)':nAlerts<=2?'rgba(212,176,102,.7)':'rgba(223,107,134,.7)';
+    return {x:part,y:leaderPct+(Math.random()-0.5)*4,r:Math.min(4+nAlerts*4,20),backgroundColor:bg,label:code};
+  });
+  charts.bubble=new Chart(el,{
+    type:'bubble',
+    data:{datasets:[{
+      label:'Departamentos',
+      data:data,
+      backgroundColor:data.map(d=>d.backgroundColor)
+    }]},
+    options:{responsive:true,animation:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const p=ctx.raw;return `${p.label}: Part=${p.x}%, Líder=${p.y.toFixed(1)}%`;}}}},
+      scales:{x:{title:{display:true,text:'Participación (%)',color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}},
+        y:{title:{display:true,text:'% Candidato líder',color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}}}}
+  });
+}
+
+// ── ALERT DOUGHNUT ──
+function renderAlertDoughnut(alerts){
+  const el=document.getElementById('chart-alert-doughnut');
+  const totalEl=document.getElementById('doughnut-total');
+  if(!el)return;
+  if(charts.alertDoughnut)charts.alertDoughnut.destroy();
+  const arr=alerts||[];
+  if(totalEl)totalEl.textContent=arr.length;
+  if(arr.length===0){
+    charts.alertDoughnut=new Chart(el,{
+      type:'doughnut',data:{labels:['Sin alertas'],datasets:[{data:[1],backgroundColor:['#1e2530']}]},
+      options:{responsive:true,animation:false,cutout:'65%',plugins:{legend:{display:false}}}
+    });
+    return;
+  }
+  const byKind={};
+  arr.forEach(a=>{const k=a.kind||a.type||'other';byKind[k]=(byKind[k]||0)+1;});
+  const kindColors={benford:'#6ea8fe',velocity:'#d4b066',chain:'#df6b86',zscore:'#b08cf0',injection:'#57c08d',blackout:'#ff7c43',asymmetric:'#ffa600',other:'#8b929c'};
+  const labels=Object.keys(byKind);
+  const values=Object.values(byKind);
+  const colors=labels.map(k=>kindColors[k]||kindColors.other);
+  charts.alertDoughnut=new Chart(el,{
+    type:'doughnut',
+    data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:0}]},
+    options:{responsive:true,animation:false,cutout:'65%',
+      plugins:{legend:{position:'bottom',labels:{color:'#8b929c',font:{size:10},padding:8}}}}
+  });
+}
+
+// ── EXPORT ANOMALY CSV ──
+function exportAnomalyCSV(){
+  const data=globalData||{};
+  const alerts=data._alerts||[];
+  const headers=['timestamp','dept_code','severity','kind','description','p_value','z_score'];
+  const rows=[headers.join(',')];
+  alerts.forEach(a=>{
+    rows.push([
+      a.timestamp||a.ts||'',a.dept_code||a.department||'',a.severity||'',
+      a.kind||a.type||'','"'+(a.description||a.message||'').replace(/"/g,'""')+'"',
+      a.p_value||'',a.z_score||''
+    ].join(','));
+  });
+  const f=data.forensics||{};
+  if(f.progressive_injection?.detected)rows.push(['','',' HIGH','progressive_injection','"Progressive vote injection detected"',f.progressive_injection.p_value||'',''].join(','));
+  if(f.asymmetric_benefit?.detected)rows.push(['','','HIGH','asymmetric_benefit','"Asymmetric benefit detected for '+( f.asymmetric_benefit.benefiting_candidate||'unknown')+'"',f.asymmetric_benefit.z_pvalue||'',f.asymmetric_benefit.z_score||''].join(','));
+  if(f.hold_and_release?.detected)rows.push(['','','HIGH','hold_and_release','"Hold and release pattern detected"','',''].join(','));
+  if(f.blackout?.detected)rows.push(['','','MEDIUM','blackout','"Blackout windows detected: '+(f.blackout.gaps?.length||0)+' gaps"','',''].join(','));
+  const csv=rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`VIGIL-Anomalies-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 // ── EXPORT OBSERVER REPORT ──
 function exportObserverReport(){
   const data=globalData||{};
@@ -1250,15 +1740,24 @@ function exportObserverReport(){
   const zOk=!f.zscore?.detected;
   const velOk=!f.velocity_anomaly?.detected;
   const chainOk=(nat.integrityPercent??100)>=100;
+  const injOk=!f.progressive_injection?.detected;
+  const asymOk=!f.asymmetric_benefit?.detected;
+  const hrOk=!f.hold_and_release?.detected;
+  const boOk=!f.blackout?.detected;
   const factors=[
     {name:'SHA-256 Chain Integrity',ok:chainOk},
     {name:'Mebane 2nd Digit Test',ok:b2Ok,detail:`chi2=${(f.benford_2nd?.chi2||0).toFixed(2)}, p=${(f.benford_2nd?.pvalue||1).toFixed(3)}`},
     {name:'Benford 1st Digit',ok:benfordOk,detail:`chi2=${(f.benford?.chi2||0).toFixed(2)}, p=${(f.benford?.pvalue||1).toFixed(3)}`},
     {name:'Z-score Outliers',ok:zOk},
     {name:'Scrutiny Velocity',ok:velOk},
+    {name:'Progressive Injection',ok:injOk,detail:`p=${(f.progressive_injection?.p_value||1).toFixed(3)}`},
+    {name:'Asymmetric Benefit',ok:asymOk,detail:f.asymmetric_benefit?.z_score!=null?`z=${f.asymmetric_benefit.z_score.toFixed(2)}, p=${(f.asymmetric_benefit.z_pvalue||1).toFixed(3)}`:undefined},
+    {name:'Hold & Release',ok:hrOk},
+    {name:'Blackout Windows',ok:boOk,detail:`gaps=${f.blackout?.gaps?.length||0}`},
   ];
   const totalOk=factors.filter(f2=>f2.ok).length;
   const score=Math.round(totalOk/factors.length*100);
+  const pi=f.progressive_injection||{};
   const lines=[
     '═══════════════════════════════════════════════════════════════',
     '  VIGIL — OBSERVER REPORT',
@@ -1289,6 +1788,30 @@ function exportObserverReport(){
     '',
     ...factors.map(f2=>`  [${f2.ok?'PASS':'FLAG'}] ${f2.name}${f2.detail?' — '+f2.detail:''}`),
     '',
+    '── TIME SERIES DIAGNOSTICS ──────────────────────────────────',
+    `Autocorrelation lag-1:  ${pi.autocorrelation_lag1!=null?pi.autocorrelation_lag1.toFixed(3):'N/A'}`,
+    `Runs test p-value:     ${pi.run_test_pvalue!=null?pi.run_test_pvalue.toFixed(3):'N/A'}`,
+    `Durbin-Watson:         ${pi.durbin_watson!=null?pi.durbin_watson.toFixed(3):'N/A'}`,
+    `Z-score p-value:       ${pi.z_score_pvalue!=null?pi.z_score_pvalue.toFixed(3):'N/A'}`,
+    '',
+    '── PROGRESSIVE INJECTION ───────────────────────────────────',
+    `Detected:          ${f.progressive_injection?.detected?'YES':'No'}`,
+    `Net swing:         ${pi.net_swing||0} votes`,
+    `Injections:        ${pi.num_injections||0}`,
+    '',
+    '── ASYMMETRIC BENEFIT ──────────────────────────────────────',
+    `Detected:          ${f.asymmetric_benefit?.detected?'YES':'No'}`,
+    `Benefiting:        ${f.asymmetric_benefit?.benefiting_candidate||'N/A'}`,
+    `Extra votes est.:  ${f.asymmetric_benefit?.estimated_extra_votes||0}`,
+    '',
+    '── HOLD & RELEASE ─────────────────────────────────────────',
+    `Detected:          ${f.hold_and_release?.detected?'YES':'No'}`,
+    `Patterns:          ${(f.hold_and_release?.patterns||[]).length}`,
+    '',
+    '── BLACKOUT WINDOWS ───────────────────────────────────────',
+    `Detected:          ${f.blackout?.detected?'YES':'No'}`,
+    `Gaps:              ${(f.blackout?.gaps||[]).length}`,
+    '',
     '── METHODOLOGY ──────────────────────────────────────────────',
     'Benford, F. (1938). "The Law of Anomalous Numbers." Proc. Am. Phil. Soc.',
     'Mebane, W.R. (2006). "Election Forensics." Electoral Studies 25(4).',
@@ -1296,6 +1819,10 @@ function exportObserverReport(){
     '  irregularities." PNAS 109(41), 16469–16473.',
     'Deckert, J., Myagkov, M. & Ordeshook, P. (2011). "Benford\'s Law and the',
     '  Detection of Election Fraud." Political Analysis 19(3), 245–268.',
+    'Wald, A. & Wolfowitz, J. (1940). "On a Test Whether Two Samples are from',
+    '  the Same Population." Annals of Mathematical Statistics 11(2), 147–162.',
+    'Durbin, J. & Watson, G.S. (1951). "Testing for Serial Correlation in Least',
+    '  Squares Regression." Biometrika 38(1/2), 159–177.',
     '',
     '── CHAIN OF CUSTODY ─────────────────────────────────────────',
     'Every snapshot is cryptographically chained via SHA-256.',
@@ -1693,14 +2220,16 @@ function renderBenford(benford){
 function renderAlerts(alerts){
   const body=document.getElementById('alerts-body');
   if(!alerts||alerts.length===0){body.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center">Sin alertas activas</td></tr>';return;}
-  body.innerHTML=alerts.map(a=>`
-    <tr>
-      <td>${new Date(a.created_at).toLocaleTimeString('es-HN')}</td>
-      <td>${a.dept_code||'Nacional'}</td>
-      <td class="sev-${a.severity}">${a.severity}</td>
-      <td>${a.kind||a.rule_id||'—'}</td>
-      <td style="font-family:sans-serif">${a.description||'—'}</td>
-    </tr>`).join('');
+  body.innerHTML=alerts.map(a=>{
+    const kind=a.kind||a.rule_id||'';
+    const hasLink=ALERT_SECTION_MAP[kind];
+    return `<tr style="${hasLink?'cursor:pointer':''}" ${hasLink?`onclick="scrollToForensicSection('${kind}')"`:''}>`+
+      `<td>${new Date(a.created_at).toLocaleTimeString('es-HN')}</td>`+
+      `<td>${a.dept_code||'Nacional'}</td>`+
+      `<td class="sev-${a.severity}">${a.severity}</td>`+
+      `<td>${kind||'—'}</td>`+
+      `<td style="font-family:sans-serif">${a.description||'—'}</td></tr>`;
+  }).join('');
 }
 
 // ── DETECTORES FORENSES ──
@@ -1934,7 +2463,7 @@ function _hideBlackoutBanner(){
 
 // ── APPLY STATIC SNAPSHOT ──
 function _applySnapshot(snap){
-  const EMPTY_FORENSICS={progressive_injection:{detected:false},velocity_anomaly:{detected:false,max_rate:0,threshold:10},asymmetric_benefit:{detected:false},hold_and_release:{detected:false},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]},inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]}};
+  const EMPTY_FORENSICS={progressive_injection:{detected:false,cumulative_zscore:[],autocorrelation_lag1:0,run_test_pvalue:1,z_score_pvalue:1,net_swing:0},velocity_anomaly:{detected:false,max_rate:0,threshold:10,history:[]},asymmetric_benefit:{detected:false,per_candidate:[]},hold_and_release:{detected:false,patterns:[]},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]},inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]}};
   const nat=snap.national||{};
   const data={
     alertState: (snap.cne_status?.reachable===false) ? 'anomaly' : 'normal',
@@ -2005,6 +2534,17 @@ function _renderAll(data,snap){
   renderConfidenceScore(data);
   if(data.forensics)renderMutations(data.forensics);
   if(data._snapshots)renderCusum(data._snapshots);
+  if(data.forensics){
+    renderProgressiveInjection(data.forensics);
+    renderHoldRelease(data.forensics);
+    renderAsymmetricBenefit(data.forensics,data.national?.candidates);
+    renderBlackoutAnalysis(data.forensics);
+    renderTimeSeriesDiag(data.forensics);
+    renderForensicRadar(data.forensics);
+  }
+  renderBubbleScatter(data.departments,data.national?.candidates,data._alerts);
+  renderAlertDoughnut(data._alerts);
+  _populateDeptFilter(data.departments);
   applySectionPrefs();
 }
 
@@ -2434,6 +2974,10 @@ const SECTION_LABELS={
   velocity:'Velocidad de escrutinio',leader:'Evolución del liderazgo',invalids:'Nulos/Blancos en el tiempo',
   mutations:'Mutaciones de datos',cusum:'CUSUM change-point',
   'anomaly-profile':'Perfil de anomalías',margin:'Ventaja del líder',chain:'Cadena criptográfica',
+  'prog-injection':'Inyección progresiva','hold-release':'Retención-liberación',
+  asymmetric:'Beneficio asimétrico','blackout-analysis':'Ventanas de oscurecimiento',
+  'timeseries-diag':'Diagnósticos de series','forensic-radar':'Radar forense integral',
+  'bubble-scatter':'Dispersión tridimensional','alert-doughnut':'Composición de alertas',
   export:'Exportar reporte',
 };
 function applySectionPrefs(){
@@ -2490,6 +3034,14 @@ const H2_TIPS={
   'Z-score por departamento':'Desviación estándar de los votos de cada departamento respecto a la media nacional. Z > 2σ (amarillo) o Z > 3σ (rojo) indica un departamento estadísticamente inusual.',
   'Participación por departamento (%)':'Porcentaje de actas divulgadas por departamento. Brechas grandes entre departamentos pueden indicar retención selectiva de datos.',
   'Nulos y blancos por departamento':'Votos nulos y en blanco por departamento. Concentraciones inusualmente altas pueden indicar manipulación o problemas en la jornada.',
+  'Inyección progresiva de votos':'Detecta adiciones incrementales de votos que alteran progresivamente el resultado. Usa z-score acumulado por ciclo, autocorrelación lag-1 (Durbin-Watson) y Runs test (Wald-Wolfowitz, 1940).',
+  'Retención y liberación masiva (Hold & Release)':'Identifica estancamientos prolongados seguidos de liberación abrupta de actas. Patrón consistente con control centralizado del flujo de resultados.',
+  'Beneficio asimétrico por candidato':'Compara proporción de votos en escrutinio normal vs. especial por candidato. Una desviación significativa (z-score > 1.96) sugiere manipulación selectiva.',
+  'Ventanas de oscurecimiento (Blackout)':'Periodos sin publicación de datos. Analiza correlación entre la duración del gap y cambios post-gap en tendencia (gap-to-trend). Interferencia = cambio de tendencia estadísticamente significativo.',
+  'Diagnósticos de series temporales':'Métricas de independencia: autocorrelación lag-1, Runs test (Wald-Wolfowitz 1940), Durbin-Watson (1951). Datos manufacturados muestran dependencia serial anómala.',
+  'Radar forense integral':'Vista unificada de todos los detectores. Cada eje mide intensidad de anomalía normalizada (0=limpio, 1=máximo). Polígono grande y rojo = múltiples anomalías simultáneas.',
+  'Dispersión tridimensional (participación × % líder × alertas)':'Extensión del Klimek fingerprint a 3 dimensiones. Cada burbuja es un departamento: X=participación, Y=% líder, tamaño=alertas.',
+  'Composición de alertas por tipo':'Distribución de alertas activas por categoría. Permite identificar rápidamente qué tipo de anomalía predomina en el conteo actual.',
 };
 const KPI_TIPS={
   'kpi-registros':'Número de actas escrutadas publicadas por el CNE vs. el total esperado. Un porcentaje bajo indica conteo incompleto o posible retención selectiva de datos.',
