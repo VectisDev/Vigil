@@ -1553,7 +1553,6 @@ function renderBlackoutAnalysis(forensics){
   if(history.length>1){
     const labels=history.map(h=>new Date(h.ts||h.timestamp||0).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
     const vals=history.map(h=>h.count||h.value||0);
-    const gaps=bo?.gaps||[];
     charts.blackout=new Chart(el,{
       type:'line',
       data:{labels,datasets:[{label:'Actas acumuladas',data:vals,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.08)',fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},
