@@ -1932,7 +1932,7 @@ async function doAdminLogin(prefillKey) {
     if(!matchedPat && ac.writer_pat && matchedSlot !== null){
       matchedPat = await decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
     }
-    if(matchedPat) sessionStorage.setItem('gh-pat', matchedPat);
+    if(matchedPat) localStorage.setItem('gh-pat', matchedPat);
     currentUser = {seed: matchedId || 'S??', role: matchedRole};
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
@@ -1949,7 +1949,6 @@ function doLogout(){
   sessionStorage.removeItem('centinel_role');
   sessionStorage.removeItem('centinel_seed_id');
   sessionStorage.removeItem('centinel_fp');
-  sessionStorage.removeItem('gh-pat');
   location.reload();
 }
 
@@ -2255,7 +2254,7 @@ function openPurgeModal() {
   document.getElementById('purge-progress').style.display = 'none';
   document.getElementById('purge-progress-bar').style.width = '0%';
   // Pre-fill PAT if already in session
-  const pat = sessionStorage.getItem('gh-pat');
+  const pat = localStorage.getItem('gh-pat');
   if (pat) document.getElementById('purge-pat-input').value = pat;
 }
 

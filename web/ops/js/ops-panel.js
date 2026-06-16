@@ -262,7 +262,7 @@ async function executeUnlock(){
 
   // Try Git commit as bonus if PAT is already available — non-blocking
   let sha7 = null;
-  const pat = sessionStorage.getItem('gh-pat');
+  const pat = localStorage.getItem('gh-pat');
   if(pat){
     try{
       const safeTs = now.replace(/[:.]/g,'-');
@@ -441,7 +441,7 @@ function showDiffModal(changes, newYamls){
   // Show PAT field only if not already in session
   const patRow = document.getElementById('diff-pat-row');
   const patInput = document.getElementById('diff-pat-input');
-  const hasPat = !!sessionStorage.getItem('gh-pat');
+  const hasPat = !!localStorage.getItem('gh-pat');
   if(patRow) patRow.style.display = hasPat ? 'none' : 'block';
   if(patInput) patInput.value = '';
   document.getElementById('diff-modal').classList.add('open');
@@ -471,7 +471,7 @@ function closeDiffModal(){ document.getElementById('diff-modal').classList.remov
 async function confirmApply(){
   if(_writeInProgress) return;
   // Resolve PAT — prefer session, then inline field in diff modal
-  let pat = sessionStorage.getItem('gh-pat');
+  let pat = localStorage.getItem('gh-pat');
   if(!pat){
     const inline = document.getElementById('diff-pat-input')?.value.trim();
     if(!inline){
@@ -480,7 +480,7 @@ async function confirmApply(){
       document.getElementById('diff-pat-input')?.focus();
       return;
     }
-    sessionStorage.setItem('gh-pat', inline);
+    localStorage.setItem('gh-pat', inline);
     pat = inline;
     document.getElementById('diff-pat-input').value = '';
   }
@@ -510,7 +510,7 @@ function confirmPat(){
   const pat = input.value.trim();
   input.value = ''; // clear immediately
   if(!pat){document.getElementById('pat-err').textContent='Ingresa el PAT.';return;}
-  sessionStorage.setItem('gh-pat', pat);
+  localStorage.setItem('gh-pat', pat);
   document.getElementById('pat-modal').classList.remove('open');
   const resolve = document.getElementById('pat-modal')._resolve;
   if(resolve) resolve(true);
@@ -939,7 +939,7 @@ function renderAuditTrail(){
 async function fetchAuditTrail(){
   const wrap = document.getElementById('log-audit');
   const tbody = wrap?.querySelector('tbody');
-  const pat = sessionStorage.getItem('gh-pat');
+  const pat = localStorage.getItem('gh-pat');
   if(!pat){
     if(tbody) tbody.innerHTML=_emptyRow(4,t('log.historial_cambios'),t('log.modifica_control'));
     return;
