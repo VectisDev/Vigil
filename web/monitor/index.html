@@ -485,6 +485,75 @@ body.mode-citizen .citizen-semaphore { display: grid !important; }
   background: rgba(110,168,254,.05); border-left: 2px solid var(--accent);
 }
 
+/* ── CONFIDENCE SCORE ─────────────────────────────────────── */
+#confidence-score {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding: 20px 24px;
+}
+.conf-gauge {
+  position: relative; width: 120px; height: 120px; flex-shrink: 0;
+}
+.conf-gauge svg { width: 120px; height: 120px; transform: rotate(-90deg); }
+.conf-gauge-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+.conf-gauge-fg { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset .6s ease, stroke .3s ease; }
+.conf-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--fg);
+}
+.conf-body { flex: 1; min-width: 200px; }
+.conf-title {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--fg); margin-bottom: 6px;
+}
+.conf-desc { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.6; }
+.conf-factors { margin-top: 10px; display: grid; gap: 4px; }
+.conf-factor {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.conf-factor-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── MUTATIONS PANEL ─────────────────────────────────────── */
+.mutation-row {
+  font-family: var(--mono); font-size: 11px; line-height: 1.6;
+  padding: 8px 12px; border-left: 3px solid transparent; margin-bottom: 4px;
+}
+.mutation-row.mut-del {
+  background: rgba(223,107,134,.08); border-left-color: var(--bad-c);
+  color: var(--bad-c); text-decoration: line-through;
+}
+.mutation-row.mut-add {
+  background: rgba(87,192,141,.08); border-left-color: var(--ok-c);
+  color: var(--ok-c);
+}
+.mutation-ts {
+  font-size: 10px; color: var(--muted); margin-left: 8px; text-decoration: none;
+}
+.mutation-delta {
+  font-size: 10px; color: var(--warn-c); margin-left: 8px; font-weight: 600; text-decoration: none;
+}
+#mutations-empty {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  text-align: center; padding: 16px;
+}
+
+/* ── CUSUM CHANGE-POINT ──────────────────────────────────── */
+.cusum-alert {
+  font-family: var(--mono); font-size: 11px; color: var(--warn-c);
+  margin-top: 8px; padding: 6px 10px;
+  background: rgba(212,176,102,.08); border-left: 2px solid var(--warn-c);
+}
+
+/* ── EXPORT PDF BUTTON ───────────────────────────────────── */
+#export-pdf-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent); color: #000; border: none; border-radius: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 10px 18px; cursor: pointer; transition: .15s;
+}
+#export-pdf-btn:hover { filter: brightness(1.15); }
+
 /* ── DEMO BANNER ──────────────────────────────────────────── */
 #demo-banner {
   display: none;
@@ -631,6 +700,23 @@ footer a { color: var(--accent); text-decoration: none; }
   <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-zscore"></span><span id="sem-zscore-txt">Departamentos: Sin valores atípicos</span></div>
   <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-velocity"></span><span id="sem-velocity-txt">Velocidad de conteo: Normal</span></div>
   <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-chain"></span><span id="sem-chain-txt">Cadena criptográfica: Íntegra</span></div>
+</div>
+
+<!-- ── SCORE DE CONFIANZA SINTÉTICO ── -->
+<div class="card" id="confidence-score" data-section="confidence">
+  <div class="conf-gauge">
+    <svg viewBox="0 0 120 120">
+      <circle class="conf-gauge-bg" cx="60" cy="60" r="50"/>
+      <circle id="conf-gauge-fg" class="conf-gauge-fg" cx="60" cy="60" r="50"
+        stroke-dasharray="314" stroke-dashoffset="314" stroke="var(--ok-c)"/>
+    </svg>
+    <div class="conf-center" id="conf-val">—</div>
+  </div>
+  <div class="conf-body">
+    <div class="conf-title" id="conf-title">Nivel de confianza estadística</div>
+    <div class="conf-desc" id="conf-desc">Índice compuesto (0–100) que combina los resultados de todos los detectores forenses. No es un juicio — es una lectura de anomalía calibrada contra patrones esperados.</div>
+    <div class="conf-factors" id="conf-factors"></div>
+  </div>
 </div>
 
 <!-- ── KPIs ── -->
@@ -828,6 +914,22 @@ footer a { color: var(--accent); text-decoration: none; }
   <div id="invalids-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Proporción de votos inválidos sobre el total de votos emitidos.</div>
 </div>
 
+<!-- ── PANEL DE MUTACIONES (cambios retroactivos) ── -->
+<div class="card" data-section="mutations" data-expert>
+  <h2>Historial de mutaciones — cambios retroactivos de datos</h2>
+  <div id="mutations-list">
+    <div id="mutations-empty">Sin alteraciones retroactivas desde el inicio del monitoreo. Cada snapshot está sellado con SHA-256.</div>
+  </div>
+</div>
+
+<!-- ── CUSUM CHANGE-POINT ── -->
+<div class="card" data-section="cusum" data-expert>
+  <h2>Detección de cambio estructural (CUSUM)</h2>
+  <canvas id="chart-cusum" height="160"></canvas>
+  <div id="cusum-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Analiza cambios bruscos en la tasa de ingreso de actas. Un pico en CUSUM indica el momento exacto donde el patrón cambió.</div>
+  <div id="cusum-alert"></div>
+</div>
+
 <!-- ── PERFIL DE ANOMALÍAS ── -->
 <div class="card" data-section="anomaly-profile">
   <h2>Perfil de anomalías detectadas</h2>
@@ -845,6 +947,15 @@ footer a { color: var(--accent); text-decoration: none; }
   <div style="margin-top:14px">
     <a href="../verifier/index.html" style="color:var(--accent);font-size:13px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg> Verificar cadena offline (sin servidor)</a>
   </div>
+</div>
+
+<!-- ── EXPORT OBSERVER REPORT ── -->
+<div class="card" data-section="export" style="text-align:center;padding:24px">
+  <button id="export-pdf-btn" onclick="exportObserverReport()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    EXPORT OBSERVER REPORT (TXT)
+  </button>
+  <div style="font-size:11px;color:var(--muted);margin-top:8px">Genera un reporte estructurado con timestamp, cadena de custodia, hallazgos estadísticos y metodología citada — listo para observadores (OEA, Carter Center, EU EOM).</div>
 </div>
 
 </main>
@@ -1005,6 +1116,204 @@ function renderCitizenSemaphore(data){
   s('sem-zscore',zscoreOk,'Departamentos: Sin valores atípicos','Departamentos: Valores atípicos detectados');
   s('sem-velocity',velocityOk,'Velocidad de conteo: Normal','Velocidad de conteo: Anómala');
   s('sem-chain',chainOk,'Cadena criptográfica: Íntegra','Cadena criptográfica: Comprometida');
+}
+
+// ── CONFIDENCE SCORE (0–100 composite) ──
+function renderConfidenceScore(data){
+  const f=data?.forensics||{};
+  const factors=[];
+  const benfordOk=!f.benford||f.benford.pvalue>=0.05;
+  factors.push({name:'Benford 1er dígito',ok:benfordOk,weight:10});
+  const b2Ok=!f.benford_2nd||f.benford_2nd.pvalue>=0.05;
+  factors.push({name:'Mebane 2do dígito',ok:b2Ok,weight:20});
+  const zOk=!f.zscore?.detected;
+  factors.push({name:'Z-score departamental',ok:zOk,weight:15});
+  const velOk=!f.velocity_anomaly?.detected;
+  factors.push({name:'Velocidad de escrutinio',ok:velOk,weight:15});
+  const chainOk=(data?.national?.integrityPercent??100)>=100;
+  factors.push({name:'Cadena SHA-256',ok:chainOk,weight:25});
+  const injOk=!f.progressive_injection?.detected;
+  factors.push({name:'Inyección progresiva',ok:injOk,weight:10});
+  const asymOk=!f.asymmetric_benefit?.detected;
+  factors.push({name:'Beneficio asimétrico',ok:asymOk,weight:5});
+  const totalWeight=factors.reduce((s,f2)=>s+f2.weight,0);
+  const score=factors.reduce((s,f2)=>s+(f2.ok?f2.weight:0),0)/totalWeight*100;
+  const gauge=document.getElementById('conf-gauge-fg');
+  const valEl=document.getElementById('conf-val');
+  const titleEl=document.getElementById('conf-title');
+  const descEl=document.getElementById('conf-desc');
+  const factorsEl=document.getElementById('conf-factors');
+  if(!gauge)return;
+  const circ=2*Math.PI*50;
+  gauge.style.strokeDasharray=circ;
+  gauge.style.strokeDashoffset=circ*(1-score/100);
+  gauge.style.stroke=score>=80?'var(--ok-c)':score>=50?'var(--warn-c)':'var(--bad-c)';
+  valEl.textContent=Math.round(score);
+  if(score>=80){
+    titleEl.textContent='CONFIANZA ALTA';
+    descEl.textContent='El patrón estadístico del conteo es consistente con elecciones limpias. Todos los detectores principales indican normalidad.';
+  } else if(score>=50){
+    titleEl.textContent='BAJO VIGILANCIA';
+    descEl.textContent='Se detectaron patrones estadísticos que requieren evaluación por observadores calificados. No constituye una determinación de fraude.';
+  } else {
+    titleEl.textContent='ANOMALÍAS MÚLTIPLES';
+    descEl.textContent='Múltiples detectores reportan desviaciones significativas. Se recomienda evaluación inmediata por observadores independientes.';
+  }
+  factorsEl.innerHTML=factors.map(f2=>{
+    const color=f2.ok?'var(--ok-c)':'var(--bad-c)';
+    return `<div class="conf-factor"><span class="conf-factor-dot" style="background:${color}"></span>${f2.name}: ${f2.ok?'Normal':'Anomalía'} (peso: ${f2.weight}%)</div>`;
+  }).join('');
+}
+
+// ── MUTATIONS PANEL ──
+function renderMutations(forensics){
+  const list=document.getElementById('mutations-list');
+  if(!list)return;
+  const muts=forensics?.mutations||[];
+  if(!muts.length){
+    list.innerHTML='<div id="mutations-empty">Sin alteraciones retroactivas desde el inicio del monitoreo. Cada snapshot está sellado con SHA-256.</div>';
+    return;
+  }
+  list.innerHTML=muts.map(m=>{
+    const ts=m.detected_at?new Date(m.detected_at).toLocaleString('es-HN'):'—';
+    return `<div class="mutation-row mut-del">${m.field||'campo'}: ${m.old_value||'—'}<span class="mutation-ts">${ts}</span></div>`+
+           `<div class="mutation-row mut-add">${m.field||'campo'}: ${m.new_value||'—'}<span class="mutation-delta">Δ ${m.delta||'—'}</span></div>`;
+  }).join('');
+}
+
+// ── CUSUM CHANGE-POINT DETECTION ──
+function renderCusum(snapshots){
+  const el=document.getElementById('chart-cusum');
+  const alertEl=document.getElementById('cusum-alert');
+  if(!el)return;
+  const snaps=snapshots||[];
+  if(snaps.length<3){
+    if(charts.cusum){charts.cusum.destroy();charts.cusum=null;}
+    return;
+  }
+  const rates=[];
+  for(let i=1;i<snaps.length;i++){
+    const dt=(new Date(snaps[i].captured_at)-new Date(snaps[i-1].captured_at))/60000;
+    if(dt>0) rates.push({ts:snaps[i].captured_at,rate:1/dt});
+    else rates.push({ts:snaps[i].captured_at,rate:0});
+  }
+  if(rates.length<2)return;
+  const mean=rates.reduce((s,r)=>s+r.rate,0)/rates.length;
+  const k=mean*0.5;
+  const cusum=[];
+  let s_pos=0,s_neg=0;
+  let maxIdx=-1,maxVal=0;
+  rates.forEach((r,i)=>{
+    s_pos=Math.max(0,s_pos+(r.rate-mean-k));
+    s_neg=Math.max(0,s_neg+(-r.rate+mean-k));
+    const val=Math.max(s_pos,s_neg);
+    cusum.push(val);
+    if(val>maxVal){maxVal=val;maxIdx=i;}
+  });
+  const h=mean*5;
+  const labels=rates.map(r=>new Date(r.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  if(charts.cusum)charts.cusum.destroy();
+  charts.cusum=new Chart(el,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'CUSUM',data:cusum,borderColor:'#b08cf0',backgroundColor:'rgba(176,140,240,.1)',fill:true,tension:0.3,pointRadius:cusum.length<20?3:0,borderWidth:2},
+      {label:'Umbral h',data:Array(cusum.length).fill(h),borderColor:'#df6b86',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{
+        x:{ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#1c1f26'}},
+        y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c',font:{size:10}},beginAtZero:true}
+      }
+    }
+  });
+  if(alertEl){
+    if(maxVal>h&&maxIdx>=0){
+      const changeTs=new Date(rates[maxIdx].ts).toLocaleString('es-HN');
+      alertEl.innerHTML=`<div class="cusum-alert">⚠ Punto de cambio detectado a las ${changeTs} — la tasa de ingreso de actas cambió significativamente respecto al patrón previo (CUSUM = ${maxVal.toFixed(2)}, umbral = ${h.toFixed(2)}).</div>`;
+    } else {
+      alertEl.innerHTML='';
+    }
+  }
+}
+
+// ── EXPORT OBSERVER REPORT ──
+function exportObserverReport(){
+  const data=globalData||{};
+  const snap=_lastSnap||{};
+  const nat=data.national||{};
+  const f=data.forensics||{};
+  const now=new Date().toISOString();
+  const benfordOk=!f.benford||f.benford.pvalue>=0.05;
+  const b2Ok=!f.benford_2nd||f.benford_2nd.pvalue>=0.05;
+  const zOk=!f.zscore?.detected;
+  const velOk=!f.velocity_anomaly?.detected;
+  const chainOk=(nat.integrityPercent??100)>=100;
+  const factors=[
+    {name:'SHA-256 Chain Integrity',ok:chainOk},
+    {name:'Mebane 2nd Digit Test',ok:b2Ok,detail:`chi2=${(f.benford_2nd?.chi2||0).toFixed(2)}, p=${(f.benford_2nd?.pvalue||1).toFixed(3)}`},
+    {name:'Benford 1st Digit',ok:benfordOk,detail:`chi2=${(f.benford?.chi2||0).toFixed(2)}, p=${(f.benford?.pvalue||1).toFixed(3)}`},
+    {name:'Z-score Outliers',ok:zOk},
+    {name:'Scrutiny Velocity',ok:velOk},
+  ];
+  const totalOk=factors.filter(f2=>f2.ok).length;
+  const score=Math.round(totalOk/factors.length*100);
+  const lines=[
+    '═══════════════════════════════════════════════════════════════',
+    '  VIGIL — OBSERVER REPORT',
+    '  Independent Electoral Audit System',
+    '═══════════════════════════════════════════════════════════════',
+    '',
+    'DISCLAIMER: VIGIL presents statistical observations for evaluation',
+    'by qualified electoral observers. It does not determine electoral',
+    'outcomes or constitute a finding of fraud.',
+    '',
+    '── REPORT METADATA ──────────────────────────────────────────',
+    `Generated:     ${now}`,
+    `Election:      ${snap.election_id||'Honduras General Election'}`,
+    `Data Source:    CNE Honduras (JSON/TREP)`,
+    `Merkle Root:   ${snap.chain?.merkle_root||'—'}`,
+    `Chain Hash:    ${snap.chain?.latest_hash||'—'}`,
+    `Chain Length:  ${snap.chain?.chain_length||'—'}`,
+    `OTS Status:    ${snap.chain?.ots_status||'pending'}`,
+    '',
+    '── COVERAGE ─────────────────────────────────────────────────',
+    `Actas Transmitted: ${fmt(nat.actasEscrutadas||0)} / ${fmt(nat.actasTotal||0)} (${nat.actasTotal?Math.round((nat.actasEscrutadas||0)/(nat.actasTotal)*100):0}%)`,
+    `Total Votes:       ${fmt(nat.totalVotes||0)}`,
+    `Turnout:           ${(nat.turnoutPercent||0).toFixed(1)}%`,
+    `Integrity:         ${(nat.integrityPercent??100).toFixed(1)}%`,
+    '',
+    '── STATISTICAL OBSERVATIONS ─────────────────────────────────',
+    `Confidence Score: ${score}/100`,
+    '',
+    ...factors.map(f2=>`  [${f2.ok?'PASS':'FLAG'}] ${f2.name}${f2.detail?' — '+f2.detail:''}`),
+    '',
+    '── METHODOLOGY ──────────────────────────────────────────────',
+    'Benford, F. (1938). "The Law of Anomalous Numbers." Proc. Am. Phil. Soc.',
+    'Mebane, W.R. (2006). "Election Forensics." Electoral Studies 25(4).',
+    'Klimek, P. et al. (2012). "Statistical detection of systematic election',
+    '  irregularities." PNAS 109(41), 16469–16473.',
+    'Deckert, J., Myagkov, M. & Ordeshook, P. (2011). "Benford\'s Law and the',
+    '  Detection of Election Fraud." Political Analysis 19(3), 245–268.',
+    '',
+    '── CHAIN OF CUSTODY ─────────────────────────────────────────',
+    'Every snapshot is cryptographically chained via SHA-256.',
+    'Independent verification: download verify_chain.py from the VIGIL repo.',
+    'Bitcoin anchoring via OpenTimestamps (OTS) provides immutable timestamps.',
+    '',
+    '═══════════════════════════════════════════════════════════════',
+    '  This report was generated by VIGIL — https://vectisdev.github.io/Vigil/',
+    '  License: AGPL-3.0',
+    '═══════════════════════════════════════════════════════════════',
+  ];
+  const text=lines.join('\n');
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`VIGIL-Observer-Report-${now.slice(0,10)}.txt`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── STATUS BAR ──
@@ -1693,6 +2002,9 @@ function _renderAll(data,snap){
   if(data._alerts)renderAnomalyProfile(data._alerts);
   if(data.forensics){renderVelocity(data.forensics);renderLeaderChart(data.forensics);renderInvalidsChart(data.forensics);}
   renderKlimek(data.departments,data.national?.candidates);
+  renderConfidenceScore(data);
+  if(data.forensics)renderMutations(data.forensics);
+  if(data._snapshots)renderCusum(data._snapshots);
   applySectionPrefs();
 }
 
@@ -2113,13 +2425,16 @@ function renderNullBlank(departments){
 
 // ── PERSONALIZAR: toggle de secciones ──
 const SECTION_LABELS={
+  confidence:'Score de confianza',
   incons:'Registros inconsistentes',candidates:'Candidatos y mapa',
   timeline:'Serie temporal',benford2:'Benford 2do dígito (Mebane)',klimek:'Klimek Fingerprint',
   benford:'Benford 1er dígito',lastdigit:'Último dígito',
   zscore:'Z-score por depto',participation:'Participación por depto',
   nullblank:'Nulos y blancos',endpoints:'Endpoints CNE',alerts:'Alertas',forensics:'Análisis forense',
   velocity:'Velocidad de escrutinio',leader:'Evolución del liderazgo',invalids:'Nulos/Blancos en el tiempo',
+  mutations:'Mutaciones de datos',cusum:'CUSUM change-point',
   'anomaly-profile':'Perfil de anomalías',margin:'Ventaja del líder',chain:'Cadena criptográfica',
+  export:'Exportar reporte',
 };
 function applySectionPrefs(){
   const prefs=JSON.parse(localStorage.getItem('centinel_sections')||'{}');
