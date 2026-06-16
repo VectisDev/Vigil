@@ -1643,7 +1643,8 @@ function renderBubbleScatter(departments,candidates,alerts){
   const el=document.getElementById('chart-bubble');
   if(!el)return;
   if(charts.bubble)charts.bubble.destroy();
-  const depts=departments?Object.entries(departments):[];
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
   if(depts.length<1)return;
   const leader=candidates?candidates.reduce((a,b)=>a.percentage>b.percentage?a:b,candidates[0]):null;
   const alertsByDept={};
@@ -2150,7 +2151,8 @@ function _regGammaP(a,x,lnG){
 function renderKlimek(departments, candidates){
   const el=document.getElementById('chart-klimek');
   if(!el)return;
-  const depts=departments?Object.entries(departments):[];
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
   if(!depts.length)return;
   const winner=candidates&&candidates.length?candidates.reduce((a,b)=>a.votes>b.votes?a:b):null;
   const winnerName=winner?.name||'Líder';
@@ -2218,8 +2220,9 @@ function renderBenford(benford){
 // ── ALERTAS ──
 function renderAlerts(alerts){
   const body=document.getElementById('alerts-body');
-  if(!alerts||alerts.length===0){body.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center">Sin alertas activas</td></tr>';return;}
-  body.innerHTML=alerts.map(a=>{
+  const filtered=_activeDeptFilter?alerts?.filter(a=>(a.dept_code||a.department)===_activeDeptFilter):alerts;
+  if(!filtered||filtered.length===0){body.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center">Sin alertas activas</td></tr>';return;}
+  body.innerHTML=filtered.map(a=>{
     const kind=a.kind||a.rule_id||'';
     const hasLink=ALERT_SECTION_MAP[kind];
     return `<tr style="${hasLink?'cursor:pointer':''}" ${hasLink?`onclick="scrollToForensicSection('${kind}')"`:''}>`+
@@ -2901,7 +2904,8 @@ function renderLastDigit(forensics){
 function renderZScore(departments){
   const el=document.getElementById('chart-zscore');
   if(!el)return;
-  const depts=departments?Object.entries(departments):[];
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
   if(!depts.length)return;
   const labels=depts.map(([code])=>DEPT_NAMES[code]||code);
   const vals=depts.map(([,d])=>+(d.zscore??0).toFixed(2));
@@ -2921,7 +2925,8 @@ function renderZScore(departments){
 function renderParticipation(departments){
   const el=document.getElementById('chart-participation');
   if(!el)return;
-  const depts=departments?Object.entries(departments):[];
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
   if(!depts.length)return;
   const labels=depts.map(([code])=>DEPT_NAMES[code]||code);
   const vals=depts.map(([,d])=>{
@@ -2944,7 +2949,8 @@ function renderParticipation(departments){
 function renderNullBlank(departments){
   const el=document.getElementById('chart-nullblank');
   if(!el)return;
-  const depts=departments?Object.entries(departments):[];
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
   if(!depts.length)return;
   const labels=depts.map(([code])=>DEPT_NAMES[code]||code);
   const nulls=depts.map(([,d])=>d.nullVotes||0);
