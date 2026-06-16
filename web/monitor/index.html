@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1879,7 +1879,9 @@ function renderKPIs(nat){
 // ── CANDIDATOS ──
 function renderCandidates(candidates){
   const list=document.getElementById('cand-list');
+  if(!list)return;
   list.innerHTML='';
+  if(!candidates||candidates.length===0){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Sin datos de candidatos disponibles.</div>';return;}
   const labels=[],vals=[],colors=[];
   candidates.forEach(c=>{
     labels.push(c.name);vals.push(c.votes);colors.push(c.partyColor||'#6ea8fe');
@@ -2507,47 +2509,50 @@ function _applySnapshot(snap){
 }
 
 function _renderAll(data,snap){
-  renderHero(data);
-  updateStatusBar(data);
-  renderCoverage(data.coverage);
-  if(data.national)renderKPIs(data.national);
-  if(data.national?.candidates)renderCandidates(data.national.candidates);
-  if(data.departments)renderMap(data.departments);
-  if(data._snapshots)renderTimeline(data._snapshots.slice().reverse());
-  renderEndpointHealth(data.endpoint_health);
+  const _s=fn=>{try{fn();}catch(e){console.error('[VIGIL render]',e);}};
+  _s(()=>renderHero(data));
+  _s(()=>updateStatusBar(data));
+  _s(()=>renderCoverage(data.coverage));
+  if(data.national)_s(()=>renderKPIs(data.national));
+  if(data.national?.candidates)_s(()=>renderCandidates(data.national.candidates));
+  if(data.departments)_s(()=>renderMap(data.departments));
+  if(data._snapshots)_s(()=>renderTimeline(data._snapshots.slice().reverse()));
+  _s(()=>renderEndpointHealth(data.endpoint_health));
   if(data.forensics){
-    renderInconsistentActs(data.forensics,data.national);
-    renderBenford2nd(data.forensics);
-    renderBenford(data.forensics.benford);
-    renderForensics(data.forensics);
+    _s(()=>renderInconsistentActs(data.forensics,data.national));
+    _s(()=>renderBenford2nd(data.forensics));
+    _s(()=>renderBenford(data.forensics.benford));
+    _s(()=>renderForensics(data.forensics));
   }
-  if(data._alerts)renderAlerts(data._alerts);
-  if(data.chain_records)renderChain(data.chain_records);
-  const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
-  document.getElementById('footer-merkle').textContent=mr;
-  if(data.forensics)renderLastDigit(data.forensics);
-  renderZScore(data.departments);
-  renderParticipation(data.departments);
-  renderNullBlank(data.departments);
-  if(data.national?.candidates)renderMarginKPI(data.national.candidates);
-  if(data._alerts)renderAnomalyProfile(data._alerts);
-  if(data.forensics){renderVelocity(data.forensics);renderLeaderChart(data.forensics);renderInvalidsChart(data.forensics);}
-  renderKlimek(data.departments,data.national?.candidates);
-  renderConfidenceScore(data);
-  if(data.forensics)renderMutations(data.forensics);
-  if(data._snapshots)renderCusum(data._snapshots);
+  if(data._alerts)_s(()=>renderAlerts(data._alerts));
+  if(data.chain_records)_s(()=>renderChain(data.chain_records));
+  _s(()=>{
+    const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
+    document.getElementById('footer-merkle').textContent=mr;
+  });
+  if(data.forensics)_s(()=>renderLastDigit(data.forensics));
+  _s(()=>renderZScore(data.departments));
+  _s(()=>renderParticipation(data.departments));
+  _s(()=>renderNullBlank(data.departments));
+  if(data.national?.candidates)_s(()=>renderMarginKPI(data.national.candidates));
+  if(data._alerts)_s(()=>renderAnomalyProfile(data._alerts));
+  if(data.forensics){_s(()=>renderVelocity(data.forensics));_s(()=>renderLeaderChart(data.forensics));_s(()=>renderInvalidsChart(data.forensics));}
+  _s(()=>renderKlimek(data.departments,data.national?.candidates));
+  _s(()=>renderConfidenceScore(data));
+  if(data.forensics)_s(()=>renderMutations(data.forensics));
+  if(data._snapshots)_s(()=>renderCusum(data._snapshots));
   if(data.forensics){
-    renderProgressiveInjection(data.forensics);
-    renderHoldRelease(data.forensics);
-    renderAsymmetricBenefit(data.forensics,data.national?.candidates);
-    renderBlackoutAnalysis(data.forensics);
-    renderTimeSeriesDiag(data.forensics);
-    renderForensicRadar(data.forensics);
+    _s(()=>renderProgressiveInjection(data.forensics));
+    _s(()=>renderHoldRelease(data.forensics));
+    _s(()=>renderAsymmetricBenefit(data.forensics,data.national?.candidates));
+    _s(()=>renderBlackoutAnalysis(data.forensics));
+    _s(()=>renderTimeSeriesDiag(data.forensics));
+    _s(()=>renderForensicRadar(data.forensics));
   }
-  renderBubbleScatter(data.departments,data.national?.candidates,data._alerts);
-  renderAlertDoughnut(data._alerts);
-  _populateDeptFilter(data.departments);
-  applySectionPrefs();
+  _s(()=>renderBubbleScatter(data.departments,data.national?.candidates,data._alerts));
+  _s(()=>renderAlertDoughnut(data._alerts));
+  _s(()=>_populateDeptFilter(data.departments));
+  _s(()=>applySectionPrefs());
 }
 
 // ── VELOCIDAD DE ESCRUTINIO ──
@@ -2850,11 +2855,24 @@ function _hideDemoBanner(){
   document.getElementById('demo-banner').classList.remove('visible');
 }
 
+function _isSnapshotEmpty(snap){
+  const nat=snap.national||{};
+  const hasCandidates=Object.keys(nat.candidatos||nat.candidates||{}).length>0;
+  const hasDepartments=Object.keys(snap.departments||{}).length>0;
+  const hasForensics=Object.keys(snap.forensics||{}).length>0;
+  return !hasCandidates && !hasDepartments && !hasForensics;
+}
+
 async function loadData(){
   // 1. Static JSON — CDN edge, zero dependency
   try{
     const r=await fetch('../data/snapshot.json',{cache:'no-store'});
-    if(r.ok){const snap=await r.json();_hideDemoBanner();_applySnapshot(snap);return;}
+    if(r.ok){
+      const snap=await r.json();
+      if(!_isSnapshotEmpty(snap)){
+        _hideDemoBanner();_applySnapshot(snap);return;
+      }
+    }
   }catch(_){}
 
   // 2. Demo/offline fallback — show prominent warning
