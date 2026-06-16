@@ -152,6 +152,7 @@ async function loadSnapshot(){
     updateSensorCards();
     updateDeptGrid();
     updateStatusBadges();
+    if(typeof renderAwsMeter==='function'){ try { renderAwsMeter(); } catch(_){} }
     const age = snapshotData?.timestamp ? relTime(snapshotData.timestamp) : '—';
     document.getElementById('snap-age').textContent = `actualizado ${age}`;
   }catch(e){console.warn('loadSnapshot',e);}
@@ -813,10 +814,15 @@ const BADGE_IDS = {
 
 function syncSlider(key, val){
   let v = parseFloat(val);
+  const requested = v;
   const isCustom = activePresetId && activePresetId.startsWith('custom-');
   if(!isCustom || !ceilingUnlocked){
     if(key==='rph')      v = Math.min(v, HARD_CEILING.maxRph);
     if(key==='interval') v = Math.max(v, HARD_CEILING.minInterval);
+  }
+  // Visible feedback when a security ceiling clamps the requested value
+  if(v !== requested && typeof _ceilingFeedback==='function'){
+    _ceilingFeedback(key, requested, v);
   }
   const display = Number.isInteger(v) ? v : v.toFixed(2);
   (SLIDER_IDS[key]||[]).forEach(id=>{

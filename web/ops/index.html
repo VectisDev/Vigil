@@ -106,17 +106,18 @@
   <div id="admin-content">
     <!-- SIDEBAR -->
     <nav id="sidebar">
-      <div class="sec-header"><span data-lang="es">Vigilar</span><span data-lang="en">Monitor</span></div>
+      <button class="sec-header phase-tab" data-phase-tab="vigilar" onclick="setView('vigilar')"><span data-lang="es">Vigilar</span><span data-lang="en">Monitor</span></button>
       <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
       <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
       <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
-      <div class="sec-header"><span data-lang="es">Configurar</span><span data-lang="en">Configure</span></div>
+      <button class="sec-header phase-tab" data-phase-tab="configurar" onclick="setView('configurar')"><span data-lang="es">Configurar</span><span data-lang="en">Configure</span></button>
       <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
       <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
-      <div class="sec-header"><span data-lang="es">Verificar</span><span data-lang="en">Verify</span></div>
+      <button class="sec-header phase-tab" data-phase-tab="verificar" onclick="setView('verificar')"><span data-lang="es">Verificar</span><span data-lang="en">Verify</span></button>
       <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
       <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
-      <div class="sec-header"><span data-lang="es">Cerrar elección</span><span data-lang="en">Close Election</span></div>
+      <a href="#s-aws" onclick="scrollTo('s-aws')"><span data-lang="es">Costos AWS</span><span data-lang="en">AWS Costs</span></a>
+      <button class="sec-header phase-tab" data-phase-tab="cerrar" onclick="setView('cerrar')"><span data-lang="es">Cerrar elección</span><span data-lang="en">Close Election</span></button>
       <a href="#s8" onclick="scrollTo('s8')"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
       <div id="sidebar-ops-zone">
         <div class="soz-sep"></div>
@@ -145,7 +146,7 @@
     <main id="main-area">
 
       <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
-      <div class="section" id="s1">
+      <div class="section" id="s1" data-phase="vigilar">
 
         <!-- Título + botones de operación -->
         <div id="panel-topbar">
@@ -217,13 +218,10 @@
           <span><span class="dot" style="background:#df6b86"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
           <span><span class="dot" style="background:#3a3f49"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
         </div>
-        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:20px;margin-bottom:6px"><span data-lang="es">Estado del sistema</span><span data-lang="en">System status</span></div>
-        <div class="status-row">
-          <span class="badge" id="badge-animal">DEFENSAS</span>
-          <span class="badge" id="badge-safemode">SAFE MODE</span>
-          <span class="badge" id="badge-circuit">CIRCUIT BREAKER</span>
-          <span class="badge" id="badge-election">ELECTION MODE</span>
-        </div>
+        <!-- Status badges removed — state now lives authoritatively in the
+             command-header (Defensas / Modo elec.) and the sensor cards
+             (Circuit Breaker / Animal Mode). updateStatusBadges() null-guards
+             these IDs, so their absence is safe. -->
       </div>
 
       <!-- s2 eliminado — contenido integrado en s1 -->
@@ -243,7 +241,7 @@
       </div>
 
       <!-- ── 3 PRESETS ── -->
-      <div class="section" id="s3">
+      <div class="section" id="s3" data-phase="configurar">
         <div class="section-title"><span data-lang="es">Presets</span><span data-lang="en">Presets</span> <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip-es="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada." data-tip-en="Quick configuration templates. Pick a preset based on the scenario (normal operation, election night, emergency…) or save your own custom configuration.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -599,7 +597,7 @@
       </div>
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
-      <div class="section" id="s9">
+      <div class="section" id="s9" data-phase="verificar">
         <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de VIGIL." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on VIGIL.">ⓘ</span></div>
         <hr class="section-sep">
         <div class="ctrl-section" id="ots-section">
@@ -737,7 +735,7 @@
 
 
       <!-- ── 5 LOGS ── -->
-      <div class="section" id="s4">
+      <div class="section" id="s4" data-phase="vigilar">
         <div class="section-title"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs &amp; terminals</span> <span class="sec-tip" data-tip-es="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoria. Todo queda grabado y no se puede borrar." data-tip-en="Real-time logs of all activity: monitoring events, security alerts and audit traces. Everything is recorded and cannot be deleted.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -841,7 +839,7 @@
       </div>
 
       <!-- ── 6 MANUAL ── -->
-      <div class="section" id="s5">
+      <div class="section" id="s5" data-phase="verificar">
         <div class="section-title"><span data-lang="es">Manual</span><span data-lang="en">Manual</span> <span class="sec-tip" data-tip-es="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automatico." data-tip-en="One-off manual operations: force an immediate scrape, pause or resume the scheduler, without waiting for the automatic cycle.">ⓘ</span></div>
         <hr class="section-sep">
         <details id="mini-manual">
@@ -900,8 +898,67 @@
         </details>
       </div>
 
+      <!-- ── AWS — Conexión y proyección de costos (opt-in, Zero Cost) ── -->
+      <div class="section" id="s-aws" data-phase="verificar">
+        <div class="section-title"><span data-lang="es">AWS — Conexión y proyección de costos</span><span data-lang="en">AWS — Connection &amp; cost projection</span> <span class="sec-tip" data-tip-es="VIGIL opera sin costo en GitHub. Este panel estima cuánto costaría el mismo trabajo en AWS y lo exporta como recibo, para solicitudes de créditos/grant. La conexión AWS es opcional y está desactivada por defecto." data-tip-en="VIGIL runs free on GitHub. This panel estimates what the same workload would cost on AWS and exports it as a receipt, for credit/grant applications. AWS connection is optional and off by default.">ⓘ</span></div>
+        <hr class="section-sep">
+
+        <div class="aws-zerocost-note">
+          <span data-lang="es">⚡ VIGIL opera <strong>sin costo</strong> en GitHub Pages + Actions. AWS es una posibilidad opcional para cuando un grant aporte créditos. El medidor es una <strong>proyección estimada</strong>, no facturación real.</span>
+          <span data-lang="en">⚡ VIGIL runs at <strong>zero cost</strong> on GitHub Pages + Actions. AWS is an optional possibility for when a grant provides credits. The meter is an <strong>estimated projection</strong>, not a real bill.</span>
+        </div>
+
+        <!-- Cost meter -->
+        <div class="ctrl-section" style="margin-top:14px">
+          <div class="aws-meter-head">
+            <div>
+              <div class="aws-meter-label"><span data-lang="es">En AWS, esta operación habría costado</span><span data-lang="en">On AWS, this operation would have cost</span></div>
+              <div class="aws-meter-total" id="aws-total">$0.00</div>
+              <div class="aws-meter-period" id="aws-period">—</div>
+            </div>
+            <button class="btn-op" onclick="exportAwsReceipt()" title="Descargar recibo de proyección">
+              ⬇ <span data-lang="es">Exportar recibo</span><span data-lang="en">Export receipt</span>
+            </button>
+          </div>
+          <table class="data-table aws-breakdown-table" style="margin-top:12px">
+            <thead><tr>
+              <th data-lang="es">Servicio</th><th data-lang="es">Detalle</th><th style="text-align:right" data-lang="es">Cantidad</th><th style="text-align:right" data-lang="es">Subtotal</th>
+            </tr></thead>
+            <tbody id="aws-breakdown"></tbody>
+          </table>
+        </div>
+
+        <!-- Opt-in connection -->
+        <div class="ctrl-section" style="margin-top:14px">
+          <div class="aws-conn-head">
+            <span class="aws-conn-title"><span data-lang="es">Conexión AWS</span><span data-lang="en">AWS connection</span> <span class="aws-optional" data-lang="es">opcional</span><span class="aws-optional" data-lang="en">optional</span></span>
+            <span class="aws-toggle" onclick="toggleAwsConnection()" title="Activar/desactivar conexión AWS (opt-in)">
+              <span class="aws-toggle-val off" id="aws-enable-val">OFF</span>
+            </span>
+          </div>
+          <div id="aws-conn-fields" style="opacity:.55;margin-top:10px">
+            <div class="ctrl-row">
+              <label><span data-lang="es">Región</span><span data-lang="en">Region</span></label>
+              <input id="aws-region" type="text" placeholder="us-east-1" value="us-east-1">
+            </div>
+            <div class="ctrl-row">
+              <label><span data-lang="es">Perfil de servicios</span><span data-lang="en">Service profile</span></label>
+              <select id="aws-profile">
+                <option value="serverless">Serverless (Lambda + S3 + EventBridge)</option>
+                <option value="container">Container (Fargate)</option>
+                <option value="storage">Solo almacenamiento (S3)</option>
+              </select>
+            </div>
+            <button class="btn-op" onclick="verifyAwsReadiness()" style="margin-top:6px">
+              ✓ <span data-lang="es">Verificar preparación</span><span data-lang="en">Verify readiness</span>
+            </button>
+            <div id="aws-ready-out" class="aws-ready-out"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── 7 Acceso y Seeds ── -->
-      <div class="section" id="s6">
+      <div class="section" id="s6" data-phase="configurar">
         <div class="section-title"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access &amp; Seeds</span> <span class="sec-tip" data-tip-es="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano, solo su huella criptografica. Usalas para rotarlas o revocarlas." data-tip-en="Manage the 12 administrative access keys. Keys are never stored in plaintext, only their cryptographic fingerprint. Use this to rotate or revoke them.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -949,7 +1006,7 @@
       </div>
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
-      <div class="section" id="s7">
+      <div class="section" id="s7" data-phase="vigilar">
         <div class="section-title"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span> <span class="sec-tip" data-tip-es="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demas para detectar cualquier manipulacion en tiempo real." data-tip-en="View of the P2P observer network. Each node independently validates the data and compares its result with others to detect any manipulation in real time.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -1158,7 +1215,7 @@
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
-      <div class="section" id="s8">
+      <div class="section" id="s8" data-phase="cerrar">
         <div class="section-title"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Electoral Closure</span> <span class="sec-tip" data-tip-es="Secuencia de fin de eleccion: raspado final completo de todas las fuentes, publicacion del snapshot certificado y apagado controlado del sistema. Irreversible." data-tip-en="End-of-election sequence: full final scrape of all sources, publication of the certified snapshot, and controlled shutdown of the system. Irreversible.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -1264,6 +1321,75 @@
       </div>
 
     </main>
+  </div>
+</div>
+
+<!-- ════ COMMAND PALETTE (Ctrl+K) ════ -->
+<div id="cmd-palette">
+  <div id="cmd-palette-box">
+    <input id="cmd-input" type="text" autocomplete="off" spellcheck="false"
+      placeholder="Buscar acción…  ·  ↑↓ navegar · Enter ejecutar · Esc cerrar">
+    <div id="cmd-list"></div>
+  </div>
+</div>
+
+<!-- ════ KEYBOARD SHORTCUTS HELP ════ -->
+<div id="kbd-help">
+  <div class="modal-box" style="max-width:420px">
+    <h2><span data-lang="es">Atajos de teclado</span><span data-lang="en">Keyboard shortcuts</span></h2>
+    <table class="kbd-table">
+      <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td><span data-lang="es">Paleta de comandos</span><span data-lang="en">Command palette</span></td></tr>
+      <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td><span data-lang="es">Cambiar de fase</span><span data-lang="en">Switch phase</span></td></tr>
+      <tr><td><kbd>s</kbd></td><td><span data-lang="es">Iniciar monitoreo</span><span data-lang="en">Start monitoring</span></td></tr>
+      <tr><td><kbd>f</kbd></td><td><span data-lang="es">Finalizar ciclo</span><span data-lang="en">Finish cycle</span></td></tr>
+      <tr><td><kbd>e</kbd></td><td><span data-lang="es">Emergencia</span><span data-lang="en">Emergency</span></td></tr>
+      <tr><td><kbd>?</kbd></td><td><span data-lang="es">Esta ayuda</span><span data-lang="en">This help</span></td></tr>
+      <tr><td><kbd>Esc</kbd></td><td><span data-lang="es">Cerrar</span><span data-lang="en">Close</span></td></tr>
+    </table>
+    <button class="btn-op" onclick="closeKbdHelp()" style="margin-top:14px"><span data-lang="es">Cerrar</span><span data-lang="en">Close</span></button>
+  </div>
+</div>
+
+<!-- ════ SETUP WIZARD ════ -->
+<div id="setup-wizard">
+  <div class="modal-box" style="max-width:560px">
+    <div class="wiz-head">
+      <h2><span data-lang="es">Asistente de arranque</span><span data-lang="en">Setup wizard</span></h2>
+      <div id="wiz-dots" class="wiz-dots"></div>
+    </div>
+
+    <div id="wiz-step-1" class="wiz-step">
+      <div class="wiz-step-title"><span data-lang="es">1 · País</span><span data-lang="en">1 · Country</span></div>
+      <p class="wiz-hint"><span data-lang="es">Elige el país a monitorear. Esto carga sus divisiones electorales y endpoints.</span><span data-lang="en">Choose the country to monitor. This loads its electoral divisions and endpoints.</span></p>
+      <p class="wiz-hint"><span data-lang="es">Usa el selector de país del panel principal y vuelve aquí, o continúa con el país actual:</span><span data-lang="en">Use the country selector in the main panel, or continue with the current country:</span></p>
+      <div class="wiz-current" id="wiz-current-country">—</div>
+    </div>
+
+    <div id="wiz-step-2" class="wiz-step" style="display:none">
+      <div class="wiz-step-title"><span data-lang="es">2 · URLs</span><span data-lang="en">2 · URLs</span></div>
+      <p class="wiz-hint"><span data-lang="es">Confirma la URL principal del CNE. Los endpoints departamentales se descubren al iniciar.</span><span data-lang="en">Confirm the main CNE URL. Departmental endpoints are discovered on start.</span></p>
+      <div class="wiz-current" id="wiz-current-url">—</div>
+      <p class="wiz-hint" style="margin-top:8px"><span data-lang="es">Edita las URLs en Configurar → Presets → Configuración avanzada → Endpoints.</span><span data-lang="en">Edit URLs in Configure → Presets → Advanced config → Endpoints.</span></p>
+    </div>
+
+    <div id="wiz-step-3" class="wiz-step" style="display:none">
+      <div class="wiz-step-title"><span data-lang="es">3 · Preset</span><span data-lang="en">3 · Preset</span></div>
+      <p class="wiz-hint"><span data-lang="es">Elige un perfil operativo. "Noche electoral" es el estándar para jornada.</span><span data-lang="en">Pick an operational profile. "Election night" is the standard for election day.</span></p>
+      <div class="wiz-preset-grid" id="wiz-preset-grid"></div>
+    </div>
+
+    <div id="wiz-step-4" class="wiz-step" style="display:none">
+      <div class="wiz-step-title"><span data-lang="es">4 · Listo</span><span data-lang="en">4 · Ready</span></div>
+      <p class="wiz-hint"><span data-lang="es">Todo configurado. Al finalizar se iniciará el monitoreo electoral.</span><span data-lang="en">All set. Finishing will start electoral monitoring.</span></p>
+      <div class="wiz-current" id="wiz-summary">—</div>
+    </div>
+
+    <div class="wiz-nav">
+      <button class="btn-op" id="wiz-prev" onclick="wizPrev()" style="display:none">← <span data-lang="es">Atrás</span><span data-lang="en">Back</span></button>
+      <button class="btn-op" onclick="closeSetupWizard()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+      <button class="btn-op btn-primary" id="wiz-next" onclick="wizNext()"><span data-lang="es">Siguiente</span><span data-lang="en">Next</span> →</button>
+      <button class="btn-op btn-primary" id="wiz-finish" onclick="wizFinish()" style="display:none">▶ <span data-lang="es">Iniciar</span><span data-lang="en">Start</span></button>
+    </div>
   </div>
 </div>
 
@@ -1560,6 +1686,8 @@
 <script src="js/ops-core.js"></script>
 <script src="js/ops-panel.js"></script>
 <script src="js/ops-monitor.js"></script>
+<script src="js/ops-aws.js"></script>
+<script src="js/ops-command.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════
 // GLOBALS
@@ -1967,6 +2095,9 @@ async function initAll(){
   }
   isDirty = false;
   updateDirtyState();
+  // AWS cost projection panel + first-run wizard offer
+  if(typeof initAwsPanel==='function'){ try { initAwsPanel(); } catch(e){ console.warn('initAwsPanel',e); } }
+  if(typeof _maybeOfferWizard==='function'){ try { _maybeOfferWizard(); } catch(e){ console.warn('wizard',e); } }
 }
 
 
