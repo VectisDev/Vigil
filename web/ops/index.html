@@ -106,6 +106,7 @@
   <div id="admin-content">
     <!-- SIDEBAR -->
     <nav id="sidebar">
+      <div id="sidebar-nav">
       <button class="sec-header phase-tab" data-phase-tab="vigilar" onclick="setView('vigilar')"><span data-lang="es">Vigilar</span><span data-lang="en">Monitor</span></button>
       <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
       <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
@@ -119,6 +120,7 @@
       <a href="#s-aws" onclick="scrollTo('s-aws')"><span data-lang="es">Costos AWS</span><span data-lang="en">AWS Costs</span></a>
       <button class="sec-header phase-tab" data-phase-tab="cerrar" onclick="setView('cerrar')"><span data-lang="es">Cerrar elección</span><span data-lang="en">Close Election</span></button>
       <a href="#s8" onclick="scrollTo('s8')"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
+      </div>
       <div id="sidebar-ops-zone">
         <div class="soz-sep"></div>
         <button id="btn-sidebar-iniciar" onclick="doIniciar()"
@@ -920,6 +922,9 @@
             <button class="btn-op" onclick="exportAwsReceipt()" title="Descargar recibo de proyección">
               ⬇ <span data-lang="es">Exportar recibo</span><span data-lang="en">Export receipt</span>
             </button>
+            <button class="btn-op" onclick="exportGrantDocument()" style="background:rgba(110,168,254,.08);border-color:rgba(110,168,254,.4);color:var(--accent)" title="Exportar paquete AWS Open Data Program (registry.yaml + proposal.txt)">
+              📄 <span data-lang="es">AWS Open Data Program</span><span data-lang="en">AWS Open Data Program</span>
+            </button>
           </div>
           <table class="data-table aws-breakdown-table" style="margin-top:12px">
             <thead><tr>
@@ -1684,6 +1689,7 @@
   </div>
 </div>
 
+<script src="js/vigil-log.js"></script>
 <script src="js/ops-core.js"></script>
 <script src="js/ops-panel.js"></script>
 <script src="js/ops-monitor.js"></script>
@@ -1930,7 +1936,7 @@ async function doAdminLogin(prefillKey) {
     if(!matchedPat && ac.writer_pat && matchedSlot !== null){
       matchedPat = await decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
     }
-    if(matchedPat) sessionStorage.setItem('gh-pat', matchedPat);
+    if(matchedPat) localStorage.setItem('gh-pat', matchedPat);
     currentUser = {seed: matchedId || 'S??', role: matchedRole};
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
@@ -1941,13 +1947,12 @@ async function doAdminLogin(prefillKey) {
 }
 
 function doLogout(){
-  auditLog('sesión cerrada');
+  auditLog('sesión cerrada', '', {msgid:'SESSION_END', severity:'INFO'});
   sessionStorage.removeItem('centinel_admin_tok');
   sessionStorage.removeItem('centinel_admin_exp');
   sessionStorage.removeItem('centinel_role');
   sessionStorage.removeItem('centinel_seed_id');
   sessionStorage.removeItem('centinel_fp');
-  sessionStorage.removeItem('gh-pat');
   location.reload();
 }
 
@@ -2039,13 +2044,14 @@ function showAdminShell(){
   applyRoleUI();
   loadCustomPresets();
   initAll();
-  auditLog('sesión iniciada', getCurrentRole());
+  auditLog('sesión iniciada', getCurrentRole(), {msgid:'SESSION_START', severity:'INFO'});
 }
 
 // ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
 async function initAll(){
+  if(typeof VELE!=='undefined') VELE.init('ops');
   // Wrap each synchronous call so a transient error can't abort the whole
   // init chain and leave later sections (like 2 dept grid) unrendered.
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
@@ -2253,7 +2259,7 @@ function openPurgeModal() {
   document.getElementById('purge-progress').style.display = 'none';
   document.getElementById('purge-progress-bar').style.width = '0%';
   // Pre-fill PAT if already in session
-  const pat = sessionStorage.getItem('gh-pat');
+  const pat = localStorage.getItem('gh-pat');
   if (pat) document.getElementById('purge-pat-input').value = pat;
 }
 
@@ -2339,7 +2345,7 @@ async function executePurge() {
   // Refresh size
   setTimeout(loadDataSize, 2000);
   btn.disabled = false;
-  auditLog('purge-data', `deleted=${deleted} failed=${failed}`);
+  auditLog('purge-data', `deleted=${deleted} failed=${failed}`, {msgid:'DATA_PURGE', severity:'ALERT'});
 }
 
 // ── init loadDataSize on shell open ──

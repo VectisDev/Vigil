@@ -11,7 +11,7 @@ let _writeInProgress = false;
 const _SLOG_KEY = 'centinel-session-log';
 const _SLOG_MAX = 100;
 
-function auditLog(action, detail=''){
+function auditLog(action, detail='', veEvent){
   try{
     const fp = sessionStorage.getItem('centinel_fp') || '';
     const entry = {ts:new Date().toISOString(), id:(typeof getCurrentSeedId==='function'?getCurrentSeedId():'S??'), fp, role:getCurrentRole(), action, detail:String(detail).slice(0,200)};
@@ -20,6 +20,12 @@ function auditLog(action, detail=''){
     if(log.length > _SLOG_MAX) log.length = _SLOG_MAX;
     localStorage.setItem(_SLOG_KEY, JSON.stringify(log));
     _renderSessionLog();
+    // VELE: structured evidence log (RFC 5424 + ISO 27037)
+    if(typeof VELE!=='undefined'){
+      const sev = veEvent?.severity || 'INFO';
+      const msgid = veEvent?.msgid || VELE.EVT.USER_ACTION;
+      VELE.log(sev, msgid, {action, detail:String(detail).slice(0,200)}, veEvent);
+    }
   }catch(_){}
 }
 function _getSessionLog(){ try{ return JSON.parse(localStorage.getItem(_SLOG_KEY)||'[]'); }catch(_){ return []; } }
@@ -210,7 +216,7 @@ function requestUnlock(wantsUnlock){
     ceilingUnlocked = false;
     updateUnlockUI();
     enforceCurrentCeilings();
-    auditLog('límites restaurados');
+    auditLog('límites restaurados', '', {msgid:'CEILING_LOCK', severity:'NOTICE'});
     return;
   }
   const now = new Date().toISOString();
@@ -262,7 +268,7 @@ async function executeUnlock(){
 
   // Try Git commit as bonus if PAT is already available — non-blocking
   let sha7 = null;
-  const pat = sessionStorage.getItem('gh-pat');
+  const pat = localStorage.getItem('gh-pat');
   if(pat){
     try{
       const safeTs = now.replace(/[:.]/g,'-');
@@ -285,7 +291,7 @@ async function executeUnlock(){
   ceilingUnlocked = true;
   closeUnlockModal();
   updateUnlockUI();
-  auditLog('límites desbloqueados', sha7 ? `commit ${sha7}` : 'sin commit');
+  auditLog('límites desbloqueados', sha7 ? `commit ${sha7}` : 'sin commit', {msgid:'CEILING_UNLOCK', severity:'ALERT', git_sha:sha7||null});
   const msgs = [
     '✓ Límites de seguridad desbloqueados para esta sesión',
     `✓ Aceptación registrada: ${now}`,
@@ -441,7 +447,7 @@ function showDiffModal(changes, newYamls){
   // Show PAT field only if not already in session
   const patRow = document.getElementById('diff-pat-row');
   const patInput = document.getElementById('diff-pat-input');
-  const hasPat = !!sessionStorage.getItem('gh-pat');
+  const hasPat = !!localStorage.getItem('gh-pat');
   if(patRow) patRow.style.display = hasPat ? 'none' : 'block';
   if(patInput) patInput.value = '';
   document.getElementById('diff-modal').classList.add('open');
@@ -471,7 +477,7 @@ function closeDiffModal(){ document.getElementById('diff-modal').classList.remov
 async function confirmApply(){
   if(_writeInProgress) return;
   // Resolve PAT — prefer session, then inline field in diff modal
-  let pat = sessionStorage.getItem('gh-pat');
+  let pat = localStorage.getItem('gh-pat');
   if(!pat){
     const inline = document.getElementById('diff-pat-input')?.value.trim();
     if(!inline){
@@ -480,7 +486,7 @@ async function confirmApply(){
       document.getElementById('diff-pat-input')?.focus();
       return;
     }
-    sessionStorage.setItem('gh-pat', inline);
+    localStorage.setItem('gh-pat', inline);
     pat = inline;
     document.getElementById('diff-pat-input').value = '';
   }
@@ -510,7 +516,7 @@ function confirmPat(){
   const pat = input.value.trim();
   input.value = ''; // clear immediately
   if(!pat){document.getElementById('pat-err').textContent='Ingresa el PAT.';return;}
-  sessionStorage.setItem('gh-pat', pat);
+  localStorage.setItem('gh-pat', pat);
   document.getElementById('pat-modal').classList.remove('open');
   const resolve = document.getElementById('pat-modal')._resolve;
   if(resolve) resolve(true);
@@ -567,7 +573,7 @@ async function writeChanges(changes, newYamls, pat){
   }
   if(!anyError){
     isDirty=false; updateDirtyState();
-    auditLog('config aplicada', changes.map(c=>c.path.split('/').pop()).join(', '));
+    auditLog('config aplicada', changes.map(c=>c.path.split('/').pop()).join(', '), {msgid:'CONFIG_COMMIT', severity:'NOTICE'});
   }
   showResultModal(results, anyError);
 }
@@ -939,7 +945,7 @@ function renderAuditTrail(){
 async function fetchAuditTrail(){
   const wrap = document.getElementById('log-audit');
   const tbody = wrap?.querySelector('tbody');
-  const pat = sessionStorage.getItem('gh-pat');
+  const pat = localStorage.getItem('gh-pat');
   if(!pat){
     if(tbody) tbody.innerHTML=_emptyRow(4,t('log.historial_cambios'),t('log.modifica_control'));
     return;
@@ -1116,7 +1122,7 @@ function executeAwsEnable(){
 
   closeAwsModal();
   _syncAwsBtn();
-  auditLog('mirror S3 opcional activado', `bucket=${bucket} region=${region} (facturación: cuenta AWS del operador)`);
+  auditLog('mirror S3 opcional activado', `bucket=${bucket} region=${region} (facturación: cuenta AWS del operador)`, {msgid:'AWS_MIRROR_ON', severity:'WARNING'});
 
   const msgs = (currentLang==='en')
     ? [
@@ -1144,5 +1150,5 @@ function disableAwsMirror(){
     localStorage.setItem('vigil_aws_mirror', JSON.stringify(st));
   }catch(_){}
   _syncAwsBtn();
-  auditLog('mirror S3 opcional desactivado', '');
+  auditLog('mirror S3 opcional desactivado', '', {msgid:'AWS_MIRROR_OFF', severity:'NOTICE'});
 }

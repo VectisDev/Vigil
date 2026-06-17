@@ -22,7 +22,7 @@ async function fetchConfigFile(path){
 }
 
 async function fetchSha(path){
-  const pat = sessionStorage.getItem('gh-pat');
+  const pat = localStorage.getItem('gh-pat');
   const headers = pat ? {Authorization:`Bearer ${pat}`} : {};
   try{
     const r = await fetch(`${API_BASE}/contents/${path}`,{headers});
