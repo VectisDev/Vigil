@@ -1,56 +1,47 @@
-# CENTINEL — Continuous Poller A
-# ================================
-# Job long-running que corre 5.5h dentro de GitHub Actions.
-# Long-running job that runs 5.5h inside GitHub Actions.
+# CENTINEL — Continuous Poller (unified A + B)
+# =============================================
+# ponytail: merged poller-A.yml + poller-B.yml into this single file.
+# Both slots run the same script; concurrency groups are differentiated
+# by ${{ github.event.schedule }} so the 3h overlap is preserved.
+# Re-split only if the two slots need different configurations.
 #
-# Estrategia de overlap / Overlap strategy:
-#   Poller A: 00:00, 06:00, 12:00, 18:00 UTC
-#   Poller B: 03:00, 09:00, 15:00, 21:00 UTC
+# Overlap strategy / Estrategia de overlap:
+#   Slot A: 00:00, 06:00, 12:00, 18:00 UTC  → runs until 05:30
+#   Slot B: 03:00, 09:00, 15:00, 21:00 UTC  → runs until 08:30
+#   Overlap A+B: 03:00→05:30, 09:00→11:30, 15:00→17:30, 21:00→23:30
+#   Gap: ZERO — at least one poller active at all times ✅
 #
-#   A corre: 00:00 → 05:30
-#   B corre: 03:00 → 08:30
-#   Overlap: 03:00 → 05:30 (ambos activos)
-#   Gap:     CERO ✅
-#
-# GitHub ve: 2 jobs de 20 disponibles = sin problema
-# GitHub sees: 2 of 20 available jobs = no problem
-#
-# Repo público → minutos de Actions ILIMITADOS
-# Public repo → UNLIMITED Actions minutes
-#
-# Free tier / Costo cero ✅
+# Public repo → UNLIMITED Actions minutes ✅
 
-name: centinel-poller-A
+name: centinel-poller
 
 on:
   schedule:
-    # Arrancar cada 6h en: 00:00, 06:00, 12:00, 18:00 UTC
-    # Start every 6h at: 00:00, 06:00, 12:00, 18:00 UTC
+    # Slot A: 00:00, 06:00, 12:00, 18:00 UTC
     - cron: '0 0,6,12,18 * * *'
+    # Slot B: 03:00, 09:00, 15:00, 21:00 UTC
+    - cron: '0 3,9,15,21 * * *'
 
   workflow_dispatch:
     inputs:
       interval_minutes:
-        description: 'Intervalo de polling en minutos / Polling interval in minutes'
+        description: 'Polling interval in minutes / Intervalo de polling en minutos'
         required: false
         default: '3'
       max_runtime_seconds:
-        description: 'Tiempo máximo en segundos / Max runtime in seconds'
+        description: 'Max runtime in seconds / Tiempo máximo en segundos'
         required: false
         default: '19800'
 
-# CRÍTICO: Singleton — evitar dos instancias de A simultáneas
-# CRITICAL: Singleton — prevent two simultaneous A instances
+# Each schedule slot gets its own singleton via the cron string.
+# cancel-in-progress: false — never kill an active poller job.
 concurrency:
-  group: centinel-poller-A-singleton
-  cancel-in-progress: false  # Nunca matar el job activo / Never kill active job
+  group: centinel-poller-${{ github.event.schedule || 'manual' }}
+  cancel-in-progress: false
 
 jobs:
-  continuous-poll-A:
+  continuous-poll:
     runs-on: ubuntu-latest
-
-    # 330 min = 5.5h — margen antes del límite de 6h de GitHub
-    # 330 min = 5.5h — margin before GitHub's 6h limit
     timeout-minutes: 330
 
     permissions:
@@ -70,8 +61,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: |
-          pip install aiohttp
+        run: pip install aiohttp
 
       - name: Configure git identity
         run: |
@@ -87,20 +77,19 @@ jobs:
 
       - name: Setup data branch
         run: |
-          # Create data branch if it doesn't exist, then work in worktree
-          # so main branch code stays clean and data commits go to data branch.
           git fetch origin data:data 2>/dev/null || \
             git checkout --orphan data-init && \
             git commit --allow-empty -m "init: data branch" && \
             git push origin HEAD:data && \
             git checkout main || true
 
-      - name: Run continuous poller A
+      - name: Run continuous poller
         env:
-          POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
-          MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19800' }}
-          DATA_BRANCH:        "data"
-          GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
+          POLL_INTERVAL:   ${{ inputs.interval_minutes || '3' }}
+          MAX_RUNTIME:     ${{ inputs.max_runtime_seconds || '19800' }}
+          DATA_BRANCH:     "data"
+          ENDPOINTS_JSON:  ${{ secrets.ENDPOINTS_JSON }}
+          GH_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
         run: |
           python src/centinel/core/poller_async.py \
             --interval    $POLL_INTERVAL \
@@ -110,7 +99,7 @@ jobs:
       - name: Summary on exit
         if: always()
         run: |
-          echo "=== Poller A exit summary ==="
+          echo "=== Poller exit summary (slot: ${{ github.event.schedule || 'manual' }}) ==="
           if [ -f data/latest_cycle.json ]; then
             python3 -c "
           import json
