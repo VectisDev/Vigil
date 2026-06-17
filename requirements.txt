@@ -3,9 +3,9 @@
 # NOTA: pyproject.toml es la fuente canónica; este archivo es para entornos sin Poetry.
 
 # Core y scraping
-requests[socks]>=2.34.2,<3.0.0 # Peticiones HTTP + SOCKS5/Tor (CVE-2024-35195/47081, CVE-2026-25645)
+requests[socks]>=2.34.2,<3.0.0 # ponytail: retained for electoral_authority_healer._CertPinningAdapter (assert_fingerprint SHA-256); remove when httpx supports TLS fingerprint pinning
 urllib3>=2.7.0,<3.0.0          # Transitiva endurecida (CVE-2026-44431/44432)
-aiohttp>=3.13.5,<4.0.0         # Transitiva endurecida (CVE-2026-22815/34513..34525)
+aiohttp>=3.13.5,<4.0.0         # ponytail: retained for poller_async.py; remove when poller_async.py is migrated to httpx[asyncio]
 pygments>=2.20.0,<3.0.0        # Transitiva endurecida (CVE-2026-4539, ReDoS)
 playwright>=1.49.0,<2.0.0      # Fallback scraping con navegador headless
 playwright-stealth>=1.0.6      # Modo stealth para evitar detección anti-bot

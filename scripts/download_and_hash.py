@@ -84,7 +84,6 @@ Notes:
 import argparse
 import contextlib
 import fcntl
-import hashlib
 import json
 import logging
 import os
@@ -96,8 +95,10 @@ from pathlib import Path
 from typing import Any, Iterator, Optional
 from urllib.parse import urlparse
 
-import requests
+import httpx
+import requests  # ponytail: session used by centinel.downloader.request_with_retry; migrate to httpx when centinel.downloader is refactored
 import yaml
+from centinel_engine.hash_chain import chain_hash, compute_hash  # noqa: F401 — re-exported for callers
 from dateutil import parser as date_parser
 from centinel.downloader import (
     StructuredLogger,
@@ -221,7 +222,7 @@ def _is_recently_scraped_by_swarm(source_id: str) -> bool:
     Fail-open: any network or API error returns False so this node scrapes normally.
     """
     try:
-        resp = requests.get(
+        resp = httpx.get(
             f"{_CENTINEL_API_URL}/api/swarm/last_scraped",
             params={"source_id": source_id},
             timeout=2,
@@ -241,7 +242,7 @@ def _is_recently_scraped_by_swarm(source_id: str) -> bool:
 def _report_scrape_to_swarm(source_id: str, content_hash: str) -> None:
     """Best-effort: notify the local swarm engine that this node scraped source_id."""
     try:
-        requests.post(
+        httpx.post(
             f"{_CENTINEL_API_URL}/api/swarm/report_scrape",
             json={"source_id": source_id, "content_hash": content_hash},
             timeout=2,
@@ -338,15 +339,10 @@ def load_config(config_path_override: str | None = None) -> dict[str, Any]:
         raise
 
 
-def compute_hash(data: bytes) -> str:
-    """/** Calcula hash SHA-256. / Compute SHA-256 hash. **"""
-    return hashlib.sha256(data).hexdigest()
-
-
-def chain_hash(previous_hash: str, current_data: bytes) -> str:
-    """/** Genera hash encadenado. / Generate chained hash. **"""
-    combined = (previous_hash + current_data.decode("utf-8", errors="ignore")).encode("utf-8")
-    return compute_hash(combined)
+# compute_hash and chain_hash are now canonical in centinel_engine.hash_chain.
+# They are re-imported above so all callers in this module remain unchanged.
+# ponytail: Phase 6a — extraction of _persist_snapshot_payload (Ed25519 + file I/O)
+# into centinel_engine/hash_chain.py deferred until test boundary is established.
 
 
 def download_with_retries(
