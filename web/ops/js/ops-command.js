@@ -63,6 +63,7 @@ function _buildOpsActions(){
   } catch(_){}
   // AWS
   if(typeof exportAwsReceipt==='function') push('aws-receipt','AWS: exportar recibo','Proyección de costos',()=>exportAwsReceipt());
+  if(typeof exportGrantDocument==='function') push('aws-grant','AWS: solicitud de grant','Documento para AWS Activate / Imagine Grant',()=>exportGrantDocument());
   if(typeof verifyAwsReadiness==='function') push('aws-ready','AWS: verificar preparación','Chequeo sin gasto',()=>{ setView('verificar',{scroll:false}); scrollTo('s-aws'); verifyAwsReadiness(); });
   // Misc
   if(typeof toggleOpsLang==='function') push('lang','Cambiar idioma','ES / EN',()=>toggleOpsLang());
