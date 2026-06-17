@@ -98,9 +98,10 @@ try:
     import psutil
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     psutil = None
-import requests
+import httpx
 import yaml
 
+from centinel_engine.vital_signs import ResilienceMode  # noqa: F401 — re-exported for callers
 from scripts.logging_utils import configure_logging, log_event
 
 
@@ -405,13 +406,13 @@ def _send_alerts(config: WatchdogConfig, message: str, logger: logging.Logger) -
     print(f"[WATCHDOG ALERT] {message}")
     for url in config.alert_urls:
         try:
-            response = requests.post(
+            response = httpx.post(
                 url,
                 json={"event": "watchdog_alert", "message": message},
                 timeout=10,
             )
             logger.info("watchdog_alert_sent url=%s status=%s", url, response.status_code)
-        except requests.RequestException as exc:
+        except httpx.HTTPError as exc:
             logger.warning("watchdog_alert_failed url=%s error=%s", url, exc)
 
 
