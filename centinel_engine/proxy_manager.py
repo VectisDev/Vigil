@@ -51,6 +51,9 @@ logger = logging.getLogger(__name__)
 DEFAULT_ROTATION_EVERY_N = 5
 ROTATION_TRIGGER_CODES = {403, 429}
 
+# ponytail: Phase 4b — UA rotation uses secrets.choice (not random.choice) intentionally;
+# secrets.choice is cryptographically unpredictable, harder to fingerprint than random.
+# Downgrade to random.choice only if secrets overhead becomes measurable in load tests.
 USER_AGENT_POOL = (
     "VIGIL-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
     "VIGIL-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/centinel)",

@@ -50,12 +50,34 @@ from __future__ import annotations
 import json
 import logging
 import time
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from centinel_engine.config_loader import load_config
 
 logger = logging.getLogger(__name__)
+
+
+class ResilienceMode(str, Enum):
+    """Three-level resilience mode for adaptive scraping.
+
+    Modo de resiliencia de tres niveles para scraping adaptativo.
+
+    Inherits from str so ``mode.value == "normal"`` comparisons and dict
+    serialisation stay identical to the previous bare-string API.
+
+    ponytail: full merge of vital_signs.py into scripts/watchdog.py deferred —
+    tests import directly from ``centinel_engine.vital_signs``; update imports
+    in test_vital_signs.py, test_integration_loop.py, and test_hostile_scenarios.py
+    before consolidating into watchdog.py.
+    """
+
+    NORMAL = "normal"
+    CONSERVATIVE = "conservative"
+    HIBERNATION = "hibernation"
+    CRITICAL = "critical"
+
 
 DEFAULT_THRESHOLDS: Dict[str, Any] = {
     "baseline_interval_seconds": 300,
@@ -144,13 +166,13 @@ def _compute_request_pressure(consecutive_failures: int, avg_latency: float) -> 
     return float(consecutive_failures + (avg_latency / 5.0))
 
 
-def _emit_alert(mode: str, metrics: Dict[str, Any], config: Optional[Dict[str, Any]] = None) -> None:
+def _emit_alert(mode: Any, metrics: Dict[str, Any], config: Optional[Dict[str, Any]] = None) -> None:
     """Emit a concise health alert log.
 
     Bilingual: Emite un log conciso de alerta de salud operativa.
     """
     _ = config
-    if mode == "normal":
+    if mode == ResilienceMode.NORMAL:
         return
     logger.warning("vital_signs_alert | mode=%s metrics=%s", mode, metrics)
 
@@ -206,7 +228,8 @@ def predict_mode(config: Dict[str, Any], status: Dict[str, Any]) -> str:
         status: Runtime status metrics from scraping loop.
 
     Returns:
-        str: One of `normal`, `conservative`, or `hibernation`.
+        str: One of ``ResilienceMode.NORMAL``, ``ResilienceMode.CONSERVATIVE``,
+        or ``ResilienceMode.HIBERNATION`` (all str-compatible).
 
     Notes:
         EN: Hibernation requires sustained high pressure above threshold for 30 minutes.
@@ -228,34 +251,34 @@ def predict_mode(config: Dict[str, Any], status: Dict[str, Any]) -> str:
     pressure = _compute_request_pressure(consecutive_failures, avg_latency)
 
     if _policy_blocks_exceed_window(status, policy_block_window_seconds):
-        return "conservative"
+        return ResilienceMode.CONSERVATIVE
 
     hibernation_pressure_since = status.get("high_pressure_since")
     if pressure > high_pressure_threshold and hibernation_pressure_since is not None:
         if (time.time() - float(hibernation_pressure_since)) >= high_pressure_window_seconds:
-            return "hibernation"
+            return ResilienceMode.HIBERNATION
 
     # Early detection to react before full block / # Detección temprana para reaccionar antes de bloqueo total
     if consecutive_failures >= 2:
-        return "conservative"
+        return ResilienceMode.CONSERVATIVE
 
     trend_window = success_history[-predictive_window_size:]
     if trend_window:
         failures = sum(1 for item in trend_window if not item)
         # Early detection to react before full block / # Detección temprana para reaccionar antes de bloqueo total
         if (failures / len(trend_window)) > predictive_failure_ratio:
-            return "conservative"
+            return ResilienceMode.CONSERVATIVE
 
     conservative_pressure_since = status.get("conservative_pressure_since")
     if pressure > 6.0 and conservative_pressure_since is not None:
         # Early detection to react before full block / # Detección temprana para reaccionar antes de bloqueo total
         if (time.time() - float(conservative_pressure_since)) >= 300:
-            return "conservative"
+            return ResilienceMode.CONSERVATIVE
 
     if pressure > 6.0:
         # Early detection to react before full block / # Detección temprana para reaccionar antes de bloqueo total
-        return "conservative"
-    return "normal"
+        return ResilienceMode.CONSERVATIVE
+    return ResilienceMode.NORMAL
 
 
 def check_vital_signs(config: Dict[str, Any], status: Dict[str, Any]) -> Dict[str, Any]:
@@ -306,7 +329,7 @@ def check_vital_signs(config: Dict[str, Any], status: Dict[str, Any]) -> Dict[st
     if pressure > high_pressure_threshold:
         conservative_reasons.append("high_request_pressure")
 
-    if mode == "hibernation":
+    if mode == ResilienceMode.HIBERNATION:
         # Less aggressive hibernation for better uptime in election peaks / # Hibernación menos agresiva para mejor uptime en picos electorales
         delay = hibernation_delay
         actions.extend(["pause_collection", "keep_secure_backup", "validate_hash_chain_local"])
@@ -315,15 +338,15 @@ def check_vital_signs(config: Dict[str, Any], status: Dict[str, Any]) -> Dict[st
                 "posible política anti-scraping detectada – pausando por cumplimiento ético"
             )
     elif critical_reasons:
-        mode = "critical"
+        mode = ResilienceMode.CRITICAL
         delay = max(1800, baseline * 6)
         actions.append("pause_and_investigate")
-    elif mode == "conservative" or conservative_reasons:
-        mode = "conservative"
+    elif mode == ResilienceMode.CONSERVATIVE or conservative_reasons:
+        mode = ResilienceMode.CONSERVATIVE
         delay = max(900, baseline * 3)
         actions.append("slow_down_and_rotate")
 
-    alert_needed = mode != "normal"
+    alert_needed = mode != ResilienceMode.NORMAL
 
     result = {
         "mode": mode,
@@ -341,6 +364,8 @@ def check_vital_signs(config: Dict[str, Any], status: Dict[str, Any]) -> Dict[st
         },
     }
     _emit_alert(mode, result, config=config)
+    # Serialize mode to string so callers comparing result["mode"] == "normal" keep working.
+    result["mode"] = str(mode)
     return result
 
 

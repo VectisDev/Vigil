@@ -1,5 +1,8 @@
 name: Sync Lab Thresholds
 
+# ponytail: candidate for merge into ci.yml as an additional conditional job
+# once ci.yml adopts path filters. Keep standalone while ci.yml runs on every push.
+
 on:
   push:
     branches: [main, dev-v12]
