@@ -1140,7 +1140,7 @@ async function doOpsLogin() {
     if (!matchedPat && ac.writer_pat && matchedSlot !== null) {
       matchedPat = await _decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
     }
-    if (matchedPat) sessionStorage.setItem('gh-pat', matchedPat);
+    if (matchedPat) localStorage.setItem('gh-pat', matchedPat);
     location.href = 'ops/';
   } catch (e) {
     err.textContent = (lang === 'en' ? 'Error: ' : 'Error: ') + e.message;

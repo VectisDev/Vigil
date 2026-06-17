@@ -361,7 +361,7 @@ async function doIniciar() {
     try {
       await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
     } catch (_) {}
-    auditLog('monitoreo detenido');
+    auditLog('monitoreo detenido', '', {msgid:'MONITORING_STOP', severity:'WARNING'});
     _setPipelineUI(false);
     return;
   }
@@ -414,7 +414,7 @@ async function doIniciar() {
     });
     if (r.ok) {
       const d = await r.json();
-      auditLog('monitoreo iniciado', ACTIVE_COUNTRY_CODE || 'HN');
+      auditLog('monitoreo iniciado', ACTIVE_COUNTRY_CODE || 'HN', {msgid:'MONITORING_START', severity:'NOTICE'});
       _setPipelineUI(true, d.pid);
       _startPipelinePoll();
     } else {
@@ -523,7 +523,7 @@ function emergencyStep2() {
   }, 1000);
 }
 function executeEmergency() {
-  auditLog('EMERGENCIA activada');
+  auditLog('EMERGENCIA activada', '', {msgid:'EMERGENCY_STOP', severity:'EMERGENCY'});
   closeEmergencyModal();
   loadPreset('emergency');
   markDirty();
@@ -707,7 +707,7 @@ async function doChangeCountry() {
   }
 
   if (btn) { btn.disabled = false; btn.textContent = 'Cambiar país'; }
-  auditLog('país cambiado', `${optFlag} ${optName}`);
+  auditLog('país cambiado', `${optFlag} ${optName}`, {msgid:'COUNTRY_CHANGE', severity:'NOTICE'});
   _updateMissionBar();
 
   // If swarm was running, reconnect with new country so isolation takes effect immediately
