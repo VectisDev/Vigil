@@ -42,6 +42,7 @@ CRITICAL_FILES = [
     "web/ops/js/ops-monitor.js",
     "web/ops/js/ops-aws.js",
     "web/ops/js/ops-command.js",
+    "web/ops/js/vigil-log.js",
     ".github/workflows/pages.yml",
 ]
 

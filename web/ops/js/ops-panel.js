@@ -11,7 +11,7 @@ let _writeInProgress = false;
 const _SLOG_KEY = 'centinel-session-log';
 const _SLOG_MAX = 100;
 
-function auditLog(action, detail=''){
+function auditLog(action, detail='', veEvent){
   try{
     const fp = sessionStorage.getItem('centinel_fp') || '';
     const entry = {ts:new Date().toISOString(), id:(typeof getCurrentSeedId==='function'?getCurrentSeedId():'S??'), fp, role:getCurrentRole(), action, detail:String(detail).slice(0,200)};
@@ -20,6 +20,12 @@ function auditLog(action, detail=''){
     if(log.length > _SLOG_MAX) log.length = _SLOG_MAX;
     localStorage.setItem(_SLOG_KEY, JSON.stringify(log));
     _renderSessionLog();
+    // VELE: structured evidence log (RFC 5424 + ISO 27037)
+    if(typeof VELE!=='undefined'){
+      const sev = veEvent?.severity || 'INFO';
+      const msgid = veEvent?.msgid || VELE.EVT.USER_ACTION;
+      VELE.log(sev, msgid, {action, detail:String(detail).slice(0,200)}, veEvent);
+    }
   }catch(_){}
 }
 function _getSessionLog(){ try{ return JSON.parse(localStorage.getItem(_SLOG_KEY)||'[]'); }catch(_){ return []; } }
@@ -210,7 +216,7 @@ function requestUnlock(wantsUnlock){
     ceilingUnlocked = false;
     updateUnlockUI();
     enforceCurrentCeilings();
-    auditLog('límites restaurados');
+    auditLog('límites restaurados', '', {msgid:'CEILING_LOCK', severity:'NOTICE'});
     return;
   }
   const now = new Date().toISOString();
@@ -285,7 +291,7 @@ async function executeUnlock(){
   ceilingUnlocked = true;
   closeUnlockModal();
   updateUnlockUI();
-  auditLog('límites desbloqueados', sha7 ? `commit ${sha7}` : 'sin commit');
+  auditLog('límites desbloqueados', sha7 ? `commit ${sha7}` : 'sin commit', {msgid:'CEILING_UNLOCK', severity:'ALERT', git_sha:sha7||null});
   const msgs = [
     '✓ Límites de seguridad desbloqueados para esta sesión',
     `✓ Aceptación registrada: ${now}`,
@@ -567,7 +573,7 @@ async function writeChanges(changes, newYamls, pat){
   }
   if(!anyError){
     isDirty=false; updateDirtyState();
-    auditLog('config aplicada', changes.map(c=>c.path.split('/').pop()).join(', '));
+    auditLog('config aplicada', changes.map(c=>c.path.split('/').pop()).join(', '), {msgid:'CONFIG_COMMIT', severity:'NOTICE'});
   }
   showResultModal(results, anyError);
 }
@@ -1116,7 +1122,7 @@ function executeAwsEnable(){
 
   closeAwsModal();
   _syncAwsBtn();
-  auditLog('mirror S3 opcional activado', `bucket=${bucket} region=${region} (facturación: cuenta AWS del operador)`);
+  auditLog('mirror S3 opcional activado', `bucket=${bucket} region=${region} (facturación: cuenta AWS del operador)`, {msgid:'AWS_MIRROR_ON', severity:'WARNING'});
 
   const msgs = (currentLang==='en')
     ? [
@@ -1144,5 +1150,5 @@ function disableAwsMirror(){
     localStorage.setItem('vigil_aws_mirror', JSON.stringify(st));
   }catch(_){}
   _syncAwsBtn();
-  auditLog('mirror S3 opcional desactivado', '');
+  auditLog('mirror S3 opcional desactivado', '', {msgid:'AWS_MIRROR_OFF', severity:'NOTICE'});
 }

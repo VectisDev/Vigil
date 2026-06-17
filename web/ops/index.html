@@ -1686,6 +1686,7 @@
   </div>
 </div>
 
+<script src="js/vigil-log.js"></script>
 <script src="js/ops-core.js"></script>
 <script src="js/ops-panel.js"></script>
 <script src="js/ops-monitor.js"></script>
@@ -1943,7 +1944,7 @@ async function doAdminLogin(prefillKey) {
 }
 
 function doLogout(){
-  auditLog('sesión cerrada');
+  auditLog('sesión cerrada', '', {msgid:'SESSION_END', severity:'INFO'});
   sessionStorage.removeItem('centinel_admin_tok');
   sessionStorage.removeItem('centinel_admin_exp');
   sessionStorage.removeItem('centinel_role');
@@ -2040,13 +2041,14 @@ function showAdminShell(){
   applyRoleUI();
   loadCustomPresets();
   initAll();
-  auditLog('sesión iniciada', getCurrentRole());
+  auditLog('sesión iniciada', getCurrentRole(), {msgid:'SESSION_START', severity:'INFO'});
 }
 
 // ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
 async function initAll(){
+  if(typeof VELE!=='undefined') VELE.init('ops');
   // Wrap each synchronous call so a transient error can't abort the whole
   // init chain and leave later sections (like 2 dept grid) unrendered.
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
@@ -2340,7 +2342,7 @@ async function executePurge() {
   // Refresh size
   setTimeout(loadDataSize, 2000);
   btn.disabled = false;
-  auditLog('purge-data', `deleted=${deleted} failed=${failed}`);
+  auditLog('purge-data', `deleted=${deleted} failed=${failed}`, {msgid:'DATA_PURGE', severity:'ALERT'});
 }
 
 // ── init loadDataSize on shell open ──
