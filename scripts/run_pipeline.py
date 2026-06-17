@@ -55,10 +55,17 @@ HASH_DIR = Path("hashes")
 ANALYSIS_DIR = Path("analysis")
 REPORTS_DIR = Path("reports")
 ANCHOR_LOG_DIR = Path("logs") / "anchors"
-STATE_PATH = DATA_DIR / "pipeline_state.json"
-PIPELINE_CHECKPOINT_PATH = TEMP_DIR / "pipeline_checkpoint.json"
-FAILURE_CHECKPOINT_PATH = TEMP_DIR / "checkpoint.json"
-HEARTBEAT_PATH = DATA_DIR / "heartbeat.json"
+
+# ponytail: Phase 1c — unified state.json with namespaced keys.
+# Full unification pending test refactor of test_failure_injection.py (monkeypatches
+# individual constants). For now STATE_UNIFIED_PATH is written atomically; individual
+# constants are kept as deprecated aliases for external readers (watchdog.py, export_static_snapshot.py).
+# When to complete: update _set_pipeline_paths in tests + remove individual path refs in watchdog.py.
+STATE_UNIFIED_PATH = DATA_DIR / "state.json"
+STATE_PATH = DATA_DIR / "pipeline_state.json"            # deprecated alias → state["pipeline"]
+PIPELINE_CHECKPOINT_PATH = TEMP_DIR / "pipeline_checkpoint.json"  # deprecated alias → state["resilience"]
+FAILURE_CHECKPOINT_PATH = TEMP_DIR / "checkpoint.json"   # deprecated alias → state["checkpoint"]
+HEARTBEAT_PATH = DATA_DIR / "heartbeat.json"             # deprecated alias → state["heartbeat"]
 SECURITY_CONFIG_PATH = Path("command_center") / "security_config.yaml"
 ATTACK_CONFIG_PATH = Path("command_center") / "attack_config.yaml"
 ADVANCED_SECURITY_CONFIG_PATH = Path("command_center") / "advanced_security_config.yaml"
@@ -73,6 +80,49 @@ RESILIENCE_STAGE_ORDER = [
 ]
 
 
+def _write_atomic(path: Path, data: dict[str, Any]) -> None:
+    """Write JSON atomically via a temp file + os.replace().
+
+    Escribe JSON atómicamente usando archivo temporal + os.replace().
+    Prevents torn reads during concurrent pipeline restarts.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def _read_unified(ns: str) -> dict[str, Any]:
+    """Read one namespace from the unified state.json, falling back to empty dict.
+
+    Lee un namespace del state.json unificado; retorna dict vacío si no existe.
+    """
+    if not STATE_UNIFIED_PATH.exists():
+        return {}
+    try:
+        state = json.loads(STATE_UNIFIED_PATH.read_text(encoding="utf-8"))
+        return state.get(ns, {}) if isinstance(state, dict) else {}
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _write_unified(ns: str, data: dict[str, Any]) -> None:
+    """Write one namespace to the unified state.json atomically.
+
+    Escribe un namespace en state.json unificado de forma atómica.
+    """
+    state: dict[str, Any] = {}
+    if STATE_UNIFIED_PATH.exists():
+        try:
+            state = json.loads(STATE_UNIFIED_PATH.read_text(encoding="utf-8")) or {}
+        except (json.JSONDecodeError, OSError):
+            state = {}
+    if not isinstance(state, dict):
+        state = {}
+    state[ns] = data
+    _write_atomic(STATE_UNIFIED_PATH, state)
+
+
 def log_event(log: logging.Logger, level: int, event: str, **kwargs: Any) -> None:
     """Structured log event. / Evento de log estructurado."""
     log.log(level, event, extra=kwargs)
@@ -84,7 +134,10 @@ def utcnow() -> datetime:
 
 
 def update_heartbeat(status: str = "ok", details: dict[str, Any] | None = None) -> None:
-    """Update heartbeat file for monitoring. / Actualiza archivo heartbeat para monitoreo."""
+    """Update heartbeat in unified state.json and legacy file for monitoring.
+
+    Actualiza heartbeat en state.json unificado y archivo legacy para monitoreo.
+    """
     payload = {
         "updated_at": utcnow().isoformat(),
         "status": status,
@@ -93,13 +146,22 @@ def update_heartbeat(status: str = "ok", details: dict[str, Any] | None = None) 
     if details:
         payload["details"] = details
     try:
-        HEARTBEAT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+        _write_unified("heartbeat", payload)
+        # Keep legacy file for watchdog.py and external readers (backward compat)
+        _write_atomic(HEARTBEAT_PATH, payload)
     except OSError as exc:
         logger.warning("heartbeat_write_failed path=%s error=%s", HEARTBEAT_PATH, exc)
 
 
 def load_state() -> dict[str, Any]:
-    """Load pipeline state when present. / Carga estado del pipeline si existe."""
+    """Load pipeline state from unified state.json (namespace 'pipeline').
+
+    Carga estado del pipeline desde state.json unificado (namespace 'pipeline').
+    """
+    data = _read_unified("pipeline")
+    if data:
+        return data
+    # Backward compat: fall back to legacy pipeline_state.json
     if not STATE_PATH.exists():
         return {}
     try:
@@ -110,44 +172,58 @@ def load_state() -> dict[str, Any]:
 
 
 def save_state(state: dict[str, Any]) -> None:
-    """Save pipeline state. / Guarda el estado del pipeline."""
-    STATE_PATH.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    """Save pipeline state atomically to unified state.json and legacy file.
+
+    Guarda estado del pipeline atómicamente en state.json unificado y archivo legacy.
+    """
+    _write_unified("pipeline", state)
+    _write_atomic(STATE_PATH, state)
 
 
 def load_pipeline_checkpoint() -> dict[str, Any]:
-    """Load the pipeline checkpoint when present. / Carga checkpoint del pipeline si existe."""
+    """Load pipeline checkpoint from unified state.json (namespace 'resilience').
+
+    Carga checkpoint del pipeline desde state.json unificado (namespace 'resilience').
+    """
+    data = _read_unified("resilience")
+    if data:
+        return data
     if not PIPELINE_CHECKPOINT_PATH.exists():
         return {}
     try:
         return json.loads(PIPELINE_CHECKPOINT_PATH.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        logger.error(
-            "pipeline_checkpoint_invalid path=%s error=%s",
-            PIPELINE_CHECKPOINT_PATH,
-            exc,
-        )
+        logger.error("pipeline_checkpoint_invalid path=%s error=%s", PIPELINE_CHECKPOINT_PATH, exc)
         return {}
 
 
 def save_pipeline_checkpoint(payload: dict[str, Any]) -> None:
-    """Persist intermediate pipeline state to disk. / Guarda estado intermedio del pipeline en disco."""
-    PIPELINE_CHECKPOINT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    """Persist pipeline checkpoint atomically to unified state.json and legacy file.
+
+    Guarda checkpoint del pipeline atómicamente en state.json unificado y archivo legacy.
+    """
+    _write_unified("resilience", payload)
+    _write_atomic(PIPELINE_CHECKPOINT_PATH, payload)
 
 
 def clear_pipeline_checkpoint() -> None:
-    """Remove the checkpoint once the pipeline completes successfully.
+    """Clear pipeline checkpoint from unified state and legacy file.
 
-    Elimina el checkpoint si el pipeline finalizo correctamente.
+    Elimina checkpoint del pipeline del estado unificado y archivo legacy.
     """
+    _write_unified("resilience", {})
     if PIPELINE_CHECKPOINT_PATH.exists():
         PIPELINE_CHECKPOINT_PATH.unlink()
 
 
 def load_resilience_checkpoint() -> dict[str, Any]:
-    """Load checkpoint from data/temp/checkpoint.json.
+    """Load resilience checkpoint from unified state.json (namespace 'checkpoint').
 
-    Carga checkpoint desde data/temp/checkpoint.json.
+    Carga checkpoint de resiliencia desde state.json unificado (namespace 'checkpoint').
     """
+    data = _read_unified("checkpoint")
+    if data:
+        return data if isinstance(data, dict) else {}
     if not FAILURE_CHECKPOINT_PATH.exists():
         return {}
     try:
@@ -576,7 +652,8 @@ def save_resilience_checkpoint(
         payload["processed_hashes"] = processed_hashes
     if current_index is not None:
         payload["current_index"] = current_index
-    FAILURE_CHECKPOINT_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    _write_unified("checkpoint", payload)
+    _write_atomic(FAILURE_CHECKPOINT_PATH, payload)
 
 
 def collect_recent_hashes(limit: int = 19) -> list[dict[str, Any]]:
@@ -600,7 +677,11 @@ def collect_recent_hashes(limit: int = 19) -> list[dict[str, Any]]:
 
 
 def clear_resilience_checkpoint() -> None:
-    """Remove checkpoint when pipeline completes. / Elimina checkpoint cuando el pipeline completa."""
+    """Clear resilience checkpoint from unified state and legacy file.
+
+    Elimina checkpoint de resiliencia del estado unificado y archivo legacy.
+    """
+    _write_unified("checkpoint", {})
     if FAILURE_CHECKPOINT_PATH.exists():
         FAILURE_CHECKPOINT_PATH.unlink()
 
@@ -1291,9 +1372,18 @@ def run_pipeline(config: dict[str, Any]) -> None:
 
 
 def safe_run_pipeline(config: dict[str, Any], security_manager: DefensiveSecurityManager | None = None) -> bool:
-    """Run pipeline with protection against network failures.
+    """Run pipeline with auto-resume on network failures.
 
-    Ejecuta pipeline con proteccion contra fallas de red.
+    Ejecuta pipeline con auto-reanudación en fallas de red.
+
+    ponytail: Phase 2b — full tenacity migration deferred because tests patch
+    ``run_pipeline.time.sleep`` directly; tenacity uses its own sleep, incompatible
+    with that pattern. Migrate when tests are updated to use freezegun or
+    tenacity's ``sleep`` override.  ``centinel_engine.retry.retry_backoff`` is
+    already available for new code.
+
+    ponytail: Phase 2b full flattening (safe_run_pipeline → run_pipeline → stages)
+    deferred until test_failure_injection.py monkeypatches the merged function.
     """
     # Prevent concurrent runs (e.g. GitHub Actions schedule + workflow_dispatch overlap)
     _lock_fd = open("/tmp/vigil_pipeline.lock", "w")  # noqa: SIM115  # nosec B108

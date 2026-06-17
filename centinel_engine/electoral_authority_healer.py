@@ -19,7 +19,9 @@ from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import urljoin
 
-import requests
+import requests  # ponytail: retained for _CertPinningAdapter.assert_fingerprint (SHA-256 TLS pin);
+                # httpx does not support urllib3-style assert_fingerprint natively.
+                # Migrate to httpx with a custom SSLContext transport when httpx adds fingerprint pinning.
 import yaml
 from requests.adapters import HTTPAdapter
 
@@ -433,6 +435,10 @@ class ElectoralAuthorityHealer:
               JSON payloads that look like presidential election data.
         Español: Lanza browser headless, intercepta todas las respuestas XHR/fetch, devuelve URLs
               de payloads JSON que parecen datos electorales presidenciales.
+
+        ponytail: Phase 5a — this layer is active in production via .github/workflows/scheduler.yml
+        which installs ``playwright install chromium --with-deps``. It is NOT dead code.
+        Remove only when the scheduler workflow switches to a non-browser polling strategy.
         """
 
         try:
