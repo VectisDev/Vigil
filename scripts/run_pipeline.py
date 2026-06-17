@@ -31,7 +31,6 @@ from typing import Any
 import requests
 
 from centinel.anchor.opentimestamps_client import MultichainAnchor
-from centinel_engine.retry import retry_backoff
 from centinel.core.anchoring_payload import build_diff_summary, compute_anchor_root
 from centinel.core.custody import run_startup_verification
 from centinel.core.transparency import compute_merkle_root
