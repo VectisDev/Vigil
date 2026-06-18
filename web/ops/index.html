@@ -117,7 +117,6 @@
       <button class="sec-header phase-tab" data-phase-tab="verificar" onclick="setView('verificar')"><span data-lang="es">Verificar</span><span data-lang="en">Verify</span></button>
       <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
       <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
-      <a href="#s-aws" onclick="scrollTo('s-aws')"><span data-lang="es">Costos AWS</span><span data-lang="en">AWS Costs</span></a>
       <button class="sec-header phase-tab" data-phase-tab="cerrar" onclick="setView('cerrar')"><span data-lang="es">Cerrar elección</span><span data-lang="en">Close Election</span></button>
       <a href="#s8" onclick="scrollTo('s8')"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
       </div>
@@ -901,68 +900,6 @@
         </details>
       </div>
 
-      <!-- ── AWS — Conexión y proyección de costos (opt-in, Zero Cost) ── -->
-      <div class="section" id="s-aws" data-phase="verificar">
-        <div class="section-title"><span data-lang="es">AWS — Conexión y proyección de costos</span><span data-lang="en">AWS — Connection &amp; cost projection</span> <span class="sec-tip" data-tip-es="VIGIL opera sin costo en GitHub. Este panel estima cuánto costaría el mismo trabajo en AWS y lo exporta como recibo, para solicitudes de créditos/grant. La conexión AWS es opcional y está desactivada por defecto." data-tip-en="VIGIL runs free on GitHub. This panel estimates what the same workload would cost on AWS and exports it as a receipt, for credit/grant applications. AWS connection is optional and off by default.">ⓘ</span></div>
-        <hr class="section-sep">
-
-        <div class="aws-zerocost-note">
-          <span data-lang="es">⚡ VIGIL opera <strong>sin costo</strong> en GitHub Pages + Actions. AWS es una posibilidad opcional para cuando un grant aporte créditos. El medidor es una <strong>proyección estimada</strong>, no facturación real.</span>
-          <span data-lang="en">⚡ VIGIL runs at <strong>zero cost</strong> on GitHub Pages + Actions. AWS is an optional possibility for when a grant provides credits. The meter is an <strong>estimated projection</strong>, not a real bill.</span>
-        </div>
-
-        <!-- Cost meter -->
-        <div class="ctrl-section" style="margin-top:14px">
-          <div class="aws-meter-head">
-            <div>
-              <div class="aws-meter-label"><span data-lang="es">En AWS, esta operación habría costado</span><span data-lang="en">On AWS, this operation would have cost</span></div>
-              <div class="aws-meter-total" id="aws-total">$0.00</div>
-              <div class="aws-meter-period" id="aws-period">—</div>
-            </div>
-            <button class="btn-op" onclick="exportAwsReceipt()" title="Descargar recibo de proyección">
-              ⬇ <span data-lang="es">Exportar recibo</span><span data-lang="en">Export receipt</span>
-            </button>
-            <button class="btn-op" onclick="exportGrantDocument()" style="background:rgba(110,168,254,.08);border-color:rgba(110,168,254,.4);color:var(--accent)" title="Exportar paquete AWS Open Data Program (registry.yaml + proposal.txt)">
-              📄 <span data-lang="es">AWS Open Data Program</span><span data-lang="en">AWS Open Data Program</span>
-            </button>
-          </div>
-          <table class="data-table aws-breakdown-table" style="margin-top:12px">
-            <thead><tr>
-              <th data-lang="es">Servicio</th><th data-lang="es">Detalle</th><th style="text-align:right" data-lang="es">Cantidad</th><th style="text-align:right" data-lang="es">Subtotal</th>
-            </tr></thead>
-            <tbody id="aws-breakdown"></tbody>
-          </table>
-        </div>
-
-        <!-- Opt-in connection -->
-        <div class="ctrl-section" style="margin-top:14px">
-          <div class="aws-conn-head">
-            <span class="aws-conn-title"><span data-lang="es">Conexión AWS</span><span data-lang="en">AWS connection</span> <span class="aws-optional" data-lang="es">opcional</span><span class="aws-optional" data-lang="en">optional</span></span>
-            <span class="aws-toggle" onclick="toggleAwsConnection()" title="Activar/desactivar conexión AWS (opt-in)">
-              <span class="aws-toggle-val off" id="aws-enable-val">OFF</span>
-            </span>
-          </div>
-          <div id="aws-conn-fields" style="opacity:.55;margin-top:10px">
-            <div class="ctrl-row">
-              <label><span data-lang="es">Región</span><span data-lang="en">Region</span></label>
-              <input id="aws-region" type="text" placeholder="us-east-1" value="us-east-1">
-            </div>
-            <div class="ctrl-row">
-              <label><span data-lang="es">Perfil de servicios</span><span data-lang="en">Service profile</span></label>
-              <select id="aws-profile">
-                <option value="serverless">Serverless (Lambda + S3 + EventBridge)</option>
-                <option value="container">Container (Fargate)</option>
-                <option value="storage">Solo almacenamiento (S3)</option>
-              </select>
-            </div>
-            <button class="btn-op" onclick="verifyAwsReadiness()" style="margin-top:6px">
-              ✓ <span data-lang="es">Verificar preparación</span><span data-lang="en">Verify readiness</span>
-            </button>
-            <div id="aws-ready-out" class="aws-ready-out"></div>
-          </div>
-        </div>
-      </div>
-
       <!-- ── 7 Acceso y Seeds ── -->
       <div class="section" id="s6" data-phase="configurar">
         <div class="section-title"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access &amp; Seeds</span> <span class="sec-tip" data-tip-es="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano, solo su huella criptografica. Usalas para rotarlas o revocarlas." data-tip-en="Manage the 12 administrative access keys. Keys are never stored in plaintext, only their cryptographic fingerprint. Use this to rotate or revoke them.">ⓘ</span></div>
@@ -1693,7 +1630,6 @@
 <script src="js/ops-core.js"></script>
 <script src="js/ops-panel.js"></script>
 <script src="js/ops-monitor.js"></script>
-<script src="js/ops-aws.js"></script>
 <script src="js/ops-command.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════
@@ -2102,8 +2038,6 @@ async function initAll(){
   }
   isDirty = false;
   updateDirtyState();
-  // AWS cost projection panel + first-run wizard offer
-  if(typeof initAwsPanel==='function'){ try { initAwsPanel(); } catch(e){ console.warn('initAwsPanel',e); } }
   if(typeof _maybeOfferWizard==='function'){ try { _maybeOfferWizard(); } catch(e){ console.warn('wizard',e); } }
 }
 
