@@ -1262,3 +1262,40 @@ function disableAwsMirror(){
   _syncAwsBtn();
   auditLog('mirror S3 opcional desactivado', '', {msgid:'AWS_MIRROR_OFF', severity:'NOTICE'});
 }
+
+// ══════════════════════════════════════════════════════════
+// DEV MODE TOGGLE
+// ══════════════════════════════════════════════════════════
+function toggleDevMode(){
+  document.body.classList.toggle('dev-mode');
+  const on = document.body.classList.contains('dev-mode');
+  try { localStorage.setItem('centinel-dev-mode', on?'1':'0'); } catch(_){}
+  const badge = document.getElementById('dev-badge');
+  if(badge) badge.style.display = on ? 'inline-flex' : 'none';
+}
+function _initDevMode(){
+  try { if(localStorage.getItem('centinel-dev-mode')==='1') document.body.classList.add('dev-mode'); } catch(_){}
+  const badge = document.getElementById('dev-badge');
+  const on = document.body.classList.contains('dev-mode');
+  if(badge) badge.style.display = on ? 'inline-flex' : 'none';
+}
+
+// ══════════════════════════════════════════════════════════
+// THEME TOGGLE (dark/light)
+// ══════════════════════════════════════════════════════════
+function toggleTheme(){
+  document.body.classList.toggle('light-mode');
+  const light = document.body.classList.contains('light-mode');
+  try { localStorage.setItem('centinel-theme', light?'light':'dark'); } catch(_){}
+  const btn = document.getElementById('btn-theme-toggle');
+  if(btn) btn.textContent = light ? '☾' : '☀';
+}
+function _initTheme(){
+  try {
+    if(localStorage.getItem('centinel-theme')==='light'){
+      document.body.classList.add('light-mode');
+      const btn=document.getElementById('btn-theme-toggle');
+      if(btn) btn.textContent='☾';
+    }
+  } catch(_){}
+}
