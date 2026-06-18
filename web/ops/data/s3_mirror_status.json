@@ -1,0 +1,13 @@
+{
+  "enabled": false,
+  "status": "not_configured",
+  "last_sync_utc": null,
+  "files_synced": 0,
+  "bytes_synced": 0,
+  "bucket": null,
+  "region": null,
+  "s3_uri": null,
+  "public_url": null,
+  "error": "Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_BUCKET_NAME, AWS_REGION as GitHub Secrets in your fork to enable real S3 mirroring.",
+  "workflow_run_url": null
+}
