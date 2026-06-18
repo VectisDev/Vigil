@@ -40,7 +40,8 @@ from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConf
 from centinel.defense.security import DefensiveSecurityManager, SecurityConfig
 from centinel.paths import iter_all_hashes, iter_all_snapshots
 from centinel.utils.config_loader import load_config as load_pipeline_config
-from centinel_engine import proxy_manager, secure_backup, vital_signs
+from centinel_engine import proxy_manager, secure_backup
+import scripts.watchdog as vital_signs
 from centinel_engine.config_loader import load_config as load_engine_config
 from centinel_engine.rate_limiter import get_rate_limiter
 from centinel_engine.secure_backup import BackupScheduler

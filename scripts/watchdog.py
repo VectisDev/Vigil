@@ -107,9 +107,7 @@ from scripts.logging_utils import configure_logging, log_event
 # ---------------------------------------------------------------------------
 # Vital-signs: adaptive resilience engine (merged from centinel_engine/vital_signs.py)
 # Signos vitales: motor de resiliencia adaptativa (fusionado desde vital_signs.py)
-# ponytail: centinel_engine/vital_signs.py is now a re-export shim pointing here.
-# Update imports in test_vital_signs.py, test_integration_loop.py,
-# test_hostile_scenarios.py, and run_pipeline.py when removing the shim.
+# centinel_engine/vital_signs.py shim removed — all callers import directly from here.
 # ---------------------------------------------------------------------------
 
 
