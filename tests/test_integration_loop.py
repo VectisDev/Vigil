@@ -47,7 +47,7 @@ from typing import Any, Callable
 from centinel_engine import proxy_manager
 from centinel_engine.proxy_manager import ProxyAndUAManager
 from centinel_engine.rate_limiter import TokenBucketRateLimiter
-from centinel_engine.vital_signs import check_vital_signs
+from scripts.watchdog import check_vital_signs
 
 
 class _DummyProxyRotator:
