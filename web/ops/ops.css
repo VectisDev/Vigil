@@ -3,19 +3,19 @@
    ink + stone + a single red accent, no decorative blue).
    Dark is an optional secondary mode for low-light operation. */
 :root, [data-theme="light"]{
-  --bg:#ffffff;--panel:#f4f4f2;--panel2:#ececea;--border:#e8e8e6;--fg:#0a0a0a;
-  --muted:#6b6b6b;--accent:#0a0a0a;--ok:#2a9d6e;--bad:#c8102e;--warn:#b07d20;
-  --purple:#7c5cd4;--mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --bg:#f8f9fa;--panel:#ffffff;--panel2:#f0f2f5;--border:#d0d7de;--fg:#0d1117;
+  --muted:#57606a;--accent:#0969da;--ok:#1a7f37;--bad:#cf222e;--warn:#9a6700;
+  --purple:#6639ba;--mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   --sidebar:220px;--hdr-height:48px;
-  --accent-glow:rgba(10,10,10,.08);--ok-glow:rgba(42,157,110,.12);
-  --bad-glow:rgba(200,16,46,.12);--warn-glow:rgba(176,125,32,.12);
-  --grid-line:rgba(10,10,10,.025);
+  --accent-glow:rgba(9,105,218,.08);--ok-glow:rgba(26,127,55,.12);
+  --bad-glow:rgba(207,34,46,.12);--warn-glow:rgba(154,103,0,.12);
+  --grid-line:rgba(9,105,218,.025);
   --skel-a:#eeeeec;--skel-b:#f8f8f6;
-  --accent-tint:10,10,10;--ok-tint:42,157,110;--warn-tint:176,125,32;--bad-tint:200,16,46;
+  --accent-tint:9,105,218;--ok-tint:26,127,55;--warn-tint:154,103,0;--bad-tint:207,34,46;
 }
 [data-theme="dark"]{
-  --bg:#080b0f;--panel:#0d1117;--panel2:#131920;--border:#1e2530;--fg:#e7e9ec;
+  --bg:#0a0a0b;--panel:#0f1117;--panel2:#131920;--border:#1e2530;--fg:#e7e9ec;
   --muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;--warn:#d4b066;
   --purple:#b08cf0;
   --accent-glow:rgba(110,168,254,.18);--ok-glow:rgba(87,192,141,.18);
@@ -23,6 +23,23 @@
   --grid-line:rgba(110,168,254,.04);
   --skel-a:#161b22;--skel-b:#1f2630;
   --accent-tint:110,168,254;--ok-tint:87,192,141;--warn-tint:212,176,102;--bad-tint:223,107,134;
+}
+body.light-mode {
+  --bg: #f8f9fa;
+  --panel: #ffffff;
+  --panel2: #f0f2f5;
+  --border: #d0d7de;
+  --fg: #0d1117;
+  --muted: #57606a;
+  --accent: #0969da;
+  --accent-glow: rgba(9,105,218,0.15);
+  --ok: #1a7f37;
+  --bad: #cf222e;
+  --warn: #9a6700;
+  --purple: #6639ba;
+  --ok-tint: 26,127,55;
+  --bad-tint: 207,34,46;
+  --warn-tint: 154,103,0;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);
@@ -131,7 +148,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
 /* ── CARDS GRID ── */
 .status-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px}
 .stat-card .sc-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
   letter-spacing:.04em;margin-bottom:8px;display:flex;align-items:center;gap:6px;justify-content:space-between}
 .stat-card .sc-val{font-size:18px;font-weight:700;margin-bottom:4px;font-variant-numeric:tabular-nums;
@@ -379,6 +396,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
 .badge-warn{background:rgba(var(--warn-tint),.1);color:var(--warn);border:1px solid rgba(var(--warn-tint),.25)}
 .badge-bad{background:rgba(var(--bad-tint),.1);color:var(--bad);border:1px solid rgba(var(--bad-tint),.25)}
 .badge-neutral{background:rgba(var(--accent-tint),.05);color:var(--muted);border:1px solid var(--border)}
+.status-pill { border-radius: 20px !important; }
 
 /* ── TABLE ── */
 .data-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -870,6 +888,12 @@ kbd{display:inline-block;background:var(--panel2);border:1px solid var(--border)
 
 /* ═══════════════════════════════════════════════════════════
 
+/* ── DEV MODE VISIBILITY ── */
+.dev-only { display: none !important; }
+.dev-mode .dev-only { display: block !important; }
+.dev-mode .dev-only-inline { display: inline !important; }
+.dev-mode .dev-only-flex { display: flex !important; }
+
 /* ── CEILING CLAMP TOAST (config sin fricción) ── */
 #ceiling-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
   background:var(--panel);border:1px solid var(--warn);border-radius:6px;
@@ -877,3 +901,81 @@ kbd{display:inline-block;background:var(--panel2);border:1px solid var(--border)
   box-shadow:0 8px 28px rgba(0,0,0,.45);opacity:0;pointer-events:none;
   transition:opacity .2s,transform .2s;z-index:3200}
 #ceiling-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── UX REDESIGN ── */
+/* Save toast */
+#save-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--ok); color: #fff; padding: 10px 18px;
+  border-radius: 20px; font-size: 13px; font-family: var(--sans);
+  opacity: 0; transition: opacity .3s; pointer-events: none;
+}
+#save-toast.show { opacity: 1; }
+
+/* Config sync pill */
+.sync-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-family: var(--sans);
+  background: var(--panel2); color: var(--muted);
+  border: 1px solid var(--border); transition: all .3s;
+}
+.sync-pill.active { color: var(--ok); border-color: var(--ok); }
+
+/* Timing pill */
+.timing-pill {
+  display: inline-flex; align-items: center; padding: 3px 12px;
+  border-radius: 20px; font-size: 11px; font-family: var(--sans);
+  font-weight: 600; letter-spacing: .04em;
+}
+.timing-pill.pending { background: rgba(var(--accent-tint),.15); color: var(--accent); border: 1px solid var(--accent); }
+.timing-pill.election { background: rgba(var(--warn-tint),.2); color: var(--warn); border: 1px solid var(--warn); font-size: 13px; }
+.timing-pill.done { background: rgba(var(--ok-tint),.15); color: var(--ok); }
+
+/* Global status banner */
+.global-status-banner {
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px 20px; margin-bottom: 16px; border-radius: 4px;
+  font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  font-family: var(--sans);
+}
+.global-status-banner.nominal { background: rgba(var(--ok-tint),.12); color: var(--ok); border: 1px solid rgba(var(--ok-tint),.3); }
+.global-status-banner.warn { background: rgba(var(--warn-tint),.15); color: var(--warn); border: 1px solid rgba(var(--warn-tint),.4); }
+.global-status-banner.bad { background: rgba(var(--bad-tint),.15); color: var(--bad); border: 1px solid rgba(var(--bad-tint),.4); }
+
+/* Dev toggle button */
+.dev-toggle-btn, .theme-toggle-btn {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer;
+  font-family: var(--mono); transition: all .2s;
+}
+.dev-toggle-btn:hover, .theme-toggle-btn:hover { color: var(--fg); border-color: var(--accent); }
+.dev-mode .dev-toggle-btn { color: var(--accent); border-color: var(--accent); }
+
+/* DEV badge */
+.dev-badge {
+  display: none; background: var(--accent); color: #fff;
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  padding: 2px 5px; border-radius: 3px; font-family: var(--mono);
+}
+
+/* PAT onboarding banner */
+#pat-onboarding {
+  background: rgba(var(--warn-tint),.1); border: 1px solid rgba(var(--warn-tint),.3);
+  border-radius: 6px; padding: 14px 16px; margin: 12px 0;
+  display: none;
+}
+#pat-onboarding.show { display: block; }
+#pat-onboarding input {
+  background: var(--panel2); border: 1px solid var(--border); color: var(--fg);
+  padding: 6px 10px; border-radius: 4px; font-family: var(--mono); font-size: 12px;
+  width: 280px; margin-right: 8px;
+}
+
+/* Log diff link */
+.log-diff-link { color: var(--accent); font-size: 11px; cursor: pointer; text-decoration: none; }
+.log-diff-link:hover { text-decoration: underline; }
+
+/* Election-only sections */
+.election-only { display: none; }
+body.election-mode .election-only { display: block; }
