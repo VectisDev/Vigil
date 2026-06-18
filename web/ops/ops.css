@@ -869,29 +869,6 @@ kbd{display:inline-block;background:var(--panel2);border:1px solid var(--border)
 .wiz-nav{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
 
 /* ═══════════════════════════════════════════════════════════
-   AWS — connection + cost projection card
-   ═══════════════════════════════════════════════════════════ */
-.aws-zerocost-note{background:rgba(87,192,141,.07);border:1px solid rgba(87,192,141,.25);
-  border-radius:4px;padding:10px 14px;font-size:12px;line-height:1.6;color:var(--fg)}
-.aws-meter-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.aws-meter-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.aws-meter-total{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--accent);
-  line-height:1.1;margin-top:2px}
-.aws-meter-period{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
-.aws-breakdown-table td,.aws-breakdown-table th{font-size:11px}
-.aws-conn-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.aws-conn-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-.aws-optional{font-size:9px;color:var(--muted);border:1px solid var(--border);border-radius:3px;
-  padding:1px 6px;margin-left:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:400}
-.aws-toggle{cursor:pointer;user-select:none}
-.aws-toggle-val{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:3px}
-.aws-toggle-val.off{background:var(--panel2);color:var(--muted);border:1px solid var(--border)}
-.aws-toggle-val.on{background:rgba(87,192,141,.15);color:var(--ok);border:1px solid rgba(87,192,141,.4)}
-.aws-ready-out{margin-top:10px}
-.aws-check{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0}
-.aws-check-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.aws-check-dot.ok{background:var(--ok);box-shadow:0 0 6px var(--ok-glow)}
-.aws-check-dot.bad{background:var(--bad);box-shadow:0 0 6px var(--bad-glow)}
 
 /* ── CEILING CLAMP TOAST (config sin fricción) ── */
 #ceiling-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
