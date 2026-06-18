@@ -48,7 +48,7 @@ from centinel_engine.proxy_manager import (
     reset_proxy_ua_manager,
 )
 from centinel_engine.rate_limiter import TokenBucketRateLimiter
-from centinel_engine.vital_signs import check_vital_signs
+from scripts.watchdog import check_vital_signs
 from src.centinel.proxy_handler import ProxyRotator
 
 

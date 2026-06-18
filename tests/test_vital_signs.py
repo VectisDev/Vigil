@@ -56,7 +56,7 @@ import pytest
 # Asegurar que el paquete centinel_engine sea importable.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from centinel_engine.vital_signs import (  # noqa: E402
+from scripts.watchdog import (  # noqa: E402
     DEFAULT_HEALTH_STATE,
     DEFAULT_THRESHOLDS,
     _compute_avg_latency,
