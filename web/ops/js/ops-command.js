@@ -130,6 +130,8 @@ function _isTyping(el){
 }
 
 document.addEventListener('keydown', function(e){
+  // Ctrl/Cmd+Shift+D toggles dev mode
+  if((e.ctrlKey||e.metaKey) && e.shiftKey && (e.key==='d'||e.key==='D')){ e.preventDefault(); if(typeof toggleDevMode==='function') toggleDevMode(); return; }
   // Ctrl/Cmd+K always opens the palette, even from a field
   if((e.ctrlKey||e.metaKey) && (e.key==='k'||e.key==='K')){
     e.preventDefault(); openCmdPalette(); return;
@@ -264,6 +266,8 @@ function _ceilingFeedback(key, requested, clamped){
 
 // ── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
+  if(typeof _initTheme==='function') _initTheme();
+  if(typeof _initDevMode==='function') _initDevMode();
   _initView();
   // input listener for palette
   const inp = document.getElementById('cmd-input');
