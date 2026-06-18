@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from .animal_defenses import AnimalDefense, DefenseStatus
+from .argos_protocol import ArgosLayer, DefenseStatus
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class KillSwitch:
     - Action: instant freeze + autonomous local recovery
     """
 
-    DEFENSE = AnimalDefense.KILL_SWITCH
+    DEFENSE = ArgosLayer.KILL_SWITCH
 
     # Backoff exponencial: (min_seconds, max_seconds) con jitter ±30%
     BACKOFF_SCHEDULE = [

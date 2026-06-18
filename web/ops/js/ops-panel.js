@@ -371,7 +371,7 @@ function buildNewEndpointsYaml(){
   if(!base.healing) base.healing={};
   base.healing.interval_minutes = parseInt(document.getElementById('sl-interval')?.value||30);
   base.healing.safe_mode_active = document.getElementById('tog-safe')?.checked||false;
-  base.healing.animal_mode = base.healing.animal_mode || 'normal';
+  base.healing.argos_protocol = base.healing.argos_protocol || base.healing.animal_mode || 'normal';
   // endpoints
   if(!base.cne) base.cne={};
   // Prefer the technical full-path field; fall back to easy field (root origin) only if not set

@@ -41,9 +41,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Proactive scan interval in minutes for loop mode (30 or 60).",
     )
     parser.add_argument(
+        "--adaptive-argos-mode",
+        action="store_true",
+        dest="adaptive_argos_mode",
+        help="Enable ARGOS Protocol adaptive cadence using recommended interval from healer metadata.",
+    )
+    # Backward-compat alias: --adaptive-animal-mode still accepted but deprecated
+    parser.add_argument(
         "--adaptive-animal-mode",
         action="store_true",
-        help="Enable Honey-Badger adaptive cadence using recommended interval from healer metadata.",
+        dest="adaptive_argos_mode",
+        help="Deprecated: use --adaptive-argos-mode.",
     )
     return parser
 
@@ -61,20 +69,23 @@ def run_proactive_scan(healer: CNEEndpointHealer) -> dict[str, object]:
     return result
 
 
-def run_loop(interval_minutes: int, adaptive_animal_mode: bool = False) -> None:
+def run_loop(interval_minutes: int, adaptive_argos_mode: bool = False, adaptive_animal_mode: bool = False) -> None:
     """English: Run proactive monitor forever with fixed sleep suitable for daemon operation.
     Español: Ejecuta monitor proactivo en bucle infinito con sleep fijo apto para daemon.
+
+    adaptive_animal_mode is a backward-compat alias for adaptive_argos_mode.
     """
 
+    adaptive = adaptive_argos_mode or adaptive_animal_mode
     healer = CNEEndpointHealer("config/prod/endpoints.yaml")
     while True:
         result = run_proactive_scan(healer)
         effective_interval = interval_minutes
-        if adaptive_animal_mode:
+        if adaptive:
             # English: In hostile environments, healer can suggest a shorter survival cadence.
             # Español: En entornos hostiles, el healer puede sugerir una cadencia de supervivencia más corta.
             effective_interval = int(result.get("recommended_interval_minutes", interval_minutes))
-        logging.info("PROACTIVE SCAN SLEEP | seconds=%s | adaptive=%s", effective_interval * 60, adaptive_animal_mode)
+        logging.info("PROACTIVE SCAN SLEEP | seconds=%s | adaptive=%s", effective_interval * 60, adaptive)
         time.sleep(effective_interval * 60)
 
 
@@ -91,7 +102,7 @@ def main() -> int:
         run_proactive_scan(healer)
         return 0
 
-    run_loop(args.interval, adaptive_animal_mode=args.adaptive_animal_mode)
+    run_loop(args.interval, adaptive_argos_mode=args.adaptive_argos_mode)
     return 0
 
 

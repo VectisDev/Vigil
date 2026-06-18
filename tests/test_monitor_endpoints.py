@@ -84,12 +84,21 @@ def test_run_loop_sleeps_between_scans(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_build_parser_accepts_adaptive_flag() -> None:
     module = _load_monitor_module()
 
+    args = module.build_parser().parse_args(["--adaptive-argos-mode"])
+
+    assert args.adaptive_argos_mode is True
+
+
+def test_build_parser_accepts_legacy_adaptive_flag() -> None:
+    """Backward-compat: --adaptive-animal-mode still accepted."""
+    module = _load_monitor_module()
+
     args = module.build_parser().parse_args(["--adaptive-animal-mode"])
 
-    assert args.adaptive_animal_mode is True
+    assert args.adaptive_argos_mode is True
 
 
-def test_run_loop_uses_recommended_interval_in_animal_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_loop_uses_recommended_interval_in_argos_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     module = _load_monitor_module()
 
     class DummyHealer:
@@ -110,6 +119,6 @@ def test_run_loop_uses_recommended_interval_in_animal_mode(monkeypatch: pytest.M
     monkeypatch.setattr(module.time, "sleep", fake_sleep)
 
     with pytest.raises(RuntimeError, match="stop-loop"):
-        module.run_loop(30, adaptive_animal_mode=True)
+        module.run_loop(30, adaptive_argos_mode=True)
 
     assert observed == [600]
