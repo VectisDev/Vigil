@@ -100,7 +100,8 @@ class PipelineEndpointsConfig(BaseModel):
         interval_minutes: int = Field(default=30, ge=1)
         last_successful_scan: Optional[str] = None
         consecutive_failures: int = Field(default=0, ge=0)
-        animal_mode: str = Field(default="normal")
+        argos_protocol: str = Field(default="normal")
+        animal_mode: str = Field(default="normal")  # backward-compat: keep until all writers use argos_protocol
         safe_mode_active: bool = False
         trusted_for_production: bool = False
         last_trusted_scan: Optional[str] = None

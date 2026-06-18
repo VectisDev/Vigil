@@ -328,7 +328,7 @@ def build_endpoint_health_block(endpoints_yaml_path: Optional[Path] = None) -> d
 
     return {
         "checked_at": datetime.now(timezone.utc).isoformat(),
-        "animal_mode": healing.get("animal_mode", "unknown"),
+        "argos_protocol": healing.get("argos_protocol", healing.get("animal_mode", "unknown")),
         "safe_mode_active": bool(healing.get("safe_mode_active", False)),
         "consecutive_failures": int(healing.get("consecutive_failures", 0) or 0),
         "main_url": cne.get("main_url", ""),

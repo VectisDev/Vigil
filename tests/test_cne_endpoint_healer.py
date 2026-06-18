@@ -99,7 +99,16 @@ def test_infer_department_matches_urls_with_underscores_and_hyphens(tmp_path):
     )
 
 
-def test_resolve_animal_mode_thresholds(tmp_path):
+def test_resolve_argos_protocol_mode_thresholds(tmp_path):
+    healer = _build_healer(tmp_path)
+
+    assert healer._resolve_argos_protocol_mode(0) == "normal"
+    assert healer._resolve_argos_protocol_mode(2) == "caution"
+    assert healer._resolve_argos_protocol_mode(5) == "survival"
+
+
+def test_resolve_animal_mode_backward_compat(tmp_path):
+    """_resolve_animal_mode is a backward-compat alias."""
     healer = _build_healer(tmp_path)
 
     assert healer._resolve_animal_mode(0) == "normal"
@@ -107,7 +116,7 @@ def test_resolve_animal_mode_thresholds(tmp_path):
     assert healer._resolve_animal_mode(5) == "survival"
 
 
-def test_recommended_interval_for_animal_mode(tmp_path):
+def test_recommended_interval_for_argos_mode(tmp_path):
     healer = _build_healer(tmp_path)
 
     assert healer._recommended_interval_for_mode("normal") == 30

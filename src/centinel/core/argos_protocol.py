@@ -1,9 +1,9 @@
 """
-CINCO DEFENSAS ANIMALES DEL CENTINEL
-(FIVE ANIMAL DEFENSES OF CENTINEL)
+PROTOCOLO ARGOS — CINCO CAPAS DE DEFENSA DEL CENTINEL
+(ARGOS PROTOCOL — FIVE DEFENSE LAYERS OF CENTINEL)
 
-Sistema de protección multi-capa inspirado en comportamientos animales.
-(Multi-layer protection system inspired by animal behaviors.)
+Sistema de protección multi-capa del Protocolo ARGOS.
+(Multi-layer protection system of the ARGOS Protocol.)
 """
 
 from enum import Enum
@@ -12,10 +12,10 @@ from typing import Any, Dict, Optional
 from datetime import datetime
 
 
-class AnimalDefense(Enum):
+class ArgosLayer(Enum):
     """
-    Defensas animales numeradas y localizadas.
-    (Numbered and localized animal defenses.)
+    Capas del Protocolo ARGOS numeradas y localizadas.
+    (Numbered and localized ARGOS Protocol layers.)
     """
 
     # 🐦 Cuervo: Memoria distribuida de testimonios
@@ -75,14 +75,19 @@ class AnimalDefense(Enum):
         return self.value[3]
 
 
+# Backward-compatibility alias — callers still using AnimalDefense won't break.
+# ponytail: remove once all callers import ArgosLayer directly.
+AnimalDefense = ArgosLayer
+
+
 @dataclass
 class DefenseStatus:
     """
-    Estado operacional de una defensa.
-    (Operational status of a defense.)
+    Estado operacional de una capa del Protocolo ARGOS.
+    (Operational status of an ARGOS Protocol layer.)
     """
 
-    defense: AnimalDefense
+    defense: ArgosLayer
     enabled: bool
     last_check_ts: float
     last_alert: Optional[str] = None
@@ -101,11 +106,11 @@ class DefenseStatus:
         }
 
 
-# Mapeo de defensas para acceso rápido
+# Mapeo de capas del Protocolo ARGOS para acceso rápido
 ALL_DEFENSES = {
-    "corvid": AnimalDefense.CORVID,
-    "cephalopod": AnimalDefense.CEPHALOPOD,
-    "evasion": AnimalDefense.EVASION,
-    "regeneration": AnimalDefense.REGENERATION,
-    "kill_switch": AnimalDefense.KILL_SWITCH,
+    "corvid": ArgosLayer.CORVID,
+    "cephalopod": ArgosLayer.CEPHALOPOD,
+    "evasion": ArgosLayer.EVASION,
+    "regeneration": ArgosLayer.REGENERATION,
+    "kill_switch": ArgosLayer.KILL_SWITCH,
 }

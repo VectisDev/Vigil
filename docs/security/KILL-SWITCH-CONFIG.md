@@ -388,7 +388,7 @@ jq '.merkle_root' hashes/checkpoint_current.json
 ## Referencias
 
 - **Defensa de Tejón:** ⚔️ Kill Switch, exponential backoff autónomo
-- **Animal Defenses:** Documentación completa en `ANIMAL-DEFENSES-ES.md`
+- **Protocolo ARGOS:** Documentación completa en `ARGOS-PROTOCOL-ES.md`
 - **D11:** Endpoint Monitor (esquema de cambios, no threat score)
 - **D13:** Federation (consenso multi-testigo)
 - **Attack Log Format:** Append-only JSONL, timestamp ISO 8601

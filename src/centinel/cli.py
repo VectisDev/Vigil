@@ -57,7 +57,7 @@ from typing import Optional
 
 import typer
 
-from centinel.core.animal_defenses import AnimalDefense, ALL_DEFENSES
+from centinel.core.argos_protocol import ArgosLayer, ALL_DEFENSES
 
 app = typer.Typer(help="Centinel Engine CLI")
 
@@ -179,8 +179,8 @@ def panel_show(
     typer.echo(f"║  AMENAZA GENERAL / Threat Score:  {threat_score:3d}/100 {status_color:<17} ║")
     typer.echo("║                                                                ║")
 
-    # Defensas animales
-    typer.echo("║  DEFENSAS ANIMALES / Animal Defenses:                         ║")
+    # Protocolo ARGOS — Cinco Capas de Defensa
+    typer.echo("║  PROTOCOLO ARGOS / ARGOS Protocol — Cinco Capas:             ║")
     typer.echo("║  ┌─────────────────────────────────────────────────────────┐  ║")
 
     for key, defense in ALL_DEFENSES.items():
@@ -231,32 +231,32 @@ def panel_json() -> None:
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "defenses": {
             "corvid": {
-                "emoji": AnimalDefense.CORVID.emoji,
-                "name_es": AnimalDefense.CORVID.name_es,
+                "emoji": ArgosLayer.CORVID.emoji,
+                "name_es": ArgosLayer.CORVID.name_es,
                 "enabled": True,
                 "last_attestation": "2m ago",
             },
             "cephalopod": {
-                "emoji": AnimalDefense.CEPHALOPOD.emoji,
-                "name_es": AnimalDefense.CEPHALOPOD.name_es,
+                "emoji": ArgosLayer.CEPHALOPOD.emoji,
+                "name_es": ArgosLayer.CEPHALOPOD.name_es,
                 "enabled": True,
                 "key_hash": "abc123...",
             },
             "evasion": {
-                "emoji": AnimalDefense.EVASION.emoji,
-                "name_es": AnimalDefense.EVASION.name_es,
+                "emoji": ArgosLayer.EVASION.emoji,
+                "name_es": ArgosLayer.EVASION.name_es,
                 "enabled": True,
                 "jitter_range": "±30%",
             },
             "regeneration": {
-                "emoji": AnimalDefense.REGENERATION.emoji,
-                "name_es": AnimalDefense.REGENERATION.name_es,
+                "emoji": ArgosLayer.REGENERATION.emoji,
+                "name_es": ArgosLayer.REGENERATION.name_es,
                 "enabled": True,
                 "mirrors": 3,
             },
             "kill_switch": {
-                "emoji": AnimalDefense.KILL_SWITCH.emoji,
-                "name_es": AnimalDefense.KILL_SWITCH.name_es,
+                "emoji": ArgosLayer.KILL_SWITCH.emoji,
+                "name_es": ArgosLayer.KILL_SWITCH.name_es,
                 "status": "READY",
                 "activated": False,
             },
