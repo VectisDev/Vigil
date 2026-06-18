@@ -46,7 +46,7 @@
       </button>
       <button id="lang-toggle" onclick="toggleOpsLang()" title="Cambiar idioma / Switch language">EN</button>
     </div>
-    <button class="hdr-btn" onclick="reloadConfig()" title="Sincronizar configuración desde GitHub" data-gtt-es="Sincronizar configuración desde GitHub" data-gtt-en="Sync configuration from GitHub"><span data-lang="es">↻ Sync config</span><span data-lang="en">↻ Sync config</span></button>
+    <span id="config-sync-pill" class="sync-pill"></span>
     <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
   </div>
   <!-- COMMAND HEADER ── estado global de un vistazo -->
@@ -2039,6 +2039,7 @@ async function initAll(){
   isDirty = false;
   updateDirtyState();
   if(typeof _maybeOfferWizard==='function'){ try { _maybeOfferWizard(); } catch(e){ console.warn('wizard',e); } }
+  if(typeof _startConfigPoll==='function'){ try { _startConfigPoll(); } catch(e){ console.warn('configPoll',e); } }
 }
 
 

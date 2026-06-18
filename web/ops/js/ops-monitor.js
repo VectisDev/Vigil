@@ -821,6 +821,34 @@ async function reloadConfig(){
   isDirty=false; updateDirtyState();
 }
 
+// ── AUTO CONFIG POLL ────────────────────────────────────────
+let _configPollTimer = null;
+const configShas = {};
+async function _startConfigPoll(){
+  if(_configPollTimer) clearInterval(_configPollTimer);
+  _configPollTimer = setInterval(async ()=>{
+    try{
+      const r = await fetch(`${RAW_BASE}/config/prod/watchdog.yaml?t=${Date.now()}`);
+      if(!r.ok) return;
+      const txt = await r.text();
+      // Compare SHA via ETag or content hash (simple: compare text length + first chars)
+      const newHash = txt.length + '|' + txt.slice(0,40);
+      const stored = configShas['watchdog.yaml-poll'] || '';
+      if(stored && stored !== newHash){
+        // Config changed — reload
+        await reloadConfig();
+        const pill = document.getElementById('config-sync-pill');
+        if(pill){
+          pill.textContent = '↻ Sincronizado';
+          pill.classList.add('active');
+          setTimeout(()=>{ pill.classList.remove('active'); pill.textContent=''; }, 3000);
+        }
+      }
+      configShas['watchdog.yaml-poll'] = newHash;
+    }catch(_){}
+  }, 60000);
+}
+
 // Sidebar scroll
 // scrollTo — view-aware: if the target section lives in another phase view,
 // switch to that view first (setView lives in ops-command.js), then scroll.
