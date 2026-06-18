@@ -313,7 +313,6 @@ def test_safe_run_pipeline_auto_resume_retries(monkeypatch, tmp_path) -> None:
             raise RuntimeError("boom")
 
     monkeypatch.setattr(run_pipeline, "run_pipeline", _flaky)
-    monkeypatch.setattr(run_pipeline.time, "sleep", lambda *_args, **_kwargs: None)
 
     config = {
         "alerts": {},

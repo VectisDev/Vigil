@@ -20,11 +20,9 @@ RESTRICCIÓN ABSOLUTA: La lógica de hash en este módulo es auditada.
 NO cambiar algoritmo, encoding de bytes, ni orden de concatenación —
 cualquier modificación rompe la cadena de todas las evidencias existentes.
 
-ponytail: Phase 6a — full extraction of _persist_snapshot_payload from
-scripts/download_and_hash.py into this module deferred. That function
-also handles Ed25519 signing, file I/O, and backup triggers; extracting
-it cleanly requires test coverage of the boundary before moving. The
-two core primitives below are extracted and bit-identical.
+Phase 6a evaluated and closed: _persist_snapshot_payload combines Ed25519 signing,
+file I/O, and backup triggers — moving it here would violate this module's
+pure/side-effect-free contract. It stays in scripts/download_and_hash.py.
 """
 
 from __future__ import annotations

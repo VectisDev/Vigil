@@ -341,8 +341,7 @@ def load_config(config_path_override: str | None = None) -> dict[str, Any]:
 
 # compute_hash and chain_hash are now canonical in centinel_engine.hash_chain.
 # They are re-imported above so all callers in this module remain unchanged.
-# ponytail: Phase 6a — extraction of _persist_snapshot_payload (Ed25519 + file I/O)
-# into centinel_engine/hash_chain.py deferred until test boundary is established.
+# Phase 6a closed: _persist_snapshot_payload belongs here; hash_chain.py is pure-only.
 
 
 def download_with_retries(
