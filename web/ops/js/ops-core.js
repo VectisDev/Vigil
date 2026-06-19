@@ -183,6 +183,10 @@ const I18N = {
     'det.fallando':'fallando',
     'det.no_disponible':'Dato en tiempo real no disponible en Pages',
     'tip.umbral':'Umbral — sincronizado con Configuración avanzada',
+    'tip.benford':'Ley de Benford: verifica si los primeros dígitos de los datos de escrutinio siguen la distribución natural esperada. Una desviación significativa puede indicar anomalías en los datos.',
+    'tip.zscore':'Puntuación Z: mide cuánto se aleja un resultado del promedio histórico. Valores altos indican cambios inusuales que merecen revisión manual.',
+    'tip.cpu.card':'CPU del servidor de monitoreo. Umbral configurable en Avanzado → Watchdog.',
+    'tip.ram.card':'Memoria RAM en uso. Umbral configurable en Avanzado → Watchdog.',
     'badge.defensas':'DEFENSAS', 'badge.safemode':'SAFE MODE', 'badge.circuit':'CIRCUIT BREAKER',
     'badge.election':'ELECTION MODE',
     'badge.normal':'NORMAL', 'badge.caution':'PRECAUCIÓN', 'badge.survival':'SUPERVIVENCIA',
@@ -263,6 +267,10 @@ const I18N = {
     'det.fallando':'failing',
     'det.no_disponible':'Real-time data not available on Pages',
     'tip.umbral':'Threshold — synced with Advanced Configuration',
+    'tip.benford':"Benford's Law: checks if the leading digits of tally data follow the expected natural distribution. A significant deviation may indicate data anomalies.",
+    'tip.zscore':'Z-Score: measures how far a result deviates from the historical average. High values indicate unusual changes that warrant review.',
+    'tip.cpu.card':'Monitoring server CPU. Threshold configurable in Advanced → Watchdog.',
+    'tip.ram.card':'RAM memory in use. Threshold configurable in Advanced → Watchdog.',
     'badge.defensas':'DEFENSES', 'badge.safemode':'SAFE MODE', 'badge.circuit':'CIRCUIT BREAKER',
     'badge.election':'ELECTION MODE',
     'badge.normal':'NORMAL', 'badge.caution':'CAUTION', 'badge.survival':'SURVIVAL',
@@ -357,11 +365,11 @@ const CARD_DEFS = [
   {id:'sha',    labelKey:'card.sha',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
   {id:'cb',     labelKey:'card.cb',     tier:'status', icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'},
   {id:'animal', labelKey:'card.animal', tier:'status',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'},
-  {id:'benford',labelKey:'card.benford',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>', hasSlider:'benford', min:3, max:15, step:0.1},
-  {id:'zscore', labelKey:'card.zscore',      icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>', hasSlider:'zscore',  min:1.5,max:5,step:0.1},
+  {id:'benford',labelKey:'card.benford',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>', tipKey:'tip.benford'},
+  {id:'zscore', labelKey:'card.zscore',   icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>', tipKey:'tip.zscore'},
   {id:'ots',    labelKey:'card.ots',    tier:'status',         icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'},
-  {id:'cpu',    labelKey:'card.cpu',        icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', hasSlider:'cpu',     min:50,max:95,step:1},
-  {id:'ram',    labelKey:'card.ram',             icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>', hasSlider:'ram',     min:50,max:95,step:1},
+  {id:'cpu',    labelKey:'card.cpu',    icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', tipKey:'tip.cpu.card'},
+  {id:'ram',    labelKey:'card.ram',    icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>', tipKey:'tip.ram.card'},
   {id:'attacks',labelKey:'card.attacks',  icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'},
   {id:'endpoints',labelKey:'card.endpoints', icon:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'},
 ];
@@ -375,18 +383,11 @@ function buildSensorCards(){
     <div class="stat-card${def.tier==='status'?' status-card':''}" id="sc-${def.id}">
       <div class="sc-label">
         <span>${def.icon} ${t(def.labelKey)}</span>
-        ${def.hasSlider?`<span data-tip="${t('tip.umbral')}" style="font-size:10px;cursor:help">ⓘ</span>`:''}
+        ${def.tipKey?`<span class="sec-tip" data-tip="${t(def.tipKey)}" style="font-size:10px;cursor:help">ⓘ</span>`:''}
       </div>
       <div class="sc-val val-neutral skel-pulse" id="scv-${def.id}">—</div>
       <div class="sc-detail skel-pulse" id="scd-${def.id}">—</div>
       <div class="sc-bar"><div class="sc-bar-fill" id="scb-${def.id}" style="width:0%;background:var(--muted)"></div></div>
-      ${def.hasSlider?`
-      <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-        <input type="range" min="${def.min}" max="${def.max}" step="${def.step}" value="${def.min}"
-          id="sc-sl-${def.hasSlider}" style="flex:1;accent-color:var(--accent);cursor:pointer;height:4px"
-          oninput="syncSlider('${def.hasSlider}',this.value)">
-        <span class="val-badge" id="sc-vb-${def.hasSlider}" style="font-size:10px">—</span>
-      </div>`:''}
       <div class="sc-age" id="sca-${def.id}"></div>
     </div>
   `;
@@ -448,12 +449,40 @@ function updateSensorCards(){
     setCard('endpoints', `${okEps}/${total}`, `${total-okEps} ${t('det.fallando')}`, okEps/total*100, okEps===total?'ok':okEps>total*0.8?'warn':'bad');
   }
 
-  // CPU/RAM — use watchdog limits as context
+  // CPU/RAM — show actual usage if available in snapshot, else show configured threshold
   const cpuLimit = wd?.max_cpu_percent || 80;
   const ramLimit = wd?.max_mem_percent || 90;
-  // synthetic values (real values would come from a health endpoint)
-  setCard('cpu', `${cpuLimit}% ${t('val.limite')}`, t('det.no_disponible'), 0, 'neutral', false);
-  setCard('ram', `${ramLimit}% ${t('val.limite')}`, t('det.no_disponible'), 0, 'neutral', false);
+  const cpuUsage = s?.system?.cpu_percent ?? s?.cpu_percent ?? null;
+  const ramUsage = s?.system?.ram_percent ?? s?.ram_percent ?? s?.system?.mem_percent ?? null;
+  if(cpuUsage !== null){
+    const cpuCls = cpuUsage >= cpuLimit ? 'bad' : cpuUsage >= cpuLimit * 0.8 ? 'warn' : 'ok';
+    setCard('cpu', `${Math.round(cpuUsage)}%`, `umbral: ${cpuLimit}%`, (cpuUsage/cpuLimit)*100, cpuCls);
+  } else {
+    setCard('cpu', `${cpuLimit}%`, 'umbral configurado', 0, 'neutral', false);
+  }
+  if(ramUsage !== null){
+    const ramCls = ramUsage >= ramLimit ? 'bad' : ramUsage >= ramLimit * 0.8 ? 'warn' : 'ok';
+    setCard('ram', `${Math.round(ramUsage)}%`, `umbral: ${ramLimit}%`, (ramUsage/ramLimit)*100, ramCls);
+  } else {
+    setCard('ram', `${ramLimit}%`, 'umbral configurado', 0, 'neutral', false);
+  }
+
+  // Global status banner
+  const argosActive = (ep?.healing?.animal_mode || 'normal') === 'survival';
+  const cbFails = cne.consecutive_failures || 0;
+  const banner = document.getElementById('global-status-banner');
+  if(banner){
+    if(argosActive){
+      banner.className = 'global-status-banner bad';
+      banner.textContent = '⬛ CRÍTICO — Protocolo ARGOS activo';
+    } else if(cbFails >= 3){
+      banner.className = 'global-status-banner warn';
+      banner.textContent = '⚠ PRECAUCIÓN — ' + cbFails + ' fallos consecutivos';
+    } else {
+      banner.className = 'global-status-banner nominal';
+      banner.textContent = '● SISTEMA NOMINAL';
+    }
+  }
 }
 
 function setCard(id, val, detail, barPct, cls, showBar=true){
@@ -666,6 +695,7 @@ function updateStatusBadges(){
     const elMode = document.getElementById('tog-election')?.checked || false;
     bEl.className = `badge badge-${elMode?'warn':'neutral'}`;
     bEl.textContent = `${t('badge.election')}: ${elMode?t('badge.on'):t('badge.off')}`;
+    document.body.classList.toggle('election-mode', elMode);
   }
   _updateMissionBar();
 }

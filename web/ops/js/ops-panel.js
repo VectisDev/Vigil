@@ -87,8 +87,118 @@ async function autoApply(){
   const newCfg = buildNewConfigYaml();
   const changes = buildDiff(newEp, newWd, newRl, newCfg);
   if(!changes.length){ isDirty=false; updateDirtyState(); return; }
-  // Show diff for confirmation — PAT only requested after user confirms
-  showDiffModal(changes, {newEp, newWd, newRl, newCfg});
+  // PAT silencioso: si tenemos PAT y autosave está ON, guardamos directo
+  const pat = localStorage.getItem('gh-pat');
+  if(pat && _autoApplyEnabled){
+    _writeInProgress = true;
+    try {
+      await writeChanges(changes, {newEp, newWd, newRl, newCfg}, pat);
+      _showSaveToast();
+      _logSaveToActivity(changes);
+    } finally {
+      _writeInProgress = false;
+    }
+    return;
+  }
+  // Sin PAT: mostrar banner de onboarding (no modal)
+  if(!pat){
+    _showPatOnboarding(changes, {newEp, newWd, newRl, newCfg});
+    return;
+  }
+  // Dev mode: mostrar diff modal (para depuración)
+  if(document.body.classList.contains('dev-mode')){
+    showDiffModal(changes, {newEp, newWd, newRl, newCfg});
+    return;
+  }
+  // Autosave OFF y tenemos PAT — esperar acción manual (btn-apply-now)
+}
+
+function _showSaveToast(){
+  let toast = document.getElementById('save-toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'save-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = '✓ Config guardada';
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'), 2000);
+}
+
+function _logSaveToActivity(changes){
+  try{
+    const ts = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+    const diffText = changes.map(c=>c.path.split('/').pop()).join(', ');
+    const logPre = document.querySelector('.log-pre');
+    if(logPre){
+      const line = document.createElement('div');
+      line.innerHTML = `<span class="lvl-info">[${ts}] Config guardada — <a class="log-diff-link" href="#" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';return false">Ver cambios →</a><details style="display:none;margin-top:4px"><summary style="display:none"></summary><pre style="font-size:10px;color:var(--muted)">${escHtml(diffText)}</pre></details></span>`;
+      logPre.appendChild(line);
+    }
+  }catch(_){}
+}
+
+function _showPatOnboarding(changes, newYamls){
+  let banner = document.getElementById('pat-onboarding');
+  if(!banner){
+    // Create and insert after section-sep in s3
+    banner = document.createElement('div');
+    banner.id = 'pat-onboarding';
+    const s3 = document.getElementById('s3');
+    const sep = s3?.querySelector('.section-sep');
+    if(sep) sep.insertAdjacentElement('afterend', banner);
+    else document.body.appendChild(banner);
+  }
+  banner.innerHTML = `
+    <div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:8px">
+      <span data-lang="es">Conecta tu GitHub PAT para guardar cambios automáticamente</span>
+      <span data-lang="en">Connect your GitHub PAT to save changes automatically</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
+      <span data-lang="es">Solo se necesita una vez — se guarda en tu navegador de forma segura.</span>
+      <span data-lang="en">Only needed once — stored securely in your browser.</span>
+    </div>
+    <input type="password" id="pat-onboarding-input" placeholder="ghp_..." style="">
+    <button onclick="_confirmPatOnboarding()" style="background:var(--accent);color:#fff;border:none;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">
+      <span data-lang="es">Conectar</span><span data-lang="en">Connect</span>
+    </button>
+    <button onclick="document.getElementById('pat-onboarding').classList.remove('show')" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:6px 14px;font-size:12px;cursor:pointer;margin-left:6px">
+      <span data-lang="es">Ahora no</span><span data-lang="en">Not now</span>
+    </button>
+  `;
+  banner._pendingChanges = changes;
+  banner._pendingYamls = newYamls;
+  banner.classList.add('show');
+  // Apply current lang
+  const lang = window.OPS_LANG || 'es';
+  banner.querySelectorAll('[data-lang]').forEach(el=>{
+    el.style.display = el.getAttribute('data-lang')===lang ? '' : 'none';
+  });
+}
+
+async function _confirmPatOnboarding(){
+  const input = document.getElementById('pat-onboarding-input');
+  if(!input) return;
+  const pat = input.value.trim();
+  if(!pat){ input.focus(); return; }
+  localStorage.setItem('gh-pat', pat);
+  input.value = '';
+  const banner = document.getElementById('pat-onboarding');
+  if(banner){
+    const changes = banner._pendingChanges;
+    const newYamls = banner._pendingYamls;
+    banner.classList.remove('show');
+    if(changes && newYamls){
+      _writeInProgress = true;
+      try {
+        await writeChanges(changes, newYamls, pat);
+        _showSaveToast();
+        _logSaveToActivity(changes);
+      } finally {
+        _writeInProgress = false;
+      }
+    }
+  }
 }
 
 window.addEventListener('beforeunload', e => {
@@ -574,6 +684,20 @@ async function writeChanges(changes, newYamls, pat){
   if(!anyError){
     isDirty=false; updateDirtyState();
     auditLog('config aplicada', changes.map(c=>c.path.split('/').pop()).join(', '), {msgid:'CONFIG_COMMIT', severity:'NOTICE'});
+    // Show timing pill in header
+    const interval = localConfig['config/prod/watchdog.yaml']?.check_interval_minutes || 15;
+    const pill = document.getElementById('timing-pill');
+    if(pill){
+      const elMode = document.getElementById('tog-election')?.checked || false;
+      pill.textContent = '→ Activo en próx. ciclo (~' + interval + 'min)';
+      pill.className = 'timing-pill show pending' + (elMode ? ' election' : '');
+      clearTimeout(pill._clearTimer);
+      pill._clearTimer = setTimeout(()=>{
+        pill.className = 'timing-pill show done';
+        pill.textContent = '✓ Config activa';
+        setTimeout(()=>{ pill.className = 'timing-pill'; }, 10000);
+      }, interval * 2 * 60 * 1000);
+    }
   }
   showResultModal(results, anyError);
 }
@@ -1226,4 +1350,41 @@ function disableAwsMirror(){
   }catch(_){}
   auditLog('mirror S3 desactivado','',{msgid:'AWS_MIRROR_OFF', severity:'NOTICE'});
   _renderAwsStatus();
+}
+
+// ══════════════════════════════════════════════════════════
+// DEV MODE TOGGLE
+// ══════════════════════════════════════════════════════════
+function toggleDevMode(){
+  document.body.classList.toggle('dev-mode');
+  const on = document.body.classList.contains('dev-mode');
+  try { localStorage.setItem('centinel-dev-mode', on?'1':'0'); } catch(_){}
+  const badge = document.getElementById('dev-badge');
+  if(badge) badge.style.display = on ? 'inline-flex' : 'none';
+}
+function _initDevMode(){
+  try { if(localStorage.getItem('centinel-dev-mode')==='1') document.body.classList.add('dev-mode'); } catch(_){}
+  const badge = document.getElementById('dev-badge');
+  const on = document.body.classList.contains('dev-mode');
+  if(badge) badge.style.display = on ? 'inline-flex' : 'none';
+}
+
+// ══════════════════════════════════════════════════════════
+// THEME TOGGLE (dark/light)
+// ══════════════════════════════════════════════════════════
+function toggleTheme(){
+  document.body.classList.toggle('light-mode');
+  const light = document.body.classList.contains('light-mode');
+  try { localStorage.setItem('centinel-theme', light?'light':'dark'); } catch(_){}
+  const btn = document.getElementById('btn-theme-toggle');
+  if(btn) btn.textContent = light ? '☾' : '☀';
+}
+function _initTheme(){
+  try {
+    if(localStorage.getItem('centinel-theme')==='light'){
+      document.body.classList.add('light-mode');
+      const btn=document.getElementById('btn-theme-toggle');
+      if(btn) btn.textContent='☾';
+    }
+  } catch(_){}
 }
