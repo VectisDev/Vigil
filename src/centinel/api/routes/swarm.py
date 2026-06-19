@@ -15,6 +15,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -43,6 +44,10 @@ _finding_limiter = RateLimiter(RateLimitConfig(limit=100, window_seconds=60))
 
 _engine: Optional[GossipEngine] = None
 _engine_task: Optional[asyncio.Task] = None
+
+# Room registry: sala_code → organizer_node_id.
+# Short-lived (~session duration); not persisted across process restarts.
+_rooms: dict[str, str] = {}
 
 # Federation finding logs — instantiated once, shared across engine restarts
 _anomaly_log = FederationAnomalyLog(
@@ -181,13 +186,50 @@ async def swarm_status() -> dict:
     return _engine.get_status()
 
 
+@router.post("/api/swarm/room")
+async def swarm_create_room(request: Request) -> dict:
+    """Register a sala room code so joining peers can be validated.
+
+    Called by the organizer after generating a code in the panel.
+    Returns the invite JSON blob (peer_url, room_code, node_id) that
+    the organizer shares with joining observers.
+    """
+    if _engine is None or not _engine._running:
+        raise HTTPException(status_code=409, detail="Start the swarm engine first (POST /api/swarm/connect)")
+
+    try:
+        body: dict = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Request body must be valid JSON")
+
+    room_code: str = (body.get("room_code") or "").strip().lower()
+    if not room_code or len(room_code) < 4:
+        raise HTTPException(status_code=400, detail="room_code must be at least 4 characters")
+    if not re.fullmatch(r"[0-9a-f]{4,32}", room_code):
+        raise HTTPException(status_code=400, detail="room_code must be 4-32 hex characters")
+
+    _rooms[room_code] = _engine._node_id
+    my_url = _engine.my_url or ""
+
+    logger.info("swarm_room_created code=%.6s node_id=%s", room_code, _engine._node_id)
+    return {
+        "room_code": room_code,
+        "node_id": _engine._node_id,
+        "peer_url": my_url,
+        "country_code": _engine.country_code,
+    }
+
+
 @router.post("/api/swarm/connect")
 async def swarm_connect(request: Request) -> dict:
-    """Start the GossipEngine. Idempotent — safe to call multiple times."""
-    global _engine, _engine_task
+    """Start the GossipEngine. Idempotent — safe to call multiple times.
 
-    if _engine is not None and _engine._running:
-        return {"status": "already_running", "node_id": _engine._node_id}
+    Optional body fields:
+    - my_url: this node's publicly reachable base URL
+    - peer_url: organizer's URL to announce ourselves to immediately (sala join)
+    - room_code: validate that the organizer registered this code before joining
+    """
+    global _engine, _engine_task
 
     body: dict = {}
     try:
@@ -196,8 +238,21 @@ async def swarm_connect(request: Request) -> dict:
         pass
 
     my_url: Optional[str] = body.get("my_url") or os.getenv("CENTINEL_MY_URL")
+    peer_url: Optional[str] = (body.get("peer_url") or "").strip() or None
+    room_code: Optional[str] = (body.get("room_code") or "").strip().lower() or None
     broadcast_interval = float(body.get("broadcast_interval", 60.0))
     country = _get_country()
+
+    # Validate room code if provided
+    if room_code is not None:
+        if room_code not in _rooms:
+            raise HTTPException(status_code=403, detail="Invalid or expired room code")
+
+    if _engine is not None and _engine._running:
+        # Engine already running — if a peer_url was given, still announce to them
+        if peer_url:
+            asyncio.create_task(_engine.announce_to(peer_url))
+        return {"status": "already_running", "node_id": _engine._node_id}
 
     _engine = GossipEngine(
         country_code=country,
@@ -215,10 +270,14 @@ async def swarm_connect(request: Request) -> dict:
     except (asyncio.TimeoutError, asyncio.CancelledError):
         pass
 
+    # Direct peer introduction for sala joins
+    if peer_url:
+        asyncio.create_task(_engine.announce_to(peer_url))
+
     def _sl(v: object) -> str:
         return str(v).replace("\n", "\\n").replace("\r", "\\r")
 
-    logger.info("swarm_connect country=%s my_url=%s", _sl(country), _sl(my_url))
+    logger.info("swarm_connect country=%s my_url=%s peer_url=%s", _sl(country), _sl(my_url), _sl(peer_url or ""))
     return {"status": "connecting", "node_id": _engine._node_id, "country_code": country}
 
 

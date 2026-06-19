@@ -970,6 +970,23 @@ class GossipEngine:
                 return r.status_code == 200
         except Exception as exc:
             logger.debug("gossip_push_failed url=%s error=%s", base_url, exc)
+
+    async def announce_to(self, peer_url: str) -> bool:
+        """Directly announce this node to a specific peer URL.
+
+        Posts our current signed attestation to {peer_url}/api/swarm/attest.
+        The peer adds us to its routing table and will include us in future
+        fan-outs. Use this for direct sala-based peer introductions.
+        """
+        payload_dict = self.get_checkpoint()
+        try:
+            payload = NodePayload.from_dict(payload_dict)
+        except Exception:
+            return False
+        ok = await self._push_payload(peer_url.rstrip("/"), payload)
+        if ok:
+            logger.info("gossip_announce_to peer_url=%s", peer_url)
+        return ok
             return False
 
     async def _push_finding(self, base_url: str, finding: FindingPayload) -> bool:

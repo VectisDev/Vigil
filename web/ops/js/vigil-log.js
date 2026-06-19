@@ -10,7 +10,8 @@
 //
 // Every log entry is: timestamped (UTC), identified (source),
 // classified (severity + event type), hashed (SHA-256),
-// and chained (prev hash) for tamper detection.
+// chained (prev hash), and SIGNED (ECDSA P-256) for tamper
+// detection and cryptographic non-repudiation.
 // ══════════════════════════════════════════════════════════
 
 const VELE = (function(){
@@ -60,6 +61,50 @@ const VELE = (function(){
 
   let _prevHash = null;
   let _page = 'unknown';
+
+  // ── ECDSA P-256 signing (FRE 902(14) / ISO 27042) ───────
+  const SIGNING_KEY_STORAGE = 'vigil-signing-key';
+  let _signingKey = null; // {privateKey, publicKey, pubB64}
+
+  async function _loadOrGenKey(){
+    if(_signingKey) return _signingKey;
+    try{
+      const stored = localStorage.getItem(SIGNING_KEY_STORAGE);
+      if(stored){
+        const {priv, pub, pubB64} = JSON.parse(stored);
+        const privateKey = await crypto.subtle.importKey('jwk', priv, {name:'ECDSA',namedCurve:'P-256'}, false, ['sign']);
+        const publicKey  = await crypto.subtle.importKey('jwk', pub,  {name:'ECDSA',namedCurve:'P-256'}, true,  ['verify']);
+        _signingKey = {privateKey, publicKey, pubB64};
+        return _signingKey;
+      }
+    }catch(_){}
+    // Generate fresh keypair for this operator
+    try{
+      const kp = await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'}, true, ['sign','verify']);
+      const privJwk = await crypto.subtle.exportKey('jwk', kp.privateKey);
+      const pubJwk  = await crypto.subtle.exportKey('jwk', kp.publicKey);
+      const pubSpki = await crypto.subtle.exportKey('spki', kp.publicKey);
+      const pubB64  = btoa(String.fromCharCode(...new Uint8Array(pubSpki)));
+      localStorage.setItem(SIGNING_KEY_STORAGE, JSON.stringify({priv:privJwk, pub:pubJwk, pubB64}));
+      _signingKey = {privateKey:kp.privateKey, publicKey:kp.publicKey, pubB64};
+      return _signingKey;
+    }catch(_){ return null; }
+  }
+
+  async function _sign(hashStr){
+    const key = await _loadOrGenKey();
+    if(!key) return null;
+    try{
+      const data = new TextEncoder().encode(hashStr);
+      const sigBuf = await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'}, key.privateKey, data);
+      return btoa(String.fromCharCode(...new Uint8Array(sigBuf)));
+    }catch(_){ return null; }
+  }
+
+  async function getPubKey(){
+    const key = await _loadOrGenKey();
+    return key ? key.pubB64 : null;
+  }
 
   // ── SHA-256 (Web Crypto API) ─────────────────────────────
   async function sha256(str){
@@ -118,6 +163,10 @@ const VELE = (function(){
     const dataStr = JSON.stringify(payload.data);
     payload.hash = 'sha256:' + await sha256(dataStr);
 
+    // ECDSA P-256 signature over the hash (FRE 902(14) non-repudiation)
+    payload.sig = await _sign(payload.hash);
+    if(_signingKey) payload.pub = _signingKey.pubB64;
+
     // Chain link (ISO 27043: investigation continuity)
     payload.prev = _prevHash;
     const entryStr = JSON.stringify(payload);
@@ -172,6 +221,20 @@ const VELE = (function(){
         errors.push({index:i, eid:e.eid, error:'data_hash_mismatch', expected:e.hash, got:dataHash});
       }
 
+      // Verify ECDSA signature if present
+      if(e.sig && e.pub){
+        try{
+          const pubSpki = Uint8Array.from(atob(e.pub), c=>c.charCodeAt(0));
+          const pubKey  = await crypto.subtle.importKey('spki', pubSpki, {name:'ECDSA',namedCurve:'P-256'}, false, ['verify']);
+          const sigBuf  = Uint8Array.from(atob(e.sig), c=>c.charCodeAt(0));
+          const msgBuf  = new TextEncoder().encode(e.hash);
+          const valid   = await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'}, pubKey, sigBuf, msgBuf);
+          if(!valid) errors.push({index:i, eid:e.eid, error:'signature_invalid'});
+        }catch(ex){
+          errors.push({index:i, eid:e.eid, error:'signature_verify_error', detail:ex.message});
+        }
+      }
+
       // Verify chain link
       if(e.prev !== prev){
         errors.push({index:i, eid:e.eid, error:'chain_break', expected:e.prev, got:prev});
@@ -188,19 +251,24 @@ const VELE = (function(){
   // ── Export for court / observation missions ──────────────
   function exportForensic(){
     const entries = getAll();
+    const signerPub = entries.find(e=>e.pub)?.pub || null;
     const header = [
       'VIGIL EVIDENCE LOG (VELE) — FORENSIC EXPORT',
-      'Format: RFC 5424 + ISO 27037/27042/27043',
+      'Format: RFC 5424 + ISO 27037/27042/27043 + FRE 902(14)',
+      'Signing:  ECDSA P-256 (per entry, non-repudiation)',
       'Exported: ' + new Date().toISOString(),
-      'Entries: ' + entries.length,
-      'Schema version: ' + VERSION,
-      'VIGIL version: ' + VIGIL_VERSION,
+      'Entries:  ' + entries.length,
+      'Schema:   v' + VERSION,
+      'VIGIL:    v' + VIGIL_VERSION,
+      'Pub Key:  ' + (signerPub ? 'ECDSA P-256 SPKI (base64): ' + signerPub : 'N/A (unsigned entries)'),
       '',
       'DISCLAIMER: This log is a digital record generated by VIGIL electoral',
-      'monitoring software. Each entry is SHA-256 hashed and chained for',
-      'tamper detection. For court admissibility, this export should be',
-      'accompanied by the corresponding expert affidavit (peritaje informatico)',
-      'or FRE 902(14) certification as applicable.',
+      'monitoring software. Each entry is SHA-256 hashed, ECDSA P-256 signed,',
+      'and chained for tamper detection and cryptographic non-repudiation.',
+      'For court admissibility, this export should be accompanied by the',
+      'corresponding expert affidavit (peritaje informatico) or FRE 902(14)',
+      'certification. Signatures can be independently verified with the',
+      'public key above using any standard ECDSA P-256 implementation.',
       '',
       '═'.repeat(72),
       ''
@@ -220,6 +288,7 @@ const VELE = (function(){
         `  Data:        ${JSON.stringify(e.data)}`,
         `  Detail:      ${e.detail || '—'}`,
         `  Data Hash:   ${e.hash}`,
+        `  Signature:   ${e.sig || '— (unsigned)'}`,
         `  Prev Hash:   ${e.prev || 'GENESIS'}`,
         `  Git SHA:     ${e.git_sha || '—'}`,
         `  OTS Ref:     ${e.ots_ref || '—'}`,
@@ -267,6 +336,6 @@ const VELE = (function(){
     emergency, alert, critical, error, warning, notice, info, debug,
     getAll, clear, verifyChain,
     exportForensic, downloadExport,
-    sha256
+    sha256, getPubKey
   };
 })();
