@@ -15,6 +15,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -205,6 +206,8 @@ async def swarm_create_room(request: Request) -> dict:
     room_code: str = (body.get("room_code") or "").strip().lower()
     if not room_code or len(room_code) < 4:
         raise HTTPException(status_code=400, detail="room_code must be at least 4 characters")
+    if not re.fullmatch(r"[0-9a-f]{4,32}", room_code):
+        raise HTTPException(status_code=400, detail="room_code must be 4-32 hex characters")
 
     _rooms[room_code] = _engine._node_id
     my_url = _engine.my_url or ""
