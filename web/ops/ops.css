@@ -814,10 +814,9 @@ body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
    PHASE VIEWS — show one workflow phase at a time
    ═══════════════════════════════════════════════════════════ */
 body[data-ops-view] #main-area .section[data-phase]{display:none}
-body[data-ops-view="vigilar"]   #main-area .section[data-phase="vigilar"],
-body[data-ops-view="configurar"] #main-area .section[data-phase="configurar"],
-body[data-ops-view="verificar"] #main-area .section[data-phase="verificar"],
-body[data-ops-view="cerrar"]    #main-area .section[data-phase="cerrar"]{display:block}
+body[data-ops-view="estado"]    #main-area .section[data-phase="estado"],
+body[data-ops-view="control"]   #main-area .section[data-phase="control"],
+body[data-ops-view="evidencia"] #main-area .section[data-phase="evidencia"]{display:block}
 
 /* Phase tab buttons (were static .sec-header) */
 #sidebar button.phase-tab{display:block;width:100%;text-align:left;cursor:pointer;
