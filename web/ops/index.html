@@ -47,6 +47,7 @@
       <button id="lang-toggle" onclick="toggleOpsLang()" title="Cambiar idioma / Switch language">EN</button>
     </div>
     <span id="config-sync-pill" class="sync-pill"></span>
+    <span id="timing-pill" class="timing-pill"></span>
     <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
   </div>
   <!-- COMMAND HEADER ── estado global de un vistazo -->
@@ -107,18 +108,17 @@
     <!-- SIDEBAR -->
     <nav id="sidebar">
       <div id="sidebar-nav">
-      <button class="sec-header phase-tab" data-phase-tab="vigilar" onclick="setView('vigilar')"><span data-lang="es">Vigilar</span><span data-lang="en">Monitor</span></button>
+      <button class="sec-header phase-tab" data-phase-tab="estado" onclick="setView('estado')"><span data-lang="es">Estado</span><span data-lang="en">Status</span></button>
       <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
       <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
-      <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
-      <button class="sec-header phase-tab" data-phase-tab="configurar" onclick="setView('configurar')"><span data-lang="es">Configurar</span><span data-lang="en">Configure</span></button>
+      <button class="sec-header phase-tab" data-phase-tab="control" onclick="setView('control')"><span data-lang="es">Control</span><span data-lang="en">Control</span></button>
       <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
       <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
-      <button class="sec-header phase-tab" data-phase-tab="verificar" onclick="setView('verificar')"><span data-lang="es">Verificar</span><span data-lang="en">Verify</span></button>
+      <button class="sec-header phase-tab" data-phase-tab="evidencia" onclick="setView('evidencia')"><span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span></button>
       <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
+      <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
       <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
-      <button class="sec-header phase-tab" data-phase-tab="cerrar" onclick="setView('cerrar')"><span data-lang="es">Cerrar elección</span><span data-lang="en">Close Election</span></button>
-      <a href="#s8" onclick="scrollTo('s8')"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
+      <a href="#s8" onclick="scrollTo('s8')" class="election-only"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
       </div>
       <div id="sidebar-ops-zone">
         <div class="soz-sep"></div>
@@ -152,7 +152,7 @@
     <main id="main-area">
 
       <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
-      <div class="section" id="s1" data-phase="vigilar">
+      <div class="section" id="s1" data-phase="estado">
 
         <!-- Título + botones de operación -->
         <div id="panel-topbar">
@@ -162,6 +162,9 @@
           <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
         </div>
         <hr class="section-sep">
+
+        <!-- Estado global del sistema -->
+        <div id="global-status-banner" class="global-status-banner nominal">● SISTEMA NOMINAL</div>
 
         <!-- Selector de país + URL del ente electoral -->
         <div id="country-picker">
@@ -247,7 +250,7 @@
       </div>
 
       <!-- ── 3 PRESETS ── -->
-      <div class="section" id="s3" data-phase="configurar">
+      <div class="section" id="s3" data-phase="control">
         <div class="section-title"><span data-lang="es">Presets</span><span data-lang="en">Presets</span> <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip-es="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada." data-tip-en="Quick configuration templates. Pick a preset based on the scenario (normal operation, election night, emergency…) or save your own custom configuration.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -604,7 +607,7 @@
       </div>
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
-      <div class="section" id="s9" data-phase="verificar">
+      <div class="section" id="s9" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de VIGIL." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on VIGIL.">ⓘ</span></div>
         <hr class="section-sep">
         <div class="ctrl-section" id="ots-section">
@@ -742,7 +745,7 @@
 
 
       <!-- ── 5 LOGS ── -->
-      <div class="section" id="s4" data-phase="vigilar">
+      <div class="section" id="s4" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs &amp; terminals</span> <span class="sec-tip" data-tip-es="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoria. Todo queda grabado y no se puede borrar." data-tip-en="Real-time logs of all activity: monitoring events, security alerts and audit traces. Everything is recorded and cannot be deleted.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -846,7 +849,7 @@
       </div>
 
       <!-- ── 6 MANUAL ── -->
-      <div class="section" id="s5" data-phase="verificar">
+      <div class="section" id="s5" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Manual</span><span data-lang="en">Manual</span> <span class="sec-tip" data-tip-es="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automatico." data-tip-en="One-off manual operations: force an immediate scrape, pause or resume the scheduler, without waiting for the automatic cycle.">ⓘ</span></div>
         <hr class="section-sep">
         <details id="mini-manual">
@@ -906,7 +909,7 @@
       </div>
 
       <!-- ── 7 Acceso y Seeds ── -->
-      <div class="section" id="s6" data-phase="configurar">
+      <div class="section" id="s6" data-phase="control">
         <div class="section-title"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access &amp; Seeds</span> <span class="sec-tip" data-tip-es="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano, solo su huella criptografica. Usalas para rotarlas o revocarlas." data-tip-en="Manage the 12 administrative access keys. Keys are never stored in plaintext, only their cryptographic fingerprint. Use this to rotate or revoke them.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -954,7 +957,7 @@
       </div>
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
-      <div class="section" id="s7" data-phase="vigilar">
+      <div class="section" id="s7" data-phase="estado">
         <div class="section-title"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span> <span class="sec-tip" data-tip-es="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demas para detectar cualquier manipulacion en tiempo real." data-tip-en="View of the P2P observer network. Each node independently validates the data and compares its result with others to detect any manipulation in real time.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -1163,7 +1166,7 @@
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
-      <div class="section" id="s8" data-phase="cerrar">
+      <div class="section election-only" id="s8" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Electoral Closure</span> <span class="sec-tip" data-tip-es="Secuencia de fin de eleccion: raspado final completo de todas las fuentes, publicacion del snapshot certificado y apagado controlado del sistema. Irreversible." data-tip-en="End-of-election sequence: full final scrape of all sources, publication of the certified snapshot, and controlled shutdown of the system. Irreversible.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">

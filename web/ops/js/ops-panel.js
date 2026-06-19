@@ -684,6 +684,20 @@ async function writeChanges(changes, newYamls, pat){
   if(!anyError){
     isDirty=false; updateDirtyState();
     auditLog('config aplicada', changes.map(c=>c.path.split('/').pop()).join(', '), {msgid:'CONFIG_COMMIT', severity:'NOTICE'});
+    // Show timing pill in header
+    const interval = localConfig['config/prod/watchdog.yaml']?.check_interval_minutes || 15;
+    const pill = document.getElementById('timing-pill');
+    if(pill){
+      const elMode = document.getElementById('tog-election')?.checked || false;
+      pill.textContent = '→ Activo en próx. ciclo (~' + interval + 'min)';
+      pill.className = 'timing-pill show pending' + (elMode ? ' election' : '');
+      clearTimeout(pill._clearTimer);
+      pill._clearTimer = setTimeout(()=>{
+        pill.className = 'timing-pill show done';
+        pill.textContent = '✓ Config activa';
+        setTimeout(()=>{ pill.className = 'timing-pill'; }, 10000);
+      }, interval * 2 * 60 * 1000);
+    }
   }
   showResultModal(results, anyError);
 }
