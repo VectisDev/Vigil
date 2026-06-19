@@ -11,7 +11,7 @@ Cada hora, el testigo **se audita a sí mismo** verificando:
 
 1. **Integridad Binaria:** ¿modificaron archivos core del código?
 2. **Consistencia de Estado:** ¿logs y checkpoint son coherentes?
-3. **Salud de Defensas:** ¿todas 5 defensas animales funcionan?
+3. **Salud de Defensas:** ¿todas 5 capas del Protocolo ARGOS funcionan?
 4. **Coherencia de Mirrors:** ¿datos locales coinciden con copias guardadas?
 
 Si detecta un problema → **intenta restaurar automáticamente** desde mirrors.
@@ -100,7 +100,7 @@ Salida:
 **¿Qué verifica?** MD5/SHA256 de archivos core:
 - `src/centinel/core/custody.py`
 - `src/centinel/core/kill_switch.py`
-- `src/centinel/core/animal_defenses.py`
+- `src/centinel/core/argos_protocol.py`
 - `src/centinel/core/anomaly_detector.py`
 - `src/centinel/core/endpoint_monitor.py`
 
@@ -152,7 +152,7 @@ centinel regeneration restore --source-mirror primary
 
 ### 3. Defense Health (Salud de Defensas)
 
-**¿Qué verifica?** Todas 5 defensas animales funcionan:
+**¿Qué verifica?** Todas 5 capas del Protocolo ARGOS funcionan:
 
 | Defensa | Check |
 |---------|-------|
@@ -332,7 +332,7 @@ Health Score: 0.0% 🔴
 2. Identifica cuál check falla:
    - **Binary Integrity falla:** `git status src/centinel/core`
    - **State Consistency falla:** `tail -100 hashes/attack_log.jsonl | jq .timestamp`
-   - **Defense Health falla:** `centinel panel show` → cuál animal está down
+   - **Defense Health falla:** `centinel panel show` → cuál capa del Protocolo ARGOS está down
    - **Mirror Coherence falla:** `ping backup-mirror`
 
 3. Según el fallo:
@@ -387,7 +387,7 @@ Si hermanos están offline:
 - **`hashes/attack_log.jsonl`** — Eventos de amenaza/anomalía
 - **`command_center/advanced_security_config.yaml`** — Configuración auto-audit
 - **`docs/KILL-SWITCH-CONFIG.md`** — Recuperación automática (Tejón)
-- **`docs/ANIMAL-DEFENSES-ES.md`** — Detalles de 5 defensas
+- **`docs/ARGOS-PROTOCOL-ES.md`** — Protocolo ARGOS: detalles de 5 capas
 
 ---
 
@@ -432,7 +432,7 @@ Puedes mantener histórico ilimitado o comprimir logs viejos.
 
 - [QUICKSTART.md](QUICKSTART.md) — Primeros 5 minutos
 - [OPERATOR-PANEL.md](OPERATOR-PANEL.md) — Panel operador
-- [ANIMAL-DEFENSES-ES.md](ANIMAL-DEFENSES-ES.md) — Defensa detallada
+- [ARGOS-PROTOCOL-ES.md](ARGOS-PROTOCOL-ES.md) — Protocolo ARGOS — detalle de capas
 - [KILL-SWITCH-CONFIG.md](KILL-SWITCH-CONFIG.md) — Tejón + recuperación
 
 ---

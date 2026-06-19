@@ -212,7 +212,7 @@ VIGIL applies defense in depth: each layer mitigates a distinct class of threat.
 | Auto-regeneration | Resync from replicas | Local state manipulation |
 | Kill switch | Freeze on active attack | Real-time compromise |
 
-→ [Defense specification](docs/architecture/ANIMAL-DEFENSES-ES.md) · [Architecture and theorems T1–T4](docs/architecture/ARCHITECTURE.md)
+→ [ARGOS Protocol specification](docs/architecture/ARGOS-PROTOCOL-ES.md) · [Architecture and theorems T1–T4](docs/architecture/ARCHITECTURE.md)
 
 ---
 

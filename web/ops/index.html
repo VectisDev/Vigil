@@ -221,7 +221,7 @@
         </div>
         <!-- Status badges removed — state now lives authoritatively in the
              command-header (Defensas / Modo elec.) and the sensor cards
-             (Circuit Breaker / Animal Mode). updateStatusBadges() null-guards
+             (Circuit Breaker / Protocolo ARGOS). updateStatusBadges() null-guards
              these IDs, so their absence is safe. -->
       </div>
 
@@ -674,25 +674,51 @@
         </div>
 
         <!-- ══════════════════════════════════════════════════════════
-             MIRROR EXTERNO OPCIONAL — AMAZON S3 (Costo Cero NO aplica aquí)
-             VIGIL no usa ni requiere AWS. Esta es una opción del operador,
-             desactivada por defecto, con doble confirmación informada.
+             MIRROR EXTERNO — AMAZON S3 (real sync via GitHub Actions)
+             Status read from data/s3_mirror_status.json written by
+             .github/workflows/s3-mirror.yml after each sync run.
         ══════════════════════════════════════════════════════════ -->
         <div class="ctrl-section" id="aws-mirror-section" style="margin-top:16px;border-color:rgba(212,176,102,.25)">
           <h3 style="justify-content:space-between">
             <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2z"/></svg>
               <span data-lang="es">Mirror externo — Amazon S3</span><span data-lang="en">External mirror — Amazon S3</span>
-              <span class="badge badge-neutral" id="aws-status-badge"><span data-lang="es">Desactivado</span><span data-lang="en">Disabled</span></span>
-              <span class="sec-tip" data-tip-es="Opción del operador para replicar snapshots a un bucket S3 propio, además de los mirrors gratuitos (Codeberg, Internet Archive). VIGIL no necesita esto para operar — es exclusivamente para quien quiera almacenamiento adicional bajo su control." data-tip-en="Operator option to replicate snapshots to your own S3 bucket, in addition to the free mirrors (Codeberg, Internet Archive). VIGIL does not need this to operate — it is purely for operators who want extra storage under their own control.">ⓘ</span>
+              <span class="badge badge-neutral" id="aws-status-badge"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
+              <span class="sec-tip" data-tip-es="Replica web/data/ y web/reports/ a un bucket S3 propio vía GitHub Actions. Las credenciales van como GitHub Secrets en tu fork — nunca en este panel. El estado se actualiza automáticamente tras cada ejecución del workflow." data-tip-en="Replicates web/data/ and web/reports/ to your own S3 bucket via GitHub Actions. Credentials go as GitHub Secrets in your fork — never in this panel. Status updates automatically after each workflow run.">ⓘ</span>
             </span>
-            <button id="btn-aws-toggle" onclick="onAwsToggle()"
-              style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
-              cursor:pointer;transition:background .15s;border:1px solid var(--border);
-              background:transparent;color:var(--muted);white-space:nowrap">
-              <span data-lang="es">Configurar</span><span data-lang="en">Configure</span>
-            </button>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button onclick="refreshAwsStatus()" title="Refresh S3 status"
+                style="padding:3px 10px;border-radius:2px;font-family:var(--mono);font-size:11px;font-weight:700;
+                cursor:pointer;transition:background .15s;border:1px solid var(--border);
+                background:transparent;color:var(--muted);white-space:nowrap">↻</button>
+              <button id="btn-aws-toggle" onclick="onAwsToggle()"
+                style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
+                cursor:pointer;transition:background .15s;border:1px solid var(--border);
+                background:transparent;color:var(--muted);white-space:nowrap">
+                <span data-lang="es">Configurar</span><span data-lang="en">Configure</span>
+              </button>
+            </div>
           </h3>
+
+          <!-- Live status — populated by loadAwsStatus() from data/s3_mirror_status.json -->
+          <div id="aws-live-status" style="display:none;margin-bottom:10px">
+            <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-bottom:4px">
+              <span id="aws-last-sync"></span>
+              <span id="aws-files-info"></span>
+            </div>
+            <div id="aws-s3-uri-row" style="display:none;font-size:11px;color:var(--muted);margin-bottom:4px">
+              <span style="color:var(--muted)">S3 URI: </span>
+              <span id="aws-s3-uri" style="font-family:var(--mono);color:var(--fg)"></span>
+            </div>
+            <div id="aws-error-row" style="display:none;font-size:12px;color:var(--bad);margin-bottom:4px">
+              <span id="aws-error-msg"></span>
+              <a id="aws-run-link" href="#" target="_blank" rel="noopener"
+                style="display:none;margin-left:8px;color:var(--accent);font-size:11px">
+                <span data-lang="es">Ver logs ↗</span><span data-lang="en">View logs ↗</span>
+              </a>
+            </div>
+            <span id="aws-enabled-hint" style="display:none;font-size:11px;color:var(--ok)"></span>
+          </div>
 
           <div class="info-box" style="border-color:rgba(212,176,102,.3);background:rgba(212,176,102,.04)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;color:var(--warn)"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
@@ -727,10 +753,14 @@
               <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_SECRET_ACCESS_KEY</code> in
               <strong>your own fork's GitHub Secrets</strong>. VIGIL never sees, transmits, or stores your AWS credentials.</span>
             </p>
-            <button class="hdr-btn" id="btn-aws-enable" onclick="requestAwsEnable()" style="margin-top:12px;border-color:var(--warn);color:var(--warn)">
-              <span data-lang="es">Activar mirror S3…</span><span data-lang="en">Enable S3 mirror…</span>
-            </button>
-            <span id="aws-enabled-hint" style="display:none;font-size:11px;color:var(--ok);margin-left:8px"></span>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+              <button class="hdr-btn" id="btn-aws-enable" onclick="requestAwsEnable()" style="border-color:var(--warn);color:var(--warn)">
+                <span data-lang="es">Configurar y activar…</span><span data-lang="en">Configure and enable…</span>
+              </button>
+              <button class="hdr-btn" onclick="disableAwsMirror()" style="border-color:var(--muted);color:var(--muted)">
+                <span data-lang="es">Desactivar</span><span data-lang="en">Disable</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -873,7 +903,7 @@
                 3. The system commits to <code>config/prod/</code> via the GitHub API.<br>
                 4. Changes take effect on the next cycle (~15 min).</span>
               </p>
-              <h3>Animal mode</h3>
+              <h3>Protocolo ARGOS</h3>
               <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
                 <strong>NORMAL</strong>: <span data-lang="es">operación estándar.</span><span data-lang="en">standard operation.</span><br>
                 <strong>CAUTION</strong>: <span data-lang="es">el sistema detectó condiciones adversas, reduce agresividad.</span><span data-lang="en">the system detected adverse conditions, reduces aggressiveness.</span><br>
@@ -2008,6 +2038,7 @@ async function initAll(){
   _initAutoSaveUI();
   loadOtsStatus();
   loadSeedStatus();
+  _loadAwsState();
   loadCountrySelector();
   loadSwarmStatus();
   loadReputationPanel();

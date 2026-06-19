@@ -1,18 +1,18 @@
 """
-Tests para Animal Defenses (Defensas Animales)
-Tests for Animal Defenses
+Tests para Protocolo ARGOS — Cinco Capas de Defensa
+Tests for ARGOS Protocol — Five Defense Layers
 """
 
 import pytest
-from centinel.core.animal_defenses import AnimalDefense, DefenseStatus, ALL_DEFENSES
+from centinel.core.argos_protocol import ArgosLayer, DefenseStatus, ALL_DEFENSES
 
 
-class TestAnimalDefenseEnum:
-    """Tests para el enum AnimalDefense."""
+class TestArgosLayerEnum:
+    """Tests para el enum ArgosLayer del Protocolo ARGOS."""
 
     def test_all_defenses_have_properties(self):
-        """Todos las defensas tienen propiedades requeridas."""
-        for defense in AnimalDefense:
+        """Todos las capas tienen propiedades requeridas."""
+        for defense in ArgosLayer:
             assert defense.emoji
             assert defense.name_es
             assert defense.title_es
@@ -22,7 +22,7 @@ class TestAnimalDefenseEnum:
 
     def test_corvid_properties(self):
         """Test de Cuervo (Corvid Memory)."""
-        defense = AnimalDefense.CORVID
+        defense = ArgosLayer.CORVID
         assert defense.emoji == "🐦"
         assert defense.name_es == "Cuervo"
         assert defense.title_es == "Memoria de Cuervo"
@@ -30,7 +30,7 @@ class TestAnimalDefenseEnum:
 
     def test_cephalopod_properties(self):
         """Test de Pulpo (Cephalopod Ink)."""
-        defense = AnimalDefense.CEPHALOPOD
+        defense = ArgosLayer.CEPHALOPOD
         assert defense.emoji == "🦑"
         assert defense.name_es == "Pulpo"
         assert defense.title_es == "Tinta de Pulpo"
@@ -38,7 +38,7 @@ class TestAnimalDefenseEnum:
 
     def test_evasion_properties(self):
         """Test de Venado (Evasion/Deer)."""
-        defense = AnimalDefense.EVASION
+        defense = ArgosLayer.EVASION
         assert defense.emoji == "🦌"
         assert defense.name_es == "Venado"
         assert defense.title_es == "Evasión de Venado"
@@ -46,7 +46,7 @@ class TestAnimalDefenseEnum:
 
     def test_regeneration_properties(self):
         """Test de Lagartija (Regeneration)."""
-        defense = AnimalDefense.REGENERATION
+        defense = ArgosLayer.REGENERATION
         assert defense.emoji == "🦎"
         assert defense.name_es == "Lagartija"
         assert defense.title_es == "Regeneración de Lagartija"
@@ -54,7 +54,7 @@ class TestAnimalDefenseEnum:
 
     def test_kill_switch_properties(self):
         """Test de Tejón (Kill Switch/Badger)."""
-        defense = AnimalDefense.KILL_SWITCH
+        defense = ArgosLayer.KILL_SWITCH
         assert defense.emoji == "⚔️"
         assert defense.name_es == "Tejón"
         assert defense.title_es == "Defensa de Tejón"
@@ -71,22 +71,22 @@ class TestAnimalDefenseEnum:
         assert "kill_switch" in ALL_DEFENSES
 
     def test_all_defenses_map_to_enum(self):
-        """ALL_DEFENSES values son instancias de AnimalDefense."""
+        """ALL_DEFENSES values son instancias de ArgosLayer."""
         for key, defense in ALL_DEFENSES.items():
-            assert isinstance(defense, AnimalDefense)
+            assert isinstance(defense, ArgosLayer)
 
 
 class TestDefenseStatus:
-    """Tests para DefenseStatus dataclass."""
+    """Tests para DefenseStatus dataclass del Protocolo ARGOS."""
 
     def test_defense_status_creation(self):
         """Crear DefenseStatus válido."""
         status = DefenseStatus(
-            defense=AnimalDefense.CORVID,
+            defense=ArgosLayer.CORVID,
             enabled=True,
             last_check_ts=1234567890.0,
         )
-        assert status.defense == AnimalDefense.CORVID
+        assert status.defense == ArgosLayer.CORVID
         assert status.enabled is True
         assert status.last_check_ts == 1234567890.0
 
@@ -94,7 +94,7 @@ class TestDefenseStatus:
         """DefenseStatus con métricas."""
         metrics = {"gossip_peers": 2, "last_attestation": "5m ago"}
         status = DefenseStatus(
-            defense=AnimalDefense.CORVID,
+            defense=ArgosLayer.CORVID,
             enabled=True,
             last_check_ts=1234567890.0,
             metrics=metrics,
@@ -104,7 +104,7 @@ class TestDefenseStatus:
     def test_defense_status_with_alert(self):
         """DefenseStatus con alerta."""
         status = DefenseStatus(
-            defense=AnimalDefense.CORVID,
+            defense=ArgosLayer.CORVID,
             enabled=True,
             last_check_ts=1234567890.0,
             last_alert="Sibling offline for 30 minutes",
@@ -114,7 +114,7 @@ class TestDefenseStatus:
     def test_defense_status_to_dict(self):
         """Convertir DefenseStatus a diccionario."""
         status = DefenseStatus(
-            defense=AnimalDefense.CORVID,
+            defense=ArgosLayer.CORVID,
             enabled=True,
             last_check_ts=1234567890.0,
             metrics={"test": "value"},
@@ -128,8 +128,8 @@ class TestDefenseStatus:
         assert data["metrics"] == {"test": "value"}
 
     def test_all_defense_statuses(self):
-        """Crear status para todas las defensas."""
-        for defense in AnimalDefense:
+        """Crear status para todas las capas del Protocolo ARGOS."""
+        for defense in ArgosLayer:
             status = DefenseStatus(
                 defense=defense,
                 enabled=True,

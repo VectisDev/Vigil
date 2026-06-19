@@ -1,0 +1,148 @@
+name: S3 Mirror
+
+# Replicates web/data/ and web/reports/ to an operator-owned S3 bucket.
+# Requires 4 GitHub Secrets in the fork:
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_BUCKET_NAME, AWS_REGION
+# Writes web/ops/data/s3_mirror_status.json after each run (ok / error / not_configured).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/data/**'
+      - 'web/reports/**'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: s3-mirror
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Verify secrets present
+        id: cfg
+        env:
+          KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          BUCKET: ${{ secrets.AWS_BUCKET_NAME }}
+        run: |
+          if [ -n "$KEY" ] && [ -n "$BUCKET" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write not-configured status
+        if: steps.cfg.outputs.ok == 'false'
+        run: |
+          mkdir -p web/ops/data
+          jq -n '{
+            enabled: false,
+            status: "not_configured",
+            last_sync_utc: null,
+            files_synced: 0,
+            bytes_synced: 0,
+            bucket: null,
+            region: null,
+            s3_uri: null,
+            public_url: null,
+            error: "Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_BUCKET_NAME, AWS_REGION as GitHub Secrets in your fork to enable real S3 mirroring.",
+            workflow_run_url: null
+          }' > web/ops/data/s3_mirror_status.json
+
+      - name: Configure AWS credentials
+        if: steps.cfg.outputs.ok == 'true'
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Sync and write status
+        if: steps.cfg.outputs.ok == 'true'
+        env:
+          BUCKET: ${{ secrets.AWS_BUCKET_NAME }}
+          REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          mkdir -p web/ops/data
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          ERROR=""
+
+          aws s3 sync web/data/ "s3://${BUCKET}/vigil/data/" \
+            --region "$REGION" --delete --no-progress \
+            || ERROR="web/data/ sync failed"
+
+          if [ -z "$ERROR" ]; then
+            aws s3 sync web/reports/ "s3://${BUCKET}/vigil/reports/" \
+              --region "$REGION" --delete --no-progress \
+              || ERROR="web/reports/ sync failed"
+          fi
+
+          FILES=$(aws s3 ls "s3://${BUCKET}/vigil/" --recursive 2>/dev/null \
+            | grep -c . || echo 0)
+          BYTES=$(aws s3 ls "s3://${BUCKET}/vigil/" --recursive 2>/dev/null \
+            | awk '{sum+=$3} END{print sum+0}')
+
+          if [ -z "$ERROR" ]; then
+            jq -n \
+              --arg now "$NOW" \
+              --argjson files "${FILES:-0}" \
+              --argjson bytes "${BYTES:-0}" \
+              --arg bucket "$BUCKET" \
+              --arg region "$REGION" \
+              --arg run_url "$RUN_URL" \
+              '{
+                enabled: true,
+                status: "ok",
+                last_sync_utc: $now,
+                files_synced: $files,
+                bytes_synced: $bytes,
+                bucket: $bucket,
+                region: $region,
+                s3_uri: ("s3://" + $bucket + "/vigil/"),
+                public_url: ("https://" + $bucket + ".s3." + $region + ".amazonaws.com/vigil/"),
+                error: null,
+                workflow_run_url: $run_url
+              }' > web/ops/data/s3_mirror_status.json
+          else
+            jq -n \
+              --arg now "$NOW" \
+              --arg bucket "$BUCKET" \
+              --arg region "$REGION" \
+              --arg error "$ERROR" \
+              --arg run_url "$RUN_URL" \
+              '{
+                enabled: true,
+                status: "error",
+                last_sync_utc: $now,
+                files_synced: 0,
+                bytes_synced: 0,
+                bucket: $bucket,
+                region: $region,
+                s3_uri: ("s3://" + $bucket + "/vigil/"),
+                public_url: null,
+                error: $error,
+                workflow_run_url: $run_url
+              }' > web/ops/data/s3_mirror_status.json
+            exit 1
+          fi
+
+      - name: Commit and push status
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/ops/data/s3_mirror_status.json
+          git diff --staged --quiet \
+            || git commit -m "chore(s3): update mirror status [skip ci]"
+          git push
