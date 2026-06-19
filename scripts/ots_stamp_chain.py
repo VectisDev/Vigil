@@ -65,8 +65,9 @@ def main() -> int:
     ots_path = ots_dir / f"{stem}.ots"
     meta_path = ots_dir / f"{stem}.json"
 
-    ots_proof = checkpoint.get("ots_proof", "")
-    ots_path.write_text(str(ots_proof), encoding="utf-8")
+    import base64 as _b64
+    ots_b64 = checkpoint.get("ots_proof", "")
+    ots_path.write_bytes(_b64.b64decode(ots_b64) if ots_b64 else b"")
 
     meta = {
         "ts": ts_slug,
