@@ -1,5 +1,8 @@
 name: OTS Anchor
 
+# Manually-triggered workflow to anchor the current hash chain root to
+# Bitcoin via OpenTimestamps public calendars. Commits the .ots receipt
+# to logs/anchors/ots/ for later verification with `ots verify`.
 on:
   workflow_dispatch:
     inputs:
