@@ -822,8 +822,11 @@ async function reloadConfig(){
 }
 
 // ── AUTO CONFIG POLL ────────────────────────────────────────
+// NOTE: `configShas` is declared once in the inline state block in index.html
+// (file path → sha, shared with fetchSha/writeChanges). Do NOT redeclare it
+// here — a duplicate top-level `const`/`let` in non-module scripts is a fatal
+// SyntaxError that aborts the whole inline script and blanks the panel.
 let _configPollTimer = null;
-const configShas = {};
 async function _startConfigPoll(){
   if(_configPollTimer) clearInterval(_configPollTimer);
   _configPollTimer = setInterval(async ()=>{
