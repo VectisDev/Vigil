@@ -203,3 +203,58 @@ async def get_metrics() -> Dict[str, Any]:
         "last_snapshot_seconds_ago": 30,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
+
+
+# ── OTS Receipt endpoints ───────────────────────────────────────────────────
+
+import glob as _glob
+from pathlib import Path as _Path
+from fastapi.responses import Response as _Response, JSONResponse as _JSONResponse
+
+_OTS_DIR = _Path(__file__).resolve().parents[4] / "logs" / "anchors" / "ots"
+
+
+@router.get("/ots/latest-meta")
+async def ots_latest_meta() -> Dict[str, Any]:
+    """Return metadata for the most recent OTS anchor (path, timestamp, hash prefix)."""
+    if not _OTS_DIR.exists():
+        return {"available": False, "reason": "no_anchors_yet"}
+    ots_files = sorted(_OTS_DIR.glob("*.ots"))
+    if not ots_files:
+        return {"available": False, "reason": "no_ots_files"}
+    latest = ots_files[-1]
+    meta_path = latest.with_suffix(".json")
+    meta: Dict[str, Any] = {}
+    if meta_path.exists():
+        import json as _json
+        try:
+            meta = _json.loads(meta_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {
+        "available": True,
+        "filename": latest.name,
+        "size_bytes": latest.stat().st_size,
+        "ts": latest.stem.split("_")[0] if "_" in latest.stem else "",
+        "hash_prefix": latest.stem.split("_")[1] if "_" in latest.stem else "",
+        "merkle_root": meta.get("merkle_root", ""),
+        "chain_length": meta.get("chain_length", 0),
+        "ots_status": meta.get("ots_status", ""),
+    }
+
+
+@router.get("/ots/latest.ots")
+async def ots_latest_download():
+    """Serve the most recent .ots receipt file for download."""
+    if not _OTS_DIR.exists():
+        return _JSONResponse({"error": "no_anchors_yet"}, status_code=404)
+    ots_files = sorted(_OTS_DIR.glob("*.ots"))
+    if not ots_files:
+        return _JSONResponse({"error": "no_ots_files"}, status_code=404)
+    latest = ots_files[-1]
+    content = latest.read_bytes()
+    return _Response(
+        content=content,
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{latest.name}"'},
+    )

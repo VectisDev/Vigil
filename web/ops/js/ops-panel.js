@@ -850,6 +850,30 @@ async function dispatchOtsAnchor(){
   }
 }
 
+// Download latest .ots receipt from the local API
+async function downloadOtsReceipt(){
+  const stat = document.getElementById('ots-anchor-stat');
+  const apiBase = (window.CENTINEL_API_BASE || '').replace(/\/$/, '');
+  if(!apiBase){ if(stat){ stat.textContent = 'API no disponible (panel sin backend).'; stat.style.color='var(--warn)'; } return; }
+  try {
+    // Check metadata first to show the filename in the status
+    const meta = await fetch(`${apiBase}/operator/ots/latest-meta`).then(r=>r.ok?r.json():null);
+    if(!meta || !meta.available){
+      if(stat){ stat.textContent = 'Aún no hay recibos .ots (ejecuta "Anclar ahora" primero).'; stat.style.color='var(--muted)'; }
+      return;
+    }
+    // Stream the file as a download
+    const a = document.createElement('a');
+    a.href = `${apiBase}/operator/ots/latest.ots`;
+    a.download = meta.filename || 'latest.ots';
+    a.click();
+    if(stat){ stat.textContent = `↓ ${meta.filename} (${meta.size_bytes} bytes)`; stat.style.color='var(--ok)'; }
+    if(typeof auditLog==='function') auditLog('OTS receipt downloaded', meta.filename, {msgid:'OTS_DOWNLOAD', severity:'INFO'});
+  } catch(e){
+    if(stat){ stat.textContent = `✗ ${String(e)}`; stat.style.color='var(--bad)'; }
+  }
+}
+
 // Manual test button (inside <details>) — delegates to probe + shows result text
 async function testOtsConnectivity(){
   const res = document.getElementById('ots-test-result');

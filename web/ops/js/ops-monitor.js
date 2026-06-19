@@ -1091,29 +1091,49 @@ function salaTab(tab) {
 }
 
 async function createSala() {
-  const arr = new Uint8Array(3);
+  // Generate 4-byte room code (8 hex chars)
+  const arr = new Uint8Array(4);
   crypto.getRandomValues(arr);
   _salaId = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
 
+  // Make sure the engine is running first
   let nodeId = '—', myUrl = '';
   try {
-    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/status');
-    if (r.ok) { const s = await r.json(); nodeId = s.node_id || '—'; myUrl = s.my_url || document.getElementById('swarm-my-url')?.value || ''; }
+    const sr = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/status');
+    if (sr.ok) { const s = await sr.json(); nodeId = s.node_id || '—'; myUrl = s.my_url || ''; }
   } catch(_) {}
 
-  // Simple invite string: URL if available, else just the code
-  const inviteStr = myUrl ? `${myUrl}#sala=${_salaId}` : _salaId;
-  const inviteObj = { sala_id: _salaId, node_id: nodeId, organizer_url: myUrl || null };
+  // Register room code with the backend so joiners can be validated
+  let roomRegistered = false;
+  if (myUrl) {
+    try {
+      const rr = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/room', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ room_code: _salaId })
+      });
+      roomRegistered = rr.ok;
+    } catch(_) {}
+  }
+
+  // Invite is a base64-encoded JSON blob so joiners can parse it reliably
+  const inviteObj = {
+    v: 1,
+    sala_id: _salaId,
+    node_id: nodeId,
+    organizer_url: myUrl || null,
+    registered: roomRegistered
+  };
+  const inviteB64 = btoa(JSON.stringify(inviteObj));
 
   const inp = document.getElementById('sala-invite-text');
-  if (inp) inp.value = inviteStr;
+  if (inp) inp.value = inviteB64;
   const box = document.getElementById('sala-invite-json');
   if (box) box.textContent = JSON.stringify(inviteObj, null, 2);
 
   document.getElementById('sala-pick').style.display = 'none';
   document.getElementById('sala-unirse-panel').style.display = 'none';
   document.getElementById('sala-crear-panel').style.display = '';
-  _addActivity('ok', `Enjambre creado — código ${_salaId}`, 'ahora');
+  _addActivity('ok', `Enjambre creado — código ${_salaId}${roomRegistered ? ' (registrado)' : ' (sin API)'}`, 'ahora');
 }
 
 function copyInviteText() {
@@ -1140,25 +1160,43 @@ async function joinSala() {
   const raw = (document.getElementById('sala-join-input')?.value || '').trim();
   if (!raw) { stat.textContent = 'Pega la invitación primero.'; stat.style.color = 'var(--bad)'; return; }
 
-  // Extract URL from invite string (may be URL#sala=code, plain URL, or raw JSON)
-  let targetUrl = '';
+  // Parse invite — supports: base64 JSON blob (v1), legacy JSON, legacy URL#sala=code
+  let invite = {};
   try {
-    const parsed = JSON.parse(raw);
-    targetUrl = parsed.organizer_url || '';
+    invite = JSON.parse(atob(raw));          // v1 base64 blob
   } catch(_) {
-    // Try as URL (strip #sala=… fragment)
-    try { targetUrl = new URL(raw).origin + new URL(raw).pathname; } catch(_) { targetUrl = raw; }
+    try { invite = JSON.parse(raw); }        // legacy plain JSON
+    catch(_) {
+      // legacy URL#sala=code
+      try {
+        const u = new URL(raw);
+        invite = { organizer_url: u.origin + u.pathname, sala_id: u.hash.replace('#sala=','') };
+      } catch(_) { invite = { organizer_url: raw }; }
+    }
   }
-  if (!targetUrl) { stat.textContent = 'No se pudo leer la invitación.'; stat.style.color = 'var(--bad)'; return; }
+
+  const peerUrl = invite.organizer_url || '';
+  const roomCode = invite.sala_id || '';
+  if (!peerUrl) { stat.textContent = 'No se pudo leer la URL del organizador.'; stat.style.color = 'var(--bad)'; return; }
+
+  // The joiner's own public URL (needed so the organizer can reach back to us)
+  const myUrl = (document.getElementById('sala-my-url-input')?.value || '').trim() || undefined;
 
   try {
+    const body = { peer_url: peerUrl };
+    if (myUrl)    body.my_url    = myUrl;
+    if (roomCode) body.room_code = roomCode;
+
     const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/connect', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ my_url: targetUrl }),
+      body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    stat.textContent = '✓ Conectado al enjambre.'; stat.style.color = 'var(--ok)';
-    _addActivity('ok', `Unido al enjambre de ${targetUrl}`, 'ahora');
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({}));
+      throw new Error(err.detail || 'HTTP ' + r.status);
+    }
+    stat.textContent = '✓ Conectado. Anunciando presencia al organizador…'; stat.style.color = 'var(--ok)';
+    _addActivity('ok', `Unido al enjambre de ${peerUrl}`, 'ahora');
     await loadSwarmStatus();
     _startSwarmPoll();
   } catch(e) {
