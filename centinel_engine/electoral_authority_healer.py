@@ -241,7 +241,7 @@ class ElectoralAuthorityHealer:
                 "skipped": True,
                 "reason": message,
                 "elapsed_minutes": elapsed_minutes,
-                "animal_mode": str(healing_cfg.get("animal_mode", "normal")),
+                "argos_protocol": str(healing_cfg.get("argos_protocol", healing_cfg.get("animal_mode", "normal"))),
                 "recommended_interval_minutes": int(healing_cfg.get("recommended_interval_minutes", healing_cfg.get("interval_minutes", 30))),
                 "trusted_for_production": bool(healing_cfg.get("trusted_for_production", False)),
                 "safe_mode_active": bool(healing_cfg.get("safe_mode_active", False)),
@@ -254,10 +254,10 @@ class ElectoralAuthorityHealer:
 
         prior_failures = int(healing_cfg.get("consecutive_failures", 0) or 0)
         consecutive_failures = 0 if scan_status == "success" else prior_failures + 1
-        animal_mode = self._resolve_animal_mode(consecutive_failures)
-        recommended_interval_minutes = self._recommended_interval_for_mode(animal_mode)
+        argos_protocol_mode = self._resolve_argos_protocol_mode(consecutive_failures)
+        recommended_interval_minutes = self._recommended_interval_for_mode(argos_protocol_mode)
         trusted_for_production = bool(scan_status == "success" and deep_validation_ok and completeness_ok)
-        safe_mode_active = (not trusted_for_production) or animal_mode == "survival"
+        safe_mode_active = (not trusted_for_production) or argos_protocol_mode == "survival"
         untrusted_reason = None if trusted_for_production else "deep_validation_or_completeness_failed"
 
         result.update(
@@ -267,7 +267,7 @@ class ElectoralAuthorityHealer:
                 "deep_validation_ok": deep_validation_ok,
                 "completeness_ok": completeness_ok,
                 "scan_status": scan_status,
-                "animal_mode": animal_mode,
+                "argos_protocol": argos_protocol_mode,
                 "recommended_interval_minutes": recommended_interval_minutes,
                 "consecutive_failures": consecutive_failures,
                 "trusted_for_production": trusted_for_production,
@@ -291,7 +291,7 @@ class ElectoralAuthorityHealer:
                 "last_scan_hash": scan_hash,
                 "last_scan_result": result,
                 "consecutive_failures": consecutive_failures,
-                "animal_mode": animal_mode,
+                "argos_protocol": argos_protocol_mode,
                 "recommended_interval_minutes": recommended_interval_minutes,
                 "trusted_for_production": trusted_for_production,
                 "safe_mode_active": safe_mode_active,
@@ -368,7 +368,8 @@ class ElectoralAuthorityHealer:
         config["healing"].setdefault("interval_minutes", 30)
         config["healing"].setdefault("last_successful_scan", None)
         config["healing"].setdefault("consecutive_failures", 0)
-        config["healing"].setdefault("animal_mode", "normal")
+        config["healing"].setdefault("argos_protocol", "normal")
+        config["healing"].setdefault("animal_mode", "normal")  # backward-compat: read by forensics_publisher
         config["healing"].setdefault("safe_mode_active", False)
         config["healing"].setdefault("trusted_for_production", False)
         config["healing"].setdefault("last_trusted_scan", None)
@@ -931,9 +932,9 @@ class ElectoralAuthorityHealer:
 
 
     @staticmethod
-    def _resolve_animal_mode(consecutive_failures: int) -> str:
-        """English: Map failure streak to Honey-Badger operational mode.
-        Español: Mapea racha de fallos al modo operativo Tejón (Honey-Badger).
+    def _resolve_argos_protocol_mode(consecutive_failures: int) -> str:
+        """English: Map failure streak to ARGOS Protocol operational mode.
+        Español: Mapea racha de fallos al modo operativo del Protocolo ARGOS.
         """
 
         if consecutive_failures >= HONEY_BADGER_THRESHOLDS["survival"]:
@@ -943,9 +944,16 @@ class ElectoralAuthorityHealer:
         return "normal"
 
     @staticmethod
+    def _resolve_animal_mode(consecutive_failures: int) -> str:
+        """Backward-compat alias for _resolve_argos_protocol_mode.
+        ponytail: remove once all callers use _resolve_argos_protocol_mode directly.
+        """
+        return ElectoralAuthorityHealer._resolve_argos_protocol_mode(consecutive_failures)
+
+    @staticmethod
     def _recommended_interval_for_mode(mode: str) -> int:
-        """English: Return recommended proactive interval for the selected animal mode.
-        Español: Devuelve intervalo proactivo recomendado para el modo animal seleccionado.
+        """English: Return recommended proactive interval for the selected ARGOS Protocol mode.
+        Español: Devuelve intervalo proactivo recomendado para el modo del Protocolo ARGOS.
         """
 
         return int(HONEY_BADGER_INTERVALS.get(mode, 30))

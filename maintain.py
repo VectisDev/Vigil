@@ -701,7 +701,7 @@ def ensure_recent_proactive_scan(logger: logging.Logger, max_age_minutes: int = 
                 "scan_status": "fresh",
                 "trusted_for_production": True,
                 "safe_mode_active": False,
-                "animal_mode": str(config.get("healing", {}).get("animal_mode", "normal")),
+                "argos_protocol": str(config.get("healing", {}).get("argos_protocol", config.get("healing", {}).get("animal_mode", "normal"))),
                 "recommended_interval_minutes": int(config.get("healing", {}).get("recommended_interval_minutes", config.get("healing", {}).get("interval_minutes", 30))),
             }
 
@@ -710,7 +710,7 @@ def ensure_recent_proactive_scan(logger: logging.Logger, max_age_minutes: int = 
     logger.info(
         "🧾 Proactive endpoint scan ejecutado: status=%s mode=%s interval=%s",
         result.get("scan_status", "unknown"),
-        result.get("animal_mode", "normal"),
+        result.get("argos_protocol", result.get("animal_mode", "normal")),
         result.get("recommended_interval_minutes", "n/a"),
     )
     return result
@@ -764,7 +764,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
             "⛔ Production fetch guardrail blocked command %s (status=%s mode=%s)",
             args.command,
             proactive_result.get("scan_status", "unknown"),
-            proactive_result.get("animal_mode", "unknown"),
+            proactive_result.get("argos_protocol", proactive_result.get("animal_mode", "unknown")),
         )
         return 1
 

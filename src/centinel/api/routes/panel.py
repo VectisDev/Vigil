@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional
 
 from fastapi import APIRouter, Query
 
-from centinel.core.animal_defenses import AnimalDefense
+from centinel.core.argos_protocol import ArgosLayer
 
 router = APIRouter(prefix="/operator", tags=["operator"])
 
@@ -28,7 +28,7 @@ async def get_panel(
     - 🟡 YELLOW: 31–74 (anomalía detectada)
     - 🔴 RED: ≥75 (amenaza activa)
 
-    **Defenses:**
+    **Protocolo ARGOS — Capas:**
     - 🐦 Corvid: Memoria distribuida
     - 🦑 Cephalopod: Cifrado tránsito
     - 🦌 Evasion: Jitter timing
@@ -53,18 +53,18 @@ async def get_panel(
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "defenses": {
             "corvid": {
-                "emoji": AnimalDefense.CORVID.emoji,
-                "name_es": AnimalDefense.CORVID.name_es,
-                "title_es": AnimalDefense.CORVID.title_es,
+                "emoji": ArgosLayer.CORVID.emoji,
+                "name_es": ArgosLayer.CORVID.name_es,
+                "title_es": ArgosLayer.CORVID.title_es,
                 "enabled": True,
                 "last_check_ts": 1715851800.0,
                 "last_attestation": "2m ago",
                 "siblings_online": 2,
             },
             "cephalopod": {
-                "emoji": AnimalDefense.CEPHALOPOD.emoji,
-                "name_es": AnimalDefense.CEPHALOPOD.name_es,
-                "title_es": AnimalDefense.CEPHALOPOD.title_es,
+                "emoji": ArgosLayer.CEPHALOPOD.emoji,
+                "name_es": ArgosLayer.CEPHALOPOD.name_es,
+                "title_es": ArgosLayer.CEPHALOPOD.title_es,
                 "enabled": True,
                 "last_check_ts": 1715851800.0,
                 "cipher": "chacha20poly1305",
@@ -72,9 +72,9 @@ async def get_panel(
                 "last_encrypted_messages": 2847,
             },
             "evasion": {
-                "emoji": AnimalDefense.EVASION.emoji,
-                "name_es": AnimalDefense.EVASION.name_es,
-                "title_es": AnimalDefense.EVASION.title_es,
+                "emoji": ArgosLayer.EVASION.emoji,
+                "name_es": ArgosLayer.EVASION.name_es,
+                "title_es": ArgosLayer.EVASION.title_es,
                 "enabled": True,
                 "last_check_ts": 1715851800.0,
                 "jitter_percent": 30,
@@ -82,9 +82,9 @@ async def get_panel(
                 "last_snapshot_seconds_ago": 30,
             },
             "regeneration": {
-                "emoji": AnimalDefense.REGENERATION.emoji,
-                "name_es": AnimalDefense.REGENERATION.name_es,
-                "title_es": AnimalDefense.REGENERATION.title_es,
+                "emoji": ArgosLayer.REGENERATION.emoji,
+                "name_es": ArgosLayer.REGENERATION.name_es,
+                "title_es": ArgosLayer.REGENERATION.title_es,
                 "enabled": True,
                 "last_check_ts": 1715851800.0,
                 "mirrors_online": 3,
@@ -92,9 +92,9 @@ async def get_panel(
                 "last_sync_hours_ago": 2,
             },
             "kill_switch": {
-                "emoji": AnimalDefense.KILL_SWITCH.emoji,
-                "name_es": AnimalDefense.KILL_SWITCH.name_es,
-                "title_es": AnimalDefense.KILL_SWITCH.title_es,
+                "emoji": ArgosLayer.KILL_SWITCH.emoji,
+                "name_es": ArgosLayer.KILL_SWITCH.name_es,
+                "title_es": ArgosLayer.KILL_SWITCH.title_es,
                 "status": "READY",
                 "activated": False,
                 "frozen_at": None,
@@ -136,17 +136,17 @@ async def get_panel(
 @router.get("/panel/defenses")
 async def get_defenses() -> Dict[str, Any]:
     """
-    Retorna estado detallado de todas las defensas animales.
-    (Return detailed status of all animal defenses.)
+    Retorna estado detallado de todas las capas del Protocolo ARGOS.
+    (Return detailed status of all ARGOS Protocol layers.)
     """
     defenses = {}
 
     for key, defense in {
-        "corvid": AnimalDefense.CORVID,
-        "cephalopod": AnimalDefense.CEPHALOPOD,
-        "evasion": AnimalDefense.EVASION,
-        "regeneration": AnimalDefense.REGENERATION,
-        "kill_switch": AnimalDefense.KILL_SWITCH,
+        "corvid": ArgosLayer.CORVID,
+        "cephalopod": ArgosLayer.CEPHALOPOD,
+        "evasion": ArgosLayer.EVASION,
+        "regeneration": ArgosLayer.REGENERATION,
+        "kill_switch": ArgosLayer.KILL_SWITCH,
     }.items():
         defenses[key] = {
             "emoji": defense.emoji,

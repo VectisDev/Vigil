@@ -168,7 +168,7 @@ async function loadSnapshot(){
 window.OPS_LANG = window.OPS_LANG || (localStorage.getItem('vigil-lang') || 'es');
 const I18N = {
   es: {
-    'card.sha':'Cadena SHA-256', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
+    'card.sha':'Cadena SHA-256', 'card.cb':'Circuit Breaker', 'card.animal':'Protocolo ARGOS',
     'card.benford':'Benford 1er dígito', 'card.zscore':'Z-Score máximo', 'card.ots':'OTS Bitcoin',
     'card.cpu':'CPU Watchdog', 'card.ram':'Memoria', 'card.attacks':'Ataques detectados',
     'card.endpoints':'Endpoints activos',
@@ -252,7 +252,7 @@ const I18N = {
     'swarm.sin_consenso':'Sin consenso aún — esperando que más nodos sincronicen', 'swarm.coinciden':'coinciden',
   },
   en: {
-    'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'Animal Mode',
+    'card.sha':'SHA-256 Chain', 'card.cb':'Circuit Breaker', 'card.animal':'ARGOS Protocol',
     'card.benford':'Benford 1st Digit', 'card.zscore':'Max Z-Score', 'card.ots':'OTS Bitcoin',
     'card.cpu':'CPU Watchdog', 'card.ram':'Memory', 'card.attacks':'Attacks Detected',
     'card.endpoints':'Active Endpoints',
@@ -419,8 +419,8 @@ function updateSensorCards(){
   const cbFail = cne.consecutive_failures || 0;
   setCard('cb', cbOpen?t('val.abierto'):t('val.cerrado'), `${cbFail} ${t('det.fallos_consecutivos')}`, cbOpen?100:0, cbOpen?'bad':'ok');
 
-  // Animal mode
-  const animal = ep?.healing?.animal_mode || 'normal';
+  // Protocolo ARGOS mode
+  const animal = ep?.healing?.argos_protocol || ep?.healing?.animal_mode || 'normal';
   const animalCls = {normal:'ok', caution:'warn', survival:'bad'}[animal]||'neutral';
   const animalLabel = {normal:t('badge.normal'), caution:t('badge.caution'), survival:t('badge.survival')}[animal] || animal.toUpperCase();
   setCard('animal', animalLabel, '', 0, animalCls, false);
@@ -668,7 +668,7 @@ function getEndpointUrl(code){
 
 function updateStatusBadges(){
   const ep = localConfig['config/prod/endpoints.yaml'] || {};
-  const animal = ep?.healing?.animal_mode || 'normal';
+  const animal = ep?.healing?.argos_protocol || ep?.healing?.animal_mode || 'normal';
   const safe   = ep?.healing?.safe_mode_active || false;
   const cne    = snapshotData?.cne_status || {};
   const cbOpen = (cne.consecutive_failures||0) >= 3;
@@ -702,7 +702,7 @@ function updateStatusBadges(){
 
 function _updateMissionBar() {
   const ep = localConfig['config/prod/endpoints.yaml'] || {};
-  const animal = ep?.healing?.animal_mode || 'normal';
+  const animal = ep?.healing?.argos_protocol || ep?.healing?.animal_mode || 'normal';
   const elMode = document.getElementById('tog-election')?.checked || false;
   const nodeEl = document.getElementById('swarm-m-nodos');
   const nodeCount = nodeEl ? nodeEl.textContent.trim() : '—';
