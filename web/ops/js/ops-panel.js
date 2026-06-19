@@ -1369,22 +1369,4 @@ function _initDevMode(){
   if(badge) badge.style.display = on ? 'inline-flex' : 'none';
 }
 
-// ══════════════════════════════════════════════════════════
-// THEME TOGGLE (dark/light)
-// ══════════════════════════════════════════════════════════
-function toggleTheme(){
-  document.body.classList.toggle('light-mode');
-  const light = document.body.classList.contains('light-mode');
-  try { localStorage.setItem('centinel-theme', light?'light':'dark'); } catch(_){}
-  const btn = document.getElementById('btn-theme-toggle');
-  if(btn) btn.textContent = light ? '☾' : '☀';
-}
-function _initTheme(){
-  try {
-    if(localStorage.getItem('centinel-theme')==='light'){
-      document.body.classList.add('light-mode');
-      const btn=document.getElementById('btn-theme-toggle');
-      if(btn) btn.textContent='☾';
-    }
-  } catch(_){}
-}
+// Theme is managed by setOpsTheme/toggleOpsTheme in index.html (data-theme on <html>)
