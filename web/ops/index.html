@@ -108,17 +108,23 @@
     <!-- SIDEBAR -->
     <nav id="sidebar">
       <div id="sidebar-nav">
-      <button class="sec-header phase-tab" data-phase-tab="estado" onclick="setView('estado')"><span data-lang="es">Estado</span><span data-lang="en">Status</span></button>
-      <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
-      <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
-      <button class="sec-header phase-tab" data-phase-tab="control" onclick="setView('control')"><span data-lang="es">Control</span><span data-lang="en">Control</span></button>
-      <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
-      <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
-      <button class="sec-header phase-tab" data-phase-tab="evidencia" onclick="setView('evidencia')"><span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span></button>
-      <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
-      <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
-      <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
-      <a href="#s8" onclick="scrollTo('s8')" class="election-only"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
+        <div class="sb-section" data-section="estado">
+          <button class="sec-header phase-tab" data-phase-tab="estado" onclick="setView('estado')"><span data-lang="es">Estado</span><span data-lang="en">Status</span></button>
+          <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
+          <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
+        </div>
+        <div class="sb-section" data-section="control">
+          <button class="sec-header phase-tab" data-phase-tab="control" onclick="setView('control')"><span data-lang="es">Control</span><span data-lang="en">Control</span></button>
+          <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
+          <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
+        </div>
+        <div class="sb-section" data-section="evidencia">
+          <button class="sec-header phase-tab" data-phase-tab="evidencia" onclick="setView('evidencia')"><span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span></button>
+          <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
+          <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
+          <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
+          <a href="#s8" onclick="scrollTo('s8')" class="election-only"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
+        </div>
       </div>
       <div id="sidebar-ops-zone">
         <div class="soz-sep"></div>
@@ -625,6 +631,14 @@
                 </div>
                 <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
                 <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+                  <button id="btn-ots-anchor-now" onclick="dispatchOtsAnchor()" class="hdr-btn primary"
+                    style="font-size:11px;padding:6px 12px"
+                    title="Dispara el workflow hash-chain-commit (workflow_dispatch). Requiere PAT con permisos de workflow.">
+                    ⛓ <span data-lang="es">Anclar ahora</span><span data-lang="en">Anchor now</span>
+                  </button>
+                  <span id="ots-anchor-stat" style="font-size:11px;color:var(--muted)"></span>
+                </div>
               </div>
               <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -1631,10 +1645,19 @@
     <div style="color:var(--bad);font-size:13px;font-weight:700;letter-spacing:.1em;margin-bottom:12px">
       ⚠ PARADA DE EMERGENCIA
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
-      Se activará el preset <strong style="color:var(--fg)">emergency</strong> de inmediato
-      y se aplicarán los cambios al sistema.<br>Esta acción no se puede deshacer automáticamente.
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+      <span data-lang="es">Esta acción <strong style="color:var(--fg)">no borra el repositorio</strong>. Hace lo siguiente:</span>
+      <span data-lang="en">This action <strong style="color:var(--fg)">does not wipe the repository</strong>. It does the following:</span>
     </p>
+    <ul style="font-size:11px;color:var(--muted);margin:0 0 14px 18px;line-height:1.6;padding:0">
+      <li><span data-lang="es">Aplica el preset <strong style="color:var(--fg)">emergency</strong> a la configuración.</span><span data-lang="en">Applies the <strong style="color:var(--fg)">emergency</strong> preset to the config.</span></li>
+      <li><span data-lang="es">Registra un evento <code style="font-family:var(--mono)">EMERGENCY_STOP</code> en el log VELE.</span><span data-lang="en">Writes an <code style="font-family:var(--mono)">EMERGENCY_STOP</code> entry to the VELE log.</span></li>
+      <li><span data-lang="es">Hace commit a GitHub (requiere PAT).</span><span data-lang="en">Commits to GitHub (requires PAT).</span></li>
+    </ul>
+    <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;font-size:11px;color:var(--muted);line-height:1.5;cursor:pointer">
+      <input type="checkbox" id="emg-dispatch-publish" style="margin-top:2px;flex-shrink:0">
+      <span><span data-lang="es">También disparar el workflow <code style="font-family:var(--mono)">emergency-publish</code> (publica snapshot estático ~60s).</span><span data-lang="en">Also dispatch <code style="font-family:var(--mono)">emergency-publish</code> workflow (publishes static snapshot ~60s).</span></span>
+    </label>
     <div id="emg-confirm-step1">
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="hdr-btn" onclick="closeEmergencyModal()">Cancelar</button>
