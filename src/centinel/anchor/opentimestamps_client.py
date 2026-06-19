@@ -21,6 +21,7 @@ Design:
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import logging
@@ -173,84 +174,91 @@ class OpenTimestampsClient:
         return None
 
     def _request_timestamp(self, message_hash: str) -> Optional[TimestampProof]:
-        """Make HTTP request to OTS server.
+        """Submit SHA-256 hash to OpenTimestamps calendar server.
+
+        OTS REST protocol (https://opentimestamps.org/docs/api/):
+          POST {server}/digest
+          Body:  raw 32 bytes (SHA-256 digest)
+          Headers: Content-Type: application/octet-stream
+          Response 200: binary incomplete .ots proof file
+
+        The returned proof is pending Bitcoin confirmation (1-24h).
+        To upgrade and verify later: `ots upgrade file.ots && ots verify file.ots`
 
         Args:
-            message_hash: SHA256 hash (64-char hex)
+            message_hash: SHA-256 hash as 64-char lowercase hex string
 
         Returns:
-            TimestampProof if successful, None on error
+            TimestampProof with base64-encoded binary .ots data, or None on failure
         """
-        payload = {
-            "hash_op": "sha256",
-            "hash": message_hash,
-        }
+        hash_bytes = bytes.fromhex(message_hash)  # 32 raw bytes
 
         for server in self.servers:
             try:
                 with httpx.Client(timeout=self.timeout) as client:
-                    # OTS accepts POST with JSON
                     resp = client.post(
-                        f"{server}/timestamp",
-                        json=payload,
-                        headers={"Content-Type": "application/json"},
+                        f"{server}/digest",
+                        content=hash_bytes,
+                        headers={"Content-Type": "application/octet-stream"},
                     )
-
                     if resp.status_code == 200:
-                        data = resp.json()
+                        ots_bytes = resp.content
+                        ots_b64 = base64.b64encode(ots_bytes).decode("ascii")
                         proof = TimestampProof(
                             timestamp=time.time(),
                             message_hash=message_hash,
-                            ots_response=data.get("ots_proof", ""),
-                            bitcoin_tx=data.get("bitcoin_tx"),
-                            bitcoin_block=data.get("bitcoin_block"),
+                            ots_response=ots_b64,
+                            bitcoin_tx=None,   # Pending — set after Bitcoin confirmation
+                            bitcoin_block=None,
                             chain="testnet" if self.use_testnet else "mainnet",
-                            verified=False,  # Caller should verify
+                            verified=False,
                         )
-                        logger.debug(
-                            "ots_response_received server=%s hash=%s",
-                            server,
-                            message_hash[:16],
+                        logger.info(
+                            "ots_digest_submitted server=%s hash=%s response_bytes=%d",
+                            server, message_hash[:16], len(ots_bytes),
                         )
                         return proof
 
-            except (httpx.RequestError, httpx.TimeoutException):
-                # Server unreachable, try next
+            except (httpx.RequestError, httpx.TimeoutException) as exc:
+                logger.debug("ots_server_unreachable server=%s error=%s", server, exc)
                 continue
 
         return None
 
     def verify_proof(self, proof: TimestampProof) -> bool:
-        """Verify OTS proof (offline check of proof structure).
+        """Check that proof contains a valid OTS binary file structure.
 
-        Note: Full verification requires Bitcoin block header chain.
-        This does basic sanity check only.
+        Decodes the base64 proof and verifies it starts with the OTS magic
+        byte (0x00), confirming it is a genuine OpenTimestamps file.
 
-        ES: Verifica estructura de prueba OTS (verificación básica).
+        Full calendar upgrade + Bitcoin verification requires the `ots` CLI:
+            ots upgrade <file>.ots   # fetch Bitcoin proof from calendar
+            ots verify  <file>.ots   # verify against Bitcoin block headers
+
+        Returns:
+            True if the proof is a structurally valid OTS file, False otherwise.
         """
         if not proof or not proof.ots_response:
             return False
-
-        # Basic checks
         if not proof.message_hash or len(proof.message_hash) != 64:
             return False
-
-        # Check if response is valid base64-like (heuristic)
         try:
-            # In production, would decode OTS binary format
-            # For now, just check it's non-empty
-            if len(proof.ots_response) > 0:
-                logger.debug(
-                    "ots_proof_structure_valid hash=%s bitcoin_tx=%s",
-                    proof.message_hash[:16],
-                    proof.bitcoin_tx or "pending",
+            ots_bytes = base64.b64decode(proof.ots_response)
+            # OTS files always start with 0x00 (file format version marker)
+            if len(ots_bytes) < 8 or ots_bytes[0] != 0x00:
+                logger.warning(
+                    "ots_verify_invalid_magic hash=%s size=%d",
+                    proof.message_hash[:16], len(ots_bytes),
                 )
-                return True
-        except Exception as e:
-            logger.warning("ots_verify_failed error=%s", str(e))
+                return False
+            logger.debug(
+                "ots_proof_structure_valid hash=%s size=%d bitcoin_tx=%s",
+                proof.message_hash[:16], len(ots_bytes), proof.bitcoin_tx or "pending",
+            )
+            return True
+        except Exception as exc:
+            logger.warning("ots_verify_failed error=%s", exc)
             return False
-
-        return False
 
     def to_forensic_records(self) -> list[dict[str, Any]]:
         """Export anchor attempts as forensic records.

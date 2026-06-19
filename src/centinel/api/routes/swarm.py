@@ -249,7 +249,9 @@ async def swarm_connect(request: Request) -> dict:
             raise HTTPException(status_code=403, detail="Invalid or expired room code")
 
     if _engine is not None and _engine._running:
-        # Engine already running — if a peer_url was given, still announce to them
+        # Engine already running — authorize sala URL and announce to peer
+        if peer_url and room_code:
+            _engine.authorize_sala_url(peer_url)
         if peer_url:
             asyncio.create_task(_engine.announce_to(peer_url))
         return {"status": "already_running", "node_id": _engine._node_id}
@@ -270,6 +272,10 @@ async def swarm_connect(request: Request) -> dict:
     except (asyncio.TimeoutError, asyncio.CancelledError):
         pass
 
+    # Authorize sala peer URL before announcing, so their first attestation is trusted
+    if peer_url and room_code:
+        _engine.authorize_sala_url(peer_url)
+
     # Direct peer introduction for sala joins
     if peer_url:
         asyncio.create_task(_engine.announce_to(peer_url))
@@ -279,6 +285,39 @@ async def swarm_connect(request: Request) -> dict:
 
     logger.info("swarm_connect country=%s my_url=%s peer_url=%s", _sl(country), _sl(my_url), _sl(peer_url or ""))
     return {"status": "connecting", "node_id": _engine._node_id, "country_code": country}
+
+
+@router.get("/api/swarm/node-id")
+async def swarm_node_id() -> dict:
+    """Return this node's ID and public key for sharing with trusted peers."""
+    if _engine is None or not _engine._running:
+        raise HTTPException(status_code=409, detail="Engine not running")
+    return {
+        "node_id": _engine._node_id,
+        "public_key_hex": _engine._pub_hex,
+        "my_url": _engine.my_url,
+        "trusted_nodes": _engine.get_trusted_nodes(),
+    }
+
+
+@router.post("/api/swarm/trust")
+async def swarm_trust_node(request: Request) -> dict:
+    """Manually add a node_id to the trusted set.
+
+    Body: {"node_id": "<64-char hex>"}
+    Use this to explicitly whitelist a peer after verifying their public key.
+    """
+    if _engine is None or not _engine._running:
+        raise HTTPException(status_code=409, detail="Engine not running")
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Request body must be valid JSON")
+    node_id = (body.get("node_id") or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{16,64}", node_id):
+        raise HTTPException(status_code=400, detail="node_id must be 16-64 hex characters")
+    _engine.trust_node(node_id)
+    return {"status": "trusted", "node_id": node_id, "total_trusted": len(_engine._trusted_node_ids)}
 
 
 @router.post("/api/swarm/disconnect")

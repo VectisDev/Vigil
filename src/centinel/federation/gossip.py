@@ -467,6 +467,14 @@ class GossipEngine:
         self._node_id: str = ""
         self._key_path: Optional[Path] = None
         self._running = False
+
+        # ── Swarm trust model ─────────────────────────────────────────────
+        # If _trusted_node_ids is non-empty, only these node_ids may push
+        # attestations. Empty set = open mode (any valid signature accepted).
+        # Sala-authorized URLs (peer_url from valid sala join) grant automatic
+        # trust on first contact, so operators don't need to pre-register.
+        self._trusted_node_ids: set[str] = set()
+        self._sala_authorized_urls: set[str] = set()
         # Soft rule specialization — derived deterministically from node_id once keypair loads.
         # Until the keypair is loaded, defaults to "general".
         self._specialization: str = "general"
@@ -575,6 +583,23 @@ class GossipEngine:
             return False
 
         node_id = payload.node_id
+
+        # Trust check: if a trusted set is configured, only accept known nodes.
+        # A sala-authorized URL grants trust on first contact (auto-whitelist).
+        if self._trusted_node_ids:
+            if node_id not in self._trusted_node_ids:
+                peer_url = (payload.my_url or "").rstrip("/")
+                if peer_url and peer_url in self._sala_authorized_urls:
+                    self._trusted_node_ids.add(node_id)
+                    self._sala_authorized_urls.discard(peer_url)  # one-time use
+                    logger.info(
+                        "gossip_sala_auto_trust node_id=%s url=%s",
+                        node_id, peer_url,
+                    )
+                else:
+                    logger.info("gossip_recv_untrusted node_id=%s", node_id)
+                    return False
+
         if hasattr(self, "_blocklist") and node_id in self._blocklist:
             logger.debug("gossip_recv_blocked node_id=%s", node_id)
             return False
@@ -987,6 +1012,31 @@ class GossipEngine:
         if ok:
             logger.info("gossip_announce_to peer_url=%s", peer_url)
         return ok if ok is not None else False
+
+    def trust_node(self, node_id: str) -> None:
+        """Add a node_id to the permanent trusted set.
+
+        Call this when an operator wants to explicitly whitelist a peer
+        (e.g. after verifying their public key out-of-band). Nodes added
+        here are accepted regardless of how they connect.
+        """
+        self._trusted_node_ids.add(node_id)
+        logger.info("gossip_trust_added node_id=%s total_trusted=%d", node_id, len(self._trusted_node_ids))
+
+    def authorize_sala_url(self, peer_url: str) -> None:
+        """Authorize a peer URL via sala room code.
+
+        Called by the API when a joiner presents a valid sala room code.
+        The first attestation that arrives from this URL is automatically
+        trusted and the node_id is promoted to the permanent trust set.
+        """
+        normalized = peer_url.rstrip("/")
+        self._sala_authorized_urls.add(normalized)
+        logger.info("gossip_sala_url_authorized url=%s", normalized)
+
+    def get_trusted_nodes(self) -> list[str]:
+        """Return list of currently trusted node_ids."""
+        return list(self._trusted_node_ids)
 
     async def _push_finding(self, base_url: str, finding: FindingPayload) -> bool:
         try:
