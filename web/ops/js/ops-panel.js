@@ -830,15 +830,15 @@ async function dispatchOtsAnchor(){
   if(btn){ btn.disabled = true; }
   if(stat){ stat.textContent = 'Disparando workflow…'; stat.style.color = 'var(--muted)'; }
   try {
-    const url = `${API_BASE}/actions/workflows/hash-chain-commit.yml/dispatches`;
+    const url = `${API_BASE}/actions/workflows/ots-anchor.yml/dispatches`;
     const r = await fetch(url, {
       method:'POST',
       headers:{ 'Authorization':`token ${pat}`, 'Accept':'application/vnd.github+json' },
-      body: JSON.stringify({ ref:'main' })
+      body: JSON.stringify({ ref:'main', inputs:{ reason:'manual-ots-anchor' } })
     });
     if(r.ok){
-      if(stat){ stat.textContent = '✓ Workflow disparado. El commit aparecerá en 1-2 min.'; stat.style.color = 'var(--ok)'; }
-      if(typeof auditLog==='function') auditLog('OTS anchor dispatched', 'hash-chain-commit', {msgid:'OTS_DISPATCH_OK', severity:'INFO'});
+      if(stat){ stat.textContent = '✓ Anclaje iniciado — el recibo .ots aparecerá en ~2 min.'; stat.style.color = 'var(--ok)'; }
+      if(typeof auditLog==='function') auditLog('OTS anchor dispatched', 'ots-anchor', {msgid:'OTS_DISPATCH_OK', severity:'INFO'});
     } else {
       const txt = await r.text().catch(()=>String(r.status));
       if(stat){ stat.textContent = `✗ HTTP ${r.status}: ${txt.slice(0,80)}`; stat.style.color = 'var(--bad)'; }

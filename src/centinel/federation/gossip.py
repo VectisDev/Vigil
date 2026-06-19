@@ -978,7 +978,7 @@ class GossipEngine:
         The peer adds us to its routing table and will include us in future
         fan-outs. Use this for direct sala-based peer introductions.
         """
-        payload_dict = self.get_checkpoint()
+        payload_dict = self.build_my_attestation()
         try:
             payload = NodePayload.from_dict(payload_dict)
         except Exception:
@@ -986,8 +986,7 @@ class GossipEngine:
         ok = await self._push_payload(peer_url.rstrip("/"), payload)
         if ok:
             logger.info("gossip_announce_to peer_url=%s", peer_url)
-        return ok
-            return False
+        return ok if ok is not None else False
 
     async def _push_finding(self, base_url: str, finding: FindingPayload) -> bool:
         try:
