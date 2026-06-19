@@ -1,0 +1,63 @@
+name: OTS Anchor
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual anchor (logged in metadata)'
+        required: false
+        default: 'manual-ots-anchor'
+
+permissions:
+  contents: write
+
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Stamp chain root to Bitcoin via OpenTimestamps
+        id: stamp
+        run: |
+          python scripts/ots_stamp_chain.py && echo "anchored=true" >> $GITHUB_OUTPUT || echo "anchored=false" >> $GITHUB_OUTPUT
+
+      - name: Commit OTS receipt to repository
+        run: |
+          git config user.name "vigil-ots-bot"
+          git config user.email "vigil@users.noreply.github.com"
+          git add logs/anchors/ots/
+          if git diff --staged --quiet; then
+            echo "No new OTS files to commit."
+          else
+            git commit -m "chore(ots): anchor chain to Bitcoin via OpenTimestamps [skip ci]
+
+Reason: ${{ github.event.inputs.reason }}
+Anchored: ${{ steps.stamp.outputs.anchored }}
+Triggered by: ${{ github.actor }}"
+            git push origin main
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## OTS Anchor Result" >> $GITHUB_STEP_SUMMARY
+          echo "- **Anchored to Bitcoin:** ${{ steps.stamp.outputs.anchored }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reason:** ${{ github.event.inputs.reason }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files:** \`logs/anchors/ots/\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Bitcoin confirmation takes 1–24 hours. Verify with: \`ots verify <file>.ots\`" >> $GITHUB_STEP_SUMMARY
