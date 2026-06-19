@@ -637,6 +637,11 @@
                     title="Dispara el workflow hash-chain-commit (workflow_dispatch). Requiere PAT con permisos de workflow.">
                     ⛓ <span data-lang="es">Anclar ahora</span><span data-lang="en">Anchor now</span>
                   </button>
+                  <button id="btn-ots-download" onclick="downloadOtsReceipt()" class="hdr-btn"
+                    style="font-size:11px;padding:6px 12px"
+                    title="Descargar el recibo .ots más reciente para verificación independiente">
+                    ↓ <span data-lang="es">Descargar .ots</span><span data-lang="en">Download .ots</span>
+                  </button>
                   <span id="ots-anchor-stat" style="font-size:11px;color:var(--muted)"></span>
                 </div>
               </div>
@@ -1122,11 +1127,18 @@
             </div>
           </div>
           <div id="sala-unirse-panel" style="display:none">
-            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:10px">
               <span data-lang="es">Pega aquí la invitación que te compartieron.</span><span data-lang="en">Paste the invitation you were given here.</span>
             </p>
-            <div style="display:flex;gap:8px;align-items:stretch">
+            <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:8px">
               <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…" data-ph-es="Pega la invitación aquí…" data-ph-en="Paste the invitation here…"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">
+              <span data-lang="es">Tu URL pública (para que el organizador te encuentre):</span><span data-lang="en">Your public URL (so the organizer can reach you):</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input type="text" id="sala-my-url-input" placeholder="https://mi-nodo.example.com" data-ph-es="https://mi-nodo.example.com" data-ph-en="https://my-node.example.com"
                 style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
               <button class="hdr-btn primary" onclick="joinSala()"><span data-lang="es">Unirse →</span><span data-lang="en">Join →</span></button>
             </div>
