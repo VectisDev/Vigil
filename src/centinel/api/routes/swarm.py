@@ -197,11 +197,10 @@ async def swarm_create_room(request: Request) -> dict:
     if _engine is None or not _engine._running:
         raise HTTPException(status_code=409, detail="Start the swarm engine first (POST /api/swarm/connect)")
 
-    body: dict = {}
     try:
-        body = await request.json()
+        body: dict = await request.json()
     except Exception:
-        pass
+        raise HTTPException(status_code=400, detail="Request body must be valid JSON")
 
     room_code: str = (body.get("room_code") or "").strip().lower()
     if not room_code or len(room_code) < 4:

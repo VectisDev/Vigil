@@ -207,7 +207,6 @@ async def get_metrics() -> Dict[str, Any]:
 
 # ── OTS Receipt endpoints ───────────────────────────────────────────────────
 
-import glob as _glob
 from pathlib import Path as _Path
 from fastapi.responses import Response as _Response, JSONResponse as _JSONResponse
 
@@ -225,12 +224,13 @@ async def ots_latest_meta() -> Dict[str, Any]:
     latest = ots_files[-1]
     meta_path = latest.with_suffix(".json")
     meta: Dict[str, Any] = {}
+    meta_error: str | None = None
     if meta_path.exists():
         import json as _json
         try:
             meta = _json.loads(meta_path.read_text(encoding="utf-8"))
-        except Exception:
-            pass
+        except Exception as exc:
+            meta_error = str(exc)
     return {
         "available": True,
         "filename": latest.name,
@@ -240,6 +240,7 @@ async def ots_latest_meta() -> Dict[str, Any]:
         "merkle_root": meta.get("merkle_root", ""),
         "chain_length": meta.get("chain_length", 0),
         "ots_status": meta.get("ots_status", ""),
+        **({"meta_error": meta_error} if meta_error else {}),
     }
 
 
