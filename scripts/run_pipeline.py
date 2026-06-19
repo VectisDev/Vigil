@@ -881,7 +881,9 @@ def _anchor_snapshot(
         ots_dir.mkdir(parents=True, exist_ok=True)
         ts_slug = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         ots_path = ots_dir / f"{ts_slug}_{root_hash[:12]}.ots"
-        ots_path.write_text(str(checkpoint.get("ots_proof", "")), encoding="utf-8")
+        import base64 as _b64
+        ots_b64 = checkpoint.get("ots_proof", "")
+        ots_path.write_bytes(_b64.b64decode(ots_b64) if ots_b64 else b"")
         proof_meta = ots_dir / f"{ts_slug}_{root_hash[:12]}.json"
         proof_meta.write_text(json.dumps(checkpoint, indent=2, default=str), encoding="utf-8")
         logger.info(
