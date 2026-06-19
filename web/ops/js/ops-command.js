@@ -20,10 +20,6 @@ function setView(phase, opts){
     b.classList.toggle('active', b.dataset.phaseTab===phase);
   });
   document.querySelectorAll('#sidebar a').forEach(a=>{
-    const href = a.getAttribute('href')||'';
-    const target = document.querySelector(href.startsWith('#')?'['+'id="'+href.slice(1)+'"]':href);
-    const inPhase = target && target.closest('[data-phase]')?.dataset.phase===phase;
-    a.classList.toggle('phase-hidden', !inPhase);
     a.classList.remove('active');
   });
   if(opts.scroll!==false){
@@ -264,7 +260,6 @@ function _ceilingFeedback(key, requested, clamped){
 
 // ── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
-  if(typeof _initTheme==='function') _initTheme();
   if(typeof _initDevMode==='function') _initDevMode();
   _initView();
   // input listener for palette

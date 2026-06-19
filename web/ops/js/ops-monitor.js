@@ -823,7 +823,7 @@ async function reloadConfig(){
 
 // ── AUTO CONFIG POLL ────────────────────────────────────────
 let _configPollTimer = null;
-const configShas = {};
+// configShas is declared globally in index.html — do not redeclare here
 async function _startConfigPoll(){
   if(_configPollTimer) clearInterval(_configPollTimer);
   _configPollTimer = setInterval(async ()=>{
