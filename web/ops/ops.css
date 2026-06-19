@@ -827,8 +827,16 @@ body[data-ops-view="evidencia"] #main-area .section[data-phase="evidencia"]{disp
   background:rgba(var(--accent-tint),.08)}
 #sidebar a.phase-hidden{display:none}
 
+/* Sidebar visual sections — group each phase + its sub-links */
+#sidebar .sb-section{padding:4px 0 8px;border-top:1px solid var(--border)}
+#sidebar .sb-section:first-child{border-top:none}
+#sidebar .sb-section[data-section="estado"] .phase-tab.active{border-left-color:var(--ok)}
+#sidebar .sb-section[data-section="control"] .phase-tab.active{border-left-color:var(--accent)}
+#sidebar .sb-section[data-section="evidencia"] .phase-tab.active{border-left-color:var(--purple)}
+
 /* On mobile the sidebar becomes a horizontal bar — keep phase tabs visible */
 @media (max-width:1024px){
+  #sidebar .sb-section{border-top:none;display:inline-block;padding:0}
   #sidebar button.phase-tab{display:inline-block!important;width:auto;
     padding:8px 12px;font-size:11px;border-left:none;border-bottom:2px solid transparent}
   #sidebar button.phase-tab.active{border-left:none;border-bottom-color:var(--accent)}

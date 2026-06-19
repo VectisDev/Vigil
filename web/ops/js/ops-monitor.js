@@ -524,10 +524,35 @@ function emergencyStep2() {
 }
 function executeEmergency() {
   auditLog('EMERGENCIA activada', '', {msgid:'EMERGENCY_STOP', severity:'EMERGENCY'});
+  const dispatchPublish = document.getElementById('emg-dispatch-publish')?.checked;
   closeEmergencyModal();
   loadPreset('emergency');
   markDirty();
   applyChanges();
+  if(dispatchPublish) _dispatchEmergencyPublish();
+}
+
+async function _dispatchEmergencyPublish(){
+  const pat = localStorage.getItem('gh-pat');
+  if(!pat){
+    auditLog('emergency-publish dispatch skipped', 'no PAT', {msgid:'EMERGENCY_DISPATCH_SKIP', severity:'WARNING'});
+    return;
+  }
+  try {
+    const url = `${API_BASE}/actions/workflows/emergency-publish.yml/dispatches`;
+    const r = await fetch(url, {
+      method:'POST',
+      headers:{ 'Authorization':`token ${pat}`, 'Accept':'application/vnd.github+json' },
+      body: JSON.stringify({ ref:'main', inputs:{ reason:'panel_emergency_button' } })
+    });
+    if(r.ok){
+      auditLog('emergency-publish dispatched', 'workflow_dispatch', {msgid:'EMERGENCY_DISPATCH_OK', severity:'EMERGENCY'});
+    } else {
+      auditLog('emergency-publish dispatch failed', `HTTP ${r.status}`, {msgid:'EMERGENCY_DISPATCH_FAIL', severity:'WARNING'});
+    }
+  } catch(e){
+    auditLog('emergency-publish dispatch error', String(e), {msgid:'EMERGENCY_DISPATCH_ERR', severity:'WARNING'});
+  }
 }
 
 async function saveElectoralUrl() {

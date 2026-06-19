@@ -818,6 +818,38 @@ function onOtsToggle(){
   }
 }
 
+// On-demand anchor: dispatches the hash-chain-commit workflow via GitHub API.
+async function dispatchOtsAnchor(){
+  const stat = document.getElementById('ots-anchor-stat');
+  const btn  = document.getElementById('btn-ots-anchor-now');
+  const pat  = localStorage.getItem('gh-pat');
+  if(!pat){
+    if(stat){ stat.textContent = 'PAT requerido para disparar el workflow.'; stat.style.color = 'var(--warn)'; }
+    return;
+  }
+  if(btn){ btn.disabled = true; }
+  if(stat){ stat.textContent = 'Disparando workflow…'; stat.style.color = 'var(--muted)'; }
+  try {
+    const url = `${API_BASE}/actions/workflows/hash-chain-commit.yml/dispatches`;
+    const r = await fetch(url, {
+      method:'POST',
+      headers:{ 'Authorization':`token ${pat}`, 'Accept':'application/vnd.github+json' },
+      body: JSON.stringify({ ref:'main' })
+    });
+    if(r.ok){
+      if(stat){ stat.textContent = '✓ Workflow disparado. El commit aparecerá en 1-2 min.'; stat.style.color = 'var(--ok)'; }
+      if(typeof auditLog==='function') auditLog('OTS anchor dispatched', 'hash-chain-commit', {msgid:'OTS_DISPATCH_OK', severity:'INFO'});
+    } else {
+      const txt = await r.text().catch(()=>String(r.status));
+      if(stat){ stat.textContent = `✗ HTTP ${r.status}: ${txt.slice(0,80)}`; stat.style.color = 'var(--bad)'; }
+    }
+  } catch(e){
+    if(stat){ stat.textContent = `✗ ${String(e)}`; stat.style.color = 'var(--bad)'; }
+  } finally {
+    if(btn) setTimeout(()=>{ btn.disabled = false; }, 3000);
+  }
+}
+
 // Manual test button (inside <details>) — delegates to probe + shows result text
 async function testOtsConnectivity(){
   const res = document.getElementById('ots-test-result');
