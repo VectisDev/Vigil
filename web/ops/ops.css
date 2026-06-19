@@ -942,22 +942,6 @@ kbd{display:inline-block;background:var(--panel2);border:1px solid var(--border)
 .global-status-banner.warn { background: rgba(var(--warn-tint),.15); color: var(--warn); border: 1px solid rgba(var(--warn-tint),.4); }
 .global-status-banner.bad { background: rgba(var(--bad-tint),.15); color: var(--bad); border: 1px solid rgba(var(--bad-tint),.4); }
 
-/* Dev toggle button */
-.dev-toggle-btn, .theme-toggle-btn {
-  background: none; border: 1px solid var(--border); color: var(--muted);
-  border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer;
-  font-family: var(--mono); transition: all .2s;
-}
-.dev-toggle-btn:hover, .theme-toggle-btn:hover { color: var(--fg); border-color: var(--accent); }
-.dev-mode .dev-toggle-btn { color: var(--accent); border-color: var(--accent); }
-
-/* DEV badge */
-.dev-badge {
-  display: none; background: var(--accent); color: #fff;
-  font-size: 9px; font-weight: 700; letter-spacing: .1em;
-  padding: 2px 5px; border-radius: 3px; font-family: var(--mono);
-}
-
 /* PAT onboarding banner */
 #pat-onboarding {
   background: rgba(var(--warn-tint),.1); border: 1px solid rgba(var(--warn-tint),.3);
