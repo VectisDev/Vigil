@@ -42,30 +42,30 @@ jobs:
           python scripts/ots_stamp_chain.py && echo "anchored=true" >> $GITHUB_OUTPUT || echo "anchored=false" >> $GITHUB_OUTPUT
 
       - name: Commit OTS receipt to repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REASON: ${{ github.event.inputs.reason || 'push-triggered-anchor' }}
+          ANCHORED: ${{ steps.stamp.outputs.anchored }}
         run: |
-          REASON="${{ github.event.inputs.reason }}"
-          REASON="${REASON:-push-triggered-anchor}"
           git config user.name "vigil-ots-bot"
           git config user.email "vigil@users.noreply.github.com"
           git add logs/anchors/ots/
           if git diff --staged --quiet; then
             echo "No new OTS files to commit."
           else
-            git commit -m "chore(ots): anchor chain to Bitcoin via OpenTimestamps [skip ci]
-
-Reason: ${REASON}
-Anchored: ${{ steps.stamp.outputs.anchored }}
-Triggered by: ${{ github.actor }}"
+            git commit -m "$(printf 'chore(ots): anchor chain to Bitcoin via OpenTimestamps [skip ci]\n\nReason: %s\nAnchored: %s\nTriggered by: %s' "${REASON}" "${ANCHORED}" "${{ github.actor }}")"
             git push origin main
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Summary
+        env:
+          ANCHORED: ${{ steps.stamp.outputs.anchored }}
+          REASON: ${{ github.event.inputs.reason || 'push-triggered-anchor' }}
         run: |
           echo "## OTS Anchor Result" >> $GITHUB_STEP_SUMMARY
-          echo "- **Anchored to Bitcoin:** ${{ steps.stamp.outputs.anchored }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Anchored to Bitcoin:** ${ANCHORED}" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reason:** ${REASON}" >> $GITHUB_STEP_SUMMARY
           echo "- **Files:** \`logs/anchors/ots/\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Bitcoin confirmation takes 1-24 hours. Verify with: \`ots verify <file>.ots\`" >> $GITHUB_STEP_SUMMARY
