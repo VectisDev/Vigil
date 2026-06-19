@@ -1,8 +1,8 @@
 name: OTS Anchor
-# v2 — re-registered to activate workflow_dispatch trigger
-# Manually-triggered workflow to anchor the current hash chain root to
-# Bitcoin via OpenTimestamps public calendars. Commits the .ots receipt
-# to logs/anchors/ots/ for later verification with `ots verify`.
+
+# Anchor the current hash chain root to Bitcoin via OpenTimestamps.
+# Triggered manually (workflow_dispatch) or by pushing to logs/triggers/ots-anchor.
+# Commits the .ots receipt to logs/anchors/ots/ for later verification with `ots verify`.
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +10,9 @@ on:
         description: 'Reason for manual anchor (logged in metadata)'
         required: false
         default: 'manual-ots-anchor'
+  push:
+    paths:
+      - 'logs/triggers/ots-anchor'
 
 permissions:
   contents: write
@@ -40,6 +43,8 @@ jobs:
 
       - name: Commit OTS receipt to repository
         run: |
+          REASON="${{ github.event.inputs.reason }}"
+          REASON="${REASON:-push-triggered-anchor}"
           git config user.name "vigil-ots-bot"
           git config user.email "vigil@users.noreply.github.com"
           git add logs/anchors/ots/
@@ -48,7 +53,7 @@ jobs:
           else
             git commit -m "chore(ots): anchor chain to Bitcoin via OpenTimestamps [skip ci]
 
-Reason: ${{ github.event.inputs.reason }}
+Reason: ${REASON}
 Anchored: ${{ steps.stamp.outputs.anchored }}
 Triggered by: ${{ github.actor }}"
             git push origin main
@@ -60,7 +65,7 @@ Triggered by: ${{ github.actor }}"
         run: |
           echo "## OTS Anchor Result" >> $GITHUB_STEP_SUMMARY
           echo "- **Anchored to Bitcoin:** ${{ steps.stamp.outputs.anchored }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Reason:** ${{ github.event.inputs.reason }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Files:** \`logs/anchors/ots/\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Bitcoin confirmation takes 1–24 hours. Verify with: \`ots verify <file>.ots\`" >> $GITHUB_STEP_SUMMARY
+          echo "Bitcoin confirmation takes 1-24 hours. Verify with: \`ots verify <file>.ots\`" >> $GITHUB_STEP_SUMMARY
