@@ -8,10 +8,10 @@
 // ══════════════════════════════════════════════════════════
 
 // ── PHASE VIEW ROUTER ──────────────────────────────────────
-const OPS_PHASES = ['vigilar','configurar','verificar','cerrar'];
+const OPS_PHASES = ['estado','control','evidencia'];
 
 function setView(phase, opts){
-  if(!OPS_PHASES.includes(phase)) phase = 'vigilar';
+  if(!OPS_PHASES.includes(phase)) phase = OPS_PHASES[0];
   opts = opts || {};
   document.body.dataset.opsView = phase;
   try { localStorage.setItem('ops-view', phase); } catch(_){}
@@ -33,8 +33,8 @@ function setView(phase, opts){
 }
 
 function _initView(){
-  let v = 'vigilar';
-  try { v = localStorage.getItem('ops-view') || 'vigilar'; } catch(_){}
+  let v = OPS_PHASES[0];
+  try { v = localStorage.getItem('ops-view') || OPS_PHASES[0]; } catch(_){}
   setView(v, {scroll:false});
 }
 
@@ -44,10 +44,9 @@ function _buildOpsActions(){
   const A = [];
   const push = (id,label,hint,run)=>A.push({id,label,hint,run});
   // Navigation
-  push('view-vigilar','Ir a Vigilar','Vista de monitoreo',()=>setView('vigilar'));
-  push('view-configurar','Ir a Configurar','Presets y config',()=>setView('configurar'));
-  push('view-verificar','Ir a Verificar','OTS, AWS, manual',()=>setView('verificar'));
-  push('view-cerrar','Ir a Cerrar elección','Cierre electoral',()=>setView('cerrar'));
+  push('view-estado','Ir a Estado','Panel de control y red de nodos',()=>setView('estado'));
+  push('view-control','Ir a Control','Presets y acceso',()=>setView('control'));
+  push('view-evidencia','Ir a Evidencia','OTS, logs, manual, cierre',()=>setView('evidencia'));
   // Operations
   push('start','Iniciar monitoreo','Arranca el pipeline',()=>doIniciar());
   push('finish','Finalizar ciclo','Detiene el monitoreo',()=>openFinalizeModal());
@@ -58,7 +57,7 @@ function _buildOpsActions(){
   // Presets
   try {
     [...FACTORY_PRESETS, ...(customPresets||[])].forEach(p=>{
-      push('preset-'+p.id, 'Preset: '+p.name, p.desc||'', ()=>{ setView('configurar',{scroll:false}); loadPreset(p.id); });
+      push('preset-'+p.id, 'Preset: '+p.name, p.desc||'', ()=>{ setView('control',{scroll:false}); loadPreset(p.id); });
     });
   } catch(_){}
   // AWS S3 Mirror
@@ -130,6 +129,8 @@ function _isTyping(el){
 }
 
 document.addEventListener('keydown', function(e){
+  // Ctrl/Cmd+Shift+D toggles dev mode
+  if((e.ctrlKey||e.metaKey) && e.shiftKey && (e.key==='d'||e.key==='D')){ e.preventDefault(); if(typeof toggleDevMode==='function') toggleDevMode(); return; }
   // Ctrl/Cmd+K always opens the palette, even from a field
   if((e.ctrlKey||e.metaKey) && (e.key==='k'||e.key==='K')){
     e.preventDefault(); openCmdPalette(); return;
@@ -145,10 +146,9 @@ document.addEventListener('keydown', function(e){
   if(_isTyping(document.activeElement)) return;       // don't hijack typing
   if(e.ctrlKey||e.metaKey||e.altKey) return;
   switch(e.key){
-    case '1': setView('vigilar'); break;
-    case '2': setView('configurar'); break;
-    case '3': setView('verificar'); break;
-    case '4': setView('cerrar'); break;
+    case '1': setView('estado'); break;
+    case '2': setView('control'); break;
+    case '3': setView('evidencia'); break;
     case 's': case 'S': doIniciar(); break;
     case 'f': case 'F': openFinalizeModal(); break;
     case 'e': case 'E': openEmergencyModal(); break;
@@ -170,7 +170,7 @@ function openSetupWizard(){
 function closeSetupWizard(){ const o=document.getElementById('setup-wizard'); if(o) o.style.display='none'; }
 function wizNext(){ if(_wizStep<_WIZ_TOTAL){ _wizStep++; _renderWizStep(); } }
 function wizPrev(){ if(_wizStep>1){ _wizStep--; _renderWizStep(); } }
-function wizFinish(){ closeSetupWizard(); setView('vigilar',{scroll:false}); try { doIniciar(); } catch(e){ console.warn('wizFinish',e); } }
+function wizFinish(){ closeSetupWizard(); setView('estado',{scroll:false}); try { doIniciar(); } catch(e){ console.warn('wizFinish',e); } }
 
 function _renderWizStep(){
   for(let i=1;i<=_WIZ_TOTAL;i++){
@@ -264,6 +264,8 @@ function _ceilingFeedback(key, requested, clamped){
 
 // ── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
+  if(typeof _initTheme==='function') _initTheme();
+  if(typeof _initDevMode==='function') _initDevMode();
   _initView();
   // input listener for palette
   const inp = document.getElementById('cmd-input');
