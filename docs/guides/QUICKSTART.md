@@ -76,12 +76,12 @@ jq '.[] | select(.event == "threat_score")' hashes/attack_log.jsonl | tail -20
 
 ---
 
-## Las 5 Defensas Animales (1 minuto)
+## Protocolo ARGOS — 5 Capas de Defensa (1 minuto)
 
-Centinel usa 5 defensas independientes:
+Centinel implementa el Protocolo ARGOS: 5 capas independientes:
 
-| Animal | Defensa | Protege Contra |
-|--------|---------|---|
+| Capa | Nombre | Protege Contra |
+|------|--------|---|
 | 🐦 Cuervo | Memoria distribuida | Testigo único vulnerable |
 | 🦑 Pulpo | Cifrado tránsito | MITM en red |
 | 🦌 Venado | Timing impredecible | Predicción de capturas |
@@ -90,7 +90,7 @@ Centinel usa 5 defensas independientes:
 
 **Estado actual:** Todas activas ✓
 
-→ [Explicación completa](ANIMAL-DEFENSES-ES.md)
+→ [Explicación completa](ARGOS-PROTOCOL-ES.md)
 
 ---
 
@@ -135,11 +135,11 @@ centinel-engine/
 │   └── recovery_state.json       ← Estado de recuperación
 ├── src/centinel/core/
 │   ├── kill_switch.py            ← Tejón (freeze + recovery)
-│   ├── animal_defenses.py        ← Enum de 5 defensas
+│   ├── argos_protocol.py         ← Protocolo ARGOS — enum de 5 capas
 │   └── ...
 └── docs/
     ├── QUICKSTART.md             ← Este archivo
-    ├── ANIMAL-DEFENSES-ES.md     ← Explicación detallada
+    ├── ARGOS-PROTOCOL-ES.md      ← Protocolo ARGOS — explicación detallada
     ├── OPERATOR-PANEL.md         ← Cómo leer el panel
     ├── OPERATOR-RUNBOOKS.md      ← Qué hacer en cada caso
     ├── ARCHITECTURE.md           ← Deep-dive técnico
@@ -202,7 +202,7 @@ Audita el código, no confíes solo en Centinel.
 | Recurso | Para Quién |
 |---------|-----------|
 | **QUICKSTART.md** (este) | Primeros 5 min, operadores |
-| **ANIMAL-DEFENSES-ES.md** | Entender cada defensa |
+| **ARGOS-PROTOCOL-ES.md** | Protocolo ARGOS — entender cada capa |
 | **OPERATOR-PANEL.md** | Leer panel + colores |
 | **OPERATOR-RUNBOOKS.md** | Qué hacer en cada escenario |
 | **ARCHITECTURE.md** | Deep-dive: teoremas T1–T4 |

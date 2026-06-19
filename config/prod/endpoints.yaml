@@ -1,7 +1,7 @@
 healing:
   interval_minutes: 10
   safe_mode_active: false
-  animal_mode: normal
+  argos_protocol: normal
 cne:
   main_url: https://resultadosgenerales2025.cne.hn/api/presidencial/nacional
   presidential_endpoints:

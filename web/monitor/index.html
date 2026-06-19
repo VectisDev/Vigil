@@ -2281,7 +2281,7 @@ function renderEndpointHealth(eh){
   const epWarn=ep?ep.status==='degraded':(eh.degraded>0);
   const dotCls=epOk?'dot-ok':epWarn?'dot-warn':'dot-bad';
   const badgeCls=epOk?'badge-ok':epWarn?'badge-warn':'badge-bad';
-  const mode=(eh.animal_mode||'?').toUpperCase();
+  const mode=(eh.argos_protocol||eh.animal_mode||'?').toUpperCase();
   nb.className=`badge ${badgeCls}`;
   nb.innerHTML=`<span class="dot ${dotCls}"></span>CNE ${mode}`;
   nb.hidden=false;
@@ -2315,7 +2315,8 @@ function renderEndpointHealth(eh){
     grid.appendChild(row);
   });
   const ts=eh.checked_at?`Verificado ${ago(eh.checked_at)}`:'';
-  const modeStr=eh.animal_mode&&eh.animal_mode!=='normal'?` · Modo ${eh.animal_mode.toUpperCase()}`:'';
+  const _argosMode=eh.argos_protocol||eh.animal_mode;
+  const modeStr=_argosMode&&_argosMode!=='normal'?` · Protocolo ARGOS ${_argosMode.toUpperCase()}`:'';
   if(footer)footer.textContent=ts+modeStr;
 }
 function _clearEpCard(msg){

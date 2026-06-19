@@ -61,10 +61,10 @@ function _buildOpsActions(){
       push('preset-'+p.id, 'Preset: '+p.name, p.desc||'', ()=>{ setView('configurar',{scroll:false}); loadPreset(p.id); });
     });
   } catch(_){}
-  // AWS
-  if(typeof exportAwsReceipt==='function') push('aws-receipt','AWS: exportar recibo','Proyección de costos',()=>exportAwsReceipt());
-  if(typeof exportGrantDocument==='function') push('aws-grant','AWS: solicitud de grant','Documento para AWS Activate / Imagine Grant',()=>exportGrantDocument());
-  if(typeof verifyAwsReadiness==='function') push('aws-ready','AWS: verificar preparación','Chequeo sin gasto',()=>{ setView('verificar',{scroll:false}); scrollTo('s-aws'); verifyAwsReadiness(); });
+  // AWS S3 Mirror
+  push('aws-refresh','AWS: actualizar estado S3','Recargar s3_mirror_status.json',()=>refreshAwsStatus());
+  push('aws-config','AWS: configurar mirror S3','Abrir panel de configuración S3',()=>{ setView('verificar',{scroll:false}); scrollTo('aws-mirror-section'); onAwsToggle(); });
+  push('aws-disable','AWS: desactivar mirror S3','Desactivar preferencia de mirror',()=>disableAwsMirror());
   // Misc
   if(typeof toggleOpsLang==='function') push('lang','Cambiar idioma','ES / EN',()=>toggleOpsLang());
   push('help','Ver atajos de teclado','',()=>openKbdHelp());

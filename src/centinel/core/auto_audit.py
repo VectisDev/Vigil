@@ -78,7 +78,7 @@ class AutoAudit:
         core_files = [
             "custody.py",
             "kill_switch.py",
-            "animal_defenses.py",
+            "argos_protocol.py",
             "anomaly_detector.py",
             "endpoint_monitor.py",
             "hashchain.py",

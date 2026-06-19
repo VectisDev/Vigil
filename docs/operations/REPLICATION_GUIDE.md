@@ -68,7 +68,7 @@ cne:
     # ... continuar para todas las regiones
   
 healing:
-  animal_mode: false
+  argos_protocol: normal
   safe_mode_active: false
   consecutive_failures: 0
 ```

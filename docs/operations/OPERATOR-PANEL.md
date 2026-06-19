@@ -24,7 +24,7 @@ centinel panel json
 │                                                                │
 │  AMENAZA GENERAL / Threat Score:   22/100 🟢 VERDE            │
 │                                                                │
-│  DEFENSAS ANIMALES / Animal Defenses:                         │
+│  PROTOCOLO ARGOS / ARGOS Protocol — Cinco Capas:             │
 │  ┌─────────────────────────────────────────────────────────┐  │
 │  │ 🐦 Cuervo (Memory):      ACTIVO ✓  Último:  5m          │  │
 │  │ 🦑 Pulpo (Encrypt):       ACTIVO ✓  Clave: hash...     │  │
@@ -93,7 +93,7 @@ Acción: Kill switch se activó. Espera recuperación.
 
 ---
 
-## Sección 2: DEFENSAS ANIMALES
+## Sección 2: PROTOCOLO ARGOS
 
 ### Formato
 
@@ -321,7 +321,7 @@ watch 'poetry run centinel panel json | jq .threat_score'
 ## Troubleshooting Panel
 
 ### Panel no muestra defensas
-- Verifica: `ls -la src/centinel/core/animal_defenses.py`
+- Verifica: `ls -la src/centinel/core/argos_protocol.py`
 - Reinstala: `poetry install`
 
 ### Panel muestra CRITICAL en todo
@@ -337,7 +337,7 @@ watch 'poetry run centinel panel json | jq .threat_score'
 ## Referencias Cruzadas
 
 - **Threat Score Logic:** [KILL-SWITCH-CONFIG.md](KILL-SWITCH-CONFIG.md#detección-de-amenaza)
-- **Defensa Detallada:** [ANIMAL-DEFENSES-ES.md](ANIMAL-DEFENSES-ES.md)
+- **Protocolo ARGOS — Detalle:** [ARGOS-PROTOCOL-ES.md](ARGOS-PROTOCOL-ES.md)
 - **Qué Hacer en Cada Case:** [OPERATOR-RUNBOOKS.md](OPERATOR-RUNBOOKS.md)
 
 ---
