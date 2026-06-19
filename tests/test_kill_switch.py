@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch, MagicMock
 
 from centinel.core.kill_switch import KillSwitch, RecoveryState
-from centinel.core.animal_defenses import AnimalDefense
+from centinel.core.argos_protocol import ArgosLayer
 
 
 @pytest.fixture
@@ -21,12 +21,12 @@ def kill_switch(tmp_path):
     return KillSwitch(storage_path=str(tmp_path))
 
 
-class TestAnimalDefenseEnum:
-    """Tests para el enum AnimalDefense."""
+class TestArgosLayerEnum:
+    """Tests para el enum ArgosLayer del Protocolo ARGOS."""
 
     def test_kill_switch_defense_properties(self):
-        """Verifica propiedades de la defensa KILL_SWITCH."""
-        defense = AnimalDefense.KILL_SWITCH
+        """Verifica propiedades de la capa KILL_SWITCH del Protocolo ARGOS."""
+        defense = ArgosLayer.KILL_SWITCH
         assert defense.emoji == "⚔️"
         assert defense.name_es == "Tejón"
         assert defense.title_es == "Defensa de Tejón"
@@ -311,7 +311,7 @@ class TestGetStatus:
         kill_switch.recovery_state.is_frozen = True
         status = kill_switch.get_status()
 
-        assert status.defense == AnimalDefense.KILL_SWITCH
+        assert status.defense == ArgosLayer.KILL_SWITCH
         assert status.enabled is True
         assert status.metrics["is_frozen"] is True
 

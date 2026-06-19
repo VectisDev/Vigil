@@ -1,15 +1,12 @@
-# Cinco Defensas Animales — Sistema Multi-capa de Centinel
+# Protocolo ARGOS — Cinco Capas de Defensa de Centinel
 
 ## Introducción
 
-El sistema Centinel implementa cinco defensas independientes inspiradas en comportamientos animales. Cada una protege contra una clase específica de amenazas. Se ejecutan en paralelo, no dependen una de otra, y la mayoría son autónomas.
+El sistema Centinel implementa el Protocolo ARGOS: cinco capas de defensa independientes. Cada una protege contra una clase específica de amenazas. Se ejecutan en paralelo, no dependen una de otra, y la mayoría son autónomas.
 
 ---
 
-## 🐦 Defensa de Cuervo — Memoria Distribuida
-
-### Metáfora
-El cuervo es un animal extraordinariamente social y tiene excelente memoria. Recuerda a los individuos que lo tratan bien o mal, y comparte información con otros cuervos. Así, la información se difunde rápidamente a través de la manada.
+## 🐦 Cuervo — Memoria Distribuida
 
 ### Problema Resuelto
 **Testigo único vulnerable:** Si solo hay un testigo capturando datos, un atacante que comprometa al testigo puede modificar todos los datos sin que nadie se entere.
@@ -38,10 +35,7 @@ Implementar **gossip P2P entre testigos** (Corvid Broadcast):
 
 ---
 
-## 🦑 Defensa de Pulpo — Tinta de Transporte
-
-### Metáfora
-El pulpo, cuando es atacado, suelta una nube de tinta para ocultarse. La tinta vuelve opaco el agua, imposible de atravesar. Así, si alguien intenta interceptar nuestro tráfico en la red, solo ve "tinta" (texto cifrado).
+## 🦑 Pulpo — Tinta de Transporte
 
 ### Problema Resuelto
 **MITM (Man-in-the-middle):** Un atacante en la red (ISP, router, café WiFi) intercepta datos en tránsito entre testigos.
@@ -70,10 +64,7 @@ Implementar **cifrado de tránsito ChaCha20Poly1305**:
 
 ---
 
-## 🦌 Defensa de Venado — Evasión de Timing
-
-### Metáfora
-El venado es un animal impredecible. Salta cuando menos lo esperas. Un depredador que intenta predecir su movimiento fracasa constantemente. Así, nuestras capturas de datos ocurren en tiempos aleatorios, imposibles de predecir.
+## 🦌 Venado — Evasión de Timing
 
 ### Problema Resuelto
 **Timing attacks:** Un atacante que sabe "Centinel captura cada 30 segundos" puede programar un ataque para los 29 segundos, justo antes.
@@ -102,10 +93,7 @@ Implementar **jitter + decoy snapshots**:
 
 ---
 
-## 🦎 Defensa de Lagartija — Auto-Regeneración
-
-### Metáfora
-La lagartija, cuando pierde la cola en un ataque, la regenera completamente en semanas. Su cuerpo tiene capacidad de auto-reparación. Así, nuestro testigo se sincroniza noche a noche con copias externas, detecta compromiso y se auto-restaura.
+## 🦎 Lagartija — Auto-Regeneración
 
 ### Problema Resuelto
 **Rootkit local:** Un atacante que logra acceso SSH/root al testigo puede modificar archivos del sistema (ej: cambiar código de captura, falsificar datos).
@@ -125,7 +113,7 @@ Implementar **sync nightly con mirrors + detección de divergencia**:
 
 ### Costo
 - Cero: si mirrors son en Google Drive / Dropbox / AWS S3 gratuito
-- Costo opcional: ~$5/mes si estorage custa
+- Costo opcional: ~$5/mes si el almacenamiento tiene costo
 
 ### Evaluación
 ✅ **Implementación EXCELENTE**
@@ -135,10 +123,7 @@ Implementar **sync nightly con mirrors + detección de divergencia**:
 
 ---
 
-## ⚔️ Defensa de Tejón — Kill Switch
-
-### Metáfora
-El tejón es famoso por ser feroz y difícil de sacar de su guarida. Cuando es atacado, se congela en su madriguera, impenetrable. Espera pacientemente, con timing impredecible, hasta que el atacante se aburra. Luego, emerge cauteloso.
+## ⚔️ Tejón — Kill Switch
 
 ### Problema Resuelto
 **Ataque activo en tiempo real:** Un atacante está modificando datos en el preciso momento en que el testigo está capturando. El kill switch lo detecta y responde instantáneamente.
@@ -189,10 +174,10 @@ Implementar **freeze autónomo + exponential backoff**:
 
 ---
 
-## Resumen Comparativo
+## Resumen Comparativo — Protocolo ARGOS
 
-| Defensa | Animal | Amenaza | Mecanismo | Autonomía |
-|---------|--------|---------|-----------|-----------|
+| Capa | Nombre | Amenaza | Mecanismo | Autonomía |
+|------|--------|---------|-----------|-----------|
 | D14 | 🐦 Cuervo | Testigo único | Gossip P2P | ✓ Autónoma |
 | D15 | 🦑 Pulpo | MITM tránsito | Cifrado ChaCha20 | ✓ Autónoma |
 | D16 | 🦌 Venado | Timing prediction | Jitter ±30% | ✓ Autónoma |
@@ -203,7 +188,7 @@ Implementar **freeze autónomo + exponential backoff**:
 
 ## Cómo Operar
 
-### Ver Estado de Defensas
+### Ver Estado del Protocolo ARGOS
 ```bash
 centinel panel
 ```
@@ -224,7 +209,7 @@ Salida esperada:
    tail -f hashes/attack_log.jsonl
    ```
 
-2. **Identificar qué defensa se activó:**
+2. **Identificar qué capa se activó:**
    - "Cuervo": hermanos reportan merkle diferente
    - "Pulpo": error de cifrado en tránsito
    - "Venado": timing fuera de rango normal
@@ -297,6 +282,6 @@ defenses:
 
 ---
 
-**Última revisión:** 2026-05-16  
+**Última revisión:** 2026-06-18  
 **Status:** Implementación v0.1 completa  
 **Auditoría:** Listo para validación externa

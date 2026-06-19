@@ -481,7 +481,7 @@ function buildNewEndpointsYaml(){
   if(!base.healing) base.healing={};
   base.healing.interval_minutes = parseInt(document.getElementById('sl-interval')?.value||30);
   base.healing.safe_mode_active = document.getElementById('tog-safe')?.checked||false;
-  base.healing.animal_mode = base.healing.animal_mode || 'normal';
+  base.healing.argos_protocol = base.healing.argos_protocol || base.healing.animal_mode || 'normal';
   // endpoints
   if(!base.cne) base.cne={};
   // Prefer the technical full-path field; fall back to easy field (root origin) only if not set
@@ -1142,52 +1142,116 @@ function onAuditSearch(val){
 
 
 // ══════════════════════════════════════════════════════════
-// MIRROR EXTERNO OPCIONAL — AMAZON S3 (Costo Cero no aplica aquí)
-// VIGIL no requiere ni gestiona AWS. Esta es una opción del operador,
-// desactivada por defecto, con doble confirmación informada antes de
-// activarse: 1) abrir el panel de configuración, 2) aceptar el modal
-// de costo/responsabilidad explícitamente.
+// MIRROR EXTERNO — AMAZON S3 (real sync via GitHub Actions)
+// Credentials: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY /
+// AWS_BUCKET_NAME / AWS_REGION as GitHub Secrets in your fork.
+// Status is read from data/s3_mirror_status.json — written by
+// .github/workflows/s3-mirror.yml after each sync (every 6 h
+// or on push to web/data/ or web/reports/).
 // ══════════════════════════════════════════════════════════
 
 let awsMirrorEnabled = false;
+let _s3Status = null;
+
+function loadAwsStatus(){
+  fetch('data/s3_mirror_status.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : null)
+    .then(data => { _s3Status = data; _renderAwsStatus(); })
+    .catch(() => { _s3Status = null; _renderAwsStatus(); });
+}
+
+function refreshAwsStatus(){
+  const badge = document.getElementById('aws-status-badge');
+  if(badge){
+    badge.className = 'badge badge-neutral';
+    badge.innerHTML = '<span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span>';
+  }
+  loadAwsStatus();
+}
+
+function _fmtBytes(b){
+  if(!b) return '0 B';
+  if(b < 1024) return b + ' B';
+  if(b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  if(b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+  return (b/1073741824).toFixed(2) + ' GB';
+}
+
+function _fmtSyncDate(iso){
+  if(!iso) return '—';
+  try{
+    return new Date(iso).toLocaleString(
+      currentLang==='en' ? 'en-US' : 'es-HN',
+      {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'UTC',timeZoneName:'short'}
+    );
+  }catch(_){ return iso; }
+}
+
+function _renderAwsStatus(){
+  const s         = _s3Status;
+  const liveDiv   = document.getElementById('aws-live-status');
+  const badge     = document.getElementById('aws-status-badge');
+  const lastSync  = document.getElementById('aws-last-sync');
+  const filesInfo = document.getElementById('aws-files-info');
+  const uriRow    = document.getElementById('aws-s3-uri-row');
+  const uriSpan   = document.getElementById('aws-s3-uri');
+  const errRow    = document.getElementById('aws-error-row');
+  const errMsg    = document.getElementById('aws-error-msg');
+  const runLink   = document.getElementById('aws-run-link');
+  const hint      = document.getElementById('aws-enabled-hint');
+
+  if(!s){
+    if(badge){ badge.className='badge badge-neutral'; badge.innerHTML='<span data-lang="es">Sin estado</span><span data-lang="en">No status</span>'; }
+    if(liveDiv) liveDiv.style.display='none';
+    return;
+  }
+
+  if(liveDiv) liveDiv.style.display='';
+
+  if(s.status==='ok'){
+    if(badge){ badge.className='badge badge-ok'; badge.innerHTML='<span data-lang="es">Activo</span><span data-lang="en">Active</span>'; }
+    if(lastSync) lastSync.textContent=(currentLang==='en'?'Last sync: ':'Último sync: ')+_fmtSyncDate(s.last_sync_utc);
+    if(filesInfo) filesInfo.textContent=s.files_synced+(currentLang==='en'?' files — ':' archivos — ')+_fmtBytes(s.bytes_synced);
+    if(uriRow) uriRow.style.display='';
+    if(uriSpan) uriSpan.textContent=s.s3_uri||'';
+    if(errRow) errRow.style.display='none';
+    if(hint){ hint.style.display=''; hint.textContent=(currentLang==='en'?'✓ S3 sync active — billing applies to your AWS account':'✓ Sync S3 activo — la facturación aplica a tu cuenta de AWS'); }
+    awsMirrorEnabled=true;
+  } else if(s.status==='error'){
+    if(badge){ badge.className='badge badge-bad'; badge.innerHTML='<span data-lang="es">Error</span><span data-lang="en">Error</span>'; }
+    if(lastSync) lastSync.textContent=(currentLang==='en'?'Last attempt: ':'Último intento: ')+_fmtSyncDate(s.last_sync_utc);
+    if(filesInfo) filesInfo.textContent='';
+    if(uriRow) uriRow.style.display='none';
+    if(errRow) errRow.style.display='';
+    if(errMsg) errMsg.textContent=s.error||(currentLang==='en'?'Sync failed.':'Error de sincronización.');
+    if(runLink&&s.workflow_run_url){ runLink.href=s.workflow_run_url; runLink.style.display=''; }
+    if(hint) hint.style.display='none';
+    awsMirrorEnabled=false;
+  } else {
+    // not_configured
+    if(badge){ badge.className='badge badge-neutral'; badge.innerHTML='<span data-lang="es">No configurado</span><span data-lang="en">Not configured</span>'; }
+    if(lastSync) lastSync.textContent=currentLang==='en'?'Not yet configured — see instructions below.':'Sin configurar — ver instrucciones abajo.';
+    if(filesInfo) filesInfo.textContent='';
+    if(uriRow) uriRow.style.display='none';
+    if(errRow) errRow.style.display='none';
+    if(hint) hint.style.display='none';
+    awsMirrorEnabled=false;
+  }
+}
 
 function _loadAwsState(){
   try{
     const raw = localStorage.getItem('vigil_aws_mirror');
     if(raw){
       const st = JSON.parse(raw);
-      awsMirrorEnabled = !!st.enabled;
-      if(st.bucket){
-        const b = document.getElementById('inp-aws-bucket');
-        if(b) b.value = st.bucket;
-      }
-      if(st.region){
-        const r = document.getElementById('inp-aws-region');
-        if(r) r.value = st.region;
-      }
+      if(st.bucket){ const b=document.getElementById('inp-aws-bucket'); if(b) b.value=st.bucket; }
+      if(st.region){ const r=document.getElementById('inp-aws-region'); if(r) r.value=st.region; }
     }
   }catch(_){}
-  _syncAwsBtn();
+  loadAwsStatus();
 }
 
-function _syncAwsBtn(){
-  const badge = document.getElementById('aws-status-badge');
-  const hint  = document.getElementById('aws-enabled-hint');
-  if(badge){
-    badge.className = awsMirrorEnabled ? 'badge badge-ok' : 'badge badge-neutral';
-    badge.innerHTML = awsMirrorEnabled
-      ? '<span data-lang="es">Activo</span><span data-lang="en">Active</span>'
-      : '<span data-lang="es">Desactivado</span><span data-lang="en">Disabled</span>';
-  }
-  if(hint){
-    hint.style.display = awsMirrorEnabled ? '' : 'none';
-    hint.textContent = awsMirrorEnabled
-      ? (currentLang==='en' ? '✓ S3 mirror enabled — billing applies to your AWS account' : '✓ Mirror S3 activo — la facturación aplica a tu cuenta de AWS')
-      : '';
-  }
-}
-
-// Step 1: just expand/collapse the config panel — no commitment yet
+// Expand/collapse config panel
 function onAwsToggle(){
   const panel = document.getElementById('aws-config-panel');
   if(!panel) return;
@@ -1201,80 +1265,91 @@ function onAwsToggle(){
   }
 }
 
-// Step 2: open the informed-consent modal — nothing is enabled yet
+// Open informed-consent modal
 function requestAwsEnable(){
   const bucket = document.getElementById('inp-aws-bucket')?.value?.trim() || '';
   const region = document.getElementById('inp-aws-region')?.value?.trim() || '';
   const err = document.getElementById('aws-err');
-  if(err) err.textContent = '';
-  if(!bucket || !region){
-    if(err) err.textContent = (currentLang==='en')
-      ? 'Enter a bucket name and AWS region first.'
-      : 'Ingresa primero el nombre del bucket y la región de AWS.';
+  if(err) err.textContent='';
+  if(!bucket||!region){
+    if(err) err.textContent=(currentLang==='en')
+      ?'Enter a bucket name and AWS region first.'
+      :'Ingresa primero el nombre del bucket y la región de AWS.';
     return;
   }
-  document.getElementById('aws-accept-chk').checked = false;
+  document.getElementById('aws-accept-chk').checked=false;
   updateAwsBtn();
   document.getElementById('aws-modal').classList.add('open');
 }
 
 function updateAwsBtn(){
   const btn = document.getElementById('aws-confirm-btn');
-  if(btn) btn.disabled = !document.getElementById('aws-accept-chk').checked;
+  if(btn) btn.disabled=!document.getElementById('aws-accept-chk').checked;
 }
 
 function closeAwsModal(){
   document.getElementById('aws-modal').classList.remove('open');
 }
 
-// Step 3: explicit confirm — only now is the (local) preference recorded.
-// This NEVER touches AWS credentials and NEVER makes a request to AWS.
-// It only records the operator's informed choice + bucket/region for
-// reference by the operator's own deployment scripts (which read
-// AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY from THEIR fork's GitHub Secrets).
+// Confirm: save bucket/region preference and show setup instructions.
+// Actual sync is performed by .github/workflows/s3-mirror.yml using
+// GitHub Secrets — credentials never enter this page.
 function executeAwsEnable(){
   const bucket = document.getElementById('inp-aws-bucket')?.value?.trim() || '';
   const region = document.getElementById('inp-aws-region')?.value?.trim() || '';
-  const now = new Date().toISOString();
-
-  awsMirrorEnabled = true;
   try{
     localStorage.setItem('vigil_aws_mirror', JSON.stringify({
-      enabled: true, bucket, region, acceptedAt: now
+      enabled:true, bucket, region, acceptedAt: new Date().toISOString()
     }));
   }catch(_){}
-
   closeAwsModal();
-  _syncAwsBtn();
-  auditLog('mirror S3 opcional activado', `bucket=${bucket} region=${region} (facturación: cuenta AWS del operador)`, {msgid:'AWS_MIRROR_ON', severity:'WARNING'});
-
+  auditLog('mirror S3 activado', `bucket=${bucket} region=${region}`, {msgid:'AWS_MIRROR_ON', severity:'WARNING'});
   const msgs = (currentLang==='en')
     ? [
-        '✓ S3 mirror preference saved locally',
-        `✓ Bucket: ${bucket} (${region})`,
-        '✓ Remember: configure AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY as GitHub Secrets in your fork',
-        '✓ Billing applies to your own AWS account — VIGIL remains Zero Cost',
+        '✓ Bucket and region saved locally.',
+        `  Bucket: ${bucket}  Region: ${region}`,
+        '',
+        '→ To complete setup, add these 4 secrets to your fork:',
+        '  GitHub → Settings → Secrets → Actions → New secret',
+        '  • AWS_ACCESS_KEY_ID',
+        '  • AWS_SECRET_ACCESS_KEY',
+        `  • AWS_BUCKET_NAME  = ${bucket}`,
+        `  • AWS_REGION       = ${region}`,
+        '',
+        '→ Then trigger the workflow to start syncing:',
+        '  Actions → "S3 Mirror" → Run workflow',
+        '',
+        '  Status updates automatically after each sync run.',
       ]
     : [
-        '✓ Preferencia de mirror S3 guardada localmente',
-        `✓ Bucket: ${bucket} (${region})`,
-        '✓ Recuerda: configura AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY como GitHub Secrets en tu fork',
-        '✓ La facturación aplica a tu propia cuenta de AWS — VIGIL sigue siendo Costo Cero',
+        '✓ Bucket y región guardados localmente.',
+        `  Bucket: ${bucket}  Región: ${region}`,
+        '',
+        '→ Para completar la configuración, agrega estos 4 secrets en tu fork:',
+        '  GitHub → Settings → Secrets → Actions → New secret',
+        '  • AWS_ACCESS_KEY_ID',
+        '  • AWS_SECRET_ACCESS_KEY',
+        `  • AWS_BUCKET_NAME  = ${bucket}`,
+        `  • AWS_REGION       = ${region}`,
+        '',
+        '→ Luego activa el workflow para iniciar la sincronización:',
+        '  Actions → "S3 Mirror" → Run workflow',
+        '',
+        '  El estado se actualiza automáticamente tras cada ejecución.',
       ];
   showResultModal(msgs, false);
 }
 
-// Allow disabling without any modal — turning it off never needs confirmation
 function disableAwsMirror(){
-  awsMirrorEnabled = false;
+  awsMirrorEnabled=false;
   try{
-    const raw = localStorage.getItem('vigil_aws_mirror');
-    const st = raw ? JSON.parse(raw) : {};
-    st.enabled = false;
+    const raw=localStorage.getItem('vigil_aws_mirror');
+    const st=raw?JSON.parse(raw):{};
+    st.enabled=false;
     localStorage.setItem('vigil_aws_mirror', JSON.stringify(st));
   }catch(_){}
-  _syncAwsBtn();
-  auditLog('mirror S3 opcional desactivado', '', {msgid:'AWS_MIRROR_OFF', severity:'NOTICE'});
+  auditLog('mirror S3 desactivado','',{msgid:'AWS_MIRROR_OFF', severity:'NOTICE'});
+  _renderAwsStatus();
 }
 
 // ══════════════════════════════════════════════════════════
