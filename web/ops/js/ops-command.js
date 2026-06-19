@@ -19,7 +19,11 @@ function setView(phase, opts){
   document.querySelectorAll('.phase-tab').forEach(b=>{
     b.classList.toggle('active', b.dataset.phaseTab===phase);
   });
+  // All section links stay visible at all times — grouped under their phase
+  // headers — so the sidebar never reflows when switching tabs. Only the
+  // active highlight is cleared here; scrollTo() sets it on the clicked link.
   document.querySelectorAll('#sidebar a').forEach(a=>{
+    a.classList.remove('phase-hidden');
     a.classList.remove('active');
   });
   if(opts.scroll!==false){
@@ -260,6 +264,9 @@ function _ceilingFeedback(key, requested, clamped){
 
 // ── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
+  // Theme is handled solely by the header toggle (setOpsTheme / data-theme).
+  // The old body.light-mode system was removed to avoid a conflicting double
+  // theme state. Dev mode stays available via Ctrl+Shift+D.
   if(typeof _initDevMode==='function') _initDevMode();
   _initView();
   // input listener for palette

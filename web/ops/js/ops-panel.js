@@ -1369,4 +1369,6 @@ function _initDevMode(){
   if(badge) badge.style.display = on ? 'inline-flex' : 'none';
 }
 
-// Theme is managed by setOpsTheme/toggleOpsTheme in index.html (data-theme on <html>)
+// THEME: handled solely by the header toggle (setOpsTheme / data-theme in
+// index.html). The previous body.light-mode system was removed — it duplicated
+// and conflicted with the header theme, producing a mixed/broken palette.
