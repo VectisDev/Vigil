@@ -54,6 +54,7 @@ jobs:
             echo "No new OTS files to commit."
           else
             git commit -m "$(printf 'chore(ots): anchor chain to Bitcoin via OpenTimestamps [skip ci]\n\nReason: %s\nAnchored: %s\nTriggered by: %s' "${REASON}" "${ANCHORED}" "${{ github.actor }}")"
+            git pull --rebase origin main
             git push origin main
           fi
 
