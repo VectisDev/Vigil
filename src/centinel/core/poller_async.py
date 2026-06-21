@@ -627,7 +627,7 @@ class ContinuousPoller:
 
 # ── Carga de endpoints / Endpoint loader ───────────────────────────────────────
 
-def load_endpoints() -> list[EndpointConfig]:
+def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
     """
     Carga endpoints desde las fuentes disponibles, en orden de prioridad:
     Load endpoints from available sources, in priority order:
@@ -720,6 +720,13 @@ def load_endpoints() -> list[EndpointConfig]:
         except Exception as exc:  # noqa: BLE001
             log.error("endpoints_env_parse_failed err=%s", exc)
 
+    if allow_empty:
+        log.warning(
+            "no_endpoints_configured — idle mode (scheduled run with nothing to poll). "
+            "Configure ENDPOINTS_JSON secret or command_center/config.yaml to activate."
+        )
+        return []
+
     log.error(
         "no_endpoints_found — "
         "run Setup Wizard first or create command_center/config.yaml"
@@ -751,9 +758,20 @@ if __name__ == "__main__":
         default=19_800,
         help="Tiempo máximo en segundos (default: 19800 = 5.5h) / Max runtime in seconds",
     )
+    parser.add_argument(
+        "--allow-no-endpoints",
+        action="store_true",
+        help="Exit cleanly (0) instead of failing when no endpoints are configured. "
+             "Used by scheduled CI pollers so idle runs (between elections) stay green.",
+    )
     args = parser.parse_args()
 
-    endpoints = load_endpoints()
+    endpoints = load_endpoints(allow_empty=args.allow_no_endpoints)
+
+    if not endpoints:
+        # Idle mode: nothing to poll. Stay armed for the next scheduled run.
+        log.info("poller_idle_exit no endpoints configured — exiting cleanly")
+        sys.exit(0)
 
     if args.data_branch:
         os.environ["DATA_BRANCH"] = args.data_branch

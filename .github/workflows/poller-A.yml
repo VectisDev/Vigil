@@ -58,20 +58,20 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 1
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: '3.11'
           cache: 'pip'
 
       - name: Install dependencies
         run: |
-          pip install aiohttp
+          pip install aiohttp pyyaml
 
       - name: Configure git identity
         run: |
@@ -87,25 +87,27 @@ jobs:
 
       - name: Setup data branch
         run: |
-          # Create data branch if it doesn't exist, then work in worktree
-          # so main branch code stays clean and data commits go to data branch.
-          git fetch origin data:data 2>/dev/null || \
-            git checkout --orphan data-init && \
-            git commit --allow-empty -m "init: data branch" && \
-            git push origin HEAD:data && \
-            git checkout main || true
+          # Snapshots go to a dedicated 'snapshots' branch (separate history).
+          # NOTE: this branch CANNOT be named 'data' — that name conflicts with
+          # the existing data/reputation ref (git ref namespace: file vs dir).
+          git fetch origin snapshots:snapshots 2>/dev/null || \
+            (git checkout --orphan snapshots-init && \
+             git commit --allow-empty -m "init: snapshots branch" && \
+             git push origin HEAD:snapshots && \
+             git checkout -) || true
 
       - name: Run continuous poller A
         env:
           POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
           MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19800' }}
-          DATA_BRANCH:        "data"
+          DATA_BRANCH:        "snapshots"
           GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
         run: |
           python src/centinel/core/poller_async.py \
             --interval    $POLL_INTERVAL \
             --max-runtime $MAX_RUNTIME \
-            --data-branch $DATA_BRANCH
+            --data-branch $DATA_BRANCH \
+            --allow-no-endpoints
 
       - name: Summary on exit
         if: always()
