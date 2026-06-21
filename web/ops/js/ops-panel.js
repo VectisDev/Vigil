@@ -1,4 +1,29 @@
 // ══════════════════════════════════════════════════════════
+// CRS: Score de Riesgo Compuesto (Composite Risk Score)
+// Test de Probabilidad Combinada de Fisher (1925)
+// χ² = -2×Σln(pᵢ) ~ χ²(2k)  — pesos proporcionales a -ln(p)
+// CRS 5-19: p<0.05 (atención) | 20-39: p<0.01 (alerta, 1/10k) | 40+: p<0.0001 (imposible por azar)
+// ══════════════════════════════════════════════════════════
+function computeCRS(alerts){
+  const W={INFO:1,WARNING:5,CRITICAL:20,PANIC:30};
+  return (alerts||[]).reduce((s,a)=>s+(W[(a.level||a.severity||'').toUpperCase()]||0),0);
+}
+function crsColor(score){
+  if(score>=40)return'#c0392b';
+  if(score>=20)return'var(--bad)';
+  if(score>=5) return'#d4916e';
+  if(score>=1) return'var(--warn)';
+  return'var(--ok)';
+}
+function crsLabel(score){
+  if(score>=40)return'CRÍTICO';
+  if(score>=20)return'ALERTA';
+  if(score>=5) return'ATENCIÓN';
+  if(score>=1) return'LEVE';
+  return'NORMAL';
+}
+
+// ══════════════════════════════════════════════════════════
 // DIRTY STATE — auto-apply on change (debounced)
 // ══════════════════════════════════════════════════════════
 let _autoApplyEnabled = localStorage.getItem('centinel-autosave') !== 'false';
@@ -1040,13 +1065,37 @@ function renderLog(){
   if(countEl) countEl.textContent = slice.length<total?`${slice.length} / ${total}`:`${total}`;
   if(!slice.length){tbody.innerHTML=_emptyRow(4,t('log.sin_entradas_filtros'));return;}
   const PILL = {INFO:'lp-info',WARNING:'lp-warn',CRITICAL:'lp-crit',PANIC:'lp-panic'};
-  tbody.innerHTML = slice.map(e=>{
-    const lvl = (e.level||'INFO').toUpperCase();
-    const pc  = PILL[lvl]||'lp-info';
-    const ts  = relTimestamps ? relTime(e.timestamp) : escHtml(e.timestamp||'—');
-    const msg = escHtml(e.message||e.description||JSON.stringify(e));
-    const meta= escHtml([e.rule_id, e.kind, e.dept_code].filter(Boolean).join(' · ')||'—');
-    return `<tr><td class="col-ts">${ts}</td><td class="col-lvl"><span class="lpill ${pc}">${lvl}</span></td><td class="col-msg">${msg}</td><td class="col-meta">${meta}</td></tr>`;
+
+  // Group by 15-minute window and annotate with CRS
+  const groups = [];
+  slice.forEach(e => {
+    const d = new Date(e.timestamp||'');
+    const m = isNaN(d) ? 0 : Math.floor(d.getMinutes()/15)*15;
+    const bucket = isNaN(d) ? (e.timestamp||'').slice(0,13) :
+      `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    const last = groups[groups.length-1];
+    if (!last || last.bucket !== bucket) groups.push({bucket, entries:[e]});
+    else last.entries.push(e);
+  });
+
+  tbody.innerHTML = groups.map(g => {
+    const crs = computeCRS(g.entries);
+    const color = crsColor(crs);
+    const header = crs > 0
+      ? `<tr class="log-crs-header" title="Score de Riesgo Compuesto (Fisher): ${g.entries.length} evento${g.entries.length>1?'s':', '} en esta ventana de 15 min">` +
+        `<td colspan="4" style="border-left:3px solid ${color};padding:4px 10px;font-size:10px;font-weight:700;font-family:var(--mono);color:${color};background:${color}18;letter-spacing:.04em">` +
+        `${escHtml(g.bucket)} &nbsp;·&nbsp; CRS&nbsp;${crs}&nbsp;[${crsLabel(crs)}] &nbsp;·&nbsp; ${g.entries.length} evento${g.entries.length>1?'s':''}</td></tr>`
+      : '';
+    const rows = g.entries.map(e => {
+      const lvl = (e.level||'INFO').toUpperCase();
+      const pc  = PILL[lvl]||'lp-info';
+      const ts  = relTimestamps ? relTime(e.timestamp) : escHtml(e.timestamp||'—');
+      const msg = escHtml(e.message||e.description||JSON.stringify(e));
+      const meta= escHtml([e.rule_id, e.kind, e.dept_code].filter(Boolean).join(' · ')||'—');
+      const borderStyle = crs > 0 ? `border-left:3px solid ${color}` : '';
+      return `<tr style="${borderStyle}"><td class="col-ts">${ts}</td><td class="col-lvl"><span class="lpill ${pc}">${lvl}</span></td><td class="col-msg">${msg}</td><td class="col-meta">${meta}</td></tr>`;
+    }).join('');
+    return header + rows;
   }).join('');
   wrap.scrollTop = wrap.scrollHeight;
 }

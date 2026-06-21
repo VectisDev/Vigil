@@ -39,6 +39,9 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSyst
 #time-scrubber{flex:1;min-width:200px;accent-color:var(--replay)}
 #scrubber-ts{font-size:13px;color:var(--replay);font-family:var(--mono);min-width:200px}
 #scrubber-count{font-size:12px;color:var(--muted)}
+/* ── CRS RISK RIBBON ── */
+#risk-ribbon{height:8px;border-radius:4px;flex-basis:100%;background:var(--ok);
+  margin-top:4px;cursor:help;transition:background .3s}
 
 /* ── LAYOUT ── */
 main{max-width:1100px;margin:0 auto;padding:28px 20px;display:grid;gap:20px}
@@ -106,6 +109,8 @@ footer a{color:var(--accent);text-decoration:none}
   <input type="range" id="time-scrubber" min="0" max="0" value="0" oninput="scrub(this.value)">
   <span id="scrubber-ts">—</span>
   <span id="scrubber-count"></span>
+  <div id="risk-ribbon"
+    title="Score de Riesgo Compuesto (CRS) — Test de Probabilidad Combinada de Fisher (1925). Verde = normal. Ámbar = p&lt;0.05 (1 en 20). Naranja = p&lt;0.01 (1 en 333). Rojo = p&lt;0.0001 (1 en 10,000 — imposible por azar)."></div>
 </div>
 
 <!-- ── MAIN CONTENT ── -->
@@ -199,6 +204,45 @@ let sbUser = null;
 let allSnapshots = [];
 let charts = {};
 
+// ── CRS: Score de Riesgo Compuesto (Composite Risk Score) ─────────────────
+// Test de Probabilidad Combinada de Fisher (1925): χ² = -2×Σln(pᵢ) ~ χ²(2k)
+// Pesos proporcionales a -ln(p): INFO→1 (p≈0.3), WARNING→5 (p≤0.05), CRITICAL→20 (p≤0.01)
+// CRS 1-4: amarillo (p≈0.3) | 5-19: naranja (p<0.05) | 20-39: rojo (p<0.01, 1 en 10k) | 40+: crimson (imposible)
+let replayAlerts = [];
+let crsHistory   = [];
+
+function computeCRS(alerts) {
+  const W = { INFO: 1, WARNING: 5, CRITICAL: 20, PANIC: 30 };
+  return alerts.reduce((s, a) => s + (W[(a.severity||a.level||'').toUpperCase()] || 0), 0);
+}
+function crsColor(score) {
+  if (score >= 40) return '#c0392b';
+  if (score >= 20) return 'var(--bad)';
+  if (score >= 5)  return '#d4916e';
+  if (score >= 1)  return 'var(--warn)';
+  return 'var(--ok)';
+}
+function crsLabel(score) {
+  if (score >= 40) return 'CRÍTICO';
+  if (score >= 20) return 'ALERTA';
+  if (score >= 5)  return 'ATENCIÓN';
+  if (score >= 1)  return 'LEVE';
+  return 'NORMAL';
+}
+function renderRiskRibbon() {
+  const ribbon = document.getElementById('risk-ribbon');
+  if (!ribbon || !crsHistory.length) return;
+  if (crsHistory.length < 2) {
+    ribbon.style.background = crsColor(crsHistory[0] || 0);
+    return;
+  }
+  const stops = crsHistory.map((score, i) => {
+    const pct = (i / (crsHistory.length - 1) * 100).toFixed(1);
+    return `${crsColor(score)} ${pct}%`;
+  });
+  ribbon.style.background = `linear-gradient(to right, ${stops.join(', ')})`;
+}
+
 // ── PBKDF2 helpers ──
 async function pbkdf2Key(password, salt, iterations){
   const enc = new TextEncoder();
@@ -273,10 +317,38 @@ async function loadSnapshots(){
   allSnapshots = snaps;
   document.getElementById('replay-main').style.display = 'grid';
 
+  // Load alerts.json to compute CRS risk ribbon
+  try {
+    const ar = await fetch('../data/alerts.json?t='+Date.now());
+    if (ar.ok) {
+      const raw = await ar.text();
+      replayAlerts = raw.trim().startsWith('[')
+        ? JSON.parse(raw)
+        : raw.split('\n').filter(l=>l.trim()).map(l=>{try{return JSON.parse(l);}catch{return null;}}).filter(Boolean);
+    }
+  } catch {}
+  // Map alerts to 10-minute buckets
+  const alertBuckets = {};
+  replayAlerts.forEach(a => {
+    const ts = a.timestamp || '';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return;
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}T${String(d.getUTCHours()).padStart(2,'0')}:${String(Math.floor(d.getUTCMinutes()/10)*10).padStart(2,'0')}`;
+    (alertBuckets[key] = alertBuckets[key]||[]).push(a);
+  });
+  // CRS per snapshot position
+  crsHistory = snaps.map(s => {
+    const d = new Date(s.captured_at||'');
+    if (isNaN(d.getTime())) return 0;
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}T${String(d.getUTCHours()).padStart(2,'0')}:${String(Math.floor(d.getUTCMinutes()/10)*10).padStart(2,'0')}`;
+    return computeCRS(alertBuckets[key] || []);
+  });
+
   renderKPIs(snaps);
   renderTable(snaps);
   setupScrubber(snaps);
   renderCharts(snaps);
+  renderRiskRibbon();
   scrub(0);
 }
 
@@ -326,6 +398,8 @@ function scrub(idx){
 
 function renderDetail(snap){
   const raw = snap.raw_json||{};
+  const snapIdx = allSnapshots.indexOf(snap);
+  const crs = snapIdx >= 0 ? (crsHistory[snapIdx] || 0) : 0;
   const rows = [
     ['ID', snap.id],
     ['Capturado', new Date(snap.captured_at).toLocaleString('es-HN')],
@@ -335,6 +409,9 @@ function renderDetail(snap){
     ['Actas totales', raw.actasTotal ?? raw.actas_total ?? '—'],
     ['Total votos', raw.totalVotes ?? raw.total_votos ?? '—'],
     ['Importado', snap.imported_at ? new Date(snap.imported_at).toLocaleString('es-HN') : '—'],
+    ['Riesgo Compuesto (CRS)',
+      `<span style="color:${crsColor(crs)};font-weight:700;font-family:var(--mono)">${crs}&nbsp;[${crsLabel(crs)}]</span>`+
+      `<span style="font-size:10px;color:var(--muted);margin-left:8px" title="Test de Fisher combinado: p-valor de que todas las anomalías activas ocurran simultáneamente por azar">Fisher p-combinado</span>`],
   ];
   document.getElementById('snap-detail').innerHTML = rows.map(([k,v])=>
     `<tr><td style="color:var(--muted)">${k}</td><td>${v??'—'}</td></tr>`).join('');
@@ -375,7 +452,13 @@ function renderBenfordReplay(snaps){
       {label:'Esperado Benford (%)',data:expected,backgroundColor:'rgba(139,146,156,.2)',borderRadius:4},
     ]},
     options:{responsive:true,animation:false,
-      plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
+      plugins:{
+        legend:{labels:{color:'#8b929c',font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>{
+          if(ctx.datasetIndex===0) return `Observado: ${ctx.raw}% (Benford esperado: ${expected[ctx.dataIndex]}%)`;
+          return `Esperado Benford: ${ctx.raw}%`;
+        }}}
+      },
       scales:{x:{ticks:{color:'#8b929c'}},y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',callback:v=>v+'%'}}}}
   });
   const note = document.getElementById('r-benford-note');
@@ -393,7 +476,10 @@ function renderTimelineReplay(snaps){
     data:{labels,datasets:[{label:'Snapshots acumulados',data:vals,
       borderColor:'#c97af7',backgroundColor:'rgba(201,122,247,.12)',fill:true,tension:0.3,pointRadius:2,borderWidth:2}]},
     options:{responsive:true,animation:false,
-      plugins:{legend:{display:false}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>`Snapshots acumulados al ${ctx.label}: ${ctx.raw}`}}
+      },
       scales:{x:{ticks:{color:'#8b929c',maxRotation:45,font:{size:10}},grid:{color:'#24272e'}},
               y:{grid:{color:'#24272e'},ticks:{color:'#8b929c'}}}}
   });
@@ -422,7 +508,13 @@ function renderLastDigitReplay(snaps){
       {label:'Esperado (10%)',data:labels.map(()=>10),backgroundColor:'rgba(139,146,156,.2)',borderRadius:4},
     ]},
     options:{responsive:true,animation:false,
-      plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
+      plugins:{
+        legend:{labels:{color:'#8b929c',font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>{
+          if(ctx.datasetIndex===0) return `Dígito ${ctx.label}: ${ctx.raw}% observado (uniforme esperado: 10%)`;
+          return `Esperado uniforme: ${ctx.raw}%`;
+        }}}
+      },
       scales:{x:{ticks:{color:'#8b929c'}},y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',callback:v=>v+'%'},max:25}}}
   });
 }
@@ -442,7 +534,10 @@ function renderDeptReplay(snaps){
     type:'bar',
     data:{labels,datasets:[{label:'Snapshots',data:vals,backgroundColor:'rgba(110,168,254,.55)',borderRadius:4}]},
     options:{indexAxis:'y',responsive:true,animation:false,
-      plugins:{legend:{display:false}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} snapshot${ctx.raw!==1?'s':''}`}}
+      },
       scales:{x:{grid:{color:'#24272e'},ticks:{color:'#8b929c'}},y:{ticks:{color:'#8b929c',font:{size:11}}}}}
   });
 }
