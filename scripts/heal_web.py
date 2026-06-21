@@ -31,8 +31,6 @@ CRITICAL_FILES = [
     "web/index.html",
     "web/access.json",
     "web/config.js",
-    "web/admin/index.html",
-    "web/panel/index.html",
     "web/replay/index.html",
     "web/verifier/index.html",
     "web/ops/index.html",

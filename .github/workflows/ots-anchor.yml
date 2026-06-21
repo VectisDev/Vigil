@@ -11,6 +11,8 @@ on:
         required: false
         default: 'manual-ots-anchor'
   push:
+    branches:
+      - main
     paths:
       - 'logs/triggers/ots-anchor'
 
