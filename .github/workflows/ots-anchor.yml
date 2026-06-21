@@ -11,6 +11,8 @@ on:
         required: false
         default: 'manual-ots-anchor'
   push:
+    branches:
+      - main
     paths:
       - 'logs/triggers/ots-anchor'
 
@@ -21,13 +23,13 @@ jobs:
   stamp:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: '3.11'
 
