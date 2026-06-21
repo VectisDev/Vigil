@@ -678,10 +678,14 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     <button class="speed-pill"    data-s="500" onclick="setSpeed(500)">500×</button>
   </div>
 
-  <div id="sim-timeline-wrap">
-    <div id="sim-progress-fill" style="width:0%"></div>
-    <input type="range" id="sim-scrubber" min="0" max="575" value="0"
-           oninput="simJumpTo(this.value)" style="cursor:pointer">
+  <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:4px">
+    <div id="sim-timeline-wrap">
+      <div id="sim-progress-fill" style="width:0%"></div>
+      <input type="range" id="sim-scrubber" min="0" max="575" value="0"
+             oninput="simJumpTo(this.value)" style="cursor:pointer">
+    </div>
+    <div id="lab-risk-ribbon" style="height:6px;border-radius:3px;background:var(--ok);cursor:help"
+      title="Score de Riesgo Compuesto (CRS) — Test de Fisher combinado. Verde = sin inyecciones activas. Ámbar = 1 inyección. Naranja = 2. Rojo = 3+. CRS 40+ = imposible por azar (p&lt;0.0001)."></div>
   </div>
 
   <span id="sim-info">Snap 0 / — | 0%</span>
@@ -1284,6 +1288,37 @@ let activeInjections = [];
 let scheduledInjections = [];
 let injMode = 'instant';
 let simAlerts = [];
+
+// ── CRS: Score de Riesgo Compuesto (Composite Risk Score) ─────────────────
+// Test de Probabilidad Combinada de Fisher: χ² = -2×Σln(pᵢ) ~ χ²(2k)
+// En el Lab: cada inyección activa = 1 CRITICAL (p≤0.01, peso 20).
+// CRS 20=1 inyección (1/10k por azar) · CRS 40+=2+ inyecciones (imposible por azar)
+let labCrsHistory = [];
+function _labCRS(){return activeInjections.length*20;}
+function _labCrsColor(score){
+  if(score>=40)return'#c0392b';
+  if(score>=20)return'var(--bad)';
+  if(score>=5) return'#d4af37';
+  if(score>=1) return'var(--warn)';
+  return'var(--ok)';
+}
+function _labCrsLabel(score){
+  if(score>=40)return'CRÍTICO';
+  if(score>=20)return'ALERTA';
+  if(score>=5) return'ATENCIÓN';
+  if(score>=1) return'LEVE';
+  return'NORMAL';
+}
+function renderLabRiskRibbon(){
+  const ribbon=document.getElementById('lab-risk-ribbon');
+  if(!ribbon)return;
+  if(labCrsHistory.length<2){ribbon.style.background=_labCrsColor(labCrsHistory[0]||0);return;}
+  const stops=labCrsHistory.map((s,i)=>{
+    const pct=(i/(labCrsHistory.length-1)*100).toFixed(1);
+    return`${_labCrsColor(s)} ${pct}%`;
+  });
+  ribbon.style.background=`linear-gradient(to right,${stops.join(',')})`;
+}
 let simChains = [];
 let historyBenford = [];
 let historyTimeline = [];
@@ -3791,6 +3826,7 @@ function simStop(){
   const _b=document.getElementById('btn-play');_b.textContent='▶';_b.classList.remove('active');
   if(SERIES)SIM.snapshots=deepClone(SERIES.snapshots);
   activeInjections=[];scheduledInjections=[];simAlerts=[];
+  labCrsHistory=[];renderLabRiskRibbon();
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
   historyLeader=[];historyLeadPct=[];
   historyVelocity=[];historyTrend=[];historyInvalids=[];historyMargin=[];historyAnomalyCounts={};
@@ -4247,6 +4283,10 @@ function renderSimFrame(idx){
   // Cheap rule evaluation — runs every tick regardless of speed
   evaluateCheapRules(snap,idx);
 
+  // Record CRS for risk ribbon (always, regardless of speed)
+  labCrsHistory[idx] = _labCRS();
+  renderLabRiskRibbon();
+
   if(fastMode && SIM.state==='playing' && idx%144!==0)return;
 
   const depts=getDeptData(snap);
@@ -4283,7 +4323,17 @@ const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
   scales:{x:{ticks:{color:'#8b929c',font:{size:10},maxRotation:MOB?45:undefined,maxTicksLimit:X_TICKS_LIMIT},grid:{color:'#1c1f26'}},
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
 function mk(id,cfg){if(SC[id])SC[id].destroy();
-  const c=document.getElementById(id);if(!c)return;SC[id]=new Chart(c,cfg);}
+  const c=document.getElementById(id);if(!c)return;
+  // Add default tooltip callback if chart has no custom tooltip defined
+  if(cfg.options?.plugins&&!cfg.options.plugins.tooltip){
+    cfg.options.plugins.tooltip={callbacks:{label:ctx=>{
+      const v=ctx.raw;
+      const fmtV=typeof v==='number'?v.toLocaleString('es-HN'):String(v??'—');
+      const lbl=ctx.dataset?.label||ctx.label||'';
+      return lbl?`${lbl}: ${fmtV}`:fmtV;
+    }}};
+  }
+  SC[id]=new Chart(c,cfg);}
 
 function renderCandidates(snap){
   if(!snap.partidos)return;

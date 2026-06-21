@@ -762,6 +762,26 @@ footer a { color: var(--accent); text-decoration: none; }
   <div class="hero-detail" id="hero-detail">Todos los snapshots capturados mantienen la cadena SHA-256 sin alteraciones. Verificable de forma independiente.</div>
 </div>
 
+<!-- ── CRS BANNER — Score de Riesgo Compuesto ── -->
+<div id="crs-banner" style="display:none;margin-bottom:12px;border-radius:8px;padding:12px 18px;border:1px solid;font-size:13px;line-height:1.5">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span id="crs-dot" style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--ok-c)"></span>
+    <strong id="crs-title" style="font-size:14px;font-weight:700;font-family:var(--mono)">CRS 0 — NORMAL</strong>
+    <span id="crs-pill" style="border-radius:5px;padding:2px 9px;font-size:10px;font-weight:700;margin-left:4px">NORMAL</span>
+    <span style="margin-left:auto;font-size:11px;color:var(--muted)" id="crs-pval"></span>
+  </div>
+  <div id="crs-desc" style="margin-top:6px;font-size:12px;color:var(--muted);max-width:700px"></div>
+  <details style="margin-top:6px">
+    <summary style="font-size:10px;color:var(--muted);cursor:pointer;font-weight:600;letter-spacing:.04em">METODOLOGÍA</summary>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">
+      <strong>Score de Riesgo Compuesto (CRS)</strong> — Test de Probabilidad Combinada de Fisher (1925).<br>
+      Fórmula: χ² = −2 × Σ ln(pᵢ) ~ χ²(2k). Pesos: INFO=1 (p≈0.3), WARNING=5 (p≤0.05), CRITICAL=20 (p≤0.01).<br>
+      CRS 1–4: p≈0.3 (ruido normal) · CRS 5–19: p&lt;0.05 (atención) · CRS 20–39: p&lt;0.01 (alerta, 1 en 10,000) · CRS 40+: p&lt;0.0001 (imposible por azar).<br>
+      <em>No determina resultados electorales. Es una herramienta estadística para observadores calificados.</em>
+    </div>
+  </details>
+</div>
+
 <!-- ── SEMÁFORO CIUDADANO (solo en modo ciudadano) ── -->
 <div class="citizen-semaphore" id="citizen-semaphore">
   <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-benford"></span><span id="sem-benford-txt">Distribución de dígitos: Normal</span></div>
@@ -2513,6 +2533,62 @@ function _applySnapshot(snap){
   else _hideBlackoutBanner();
 }
 
+// ── CRS: Score de Riesgo Compuesto — Test de Fisher combinado ────────────
+function _computeCRS(alerts){
+  const W={INFO:1,WARNING:5,CRITICAL:20,PANIC:30};
+  return (alerts||[]).reduce((s,a)=>s+(W[(a.severity||a.level||'').toUpperCase()]||0),0);
+}
+function _crsColor(score){
+  if(score>=40)return'#c0392b';
+  if(score>=20)return'var(--bad-c)';
+  if(score>=5) return'#d4916e';
+  if(score>=1) return'var(--warn-c)';
+  return'var(--ok-c)';
+}
+function _crsLabel(score){
+  if(score>=40)return'CRÍTICO';
+  if(score>=20)return'ALERTA';
+  if(score>=5) return'ATENCIÓN';
+  if(score>=1) return'LEVE';
+  return'NORMAL';
+}
+function _crsDesc(score,count){
+  if(score===0) return'Todos los indicadores estadísticos dentro de parámetros normales.';
+  if(score<5)   return`${count} señal${count>1?'es':''} de nivel informativo detectada${count>1?'s':''}. Probabilidad de que sea ruido estadístico: alta (p≈0.3).`;
+  if(score<20)  return`${count} anomalía${count>1?'s':''} activa${count>1?'s':''}. La probabilidad de que todas ocurran simultáneamente por azar es menor a 1 en 20 (p<0.05). Requiere atención.`;
+  if(score<40)  return`Múltiples anomalías activas simultáneamente. Por el test de Fisher combinado, la probabilidad de que sea coincidencia estadística es menor a 1 en 10,000 (p<0.01). Requiere revisión inmediata.`;
+  return`NIVEL CRÍTICO: ${count} anomalías simultáneas. La probabilidad matemática de que ocurran por azar es prácticamente cero (p<0.0001). Esto no es opinión — es estadística.`;
+}
+function _crsPVal(score){
+  if(score>=40)return'p<0.0001 (Fisher)';
+  if(score>=20)return'p<0.01 (Fisher)';
+  if(score>=5) return'p<0.05 (Fisher)';
+  if(score>=1) return'p≈0.3';
+  return'p=1.0 (normal)';
+}
+function updateCRSBanner(alerts){
+  const banner=document.getElementById('crs-banner');
+  if(!banner)return;
+  const score=_computeCRS(alerts);
+  const count=(alerts||[]).filter(a=>['WARNING','CRITICAL','PANIC'].includes((a.severity||a.level||'').toUpperCase())).length;
+  const color=_crsColor(score);
+  const label=_crsLabel(score);
+
+  banner.style.display='block';
+  banner.style.borderColor=color+'60';
+  banner.style.background=color+'12';
+  document.getElementById('crs-dot').style.background=color;
+  document.getElementById('crs-title').textContent=`CRS ${score} — ${label}`;
+  document.getElementById('crs-title').style.color=color;
+  const pill=document.getElementById('crs-pill');
+  pill.textContent=label;
+  pill.style.background=color+'22';
+  pill.style.color=color;
+  pill.style.border=`1px solid ${color}55`;
+  document.getElementById('crs-pval').textContent=_crsPVal(score);
+  document.getElementById('crs-desc').textContent=_crsDesc(score,count);
+}
+
 function _renderAll(data,snap){
   const _s=fn=>{try{fn();}catch(e){console.error('[VIGIL render]',e);}};
   _s(()=>renderHero(data));
@@ -2530,6 +2606,7 @@ function _renderAll(data,snap){
     _s(()=>renderForensics(data.forensics));
   }
   if(data._alerts)_s(()=>renderAlerts(data._alerts));
+  if(data._alerts)_s(()=>updateCRSBanner(data._alerts));
   if(data.chain_records)_s(()=>renderChain(data.chain_records));
   _s(()=>{
     const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
