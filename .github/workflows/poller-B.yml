@@ -62,7 +62,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install aiohttp
+          pip install aiohttp pyyaml
 
       - name: Configure git identity
         run: |
@@ -78,24 +78,28 @@ jobs:
 
       - name: Setup data branch
         run: |
-          git fetch origin data:data 2>/dev/null || \
-            git checkout --orphan data-init && \
-            git commit --allow-empty -m "init: data branch" && \
-            git push origin HEAD:data && \
-            git checkout main || true
+          # Snapshots go to a dedicated 'snapshots' branch (separate history).
+          # NOTE: this branch CANNOT be named 'data' — that name conflicts with
+          # the existing data/reputation ref (git ref namespace: file vs dir).
+          git fetch origin snapshots:snapshots 2>/dev/null || \
+            (git checkout --orphan snapshots-init && \
+             git commit --allow-empty -m "init: snapshots branch" && \
+             git push origin HEAD:snapshots && \
+             git checkout -) || true
 
       - name: Run continuous poller B
         env:
           POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
           MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19800' }}
-          DATA_BRANCH:        "data"
+          DATA_BRANCH:        "snapshots"
           ENDPOINTS_JSON:     ${{ secrets.ENDPOINTS_JSON }}
           GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
         run: |
           python src/centinel/core/poller_async.py \
             --interval    $POLL_INTERVAL \
             --max-runtime $MAX_RUNTIME \
-            --data-branch $DATA_BRANCH
+            --data-branch $DATA_BRANCH \
+            --allow-no-endpoints
 
       - name: Summary on exit
         if: always()
