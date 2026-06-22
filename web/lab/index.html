@@ -3771,6 +3771,7 @@ async function loadDataset(url, rawData=null){
         ).join('');
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
+    updateScrubber();
     logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
     return;
@@ -3792,6 +3793,7 @@ async function loadDataset(url, rawData=null){
         ).join('');
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
+    updateScrubber();
     logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
   }catch(e){logE('CRITICAL','Error cargando dataset: '+e.message);}
@@ -4324,14 +4326,14 @@ const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
 function mk(id,cfg){if(SC[id])SC[id].destroy();
   const c=document.getElementById(id);if(!c)return;
-  // Add default tooltip callback if chart has no custom tooltip defined
+  // Inject default tooltip if chart has plugins but no custom tooltip (never mutate shared CHART_OPT)
   if(cfg.options?.plugins&&!cfg.options.plugins.tooltip){
-    cfg.options.plugins.tooltip={callbacks:{label:ctx=>{
+    cfg.options.plugins={...cfg.options.plugins,tooltip:{callbacks:{label:ctx=>{
       const v=ctx.raw;
       const fmtV=typeof v==='number'?v.toLocaleString('es-HN'):String(v??'—');
       const lbl=ctx.dataset?.label||ctx.label||'';
       return lbl?`${lbl}: ${fmtV}`:fmtV;
-    }}};
+    }}}};
   }
   SC[id]=new Chart(c,cfg);}
 
