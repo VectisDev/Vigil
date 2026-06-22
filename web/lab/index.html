@@ -72,13 +72,14 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;font-
 }
 .speed-pill.on{border-color:var(--accent);color:var(--accent);background:rgba(212,175,55,.1)}
 #sim-timeline-wrap{
-  flex:1;min-width:160px;position:relative;height:22px;
+  width:100%;flex:0 0 22px;position:relative;height:22px;
   background:var(--border);border-radius:11px;cursor:pointer;overflow:hidden;
 }
 #sim-progress-fill{
-  height:100%;border-radius:11px;
+  height:100%;border-radius:11px;min-width:2px;
   background:linear-gradient(90deg,var(--accent),#e8c84a);
   transition:width .12s;pointer-events:none;
+  box-shadow:0 0 6px rgba(212,175,55,.5);
 }
 #sim-scrubber{
   position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
@@ -678,17 +679,24 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     <button class="speed-pill"    data-s="500" onclick="setSpeed(500)">500×</button>
   </div>
 
-  <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:4px">
+  <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:5px">
     <div id="sim-timeline-wrap">
       <div id="sim-progress-fill" style="width:0%"></div>
       <input type="range" id="sim-scrubber" min="0" max="575" value="0"
              oninput="simJumpTo(this.value)" style="cursor:pointer">
     </div>
-    <div id="lab-risk-ribbon" style="height:6px;border-radius:3px;background:var(--ok);cursor:help"
-      title="Score de Riesgo Compuesto (CRS) — Test de Fisher combinado. Verde = sin inyecciones activas. Ámbar = 1 inyección. Naranja = 2. Rojo = 3+. CRS 40+ = imposible por azar (p&lt;0.0001)."></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">CRS</span>
+      <div id="lab-risk-ribbon" style="flex:1;height:14px;border-radius:3px;background:#3a7d5a;cursor:help;
+        border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"
+        title="Mapa de calor de riesgo compuesto (CRS) — cada banda = 1 snapshot. Verde=normal · Ámbar=leve · Naranja=atención (p<0.05) · Rojo=alerta (p<0.01) · Crimson=crítico (p<0.0001, imposible por azar). Calculado desde anomalías estadísticas detectadas: rollbacks, inconsistencias, salto de escrutinio, reversiones de votos, datos truncados."></div>
+    </div>
   </div>
 
   <span id="sim-info">Snap 0 / — | 0%</span>
+  <span id="lab-crs-badge" style="font-family:var(--mono);font-size:10px;font-weight:700;
+    padding:3px 8px;border-radius:3px;background:#3a7d5a;color:#fff;border:1px solid #3a7d5a;
+    letter-spacing:.04em;white-space:nowrap" title="CRS del snapshot actual">CRS 0 · NORMAL</span>
   <span class="sim-badge" id="sim-badge">DETENIDO</span>
 </div>
 
@@ -1291,16 +1299,99 @@ let simAlerts = [];
 
 // ── CRS: Score de Riesgo Compuesto (Composite Risk Score) ─────────────────
 // Test de Probabilidad Combinada de Fisher: χ² = -2×Σln(pᵢ) ~ χ²(2k)
-// En el Lab: cada inyección activa = 1 CRITICAL (p≤0.01, peso 20).
-// CRS 20=1 inyección (1/10k por azar) · CRS 40+=2+ inyecciones (imposible por azar)
-let labCrsHistory = [];
-function _labCRS(){return activeInjections.length*20;}
+// Pesos: INFO=1, WARN=5, CRITICAL=20 — proporcionales a −ln(p).
+// CRS por snapshot se calcula directamente desde anomalías estadísticas detectadas.
+let labCrsHistory = [];   // pre-computed CRS for each snapshot in current dataset
+let labCrsRules   = [];   // parallel array: list of rule names that fired at each snap
+
+// Compute CRS for ONE snapshot directly from anomaly signals (no logging side-effects).
+// Returns {crs:number, rules:string[]}
+function _labCrsForSnap(snap, prev, runningBenford){
+  if(!snap) return {crs:0, rules:[]};
+  let crs=0; const rules=[];
+  const add=(w,name)=>{crs+=w; rules.push(name);};
+
+  // Datos truncados → CRITICAL
+  if(snap.validos==null || snap.nulos==null || snap.blancos==null || snap._partial)
+    add(20,'datos truncados');
+
+  // Rollback de actas → CRITICAL
+  if(prev && (snap.actas_divulgadas||0) < (prev.actas_divulgadas||0))
+    add(20,'rollback de actas');
+
+  // Inconsistencias > 5% → CRITICAL, > 2% → WARN
+  if((snap.actas_divulgadas||0) > 0){
+    const ip = (snap.inconsistentes||0)/snap.actas_divulgadas*100;
+    if(ip > 5) add(20,'inconsistencias críticas');
+    else if(ip > 2) add(5,'inconsistencias elevadas');
+  }
+
+  // Nulos > 10% → CRITICAL, > 5% → WARN
+  const tot = (snap.validos??0)+(snap.nulos??0)+(snap.blancos??0);
+  if(tot > 100){
+    const np = (snap.nulos??0)/tot*100;
+    if(np > 10) add(20,'nulos críticos');
+    else if(np > 5) add(5,'nulos elevados');
+  }
+
+  // Salto de pct_escrutinio > 10% en 5 min → WARN
+  if(prev){
+    const jp = (snap.pct_escrutinio||0)-(prev.pct_escrutinio||0);
+    if(jp > 10) add(5,'salto escrutinio');
+  }
+
+  // Reversiones de partido (cualquier candidato pierde votos)
+  if(prev?.partidos && snap.partidos){
+    snap.partidos.forEach((p,i)=>{
+      const loss = (prev.partidos[i]?.votos||0) - (p.votos||0);
+      if(loss > 100) add(20,`reversión ${p.abbrev}`);
+    });
+  }
+
+  // Flags adversariales pre-marcados (datasets simulados)
+  ['_chain_broken_pct','_false_hash','_rollback','_sig_invalid','_binary_tampered',
+   '_zt_bypass_attempt','_mesa_fantasma','_geo_blackout'].forEach(f=>{
+    if(snap[f]) add(20,f.replace(/^_/,'').replace(/_/g,' '));
+  });
+  ['_benford_biased','_nocturnal','_uniformidad_sospechosa','_duplication','_ts_drift',
+   '_concentration','_hold_release'].forEach(f=>{
+    if(snap[f]) add(5,f.replace(/^_/,'').replace(/_/g,' '));
+  });
+  if(snap._ddos && snap._ddos > 100000) add(20,'ddos');
+  if(snap._cdn_mirrors_poisoned){
+    add(snap._cdn_mirrors_poisoned>=3?20:5,'cdn comprometido');
+  }
+
+  // (Inyecciones manuales se suman dinámicamente en _labCRS, no aquí)
+  return {crs, rules};
+}
+
+// Pre-compute CRS for ALL snapshots in the loaded dataset (called once after loadDataset).
+function precomputeLabCRS(){
+  labCrsHistory=[]; labCrsRules=[];
+  if(!SIM.snapshots || !SIM.snapshots.length){renderLabRiskRibbon();return;}
+  for(let i=0;i<SIM.snapshots.length;i++){
+    const r = _labCrsForSnap(SIM.snapshots[i], i>0?SIM.snapshots[i-1]:null);
+    labCrsHistory.push(r.crs);
+    labCrsRules.push(r.rules);
+  }
+  renderLabRiskRibbon();
+}
+
+// Compute current-snap CRS = static (pre-computed) + dynamic (active injections)
+function _labCRS(){
+  const inj = activeInjections.length*20;
+  if(!SIM.snapshots?.length) return inj;
+  const idx = Math.min(SIM.idx, SIM.snapshots.length-1);
+  return (labCrsHistory[idx]||0) + inj;
+}
+
 function _labCrsColor(score){
-  if(score>=40)return'#c0392b';
-  if(score>=20)return'var(--bad)';
-  if(score>=5) return'#d4af37';
-  if(score>=1) return'var(--warn)';
-  return'var(--ok)';
+  if(score>=40)return'#c0392b';   // crimson
+  if(score>=20)return'#df6b86';   // rojo
+  if(score>=5) return'#e8a04a';   // naranja
+  if(score>=1) return'#d4b066';   // ámbar
+  return'#3a7d5a';                 // verde sólido (no var, para contraste)
 }
 function _labCrsLabel(score){
   if(score>=40)return'CRÍTICO';
@@ -1312,12 +1403,30 @@ function _labCrsLabel(score){
 function renderLabRiskRibbon(){
   const ribbon=document.getElementById('lab-risk-ribbon');
   if(!ribbon)return;
-  if(labCrsHistory.length<2){ribbon.style.background=_labCrsColor(labCrsHistory[0]||0);return;}
-  const stops=labCrsHistory.map((s,i)=>{
-    const pct=(i/(labCrsHistory.length-1)*100).toFixed(1);
-    return`${_labCrsColor(s)} ${pct}%`;
-  });
-  ribbon.style.background=`linear-gradient(to right,${stops.join(',')})`;
+  if(labCrsHistory.length<2){
+    ribbon.style.background=_labCrsColor(labCrsHistory[0]||0);
+  } else {
+    // Discrete bands (one stop per snap) → razor-sharp heat zones
+    const n=labCrsHistory.length;
+    const parts=[];
+    for(let i=0;i<n;i++){
+      const c=_labCrsColor(labCrsHistory[i]);
+      const a=(i/n*100).toFixed(2);
+      const b=((i+1)/n*100).toFixed(2);
+      parts.push(`${c} ${a}%`,`${c} ${b}%`);
+    }
+    ribbon.style.background=`linear-gradient(to right,${parts.join(',')})`;
+  }
+  // Update CRS badge if exists
+  const badge=document.getElementById('lab-crs-badge');
+  if(badge){
+    const cur=_labCRS();
+    const col=_labCrsColor(cur);
+    badge.textContent=`CRS ${cur} · ${_labCrsLabel(cur)}`;
+    badge.style.background=col;
+    badge.style.color=cur>=5?'#fff':'#0a0a0a';
+    badge.style.borderColor=col;
+  }
 }
 let simChains = [];
 let historyBenford = [];
@@ -3772,6 +3881,7 @@ async function loadDataset(url, rawData=null){
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
     updateScrubber();
+    precomputeLabCRS();
     logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
     return;
@@ -3794,6 +3904,7 @@ async function loadDataset(url, rawData=null){
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
     updateScrubber();
+    precomputeLabCRS();
     logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
   }catch(e){logE('CRITICAL','Error cargando dataset: '+e.message);}
@@ -3828,7 +3939,8 @@ function simStop(){
   const _b=document.getElementById('btn-play');_b.textContent='▶';_b.classList.remove('active');
   if(SERIES)SIM.snapshots=deepClone(SERIES.snapshots);
   activeInjections=[];scheduledInjections=[];simAlerts=[];
-  labCrsHistory=[];renderLabRiskRibbon();
+  // Recompute CRS from snapshot anomalies (preserves dataset heat zones after stop)
+  if(SERIES)precomputeLabCRS(); else {labCrsHistory=[];renderLabRiskRibbon();}
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
   historyLeader=[];historyLeadPct=[];
   historyVelocity=[];historyTrend=[];historyInvalids=[];historyMargin=[];historyAnomalyCounts={};
@@ -4285,8 +4397,7 @@ function renderSimFrame(idx){
   // Cheap rule evaluation — runs every tick regardless of speed
   evaluateCheapRules(snap,idx);
 
-  // Record CRS for risk ribbon (always, regardless of speed)
-  labCrsHistory[idx] = _labCRS();
+  // Refresh CRS badge for current frame (ribbon was pre-computed at dataset load)
   renderLabRiskRibbon();
 
   if(fastMode && SIM.state==='playing' && idx%144!==0)return;
@@ -4913,6 +5024,8 @@ function cancelInjection(i){
   activeInjections.splice(i,1);renderActiveInjections();
 }
 function renderActiveInjections(){
+  // Update CRS badge whenever injection set changes
+  if(typeof renderLabRiskRibbon==='function') renderLabRiskRibbon();
   const topbar=document.getElementById('inj-topbar');
   const n=activeInjections.length;
   // Clear per-block lists
