@@ -4435,6 +4435,40 @@ const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
   plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
   scales:{x:{ticks:{color:'#8b929c',font:{size:10},maxRotation:MOB?45:undefined,maxTicksLimit:X_TICKS_LIMIT},grid:{color:'#1c1f26'}},
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
+
+// Plugin: pinta bandas verticales coloreadas de CRS en el fondo de charts temporales.
+// Guía visual para experto y no-experto: el ojo localiza zonas anómalas sin leer ejes.
+const crsBandsPlugin = {
+  id:'crsBands',
+  beforeDatasetsDraw(chart,_args,opts){
+    const arr=opts?.crsArray;
+    if(!arr||arr.length<2)return;
+    const {ctx,chartArea}=chart;
+    if(!chartArea)return;
+    const n=arr.length;
+    const span=chartArea.right-chartArea.left;
+    const w=span/(n-1);
+    ctx.save();
+    for(let i=0;i<n;i++){
+      const s=arr[i]||0;
+      if(s<1)continue;
+      const color=
+        s>=40?'rgba(192, 57, 43, 0.45)':
+        s>=20?'rgba(223, 107, 134, 0.38)':
+        s>=5 ?'rgba(232, 160, 74, 0.32)':
+              'rgba(212, 176, 102, 0.25)';
+      ctx.fillStyle=color;
+      const xi=chartArea.left+(i/(n-1))*span;
+      ctx.fillRect(xi-w/2,chartArea.top,w,chartArea.bottom-chartArea.top);
+    }
+    ctx.restore();
+  }
+};
+// Helper: devuelve el slice de labCrsHistory que corresponde a los datos visibles del chart
+function _crsSliceForLength(len){
+  if(!labCrsHistory||!labCrsHistory.length||!len)return [];
+  return labCrsHistory.slice(0,Math.min(len,labCrsHistory.length));
+}
 function mk(id,cfg){if(SC[id])SC[id].destroy();
   const c=document.getElementById(id);if(!c)return;
   // Add default tooltip callback if chart has no custom tooltip defined
@@ -4482,8 +4516,10 @@ function renderTimeline(){
   mk('s-chart-timeline',{type:'line',data:{labels:labs,datasets:[
     {label:_trMsg('Actas acumuladas'),data:a,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0,yAxisID:'y'},
     {label:_trMsg('Anomalías'),data:an,borderColor:'#df6b86',fill:false,tension:.1,pointRadius:2,yAxisID:'y2'}]},
+    plugins:[crsBandsPlugin],
     options:{...CHART_OPT,plugins:{...CHART_OPT.plugins,
       decimation:{enabled:true,algorithm:'lttb',samples:400,threshold:400},
+      crsBands:{crsArray:_crsSliceForLength(labs.length)},
       title:{display:true,text:_trMsg('Actas Acumuladas y Eventos Anómalos en el Tiempo'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:6}}},scales:{
       x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:9}},grid:{color:'#1c1f26'}},
       y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('Actas'),color:'#8b929c'}},
@@ -4563,7 +4599,9 @@ function renderVelocity(){
   const bgs=data.map(v=>v>thr?'rgba(223,107,134,.8)':'rgba(34,211,238,.6)');
   mk('s-chart-velocity',{type:'bar',data:{labels:labs,datasets:[
     {label:_trMsg('Actas/intervalo'),data,backgroundColor:bgs,borderRadius:2}]},
+    plugins:[crsBandsPlugin],
     options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('Velocidad de Escrutinio (actas/intervalo)'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      crsBands:{crsArray:_crsSliceForLength(labs.length)},
       legend:{display:false},annotation:thr>0?{annotations:{thrLine:{type:'line',yMin:thr,yMax:thr,borderColor:'rgba(223,107,134,.5)',borderWidth:1,borderDash:[4,4],label:{display:true,content:`2σ=${Math.round(thr)}`,position:'end',color:'#df6b86',font:{size:8}}}}}:undefined},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
@@ -4580,7 +4618,9 @@ function renderLeader(snap){
   }
   mk('s-chart-leader',{type:'line',data:{labels:labs,datasets:[
     {label:_trMsg('% Líder'),data:historyLeadPct,borderColor:'rgba(176,140,240,.7)',pointBackgroundColor:colors,pointRadius:pts,fill:true,backgroundColor:'rgba(176,140,240,.08)',tension:.3}]},
+    plugins:[crsBandsPlugin],
     options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg(`Evolución del Liderazgo — ${historyLeader[historyLeader.length-1]||'?'}`),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      crsBands:{crsArray:_crsSliceForLength(labs.length)},
       legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('%'),color:'#8b929c'}}}}});
@@ -4602,7 +4642,9 @@ function renderTrendChart(){
   mk('s-chart-trend',{type:'line',data:{labels:labs,datasets:[
     {label:_trMsg('Real'),data:real,borderColor:'#6ea8fe',fill:false,tension:.3,pointRadius:0},
     {label:_trMsg('Proyectada'),data:predicted,borderColor:'rgba(139,146,156,.5)',borderDash:[5,3],fill:'-1',backgroundColor:'rgba(223,107,134,.08)',tension:.3,pointRadius:0}]},
+    plugins:[crsBandsPlugin],
     options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('Tendencia Esperada vs Real (Actas)'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      crsBands:{crsArray:_crsSliceForLength(labs.length)},
       legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}}});
@@ -4635,7 +4677,9 @@ function renderInvalids(){
   mk('s-chart-invalids',{type:'line',data:{labels:labs,datasets:[
     {label:_trMsg('% Nulos'),data:historyInvalids.map(h=>h.nulPct),borderColor:'rgba(223,107,134,.7)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0},
     {label:_trMsg('% Blancos'),data:historyInvalids.map(h=>h.blaPct),borderColor:'rgba(156,163,175,.6)',backgroundColor:'rgba(156,163,175,.08)',fill:true,tension:.3,pointRadius:0}]},
+    plugins:[crsBandsPlugin],
     options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('% Nulos + Blancos en el Tiempo'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      crsBands:{crsArray:_crsSliceForLength(labs.length)},
       legend:{labels:{color:'#8b929c',font:{size:10}}}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('%'),color:'#8b929c'}}}}});
@@ -4651,7 +4695,9 @@ function renderMarginChart(){
     {label:_trMsg('Margen positivo'),data:posData,borderColor:'rgba(87,192,141,.8)',backgroundColor:'rgba(87,192,141,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
     {label:_trMsg('Margen negativo'),data:negData,borderColor:'rgba(223,107,134,.8)',backgroundColor:'rgba(223,107,134,.1)',fill:true,tension:.3,pointRadius:0,spanGaps:true},
     {label:_trMsg('Margen'),data,borderColor:'rgba(176,140,240,.6)',fill:false,tension:.3,pointRadius:0}]},
+    plugins:[crsBandsPlugin],
     options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg(`Margen 1° vs 2° — ${historyMargin[historyMargin.length-1]?.leader||''}`),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+      crsBands:{crsArray:_crsSliceForLength(labs.length)},
       legend:{display:false}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('Votos'),color:'#8b929c'}}}}});
