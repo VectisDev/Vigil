@@ -3771,6 +3771,7 @@ async function loadDataset(url, rawData=null){
         ).join('');
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
+    updateScrubber();
     logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
     return;
@@ -3792,6 +3793,7 @@ async function loadDataset(url, rawData=null){
         ).join('');
     }else{markerRow.style.display='none';}
     renderSimFrame(0);
+    updateScrubber();
     logE('OK',_trMsg(`Dataset listo: ${SIM.snapshots.length} snapshots cargados`));
     _updateAcadPanel();
   }catch(e){logE('CRITICAL','Error cargando dataset: '+e.message);}
