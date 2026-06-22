@@ -1,0 +1,466 @@
+"""Forensic publisher — runs the inconsistent-acts tracker over stored
+snapshots and publishes a panel-ready forensics block plus coverage
+accounting to the public panel.
+
+Publicador forense: ejecuta el rastreador de actas inconsistentes sobre los
+snapshots almacenados y publica un bloque forense listo para el panel más la
+contabilidad de cobertura al panel público.
+
+Design / Diseño:
+- Always non-fatal: local SQLite + hash chain remain the source of truth.
+- The forensics block matches exactly the shape `renderForensics` /
+  `renderBenford` already consume in web/panel/index.html (no JS changes).
+- Coverage accounting makes any capture gap an alert by default: the hole
+  itself is the signal (continuous vigilance, not night-only detection).
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Optional
+
+import yaml
+
+from auditor.inconsistent_acts import Anomaly, InconsistentActsTracker
+
+from . import github_sync
+
+logger = logging.getLogger(__name__)
+
+_TS_RE = re.compile(r"snapshot_(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})")
+
+
+def parse_snapshot_timestamp(path: Path) -> Optional[datetime]:
+    """Parse the UTC timestamp embedded in a snapshot filename.
+
+    Extrae la marca de tiempo UTC del nombre de archivo del snapshot.
+    """
+    match = _TS_RE.search(path.name)
+    if not match:
+        return None
+    date_part, hh, mm, ss = match.groups()
+    return datetime.fromisoformat(f"{date_part}T{hh}:{mm}:{ss}+00:00")
+
+
+def build_forensics_block(tracker: InconsistentActsTracker) -> dict[str, Any]:
+    """Map tracker detectors to the exact shape the public panel consumes.
+
+    Mapea los detectores del tracker al shape exacto que consume el panel.
+    """
+    progressive = tracker.detect_progressive_injection()
+    if progressive:
+        net_swing = progressive.get("net_swing", {})
+        total_injected = sum(v for v in net_swing.values() if v > 0)
+        progressive_block = {
+            "detected": True,
+            "num_injections": int(progressive.get("cycles_count", 0)),
+            "total_injected": int(total_injected),
+            "p_value": float(progressive.get("z_score_pvalue", 1.0)),
+        }
+    else:
+        progressive_block = {
+            "detected": False,
+            "num_injections": 0,
+            "total_injected": 0,
+            "p_value": 1.0,
+        }
+
+    velocity = tracker.detect_resolution_velocity_anomalies()
+    velocity_block = {
+        "detected": bool(velocity),
+        "max_rate": max((v["rate_per_minute"] for v in velocity), default=0.0),
+        "threshold": tracker.max_resolution_rate,
+    }
+
+    asymmetry = tracker.detect_asymmetric_benefit()
+    if asymmetry and asymmetry.get("significant"):
+        asymmetry_block = {
+            "detected": True,
+            "benefiting_candidate": asymmetry.get("beneficiary", "—"),
+            "expected_pct": float(asymmetry.get("normal_proportion", 0.0)),
+            "observed_pct": float(asymmetry.get("special_proportion", 0.0)),
+        }
+    else:
+        asymmetry_block = {"detected": False}
+
+    patterns = tracker.detect_hold_and_release()
+    if patterns:
+        worst = max(patterns, key=lambda p: p["released_actas"])
+        duration_min = round(
+            (worst["release_timestamp"] - worst["stagnation_start"]).total_seconds() / 60.0,
+            1,
+        )
+        hold_block = {
+            "detected": True,
+            "stagnation_duration_minutes": duration_min,
+            "release_actas": int(worst["released_actas"]),
+        }
+    else:
+        hold_block = {"detected": False}
+
+    benford = tracker.detect_benford_special_scrutiny()
+    if benford:
+        digits = [
+            {
+                "d": d,
+                "exp": info["expected_pct"],
+                "obs": info["observed_pct"],
+            }
+            for d, info in sorted(benford["digit_analysis"].items())
+        ]
+        benford_block = {
+            "chi2": float(benford["chi2_statistic"]),
+            "pvalue": float(benford["chi2_pvalue"]),
+            "digits": digits,
+        }
+    else:
+        benford_block = {"chi2": 0.0, "pvalue": 1.0, "digits": []}
+
+    anomalies = tracker.detect_anomalies()
+    outliers = [
+        {
+            "timestamp": a.timestamp.isoformat(),
+            "delta_votes": a.metadata.get("delta_votes"),
+        }
+        for a in anomalies
+        if a.kind == "vote_outlier_3sigma"
+    ]
+    zscore_block = {"detected": bool(outliers), "outliers": outliers}
+
+    blackouts = tracker.detect_blackout_windows()
+    gaps = [
+        {
+            "gap_start": b["gap_start"].isoformat(),
+            "gap_end": b["gap_end"].isoformat(),
+            "gap_minutes": b["gap_minutes"],
+            "delta_inconsistent": b["delta_inconsistent"],
+            "trend_shifts_pp": b["trend_shifts_pp"],
+            # A gap that coincides with a trend shift is an interference signal.
+            "interference_signal": bool(b["trend_shifts_pp"]),
+        }
+        for b in blackouts
+    ]
+    blackout_block = {"detected": bool(gaps), "gaps": gaps}
+
+    # Inconsistent-acts time series — the core manipulation signal.
+    snaps = tracker.snapshots
+    if snaps:
+        latest_snap = snaps[-1]
+        first_snap = snaps[0]
+        delta = latest_snap.inconsistent_count - first_snap.inconsistent_count
+        trend = "rising" if delta > 0 else "falling" if delta < 0 else "stable"
+        history = [{"count": s.inconsistent_count, "ts": s.timestamp.isoformat()} for s in snaps[-30:]]
+        inconsistent_block = {
+            "current_count": latest_snap.inconsistent_count,
+            "delta_from_first": delta,
+            "trend": trend,
+            "history": history,
+        }
+    else:
+        inconsistent_block = {
+            "current_count": 0,
+            "delta_from_first": 0,
+            "trend": "unknown",
+            "history": [],
+        }
+
+    # Velocity history — actas/minute derived from consecutive snapshot total-vote deltas.
+    velocity_history: list[dict] = []
+    for i in range(1, len(snaps)):
+        prev, curr = snaps[i - 1], snaps[i]
+        elapsed_min = (curr.timestamp - prev.timestamp).total_seconds() / 60.0
+        if elapsed_min <= 0:
+            continue
+        prev_total = sum(prev.candidate_votes.values())
+        curr_total = sum(curr.candidate_votes.values())
+        speed = round((curr_total - prev_total) / elapsed_min, 2)
+        velocity_history.append({"ts": curr.timestamp.isoformat(), "speed": speed})
+    velocity_block["history"] = velocity_history[-30:]
+
+    # Leader history — leading candidate and their % share per snapshot.
+    leader_history: list[dict] = []
+    for s in snaps[-30:]:
+        total = sum(s.candidate_votes.values())
+        if not s.candidate_votes or total <= 0:
+            continue
+        leader_name = max(s.candidate_votes, key=lambda k: s.candidate_votes[k])
+        pct = round(s.candidate_votes[leader_name] / total * 100, 2)
+        leader_history.append({"ts": s.timestamp.isoformat(), "leader": leader_name, "pct": pct})
+
+    # Invalids history — null and blank vote percentages per snapshot.
+    invalids_history: list[dict] = []
+    for s in snaps[-30:]:
+        total = sum(s.candidate_votes.values()) + s.null_votes + s.blank_votes
+        if total <= 0:
+            continue
+        invalids_history.append({
+            "ts": s.timestamp.isoformat(),
+            "nulPct": round(s.null_votes / total * 100, 2),
+            "blaPct": round(s.blank_votes / total * 100, 2),
+        })
+
+    return {
+        "progressive_injection": progressive_block,
+        "velocity_anomaly": velocity_block,
+        "asymmetric_benefit": asymmetry_block,
+        "hold_and_release": hold_block,
+        "benford": benford_block,
+        "zscore": zscore_block,
+        "blackout": blackout_block,
+        "inconsistent_acts": inconsistent_block,
+        "leader": {"history": leader_history},
+        "invalids": {"history": invalids_history},
+    }
+
+
+def build_coverage(
+    timestamps: list[datetime],
+    *,
+    target_cadence_minutes: float,
+    now: Optional[datetime] = None,
+) -> dict[str, Any]:
+    """Compute capture-coverage accounting; any gap is suspicious by default.
+
+    Calcula la contabilidad de cobertura de captura; todo hueco es sospechoso
+    por defecto.
+    """
+    now = now or datetime.now(timezone.utc)
+    ordered = sorted(timestamps)
+    if not ordered:
+        return {
+            "monitoring_since": None,
+            "last_capture": None,
+            "target_cadence_minutes": target_cadence_minutes,
+            "coverage_pct": 0.0,
+            "open_gap_minutes": 0.0,
+            "gaps_count": 0,
+            "gaps": [],
+        }
+
+    grace_seconds = target_cadence_minutes * 60.0 * 2.0
+    first, last = ordered[0], ordered[-1]
+    total_span = (last - first).total_seconds()
+
+    covered = 0.0
+    gaps: list[dict[str, Any]] = []
+    for prev, curr in zip(ordered, ordered[1:]):
+        delta = (curr - prev).total_seconds()
+        if delta <= grace_seconds:
+            covered += delta
+        else:
+            covered += grace_seconds
+            gaps.append(
+                {
+                    "gap_start": prev.isoformat(),
+                    "gap_end": curr.isoformat(),
+                    "gap_minutes": round(delta / 60.0, 1),
+                }
+            )
+
+    coverage_pct = round((covered / total_span) * 100.0, 2) if total_span > 0 else 100.0
+
+    open_gap_seconds = (now - last).total_seconds()
+    open_gap_minutes = round(open_gap_seconds / 60.0, 1) if open_gap_seconds > grace_seconds else 0.0
+
+    return {
+        "monitoring_since": first.isoformat(),
+        "last_capture": last.isoformat(),
+        "target_cadence_minutes": target_cadence_minutes,
+        "coverage_pct": coverage_pct,
+        "open_gap_minutes": open_gap_minutes,
+        "gaps_count": len(gaps),
+        "gaps": gaps,
+    }
+
+
+def build_endpoint_health_block(endpoints_yaml_path: Optional[Path] = None) -> dict[str, Any]:
+    """Read the endpoints YAML and build the health block for raw_meta.
+
+    Lee el YAML de endpoints y construye el bloque de salud para raw_meta.
+    """
+    path = endpoints_yaml_path or Path("config/prod/endpoints.yaml")
+    try:
+        raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("endpoint_health_yaml_unreadable path=%s error=%s", path, exc)
+        return {
+            "total": 0,
+            "online": 0,
+            "degraded": 0,
+            "offline": 0,
+            "endpoints": [],
+            "available": False,
+        }
+
+    cne = raw.get("cne", {}) if isinstance(raw, dict) else {}
+    healing = raw.get("healing", {}) if isinstance(raw, dict) else {}
+    endpoints_raw = cne.get("presidential_endpoints") or []
+
+    endpoints: list[dict[str, Any]] = []
+    online = degraded = offline = 0
+    for ep in endpoints_raw:
+        if not isinstance(ep, dict):
+            continue
+        vs = ep.get("validation_status", "unknown")
+        if vs == "ok":
+            status = "ok"
+            online += 1
+        elif vs == "degraded":
+            status = "degraded"
+            degraded += 1
+        else:
+            status = "offline"
+            offline += 1
+        endpoints.append(
+            {
+                "url": ep.get("url", ""),
+                "dept": ep.get("department", "?"),
+                "level": ep.get("level", "?"),
+                "status": status,
+                "last_validated": ep.get("last_validated"),
+                "auto_replaced": ep.get("source", "") == "auto_replaced",
+            }
+        )
+
+    return {
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "argos_protocol": healing.get("argos_protocol", healing.get("animal_mode", "unknown")),
+        "safe_mode_active": bool(healing.get("safe_mode_active", False)),
+        "consecutive_failures": int(healing.get("consecutive_failures", 0) or 0),
+        "main_url": cne.get("main_url", ""),
+        "total": len(endpoints),
+        "online": online,
+        "degraded": degraded,
+        "offline": offline,
+        "endpoints": endpoints,
+        "available": True,
+    }
+
+
+def _load_tracker(snapshot_paths: list[Path]) -> tuple[InconsistentActsTracker, list[datetime]]:
+    """Feed ordered snapshots into a fresh tracker; return it with timestamps.
+
+    Alimenta snapshots ordenados a un tracker nuevo; lo devuelve con marcas.
+    """
+    tracker = InconsistentActsTracker()
+    timestamps: list[datetime] = []
+    pairs: list[tuple[datetime, Path]] = []
+    for path in snapshot_paths:
+        ts = parse_snapshot_timestamp(path)
+        if ts is None:
+            continue
+        pairs.append((ts, path))
+
+    for ts, path in sorted(pairs, key=lambda item: item[0]):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("forensics_snapshot_unreadable path=%s error=%s", path, exc)
+            continue
+        try:
+            tracker.load_snapshot(payload, ts)
+            timestamps.append(ts)
+        except (KeyError, ValueError, TypeError) as exc:
+            logger.warning("forensics_snapshot_skipped path=%s error=%s", path, exc)
+
+    return tracker, timestamps
+
+
+def run_and_publish(
+    snapshot_paths: list[Path],
+    *,
+    captured_at: str,
+    chain_hash: str,
+    merkle_root: str,
+    chain_length: int = 0,
+    target_cadence_minutes: float = 5.0,
+    dept_code: Optional[str] = None,
+    endpoints_yaml_path: Optional[Path] = None,
+    extra_meta: Optional[dict] = None,
+) -> Optional[int]:
+    """Run forensics over snapshots and publish to the public panel. Always non-fatal.
+
+    Ejecuta forenses sobre los snapshots y publica al panel público. No fatal.
+
+    Returns the inserted snapshot row id (or None).
+    """
+    if not github_sync.is_configured():
+        logger.info("forensics_publish_skipped github_sync_not_configured")
+        return None
+
+    try:
+        tracker, timestamps = _load_tracker(snapshot_paths)
+        forensics = build_forensics_block(tracker)
+        coverage = build_coverage(timestamps, target_cadence_minutes=target_cadence_minutes)
+        anomalies: list[Anomaly] = tracker.detect_anomalies()
+    except Exception as exc:  # noqa: BLE001 - publishing must never break pipeline
+        logger.warning("forensics_build_failed error=%s", exc)
+        return None
+
+    coverage_breached = coverage["coverage_pct"] < 100.0 or coverage["open_gap_minutes"] > 0.0
+    anomaly_flag = any(a.severity == "critical" for a in anomalies) or coverage_breached
+    alert_state = "anomaly" if anomaly_flag else "normal"
+
+    endpoint_health = build_endpoint_health_block(endpoints_yaml_path)
+    raw_meta = {"forensics": forensics, "coverage": coverage, "endpoint_health": endpoint_health}
+    if extra_meta:
+        raw_meta.update(extra_meta)
+
+    github_sync.push_snapshot(
+        captured_at=captured_at,
+        chain_hash=chain_hash,
+        merkle_root=merkle_root,
+        chain_length=chain_length,
+        dept_code=dept_code,
+        anomaly_flag=anomaly_flag,
+        alert_state=alert_state,
+        raw_meta=raw_meta,
+    )
+
+    for anomaly in anomalies:
+        if anomaly.severity != "critical":
+            continue
+        github_sync.push_alert(
+            created_at=anomaly.timestamp.isoformat(),
+            severity="CRITICAL",
+            description=anomaly.message,
+            kind=anomaly.kind,
+            dept_code=dept_code,
+        )
+
+    # The hole itself is the alert: every uncovered window is reported even
+    # when no trend shift follows it.
+    for gap in coverage["gaps"]:
+        github_sync.push_alert(
+            created_at=gap["gap_end"],
+            severity="HIGH",
+            description=(
+                f"Ventana sin captura de {gap['gap_minutes']:.0f} min "
+                f"({gap['gap_start']} → {gap['gap_end']}). "
+                "Toda ventana sin datos es sospechosa por defecto."
+            ),
+            kind="capture_gap",
+            dept_code=dept_code,
+        )
+    if coverage["open_gap_minutes"] > 0.0:
+        github_sync.push_alert(
+            created_at=datetime.now(timezone.utc).isoformat(),
+            severity="HIGH",
+            description=(
+                f"Captura interrumpida: {coverage['open_gap_minutes']:.0f} min "
+                "sin nuevos datos. El canal puede estar cortado."
+            ),
+            kind="capture_gap_open",
+            dept_code=dept_code,
+        )
+
+    logger.info(
+        "forensics_published coverage=%.1f anomalies=%d",
+        coverage["coverage_pct"],
+        len(anomalies),
+    )
+    return None

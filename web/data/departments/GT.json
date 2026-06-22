@@ -1,0 +1,168 @@
+{
+  "country": "GT",
+  "country_name": "Guatemala",
+  "divisions_label": "Departamentos",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://resultados.tse.org.gt/api/presidencial/nacional"
+    },
+    {
+      "code": "01",
+      "name": "Alta Verapaz",
+      "abbr": "AV",
+      "iso": "GT-AV",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/01"
+    },
+    {
+      "code": "02",
+      "name": "Baja Verapaz",
+      "abbr": "BV",
+      "iso": "GT-BV",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/02"
+    },
+    {
+      "code": "03",
+      "name": "Chimaltenango",
+      "abbr": "CM",
+      "iso": "GT-CM",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/03"
+    },
+    {
+      "code": "04",
+      "name": "Chiquimula",
+      "abbr": "CQ",
+      "iso": "GT-CQ",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/04"
+    },
+    {
+      "code": "05",
+      "name": "El Progreso",
+      "abbr": "EP",
+      "iso": "GT-EP",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/05"
+    },
+    {
+      "code": "06",
+      "name": "Escuintla",
+      "abbr": "ES",
+      "iso": "GT-ES",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/06"
+    },
+    {
+      "code": "07",
+      "name": "Guatemala",
+      "abbr": "GT",
+      "iso": "GT-GT",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/07"
+    },
+    {
+      "code": "08",
+      "name": "Huehuetenango",
+      "abbr": "HU",
+      "iso": "GT-HU",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/08"
+    },
+    {
+      "code": "09",
+      "name": "Izabal",
+      "abbr": "IZ",
+      "iso": "GT-IZ",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/09"
+    },
+    {
+      "code": "10",
+      "name": "Jalapa",
+      "abbr": "JA",
+      "iso": "GT-JA",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/10"
+    },
+    {
+      "code": "11",
+      "name": "Jutiapa",
+      "abbr": "JU",
+      "iso": "GT-JU",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/11"
+    },
+    {
+      "code": "12",
+      "name": "Petén",
+      "abbr": "PE",
+      "iso": "GT-PE",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/12"
+    },
+    {
+      "code": "13",
+      "name": "Quetzaltenango",
+      "abbr": "QZ",
+      "iso": "GT-QZ",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/13"
+    },
+    {
+      "code": "14",
+      "name": "Quiché",
+      "abbr": "QC",
+      "iso": "GT-QC",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/14"
+    },
+    {
+      "code": "15",
+      "name": "Retalhuleu",
+      "abbr": "RE",
+      "iso": "GT-RE",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/15"
+    },
+    {
+      "code": "16",
+      "name": "Sacatepéquez",
+      "abbr": "SA",
+      "iso": "GT-SA",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/16"
+    },
+    {
+      "code": "17",
+      "name": "San Marcos",
+      "abbr": "SM",
+      "iso": "GT-SM",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/17"
+    },
+    {
+      "code": "18",
+      "name": "Santa Rosa",
+      "abbr": "SR",
+      "iso": "GT-SR",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/18"
+    },
+    {
+      "code": "19",
+      "name": "Sololá",
+      "abbr": "SO",
+      "iso": "GT-SO",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/19"
+    },
+    {
+      "code": "20",
+      "name": "Suchitepéquez",
+      "abbr": "SU",
+      "iso": "GT-SU",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/20"
+    },
+    {
+      "code": "21",
+      "name": "Totonicapán",
+      "abbr": "TO",
+      "iso": "GT-TO",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/21"
+    },
+    {
+      "code": "22",
+      "name": "Zacapa",
+      "abbr": "ZA",
+      "iso": "GT-ZA",
+      "url": "https://resultados.tse.org.gt/api/presidencial/departamento/22"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "country": "EC",
+  "country_name": "Ecuador",
+  "divisions_label": "Provincias",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://resultados.cne.gob.ec/api/presidencial/nacional"
+    },
+    {
+      "code": "01",
+      "name": "Azuay",
+      "abbr": "AZ",
+      "iso": "EC-AZ",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/01"
+    },
+    {
+      "code": "02",
+      "name": "Bolívar",
+      "abbr": "BO",
+      "iso": "EC-BO",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/02"
+    },
+    {
+      "code": "03",
+      "name": "Cañar",
+      "abbr": "CA",
+      "iso": "EC-CA",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/03"
+    },
+    {
+      "code": "04",
+      "name": "Carchi",
+      "abbr": "CR",
+      "iso": "EC-CR",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/04"
+    },
+    {
+      "code": "05",
+      "name": "Chimborazo",
+      "abbr": "CH",
+      "iso": "EC-CH",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/05"
+    },
+    {
+      "code": "06",
+      "name": "Cotopaxi",
+      "abbr": "CO",
+      "iso": "EC-CO",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/06"
+    },
+    {
+      "code": "07",
+      "name": "El Oro",
+      "abbr": "EO",
+      "iso": "EC-EO",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/07"
+    },
+    {
+      "code": "08",
+      "name": "Esmeraldas",
+      "abbr": "ES",
+      "iso": "EC-ES",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/08"
+    },
+    {
+      "code": "09",
+      "name": "Galápagos",
+      "abbr": "GA",
+      "iso": "EC-GA",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/09"
+    },
+    {
+      "code": "10",
+      "name": "Guayas",
+      "abbr": "GU",
+      "iso": "EC-GU",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/10"
+    },
+    {
+      "code": "11",
+      "name": "Imbabura",
+      "abbr": "IM",
+      "iso": "EC-IM",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/11"
+    },
+    {
+      "code": "12",
+      "name": "Loja",
+      "abbr": "LO",
+      "iso": "EC-LO",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/12"
+    },
+    {
+      "code": "13",
+      "name": "Los Ríos",
+      "abbr": "LR",
+      "iso": "EC-LR",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/13"
+    },
+    {
+      "code": "14",
+      "name": "Manabí",
+      "abbr": "MA",
+      "iso": "EC-MA",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/14"
+    },
+    {
+      "code": "15",
+      "name": "Morona Santiago",
+      "abbr": "MS",
+      "iso": "EC-MS",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/15"
+    },
+    {
+      "code": "16",
+      "name": "Napo",
+      "abbr": "NA",
+      "iso": "EC-NA",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/16"
+    },
+    {
+      "code": "17",
+      "name": "Orellana",
+      "abbr": "OR",
+      "iso": "EC-OR",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/17"
+    },
+    {
+      "code": "18",
+      "name": "Pastaza",
+      "abbr": "PA",
+      "iso": "EC-PA",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/18"
+    },
+    {
+      "code": "19",
+      "name": "Pichincha",
+      "abbr": "PI",
+      "iso": "EC-PI",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/19"
+    },
+    {
+      "code": "20",
+      "name": "Santa Elena",
+      "abbr": "SE",
+      "iso": "EC-SE",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/20"
+    },
+    {
+      "code": "21",
+      "name": "Santo Domingo",
+      "abbr": "SD",
+      "iso": "EC-SD",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/21"
+    },
+    {
+      "code": "22",
+      "name": "Sucumbíos",
+      "abbr": "SU",
+      "iso": "EC-SU",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/22"
+    },
+    {
+      "code": "23",
+      "name": "Tungurahua",
+      "abbr": "TU",
+      "iso": "EC-TU",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/23"
+    },
+    {
+      "code": "24",
+      "name": "Zamora Chinchipe",
+      "abbr": "ZC",
+      "iso": "EC-ZC",
+      "url": "https://resultados.cne.gob.ec/api/presidencial/provincia/24"
+    }
+  ]
+}

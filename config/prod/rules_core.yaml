@@ -1,0 +1,18 @@
+MAX_REQUESTS_PER_HOUR: 240
+HARD_CEILING_REQUESTS_PER_HOUR: 480
+# Enforced via urllib.robotparser in scripts/download_and_hash.py.
+# Fail-open: absent or broken robots.txt never blocks collection.
+# Cache TTL: 1 hour per origin.
+RESPECT_ROBOTS_TXT: true
+
+# Stable deterministic rules for production.
+reglas_core:
+  - R-01_integridad_conteo_acumulado
+  - R-02_monotonicidad_temporal
+  - R-03_consistencia_aritmetica
+  - R-04_variacion_atipica
+  - R-05_reescritura_implicita
+  - R-06_variacion_relativa_excesiva
+  - R-07_saltos_escrutinio
+  - R-08_discrepancias_totales
+  - R-09_actas_fuera_de_rango

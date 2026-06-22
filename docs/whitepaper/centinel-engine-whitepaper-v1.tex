@@ -1,0 +1,616 @@
+% =====================================================================
+% Centinela / Centinel Engine — Whitepaper v1.0
+% A Transparency-Log Protocol for Adversarial Electoral Custody
+%
+% Build: arXiv-ready. Compile with pdflatex (x3 for refs) or upload the
+% source to Overleaf. No non-standard packages.
+%
+% Audience: dual — (1) technical reviewers (cryptographers, academic
+% validators such as UPNFM-appointed referees), (2) institutional
+% decision-makers (OAS/OEA, Carter Center, NDI, #StartSmall).
+%
+% Language policy: English body; Spanish abstract + executive summary
+% so a non-technical Spanish-speaking decision-maker can act on page 1.
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+
+\geometry{margin=2.4cm}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small Centinela Whitepaper v1.0}
+\lhead{\small Adversarial Electoral Custody}
+\cfoot{\thepage}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\Adv}{\mathcal{A}}
+\newcommand{\negl}{\mathsf{negl}}
+\newcommand{\Hash}{\mathsf{H}}
+\newcommand{\Sign}{\mathsf{Sig}}
+\newcommand{\Verify}{\mathsf{Vrf}}
+\newcommand{\concat}{\,\Vert\,}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\textbf{Centinela}\\[4pt]
+\large A Transparency-Log Protocol for Adversarial Electoral Custody\\[2pt]
+\normalsize Whitepaper v1.0}
+\author{Centinela / Centinel Engine Project\\
+\small Pseudonymous maintainer: \texttt{userf8a2c4}}
+\date{2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+% =====================================================================
+\begin{abstract}
+\noindent\textbf{Abstract.} Centinela is an open-source protocol and
+reference engine that produces a cryptographically verifiable record of
+custody for electoral data published by an official authority, under a
+threat model in which the authority itself may be the adversary. The
+design follows the Certificate Transparency lineage: a chained,
+append-only, tamper-evident log whose integrity any third party can
+verify \emph{without trusting the operator, the authority, or the
+project author}. We give a formal threat model, reduce security to two
+standard assumptions (collision resistance of SHA-256 and EUF-CMA
+unforgeability of Ed25519), and prove three theorems: (T1)
+tamper-evidence of the hash chain, (T2) authenticity via verified
+operator signatures, and (T3) detectability of silent historical
+rewrites through an external anchor the adversary does not control. We
+additionally show that an attempt to blind the witness (a targeted
+connectivity cut) is recorded as a signed, immutable, non-repudiable
+event rather than indistinguishable silence. The protocol is
+country-agnostic, zero-cost to operate, and is concretely realized in
+the \texttt{dev-v9} reference implementation; each formal claim is
+mapped to a verifiable source location in Appendix~B.
+
+\bigskip
+\noindent\textbf{Resumen (Espa\~nol).} Centinela es un protocolo y motor
+de referencia, de c\'odigo abierto, que produce un registro de custodia
+criptogr\'aficamente verificable de los datos electorales publicados por
+una autoridad oficial, bajo un modelo de amenaza en el que la propia
+autoridad puede ser el adversario. El dise\~no sigue la l\'inea de
+Certificate Transparency: una bit\'acora encadenada, de solo anexado y
+a prueba de manipulaci\'on, cuya integridad cualquier tercero puede
+verificar \emph{sin confiar en el operador, en la autoridad ni en el
+autor del proyecto}. Presentamos un modelo de amenaza formal, reducimos
+la seguridad a dos supuestos est\'andar (resistencia a colisiones de
+SHA-256 e infalsificabilidad EUF-CMA de Ed25519) y demostramos tres
+teoremas: (T1) evidencia de manipulaci\'on de la cadena de hashes, (T2)
+autenticidad mediante firmas de operador verificadas, y (T3)
+detectabilidad de reescrituras hist\'oricas silenciosas mediante un
+ancla externa que el adversario no controla.
+\end{abstract}
+
+% =====================================================================
+\section*{Executive Summary / Resumen Ejecutivo (ES)}
+\addcontentsline{toc}{section}{Executive Summary}
+
+\noindent\emph{Para decisores no t\'ecnicos. Una p\'agina y media.}
+
+\paragraph{El problema.} En un conteo electoral disputado, un actor
+estatal corrupto rara vez ``cambia un n\'umero'' de forma burda: reescribe
+datos, retrasa publicaciones, o ciega al observador cortando el acceso y
+presentando el corte como ``inoperancia''. Los sistemas de monitoreo
+ingenuos registran esto como un fallo cualquiera. El resultado: la
+manipulaci\'on queda como duda, no como prueba.
+
+\paragraph{La tesis.} Centinela no le pide al ciudadano ni al observador
+internacional que \emph{conf\'ie} en nadie ---ni en la autoridad, ni en el
+operador, ni en el autor del software. Entrega una \emph{prueba
+matem\'atica} de que los datos capturados no fueron alterados
+silenciosamente, verificable de forma independiente por cualquiera, en
+cualquier pa\'is, sin permiso privilegiado y a costo cero.
+
+\paragraph{C\'omo, en una frase.} Cada captura se encadena
+criptogr\'aficamente con la anterior (SHA-256), se firma con la clave del
+operador (Ed25519), y la ra\'iz de toda la historia se ancla
+peri\'odicamente en un registro p\'ublico externo que el adversario no
+controla. Reescribir el pasado obliga a romper una funci\'on hash, a
+falsificar una firma, o a divergir visiblemente del ancla externa: las
+tres son detectables por un tercero.
+
+\paragraph{Qu\'e garantiza y qu\'e no.} Centinela prueba
+\emph{integridad de custodia} (lo que se captur\'o es lo que se sirvi\'o,
+sin reescritura silenciosa) y \emph{no repudio del cegamiento} (un corte
+dirigido deja huella firmada e inmutable). \textbf{No} afirma fraude por
+s\'i mismo, \textbf{no} cuenta votos, \textbf{no} reemplaza al tribunal
+electoral: produce la evidencia forense neutral sobre la que un tribunal,
+un observador o un perito decide.
+
+\paragraph{Estado y comparaci\'on.} A diferencia de OASIS o sistemas tipo
+Mirador (Guatemala), cuya confianza es \emph{institucional} (confiar en
+quien observa), Centinela ofrece confianza \emph{verificable sin
+confiar}, heredada del modelo probado de Certificate Transparency
+(RFC~6962), aplicada por primera vez a custodia electoral en un entorno
+hostil. El n\'ucleo de seguridad est\'a implementado y probado; el paso
+pendiente es validaci\'on acad\'emica independiente y un piloto en
+condiciones reales ---no m\'as dise\~no.
+
+\paragraph{Petici\'on.} Validaci\'on matem\'atica independiente
+(referees designados, p.\,ej. v\'ia UPNFM) y financiamiento de un piloto
+acotado. El presupuesto solicitado es una fracci\'on m\'inima del costo
+de una misi\'on de observaci\'on internacional, y cierra una brecha que
+esas misiones han intentado cerrar sin lograrlo: prueba de no
+manipulaci\'on que no depende de confiar en el \'arbitro.
+
+\bigskip\hrule\bigskip
+
+% =====================================================================
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}
+
+Electoral disputes in fragile democracies rarely turn on a single
+falsified tally sheet. They turn on \emph{custody}: whether the data the
+public sees today is the same data the authority published yesterday,
+and whether the observer was able to witness continuously or was quietly
+blinded. Honduras' contested counts ---which, by institutional
+inoperancy and corruption, have historically extended for more than a
+month--- are a worst case: if a protocol survives that environment, it
+generalizes.
+
+Centinela treats the electoral authority as a \emph{potential adversary},
+not a trusted party. This is a deliberate inversion of the usual model.
+Most monitoring tools assume the authority is honest and the network is
+the threat. We assume the authority's published surface, the network
+path, and a subset of storage may all be adversarial, and ask: what can
+still be proven to a third party who trusts \emph{no one in the system},
+including the project's own author?
+
+The answer is the Certificate Transparency (CT, RFC~6962~\cite{rfc6962})
+construction, repurposed. CT made the certificate authority ---a trusted
+monopoly--- publicly accountable through an append-only, cryptographically
+verifiable log that anyone can audit and that misbehavior cannot hide
+from. Centinela applies the same principle to electoral data custody.
+
+\paragraph{Contributions.}
+\begin{enumerate}[leftmargin=1.4em]
+  \item A formal threat model for adversarial electoral custody where
+  the publishing authority is untrusted (\S\ref{sec:threat}).
+  \item Security reduced to two standard assumptions; three theorems
+  with proofs (\S\ref{sec:defs}--\S\ref{sec:theorems}).
+  \item A non-repudiation result for \emph{witness blinding}: a targeted
+  outage becomes signed, immutable evidence rather than silence
+  (\S\ref{sec:outage}).
+  \item A country-agnostic, zero-cost reference implementation; every
+  claim mapped to verifiable source (Appendix~B).
+\end{enumerate}
+
+% =====================================================================
+\section{Threat Model}
+\label{sec:threat}
+
+\begin{definition}[Actors]
+\emph{Authority} $\mathcal{O}$: publishes electoral data at a public
+endpoint. \emph{Witness} $\mathcal{W}$: an operator running Centinela
+that captures, hashes, signs, and publishes custody records.
+\emph{Observer} $\mathcal{V}$: any third party (citizen, academic,
+international mission) that verifies, holding no secret and trusting no
+participant. \emph{Anchor} $\mathcal{T}$: an external append-only public
+medium (e.g.\ a public Git history; optionally OpenTimestamps~$\to$
+Bitcoin) outside the adversary's control.
+\end{definition}
+
+\begin{definition}[Adversary $\Adv$]
+A probabilistic polynomial-time adversary that may: (a) fully control
+$\mathcal{O}$'s published content and timing; (b) control network paths
+between $\mathcal{O}$ and $\mathcal{W}$ (DNS, TLS interception, reset
+injection, route blackhole); (c) obtain read/write access to a subset of
+$\mathcal{W}$'s on-disk custody store; (d) attempt to sabotage
+$\mathcal{W}$'s software dependencies (including the cryptographic
+backend).
+\end{definition}
+
+\begin{definition}[Trust boundary]
+$\Adv$ does \emph{not} possess: (i) the private signing key of at least
+one honest witness; (ii) write access to the external anchor
+$\mathcal{T}$. These are the only trust assumptions, and both are
+operational and externally observable rather than placed in the
+protocol's author or in the authority.
+\end{definition}
+
+\begin{remark}
+The author of Centinela is explicitly inside the adversary's possible
+reach (the code is open and auditable; there is no phone-home, telemetry,
+or author-controlled endpoint --- verifiable in Appendix~B). The protocol
+must therefore be secure even if the author is coerced. This is why all
+verification is reproducible from public data and public source.
+\end{remark}
+
+% =====================================================================
+\section{Definitions and Assumptions}
+\label{sec:defs}
+
+Let $\Hash:\{0,1\}^{*}\to\{0,1\}^{256}$ be SHA-256. Let
+$(\Sign,\Verify)$ be Ed25519 with key pair $(sk,pk)$.
+
+\begin{definition}[Snapshot]
+A snapshot $s_i$ is a tuple $(c_i, m_i, t_i)$ where $c_i$ is the captured
+content (bytes), $m_i$ is canonical metadata (including the source URL
+and an ISO-8601 UTC timestamp), and $t_i$ is the timestamp string. The
+canonical serialization $\mathsf{can}(m_i)$ is JSON with sorted keys and
+fixed separators (deterministic across deployments).
+\end{definition}
+
+\begin{definition}[Chained hash]
+\label{def:chain}
+With $h_0 = \bot$ (empty), define for $i \ge 1$:
+\[
+  h_i \;=\; \Hash\big(h_{i-1} \concat c_i \concat \mathsf{can}(m_i)
+  \concat t_i\big).
+\]
+The chain is $\mathcal{C} = \langle (s_1,h_1),\dots,(s_n,h_n)\rangle$.
+(Reference: \code{\_compute\_expected\_hash}, \code{compute\_snapshot\_hash}.)
+\end{definition}
+
+\begin{definition}[Signed custody record]
+A record $r_i$ stores $s_i$, $h_i$, $h_{i-1}$ and an optional block
+$\sigma_i = \Sign_{sk}(\mathsf{can}(r_i \setminus \sigma))$ together with
+$pk$ and operator id. \code{verify\_hash\_record\_signature} recomputes
+the canonical pre-image and checks $\Verify_{pk}$.
+\end{definition}
+
+\begin{definition}[Merkle root]
+$\mathsf{MR}(\langle h_1,\dots,h_n\rangle)$ is the SHA-256 Merkle root
+over the ordered leaf hashes (duplicate-last for odd levels).
+(Reference: \code{compute\_merkle\_root}.)
+\end{definition}
+
+\begin{definition}[External anchor]
+At intervals, $\mathcal{W}$ commits a checkpoint
+$\mathsf{ck}_j = (\mathsf{MR}_j, n_j, \tau_j)$ to $\mathcal{T}$, where
+$\tau_j$ is an external, adversary-independent timestamp (public Git
+commit history; optionally OpenTimestamps). $\mathcal{T}$ is append-only
+and publicly readable. (Reference: \code{append\_transparency\_checkpoint},
+endpoint \code{GET /audit/transparency}.)
+\end{definition}
+
+\begin{assumption}[Collision resistance]
+\label{ass:cr}
+For PPT $\Adv$, $\Pr[(x,y)\leftarrow\Adv : x\neq y \wedge
+\Hash(x)=\Hash(y)] \le \negl(\lambda)$.
+\end{assumption}
+
+\begin{assumption}[EUF-CMA of Ed25519]
+\label{ass:euf}
+For PPT $\Adv$ with a signing oracle for $sk$, the probability of
+producing a valid $(\mu^{*},\sigma^{*})$ with $\mu^{*}$ never queried is
+$\le \negl(\lambda)$.
+\end{assumption}
+
+% =====================================================================
+\section{Security Theorems}
+\label{sec:theorems}
+
+\begin{theorem}[Tamper-evidence of the chain]
+\label{thm:t1}
+Under Assumption~\ref{ass:cr}, any modification, insertion, deletion, or
+reordering of a snapshot at position $k$ in $\mathcal{C}$ causes
+$h_k$ to differ from the recomputed value with all but negligible
+probability, and the discrepancy propagates to every $h_{i}$, $i\ge k$.
+Consequently an observer recomputing the chain from public data detects
+the exact break index, and an adversary cannot present an alternative
+chain with an unchanged head $h_n$ except with probability
+$\le\negl(\lambda)$.
+\end{theorem}
+
+\begin{proof}
+By Definition~\ref{def:chain}, $h_k$ binds $h_{k-1}$, $c_k$,
+$\mathsf{can}(m_k)$ and $t_k$. Suppose $\Adv$ alters $s_k\to s_k'$ with
+$s_k'\neq s_k$ yet the stored $h_k$ verifies, i.e.\
+$\Hash(h_{k-1}\concat c_k'\concat \mathsf{can}(m_k')\concat t_k') =
+\Hash(h_{k-1}\concat c_k\concat \mathsf{can}(m_k)\concat t_k)$ with
+distinct pre-images. This is a SHA-256 collision, contradicting
+Assumption~\ref{ass:cr}. Insertion/deletion/reordering changes the
+pre-image of the affected position identically. For propagation: $h_{k}$
+feeds $h_{k+1}$; to keep $h_{k+1}$ unchanged after $h_k$ changes again
+requires a collision; inductively this holds to $h_n$. An honest
+recomputation (\code{verify\_hashchain\_from\_snapshots}) therefore
+stops at the first index where stored $\neq$ recomputed, which is
+exactly $k$. To keep $h_n$ fixed while changing any earlier $s_k$ would
+require a collision at some level, again negligible.
+\end{proof}
+
+\begin{theorem}[Authenticity via verified signatures]
+\label{thm:t2}
+Under Assumption~\ref{ass:euf}, an adversary without the honest
+operator's $sk$ cannot produce a record $r$ such that
+\code{verify\_hash\_record\_signature}$(r)=\mathtt{true}$ for that
+operator's $pk$, except with probability $\le\negl(\lambda)$. Hence every
+record is classifiable by an observer into exactly one of:
+\emph{authenticated} (valid $\sigma$), \emph{unauthenticated} (no
+$\sigma$), or \emph{forged/invalid} (a $\sigma$ that fails). Forged and
+invalid signatures are always reported.
+\end{theorem}
+
+\begin{proof}
+The verifier recomputes the canonical pre-image
+$\mu=\mathsf{can}(r\setminus\sigma)$ deterministically and checks
+$\Verify_{pk}(\mu,\sigma)$. A successful forgery on a fresh $\mu$ is an
+EUF-CMA break, contradicting Assumption~\ref{ass:euf}. Absence of
+$\sigma$ is detected structurally (no signature block) and reported as
+unauthenticated; a present-but-failing $\sigma$ is reported in
+\code{signature\_failures}. The three classes are mutually exclusive and
+exhaustive by construction.
+\end{proof}
+
+\begin{remark}[Why signature failure is non-fatal]
+Per the hostile threat model, the cryptographic backend may be sabotaged
+(adversary capability (d)). Signing is therefore \emph{optional
+enrichment}: a missing or failed signature degrades a record to
+``unauthenticated but still hash-chained and immutable'', and is surfaced
+to the observer ---it never silently invalidates an otherwise
+hash-valid chain, nor does it crash the month-long capture. T1 (custody
+integrity) holds independently of T2 (authenticity). This separation is
+the formal justification for the \code{BaseException}-catching design in
+the reference implementation.
+\end{remark}
+
+\begin{theorem}[Detectability of silent historical rewrite]
+\label{thm:t3}
+Suppose $\Adv$ has storage write access and the signing key (the
+strongest case: it can re-hash and re-sign a fully consistent alternative
+history $\mathcal{C}'$). Let $\mathsf{MR}$ and $\mathsf{MR}'$ be the
+Merkle roots of $\mathcal{C}$ and $\mathcal{C}'$. If $\mathcal{C}'$
+differs from $\mathcal{C}$ in any leaf, then
+$\Pr[\mathsf{MR}'=\mathsf{MR}]\le\negl(\lambda)$ under
+Assumption~\ref{ass:cr}. Since a prior root was committed to the
+append-only external anchor $\mathcal{T}$ (which $\Adv$ cannot rewrite by
+the trust boundary), any observer comparing the live root against the
+anchored root detects the divergence with $O(1)$ reads.
+\end{theorem}
+
+\begin{proof}
+A Merkle root is collision-resistant if its compression function is:
+distinct leaf multisets yielding equal roots imply a SHA-256 collision
+at some internal node, contradicting Assumption~\ref{ass:cr}. Thus
+$\mathcal{C}\neq\mathcal{C}' \Rightarrow \mathsf{MR}\neq\mathsf{MR}'$
+w.h.p. The honest checkpoint $\mathsf{ck}_j=(\mathsf{MR}_j,n_j,\tau_j)$
+resides in $\mathcal{T}$, append-only and outside $\Adv$'s write set.
+The observer fetches the live root via \code{GET /audit/transparency},
+fetches $\mathsf{ck}_j$ from $\mathcal{T}$, and compares. Equality of a
+rewritten history with the anchored root would again require a collision.
+Therefore silent rewrite is detectable; the adversary's only
+alternatives are to (i) not rewrite, or (ii) rewrite \emph{and} diverge
+visibly from $\mathcal{T}$, which is exactly the detection event.
+\end{proof}
+
+\begin{corollary}[Cross-mirror divergence]
+If $k$ independent witnesses publish roots for the same authority data,
+any pairwise root mismatch localizes tampering or divergence without any
+witness being individually trusted: agreement is cryptographic, not
+reputational.
+\end{corollary}
+
+% =====================================================================
+\section{Non-Repudiation of Witness Blinding}
+\label{sec:outage}
+
+A subtle attack is not to alter data but to \emph{prevent its capture}
+and present the gap as the authority's own inoperancy.
+
+\begin{definition}[Degradation event]
+On a fetch failure, a bounded, side-effect-free diagnosis classifies the
+cause via probes (DNS resolution vs.\ expected, TCP reachability, TLS
+fingerprint vs.\ pinned) into \emph{authority-inoperancy} vs.\
+\emph{targeted-interference} signals, and records the verdict, evidence
+signals, and exact failure mode as a signed, append-only event in the
+same tamper-evident stream as custody. (Reference:
+\code{diagnose\_and\_record}, endpoint \code{GET /audit/degradation}.)
+\end{definition}
+
+\begin{lemma}[Blinding leaves immutable evidence]
+\label{lem:blind}
+Under Assumptions~\ref{ass:cr}--\ref{ass:euf}, an adversary executing a
+targeted cut (DNS redirection, TLS MITM, reset injection, route
+blackhole) cannot cause the witness to record \emph{nothing}: the
+failure produces a degradation event whose interference signals
+(unexpected resolved IPs, presented-vs-pinned TLS fingerprint mismatch,
+exact failure mode) are appended and (best-effort) signed. Deleting that
+event is a chain modification detectable by Theorem~\ref{thm:t1}; its
+signals are conservative (they never \emph{assert} fraud) but are
+non-repudiable.
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+The diagnosis path is invoked unconditionally on fetch failure and is
+bounded (hard timeout, capped attempts) so it cannot wedge the capture
+loop. The event is written with the same fsync-durable, append-only
+discipline as custody records and is included in the hash chain;
+therefore Theorem~\ref{thm:t1} applies to its removal. Signal
+collection probes only the exact already-contacted host:port (no
+redirects, no attacker-influenced addresses), so the recorded signals
+reflect the adversary's own interference. Signing is best-effort
+(Remark after Theorem~\ref{thm:t2}); even unsigned, the event remains
+immutable by T1.
+\end{proof}
+
+\begin{remark}[Conservative by design]
+Centinela classifies and records; it does not adjudicate. ``Targeted
+interference observed'' is an evidentiary signal for a human/institutional
+process, not a fraud verdict. This conservatism is what makes the output
+admissible to neutral observers.
+\end{remark}
+
+% =====================================================================
+\section{Comparison with Existing Systems}
+\label{sec:comparison}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \textbf{Centinela} & \textbf{CT (RFC 6962)} & \textbf{Mirador-type} & \textbf{Authority TREP/PREP} \\
+\midrule
+Trust model            & verify, no trust & verify, no trust & institutional & institutional \\
+Authority = adversary  & yes & n/a (CA) & no & no \\
+Hash-chained custody   & yes & yes (log) & no & partial \\
+External anchor        & yes & yes (STH) & no & no \\
+Blinding non-repudiation & yes & no & no & no \\
+3rd-party reproducible & yes & yes & limited & limited \\
+Operating cost         & zero & infra & funded & state \\
+Country-agnostic       & yes & yes & per-deployment & per-state \\
+\bottomrule
+\end{tabular}
+\caption{Centinela inherits CT's ``verify without trusting'' guarantee
+and extends it with authority-as-adversary custody and blinding
+non-repudiation. Institutional observation systems provide value but
+their trust is reputational, not cryptographically third-party
+reproducible.}
+\end{table}
+
+The closest intellectual ancestor is Certificate Transparency: a log
+that made a trusted monopoly (the CA) publicly accountable. Centinela's
+novelty is the \emph{authority-as-adversary} threat model applied to
+electoral custody, plus Lemma~\ref{lem:blind} (blinding becomes
+evidence), which has no analogue in CT or in institutional electoral
+observation.
+
+% =====================================================================
+\section{Limitations and Future Work}
+\label{sec:limits}
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Custody, not counting.} Centinela proves the captured
+  data was not silently rewritten; it does not verify the data is
+  \emph{politically correct}. Statistical anomaly analysis (Benford,
+  distributional shifts) is complementary and out of scope for the
+  formal core of v1.0.
+  \item \textbf{Capture-time trust.} Theorems bind everything from the
+  first capture forward. A datum the authority never published, or
+  published falsely from inception, is outside custody guarantees ---this
+  is the correct, honest boundary, addressed operationally by multiple
+  independent witnesses (Corollary~1) and by the degradation log.
+  \item \textbf{Operator key hygiene.} T2 assumes at least one honest,
+  uncompromised signing key. Key management is operational; the protocol
+  degrades gracefully to T1-only (Remark after T2) when keys are absent
+  or sabotaged.
+  \item \textbf{Anchor liveness.} T3 requires the external anchor to be
+  append-only and reachable by observers. Public Git history satisfies
+  this at zero cost; Bitcoin anchoring via OpenTimestamps is an optional
+  strengthening.
+  \item \textbf{Deployment risk.} The hostile-environment endurance
+  (month-long count, sustained observer load, sabotaged dependencies) is
+  engineered and tested in isolation but not yet validated in a real
+  national contest. This is the explicit, honest gap and the purpose of
+  the requested pilot.
+  \item \textbf{Validation status.} The formal model herein is
+  pen-and-paper rigorous (IACR style, reduced to standard assumptions).
+  Independent academic review (e.g.\ UPNFM-appointed referees) is the
+  intended next step; machine-checked proofs are deliberately out of
+  scope as they add cost without increasing institutional credibility.
+\end{enumerate}
+
+% =====================================================================
+\section{Conclusion}
+
+Centinela turns a contested electoral count from a contest of
+\emph{whom to believe} into a contest of \emph{verifiable mathematics}.
+It does not ask the world to trust Honduras' authority, the witness
+operator, or the project's author. It provides a third party, anywhere,
+with the ability to recompute and confirm ---or refute--- custody
+integrity from public data and public source, at zero cost, and to read
+an immutable, signed record of whether the witness was blinded. The
+construction is the proven Certificate Transparency lineage, extended to
+the case where the publisher itself is the adversary. The cryptographic
+core is implemented and tested; what remains is independent validation
+and a real-world pilot ---not further design.
+
+% =====================================================================
+\appendix
+\section{Notation}
+$\Hash$: SHA-256. $(\Sign,\Verify)$: Ed25519.
+$\concat$: byte concatenation. $\mathsf{can}(\cdot)$: canonical
+deterministic JSON. $\mathsf{MR}$: SHA-256 Merkle root.
+$\negl(\lambda)$: negligible in the security parameter.
+
+\section{Mapping Claims to the Reference Implementation}
+\label{app:map}
+
+All references are to branch \code{dev-v9}. Each formal object is
+realized and independently verifiable at:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Def.~\ref{def:chain} (chained hash)}:
+  \code{src/centinel/core/custody.py::\_compute\_expected\_hash};
+  \code{src/centinel/hasher.py::compute\_snapshot\_hash}.
+  \item \textbf{Thm.~\ref{thm:t1} (tamper-evidence)}:
+  \code{custody.py::verify\_chain},
+  \code{hasher.py::verify\_hashchain\_from\_snapshots} (stops at exact
+  break index; streaming, payload-free metadata scan for month-long
+  endurance).
+  \item \textbf{Thm.~\ref{thm:t2} (authenticity)}:
+  \code{custody.py::verify\_hash\_record\_signature};
+  \code{ChainVerificationResult.signature\_failures};
+  endpoint \code{GET /audit/chain/verify}.
+  \item \textbf{Thm.~\ref{thm:t3} (rewrite detection)}:
+  \code{core/transparency.py::compute\_merkle\_root},
+  \code{append\_transparency\_checkpoint};
+  endpoint \code{GET /audit/transparency}.
+  \item \textbf{Lemma~\ref{lem:blind} (blinding non-repudiation)}:
+  \code{core/connectivity.py::diagnose\_and\_record},
+  \code{read\_degradation\_log}; endpoint \code{GET /audit/degradation}.
+  \item \textbf{Author-exposure boundary}: no phone-home, telemetry, or
+  author endpoint; identifiers are pseudonymous; alerts are operator
+  opt-in. Auditable across the source tree (absence of outbound
+  author-controlled calls).
+\end{itemize}
+
+\section{Verification Recipe for an Independent Observer}
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item Clone the public source at the audited revision; read
+  \code{custody.py}, \code{hasher.py}, \code{transparency.py},
+  \code{connectivity.py}.
+  \item Fetch \code{GET /audit/chain/verify}; recompute the chain
+  locally from published snapshots; confirm \code{valid} and inspect
+  \code{signature\_failures}.
+  \item Fetch \code{GET /audit/transparency}; compare the live Merkle
+  root against the externally anchored checkpoint (public Git history /
+  OpenTimestamps).
+  \item Fetch \code{GET /audit/degradation}; inspect the immutable
+  timeline of interference vs.\ inoperancy signals.
+  \item Repeat against independent mirrors; cryptographic agreement,
+  not reputation, is the trust basis (Corollary~1).
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{rfc6962} B.~Laurie, A.~Langley, E.~Kasper.
+\emph{Certificate Transparency.} RFC 6962, IETF, 2013.
+\bibitem{merkle} R.~C.~Merkle. \emph{A Digital Signature Based on a
+Conventional Encryption Function.} CRYPTO 1987.
+\bibitem{ed25519} D.~J.~Bernstein et al.
+\emph{High-speed high-security signatures.} J. Cryptographic
+Engineering, 2012.
+\bibitem{sha2} NIST. \emph{FIPS 180-4: Secure Hash Standard.} 2015.
+\bibitem{ots} OpenTimestamps. \emph{Scalable, trustless timestamping on
+the Bitcoin blockchain.} \url{https://opentimestamps.org}.
+\end{thebibliography}
+
+\end{document}

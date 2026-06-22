@@ -1,0 +1,132 @@
+# ============================================================================
+# CENTINEL v11 — Unified Statistical Rules Configuration Patch
+# Parche de configuración de reglas estadísticas unificadas
+#
+# Instructions / Instrucciones:
+#   Merge this fragment into your existing command_center/rules.yaml
+#   replacing the entries for benford_first_digit, benford_law, and
+#   updating z-score thresholds across all rules.
+#
+# Date: 2026-06-07
+# See: docs/stats/STATISTICAL_CONVENTIONS.md
+# See: docs/stats/MIGRATION_v10_to_v11.md
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# UNIFIED Z-SCORE THRESHOLDS (replaces hardcoded |Z|>3 across all rules)
+# Umbrales de Z-score unificados (reemplazan |Z|>3 hardcodeado)
+# ---------------------------------------------------------------------------
+zscore_thresholds:
+  warning: 2.576       # p < 0.01 two-tailed (was hardcoded 3.0 in some rules)
+  critical: 3.291      # p < 0.001 two-tailed (unified with last_digit_uniformity)
+  convention: |
+    Family A (proportion): SE = sqrt(p0*(1-p0)/n) — for vote shares, turnout rates
+    Family B (empirical): s = std(X, ddof=1) — for counts, deltas, absolute values
+    See docs/stats/STATISTICAL_CONVENTIONS.md for full specification.
+
+# ---------------------------------------------------------------------------
+# BENFORD CANONICAL — 2nd digit (NEW — replaces Rules 1, 2, and 10e)
+# Benford canónico — 2do dígito (NUEVO — reemplaza Reglas 1, 2 y 10e)
+# ---------------------------------------------------------------------------
+benford_canonical:
+  enabled: true
+  digit: 2                    # 2nd digit per Mebane (2006)
+  severity: CRITICAL
+  min_samples: 30             # chi² requires ≥30 for valid approximation
+  chi_pvalue_critical: 0.01   # 1% significance for CRITICAL
+  chi_pvalue_warning: 0.05    # 5% significance for INFO
+  mad_warning: 0.006          # calibrated against HN 2025 lognormal simulation
+  mad_critical: 0.012         # calibrated against HN 2025 lognormal simulation
+  severity_logic: |
+    CRITICAL: chi² p < 0.01 AND MAD > 0.012 (dual confirmation)
+    WARNING:  chi² p < 0.01 (statistical test required)
+    INFO:     chi² p < 0.05 OR MAD > 0.006 (logging only)
+    NOMINAL:  otherwise
+  references:
+    - "Mebane (2006) Election forensics: Vote counts and Benford's law"
+    - "Mebane (2010) Fraud in the 2009 presidential election in Iran?"
+    - "Nigrini (2012) Benford's Law, Wiley"
+  justification_honduras: |
+    Vote totals per mesa in Honduras range 200-500 votes. Limited range
+    violates 1st-digit Benford premise but satisfies 2BL requirements.
+    FP rate < 5% on HN 2025 simulated data (96 trials, n≈200/department).
+
+# ---------------------------------------------------------------------------
+# BENFORD 1ST DIGIT — EXPERIMENTAL (demoted from CRITICAL to INFO)
+# Benford 1er dígito — EXPERIMENTAL (rebajado de CRITICAL a INFO)
+# ---------------------------------------------------------------------------
+benford_first_digit_experimental:
+  enabled: true
+  digit: 1
+  max_severity: INFO          # NEVER triggers WARNING or CRITICAL
+  min_samples: 30
+  chi_pvalue_critical: 0.01
+  mad_warning: 0.006
+  mad_critical: 0.012
+  rationale: |
+    Demoted per Deckert, Myagkov & Ordeshook (2011): high false positive
+    rate with electoral count data. FP ~8% vs <2% for 2nd digit on HN data.
+    Kept for research/logging purposes only.
+
+# ---------------------------------------------------------------------------
+# DEPRECATED RULES (to be removed in v12)
+# Reglas deprecadas (a remover en v12)
+# ---------------------------------------------------------------------------
+# benford_first_digit:       # DEPRECATED → replaced by benford_canonical
+#   status: deprecated
+#   replacement: benford_canonical
+#   migration: docs/stats/MIGRATION_v10_to_v11.md
+#
+# benford_law:               # DEPRECATED → absorbed into benford_canonical batch mode
+#   status: deprecated
+#   replacement: benford_canonical (batch mode)
+#   migration: docs/stats/MIGRATION_v10_to_v11.md
+
+# ---------------------------------------------------------------------------
+# UPDATED RULES — Z-score threshold changes
+# Reglas actualizadas — cambios en umbrales de Z-score
+# ---------------------------------------------------------------------------
+
+# Rule 7 — large_numbers_convergence
+# CHANGE: z_threshold 3.0 → uses zscore_thresholds.warning (2.576) and .critical (3.291)
+# CHANGE: now calls zscore_proportion() from zscore_unified.py
+participation_vote_correlation:
+  warning_r: 0.70    # NEW: HN2025 r=0.76 — early warning level
+  critical_r: 0.85   # VALIDATED: not triggered in HN2025 clean data
+
+large_numbers_convergence:
+  min_samples: 30
+  min_total_votes: 200
+  # z_threshold: 3.0          # REMOVED — now uses unified zscore_thresholds
+  zscore_family: proportion    # Family A: SE binomial
+
+# Rule 8 — participation_anomaly_advanced
+# CHANGE: hardcoded |Z|>3 → uses zscore_thresholds.critical (3.291)
+# CHANGE: now calls zscore_empirical() with ddof=1 (was ddof=0 implicitly)
+participation_anomaly_advanced:
+  min_turnout_pct: 70   # CALIBRATED HN2025: p1=80% - 10pp buffer (was 40 — incorrect)
+  max_turnout_pct: 100  # CALIBRATED HN2025: observed max 99.4% (was 90 — triggers false alarm)
+  # z_threshold: 3.0          # REMOVED — was hardcoded in code, now unified
+  zscore_family: empirical     # Family B: ddof=1 muestral
+  historical_by_department: true
+
+# Rule 10 — granular_anomaly
+# CHANGE: Z-score sub-tests now use ddof=1 (was ddof=0)
+# CHANGE: Benford sub-test (10e) replaced by benford_canonical batch call
+granular_anomaly:
+  negative_delta_threshold: 0
+  delta_pct_alert: 3.0
+  delta_pct_time_window: 30    # minutes
+  zscore_threshold: null       # REMOVED — uses unified zscore_thresholds
+  zscore_family: empirical     # Family B: ddof=1
+  zscore_min_abs_delta: 100
+  zscore_min_departments: 5
+  # benford_pvalue: 0.05       # REMOVED — now uses benford_canonical
+  # benford_min_samples: 50    # REMOVED — now uses benford_canonical (min=30)
+  benford_sub_test: benford_canonical  # delegates to unified module
+  turnout_min: 0
+  turnout_max: 100
+  reversal_min_lead_margin: 500
+  reversal_time_window: 30     # minutes
+  reversal_min_negative_delta: 100
+  sum_mismatch_threshold: 1

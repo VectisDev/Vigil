@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VIGIL — System Status</title>
+<style>
+:root{--bg:#080b0f;--panel:#0d1117;--panel2:#131920;--border:#1e2530;--fg:#e7e9ec;--muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;--warn:#d4b066;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:13px;line-height:1.6;padding:0 16px 48px}
+a{color:var(--accent);text-decoration:none}
+.hdr{border-bottom:1px solid var(--border);padding:20px 0 16px;margin-bottom:24px}
+.logo{font-size:18px;font-weight:700;letter-spacing:.04em}.logo span{color:var(--accent)}
+.sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.overall{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:14px 18px;background:var(--panel);border:1px solid var(--border);border-radius:8px}
+.big-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;background:var(--ok);box-shadow:0 0 8px rgba(87,192,141,.3)}
+.overall-text{font-size:15px;font-weight:700}.overall-sub{font-size:11px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px}
+.card-hdr{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-bottom:12px}
+.m{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:.5px solid var(--border)}
+.m:last-child{border-bottom:none}
+.ml{color:var(--muted);font-size:11px}.mv{font-size:12px;font-weight:700}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.acc{color:var(--accent)}
+.findings{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:24px}
+.f{padding:9px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.f:last-child{border-bottom:none}
+.fd{color:var(--muted);font-size:10px;margin-top:3px}
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+.bc{background:rgba(223,107,134,.15);color:var(--bad)}.bw{background:rgba(212,176,102,.15);color:var(--warn)}
+.hash-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.hash{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:20px;word-break:break-all;font-size:11px;color:var(--accent)}
+.footer{border-top:1px solid var(--border);padding-top:14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.disclaimer{background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.2);border-radius:6px;padding:10px 14px;margin-bottom:20px;font-size:11px;color:var(--warn);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo"><span>VIGIL</span> — Public Status</div>
+  <div class="sub">Electoral Audit System · Honduras · github.com/VectisDev/vigil</div>
+</div>
+
+<div class="overall">
+  <div class="big-dot"></div>
+  <div>
+    <div class="overall-text">HN 2025 Retroactive Analysis — Complete</div>
+    <div class="overall-sub">64 snapshots archived · Hash chain verified · Dataset: DOI 10.5281/zenodo.20598892</div>
+  </div>
+</div>
+
+<div class="disclaimer">
+  ⚠ VIGIL detects statistical anomalies in publicly published CNE data. It does not allege electoral fraud.
+  All findings require independent human evaluation with full electoral context. · AGPL-3.0 · Politically neutral.
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-hdr">HN 2025 Coverage</div>
+    <div class="m"><span class="ml">Snapshots analyzed</span><span class="mv ok">64</span></div>
+    <div class="m"><span class="ml">Capture period</span><span class="mv acc">Dec 3–10, 2025</span></div>
+    <div class="m"><span class="ml">Final scrutiny</span><span class="mv ok">99.4%</span></div>
+    <div class="m"><span class="ml">Actas inconsistentes</span><span class="mv warn">2,773 (14.6%)</span></div>
+    <div class="m"><span class="ml">Chain integrity</span><span class="mv ok">✓ Verified</span></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">Detection Engine — dev-v12</div>
+    <div class="m"><span class="ml">Forensic rules active</span><span class="mv ok">23</span></div>
+    <div class="m"><span class="ml">Tests passing</span><span class="mv ok">35 / 35</span></div>
+    <div class="m"><span class="ml">Benford 2BL FP rate</span><span class="mv ok">1.2% &lt; 5% ✓</span></div>
+    <div class="m"><span class="ml">Z-score convention</span><span class="mv ok">Unified (v12)</span></div>
+    <div class="m"><span class="ml">Calibration source</span><span class="mv ok">HN 2025 real data</span></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">Cryptographic Proof</div>
+    <div class="m"><span class="ml">Algorithm</span><span class="mv acc">SHA-256</span></div>
+    <div class="m"><span class="ml">Bitcoin anchor</span><span class="mv warn">Pending</span></div>
+    <div class="m"><span class="ml">Dataset DOI</span><span class="mv"><a href="https://doi.org/10.5281/zenodo.20598892">zenodo.20598892</a></span></div>
+    <div class="m"><span class="ml">Verifier</span><span class="mv"><a href="https://github.com/VectisDev/vigil/blob/main/verify/verify_chain.py">verify_chain.py</a></span></div>
+    <div class="m"><span class="ml">Dependencies</span><span class="mv ok">Zero (stdlib only)</span></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">Infrastructure</div>
+    <div class="m"><span class="ml">Hosting</span><span class="mv ok">GitHub Pages</span></div>
+    <div class="m"><span class="ml">CI/CD</span><span class="mv ok">GitHub Actions</span></div>
+    <div class="m"><span class="ml">Timestamping</span><span class="mv ok">OpenTimestamps</span></div>
+    <div class="m"><span class="ml">Archive</span><span class="mv ok">Zenodo (CERN)</span></div>
+    <div class="m"><span class="ml">Monthly cost</span><span class="mv ok">USD 0.00</span></div>
+  </div>
+</div>
+
+<div class="findings">
+  <div class="card-hdr" style="margin-bottom:10px">HN 2025 — Forensic Findings (Statistical anomalies in CNE published data)</div>
+  <div class="f"><span class="badge bc">CRITICAL</span> &nbsp;<strong>13.1h communication blackout</strong> — No CNE data Dec 3 22:00 → Dec 4 11:06. Post-blackout trend shift −0.504pp in leading share.<div class="fd">Rule: snapshot_jump · Dec 3–4, 2025</div></div>
+  <div class="f"><span class="badge bc">CRITICAL</span> &nbsp;<strong>Impossible resolution rate</strong> — 2,346 inconsistent actas resolved in 60 min = 39.15 acts/min. Plausible threshold: ~10/min. Factor: 3.9×.<div class="fd">Rule: processing_speed · Dec 4, 2025</div></div>
+  <div class="f"><span class="badge bw">HIGH</span> &nbsp;<strong>25-cycle stagnation</strong> — Inconsistent actas frozen at 2,407 for 25 consecutive snapshots (~50h) while scrutiny advanced.<div class="fd">Rule: irreversibility · Dec 5–7, 2025</div></div>
+  <div class="f"><span class="badge bw">HIGH</span> &nbsp;<strong>7 overnight blackouts</strong> — Systematic nightly pattern, 11–25h each. Total: 117+ hours without published data across 7 days.<div class="fd">Rule: snapshot_jump · Dec 3–10, 2025</div></div>
+  <div class="f"><span class="badge bw">HIGH</span> &nbsp;<strong>17 progressive injection cycles</strong> — Low-delta batches (Δ&lt;100) published while backlog exceeded 1,000 inconsistent actas.<div class="fd">Rule: participation_anomaly · Dec 3–5, 2025</div></div>
+</div>
+
+<div class="hash-l">SHA-256 Merkle Root — 64 HN 2025 JSON Snapshots</div>
+<div class="hash">f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780</div>
+
+<div class="footer">
+  <span>VIGIL · AGPL-3.0 · <a href="https://github.com/VectisDev/vigil">GitHub</a></span>
+  <span>No fraud allegations · Statistical signals only · Human evaluation required</span>
+  <span><a href="https://doi.org/10.5281/zenodo.20598892">Dataset DOI</a> · <a href="https://github.com/VectisDev/vigil/blob/main/verify/verify_chain.py">verify_chain.py</a></span>
+</div>
+</body>
+</html>

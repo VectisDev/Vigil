@@ -1,0 +1,63 @@
+# ============================================================
+# SEGURIDAD DEFENSIVA BÁSICA (ES) / BASE DEFENSIVE SECURITY (EN)
+# ============================================================
+# ES: Configuración principal del Dead Man's Switch defensivo.
+# EN: Main configuration for the defensive Dead Man's Switch.
+#
+# ES: Índice:
+# EN: Index:
+# 01_umbral_recursos
+# 02_conexiones_y_puertos
+# 03_estado_seguro_y_reintentos
+# 04_alertas_y_notificaciones
+# 05_honeypot_observabilidad_forense
+
+# ES: Convención binaria: todos los flags tipo enabled/monitor/critical/anonymize/encrypt
+#     usan true/false (booleano YAML, sin comillas).
+# EN: Binary convention: all flags such as enabled/monitor/critical/anonymize/encrypt
+#     use true/false (YAML booleans, without quotes).
+
+# Defensive Dead Man's Switch config / Configuración del interruptor defensivo.
+cpu_threshold_percent: 90
+cpu_sustain_seconds: 60
+memory_threshold_percent: 85
+http_errors_limit: 10
+http_window_seconds: 300
+error_log_flood_limit: 50
+error_log_window_seconds: 60
+monitor_connections: true
+expected_ports: [443, 8080, 8081]
+suspicious_connections_limit: 3
+
+safe_state_dir: data/safe_state
+defensive_flag_file: data/safe_state/defensive_shutdown.flag
+
+max_restart_attempts: 5
+cooldown_min_minutes: 10
+cooldown_max_minutes: 60
+
+admin_email: example@domain.com
+alert_email: admin@example.com
+webhook_url: ""
+smtp_settings:
+  server: smtp.example.com
+  port: 587
+  user: ""
+  password: ""
+
+alerts:
+  enabled: true
+  escalation_failures: 3
+  channels: ["email", "sms_webhook"]
+
+honeypot:
+  enabled: true
+  host: 127.0.0.1
+  port: 8081
+  honeypot_threshold: 100
+
+observability:
+  prometheus_port: 8000
+
+forensics:
+  log_rotation_days: 7

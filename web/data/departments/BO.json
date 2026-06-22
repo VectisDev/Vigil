@@ -1,0 +1,77 @@
+{
+  "country": "BO",
+  "country_name": "Bolivia",
+  "divisions_label": "Departamentos",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/nacional"
+    },
+    {
+      "code": "01",
+      "name": "Chuquisaca",
+      "abbr": "CH",
+      "iso": "BO-CH",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/01"
+    },
+    {
+      "code": "02",
+      "name": "Cochabamba",
+      "abbr": "CB",
+      "iso": "BO-CB",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/02"
+    },
+    {
+      "code": "03",
+      "name": "Beni",
+      "abbr": "BE",
+      "iso": "BO-BE",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/03"
+    },
+    {
+      "code": "04",
+      "name": "La Paz",
+      "abbr": "LP",
+      "iso": "BO-LP",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/04"
+    },
+    {
+      "code": "05",
+      "name": "Oruro",
+      "abbr": "OR",
+      "iso": "BO-OR",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/05"
+    },
+    {
+      "code": "06",
+      "name": "Pando",
+      "abbr": "PA",
+      "iso": "BO-PA",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/06"
+    },
+    {
+      "code": "07",
+      "name": "Potosí",
+      "abbr": "PO",
+      "iso": "BO-PO",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/07"
+    },
+    {
+      "code": "08",
+      "name": "Santa Cruz",
+      "abbr": "SC",
+      "iso": "BO-SC",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/08"
+    },
+    {
+      "code": "09",
+      "name": "Tarija",
+      "abbr": "TJ",
+      "iso": "BO-TJ",
+      "url": "https://computo.oep.org.bo/api/resultados/presidente/departamento/09"
+    }
+  ]
+}

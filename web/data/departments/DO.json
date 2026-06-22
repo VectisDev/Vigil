@@ -1,0 +1,238 @@
+{
+  "country": "DO",
+  "country_name": "República Dominicana",
+  "divisions_label": "Provincias",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://resultados.jce.gob.do/api/presidencial/nacional"
+    },
+    {
+      "code": "01",
+      "name": "Azua",
+      "abbr": "AZ",
+      "iso": "DO-AZ",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/01"
+    },
+    {
+      "code": "02",
+      "name": "Bahoruco",
+      "abbr": "BA",
+      "iso": "DO-BA",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/02"
+    },
+    {
+      "code": "03",
+      "name": "Barahona",
+      "abbr": "BR",
+      "iso": "DO-BR",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/03"
+    },
+    {
+      "code": "04",
+      "name": "Dajabón",
+      "abbr": "DA",
+      "iso": "DO-DA",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/04"
+    },
+    {
+      "code": "05",
+      "name": "Duarte",
+      "abbr": "DU",
+      "iso": "DO-DU",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/05"
+    },
+    {
+      "code": "06",
+      "name": "Elías Piña",
+      "abbr": "EP",
+      "iso": "DO-EP",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/06"
+    },
+    {
+      "code": "07",
+      "name": "El Seibo",
+      "abbr": "ES",
+      "iso": "DO-ES",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/07"
+    },
+    {
+      "code": "08",
+      "name": "Espaillat",
+      "abbr": "EL",
+      "iso": "DO-EL",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/08"
+    },
+    {
+      "code": "09",
+      "name": "Hato Mayor",
+      "abbr": "HM",
+      "iso": "DO-HM",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/09"
+    },
+    {
+      "code": "10",
+      "name": "Hermanas Mirabal",
+      "abbr": "HB",
+      "iso": "DO-HB",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/10"
+    },
+    {
+      "code": "11",
+      "name": "Independencia",
+      "abbr": "IN",
+      "iso": "DO-IN",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/11"
+    },
+    {
+      "code": "12",
+      "name": "La Altagracia",
+      "abbr": "LA",
+      "iso": "DO-LA",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/12"
+    },
+    {
+      "code": "13",
+      "name": "La Romana",
+      "abbr": "LR",
+      "iso": "DO-LR",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/13"
+    },
+    {
+      "code": "14",
+      "name": "La Vega",
+      "abbr": "LV",
+      "iso": "DO-LV",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/14"
+    },
+    {
+      "code": "15",
+      "name": "María T. Sánchez",
+      "abbr": "MT",
+      "iso": "DO-MT",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/15"
+    },
+    {
+      "code": "16",
+      "name": "Monseñor Nouel",
+      "abbr": "MN",
+      "iso": "DO-MN",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/16"
+    },
+    {
+      "code": "17",
+      "name": "Monte Cristi",
+      "abbr": "MC",
+      "iso": "DO-MC",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/17"
+    },
+    {
+      "code": "18",
+      "name": "Monte Plata",
+      "abbr": "MP",
+      "iso": "DO-MP",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/18"
+    },
+    {
+      "code": "19",
+      "name": "Pedernales",
+      "abbr": "PE",
+      "iso": "DO-PE",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/19"
+    },
+    {
+      "code": "20",
+      "name": "Peravia",
+      "abbr": "PR",
+      "iso": "DO-PR",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/20"
+    },
+    {
+      "code": "21",
+      "name": "Puerto Plata",
+      "abbr": "PP",
+      "iso": "DO-PP",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/21"
+    },
+    {
+      "code": "22",
+      "name": "Samaná",
+      "abbr": "SM",
+      "iso": "DO-SM",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/22"
+    },
+    {
+      "code": "23",
+      "name": "San Cristóbal",
+      "abbr": "SC",
+      "iso": "DO-SC",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/23"
+    },
+    {
+      "code": "24",
+      "name": "San José de Ocoa",
+      "abbr": "SJ",
+      "iso": "DO-SJ",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/24"
+    },
+    {
+      "code": "25",
+      "name": "San Juan",
+      "abbr": "SJN",
+      "iso": "DO-SJN",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/25"
+    },
+    {
+      "code": "26",
+      "name": "San Pedro de Macorís",
+      "abbr": "SP",
+      "iso": "DO-SP",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/26"
+    },
+    {
+      "code": "27",
+      "name": "Sánchez Ramírez",
+      "abbr": "SR",
+      "iso": "DO-SR",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/27"
+    },
+    {
+      "code": "28",
+      "name": "Santiago",
+      "abbr": "SA",
+      "iso": "DO-SA",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/28"
+    },
+    {
+      "code": "29",
+      "name": "Santiago Rodríguez",
+      "abbr": "SR2",
+      "iso": "DO-SR2",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/29"
+    },
+    {
+      "code": "30",
+      "name": "Santo Domingo",
+      "abbr": "SD",
+      "iso": "DO-SD",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/30"
+    },
+    {
+      "code": "31",
+      "name": "Valverde",
+      "abbr": "VA",
+      "iso": "DO-VA",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/31"
+    },
+    {
+      "code": "32",
+      "name": "Distrito Nacional",
+      "abbr": "DN",
+      "iso": "DO-DN",
+      "url": "https://resultados.jce.gob.do/api/presidencial/provincia/32"
+    }
+  ]
+}

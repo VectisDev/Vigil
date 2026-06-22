@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2025-12-03T19:00:00Z",
+  "departamento": "Francisco Morazán",
+  "inscritos": 1000,
+  "votos_emitidos": 840,
+  "votos_validos": 820,
+  "votos_nulos": 15,
+  "votos_blancos": 5,
+  "candidatos": [
+    {"posicion": 1, "id": "A", "candidato": "Alianza Azul", "partido": "AA", "votos": 420},
+    {"posicion": 2, "id": "B", "candidato": "Bloque Verde", "partido": "BV", "votos": 280},
+    {"posicion": 3, "id": "C", "candidato": "Coalición Roja", "partido": "CR", "votos": 120}
+  ]
+}

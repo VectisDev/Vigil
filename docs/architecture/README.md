@@ -1,0 +1,19 @@
+# Architecture
+
+> **Audience:** Technical reviewers, security auditors, academic validators, grant evaluators  
+> **Start here:** [ARCHITECTURE.md](ARCHITECTURE.md) — core design and formal theorems T1–T4  
+> *~9 documents · Est. 15 min (ARCHITECTURE.md) · 90 min (full section)*
+
+System design, theoretical foundations, and defense mechanisms.
+
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Core architecture and formal theorems (T1–T4) |
+| [THEORY_OF_CHANGE.md](THEORY_OF_CHANGE.md) | Logic model and impact theory |
+| [MULTI-WITNESS-FEDERATION.md](MULTI-WITNESS-FEDERATION.md) | P2P witness federation design |
+| [AUTONOMOUS-OPERATIONS.md](AUTONOMOUS-OPERATIONS.md) | Self-healing and autonomous operation |
+| [ARGOS-PROTOCOL-ES.md](ARGOS-PROTOCOL-ES.md) | ARGOS Protocol — 5-layer defense architecture (ES) |
+| [RESILIENCE.md](RESILIENCE.md) | Fault tolerance and resilience design |
+| [ANOMALY-DETECTION.md](ANOMALY-DETECTION.md) | Statistical anomaly detection overview |
+| [SELF-HEALTH.md](SELF-HEALTH.md) | System self-monitoring architecture |
+| [IPFS-RESILIENCE.md](IPFS-RESILIENCE.md) | IPFS-based data resilience |

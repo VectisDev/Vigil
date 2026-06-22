@@ -1,0 +1,81 @@
+name: Hash Chain Commit
+
+# ponytail: merged export-forensic-trail.yml into this file (same daily schedule,
+# same runner, same setup steps). Re-split if forensic export needs independent triggers.
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  forensic-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Export reputation events
+        run: python src/centinel/federation/export_reputation.py
+
+      - name: Create release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          files: forensic_trail.json
+          tag_name: forensic-${{ github.run_number }}-${{ github.run_attempt }}
+          name: Forensic Trail Export #${{ github.run_number }}
+          body: |
+            Automated forensic trail export from reputation events database.
+
+            Generated: ${{ github.event.repository.updated_at }}
+            Commit: ${{ github.sha }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  commit:
+    needs: forensic-export
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Commit to hash chain
+        run: python src/centinel/federation/hash_chain.py
+
+      - name: Push hash chain branch
+        run: |
+          git push origin data/reputation --force-with-lease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create chain verification
+        run: |
+          git log data/reputation --oneline -10 > chain-verification.txt
+          cat chain-verification.txt

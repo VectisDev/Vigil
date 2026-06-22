@@ -1,0 +1,126 @@
+# CENTINEL — Continuous Poller A
+# ================================
+# Job long-running que corre 5.5h dentro de GitHub Actions.
+# Long-running job that runs 5.5h inside GitHub Actions.
+#
+# Estrategia de overlap / Overlap strategy:
+#   Poller A: 00:00, 06:00, 12:00, 18:00 UTC
+#   Poller B: 03:00, 09:00, 15:00, 21:00 UTC
+#
+#   A corre: 00:00 → 05:30
+#   B corre: 03:00 → 08:30
+#   Overlap: 03:00 → 05:30 (ambos activos)
+#   Gap:     CERO ✅
+#
+# GitHub ve: 2 jobs de 20 disponibles = sin problema
+# GitHub sees: 2 of 20 available jobs = no problem
+#
+# Repo público → minutos de Actions ILIMITADOS
+# Public repo → UNLIMITED Actions minutes
+#
+# Free tier / Costo cero ✅
+
+name: centinel-poller-A
+
+on:
+  schedule:
+    # Arrancar cada 6h en: 00:00, 06:00, 12:00, 18:00 UTC
+    # Start every 6h at: 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: '0 0,6,12,18 * * *'
+
+  workflow_dispatch:
+    inputs:
+      interval_minutes:
+        description: 'Intervalo de polling en minutos / Polling interval in minutes'
+        required: false
+        default: '3'
+      max_runtime_seconds:
+        description: 'Tiempo máximo en segundos / Max runtime in seconds'
+        required: false
+        default: '19800'
+
+# CRÍTICO: Singleton — evitar dos instancias de A simultáneas
+# CRITICAL: Singleton — prevent two simultaneous A instances
+concurrency:
+  group: centinel-poller-A-singleton
+  cancel-in-progress: false  # Nunca matar el job activo / Never kill active job
+
+jobs:
+  continuous-poll-A:
+    runs-on: ubuntu-latest
+
+    # 330 min = 5.5h — margen antes del límite de 6h de GitHub
+    # 330 min = 5.5h — margin before GitHub's 6h limit
+    timeout-minutes: 330
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install aiohttp pyyaml
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "centinel-poller-bot"
+          git config user.email "centinel-poller-bot@noreply.github.com"
+
+      - name: Check election closed
+        run: |
+          if [ -f ELECTION_CLOSED ]; then
+            echo "ELECTION_CLOSED marker found — poller detenido / stopped"
+            exit 0
+          fi
+
+      - name: Setup data branch
+        run: |
+          # Snapshots go to a dedicated 'snapshots' branch (separate history).
+          # NOTE: this branch CANNOT be named 'data' — that name conflicts with
+          # the existing data/reputation ref (git ref namespace: file vs dir).
+          git fetch origin snapshots:snapshots 2>/dev/null || \
+            (git checkout --orphan snapshots-init && \
+             git commit --allow-empty -m "init: snapshots branch" && \
+             git push origin HEAD:snapshots && \
+             git checkout -) || true
+
+      - name: Run continuous poller A
+        env:
+          POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
+          MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19800' }}
+          DATA_BRANCH:        "snapshots"
+          GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python src/centinel/core/poller_async.py \
+            --interval    $POLL_INTERVAL \
+            --max-runtime $MAX_RUNTIME \
+            --data-branch $DATA_BRANCH \
+            --allow-no-endpoints
+
+      - name: Summary on exit
+        if: always()
+        run: |
+          echo "=== Poller A exit summary ==="
+          if [ -f data/latest_cycle.json ]; then
+            python3 -c "
+          import json
+          d = json.load(open('data/latest_cycle.json'))
+          ok = sum(1 for r in d['results'] if r['success'])
+          print(f\"Last cycle: {d['cycle']} | hash: {d['cycle_hash'][:16]} | ok: {ok}/{len(d['results'])}\")
+            "
+          fi
+          if [ -f data/poller_chain.jsonl ]; then
+            echo "Chain entries: $(wc -l < data/poller_chain.jsonl)"
+          fi

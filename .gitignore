@@ -1,0 +1,69 @@
+# Claude Code session data (user-specific, not project files)
+.claude/settings.json
+.claude/settings.local.json
+.claude/*.jsonl
+.claude/todos/
+.claude/memory/
+.claude/worktrees/
+
+# Entornos virtuales
+.venv/
+
+# Salidas generadas
+/data/
+/hashes/
+!/hashes/
+/reports/
+/plots/
+/diffs/
+analysis_results.json
+analysis_results.parquet
+anomalies_report.json
+centinel_informe_nacional.pdf
+centinel_informe_nacional.sha256
+*.sha256
+
+# Config history (auto-archived by config_loader)
+command_center/configs/history/
+
+# Test / coverage artifacts
+.coverage
+*.junit.xml
+artifacts/
+sbom.*.cyclonedx.json
+
+# Archivos temporales
+*.log
+*.tmp
+.env
+.env.local
+__pycache__/
+node_modules/
+
+# Databases
+*.db
+*.sqlite3
+
+# Secret/key files
+*.pem
+*.key
+secrets.yaml
+
+# Centinel runtime state (never commit)
+.centinel-setup.json
+keys/
+web/access.json
+
+# Config secrets / Secretos de configuracion
+config/secrets/*
+!config/secrets/.gitkeep
+
+!config/secrets/.env.example
+
+# Internal, creator-only strategic documents. Never enter version
+# control: the project's own threat model warns against creator
+# exposure and operational-metadata leakage. Keep these local only.
+docs/whitepaper/INTERNAL-*
+
+# Archived work-in-progress
+.archive/

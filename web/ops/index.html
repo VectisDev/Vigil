@@ -1,0 +1,2386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>VIGIL — Ops</title>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script src="../config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ops.css">
+</head>
+<body class="lang-es">
+
+<!-- ════════════════════ AUTH SCREEN ════════════════════ -->
+<div id="auth-screen">
+  <nav class="auth-nav">
+    <span class="auth-wordmark">VIGIL</span>
+    <button class="auth-ops-pill" id="auth-ops-pill" type="button">OPS ▾</button>
+  </nav>
+  <div class="auth-card" id="auth-card">
+    <div class="logo">VIGIL · OPS</div>
+    <h1>Administración</h1>
+    <p class="sub">Acceso restringido — operadores autorizados</p>
+    <label for="adm-pass">Clave de acceso</label>
+    <input type="password" id="adm-pass" placeholder="clave de 24 caracteres" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <button class="btn-primary" id="btn-login" onclick="doAdminLogin()">Entrar</button>
+    <div class="auth-err" id="auth-err"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ ADMIN SHELL ════════════════════ -->
+<div id="admin-shell">
+  <!-- HEADER -->
+  <div id="admin-header">
+    <a href="../" class="hdr-brand-link">VIGIL</a><span class="hdr-sep">/</span><span class="hdr-brand">OPS</span>
+    <span class="hdr-user" id="hdr-user"></span>
+    <span id="hdr-role"></span>
+    <div id="vigil-toggles">
+      <button id="theme-toggle" onclick="toggleOpsTheme()" title="Cambiar tema / Toggle theme">
+        <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button id="lang-toggle" onclick="toggleOpsLang()" title="Cambiar idioma / Switch language">EN</button>
+    </div>
+    <span id="config-sync-pill" class="sync-pill"></span>
+    <span id="timing-pill" class="timing-pill"></span>
+    <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
+  </div>
+  <!-- COMMAND HEADER ── estado global de un vistazo -->
+  <div id="command-header">
+    <div id="status-ring-wrap">
+      <svg id="status-ring" viewBox="0 0 120 120" width="92" height="92">
+        <circle class="ring-track" cx="60" cy="60" r="52" fill="none" stroke-width="6"/>
+        <circle class="ring-fill"  cx="60" cy="60" r="52" fill="none" stroke-width="6"
+                stroke-dasharray="326.7" stroke-dashoffset="80" stroke-linecap="round"/>
+      </svg>
+      <div id="status-ring-center">
+        <div class="ring-sys-label"><span data-lang="es">SISTEMA</span><span data-lang="en">SYSTEM</span></div>
+        <div class="ring-sys-val" id="ms-system">—</div>
+      </div>
+    </div>
+    <div id="command-stats">
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-nodes">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Nodos</span><span data-lang="en">Nodes</span></div>
+      </div>
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-uptime">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Tiempo activo</span><span data-lang="en">Uptime</span></div>
+      </div>
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-defense">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Defensas</span><span data-lang="en">Defenses</span></div>
+      </div>
+      <div class="cmd-stat">
+        <div class="cmd-stat-val" id="ms-elec">—</div>
+        <div class="cmd-stat-label"><span data-lang="es">Modo elec.</span><span data-lang="en">Election mode</span></div>
+      </div>
+    </div>
+    <div id="command-secondary">
+      <span class="cmd-sec-item">
+        <span class="cmd-sec-label"><span data-lang="es">País</span><span data-lang="en">Country</span></span>
+        <span class="ms-val" id="ms-country">—</span>
+      </span>
+      <span class="cmd-sec-item">
+        <span class="cmd-sec-label">UTC</span>
+        <span class="ms-val" id="ms-clock">--:--:--</span>
+      </span>
+      <span class="cmd-sec-item">
+        <span class="cmd-sec-label"><span data-lang="es">Local</span><span data-lang="en">Local</span></span>
+        <span class="ms-val" id="ms-local" style="opacity:.7">--:--:--</span>
+      </span>
+    </div>
+  </div>
+  <!-- UNLOCK ALERT BAR -->
+  <div id="unlock-alert-bar">
+    <span class="uab-icon">⚠</span>
+    <span class="uab-text">Modo desbloqueado — límites operativos desactivados</span>
+    <button class="uab-btn" onclick="requestUnlock(false)">✓ Restaurar límites</button>
+  </div>
+
+  <!-- LAYOUT -->
+  <div id="admin-content">
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+      <div id="sidebar-nav">
+        <div class="sb-section" data-section="estado">
+          <button class="sec-header phase-tab" data-phase-tab="estado" onclick="setView('estado')"><span data-lang="es">Estado</span><span data-lang="en">Status</span></button>
+          <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
+          <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
+        </div>
+        <div class="sb-section" data-section="control">
+          <button class="sec-header phase-tab" data-phase-tab="control" onclick="setView('control')"><span data-lang="es">Control</span><span data-lang="en">Control</span></button>
+          <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
+          <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
+        </div>
+        <div class="sb-section" data-section="evidencia">
+          <button class="sec-header phase-tab" data-phase-tab="evidencia" onclick="setView('evidencia')"><span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span></button>
+          <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
+          <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
+          <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
+          <a href="#s8" onclick="scrollTo('s8')" class="election-only"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
+        </div>
+      </div>
+      <div id="sidebar-ops-zone">
+        <div class="soz-sep"></div>
+        <button id="btn-sidebar-iniciar" onclick="doIniciar()"
+          title="Iniciar monitoreo electoral">▶ <span data-lang="es">INICIAR</span><span data-lang="en">START</span></button>
+        <button id="btn-sidebar-finalizar" onclick="openFinalizeModal()"
+          title="Finalizar ciclo electoral">◼ <span data-lang="es">FINALIZAR</span><span data-lang="en">FINISH</span></button>
+        <div class="soz-autosave" onclick="toggleAutoApply()"
+          title="Auto-guardar: aplica cambios a GitHub automáticamente tras 1.5s de inactividad">
+          <span class="soz-autosave-label"><span data-lang="es">Auto-guardar</span><span data-lang="en">Auto-save</span></span>
+          <span class="soz-autosave-val off" id="autosave-val">OFF</span>
+        </div>
+        <button id="btn-apply-now" onclick="autoApply()" style="display:none"
+          title="Guardar los cambios de configuración en el repositorio">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>
+          Guardar cambios</button>
+      </div>
+      <div id="sidebar-emergency-zone">
+        <div class="sez-sep"></div>
+        <button id="btn-sidebar-emg" onclick="openEmergencyModal()"
+          title="Parada de emergencia — doble confirmación requerida">⚠ <span data-lang="es">EMERGENCIA</span><span data-lang="en">EMERGENCY</span></button>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main id="main-area">
+
+      <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
+      <div class="section" id="s1" data-phase="estado">
+
+        <!-- Título + botones de operación -->
+        <div id="panel-topbar">
+          <div class="section-title"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span> <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(110,168,254,.1);border-color:rgba(110,168,254,.3);color:var(--accent)"></span><span class="sec-tip" data-tip-es="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia." data-tip-en="Main command center. Start or stop electoral data scraping, check system status, and review the latest custody chain snapshots.">ⓘ</span></div>
+          <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
+          <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
+          <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
+        </div>
+        <hr class="section-sep">
+
+        <!-- Estado global del sistema -->
+        <div id="global-status-banner" class="global-status-banner nominal">● SISTEMA NOMINAL</div>
+
+        <!-- Selector de país + URL del ente electoral -->
+        <div id="country-picker">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%">
+            <span id="country-current-flag">🌎</span>
+            <span id="country-current-name">—</span>
+            <span id="country-current-auth"></span>
+            <select id="country-select" onchange="onCountrySelectChange(this.value)">
+              <option value="" data-lang-es="Cargando países…" data-lang-en="Loading countries…">Cargando países…</option>
+            </select>
+            <button class="hdr-btn primary" id="btn-change-country" onclick="doChangeCountry()"><span data-lang="es">Cambiar país</span><span data-lang="en">Change country</span></button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <label style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:4px" data-tip-es="La dirección principal del sitio de resultados electorales. VIGIL descubre los datos automáticamente — no necesitas saber nada más." data-tip-en="The main address of the electoral results site. VIGIL discovers the data automatically, you don't need to know anything else."><span data-lang="es">Sitio de resultados</span><span data-lang="en">Results site</span> <span style="color:var(--muted);font-weight:400">ⓘ</span></label>
+            <input type="text" id="inp-main-url-easy" placeholder="https://resultados.organismo-electoral.gov" data-ph-es="https://resultados.organismo-electoral.gov" data-ph-en="https://results.electoral-authority.gov" oninput="onEasyUrlInput(this.value)" onblur="validateUrlField(this)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+            <button class="hdr-btn primary" id="btn-discover" onclick="saveElectoralUrl()" style="white-space:nowrap"><span data-lang="es">Descubrir endpoints</span><span data-lang="en">Discover endpoints</span></button>
+          </div>
+          <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
+          <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
+        </div>
+        <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
+          ⚠ <span data-lang="es">El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.</span><span data-lang="en">The swarm is connected with the previous country. Go to Node Network → Disconnect and reconnect.</span>
+        </div>
+
+        <!-- Estado operativo — métricas hero -->
+        <div class="status-cards-grid" id="status-cards"><!-- filled by JS --></div>
+
+        <!-- Tarjetas de estado -->
+        <div class="cards-grid" id="sensor-cards"><!-- filled by JS --></div>
+
+        <!-- Mapa de departamentos -->
+        <div id="dept-section-label"><span data-lang="es">Divisiones electorales</span><span data-lang="en">Electoral divisions</span></div>
+        <div id="map-flex">
+        <div id="adm-map-wrap" style="position:relative">
+          <div id="dep-card-national" class="dep-national-badge" onclick="openMapPopup('00')" title="NACIONAL (00)">
+            <span class="dep-dot" id="dep-dot-00" style="background:var(--accent)"></span>
+            <span data-lang="es">00 · NACIONAL</span><span data-lang="en">00 · NATIONAL</span>
+          </div>
+          <div id="hn-ops-map-container" style="max-width:420px;margin:8px auto;position:relative"></div>
+          <div id="map-popup">
+            <div class="mp-title">
+              <span id="mp-dept-name">—</span>
+              <button onclick="closeMapPopup()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Endpoint URL</div>
+            <input type="text" id="mp-url-input" placeholder="https://...">
+            <div class="mp-status" id="mp-status">—</div>
+            <div class="mp-btns">
+              <button onclick="testEndpoint()"><span data-lang="es">Probar ahora</span><span data-lang="en">Test now</span></button>
+              <button onclick="closeMapPopup()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+              <button class="save" onclick="saveEndpointFromPopup()"><span data-lang="es">Guardar cambio</span><span data-lang="en">Save change</span></button>
+            </div>
+          </div>
+        </div>
+        <div id="map-narrative"><!-- filled by updateMapNarrative() --></div>
+        </div>
+        <div class="map-legend">
+          <span><span class="dot" style="background:#57c08d"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
+          <span><span class="dot" style="background:#d4b066"></span> <span data-lang="es">Tardío (20–60 min)</span><span data-lang="en">Delayed (20–60 min)</span></span>
+          <span><span class="dot" style="background:#df6b86"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
+          <span><span class="dot" style="background:#3a3f49"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
+        </div>
+        <!-- Status badges removed — state now lives authoritatively in the
+             command-header (Defensas / Modo elec.) and the sensor cards
+             (Circuit Breaker / Protocolo ARGOS). updateStatusBadges() null-guards
+             these IDs, so their absence is safe. -->
+      </div>
+
+      <!-- s2 eliminado — contenido integrado en s1 -->
+
+      <!-- Hidden inputs preserved for JS (were in old s3 easy-mode) -->
+      <div style="display:none" aria-hidden="true">
+        <input type="range" id="sl-interval" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+        <input type="range" id="sl-rph" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+        <input type="range" id="sl-benford" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+        <input type="range" id="sl-zscore" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+        <span id="vb-interval">10</span>
+        <span id="vb-rph">240</span>
+        <span id="vb-benford">5.99</span>
+        <span id="vb-zscore">3.0</span>
+        <input type="checkbox" id="tog-election" onchange="markDirty()">
+        <input type="checkbox" id="tog-safe" onchange="markDirty()">
+      </div>
+
+      <!-- ── 3 PRESETS ── -->
+      <div class="section" id="s3" data-phase="control">
+        <div class="section-title"><span data-lang="es">Presets</span><span data-lang="en">Presets</span> <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip-es="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada." data-tip-en="Quick configuration templates. Pick a preset based on the scenario (normal operation, election night, emergency…) or save your own custom configuration.">ⓘ</span></div>
+        <hr class="section-sep">
+
+        <!-- 409 conflict banner -->
+        <div id="banner-409">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> <span data-lang="es">La configuración cambió mientras editabas (otro proceso hizo commit). Tus ediciones se conservan.</span><span data-lang="en">The configuration changed while you were editing (another process made a commit). Your edits are preserved.</span>
+          <button onclick="reloadShaAndReapply()"><span data-lang="es">Recargar SHA y re-aplicar</span><span data-lang="en">Reload SHA and reapply</span></button>
+          <button onclick="discardEdits()" style="background:transparent;border:1px solid var(--border);color:var(--fg);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:4px"><span data-lang="es">Descartar</span><span data-lang="en">Discard</span></button>
+        </div>
+
+        <p class="section-sub"><span data-lang="es">Plantillas de configuración predefinidas.</span><span data-lang="en">Predefined configuration templates.</span></p>
+        <div class="info-box" style="margin-bottom:16px">
+          <span data-lang="es">Los presets son <strong>plantillas de interfaz</strong> guardadas localmente en tu navegador.
+          <strong>Cargar</strong> un preset rellena los controles pero <strong>no modifica el repositorio</strong>.
+          Cada cambio se guarda automáticamente en GitHub (requiere PAT la primera vez).</span>
+          <span data-lang="en">Presets are <strong>interface templates</strong> saved locally in your browser.
+          <strong>Loading</strong> a preset fills in the controls but <strong>does not modify the repository</strong>.
+          Every change is saved automatically to GitHub (requires PAT the first time).</span>
+        </div>
+        <div class="unlock-bar" id="unlock-bar">
+          <div class="ub-icon" id="unlock-bar-icon">&#x1f512;</div>
+          <div class="ub-text">
+            <span data-lang="es"><strong id="unlock-bar-title">L&iacute;mites de seguridad activos</strong> &mdash; los controles no pueden exceder
+            480 req/h, intervalo m&iacute;nimo 1s, burst m&aacute;ximo 8.
+            Para desbloquear, se requiere firma de responsabilidad con commit a GitHub.</span>
+            <span data-lang="en"><strong>Security limits active</strong> &mdash; controls cannot exceed
+            480 req/h, minimum interval 1s, max burst 8.
+            To unlock, a responsibility signature with a commit to GitHub is required.</span>
+          </div>
+          <button id="btn-unlock-toggle" onclick="requestUnlock(!ceilingUnlocked)"
+            style="flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bad);background:rgba(223,107,134,.12);color:var(--bad);transition:.15s"
+            title="Requiere doble verificacion">
+            &#x26a0; <span data-lang="es">Desbloquear límites</span><span data-lang="en">Unlock limits</span>
+          </button>
+        </div>
+        <!-- Panel de controles avanzados — visible solo con límites desbloqueados -->
+        <div id="unlocked-scraping-panel" style="display:none;margin-bottom:20px">
+          <div class="ctrl-section" style="border-color:rgba(212,176,102,.35);background:rgba(212,176,102,.04)">
+            <h3 style="color:var(--warn)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+              <span data-lang="es">Controles de raspado ampliados</span><span data-lang="en">Extended scraping controls</span>
+              <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:6px"><span data-lang="es">disponibles por desbloqueo operativo</span><span data-lang="en">available via operational unlock</span></span>
+            </h3>
+            <div class="ctrl-row">
+              <label><span data-lang="es">Intervalo de captura (min)</span><span data-lang="en">Capture interval (min)</span> <span class="sec-tip" data-tip-es="Frecuencia de escaneo. Sin limite inferior activo, valores muy bajos aumentan la carga en el servidor del CNE." data-tip-en="Scan frequency. No active lower limit, very low values increase load on the electoral authority server.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-interval3" min="0.5" max="60" step="0.5" value="10" oninput="syncSlider('interval',this.value)">
+                <span class="val-badge" id="vb-interval3">10</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">min</span><span data-lang="en">min</span></span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label><span data-lang="es">Requests por hora</span><span data-lang="en">Requests per hour</span> <span class="sec-tip" data-tip-es="Limite global de peticiones. Sin techo de 480, el operador asume responsabilidad por impacto al servidor." data-tip-en="Global request limit. No 480 ceiling, the operator assumes responsibility for server impact.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-rph3" min="60" max="1200" step="10" value="240" oninput="syncSlider('rph',this.value)">
+                <span class="val-badge" id="vb-rph3">240</span>
+                <span style="font-size:11px;color:var(--muted)">req/h</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label><span data-lang="es">Ráfaga (burst)</span><span data-lang="en">Burst</span> <span class="sec-tip" data-tip-es="Requests simultaneos permitidos antes de que el token bucket frene. Valores altos pueden saturar el servidor." data-tip-en="Simultaneous requests allowed before the token bucket throttles. High values can saturate the server.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-capacity2" min="1" max="30" step="1" value="3" oninput="syncSlider('capacity',this.value)">
+                <span class="val-badge" id="vb-capacity2">3</span>
+                <span style="font-size:11px;color:var(--muted)">req</span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label>Jitter (<span data-lang="es">seg</span><span data-lang="en">sec</span>) <span class="sec-tip" data-tip-es="Variacion aleatoria en el timing de cada request. Evita patrones detectables y fingerprinting. 0 = sin jitter (timing exacto)." data-tip-en="Random variation in each requests timing. Avoids detectable patterns and fingerprinting. 0 = no jitter (exact timing).">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-jitter" min="0" max="60" step="1" value="5" oninput="syncSlider('jitter',this.value)">
+                <span class="val-badge" id="vb-jitter">5</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">seg</span><span data-lang="en">sec</span></span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label><span data-lang="es">Concurrencia</span><span data-lang="en">Concurrency</span> <span class="sec-tip" data-tip-es="Endpoints consultados en paralelo por ciclo. Acelera la recoleccion pero aumenta la carga de red y en el servidor." data-tip-en="Endpoints queried in parallel per cycle. Speeds up collection but increases network and server load.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-concurrency" min="1" max="10" step="1" value="1" oninput="syncSlider('concurrency',this.value)">
+                <span class="val-badge" id="vb-concurrency">1</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">paralelos</span><span data-lang="en">parallel</span></span>
+              </div>
+            </div>
+            <div class="ctrl-row">
+              <label><span data-lang="es">Timeout por peticion (seg)</span><span data-lang="en">Per-request timeout (sec)</span> <span class="sec-tip" data-tip-es="Tiempo maximo de espera por endpoint antes de marcar como fallido." data-tip-en="Maximum wait time per endpoint before marking as failed.">ⓘ</span></label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="sl-timeout2" min="5" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
+                <span class="val-badge" id="vb-timeout2">30</span>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">seg</span><span data-lang="en">sec</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="presets-grid" id="presets-grid"><!-- filled by JS --></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px">
+          <input type="text" id="preset-name" placeholder="Nombre del preset…" data-ph-es="Nombre del preset…" data-ph-en="Preset name…" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:220px;outline:none">
+          <button class="hdr-btn" onclick="saveCustomPreset()"><span data-lang="es">Guardar estado actual como preset</span><span data-lang="en">Save current state as preset</span></button>
+        </div>
+
+        <!-- Configuración avanzada -->
+        <button id="btn-adv-config" class="adv-config-trigger" onclick="toggleAdvancedConfig()">
+          <span class="adv-lock">⚙</span>
+          <span id="adv-config-label"><span data-lang="es">Configuración avanzada</span><span data-lang="en">Advanced configuration</span></span>
+          <span class="adv-arrow" id="adv-config-arrow">▶</span>
+        </button>
+        <div id="advanced-config" style="display:none">
+              <div class="tabs" id="cfg-tabs">
+                <button class="active" onclick="showTab('t-endpoints')">Endpoints</button>
+                <button onclick="showTab('t-capture')"><span data-lang="es">Captura</span><span data-lang="en">Capture</span></button>
+                <button onclick="showTab('t-alerts')"><span data-lang="es">Alertas</span><span data-lang="en">Alerts</span></button>
+                <button onclick="showTab('t-network')"><span data-lang="es">Red</span><span data-lang="en">Network</span></button>
+                <button onclick="showTab('t-rules')"><span data-lang="es">Reglas</span><span data-lang="en">Rules</span></button>
+              </div>
+
+              <!-- Tab: Endpoints -->
+              <div id="t-endpoints" class="tab-pane active">
+                <div class="ctrl-section">
+                  <h3><span data-lang="es">URL principal</span><span data-lang="en">Main URL</span></h3>
+                  <div class="ctrl-row">
+                    <label>CNE Main URL</label>
+                    <input type="text" id="inp-main-url" placeholder="https://resultados.cne.hn/" oninput="markDirty()" onblur="validateUrlField(this)">
+                  </div>
+                </div>
+                <div class="ctrl-section" style="overflow-x:auto">
+                  <h3><span data-lang="es">Endpoints departamentales</span><span data-lang="en">Departmental endpoints</span></h3>
+                  <table class="data-table" id="endpoints-table">
+                    <thead><tr>
+                      <th><span data-lang="es">Depto</span><span data-lang="en">Dept.</span></th><th><span data-lang="es">Código</span><span data-lang="en">Code</span></th><th>URL endpoint</th>
+                      <th><span data-lang="es">Estado</span><span data-lang="en">Status</span></th><th><span data-lang="es">Último OK</span><span data-lang="en">Last OK</span></th><th><span data-lang="es">Acciones</span><span data-lang="en">Actions</span></th>
+                    </tr></thead>
+                    <tbody id="endpoints-tbody"><!-- filled by JS --></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab: Captura -->
+              <div id="t-capture" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3>Watchdog</h3>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Intervalo de captura (min)</span><span data-lang="en">Capture interval (min)</span>
+                      <span class="sec-tip" data-tip-es="Frecuencia de escaneo de endpoints." data-tip-en="Endpoint scan frequency.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-interval2" min="1" max="60" step="1" value="10" oninput="syncSlider('interval',this.value)">
+                      <span class="val-badge" id="vb-interval2">10</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Check interval watchdog (min)
+                      <span class="sec-tip" data-tip-es="Con que frecuencia el watchdog verifica si el servicio principal sigue corriendo." data-tip-en="How often the watchdog checks whether the main service is still running.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-wdcheck" min="1" max="15" step="1" value="3" oninput="syncSlider('wdcheck',this.value)">
+                      <span class="val-badge" id="vb-wdcheck">3</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Límite CPU (%)</span><span data-lang="en">CPU limit (%)</span>
+                      <span class="sec-tip" data-tip-es="El watchdog pausa capturas si el CPU supera este porcentaje." data-tip-en="The watchdog pauses captures if CPU exceeds this percentage.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-cpu" min="50" max="95" step="1" value="80" oninput="syncSlider('cpu',this.value)">
+                      <span class="val-badge" id="vb-cpu">80</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Límite RAM (%)</span><span data-lang="en">RAM limit (%)</span>
+                      <span class="sec-tip" data-tip-es="El watchdog pausa capturas si la memoria supera este porcentaje." data-tip-en="The watchdog pauses captures if memory exceeds this percentage.">ⓘ</span>
+                    </label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-ram" min="50" max="95" step="1" value="90" oninput="syncSlider('ram',this.value)">
+                      <span class="val-badge" id="vb-ram">90</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="ctrl-section">
+                  <h3>Rate limiter <span class="ceiling-lock-badge" id="rate-lock-badge">🔒 <span data-lang="es">requiere desbloqueo</span><span data-lang="en">requires unlock</span></span></h3>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Requests por hora</span><span data-lang="en">Requests per hour</span> <span class="sec-tip" data-tip-es="Limite global de peticiones al servidor del ente electoral." data-tip-en="Global request limit to the electoral authority server.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-rph2" min="60" max="480" step="10" value="240" oninput="syncSlider('rph',this.value)">
+                      <span class="val-badge" id="vb-rph2">240</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Capacidad de ráfaga</span><span data-lang="en">Burst capacity</span> <span class="sec-tip" data-tip-es="Numero de requests permitidos en rafaga antes de aplicar el rate limiter." data-tip-en="Number of requests allowed in a burst before the rate limiter applies.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-capacity" min="1" max="10" step="1" value="3" oninput="syncSlider('capacity',this.value)">
+                      <span class="val-badge" id="vb-capacity">3</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Timeout por petición (seg)</span><span data-lang="en">Per-request timeout (sec)</span> <span class="sec-tip" data-tip-es="Tiempo maximo de espera por endpoint antes de marcar como fallido." data-tip-en="Maximum wait time per endpoint before marking as failed.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-timeout" min="10" max="120" step="5" value="30" oninput="syncSlider('timeout',this.value)">
+                      <span class="val-badge" id="vb-timeout">30</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: Alertas -->
+              <div id="t-alerts" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3><span data-lang="es">Notificaciones</span><span data-lang="en">Notifications</span></h3>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Nivel mínimo de alerta</span><span data-lang="en">Minimum alert level</span></label>
+                    <select id="sel-alert-level" style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--fg);font-size:13px;width:100%" onchange="markDirty()">
+                      <option value="INFO">INFO</option>
+                      <option value="WARNING" selected>WARNING</option>
+                      <option value="CRITICAL">CRITICAL</option>
+                      <option value="PANIC">PANIC</option>
+                    </select>
+                  </div>
+                  <div class="toggle-row">
+                    <label class="sec-tip" data-tip-es="Crear Issue automatico en GitHub ante fallos criticos de git push." data-tip-en="Automatically create a GitHub Issue on critical git push failures."><span data-lang="es">Auto-Issue en fallos de git</span><span data-lang="en">Auto-Issue on git failures</span> i</label>
+                    <label class="toggle"><input type="checkbox" id="tog-autoissue" onchange="markDirty()"><span class="toggle-slider"></span></label>
+                  </div>
+                </div>
+                <div class="ctrl-section">
+                  <h3><span data-lang="es">Honeypot y detección de ataques</span><span data-lang="en">Honeypot &amp; attack detection</span></h3>
+                  <p style="font-size:12px;color:var(--muted);margin-bottom:14px"><span data-lang="es">Tipos de eventos registrados en el attack logger y su nivel de severidad.</span><span data-lang="en">Event types recorded in the attack logger and their severity level.</span></p>
+                  <table class="data-table" style="margin-bottom:16px">
+                    <thead><tr><th><span data-lang="es">Tipo</span><span data-lang="en">Type</span></th><th><span data-lang="es">Descripción</span><span data-lang="en">Description</span></th><th><span data-lang="es">Severidad</span><span data-lang="en">Severity</span></th></tr></thead>
+                    <tbody>
+                      <tr><td><code>FLOOD</code></td><td style="color:var(--muted)"><span data-lang="es">Más de N requests por IP en ventana de tiempo</span><span data-lang="en">More than N requests per IP within a time window</span></td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>BRUTE</code></td><td style="color:var(--muted)"><span data-lang="es">Acceso a rutas de fuerza bruta (/admin, /login, /api/internal)</span><span data-lang="en">Access to brute-force paths (/admin, /login, /api/internal)</span></td><td><span class="badge badge-bad">CRITICAL</span></td></tr>
+                      <tr><td><code>SCAN</code></td><td style="color:var(--muted)"><span data-lang="es">User-agents de scanners (sqlmap, nmap, nikto, masscan…)</span><span data-lang="en">Scanner user-agents (sqlmap, nmap, nikto, masscan…)</span></td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>PROXY_SUSPECT</code></td><td style="color:var(--muted)"><span data-lang="es">Tráfico desde nodos Tor o cadenas de proxies</span><span data-lang="en">Traffic from Tor nodes or proxy chains</span></td><td><span class="badge badge-warn">WARNING</span></td></tr>
+                      <tr><td><code>SUSPICIOUS</code></td><td style="color:var(--muted)"><span data-lang="es">Actividad anómala no clasificable en las anteriores</span><span data-lang="en">Anomalous activity not classifiable into the above</span></td><td><span class="badge badge-neutral">INFO</span></td></tr>
+                    </tbody>
+                  </table>
+                  <div class="toggle-row">
+                    <label class="sec-tip" data-tip-es="Activa el honeypot para registrar todos los intentos de acceso no autorizados a rutas sensibles." data-tip-en="Enables the honeypot to log all unauthorized access attempts to sensitive paths."><span data-lang="es">Honeypot activo</span><span data-lang="en">Honeypot active</span> i</label>
+                    <label class="toggle"><input type="checkbox" id="tog-honeypot" checked onchange="markDirty()"><span class="toggle-slider"></span></label>
+                  </div>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Rutas honeypot monitoreadas</span><span data-lang="en">Monitored honeypot paths</span> <span class="sec-tip" data-tip-es="Separadas por comas. Cualquier acceso a estas rutas activa el logger." data-tip-en="Comma-separated. Any access to these paths triggers the logger.">ⓘ</span></label>
+                    <input type="text" id="inp-honeypot-routes" value="/debug,/admin,/api/internal" oninput="markDirty()">
+                  </div>
+                  <div class="ctrl-row">
+                    <label>Flood threshold (requests/IP) <span class="sec-tip" data-tip-es="Numero de requests en la ventana de tiempo que activan clasificacion FLOOD." data-tip-en="Number of requests within the time window that trigger FLOOD classification.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-flood" min="5" max="100" step="5" value="20" oninput="syncSlider('flood',this.value)">
+                      <span class="val-badge" id="vb-flood">20</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab: Red -->
+              <div id="t-network" class="tab-pane">
+                <div class="ctrl-section">
+                  <h3><span data-lang="es">Retry por código HTTP</span><span data-lang="en">Retry by HTTP code</span> <span class="ceiling-lock-badge" id="retry-lock-badge">🔒 <span data-lang="es">requiere desbloqueo</span><span data-lang="en">requires unlock</span></span></h3>
+                  <table class="data-table">
+                    <thead><tr><th><span data-lang="es">Código</span><span data-lang="en">Code</span></th><th><span data-lang="es">Max intentos</span><span data-lang="en">Max retries</span></th><th><span data-lang="es">Descripción</span><span data-lang="en">Description</span></th></tr></thead>
+                    <tbody>
+                      <tr><td>429</td><td><input type="number" id="retry-429" min="1" max="5" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Rate limit</td></tr>
+                      <tr><td>5xx</td><td><input type="number" id="retry-5xx" min="1" max="5" value="5" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Server error</td></tr>
+                      <tr><td>403</td><td><input type="number" id="retry-403" min="1" max="5" value="3" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Forbidden</td></tr>
+                      <tr><td>404</td><td><input type="number" id="retry-404" min="1" max="5" value="2" style="width:60px" oninput="markDirty()"></td><td style="color:var(--muted)">Not found</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab: Reglas -->
+              <div id="t-rules" class="tab-pane">
+                <details class="rules-refs">
+                  <summary>📚 <span data-lang="es">Base académica — metodología estadística</span><span data-lang="en">Academic foundation — statistical methodology</span></summary>
+                  <ol>
+                    <li><strong>Benford (1938)</strong> "The Law of Anomalous Numbers" — <em>Proc. American Philosophical Society</em>. <span data-lang="es">Base de</span><span data-lang="en">Basis for</span> <code>benford_first_digit</code>, <code>benford_law</code>.</li>
+                    <li><strong>Beber &amp; Scacco (2012)</strong> "What the Numbers Say: A Digit-Based Test for Election Fraud" — <em>Political Analysis</em> 20(2). <span data-lang="es">Base de</span><span data-lang="en">Basis for</span> <code>last_digit_uniformity</code>.</li>
+                    <li><strong>Klimek et al. (2012)</strong> "Statistical Detection of Systematic Election Irregularities" — <em>PNAS</em> 109(41). <span data-lang="es">Base de</span><span data-lang="en">Basis for</span> <code>participation_vote_correlation</code>, <code>snapshot_jump</code>, <code>irreversibility</code>, <code>trend_shift</code>.</li>
+                    <li><strong>Mebane (2006)</strong> "Election Forensics: Vote Counts and Benford's Law" — <em>Summer Meeting of the Political Methodology Society</em>. <span data-lang="es">Base de</span><span data-lang="en">Basis for</span> <code>granular_anomaly</code>, <code>participation_anomaly</code>, <code>participation_anomaly_advanced</code>.</li>
+                    <li><strong>Myagkov, Ordeshook &amp; Shakin (2009)</strong> <em>The Forensics of Election Fraud</em> — Cambridge University Press. <span data-lang="es">Base de</span><span data-lang="en">Basis for</span> <code>geographic_dispersion</code>, <code>participation_anomaly_advanced</code>.</li>
+                    <li><strong>Wald &amp; Wolfowitz (1940)</strong> "On a Test Whether Two Samples Are from the Same Population" — <em>Annals of Mathematical Statistics</em>. <span data-lang="es">Base de</span><span data-lang="en">Basis for</span> <code>runs_test</code>.</li>
+                    <li><strong>Liu, Ting &amp; Zhou (2008)</strong> "Isolation Forest" — <em>ICDM 2008</em>. <span data-lang="es">Base de</span><span data-lang="en">Basis for</span> <code>ml_outliers</code>.</li>
+                    <li><strong>IIDH/CAPEL (2017)</strong> <em>Manual de Observación Electoral</em> <span data-lang="es"></span><span data-lang="en">(Electoral Observation Manual)</span>. <span data-lang="es">Marco para</span><span data-lang="en">Framework for</span> <code>null_blank_votes</code>, <code>turnout_impossible</code>, <code>mesa_impossibility</code>.</li>
+                    <li><strong>OSCE/ODIHR (2010)</strong> <em>Election Observation Handbook</em> (6th ed.). <span data-lang="es">Marco para</span><span data-lang="en">Framework for</span> <code>mesa_reconciliation</code>, <code>mesas_diff</code>, <code>table_consistency</code>.</li>
+                    <li><strong>Pearson (1900)</strong> "On the criterion that a given system of deviations…" — <em>Philosophical Magazine</em>. <span data-lang="es">Estadístico χ² en</span><span data-lang="en">χ² statistic in</span> <code>benford_law</code>, <code>check_distribution_chi2</code>.</li>
+                  </ol>
+                </details>
+                <div class="ctrl-section">
+                  <h3><span data-lang="es">Parámetros globales</span><span data-lang="en">Global parameters</span></h3>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Umbral Benford χ²</span><span data-lang="en">Benford χ² threshold</span> <span class="sec-tip" data-tip-es="Umbral chi-cuadrado para la ley de Benford." data-tip-en="Chi-squared threshold for Benford\u2019s law.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-benford2" min="3" max="15" step="0.1" value="5.99" oninput="syncSlider('benford',this.value)">
+                      <span class="val-badge" id="vb-benford2">5.99</span>
+                    </div>
+                  </div>
+                  <div class="ctrl-row">
+                    <label><span data-lang="es">Umbral Z-score (σ)</span><span data-lang="en">Z-score threshold (σ)</span> <span class="sec-tip" data-tip-es="Desviaciones estandar para activar alerta." data-tip-en="Standard deviations required to trigger an alert.">ⓘ</span></label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <input type="range" id="sl-zscore2" min="1.5" max="5" step="0.1" value="3" oninput="syncSlider('zscore',this.value)">
+                      <span class="val-badge" id="vb-zscore2">3.0</span>
+                    </div>
+                  </div>
+                </div>
+                <details open>
+                  <summary>🔴 CRITICAL — <span data-lang="es">15 reglas</span><span data-lang="en">15 rules</span></summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Sev.</span><span data-lang="en">Sev.</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th><th><span data-lang="es">Parámetro clave</span><span data-lang="en">Key parameter</span></th></tr></thead><tbody>
+                    <tr><td><code>benford_first_digit</code></td><td><span data-lang="es">Benford 1er dígito (MAD+χ²)</span><span data-lang="en">Benford 1st Digit (MAD+χ²)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_first_digit" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_first_digit" value="0.015" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> mad_critical</td></tr>
+                    <tr><td><code>last_digit_uniformity</code></td><td><span data-lang="es">Uniformidad último dígito</span><span data-lang="en">Last Digit Uniformity</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-last_digit_uniformity" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-last_digit_uniformity" value="0.001" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_pvalue</td></tr>
+                    <tr><td><code>granular_anomaly</code></td><td><span data-lang="es">Anomalías granulares (deltas, z-score)</span><span data-lang="en">Granular Anomalies (deltas, z-score)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-granular_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-granular_anomaly" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> zscore_threshold</td></tr>
+                    <tr><td><code>mesa_impossibility</code></td><td><span data-lang="es">Imposibilidad aritmética por registro</span><span data-lang="en">Arithmetic Impossibility per Record</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_impossibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>mesa_reconciliation</code></td><td><span data-lang="es">Mutación de registros entre publicaciones</span><span data-lang="en">Record Mutation Between Publications</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesa_reconciliation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>mesas_diff</code></td><td><span data-lang="es">Mesas duplicadas o desaparecidas</span><span data-lang="en">Duplicate or Missing Polling Stations</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-mesas_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                    <tr><td><code>snapshot_jump</code></td><td><span data-lang="es">Saltos entre snapshots (&gt;X% en Y min)</span><span data-lang="en">Snapshot Jumps (&gt;X% in Y min)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-snapshot_jump" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-snapshot_jump" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_change_%</td></tr>
+                    <tr><td><code>participation_vote_correlation</code></td><td><span data-lang="es">Correlación participación-voto (Pearson)</span><span data-lang="en">Participation-Vote Correlation (Pearson)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_vote_correlation" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_vote_correlation" value="0.85" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_r</td></tr>
+                    <tr><td><code>geographic_dispersion</code></td><td><span data-lang="es">Dispersión geográfica (CV departamentos)</span><span data-lang="en">Geographic Dispersion (Department CV)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-geographic_dispersion" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-geographic_dispersion" value="0.45" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_cv</td></tr>
+                    <tr><td><code>null_blank_votes</code></td><td><span data-lang="es">Nulos y blancos elevados</span><span data-lang="en">Elevated Null/Blank Votes</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-null_blank_votes" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-null_blank_votes" value="12" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
+                    <tr><td><code>table_consistency</code></td><td><span data-lang="es">Consistencia por mesa (suma votos vs total)</span><span data-lang="en">Per-Station Consistency (vote sum vs total)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-table_consistency" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-table_consistency" value="1" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> tolerance</td></tr>
+                    <tr><td><code>inconsistency_rate</code></td><td><span data-lang="es">Tasa de inconsistencia estructural</span><span data-lang="en">Structural Inconsistency Rate</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-inconsistency_rate" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-inconsistency_rate" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_%</td></tr>
+                    <tr><td><code>runs_test</code></td><td><span data-lang="es">Runs test (aleatoriedad en secuencia)</span><span data-lang="en">Runs Test (sequence randomness)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-runs_test" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-runs_test" value="0.01" step="0.001" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> critical_p</td></tr>
+                    <tr><td><code>participation_anomaly_advanced</code></td><td><span data-lang="es">Participación anómala avanzada (z-score)</span><span data-lang="en">Advanced Anomalous Participation (z-score)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly_advanced" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly_advanced" value="88.15" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_mean</td></tr>
+                    <tr><td><code>turnout_impossible</code></td><td><span data-lang="es">Turnout imposible (&lt;0% o &gt;100%)</span><span data-lang="en">Impossible Turnout (&lt;0% or &gt;100%)</span></td><td><span class="badge badge-bad">CRIT</span></td><td><label class="toggle"><input type="checkbox" id="r-turnout_impossible" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details open>
+                  <summary>🟠 High — <span data-lang="es">5 reglas</span><span data-lang="en">5 rules</span></summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Sev.</span><span data-lang="en">Sev.</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th><th><span data-lang="es">Parámetro clave</span><span data-lang="en">Key parameter</span></th></tr></thead><tbody>
+                    <tr><td><code>basic_diff</code></td><td><span data-lang="es">Consistencia aritmética básica</span><span data-lang="en">Basic Arithmetic Consistency</span></td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-basic_diff" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-basic_diff" value="15" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> change_%</td></tr>
+                    <tr><td><code>irreversibility</code></td><td><span data-lang="es">Irreversibilidad estadística</span><span data-lang="en">Statistical Irreversibility</span></td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-irreversibility" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-irreversibility" value="0.60" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> hist_turnout</td></tr>
+                    <tr><td><code>participation_anomaly</code></td><td><span data-lang="es">Anomalía de participación (saltos escrutinio)</span><span data-lang="en">Participation Anomaly (scrutiny jumps)</span></td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-participation_anomaly" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-participation_anomaly" value="5" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> jump_%</td></tr>
+                    <tr><td><code>processing_speed</code></td><td><span data-lang="es">Velocidad de procesamiento (actas/15min)</span><span data-lang="en">Processing Speed (records/15min)</span></td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-processing_speed" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-processing_speed" value="500" step="50" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> max_actas/15m</td></tr>
+                    <tr><td><code>trend_shift</code></td><td><span data-lang="es">Desviación de tendencia</span><span data-lang="en">Trend Deviation</span></td><td><span class="badge badge-warn">High</span></td><td><label class="toggle"><input type="checkbox" id="r-trend_shift" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-trend_shift" value="10" step="1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> threshold_%</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details>
+                  <summary>🟡 Medium / WARNING — <span data-lang="es">4 reglas</span><span data-lang="en">4 rules</span></summary>
+                  <div class="details-body"><table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Sev.</span><span data-lang="en">Sev.</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th><th><span data-lang="es">Parámetro clave</span><span data-lang="en">Key parameter</span></th></tr></thead><tbody>
+                    <tr><td><code>benford_law</code></td><td><span data-lang="es">Benford por candidato (χ²)</span><span data-lang="en">Benford by Candidate (χ²)</span></td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-benford_law" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-benford_law" value="0.05" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> chi_threshold</td></tr>
+                    <tr><td><code>large_numbers_convergence</code></td><td><span data-lang="es">Convergencia ley grandes números</span><span data-lang="en">Law of Large Numbers Convergence</span></td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-large_numbers_convergence" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-large_numbers_convergence" value="3.0" step="0.1" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> z_threshold</td></tr>
+                    <tr><td><code>ml_outliers</code></td><td><span data-lang="es">Outliers ML (Isolation Forest)</span><span data-lang="en">ML Outliers (Isolation Forest)</span></td><td><span class="badge badge-neutral">Med</span></td><td><label class="toggle"><input type="checkbox" id="r-ml_outliers" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td><input type="number" id="rp-ml_outliers" value="0.1" step="0.01" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:var(--fg);font-size:11px" oninput="markDirty()"> contamination</td></tr>
+                    <tr><td><code>late_mesa</code></td><td><span data-lang="es">Aparición tardía de registros en JSON</span><span data-lang="en">Late Appearance of Records in JSON</span></td><td><span class="badge badge-neutral">WARN</span></td><td><label class="toggle"><input type="checkbox" id="r-late_mesa" checked onchange="markDirty()"><span class="toggle-slider"></span></label></td><td style="color:var(--muted)">—</td></tr>
+                  </tbody></table></div>
+                </details>
+                <details>
+                  <summary>🔬 Research — <span data-lang="es">2 reglas experimentales</span><span data-lang="en">2 experimental rules</span></summary>
+                  <div class="details-body">
+                    <div class="info-box" style="margin-bottom:12px"><span data-lang="es">Reglas en revisión académica antes de ser promovidas a producción. Solo para entornos de investigación.</span><span data-lang="en">Rules under academic review before being promoted to production. Research environments only.</span></div>
+                    <table class="data-table"><thead><tr><th><span data-lang="es">Clave</span><span data-lang="en">Key</span></th><th><span data-lang="es">Nombre</span><span data-lang="en">Name</span></th><th><span data-lang="es">Activa</span><span data-lang="en">Enabled</span></th></tr></thead><tbody>
+                      <tr><td><code>apply_benford_law</code></td><td><span data-lang="es">Ley de Benford — alternativa (chi²)</span><span data-lang="en">Benford's Law — alternative (chi²)</span></td><td><label class="toggle"><input type="checkbox" id="r-apply_benford_law" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
+                      <tr><td><code>check_distribution_chi2</code></td><td><span data-lang="es">Distribución partido/depto (chi²)</span><span data-lang="en">Party/Department Distribution (chi²)</span></td><td><label class="toggle"><input type="checkbox" id="r-check_distribution_chi2" onchange="markDirty()"><span class="toggle-slider"></span></label></td></tr>
+                    </tbody></table>
+                  </div>
+                </details>
+        </div>
+      </div>
+      </div>
+
+      <!-- ── ANCLAJE BITCOIN (OTS) ── -->
+      <div class="section" id="s9" data-phase="evidencia">
+        <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de VIGIL." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on VIGIL.">ⓘ</span></div>
+        <hr class="section-sep">
+        <div class="ctrl-section" id="ots-section">
+              <h3 style="justify-content:space-between">
+                <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  OpenTimestamps
+                  <span id="ots-net-dot" class="ots-dot ots-dot-probing" title="Probando conectividad con calendarios Bitcoin... / Testing connectivity with Bitcoin calendars..."></span>
+                  <span id="ots-net-hint" class="ots-net-hint"><span data-lang="es">probando red…</span><span data-lang="en">probing network…</span></span>
+                </span>
+                <button id="btn-ots-toggle" onclick="onOtsToggle()"
+                  style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
+                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
+                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ <span data-lang="es">Activo</span><span data-lang="en">Active</span></button>
+              </h3>
+              <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                  <span id="ots-status-badge" class="badge badge-neutral">—</span>
+                  <span id="ots-last-anchor" style="font-size:11px;color:var(--muted)"><span data-lang="es">Último ancla</span><span data-lang="en">Last anchor</span>: —</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted)" id="ots-chain-info">—</div>
+                <div id="ots-pending" style="font-size:11px;color:var(--warn);margin-top:6px;display:none"></div>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+                  <button id="btn-ots-anchor-now" onclick="dispatchOtsAnchor()" class="hdr-btn primary"
+                    style="font-size:11px;padding:6px 12px"
+                    title="Dispara el workflow hash-chain-commit (workflow_dispatch). Requiere PAT con permisos de workflow.">
+                    ⛓ <span data-lang="es">Anclar ahora</span><span data-lang="en">Anchor now</span>
+                  </button>
+                  <button id="btn-ots-download" onclick="downloadOtsReceipt()" class="hdr-btn"
+                    style="font-size:11px;padding:6px 12px"
+                    title="Descargar el recibo .ots más reciente para verificación independiente">
+                    ↓ <span data-lang="es">Descargar .ots</span><span data-lang="en">Download .ots</span>
+                  </button>
+                  <span id="ots-anchor-stat" style="font-size:11px;color:var(--muted)"></span>
+                </div>
+              </div>
+              <div id="ots-airgap-warn" class="ots-airgap-warn" style="display:none">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span><span data-lang="es">Calendarios Bitcoin no alcanzables. En entornos sin internet (air-gapped) el anclaje causa timeouts. <strong>Desactiva el anclaje</strong> para evitar esperas innecesarias.</span><span data-lang="en">Bitcoin calendars unreachable. In offline (air-gapped) environments, anchoring causes timeouts. <strong>Disable anchoring</strong> to avoid unnecessary waits.</span></span>
+              </div>
+              <input type="checkbox" id="tog-ots" checked style="display:none">
+              <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                <label><span data-lang="es">Servidor OTS</span><span data-lang="en">OTS server</span> <span class="tip-left sec-tip" data-tip-es="Elige un servidor publico gratuito o ingresa uno propio. Los pools distribuyen la carga entre varios calendarios." data-tip-en="Choose a free public server or enter your own. Pools distribute the load across several calendars.">ⓘ</span></label>
+                <select id="sel-ots-server" onchange="onOtsServerSelect(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none">
+                  <option value="https://a.pool.opentimestamps.org" data-label-es="🏊 Pool A — a.pool.opentimestamps.org (recomendado)" data-label-en="🏊 Pool A — a.pool.opentimestamps.org (recommended)">🏊 Pool A — a.pool.opentimestamps.org (recomendado)</option>
+                  <option value="https://b.pool.opentimestamps.org">🏊 Pool B — b.pool.opentimestamps.org</option>
+                  <option value="https://c.pool.opentimestamps.org">🏊 Pool C — c.pool.opentimestamps.org</option>
+                  <option value="https://alice.btc.calendar.opentimestamps.org">🔵 Alice — alice.btc.calendar.opentimestamps.org</option>
+                  <option value="https://bob.btc.calendar.opentimestamps.org">🔵 Bob — bob.btc.calendar.opentimestamps.org</option>
+                  <option value="https://finney.calendar.eternitywall.com">🌐 Finney — finney.calendar.eternitywall.com</option>
+                  <option value="https://ots.btc.catallaxy.com">🌐 Catallaxy — ots.btc.catallaxy.com</option>
+                  <option value="__custom__" data-label-es="✏️ Personalizado…" data-label-en="✏️ Custom…">✏️ Personalizado…</option>
+                </select>
+                <input type="text" id="inp-ots-server" placeholder="https://mi-servidor-ots.org" data-ph-es="https://mi-servidor-ots.org" data-ph-en="https://my-ots-server.org" oninput="markDirty()" style="display:none;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+              </div>
+              <details>
+                <summary style="font-size:12px;font-weight:600;color:var(--muted)"><span data-lang="es">¿Qué es OTS y cómo verificar?</span><span data-lang="en">What is OTS and how to verify?</span></summary>
+                <div class="details-body" style="font-size:12px;color:var(--muted);line-height:1.7">
+                  <p><span data-lang="es">Cada checkpoint tiene un <strong>Merkle root</strong> (huella digital). OTS lo envía a 4 calendarios públicos que lo incluyen en una transacción Bitcoin. Cualquier auditor puede verificar que el dato existía antes de cierto bloque sin depender de VIGIL.</span><span data-lang="en">Each checkpoint has a <strong>Merkle root</strong> (digital fingerprint). OTS sends it to 4 public calendars that include it in a Bitcoin transaction. Any auditor can verify the data existed before a certain block without relying on VIGIL.</span></p>
+                  <p style="margin-top:8px"><strong><span data-lang="es">Calendarios usados (gratuitos, sin API key):</span><span data-lang="en">Calendars used (free, no API key):</span></strong></p>
+                  <ul style="margin:4px 0 0 16px">
+                    <li>alice.btc.calendar.opentimestamps.org</li>
+                    <li>bob.btc.calendar.opentimestamps.org</li>
+                    <li>finney.calendar.eternitywall.com</li>
+                    <li>ots.btc.catallaxy.com</li>
+                  </ul>
+                  <p style="margin-top:8px"><strong><span data-lang="es">Para verificar una prueba OTS:</span><span data-lang="en">To verify an OTS proof:</span></strong></p>
+                  <ol style="margin:4px 0 0 16px">
+                    <li><span data-lang="es">Descarga el archivo <code>.ots</code> del checkpoint</span><span data-lang="en">Download the checkpoint\u2019s <code>.ots</code> file</span></li>
+                    <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
+                    <li><span data-lang="es">O usa</span><span data-lang="en">Or use</span> <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> <span data-lang="es">en línea</span><span data-lang="en">online</span></li>
+                  </ol>
+                  <p style="margin-top:8px"><span data-lang="es">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</span><span data-lang="en">If OTS is unavailable, snapshots continue normally and pending roots are retried on the next cycle.</span></p>
+                  <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px"><span data-lang="es">Probar conectividad ahora</span><span data-lang="en">Test connectivity now</span></button>
+                  <div id="ots-test-result" style="font-size:12px;margin-top:8px;display:none"></div>
+                </div>
+              </details>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                <button class="hdr-btn" onclick="exportCustodyReport()" title="Genera un informe PDF con el registro de sesion, estado OTS, alertas y commits, para auditoria o evidencia legal / Generates a PDF report with session log, OTS status, alerts and commits, for audit or legal evidence">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><rect x="3" y="19" width="18" height="2" rx="1"/></svg>
+                  <span data-lang="es">Exportar cadena de custodia</span><span data-lang="en">Export custody chain</span>
+                </button>
+                <span style="font-size:11px;color:var(--muted)"><span data-lang="es">Incluye sesión, OTS, alertas y commits de config</span><span data-lang="en">Includes session, OTS, alerts and config commits</span></span>
+              </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             MIRROR EXTERNO — AMAZON S3 (real sync via GitHub Actions)
+             Status read from data/s3_mirror_status.json written by
+             .github/workflows/s3-mirror.yml after each sync run.
+        ══════════════════════════════════════════════════════════ -->
+        <div class="ctrl-section" id="aws-mirror-section" style="margin-top:16px;border-color:rgba(212,176,102,.25)">
+          <h3 style="justify-content:space-between">
+            <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2z"/></svg>
+              <span data-lang="es">Mirror externo — Amazon S3</span><span data-lang="en">External mirror — Amazon S3</span>
+              <span class="badge badge-neutral" id="aws-status-badge"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
+              <span class="sec-tip" data-tip-es="Replica web/data/ y web/reports/ a un bucket S3 propio vía GitHub Actions. Las credenciales van como GitHub Secrets en tu fork — nunca en este panel. El estado se actualiza automáticamente tras cada ejecución del workflow." data-tip-en="Replicates web/data/ and web/reports/ to your own S3 bucket via GitHub Actions. Credentials go as GitHub Secrets in your fork — never in this panel. Status updates automatically after each workflow run.">ⓘ</span>
+            </span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button onclick="refreshAwsStatus()" title="Refresh S3 status"
+                style="padding:3px 10px;border-radius:2px;font-family:var(--mono);font-size:11px;font-weight:700;
+                cursor:pointer;transition:background .15s;border:1px solid var(--border);
+                background:transparent;color:var(--muted);white-space:nowrap">↻</button>
+              <button id="btn-aws-toggle" onclick="onAwsToggle()"
+                style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
+                cursor:pointer;transition:background .15s;border:1px solid var(--border);
+                background:transparent;color:var(--muted);white-space:nowrap">
+                <span data-lang="es">Configurar</span><span data-lang="en">Configure</span>
+              </button>
+            </div>
+          </h3>
+
+          <!-- Live status — populated by loadAwsStatus() from data/s3_mirror_status.json -->
+          <div id="aws-live-status" style="display:none;margin-bottom:10px">
+            <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-bottom:4px">
+              <span id="aws-last-sync"></span>
+              <span id="aws-files-info"></span>
+            </div>
+            <div id="aws-s3-uri-row" style="display:none;font-size:11px;color:var(--muted);margin-bottom:4px">
+              <span style="color:var(--muted)">S3 URI: </span>
+              <span id="aws-s3-uri" style="font-family:var(--mono);color:var(--fg)"></span>
+            </div>
+            <div id="aws-error-row" style="display:none;font-size:12px;color:var(--bad);margin-bottom:4px">
+              <span id="aws-error-msg"></span>
+              <a id="aws-run-link" href="#" target="_blank" rel="noopener"
+                style="display:none;margin-left:8px;color:var(--accent);font-size:11px">
+                <span data-lang="es">Ver logs ↗</span><span data-lang="en">View logs ↗</span>
+              </a>
+            </div>
+            <span id="aws-enabled-hint" style="display:none;font-size:11px;color:var(--ok)"></span>
+          </div>
+
+          <div class="info-box" style="border-color:rgba(212,176,102,.3);background:rgba(212,176,102,.04)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;color:var(--warn)"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+            <span data-lang="es"><strong>VIGIL es y seguirá siendo Costo Cero.</strong> Esta opción es completamente
+            independiente de la operación del proyecto y está <strong>desactivada por defecto</strong>.
+            Si la activas, AWS facturará a <strong>tu propia cuenta</strong> — VIGIL no recibe, gestiona
+            ni necesita esos fondos. No estamos en contra de plataformas de pago: si quieres almacenamiento
+            adicional bajo tu control, esta es la puerta. Solo queremos que decidas con información completa.</span>
+            <span data-lang="en"><strong>VIGIL is and will remain Zero Cost.</strong> This option is completely
+            independent from the project's operation and is <strong>disabled by default</strong>.
+            If you enable it, AWS will bill <strong>your own account</strong> — VIGIL does not receive, manage,
+            or need those funds. We have nothing against paid platforms: if you want extra storage under your
+            control, this is the door. We just want you to decide with full information.</span>
+          </div>
+
+          <div id="aws-config-panel" style="display:none;margin-top:12px">
+            <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+              <label><span data-lang="es">Nombre del bucket S3</span><span data-lang="en">S3 bucket name</span></label>
+              <input type="text" id="inp-aws-bucket" placeholder="mi-mirror-vigil" oninput="markDirty()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+            </div>
+            <div class="ctrl-row" style="flex-direction:column;align-items:flex-start;gap:6px;margin-top:10px">
+              <label><span data-lang="es">Región AWS</span><span data-lang="en">AWS region</span></label>
+              <input type="text" id="inp-aws-region" placeholder="us-east-1" oninput="markDirty()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--fg);font-size:13px;outline:none;box-sizing:border-box">
+            </div>
+            <p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6">
+              <span data-lang="es">Las credenciales (Access Key / Secret Key) <strong>nunca</strong> se escriben aquí ni en este
+              repositorio. Se configuran como <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_ACCESS_KEY_ID</code> /
+              <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_SECRET_ACCESS_KEY</code> en
+              <strong>GitHub Secrets de tu propio fork</strong>. VIGIL nunca ve, transmite ni almacena tus credenciales AWS.</span>
+              <span data-lang="en">Credentials (Access Key / Secret Key) are <strong>never</strong> entered here or stored in this
+              repository. They are configured as <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_ACCESS_KEY_ID</code> /
+              <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px">AWS_SECRET_ACCESS_KEY</code> in
+              <strong>your own fork's GitHub Secrets</strong>. VIGIL never sees, transmits, or stores your AWS credentials.</span>
+            </p>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+              <button class="hdr-btn" id="btn-aws-enable" onclick="requestAwsEnable()" style="border-color:var(--warn);color:var(--warn)">
+                <span data-lang="es">Configurar y activar…</span><span data-lang="en">Configure and enable…</span>
+              </button>
+              <button class="hdr-btn" onclick="disableAwsMirror()" style="border-color:var(--muted);color:var(--muted)">
+                <span data-lang="es">Desactivar</span><span data-lang="en">Disable</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ── 5 LOGS ── -->
+      <div class="section" id="s4" data-phase="evidencia">
+        <div class="section-title"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs &amp; terminals</span> <span class="sec-tip" data-tip-es="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoria. Todo queda grabado y no se puede borrar." data-tip-en="Real-time logs of all activity: monitoring events, security alerts and audit traces. Everything is recorded and cannot be deleted.">ⓘ</span></div>
+        <hr class="section-sep">
+
+        <!-- Log General -->
+        <div class="terminal terminal--activity">
+          <div class="terminal-hdr">
+            <span class="term-title">
+              <span class="ots-dot ots-dot-off" id="log-live-dot" style="flex-shrink:0" title="Auto-refresco inactivo / Auto-refresh inactive"></span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span data-lang="es">Actividad VIGIL</span><span data-lang="en">VIGIL Activity</span>
+            </span>
+            <span class="section-badge" id="log-general-count" style="font-family:var(--mono)">—</span>
+            <div id="log-chips" style="display:flex;gap:4px">
+              <button class="chip active" data-lvl="INFO" onclick="toggleChip(this)">INFO</button>
+              <button class="chip active" data-lvl="WARNING" onclick="toggleChip(this)">WARNING</button>
+              <button class="chip active" data-lvl="CRITICAL" onclick="toggleChip(this)">CRITICAL</button>
+              <button class="chip active" data-lvl="PANIC" onclick="toggleChip(this)">PANIC</button>
+            </div>
+            <input type="search" id="log-search" class="term-search" placeholder="Buscar…" data-ph-es="Buscar…" data-ph-en="Search…" oninput="onLogSearch(this.value)">
+            <select id="log-lines" onchange="renderLog()">
+              <option value="50" data-label-es="50 líneas" data-label-en="50 lines">50 líneas</option>
+              <option value="100" data-label-es="100 líneas" data-label-en="100 lines">100 líneas</option>
+              <option value="500" data-label-es="500 líneas" data-label-en="500 lines">500 líneas</option>
+              <option value="0" data-label-es="Todas" data-label-en="All">Todas</option>
+            </select>
+            <button id="btn-log-live" class="term-live-btn" onclick="toggleLogLive()" title="Auto-refresco cada 30s / Auto-refresh every 30s">⏱ Live</button>
+            <button onclick="fetchLog()" title="Refrescar / Refresh">↻</button>
+            <button onclick="toggleTimestamp()" title="Alternar timestamp relativo/absoluto / Toggle relative/absolute timestamp">🕐</button>
+          </div>
+          <div class="log-summary-bar" id="log-summary"></div>
+          <div class="log-table-wrap" id="log-general"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Nivel</span><span data-lang="en">Level</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th><th><span data-lang="es">Regla / Kind</span><span data-lang="en">Rule / Kind</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><svg class="log-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg><span class="log-empty-title"><span data-lang="es">Todo en calma — sin eventos que reportar.</span><span data-lang="en">All quiet — nothing to report.</span></span><span class="log-empty-hint"><span data-lang="es">Inicia el monitoreo con ▶ Iniciar para ver eventos aquí.</span><span data-lang="en">Start monitoring with ▶ Start to see events here.</span></span></td></tr></tbody></table></div>
+          <div class="log-footer">
+            <button onclick="downloadPdf('log-general')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
+          </div>
+        </div>
+
+        <!-- Attack Log -->
+        <div class="terminal terminal--attack">
+          <div class="terminal-hdr">
+            <span class="term-title">
+              <span class="ots-dot ots-dot-off" id="attack-live-dot" style="flex-shrink:0" title="Auto-refresco inactivo / Auto-refresh inactive"></span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Attack Logger
+            </span>
+            <span class="section-badge" id="log-attacks-count" style="font-family:var(--mono)">—</span>
+            <select id="attack-filter" onchange="renderAttackLog()">
+              <option value="" data-label-es="Todos" data-label-en="All">Todos</option>
+              <option value="FLOOD" data-label-es="FLOOD — ráfaga excesiva" data-label-en="FLOOD — excessive burst">FLOOD — ráfaga excesiva</option>
+              <option value="BRUTE" data-label-es="BRUTE — fuerza bruta" data-label-en="BRUTE — brute force">BRUTE — fuerza bruta</option>
+              <option value="SCAN" data-label-es="SCAN — scanner malicioso" data-label-en="SCAN — malicious scanner">SCAN — scanner malicioso</option>
+              <option value="PROXY_SUSPECT" data-label-es="PROXY_SUSPECT — Tor/proxy" data-label-en="PROXY_SUSPECT — Tor/proxy">PROXY_SUSPECT — Tor/proxy</option>
+              <option value="SUSPICIOUS" data-label-es="SUSPICIOUS — actividad anómala" data-label-en="SUSPICIOUS — anomalous activity">SUSPICIOUS — actividad anómala</option>
+            </select>
+            <input type="search" id="attack-search" class="term-search" placeholder="IP, ruta, UA…" data-ph-es="IP, ruta, UA…" data-ph-en="IP, route, UA…" oninput="onAttackSearch(this.value)">
+            <button id="btn-attack-live" class="term-live-btn" onclick="toggleAttackLive()" title="Auto-refresco cada 30s / Auto-refresh every 30s">⏱ Live</button>
+            <button onclick="fetchAttackLog()" title="Refrescar / Refresh">↻</button>
+          </div>
+          <div class="log-summary-bar" id="attack-summary"></div>
+          <div class="log-table-wrap" id="log-attacks"><table class="log-table"><thead><tr><th>Timestamp</th><th><span data-lang="es">Tipo</span><span data-lang="en">Type</span></th><th>IP / Geo</th><th><span data-lang="es">Ruta</span><span data-lang="en">Route</span></th><th>Freq</th><th>User-Agent</th></tr></thead><tbody><tr class="log-empty"><td colspan="6"><svg class="log-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="log-empty-title"><span data-lang="es">Perímetro despejado.</span><span data-lang="en">Perimeter clear.</span></span><span class="log-empty-hint"><span data-lang="es">El sistema está vigilando activamente — cualquier actividad maliciosa aparecerá aquí.</span><span data-lang="en">The system is actively watching — any malicious activity will appear here.</span></span></td></tr></tbody></table></div>
+          <div class="log-footer">
+            <button onclick="downloadPdf('log-attacks')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
+            <button onclick="generateIncidentReport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> <span data-lang="es">Reporte de incidente</span><span data-lang="en">Incident report</span></button>
+          </div>
+        </div>
+
+        <!-- Audit Trail -->
+        <div class="terminal terminal--audit">
+          <div class="terminal-hdr">
+            <span class="term-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Audit Trail
+            </span>
+            <span class="section-badge" id="log-audit-count" style="font-family:var(--mono)">—</span>
+            <input type="search" id="audit-search" class="term-search" placeholder="SHA, autor, mensaje…" data-ph-es="SHA, autor, mensaje…" data-ph-en="SHA, author, message…" oninput="onAuditSearch(this.value)">
+            <button onclick="fetchAuditTrail()" title="Refrescar / Refresh">↻</button>
+          </div>
+          <div class="log-table-wrap" id="log-audit"><table class="log-table"><thead><tr><th>Commit</th><th><span data-lang="es">Tiempo</span><span data-lang="en">Time</span></th><th><span data-lang="es">Autor</span><span data-lang="en">Author</span></th><th><span data-lang="es">Mensaje</span><span data-lang="en">Message</span></th></tr></thead><tbody><tr class="log-empty"><td colspan="4"><svg class="log-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span class="log-empty-title"><span data-lang="es">Sin cambios desde el último despliegue.</span><span data-lang="en">No changes since last deploy.</span></span><span class="log-empty-hint"><span data-lang="es">Modifica cualquier control para conectar tu GitHub PAT y cargar el historial.</span><span data-lang="en">Modify any control to connect your GitHub PAT and load the history.</span></span></td></tr></tbody></table></div>
+          <div class="log-footer">
+            <button onclick="downloadPdf('log-audit')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg> PDF</button>
+          </div>
+        </div>
+
+        <!-- Session Action Log -->
+        <div class="terminal terminal--audit">
+          <div class="terminal-hdr">
+            <span class="term-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span data-lang="es">Acciones de sesión</span><span data-lang="en">Session Actions</span>
+            </span>
+            <span class="section-badge" id="session-log-count" style="font-family:var(--mono)" title="Acciones registradas en esta sesion / Actions recorded this session">0</span>
+            <button onclick="_renderSessionLog()" title="Refrescar / Refresh">↻</button>
+            <button onclick="clearSessionLog()" title="Limpiar historial de sesion / Clear session history" style="color:var(--muted)">✕ <span data-lang="es">Limpiar</span><span data-lang="en">Clear</span></button>
+          </div>
+          <div class="log-table-wrap">
+            <table class="log-table" id="session-log-table">
+              <thead><tr><th>Timestamp</th><th><span data-lang="es">ID Operador</span><span data-lang="en">Operator ID</span></th><th><span data-lang="es">Acción</span><span data-lang="en">Action</span></th></tr></thead>
+              <tbody><tr class="log-empty"><td colspan="3"><span data-lang="es">Sin acciones registradas.</span><span data-lang="en">No actions recorded.</span><span class="log-empty-hint"><span data-lang="es">Las acciones del operador aparecerán aquí en tiempo real.</span><span data-lang="en">Operator actions will appear here in real time.</span></span></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 6 MANUAL ── -->
+      <div class="section" id="s5" data-phase="evidencia">
+        <div class="section-title"><span data-lang="es">Manual</span><span data-lang="en">Manual</span> <span class="sec-tip" data-tip-es="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automatico." data-tip-en="One-off manual operations: force an immediate scrape, pause or resume the scheduler, without waiting for the automatic cycle.">ⓘ</span></div>
+        <hr class="section-sep">
+        <details id="mini-manual">
+          <summary><span data-lang="es">Guía rápida del panel de administración</span><span data-lang="en">Quick guide to the admin panel</span></summary>
+          <div class="details-body">
+            <div class="ctrl-section">
+              <h3><span data-lang="es">Configuración avanzada</span><span data-lang="en">Advanced configuration</span></h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                <span data-lang="es">Los parámetros de operación se configuran desde la sección <strong>Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
+                Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.</span>
+                <span data-lang="en">Operating parameters are configured from the <strong>Presets</strong> section. Load a preset to adjust the capture interval, requests/hour, election and safe modes.<br><br>
+                For detailed configuration, expand <strong>Advanced configuration</strong> in the Presets section: 5 tabs with access to individual endpoints, watchdog, rate limiter, network and detection rules.</span>
+              </p>
+              <h3><span data-lang="es">El mapa de endpoints</span><span data-lang="en">The endpoint map</span></h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                <span data-lang="es">Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.</span>
+                <span data-lang="en">Shows the 18 departments + NATIONAL of Honduras as geopositioned points. Color indicates the configured endpoint\u2019s status. Click any point to edit the URL or test the endpoint.</span>
+              </p>
+              <h3><span data-lang="es">Cómo se guardan los cambios</span><span data-lang="en">How changes are saved</span></h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                <span data-lang="es">Cada cambio se guarda automáticamente 1.5 segundos después de modificarlo.<br>
+                1. Modifica cualquier control — el cambio se envía a GitHub automáticamente.<br>
+                2. La primera vez se te pide el GitHub PAT (solo en sessionStorage, desaparece al cerrar el browser).<br>
+                3. El sistema hace commit a <code>config/prod/</code> vía GitHub API.<br>
+                4. Los cambios toman efecto en el próximo ciclo (~15 min).</span>
+                <span data-lang="en">Every change is saved automatically 1.5 seconds after you modify it.<br>
+                1. Modify any control — the change is sent to GitHub automatically.<br>
+                2. The first time, you\u2019re asked for your GitHub PAT (sessionStorage only, disappears when you close the browser).<br>
+                3. The system commits to <code>config/prod/</code> via the GitHub API.<br>
+                4. Changes take effect on the next cycle (~15 min).</span>
+              </p>
+              <h3>Protocolo ARGOS</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                <strong>NORMAL</strong>: <span data-lang="es">operación estándar.</span><span data-lang="en">standard operation.</span><br>
+                <strong>CAUTION</strong>: <span data-lang="es">el sistema detectó condiciones adversas, reduce agresividad.</span><span data-lang="en">the system detected adverse conditions, reduces aggressiveness.</span><br>
+                <strong>SURVIVAL</strong>: <span data-lang="es">modo mínimo, solo captura esencial, máxima resiliencia.</span><span data-lang="en">minimal mode, essential capture only, maximum resilience.</span>
+              </p>
+              <h3><span data-lang="es">Qué hacer si un endpoint queda rojo</span><span data-lang="en">What to do if an endpoint turns red</span></h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                <span data-lang="es">1. Click en el punto en el mapa → "Probar ahora" para verificar si responde.<br>
+                2. Si no responde: verifica la URL con el proveedor CNE.<br>
+                3. Actualiza la URL en el popup → "Guardar cambio" → se guarda automáticamente.<br>
+                4. Si es un fallo temporal, el circuit breaker se recupera automáticamente.</span>
+                <span data-lang="en">1. Click the point on the map → "Test now" to check if it responds.<br>
+                2. If it doesn\u2019t respond: verify the URL with the electoral authority.<br>
+                3. Update the URL in the popup → "Save change" → it saves automatically.<br>
+                4. If it\u2019s a temporary failure, the circuit breaker recovers automatically.</span>
+              </p>
+              <h3><span data-lang="es">Recuperar configuración anterior</span><span data-lang="en">Restoring a previous configuration</span></h3>
+              <p style="font-size:13px;color:var(--muted)">
+                <span data-lang="es">Todo cambio es un commit en <code>config/prod/</code>. Para revertir: ve a GitHub → <code>config/prod/endpoints.yaml</code> → History → elige el commit anterior → "Revert" o copia el contenido manualmente.</span>
+                <span data-lang="en">Every change is a commit to <code>config/prod/</code>. To revert: go to GitHub → <code>config/prod/endpoints.yaml</code> → History → pick the previous commit → "Revert" or copy the content manually.</span>
+              </p>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- ── 7 Acceso y Seeds ── -->
+      <div class="section" id="s6" data-phase="control">
+        <div class="section-title"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access &amp; Seeds</span> <span class="sec-tip" data-tip-es="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano, solo su huella criptografica. Usalas para rotarlas o revocarlas." data-tip-en="Manage the 12 administrative access keys. Keys are never stored in plaintext, only their cryptographic fingerprint. Use this to rotate or revoke them.">ⓘ</span></div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          <span data-lang="es">Gestión de las 12 claves de acceso administrativo.
+          Las claves nunca se almacenan — solo sus hashes PBKDF2-SHA256.
+          El archivo generado es el único registro.</span>
+          <span data-lang="en">Management of the 12 administrative access keys.
+          Keys are never stored — only their PBKDF2-SHA256 hashes.
+          The generated file is the only record.</span>
+        </p>
+
+        <div class="ctrl-section">
+          <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
+          <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;">
+            <span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span>
+          </div>
+        </div>
+
+        <div class="ctrl-section">
+          <h3 style="color:var(--bad)"><span data-lang="es">Regenerar seeds</span><span data-lang="en">Regenerate seeds</span></h3>
+          <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">
+            <span data-lang="es">Genera 12 claves completamente nuevas y descarga el archivo actualizado.</span>
+            <span data-lang="en">Generates 12 completely new keys and downloads the updated file.</span>
+            <strong style="color:var(--warn)"><span data-lang="es">Todas las claves anteriores quedan invalidadas permanentemente.</span><span data-lang="en">All previous keys become permanently invalid.</span></strong>
+          </p>
+          <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
+            <strong><span data-lang="es">¿Confirmas la regeneración?</span><span data-lang="en">Confirm regeneration?</span></strong><br>
+            <span data-lang="es">Esta acción no se puede deshacer. Las 12 claves actuales dejarán de funcionar.</span>
+            <span data-lang="en">This action cannot be undone. The 12 current keys will stop working.</span>
+            <p style="margin:10px 0 6px;color:var(--fg)"><span data-lang="es">Introduce una de tus claves actuales para autenticar:</span><span data-lang="en">Enter one of your current keys to authenticate:</span></p>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+              <input type="password" id="regen-seed-value" placeholder="Clave de 24 caracteres" data-ph-es="Clave de 24 caracteres" data-ph-en="24-character key" autocomplete="off"
+                style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--fg);font-size:13px;flex:1;min-width:200px">
+            </div>
+            <div class="auth-err" id="regen-err"></div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='none';document.getElementById('regen-err').textContent=''"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+              <button class="hdr-btn primary" style="background:var(--bad);border-color:var(--bad)" onclick="doRegenerate()" id="btn-regen-confirm"><span data-lang="es">Sí, regenerar ahora</span><span data-lang="en">Yes, regenerate now</span></button>
+            </div>
+          </div>
+          <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='block'" id="btn-regen">
+            <span data-lang="es">Regenerar seeds y descargar nuevo PDF</span><span data-lang="en">Regenerate seeds and download new PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── 8 Red de Nodos — Panel de Control ── -->
+      <div class="section" id="s7" data-phase="estado">
+        <div class="section-title"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span> <span class="sec-tip" data-tip-es="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demas para detectar cualquier manipulacion en tiempo real." data-tip-en="View of the P2P observer network. Each node independently validates the data and compares its result with others to detect any manipulation in real time.">ⓘ</span></div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          <span data-lang="es">Monitoreo y control del enjambre P2P. Cada nodo transmite su atestación firmada y compara
+          el Merkle root con otros observadores para detectar manipulaciones en tiempo real.</span>
+          <span data-lang="en">Monitoring and control of the P2P swarm. Each node broadcasts its signed attestation and compares
+          its Merkle root with other observers to detect manipulation in real time.</span>
+        </p>
+
+        <!-- Estado + Control -->
+        <div class="ctrl-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span id="swarm-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--muted)"></span>
+              <div>
+                <span id="swarm-label" style="font-size:16px;font-weight:700;color:var(--muted)"><span data-lang="es">DESCONECTADO</span><span data-lang="en">DISCONNECTED</span></span>
+                <div id="swarm-hint" style="font-size:10px;color:var(--muted);margin-top:2px;opacity:.7"><span data-lang="es">Red P2P de observadores — independiente del monitoreo. Conéctate antes o después de iniciar.</span><span data-lang="en">P2P observer network — independent of monitoring. Connect before or after starting.</span></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="hdr-btn primary" id="btn-connect" onclick="doSwarmConnect()" style="padding:10px 24px;font-size:13px">
+                <span data-lang="es">Conectar a la red</span><span data-lang="en">Connect to network</span>
+              </button>
+              <button class="hdr-btn" id="btn-disconnect" onclick="doSwarmDisconnect()" style="display:none;padding:10px 24px;font-size:13px">
+                <span data-lang="es">Desconectar</span><span data-lang="en">Disconnect</span>
+              </button>
+              <button class="hdr-btn" onclick="refreshSwarmPanel()" style="padding:10px 14px;font-size:13px" title="Actualizar / Refresh">↻</button>
+            </div>
+          </div>
+          <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:10px;display:none">
+            <span><span data-lang="es">Mi nodo</span><span data-lang="en">My node</span>: </span>
+            <code id="swarm-node-id" style="cursor:pointer;color:var(--accent)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar / Click to copy"></code>
+            <span id="swarm-consensus-row" style="display:none">
+              &nbsp;&middot;&nbsp;<span data-lang="es">Consenso</span><span data-lang="en">Consensus</span>: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
+            </span>
+            <br><span data-lang="es">Último broadcast</span><span data-lang="en">Last broadcast</span>: <span id="swarm-last-bcast">—</span>
+          </div>
+        </div>
+
+        <!-- Métricas en vivo -->
+        <div class="ctrl-section">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px;background:var(--panel2);border-radius:8px;border:1px solid var(--border)">
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-nodos">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">NODOS</span><span data-lang="en">NODES</span></div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-consenso">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">CONSENSO</span><span data-lang="en">CONSENSUS</span></div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--fg)" id="swarm-m-bft">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT <span data-lang="es">TOLERANCIA</span><span data-lang="en">TOLERANCE</span></div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:#b08cf0" id="swarm-m-ring0">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 <span data-lang="es">SEMILLA</span><span data-lang="en">SEED</span></div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--ok)" id="swarm-m-ring1">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 <span data-lang="es">CONFIABLE</span><span data-lang="en">TRUSTED</span></div>
+            </div>
+            <div style="text-align:center;padding:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="swarm-m-compromised">—</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">COMPROMETIDOS</span><span data-lang="en">COMPROMISED</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nodos del enjambre (tarjetas visuales) -->
+        <div class="ctrl-section" id="swarm-peers-section" style="display:none">
+          <h3><span data-lang="es">Nodos del enjambre</span><span data-lang="en">Swarm nodes</span> (<span id="swarm-peer-count">0</span>)</h3>
+          <div id="swarm-consensus-banner" style="display:none;margin:10px 0;padding:10px 14px;border-radius:8px;font-size:13px"></div>
+          <div id="swarm-node-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px"></div>
+          <div id="swarm-peers-table-wrap" style="overflow-x:auto;margin-top:12px;display:none">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
+                  <th style="padding:6px 10px">Node ID</th>
+                  <th style="padding:6px 10px"><span data-lang="es">País</span><span data-lang="en">Country</span></th>
+                  <th style="padding:6px 10px">Snapshots</th>
+                  <th style="padding:6px 10px">Merkle Root</th>
+                  <th style="padding:6px 10px"><span data-lang="es">Sincronía</span><span data-lang="en">Sync</span></th>
+                  <th style="padding:6px 10px">Timestamp</th>
+                  <th style="padding:6px 10px"></th>
+                </tr>
+              </thead>
+              <tbody id="swarm-peers-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Coordinar enjambre -->
+        <div class="ctrl-section" id="swarm-sala-section">
+          <h3><span data-lang="es">Coordinar enjambre</span><span data-lang="en">Coordinate swarm</span></h3>
+          <div id="sala-pick" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="hdr-btn primary" onclick="createSala()" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              <span data-lang="es">Invitar a otros →</span><span data-lang="en">Invite others →</span>
+            </button>
+            <button class="hdr-btn" onclick="salaTab('unirse')" style="flex:1;min-width:180px;padding:12px;font-size:13px">
+              <span data-lang="es">Unirme a un enjambre →</span><span data-lang="en">Join a swarm →</span>
+            </button>
+          </div>
+          <div id="sala-crear-panel" style="display:none">
+            <p style="font-size:12px;color:var(--ok);margin-bottom:14px">
+              <span data-lang="es">Enjambre creado. Comparte esta invitación con los demás operadores.</span><span data-lang="en">Swarm created. Share this invitation with the other operators.</span>
+            </p>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px"><span data-lang="es">Invitación para compartir</span><span data-lang="en">Invitation to share</span></div>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input id="sala-invite-text" type="text" readonly
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
+                onclick="this.select()" title="Clic para seleccionar">
+              <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()"><span data-lang="es">Copiar</span><span data-lang="en">Copy</span></button>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="hdr-btn" onclick="salaTab('reset')" style="font-size:11px;color:var(--muted)">← <span data-lang="es">Volver</span><span data-lang="en">Back</span></button>
+              <button class="hdr-btn" onclick="createSala()">↻ <span data-lang="es">Nuevo código</span><span data-lang="en">New code</span></button>
+              <button class="hdr-btn" onclick="_showSalaDetails()" id="btn-sala-details" style="font-size:11px;color:var(--muted)"><span data-lang="es">Ver detalles técnicos</span><span data-lang="en">View technical details</span></button>
+            </div>
+            <div id="sala-tech-details" style="display:none;margin-top:10px">
+              <div class="invite-box" id="sala-invite-json"></div>
+            </div>
+          </div>
+          <div id="sala-unirse-panel" style="display:none">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:10px">
+              <span data-lang="es">Pega aquí la invitación que te compartieron.</span><span data-lang="en">Paste the invitation you were given here.</span>
+            </p>
+            <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:8px">
+              <input type="text" id="sala-join-input" placeholder="Pega la invitación aquí…" data-ph-es="Pega la invitación aquí…" data-ph-en="Paste the invitation here…"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">
+              <span data-lang="es">Tu URL pública (para que el organizador te encuentre):</span><span data-lang="en">Your public URL (so the organizer can reach you):</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:stretch">
+              <input type="text" id="sala-my-url-input" placeholder="https://mi-nodo.example.com" data-ph-es="https://mi-nodo.example.com" data-ph-en="https://my-node.example.com"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px">
+              <button class="hdr-btn primary" onclick="joinSala()"><span data-lang="es">Unirse →</span><span data-lang="en">Join →</span></button>
+            </div>
+            <span id="sala-join-stat" style="font-size:12px;color:var(--muted);display:block;margin-top:8px"></span>
+            <button class="hdr-btn" onclick="salaTab('reset')" style="margin-top:12px;font-size:11px;color:var(--muted)">← <span data-lang="es">Volver</span><span data-lang="en">Back</span></button>
+          </div>
+        </div>
+
+        <!-- Hallazgos con consenso multi-nodo -->
+        <div class="ctrl-section" id="swarm-consensus-findings-section">
+          <h3><span data-lang="es">Hallazgos con consenso</span><span data-lang="en">Consensus findings</span></h3>
+          <p style="font-size:12px;color:var(--muted);margin:6px 0 12px">
+            <span data-lang="es">Anomalías detectadas de forma independiente por 2 o más nodos del enjambre.</span><span data-lang="en">Anomalies detected independently by 2 or more swarm nodes.</span>
+          </p>
+          <div id="swarm-consensus-findings-wrap">
+            <div style="font-size:12px;color:var(--muted);font-style:italic" id="swarm-consensus-empty">
+              <span data-lang="es">Sin hallazgos con consenso aún.</span><span data-lang="en">No consensus findings yet.</span>
+            </div>
+            <div style="overflow-x:auto;display:none" id="swarm-consensus-table-wrap">
+              <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <thead>
+                  <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
+                    <th style="padding:6px 10px"><span data-lang="es">Regla</span><span data-lang="en">Rule</span></th>
+                    <th style="padding:6px 10px">Snapshot</th>
+                    <th style="padding:6px 10px"><span data-lang="es">Nodos</span><span data-lang="en">Nodes</span></th>
+                    <th style="padding:6px 10px"><span data-lang="es">Severidad</span><span data-lang="en">Severity</span></th>
+                    <th style="padding:6px 10px"><span data-lang="es">Último hallazgo</span><span data-lang="en">Latest finding</span></th>
+                  </tr>
+                </thead>
+                <tbody id="swarm-consensus-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reputación PBTM -->
+        <div class="ctrl-section">
+          <h3 style="justify-content:space-between">
+            <span>Reputación PBTM</span>
+            <button class="hdr-btn" onclick="loadReputationPanel()" style="font-size:11px;padding:3px 10px" title="Actualizar / Refresh">↻</button>
+          </h3>
+          <div id="rep-ring-summary" style="display:none">
+            <div style="display:flex;gap:16px;font-size:12px;margin-bottom:6px;flex-wrap:wrap">
+              <span>Ring-0 <strong id="rep-r0-count" style="color:#b08cf0">—</strong></span>
+              <span>Ring-1 <strong id="rep-r1-count" style="color:var(--ok)">—</strong></span>
+              <span>Ring-2 <strong id="rep-r2-count" style="color:var(--muted)">—</strong></span>
+              <span style="color:var(--muted)"><span data-lang="es">Total</span><span data-lang="en">Total</span> <strong id="rep-total" style="color:var(--fg)">—</strong></span>
+            </div>
+            <div class="rep-ring-bar" id="rep-ring-bar"></div>
+          </div>
+          <div id="rep-nodes-list">
+            <div style="font-size:12px;color:var(--muted);font-style:italic"><span data-lang="es">Sin datos — conecta el swarm para ver nodos.</span><span data-lang="en">No data — connect the swarm to see nodes.</span></div>
+          </div>
+        </div>
+
+        <!-- Actividad reciente -->
+        <div class="ctrl-section" id="swarm-activity-section" style="display:none">
+          <h3><span data-lang="es">Actividad reciente</span><span data-lang="en">Recent activity</span></h3>
+          <div id="swarm-activity-list" style="max-height:260px;overflow-y:auto"></div>
+        </div>
+
+      </div>
+
+      <!-- Modal historial de reputación -->
+      <div id="swarm-hist-modal" onclick="if(event.target===this)closeSwarmHist()">
+        <div class="hist-modal-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div>
+              <div style="font-size:13px;font-weight:700" id="hist-modal-title"><span data-lang="es">Historial de reputación</span><span data-lang="en">Reputation history</span></div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px" id="hist-modal-node"></div>
+            </div>
+            <button class="hdr-btn" onclick="closeSwarmHist()" style="padding:3px 10px;font-size:12px">✕</button>
+          </div>
+          <div id="hist-modal-body"><div style="color:var(--muted);font-style:italic;font-size:12px"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></div></div>
+        </div>
+      </div>
+
+      <!-- ── 9 CIERRE ELECTORAL ── -->
+      <div class="section election-only" id="s8" data-phase="evidencia">
+        <div class="section-title"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Electoral Closure</span> <span class="sec-tip" data-tip-es="Secuencia de fin de eleccion: raspado final completo de todas las fuentes, publicacion del snapshot certificado y apagado controlado del sistema. Irreversible." data-tip-en="End-of-election sequence: full final scrape of all sources, publication of the certified snapshot, and controlled shutdown of the system. Irreversible.">ⓘ</span></div>
+        <hr class="section-sep">
+        <p class="section-sub">
+          <span data-lang="es">Secuencia de fin de elección: raspe final forzado de todas las fuentes,
+          publicación del snapshot certificado, y desactivación del scheduler.</span>
+          <span data-lang="en">End-of-election sequence: forced final scrape of all sources,
+          publication of the certified snapshot, and scheduler shutdown.</span>
+        </p>
+
+        <div class="ctrl-section" id="election-closed-banner" style="display:none;border-color:#3fb950;background:rgba(63,185,80,0.07)">
+          <h3 style="color:#3fb950"><span data-lang="es">Ciclo Electoral Cerrado</span><span data-lang="en">Electoral Cycle Closed</span></h3>
+          <div style="font-size:13px;color:var(--fg);margin-top:8px">
+            <span id="ec-closed-at" style="color:var(--muted)"></span><br>
+            <span data-lang="es">Merkle root final</span><span data-lang="en">Final Merkle root</span>: <code id="ec-merkle" style="font-size:11px"></code><br>
+            <span data-lang="es">Snapshots en cadena</span><span data-lang="en">Snapshots in chain</span>: <strong id="ec-chain"></strong>
+          </div>
+        </div>
+
+        <div class="ctrl-section" id="election-open-section">
+          <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
+          <div style="display:flex;align-items:center;gap:12px;margin:12px 0">
+            <span id="ec-status-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok)"></span>
+            <span id="ec-status-label" style="font-size:14px;font-weight:600"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="ec-mode-line"></div>
+
+          <div class="info-box" style="margin-bottom:16px">
+            <strong style="color:var(--fg);font-size:12px"><span data-lang="es">Qué ocurre al cerrar</span><span data-lang="en">What happens on closure</span></strong>
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7">
+              <span data-lang="es">1. Raspe completo y forzado de todas las fuentes electorales.<br>
+              2. Publicación del snapshot certificado en el repositorio.<br>
+              3. Modo de operación cambia a <code>maintenance</code> y los ciclos automáticos se detienen.<br>
+              Para reactivar el monitoreo hay que eliminar el marker manualmente.</span>
+              <span data-lang="en">1. Full, forced scrape of all electoral sources.<br>
+              2. Publication of the certified snapshot to the repository.<br>
+              3. Operating mode changes to <code>maintenance</code> and automatic cycles stop.<br>
+              To resume monitoring, the marker must be removed manually.</span>
+            </p>
+          </div>
+
+          <button class="hdr-btn" id="btn-finalize" onclick="openFinalizeModal()"
+            style="border-color:#f85149;color:#f85149;font-weight:700">
+            <span data-lang="es">Cerrar Ciclo Electoral</span><span data-lang="en">Close Electoral Cycle</span>
+          </button>
+
+          <div id="ec-progress" style="display:none;margin-top:16px">
+            <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="ec-progress-msg"><span data-lang="es">Ejecutando raspe final…</span><span data-lang="en">Running final scrape…</span></div>
+            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+              <div id="ec-progress-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.5s"></div>
+            </div>
+          </div>
+
+          <div id="ec-result" style="display:none;margin-top:16px;padding:14px 16px;background:var(--panel);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:600;color:var(--ok);margin-bottom:8px"><span data-lang="es">Ciclo cerrado correctamente</span><span data-lang="en">Cycle closed successfully</span></div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.8">
+              <span data-lang="es">Merkle root final</span><span data-lang="en">Final Merkle root</span>: <code id="ec-result-merkle"></code><br>
+              Snapshots: <strong id="ec-result-chain"></strong><br>
+              <span data-lang="es">Cerrado a las</span><span data-lang="en">Closed at</span>: <span id="ec-result-time"></span>
+            </div>
+          </div>
+
+          <div id="ec-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.3);font-size:12px;color:#f85149"></div>
+        </div>
+
+        <!-- ── GESTIÓN DE DATOS DE SCRAPING ── -->
+        <div class="ctrl-section" id="data-mgmt-section" style="margin-top:20px;border-color:rgba(110,168,254,.25)">
+          <h3 style="display:flex;align-items:center;gap:10px">
+            Datos recolectados
+            <span id="repo-size-badge" class="val-badge" style="font-size:11px;color:var(--muted)">calculando…</span>
+          </h3>
+
+          <!-- Barra de uso -->
+          <div style="margin:12px 0 6px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+              <span id="data-size-label">—</span>
+              <span id="data-limit-label" style="color:var(--muted)">límite GitHub: 1 GB</span>
+            </div>
+            <div style="height:5px;background:var(--border);border-radius:2px;overflow:hidden">
+              <div id="data-usage-bar" style="height:100%;width:0%;background:var(--ok);transition:width .5s"></div>
+            </div>
+          </div>
+
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6" id="data-cycles-label">
+            —
+          </div>
+
+          <!-- Botones principales -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="hdr-btn primary" id="btn-download-evidence"
+              onclick="downloadEvidence()"
+              style="display:flex;align-items:center;gap:6px">
+              <span>⬇</span> <span data-lang="es">Descargar evidencia</span><span data-lang="en">Download evidence</span>
+            </button>
+            <button class="hdr-btn" id="btn-purge-data"
+              onclick="openPurgeModal()"
+              style="border-color:var(--warn);color:var(--warn);display:flex;align-items:center;gap:6px">
+              <span>🗑</span> <span data-lang="es">Limpiar datos</span><span data-lang="en">Clear data</span>
+            </button>
+          </div>
+
+          <div id="data-mgmt-msg" style="display:none;font-size:12px;margin-top:10px"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ════ COMMAND PALETTE (Ctrl+K) ════ -->
+<div id="cmd-palette">
+  <div id="cmd-palette-box">
+    <input id="cmd-input" type="text" autocomplete="off" spellcheck="false"
+      placeholder="Buscar acción…  ·  ↑↓ navegar · Enter ejecutar · Esc cerrar">
+    <div id="cmd-list"></div>
+  </div>
+</div>
+
+<!-- ════ KEYBOARD SHORTCUTS HELP ════ -->
+<div id="kbd-help">
+  <div class="modal-box" style="max-width:420px">
+    <h2><span data-lang="es">Atajos de teclado</span><span data-lang="en">Keyboard shortcuts</span></h2>
+    <table class="kbd-table">
+      <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td><span data-lang="es">Paleta de comandos</span><span data-lang="en">Command palette</span></td></tr>
+      <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td><span data-lang="es">Cambiar de fase</span><span data-lang="en">Switch phase</span></td></tr>
+      <tr><td><kbd>s</kbd></td><td><span data-lang="es">Iniciar monitoreo</span><span data-lang="en">Start monitoring</span></td></tr>
+      <tr><td><kbd>f</kbd></td><td><span data-lang="es">Finalizar ciclo</span><span data-lang="en">Finish cycle</span></td></tr>
+      <tr><td><kbd>e</kbd></td><td><span data-lang="es">Emergencia</span><span data-lang="en">Emergency</span></td></tr>
+      <tr><td><kbd>?</kbd></td><td><span data-lang="es">Esta ayuda</span><span data-lang="en">This help</span></td></tr>
+      <tr><td><kbd>Esc</kbd></td><td><span data-lang="es">Cerrar</span><span data-lang="en">Close</span></td></tr>
+    </table>
+    <button class="btn-op" onclick="closeKbdHelp()" style="margin-top:14px"><span data-lang="es">Cerrar</span><span data-lang="en">Close</span></button>
+  </div>
+</div>
+
+<!-- ════ SETUP WIZARD ════ -->
+<div id="setup-wizard">
+  <div class="modal-box" style="max-width:560px">
+    <div class="wiz-head">
+      <h2><span data-lang="es">Asistente de arranque</span><span data-lang="en">Setup wizard</span></h2>
+      <div id="wiz-dots" class="wiz-dots"></div>
+    </div>
+
+    <div id="wiz-step-1" class="wiz-step">
+      <div class="wiz-step-title"><span data-lang="es">1 · País</span><span data-lang="en">1 · Country</span></div>
+      <p class="wiz-hint"><span data-lang="es">Elige el país a monitorear. Esto carga sus divisiones electorales y endpoints.</span><span data-lang="en">Choose the country to monitor. This loads its electoral divisions and endpoints.</span></p>
+      <p class="wiz-hint"><span data-lang="es">Usa el selector de país del panel principal y vuelve aquí, o continúa con el país actual:</span><span data-lang="en">Use the country selector in the main panel, or continue with the current country:</span></p>
+      <div class="wiz-current" id="wiz-current-country">—</div>
+    </div>
+
+    <div id="wiz-step-2" class="wiz-step" style="display:none">
+      <div class="wiz-step-title"><span data-lang="es">2 · URLs</span><span data-lang="en">2 · URLs</span></div>
+      <p class="wiz-hint"><span data-lang="es">Confirma la URL principal del CNE. Los endpoints departamentales se descubren al iniciar.</span><span data-lang="en">Confirm the main CNE URL. Departmental endpoints are discovered on start.</span></p>
+      <div class="wiz-current" id="wiz-current-url">—</div>
+      <p class="wiz-hint" style="margin-top:8px"><span data-lang="es">Edita las URLs en Configurar → Presets → Configuración avanzada → Endpoints.</span><span data-lang="en">Edit URLs in Configure → Presets → Advanced config → Endpoints.</span></p>
+    </div>
+
+    <div id="wiz-step-3" class="wiz-step" style="display:none">
+      <div class="wiz-step-title"><span data-lang="es">3 · Preset</span><span data-lang="en">3 · Preset</span></div>
+      <p class="wiz-hint"><span data-lang="es">Elige un perfil operativo. "Noche electoral" es el estándar para jornada.</span><span data-lang="en">Pick an operational profile. "Election night" is the standard for election day.</span></p>
+      <div class="wiz-preset-grid" id="wiz-preset-grid"></div>
+    </div>
+
+    <div id="wiz-step-4" class="wiz-step" style="display:none">
+      <div class="wiz-step-title"><span data-lang="es">4 · Listo</span><span data-lang="en">4 · Ready</span></div>
+      <p class="wiz-hint"><span data-lang="es">Todo configurado. Al finalizar se iniciará el monitoreo electoral.</span><span data-lang="en">All set. Finishing will start electoral monitoring.</span></p>
+      <div class="wiz-current" id="wiz-summary">—</div>
+    </div>
+
+    <div class="wiz-nav">
+      <button class="btn-op" id="wiz-prev" onclick="wizPrev()" style="display:none">← <span data-lang="es">Atrás</span><span data-lang="en">Back</span></button>
+      <button class="btn-op" onclick="closeSetupWizard()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+      <button class="btn-op btn-primary" id="wiz-next" onclick="wizNext()"><span data-lang="es">Siguiente</span><span data-lang="en">Next</span> →</button>
+      <button class="btn-op btn-primary" id="wiz-finish" onclick="wizFinish()" style="display:none">▶ <span data-lang="es">Iniciar</span><span data-lang="en">Start</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ELECTION FINALIZE MODAL ════ -->
+<div id="finalize-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:none;align-items:center;justify-content:center">
+  <div class="modal-box" style="max-width:440px;border:1px solid rgba(248,81,73,0.5)">
+    <h2 style="color:#f85149"><span data-lang="es">Confirmar cierre electoral</span><span data-lang="en">Confirm electoral closure</span></h2>
+    <p style="font-size:13px;color:var(--muted);margin:12px 0 16px;line-height:1.7">
+      <span data-lang="es">Esta acción lanzará un raspe completo final de todas las fuentes CNE,
+      escribirá el marker <code>ELECTION_CLOSED</code>, cambiará el modo a
+      <code>maintenance</code>, y detendrá los schedulers automáticos.<br><br>
+      <strong style="color:var(--fg)">No se puede deshacer desde esta interfaz.</strong></span>
+      <span data-lang="en">This action will trigger a final full scrape of all electoral sources,
+      write the <code>ELECTION_CLOSED</code> marker, switch the mode to
+      <code>maintenance</code>, and stop the automatic schedulers.<br><br>
+      <strong style="color:var(--fg)">This cannot be undone from this interface.</strong></span>
+    </p>
+    <div class="ctrl-row" style="margin-bottom:16px">
+      <label style="color:var(--fg)"><span data-lang="es">Escribe <strong>CERRAR</strong> para confirmar</span><span data-lang="en">Type <strong>CERRAR</strong> to confirm</span></label>
+      <input type="text" id="finalize-confirm-input" placeholder="CERRAR"
+        autocomplete="off" style="border-color:rgba(248,81,73,0.5)"
+        oninput="document.getElementById('btn-finalize-confirm').disabled=this.value!=='CERRAR'">
+    </div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeFinalizeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+      <button class="hdr-btn primary" id="btn-finalize-confirm" disabled
+        onclick="doFinalizeElection()"
+        style="background:#f85149;border-color:#f85149;color:#fff">
+        <span data-lang="es">Cerrar ciclo electoral</span><span data-lang="en">Close electoral cycle</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════ PURGE DATA MODAL ════ -->
+<div id="purge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center">
+  <div class="modal-box" style="max-width:460px;border-top:3px solid var(--warn)">
+    <h2 style="color:var(--warn)"><span data-lang="es">Limpiar datos de scraping</span><span data-lang="en">Clear scraping data</span></h2>
+    <p style="font-size:13px;color:var(--muted);margin:12px 0;line-height:1.7">
+      <span data-lang="es">Elimina los snapshots JSON del repo para liberar espacio.<br>
+      <strong style="color:var(--fg)">La cadena de hashes (<code>poller_chain.jsonl</code>) se conserva siempre</strong> — es la evidencia criptográfica irreemplazable.</span>
+      <span data-lang="en">Deletes JSON snapshots from the repo to free up space.<br>
+      <strong style="color:var(--fg)">The hash chain (<code>poller_chain.jsonl</code>) is always preserved</strong> — it is the irreplaceable cryptographic evidence.</span>
+    </p>
+
+    <div style="background:var(--panel2);border-radius:4px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
+      <div>📦 <span data-lang="es">Snapshots a eliminar</span><span data-lang="en">Snapshots to delete</span>: <strong id="purge-snapshots-count" style="color:var(--fg)">—</strong></div>
+      <div>🔗 <span data-lang="es">Hash chain conservada</span><span data-lang="en">Hash chain preserved</span>: <strong style="color:var(--ok)"><span data-lang="es">siempre</span><span data-lang="en">always</span></strong></div>
+      <div>💾 <span data-lang="es">Espacio a recuperar</span><span data-lang="en">Space to recover</span>: <strong id="purge-space-est" style="color:var(--fg)">—</strong></div>
+    </div>
+
+    <div class="ctrl-row" style="margin-bottom:4px">
+      <label style="color:var(--fg)"><span data-lang="es">Clave de acceso al repositorio</span><span data-lang="en">Repository access key</span></label>
+      <input type="password" id="purge-pat-input" placeholder="ghp_…" autocomplete="off"
+        style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:6px 10px;color:var(--fg);font-family:var(--mono);font-size:12px;width:100%;box-sizing:border-box">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+      <span data-lang="es">Necesaria para escribir en el repositorio. No se almacena.</span><span data-lang="en">Needed to write to the repository. Not stored.</span>
+    </div>
+
+    <div class="auth-err" id="purge-err" style="margin-bottom:8px"></div>
+
+    <div id="purge-progress" style="display:none;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px" id="purge-progress-msg"><span data-lang="es">Procesando…</span><span data-lang="en">Processing…</span></div>
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div id="purge-progress-bar" style="height:100%;background:var(--warn);width:0%;transition:width .4s"></div>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closePurgeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+      <button class="hdr-btn" id="btn-purge-confirm"
+        onclick="executePurge()"
+        style="background:rgba(212,176,102,.15);border-color:var(--warn);color:var(--warn);font-weight:700">
+        <span data-lang="es">Limpiar snapshots</span><span data-lang="en">Clear snapshots</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PAT MODAL ════ -->
+<div id="pat-modal">
+  <div class="modal-box" style="max-width:420px">
+    <h2>Guardar configuración</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:6px">
+      Para guardar los cambios se requiere una clave de acceso al repositorio de configuración.
+    </p>
+    <div class="info-box" style="margin-bottom:14px;font-size:12px">
+      <strong>¿Cómo obtengo la clave?</strong><br>
+      Solicítala al administrador del sistema. Es una cadena que empieza con <code style="font-family:var(--mono)">ghp_</code> y se usa una vez por sesión — no se almacena permanentemente.
+    </div>
+    <div class="ctrl-row">
+      <label>Clave de acceso</label>
+      <input type="password" id="pat-input" placeholder="ghp_…" autocomplete="off">
+    </div>
+    <div class="auth-err" id="pat-err"></div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closePatModal()">Cancelar</button>
+      <button class="hdr-btn primary" onclick="confirmPat()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DIFF MODAL ════ -->
+<div id="diff-modal">
+  <div class="modal-box">
+    <h2>Cambios pendientes</h2>
+    <div id="diff-content"></div>
+    <div class="info-box" style="margin-top:12px">
+      Los cambios toman efecto en el próximo ciclo de captura (~15 min).
+    </div>
+    <div id="diff-pat-row" style="display:none;margin-top:12px">
+      <div class="ctrl-row" style="margin-bottom:4px">
+        <label style="font-size:12px">Clave de acceso <span style="color:var(--muted);font-weight:400">(solo esta sesión)</span></label>
+        <input type="password" id="diff-pat-input" placeholder="ghp_…" autocomplete="off"
+          onkeydown="if(event.key==='Enter')confirmApply()"
+          style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:6px 10px;color:var(--fg);font-family:var(--mono);font-size:12px;width:100%;box-sizing:border-box">
+      </div>
+      <div style="font-size:11px;color:var(--muted)">Solicítala al administrador del sistema. Empieza con <code style="font-family:var(--mono);font-size:10px">ghp_</code></div>
+      <div class="auth-err" id="diff-pat-err" style="margin-top:4px"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeDiffModal()">Cancelar</button>
+      <button class="hdr-btn primary" onclick="confirmApply()">Confirmar y aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ AWS S3 MIRROR — CONFIRMACIÓN INFORMADA (opcional, fuera de Costo Cero) ════ -->
+<div id="aws-modal">
+  <div class="modal-box" style="max-width:600px">
+    <h2 style="color:var(--warn);font-size:17px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:22px">&#x26a0;</span> <span data-lang="es">CONFIRMACIÓN — MIRROR S3 (FUERA DE COSTO CERO)</span><span data-lang="en">CONFIRMATION — S3 MIRROR (OUTSIDE ZERO COST)</span>
+    </h2>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:6px">
+      <span data-lang="es">Estás por activar la replicación de snapshots hacia un <strong>bucket de Amazon S3</strong>
+      que pertenece y se factura a <strong>tu propia cuenta de AWS</strong>.</span>
+      <span data-lang="en">You are about to enable snapshot replication to an <strong>Amazon S3 bucket</strong>
+      owned and billed to <strong>your own AWS account</strong>.</span>
+    </p>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:12px">
+      <span data-lang="es">Al proceder, confirmas que entiendes lo siguiente:</span>
+      <span data-lang="en">By proceeding, you confirm you understand the following:</span>
+    </p>
+    <div style="padding:0 8px;margin-bottom:14px">
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap"><span data-lang="es">Costo:</span><span data-lang="en">Cost:</span></strong>
+        <span data-lang="es">Amazon S3 <strong>genera cargos</strong> en tu cuenta de AWS por almacenamiento, solicitudes
+          y transferencia de datos. VIGIL no estima, factura, ni cubre estos costos bajo ninguna circunstancia.</span>
+        <span data-lang="en">Amazon S3 <strong>generates charges</strong> on your AWS account for storage, requests and
+          data transfer. VIGIL does not estimate, bill, or cover these costs under any circumstance.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap"><span data-lang="es">Independencia:</span><span data-lang="en">Independence:</span></strong>
+        <span data-lang="es">Esta función es <strong>completamente opcional</strong> y adicional a los mirrors
+          gratuitos ya activos (Codeberg, Internet Archive). Desactivarla en cualquier momento no afecta
+          la operación central de VIGIL.</span>
+        <span data-lang="en">This feature is <strong>fully optional</strong> and additional to the already-active
+          free mirrors (Codeberg, Internet Archive). Disabling it at any time does not affect VIGIL's
+          core operation.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap"><span data-lang="es">Credenciales:</span><span data-lang="en">Credentials:</span></strong>
+        <span data-lang="es">Tus credenciales AWS se configuran exclusivamente como <strong>GitHub Secrets en tu
+          propio fork</strong> — nunca se introducen en este panel ni en este repositorio.</span>
+        <span data-lang="en">Your AWS credentials are configured exclusively as <strong>GitHub Secrets in your
+          own fork</strong> — they are never entered into this panel or this repository.</span>
+      </div>
+    </div>
+    <div class="unlock-check">
+      <input type="checkbox" id="aws-accept-chk" onchange="updateAwsBtn()">
+      <label for="aws-accept-chk">
+        <span data-lang="es">He leído y entiendo que activar esta opción generará cargos en mi propia cuenta
+          de AWS, y que VIGIL no tiene ninguna responsabilidad sobre dichos cargos.</span>
+        <span data-lang="en">I have read and understand that enabling this option will generate charges on my
+          own AWS account, and that VIGIL bears no responsibility for those charges.</span>
+      </label>
+    </div>
+    <div class="auth-err" id="aws-err"></div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeAwsModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
+      <button class="hdr-btn" id="aws-confirm-btn" disabled onclick="executeAwsEnable()"
+        style="background:var(--warn);color:#000;font-weight:700">
+        <span data-lang="es">Confirmar y activar</span><span data-lang="en">Confirm and enable</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ RESULT MODAL ════ -->
+<div id="result-modal">
+  <div class="modal-box" style="max-width:420px;text-align:center">
+    <div id="result-content"></div>
+    <div class="modal-btns" style="justify-content:center;margin-top:20px">
+      <button class="hdr-btn primary" onclick="closeResultModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ UNLOCK MODAL (Carta de responsabilidad) ════ -->
+<div id="unlock-modal">
+  <div class="modal-box" style="max-width:600px">
+    <h2 style="color:var(--warn);font-size:17px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:22px">&#x26a0;</span> ADVERTENCIA DE SEGURIDAD OPERATIVA
+    </h2>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:6px">
+      Est&aacute;s por desactivar los <strong>l&iacute;mites de cortes&iacute;a digital de f&aacute;brica</strong> de VIGIL.<br>
+      Por dise&ntilde;o original, este software opera bajo un <strong>Modo Electoral Seguro</strong> que
+      respeta las directivas del servidor (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">robots.txt</code>),
+      los frenos de saturaci&oacute;n (<code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">Retry-After</code>)
+      y se identifica honestamente ante la infraestructura auditada.
+    </p>
+    <p style="font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:12px">
+      Al proceder con esta acci&oacute;n, declaras conscientemente lo siguiente:
+    </p>
+    <div style="padding:0 8px;margin-bottom:14px">
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Autonom&iacute;a:</strong>
+        <span>Entiendes que est&aacute;s forzando la herramienta m&aacute;s all&aacute; de los l&iacute;mites
+          &eacute;ticos y t&eacute;cnicos establecidos por su creador
+          (m&aacute;x <span id="ul-rph">480</span> req/h, m&iacute;n <span id="ul-int">2</span>s intervalo, burst <span id="ul-burst">8</span>).</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Responsabilidad:</strong>
+        <span>Asumes de forma exclusiva y total cualquier consecuencia t&eacute;cnica, legal o
+          administrativa derivada del aumento en la intensidad de las peticiones.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--fg);line-height:1.5">
+        <strong style="color:var(--warn);white-space:nowrap">Desvinculaci&oacute;n:</strong>
+        <span>Eximes a la suite VIGIL y a sus desarrolladores de cualquier implicaci&oacute;n
+          por el uso derivado de esta sesi&oacute;n.</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px;line-height:1.5">
+      Para desbloquear los l&iacute;mites, confirma la acci&oacute;n. Tu aceptaci&oacute;n se grabar&aacute; de forma
+      permanente e inmutable mediante un commit firmado en el historial del repositorio.
+    </p>
+    <div class="unlock-check">
+      <input type="checkbox" id="unlock-accept-chk" onchange="updateUnlockBtn()">
+      <label for="unlock-accept-chk">He le&iacute;do y acepto la declaraci&oacute;n de responsabilidad.
+        Entiendo que este acto quedar&aacute; registrado de forma permanente en el historial de Git.</label>
+    </div>
+    <div class="auth-err" id="unlock-err"></div>
+    <div class="modal-btns">
+      <button class="hdr-btn" onclick="closeUnlockModal()">Cancelar</button>
+      <button class="hdr-btn" id="unlock-confirm-btn" disabled onclick="executeUnlock()"
+        style="background:var(--warn);color:#000;font-weight:700">
+        Firmar y desbloquear
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- hidden print target -->
+<div id="print-target" style="display:none"></div>
+
+<!-- ════ EMERGENCY MODAL ════ -->
+<div id="emergency-modal" style="display:none;position:fixed;inset:0;z-index:2500;
+  align-items:center;justify-content:center;background:rgba(0,0,0,.75);backdrop-filter:blur(4px)"
+  onclick="if(event.target===this)closeEmergencyModal()">
+  <div class="modal-box" style="max-width:380px;border-top:3px solid var(--bad)">
+    <div style="color:var(--bad);font-size:13px;font-weight:700;letter-spacing:.1em;margin-bottom:12px">
+      ⚠ PARADA DE EMERGENCIA
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+      <span data-lang="es">Esta acción <strong style="color:var(--fg)">no borra el repositorio</strong>. Hace lo siguiente:</span>
+      <span data-lang="en">This action <strong style="color:var(--fg)">does not wipe the repository</strong>. It does the following:</span>
+    </p>
+    <ul style="font-size:11px;color:var(--muted);margin:0 0 14px 18px;line-height:1.6;padding:0">
+      <li><span data-lang="es">Aplica el preset <strong style="color:var(--fg)">emergency</strong> a la configuración.</span><span data-lang="en">Applies the <strong style="color:var(--fg)">emergency</strong> preset to the config.</span></li>
+      <li><span data-lang="es">Registra un evento <code style="font-family:var(--mono)">EMERGENCY_STOP</code> en el log VELE.</span><span data-lang="en">Writes an <code style="font-family:var(--mono)">EMERGENCY_STOP</code> entry to the VELE log.</span></li>
+      <li><span data-lang="es">Hace commit a GitHub (requiere PAT).</span><span data-lang="en">Commits to GitHub (requires PAT).</span></li>
+    </ul>
+    <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;font-size:11px;color:var(--muted);line-height:1.5;cursor:pointer">
+      <input type="checkbox" id="emg-dispatch-publish" style="margin-top:2px;flex-shrink:0">
+      <span><span data-lang="es">También disparar el workflow <code style="font-family:var(--mono)">emergency-publish</code> (publica snapshot estático ~60s).</span><span data-lang="en">Also dispatch <code style="font-family:var(--mono)">emergency-publish</code> workflow (publishes static snapshot ~60s).</span></span>
+    </label>
+    <div id="emg-confirm-step1">
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="hdr-btn" onclick="closeEmergencyModal()">Cancelar</button>
+        <button class="hdr-btn" style="background:rgba(223,107,134,.15);border-color:var(--bad);color:var(--bad)"
+          onclick="emergencyStep2()">Continuar →</button>
+      </div>
+    </div>
+    <div id="emg-confirm-step2" style="display:none">
+      <div style="font-size:11px;color:var(--warn);margin-bottom:12px;padding:8px;
+        background:rgba(212,176,102,.08);border-radius:2px;line-height:1.5">
+        Segunda confirmación requerida. Asegúrese de que esta es su intención.
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="hdr-btn" onclick="closeEmergencyModal()">Cancelar</button>
+        <button id="btn-emg-confirm" class="hdr-btn"
+          style="background:var(--bad);border-color:var(--bad);color:#fff;font-weight:700"
+          disabled onclick="executeEmergency()">
+          ⚠ Detener todo (<span id="emg-countdown">3</span>)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/vigil-log.js"></script>
+<script src="js/ops-core.js"></script>
+<script src="js/ops-panel.js"></script>
+<script src="js/ops-monitor.js"></script>
+<script src="js/ops-command.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════
+// GLOBALS
+// ══════════════════════════════════════════════════════════
+// ── PBKDF2 Auth (no server-side deps) ──
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function pbkdf2Hex(password, salt, iterations) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    {name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256'}, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// These are filled from config.js at runtime via GitHub Pages
+const REPO_OWNER = (()=>{
+  try{ const u=new URL(location.href); return u.hostname.split('.')[0]; }catch{return '';}
+})();
+const REPO_NAME = 'centinel';
+const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
+const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+let currentUser = null;
+let isDirty = false;
+let currentConfig = {};   // loaded from GitHub raw
+let localConfig   = {};   // edited state (mirrors currentConfig, modified by controls)
+let configShas    = {};   // file path → sha (needed for GitHub PUT)
+let snapshotData  = null;
+let endpointsData = [];   // array of {code, name, url, status, lastOk, failures}
+let logData       = [];   // raw alerts.json array
+let attackData    = [];   // raw attack_log.jsonl lines
+let auditData     = [];   // raw audit trail commits
+let relTimestamps = true;
+let logSearch     = '';
+let attackSearch  = '';
+let auditSearch   = '';
+let _logLiveTimer    = null;
+let _attackLiveTimer = null;
+let _sdTimer         = null;
+let _emgTimer        = null;
+let currentPopupCode = null; // dept code open in popup
+
+// ══════════════════════════════════════════════════════════
+// DEPARTMENTS — loaded dynamically from web/data/departments.json
+// Source of truth generated by the Setup Wizard for the chosen country.
+// ══════════════════════════════════════════════════════════
+let DEPTS = [];  // populated by loadDepartments()
+let COUNTRY_META = {};
+let ACTIVE_COUNTRY_CODE = localStorage.getItem('centinel_country_code') || 'HN';
+
+async function loadDepartments(code) {
+  const cc = (code || ACTIVE_COUNTRY_CODE || 'HN').toUpperCase();
+  const parsed = data => {
+    COUNTRY_META = data;
+    DEPTS = data.departments.map(d => ({
+      code: d.code, name: d.name, abbr: d.abbr, iso: d.iso, url: d.url,
+    }));
+    console.log(`Departments loaded: ${DEPTS.length} (${data.country})`);
+  };
+  // Try country-specific file first
+  try {
+    const r = await fetch(`${RAW_BASE}/web/data/departments/${cc}.json?t=${Date.now()}`);
+    if (r.ok) { parsed(await r.json()); return; }
+  } catch(_) {}
+  // Fall back to legacy departments.json (HN)
+  try {
+    const r = await fetch(`${RAW_BASE}/web/data/departments.json?t=${Date.now()}`);
+    if (r.ok) { parsed(await r.json()); return; }
+  } catch (e) {
+    console.warn('departments.json not found, using HN fallback:', e);
+  }
+  DEPTS = [
+    {code:'00',name:'NACIONAL',abbr:'NAC',iso:null},
+    {code:'01',name:'Atlántida',abbr:'AT',iso:'HN-AT'},
+    {code:'02',name:'Choluteca',abbr:'CH',iso:'HN-CH'},
+    {code:'03',name:'Colón',abbr:'CL',iso:'HN-CL'},
+    {code:'04',name:'Comayagua',abbr:'CM',iso:'HN-CM'},
+    {code:'05',name:'Copán',abbr:'CP',iso:'HN-CP'},
+    {code:'06',name:'Cortés',abbr:'CR',iso:'HN-CR'},
+    {code:'07',name:'El Paraíso',abbr:'EP',iso:'HN-EP'},
+    {code:'08',name:'Fco. Morazán',abbr:'FM',iso:'HN-FM'},
+    {code:'09',name:'Gracias a Dios',abbr:'GD',iso:'HN-GD'},
+    {code:'10',name:'Intibucá',abbr:'IN',iso:'HN-IN'},
+    {code:'11',name:'I. de la Bahía',abbr:'IB',iso:'HN-IB'},
+    {code:'12',name:'La Paz',abbr:'LP',iso:'HN-LP'},
+    {code:'13',name:'Lempira',abbr:'LE',iso:'HN-LE'},
+    {code:'14',name:'Ocotepeque',abbr:'OC',iso:'HN-OC'},
+    {code:'15',name:'Olancho',abbr:'OL',iso:'HN-OL'},
+    {code:'16',name:'Santa Bárbara',abbr:'SB',iso:'HN-SB'},
+    {code:'17',name:'Valle',abbr:'VA',iso:'HN-VA'},
+    {code:'18',name:'Yoro',abbr:'YO',iso:'HN-YO'},
+  ];
+}
+
+// ══════════════════════════════════════════════════════════
+// PRESETS
+// ══════════════════════════════════════════════════════════
+// Hard ceiling: VIGIL presets never exceed these values.
+// Only "custom" presets (user-created) can bypass them — under operator responsibility.
+const HARD_CEILING = { maxRph: 480, minInterval: 1, maxBurst: 8 };
+
+const UNLOCK_LEGAL_TEXT = `ADVERTENCIA DE SEGURIDAD OPERATIVA — VIGIL
+═══════════════════════════════════════════════════
+
+Fecha/hora: {{TIMESTAMP}}
+
+El operador está desactivando los límites de cortesía digital de fábrica de VIGIL.
+Por diseño original, este software opera bajo un Modo Electoral Seguro que respeta
+las directivas del servidor (robots.txt), los frenos de saturación (Retry-After) y
+se identifica honestamente ante la infraestructura auditada.
+
+Al proceder con esta acción, el operador declara conscientemente:
+
+  ● AUTONOMÍA: Entiende que está forzando la herramienta más allá de los límites
+    éticos y técnicos establecidos por su creador (máx {{MAX_RPH}} req/h, mín
+    {{MIN_INTERVAL}}s intervalo, burst máx {{MAX_BURST}}).
+
+  ● RESPONSABILIDAD: Asume de forma exclusiva y total cualquier consecuencia
+    técnica, legal o administrativa derivada del aumento en la intensidad de las
+    peticiones, incluyendo pero no limitado a:
+    - Bloqueo de IP por parte del servidor del CNE
+    - Degradación del servicio público de resultados electorales
+    - Pérdida de datos por rate limiting del servidor remoto
+    - Posibles implicaciones legales por acceso excesivo a infraestructura pública
+
+  ● DESVINCULACIÓN: Exime a la suite VIGIL y a sus desarrolladores de cualquier
+    implicación por el uso derivado de esta sesión.
+
+  ● COMPROMISO: Se compromete a reactivar los límites de seguridad tan pronto como
+    la situación excepcional que motivó este desbloqueo haya cesado.
+
+Esta aceptación se graba de forma permanente e inmutable mediante commit firmado
+en el historial del repositorio.`;
+
+const FACTORY_PRESETS = [
+  {id:'normal',   name:'Operación normal',  desc:'Monitoreo pasivo entre elecciones · 10 min',
+   cfg:{interval:10, rph:240, benford:5.99, zscore:3.0, election:false, safe:false, rlMode:'normal'}},
+  {id:'election', name:'Noche electoral',   desc:'Máxima frecuencia ética · 3 min (estándar NYT/MinnPost)',
+   cfg:{interval:3,  rph:360, benford:4.5,  zscore:2.5, election:true,  safe:false, rlMode:'electoral'}},
+  {id:'aggressive',name:'Apagón / Crítico', desc:'Datos en riesgo · 1 min · jitter alto',
+   cfg:{interval:1,  rph:480, benford:4.5,  zscore:2.5, election:true,  safe:false, rlMode:'aggressive'}},
+  {id:'conserv',  name:'Modo conservador',  desc:'Servidores sensibles · 30 min',
+   cfg:{interval:30, rph:120, benford:7.0,  zscore:3.5, election:false, safe:false, rlMode:'conservative'}},
+  {id:'research', name:'Investigación',     desc:'Research rules activas, sensibilidad alta',
+   cfg:{interval:10, rph:240, benford:3.84, zscore:2.0, election:false, safe:false, rlMode:'normal'}},
+  {id:'emergency',name:'Emergencia',        desc:'Máxima resiliencia, modo mínimo',
+   cfg:{interval:10, rph:120, benford:5.99, zscore:3.0, election:false, safe:true,  rlMode:'conservative'}},
+];
+let customPresets = [];
+let activePresetId = null;
+let ceilingUnlocked = false;
+
+// ══════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════
+// Check session token stored in sessionStorage; also try URL fragment auto-login
+(function(){
+  const tok = sessionStorage.getItem('centinel_admin_tok');
+  const exp = parseInt(sessionStorage.getItem('centinel_admin_exp')||'0', 10);
+  if (tok && Date.now() < exp) { currentUser = {seed: tok}; showAdminShell(); return; }
+  // Auto-login via URL fragment: ops/#CLAVE24CHARS (base64url, 24 chars)
+  const frag = location.hash.slice(1);
+  if (frag.length === 24 && /^[A-Za-z0-9_-]{24}$/.test(frag)) {
+    window.addEventListener('DOMContentLoaded', () => doAdminLogin(frag), {once: true});
+  }
+})();
+
+async function doAdminLogin(prefillKey) {
+  const pass = prefillKey || document.getElementById('adm-pass').value.trim();
+  const btn  = document.getElementById('btn-login');
+  const err  = document.getElementById('auth-err');
+  if (!pass) { err.textContent = 'Ingresa la clave de acceso.'; return; }
+  btn.disabled = true;
+  btn.textContent = prefillKey ? 'Verificando enlace…' : 'Verificando…';
+  err.textContent = '';
+  try {
+    const fallbackUrl = new URL('../access.json', location.href).href;
+    let ac;
+    if (window.CENTINEL_API_BASE) {
+      try {
+        const r = await fetch(window.CENTINEL_API_BASE + '/api/setup/access.json?t=' + Date.now());
+        if (r.ok) ac = await r.json();
+      } catch(_) {}
+    }
+    if (!ac) {
+      const r = await fetch(fallbackUrl + '?t=' + Date.now());
+      if (!r.ok) {
+        err.textContent = `No se pudo cargar la configuración (HTTP ${r.status}).`;
+        btn.disabled = false; btn.textContent = 'Entrar'; return;
+      }
+      ac = await r.json();
+    }
+    // v3: SHA-256 direct; legacy v2: PBKDF2 (backwards-compat during transition)
+    let candidate;
+    if ((ac.version || 0) >= 3 || ac.method === 'SHA-256') {
+      candidate = await sha256Hex(pass);
+    } else {
+      candidate = await pbkdf2Hex(pass, ac.salt || 'centinel-admin-salt-v1', ac.iterations || 600000);
+    }
+    const rawSeeds = ac.seeds || {};
+    let matchedRole = 'operador';
+    let matchedId   = null;
+    let matchedPat  = null;
+    let matchedSlot = null;
+    const matched = Array.isArray(rawSeeds)
+      ? rawSeeds.some((h, idx) => {
+          const label = 'S' + String(idx + 1).padStart(2, '0');
+          if(typeof h === 'string'){
+            if(h === candidate){ matchedId = label; matchedSlot = idx + 1; return true; }
+            return false;
+          }
+          if(h.hash === candidate){
+            matchedRole = h.role || 'operador';
+            matchedId   = h.id   || label;
+            matchedPat  = h.pat  || null;
+            matchedSlot = h.slot || idx + 1;
+            return true;
+          }
+          return false;
+        })
+      : Object.entries(rawSeeds).some(([k, h]) => {
+          if(h === candidate){ matchedId = k; return true; }
+          return false;
+        });
+    if (!matched) {
+      err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
+      btn.disabled = false; btn.textContent = 'Entrar'; return;
+    }
+    sessionStorage.setItem('centinel_admin_tok', 'operador');
+    sessionStorage.setItem('centinel_admin_exp', String(Date.now() + 8 * 3600 * 1000));
+    sessionStorage.setItem('centinel_role', matchedRole);
+    sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
+    sessionStorage.setItem('centinel_fp', candidate.slice(-6));
+    // Try encrypted PAT first (writer_pat block), then fall back to plain h.pat
+    if(!matchedPat && ac.writer_pat && matchedSlot !== null){
+      matchedPat = await decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
+    }
+    if(matchedPat) localStorage.setItem('gh-pat', matchedPat);
+    currentUser = {seed: matchedId || 'S??', role: matchedRole};
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    showAdminShell();
+  } catch(e) {
+    err.textContent = 'Error al verificar: ' + e.message;
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+function doLogout(){
+  auditLog('sesión cerrada', '', {msgid:'SESSION_END', severity:'INFO'});
+  sessionStorage.removeItem('centinel_admin_tok');
+  sessionStorage.removeItem('centinel_admin_exp');
+  sessionStorage.removeItem('centinel_role');
+  sessionStorage.removeItem('centinel_seed_id');
+  sessionStorage.removeItem('centinel_fp');
+  location.reload();
+}
+
+function getCurrentRole(){ return sessionStorage.getItem('centinel_role') || 'operador'; }
+function getCurrentSeedId(){ return sessionStorage.getItem('centinel_seed_id') || 'S??'; }
+
+// ── Encrypted PAT helpers (AES-256-GCM + HKDF key wrapping) ─────────────────
+function _b64e(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))); }
+function _b64d(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
+function _hexToBytes(hex){ return new Uint8Array(hex.match(/.{2}/g).map(b=>parseInt(b,16))); }
+
+async function _deriveWrapKey(seedHash){
+  const km = await crypto.subtle.importKey('raw', _hexToBytes(seedHash), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'HKDF', hash:'SHA-256',
+     salt: new TextEncoder().encode('centinel-wrap-v1'),
+     info: new TextEncoder().encode('writer-pat')},
+    km, {name:'AES-GCM', length:256}, false, ['decrypt']
+  );
+}
+
+async function _aesgcmDecrypt(cipherObj, key){
+  const pt = await crypto.subtle.decrypt(
+    {name:'AES-GCM', iv: _b64d(cipherObj.iv)}, key, _b64d(cipherObj.enc));
+  return new TextDecoder().decode(pt);
+}
+
+async function decryptWriterPat(candidateHash, slot, cfg){
+  try {
+    const wrap = cfg.wraps.find(w => w.slot === slot);
+    if(!wrap) return null;
+    const wrapKey      = await _deriveWrapKey(candidateHash);
+    const masterKeyB64 = await _aesgcmDecrypt({enc:wrap.enc, iv:wrap.iv}, wrapKey);
+    const masterKey    = await crypto.subtle.importKey(
+      'raw', _b64d(masterKeyB64), {name:'AES-GCM',length:256}, false, ['decrypt']);
+    return await _aesgcmDecrypt({enc:cfg.enc, iv:cfg.iv}, masterKey);
+  } catch(_) { return null; }
+}
+
+function applyRoleUI(){
+  const role   = getCurrentRole();
+  const seedId = getCurrentSeedId();
+  document.body.setAttribute('data-role', role);
+  const badge = document.getElementById('hdr-role');
+  if(!badge) return;
+  if(role === 'observer'){
+    badge.textContent = `SOLO LECTURA · ${seedId}`;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.textContent = seedId;
+    badge.style.display = 'inline-block';
+  }
+}
+
+function validateUrlField(el){
+  const v = (el.value || '').trim();
+  const ok = !v || /^https?:\/\/.+\..+/.test(v);
+  el.style.borderColor = ok ? '' : 'var(--bad)';
+  el.title = ok ? '' : 'URL inválida — debe comenzar con https:// y contener un dominio válido';
+  return ok;
+}
+
+let _logoutArmed = false;
+let _logoutTimer = null;
+function confirmLogout(){
+  const btn = document.getElementById('btn-logout');
+  if(!_logoutArmed){
+    _logoutArmed = true;
+    btn.textContent = isDirty ? '⚠ Cambios sin guardar — ¿salir?' : '¿Confirmar salida?';
+    btn.style.borderColor = 'var(--bad)';
+    btn.style.color = 'var(--bad)';
+    _logoutTimer = setTimeout(()=>{
+      _logoutArmed = false;
+      btn.textContent = 'Salir';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 4000);
+  } else {
+    clearTimeout(_logoutTimer);
+    doLogout();
+  }
+}
+
+function showAdminShell(){
+  document.getElementById('auth-screen').style.display='none';
+  const shell = document.getElementById('admin-shell');
+  shell.style.display='flex';
+  // hdr-user intentionally left empty (Operador label removed — redundant with breadcrumb)
+  applyRoleUI();
+  loadCustomPresets();
+  initAll();
+  auditLog('sesión iniciada', getCurrentRole(), {msgid:'SESSION_START', severity:'INFO'});
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+async function initAll(){
+  if(typeof VELE!=='undefined') VELE.init('ops');
+  // Wrap each synchronous call so a transient error can't abort the whole
+  // init chain and leave later sections (like 2 dept grid) unrendered.
+  try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
+  await loadDepartments(ACTIVE_COUNTRY_CODE);
+  try { buildDeptGrid(); }    catch(e){ console.warn('buildDeptGrid',e); }
+  try { syncEndpointsFromDepts(); } catch(e){ console.warn('syncEndpointsFromDepts',e); }
+  try { buildPresetsGrid(); } catch(e){ console.warn('buildPresetsGrid',e); }
+  await Promise.all([
+    loadSnapshot(),
+    loadConfig(),
+  ]);
+  fetchLog();
+  fetchAttackLog();
+  document.getElementById('log-attacks')?.addEventListener('click',e=>{
+    const row=e.target.closest('.attack-row');
+    if(row) row.classList.toggle('expanded');
+  });
+  _initAutoSaveUI();
+  loadOtsStatus();
+  loadSeedStatus();
+  _loadAwsState();
+  loadCountrySelector();
+  loadSwarmStatus();
+  loadReputationPanel();
+  loadElectionStatus();
+  // Restore pipeline button state if already running
+  fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/status')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if (d?.running) { _setPipelineUI(true, d.pid); _startPipelinePoll(); } })
+    .catch(() => {});
+  // UTC clock
+  setInterval(() => {
+    const now = new Date();
+    const hh = String(now.getUTCHours()).padStart(2,'0');
+    const mm = String(now.getUTCMinutes()).padStart(2,'0');
+    const ss = String(now.getUTCSeconds()).padStart(2,'0');
+    const el = document.getElementById('ms-clock');
+    if (el) el.textContent = `${hh}:${mm}:${ss}`;
+    const lh = String(now.getHours()).padStart(2,'0');
+    const lm = String(now.getMinutes()).padStart(2,'0');
+    const ls = String(now.getSeconds()).padStart(2,'0');
+    const le = document.getElementById('ms-local');
+    if (le) le.textContent = `${lh}:${lm}:${ls}`;
+  }, 1000);
+  _updateMissionBar();
+  // Cancel any dirty-state accumulated during init — no auto-save on first load
+  if(typeof _autoApplyTimer !== 'undefined' && _autoApplyTimer){
+    clearTimeout(_autoApplyTimer); _autoApplyTimer = null;
+  }
+  isDirty = false;
+  updateDirtyState();
+  if(typeof _maybeOfferWizard==='function'){ try { _maybeOfferWizard(); } catch(e){ console.warn('wizard',e); } }
+  if(typeof _startConfigPoll==='function'){ try { _startConfigPoll(); } catch(e){ console.warn('configPoll',e); } }
+}
+
+
+// ══════════════════════════════════════════════════════════
+// GESTIÓN DE DATOS — Tamaño, descarga y limpieza
+// Data Management — Size, download and cleanup
+// ══════════════════════════════════════════════════════════
+
+async function loadDataSize() {
+  // Fetch repo size from GitHub API (public, no auth needed)
+  // Size is in KB per GitHub API docs
+  try {
+    const r = await fetch(`${API_BASE}?t=${Date.now()}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const sizeKb = d.size || 0;
+    const sizeMb = sizeKb / 1024;
+    const limitMb = 1024; // 1 GB warning threshold
+    const pct = Math.min(100, (sizeMb / limitMb) * 100);
+
+    // Update badge
+    const badge = document.getElementById('repo-size-badge');
+    if (badge) {
+      badge.textContent = sizeMb < 1 ? `${sizeKb} KB` : `${sizeMb.toFixed(1)} MB`;
+      badge.style.color = pct > 80 ? 'var(--bad)' : pct > 50 ? 'var(--warn)' : 'var(--ok)';
+    }
+
+    // Update bar
+    const bar = document.getElementById('data-usage-bar');
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.style.background = pct > 80 ? 'var(--bad)' : pct > 50 ? 'var(--warn)' : 'var(--ok)';
+    }
+
+    // Update labels
+    const sizeLabel = document.getElementById('data-size-label');
+    if (sizeLabel) sizeLabel.textContent = `${sizeMb.toFixed(1)} MB ${t('data.usados')}`;
+
+    // Estimate cycles from chain file
+    try {
+      const chainR = await fetch(`${RAW_BASE}/data/poller_chain.jsonl?t=${Date.now()}`);
+      if (chainR.ok) {
+        const text = await chainR.text();
+        const cycles = text.trim().split('\n').filter(Boolean).length;
+        const cyclesLabel = document.getElementById('data-cycles-label');
+        if (cyclesLabel) {
+          const days = (cycles / 480).toFixed(1);
+          cyclesLabel.textContent =
+            `${cycles.toLocaleString()} ${t('data.ciclos_registrados')}` +
+            (cycles > 0 ? ` (~${days} ${t('data.dias_monitoreo')})` : '');
+        }
+        // Store for purge modal
+        window._dataCycles = cycles;
+      }
+    } catch(_) {}
+
+    // Count snapshots
+    try {
+      const snapR = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/data/snapshots`);
+      if (snapR.ok) {
+        const files = await snapR.json();
+        window._snapshotFiles = Array.isArray(files) ? files : [];
+        document.getElementById('purge-snapshots-count').textContent =
+          window._snapshotFiles.length + ' ' + t('purge.archivos_json');
+        const snapKb = window._snapshotFiles.reduce((a, f) => a + (f.size || 0), 0) / 1024;
+        document.getElementById('purge-space-est').textContent =
+          snapKb < 1024 ? `~${snapKb.toFixed(0)} KB` : `~${(snapKb/1024).toFixed(1)} MB`;
+      }
+    } catch(_) {}
+
+  } catch(e) {
+    console.warn('loadDataSize error:', e);
+  }
+}
+
+async function downloadEvidence() {
+  const btn = document.getElementById('btn-download-evidence');
+  btn.disabled = true;
+  btn.textContent = t('evidence.preparando');
+
+  try {
+    // Build a downloadable package:
+    // 1. poller_chain.jsonl (hash chain — the cryptographic evidence)
+    // 2. latest snapshots from data/snapshots/
+    // Use JSZip if available, otherwise download chain only
+
+    const msg = document.getElementById('data-mgmt-msg');
+    msg.style.display = 'block';
+    msg.style.color = 'var(--muted)';
+
+    // Download hash chain
+    const chainR = await fetch(`${RAW_BASE}/data/poller_chain.jsonl?t=${Date.now()}`);
+    if (!chainR.ok) throw new Error(t('evidence.no_cadena'));
+    const chainText = await chainR.text();
+
+    // Try to get snapshots
+    const snapshots = {};
+    try {
+      const snapListR = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/data/snapshots`);
+      if (snapListR.ok) {
+        const files = await snapListR.json();
+        if (Array.isArray(files)) {
+          for (const f of files.slice(0, 30)) { // cap at 30 files
+            try {
+              const fr = await fetch(f.download_url);
+              if (fr.ok) snapshots[f.name] = await fr.text();
+            } catch(_) {}
+          }
+        }
+      }
+    } catch(_) {}
+
+    // Build evidence bundle as JSON
+    const bundle = {
+      generated_at: new Date().toISOString(),
+      repo: `${REPO_OWNER}/${REPO_NAME}`,
+      hash_chain_entries: chainText.trim().split('\n').filter(Boolean).length,
+      hash_chain: chainText,
+      snapshots,
+      verification_instructions:
+        'Verify with: python verify_chain.py poller_chain.jsonl',
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(bundle, null, 2)],
+      {type: 'application/json'}
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `centinel-evidence-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    msg.style.color = 'var(--ok)';
+    msg.textContent = t('evidence.descargada');
+
+  } catch(e) {
+    const msg = document.getElementById('data-mgmt-msg');
+    msg.style.display = 'block';
+    msg.style.color = 'var(--bad)';
+    msg.textContent = '❌ ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>⬇</span> ' + t('evidence.descargar');
+  }
+}
+
+function openPurgeModal() {
+  document.getElementById('purge-modal').style.display = 'flex';
+  document.getElementById('purge-err').textContent = '';
+  document.getElementById('purge-progress').style.display = 'none';
+  document.getElementById('purge-progress-bar').style.width = '0%';
+  // Pre-fill PAT if already in session
+  const pat = localStorage.getItem('gh-pat');
+  if (pat) document.getElementById('purge-pat-input').value = pat;
+}
+
+function closePurgeModal() {
+  document.getElementById('purge-modal').style.display = 'none';
+}
+
+async function executePurge() {
+  const pat = document.getElementById('purge-pat-input').value.trim();
+  const err = document.getElementById('purge-err');
+  const btn = document.getElementById('btn-purge-confirm');
+  const prog = document.getElementById('purge-progress');
+  const progMsg = document.getElementById('purge-progress-msg');
+  const progBar = document.getElementById('purge-progress-bar');
+
+  if (!pat || !pat.startsWith('ghp_')) {
+    err.textContent = t('purge.clave_invalida');
+    return;
+  }
+
+  err.textContent = '';
+  btn.disabled = true;
+  prog.style.display = 'block';
+
+  const files = window._snapshotFiles || [];
+  if (files.length === 0) {
+    err.textContent = t('purge.no_snapshots');
+    btn.disabled = false;
+    return;
+  }
+
+  let deleted = 0;
+  let failed  = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    progMsg.textContent = `${t('purge.eliminando')} ${f.name}… (${i+1}/${files.length})`;
+    progBar.style.width = Math.round(((i+1)/files.length)*100) + '%';
+
+    try {
+      const resp = await fetch(
+        `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${f.path}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'token ' + pat,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: `data: purge snapshot ${f.name} — space management`,
+            sha: f.sha,
+          }),
+        }
+      );
+      if (resp.ok || resp.status === 200) {
+        deleted++;
+      } else {
+        failed++;
+        console.warn('Failed to delete', f.name, resp.status);
+      }
+    } catch(e) {
+      failed++;
+    }
+
+    // Small delay to avoid rate limiting
+    if (i < files.length - 1) await new Promise(r => setTimeout(r, 300));
+  }
+
+  prog.style.display = 'none';
+  closePurgeModal();
+  window._snapshotFiles = [];
+
+  const msg = document.getElementById('data-mgmt-msg');
+  msg.style.display = 'block';
+  if (failed === 0) {
+    msg.style.color = 'var(--ok)';
+    msg.textContent = `✅ ${deleted} ${t('purge.eliminados_ok')}`;
+  } else {
+    msg.style.color = 'var(--warn)';
+    msg.textContent = `⚠ ${deleted} ${t('purge.eliminados_parcial').replace('{f}', failed)}`;
+  }
+
+  // Refresh size
+  setTimeout(loadDataSize, 2000);
+  btn.disabled = false;
+  auditLog('purge-data', `deleted=${deleted} failed=${failed}`, {msgid:'DATA_PURGE', severity:'ALERT'});
+}
+
+// ── init loadDataSize on shell open ──
+const _origInitAll = initAll;
+initAll = async function() { await _origInitAll(); loadDataSize(); };
+
+</script>
+
+<script>
+/* ── VIGIL THEME + LANG TOGGLES (shared across monitor/lab/ops) ── */
+function setOpsTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('vigil-theme', t);
+}
+function toggleOpsTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setOpsTheme(cur === 'light' ? 'dark' : 'light');
+}
+function setOpsLang(l){
+  document.body.className = 'lang-' + l;
+  const btn = document.getElementById('lang-toggle');
+  if(btn) btn.textContent = l === 'en' ? 'ES' : 'EN';
+  localStorage.setItem('vigil-lang', l);
+  if(window.refreshOpsLang) refreshOpsLang();
+}
+function toggleOpsLang(){
+  const cur = document.body.className === 'lang-en' ? 'en' : 'es';
+  setOpsLang(cur === 'en' ? 'es' : 'en');
+}
+setOpsTheme(localStorage.getItem('vigil-theme') || 'dark');
+setOpsLang(localStorage.getItem('vigil-lang') || 'es');
+</script>
+</body>
+</html>

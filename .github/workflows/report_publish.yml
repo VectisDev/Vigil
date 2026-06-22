@@ -1,0 +1,112 @@
+name: Publish PDF Report
+
+# Auto-genera el informe PDF y lo publica en GitHub Pages.
+# Auto-generates the PDF report and publishes it to GitHub Pages.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+      - 'analysis/**'
+      - 'anomalies_report.json'
+  workflow_run:
+    workflows: ["emergency-publish"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PYTHONPATH: src
+
+jobs:
+  generate-report:
+    name: Generate & Publish PDF
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install report dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            "pandas>=2.0.0" \
+            "reportlab>=4.2.5" \
+            "matplotlib>=3.8.0" \
+            "python-dateutil" \
+            "scipy>=1.11.0" \
+            "numpy>=1.24.0"
+
+      - name: Create output directory
+        run: mkdir -p web/reports
+
+      - name: Generate bilingual PDF report
+        run: |
+          python scripts/generate_report.py \
+            --source-dir data \
+            --output web/reports/latest.pdf \
+            --lang es \
+            --sign
+
+      - name: Set report PDF URL in snapshot.json
+        run: |
+          PAGES_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest.pdf"
+          python - <<PY
+          import json, pathlib, os
+
+          snap_path = pathlib.Path("web/data/snapshot.json")
+          if snap_path.exists():
+              data = json.loads(snap_path.read_text(encoding="utf-8"))
+              data["report_pdf_url"] = os.environ["PAGES_URL"]
+              snap_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+              print(f"Updated snapshot.json with PDF URL: {os.environ['PAGES_URL']}")
+          else:
+              print("snapshot.json not found — skipping URL injection")
+          PY
+        env:
+          PAGES_URL: "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest.pdf"
+
+      - name: Commit and push PDF + updated snapshot.json
+        run: |
+          git config user.name "centinel-bot"
+          git config user.email "centinel-bot@users.noreply.github.com"
+          git add web/reports/latest.pdf web/reports/latest.pdf.sha256 web/data/snapshot.json || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "data: auto-publish PDF report [skip ci]"
+            git push -u origin main
+          fi
+
+      - name: Push data to centinel-data
+        if: always()
+        env:
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ -z "$DATA_REPO_TOKEN" ]; then
+            echo "INFO: DATA_REPO_TOKEN not configured — data stays local"
+            exit 0
+          fi
+          git clone "https://x-access-token:${DATA_REPO_TOKEN}@github.com/${REPO_OWNER}/centinel-data.git" /tmp/centinel-data
+          [ -f web/reports/latest.pdf ]        && cp web/reports/latest.pdf        /tmp/centinel-data/reports/ || true
+          [ -f web/reports/latest.pdf.sha256 ] && cp web/reports/latest.pdf.sha256 /tmp/centinel-data/reports/ || true
+          cd /tmp/centinel-data
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add .
+          git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push origin main

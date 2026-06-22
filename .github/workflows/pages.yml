@@ -1,0 +1,53 @@
+name: Deploy web verifier to GitHub Pages
+
+# El setup-wizard activa Pages automáticamente al hacer fork.
+# Si falla, abre un Issue con un link directo a Settings → Pages.
+# URL: https://vectisdev.github.io/centinel/
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", ".github/workflows/pages.yml", "tests/fixtures/hnd_2025/**", "scripts/calibrate_2025.py", "scripts/generate_country_series.py"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+
+      - name: Set up Python for calibration
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Regenerate HND-2025 calibration data
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install python-dateutil
+          python scripts/calibrate_2025.py --data tests/fixtures/hnd_2025/ --output-dir /tmp/calibration
+          cp /tmp/calibration/calibration_2025.json web/data/calibration_hnd_2025.json
+        continue-on-error: true  # deploy even if calibration fails (static JSON still in repo)
+
+      - name: Generate HND-2025 time-series for panel replay
+        run: python scripts/generate_country_series.py
+        continue-on-error: true  # deploy even if generation fails (static JSON still in repo)
+
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa  # v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e  # v4

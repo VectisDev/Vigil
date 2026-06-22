@@ -1,0 +1,62 @@
+name: C.E.N.T.I.N.E.L. Data Fetcher
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Corre cada 15 minutos
+  workflow_dispatch: # Permite correrlo manual
+
+# Cancel any in-progress run before starting a new one.
+concurrency:
+  group: centinel-pipeline
+  cancel-in-progress: true
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+      - name: Set up Python
+        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps 2>/dev/null || true
+      - name: Check election closed
+        run: |
+          if [ -f ELECTION_CLOSED ]; then
+            echo "ELECTION_CLOSED marker found — ciclo electoral terminado. Scheduler detenido."
+            exit 0
+          fi
+
+      - name: Run collector
+        run: python -m scripts.download_and_hash
+      - name: Commit data
+        run: |
+          git config --global user.name 'Centinel-Bot'
+          git config --global user.email 'bot@centinel.app'
+          git add data/
+          git commit -m "Auto-update: New snapshot collected" || exit 0
+          git push
+
+      - name: Push data to centinel-data
+        if: always()
+        env:
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ -z "$DATA_REPO_TOKEN" ]; then
+            echo "INFO: DATA_REPO_TOKEN not configured — data stays local"
+            exit 0
+          fi
+          git clone "https://x-access-token:${DATA_REPO_TOKEN}@github.com/${REPO_OWNER}/centinel-data.git" /tmp/centinel-data
+          [ -d data ] && cp -r data/. /tmp/centinel-data/snapshots/ || true
+          cd /tmp/centinel-data
+          git config user.name "centinel-bot"
+          git config user.email "bot@centinel.app"
+          git add .
+          git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push origin main

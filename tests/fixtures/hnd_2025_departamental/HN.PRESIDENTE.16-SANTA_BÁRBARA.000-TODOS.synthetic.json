@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "71,411",
+      "porcentaje": 40.2
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "70,370",
+      "porcentaje": 39.61
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "32,428",
+      "porcentaje": 18.25
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "1,717",
+      "porcentaje": 0.97
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,717",
+      "porcentaje": 0.97
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "1,060",
+      "actas_divulgadas": "1,056"
+    },
+    "distribucion_votos": {
+      "validos": "177,646",
+      "nulos": "5,136",
+      "blancos": "3,847"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "940",
+      "actas_inconsistentes": "116"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Santa Bárbara",
+    "codigo_cne": "16",
+    "peso_padron": 0.0553,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

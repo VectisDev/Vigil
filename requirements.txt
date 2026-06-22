@@ -1,0 +1,44 @@
+# requirements.txt - C.E.N.T.I.N.E.L. (versión completa febrero 2026)
+# Dependencias para scraping, análisis, dashboard, alertas y visualizaciones
+# NOTA: pyproject.toml es la fuente canónica; este archivo es para entornos sin Poetry.
+
+# Core y scraping
+requests[socks]>=2.34.2,<3.0.0 # ponytail: retained for electoral_authority_healer._CertPinningAdapter (assert_fingerprint SHA-256); remove when httpx supports TLS fingerprint pinning
+urllib3>=2.7.0,<3.0.0          # Transitiva endurecida (CVE-2026-44431/44432)
+aiohttp>=3.13.5,<4.0.0         # ponytail: retained for poller_async.py; remove when poller_async.py is migrated to httpx[asyncio]
+pygments>=2.20.0,<3.0.0        # Transitiva endurecida (CVE-2026-4539, ReDoS)
+playwright>=1.49.0,<2.0.0      # Fallback scraping con navegador headless
+playwright-stealth>=1.0.6      # Modo stealth para evitar detección anti-bot
+apscheduler>=3.10.4,<4.0.0     # Scheduler para healthchecks
+flask-limiter>=3.7.0,<4.0.0    # Rate limiting para el dashboard/app
+flask>=3.0.0,<4.0.0            # Honeypot mínimo para forense
+httpx>=0.27.0,<1.0.0           # Cliente HTTP para healthchecks
+psutil>=5.9.8,<6.0.0           # Métricas de CPU/memoria para healthcheck
+fastapi>=0.111.0,<1.0.0        # API de salud y endpoints públicos
+uvicorn>=0.30.0,<1.0.0        # Servidor ASGI para desplegar FastAPI en Fly
+prometheus-client>=0.20.0      # Métricas de seguridad para monitoreo
+
+# Procesamiento y análisis de datos
+pandas>=2.1.0,<3.0.0           # Procesamiento principal: diffs, tablas por depto
+numpy>=1.24.0,<3.0.0           # Cálculos numéricos (Benford, arrays)
+scipy>=1.11.4,<2.0.0           # Estadística avanzada: Benford, chi-squared, tests
+scikit-learn>=1.5.0,<2.0.0     # Detección de outliers (Isolation Forest)
+qrcode[pil]>=7.4.2             # Generación de QR para verificación de hashes
+reportlab>=4.2.5               # Generación de PDFs institucionales
+Jinja2>=3.1.0,<4.0.0           # Renderizado de plantillas HTML para reportes PDF
+WeasyPrint>=68.1,<69.0         # Conversión HTML a PDF (CVE-2025-68616 fixed in 68.1)
+
+# Utilidades generales
+python-dateutil>=2.8.2,<3.0.0  # Manejo robusto de timestamps y fechas
+PyYAML>=6.0.2,<7.0.0           # Configuración en YAML
+python-dotenv>=1.2.2,<2.0.0    # Carga segura de variables (CVE-2026-28684, symlink)
+idna>=3.15                     # Transitiva endurecida (CVE-2026-45409, ReDoS)
+cryptography>=46.0.7,<49.0.0   # Cripto (CVE-2026-26007/34073/39892)
+jsonschema>=4.22.0,<5.0.0      # Validación de esquemas JSON
+rich>=13.7.0,<14.0.0           # Logging bonito en consola durante desarrollo
+slowapi>=0.1.9,<1.0.0          # Rate limiting para FastAPI
+
+# Testing y desarrollo
+pytest>=9.0.3,<10.0.0          # Suite de pruebas (CVE-2025-71176, tmp predecible)
+responses>=0.25.0,<0.26.0      # Mocking HTTP en pruebas
+locust>=2.31.0,<3.0.0          # Simulaciones de carga/chaos DDoS

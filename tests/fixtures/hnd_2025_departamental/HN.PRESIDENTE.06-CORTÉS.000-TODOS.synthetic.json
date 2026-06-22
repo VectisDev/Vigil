@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "236,345",
+      "porcentaje": 37.58
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "255,779",
+      "porcentaje": 40.67
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "118,130",
+      "porcentaje": 18.78
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "12,396",
+      "porcentaje": 1.97
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "6,217",
+      "porcentaje": 0.99
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "4,054",
+      "actas_divulgadas": "3,738"
+    },
+    "distribucion_votos": {
+      "validos": "628,870",
+      "nulos": "19,070",
+      "blancos": "16,342"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "3,157",
+      "actas_inconsistentes": "581"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Cortés",
+    "codigo_cne": "06",
+    "peso_padron": 0.2115,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}
