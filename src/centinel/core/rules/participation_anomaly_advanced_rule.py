@@ -1,0 +1,223 @@
+"""
+======================== ÍNDICE / INDEX ========================
+1. Descripción general / Overview
+2. Componentes principales / Main components
+3. Notas de mantenimiento / Maintenance notes
+
+======================== ESPAÑOL ========================
+Archivo: `src/centinel/core/rules/participation_anomaly_advanced_rule.py`.
+Este módulo forma parte de Centinel Engine y está documentado para facilitar
+la navegación, mantenimiento y auditoría técnica.
+
+Componentes detectados:
+  - _normalize_ratio
+  - apply
+
+Notas:
+- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
+- Priorizar claridad operativa y trazabilidad del comportamiento.
+
+======================== ENGLISH ========================
+File: `src/centinel/core/rules/participation_anomaly_advanced_rule.py`.
+This module is part of Centinel Engine and is documented to improve
+navigation, maintenance, and technical auditability.
+
+Detected components:
+  - _normalize_ratio
+  - apply
+
+Notes:
+- Keep this header in sync with structural changes in the file.
+- Prioritize operational clarity and behavior traceability.
+"""
+
+# Participation Anomaly Advanced Rule Module
+# AUTO-DOC-INDEX
+#
+# ES: Índice rápido
+#   1) Propósito del módulo
+#   2) Componentes principales
+#   3) Puntos de extensión
+#
+# EN: Quick index
+#   1) Module purpose
+#   2) Main components
+#   3) Extension points
+#
+# Secciones / Sections:
+#   - Configuración / Configuration
+#   - Lógica principal / Core logic
+#   - Integraciones / Integrations
+
+
+from __future__ import annotations
+
+from typing import List, Optional
+
+from centinel.core.rules.common import (
+    extract_department,
+    extract_registered_voters,
+    extract_total_votes,
+)
+from centinel.core.rules.registry import rule
+from centinel.core.rules.zscore_unified import (  # noqa: E402 — unified Z-score conventions
+    zscore_empirical,
+    Z_THRESHOLD_WARNING,
+    Z_THRESHOLD_CRITICAL,
+    Severity,
+)
+
+
+def _normalize_ratio(value: float) -> float:
+    """Normaliza porcentajes a proporciones cuando superan 1.
+
+    Permite aceptar valores en rango 0-1 o en porcentaje 0-100.
+
+    English:
+        Normalize percentages to proportions when values exceed 1.
+
+        Allows inputs in the 0-1 range or percentage 0-100 range.
+    """
+    return value / 100 if value > 1 else value
+
+
+@rule(
+    name="Participación Anómala",
+    severity="CRITICAL",
+    description="Detecta participación fuera de rango y desviaciones >3σ.",
+    config_key="participation_anomaly_advanced",
+)
+def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> List[dict]:
+    """
+    Detecta participación anómala a nivel agregado.
+
+    La regla calcula participación (votos emitidos / inscritos) y compara con
+    rangos críticos. También evalúa desviaciones >3σ de la media histórica por
+    departamento si existe referencia en configuración.
+
+    Args:
+        current_data: Snapshot JSON actual del CNE.
+        previous_data: Snapshot JSON anterior (None en el primer snapshot).
+        config: Configuración específica de la regla.
+
+    Returns:
+        Lista de alertas en formato estándar.
+
+    English:
+        Detects anomalous turnout at the aggregate level.
+
+        The rule computes turnout (votes / registered voters) and compares
+        against critical ranges. It also evaluates >3σ deviations from
+        historical departmental means when provided in configuration.
+
+    Args:
+        current_data: Current CNE JSON snapshot.
+        previous_data: Previous JSON snapshot (None for the first snapshot).
+        config: Rule-specific configuration section.
+
+    Returns:
+        List of alerts in the standard format.
+    """
+    del previous_data
+
+    alerts: List[dict] = []
+    department = extract_department(current_data)
+    total_votes = extract_total_votes(current_data)
+    registered = extract_registered_voters(current_data)
+    if not total_votes or not registered:
+        return alerts
+
+    turnout = total_votes / registered
+
+    min_turnout = float(config.get("min_turnout_pct", 40)) / 100
+    max_turnout = float(config.get("max_turnout_pct", 90)) / 100
+
+    if turnout < min_turnout or turnout > max_turnout:
+        message = "Participación fuera del rango esperado para Honduras 2025."
+        alerts.append(
+            {
+                "type": "Participación Fuera de Rango",
+                "severity": "CRITICAL",
+                "department": department,
+                "message": message,
+                "value": {"turnout": turnout},
+                "threshold": {"min": min_turnout, "max": max_turnout},
+                "result": (
+                    "CRITICAL",
+                    message,
+                    {"turnout": turnout},
+                    {"min": min_turnout, "max": max_turnout},
+                ),
+                "justification": (
+                    "La participación agregada excede los límites críticos. "
+                    f"turnout={turnout:.2%}, min={min_turnout:.2%}, "
+                    f"max={max_turnout:.2%}."
+                ),
+            }
+        )
+        return alerts
+
+    historical = config.get("historical_by_department", {})
+    dept_reference = historical.get(department) if isinstance(historical, dict) else None
+    mean_value = None
+    std_value = None
+    if isinstance(dept_reference, dict):
+        mean_value = dept_reference.get("mean")
+        std_value = dept_reference.get("std")
+    else:
+        mean_value = config.get("historical_mean")
+        std_value = config.get("historical_std")
+
+    if mean_value is None or std_value in (None, 0):
+        return alerts
+
+    mean_ratio = _normalize_ratio(float(mean_value))
+    std_ratio = _normalize_ratio(float(std_value))
+    if std_ratio == 0:
+        return alerts
+
+    # Family B: Z = (x - x̄) / s — empirical Z-score against historical distribution.
+    # Build a synthetic sample from mean/std to satisfy zscore_empirical() interface.
+    # When real historical series is available, pass it directly as `sample`.
+    # Uses unified threshold: WARNING = p<0.01 (|Z|>2.576), CRITICAL = p<0.001 (|Z|>3.291)
+    # Replaces dev-v10 hardcoded |Z|>3 — see docs/stats/STATISTICAL_CONVENTIONS.md
+    import numpy as np  # noqa: PLC0415 — lazy import to keep module lightweight
+    rng = np.random.default_rng(seed=42)
+    synthetic_sample = rng.normal(loc=mean_ratio, scale=std_ratio, size=50).tolist()
+    result = zscore_empirical(
+        x=turnout,
+        sample=synthetic_sample,
+        min_samples=30,
+        label=f"dept={department}, turnout={turnout:.4f}",
+    )
+    if result is None or result.severity == Severity.NOMINAL:
+        return alerts
+
+    severity_str = "CRITICAL" if result.severity == Severity.CRITICAL else "WARNING"
+    message = (
+        f"Participación se desvía ±{result.z:.2f}σ de la media histórica "
+        f"(p={result.p_value:.4f})."
+    )
+    alerts.append(
+        {
+            "type": "Participación Anómala Histórica",
+            "severity": severity_str,
+            "department": department,
+            "message": message,
+            "value": {"turnout": turnout, "z_score": result.z},
+            "threshold": {
+                "historical_mean": mean_ratio,
+                "historical_std": std_ratio,
+                "warning_z": Z_THRESHOLD_WARNING,
+                "critical_z": Z_THRESHOLD_CRITICAL,
+            },
+            "justification": (
+                f"La participación excede el umbral Z unificado. "
+                f"turnout={turnout:.2%}, mean={mean_ratio:.2%}, "
+                f"std={std_ratio:.2%}, z={result.z:.2f}, p={result.p_value:.4f} "
+                f"(umbral_warning={Z_THRESHOLD_WARNING}, critical={Z_THRESHOLD_CRITICAL})."
+            ),
+        }
+    )
+
+    return alerts

@@ -1,0 +1,429 @@
+"""
+======================== ÍNDICE / INDEX ========================
+1. Descripción general / Overview
+2. Componentes principales / Main components
+3. Notas de mantenimiento / Maintenance notes
+
+======================== ESPAÑOL ========================
+Archivo: `src/centinel/proxy_handler.py`.
+Este módulo forma parte de Centinel Engine y está documentado para facilitar
+la navegación, mantenimiento y auditoría técnica.
+
+Componentes detectados:
+  - ProxyInfo
+  - ProxyValidator
+  - ProxyRotator
+  - load_proxy_config
+  - get_proxy_rotator
+
+Notas:
+- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
+- Priorizar claridad operativa y trazabilidad del comportamiento.
+
+======================== ENGLISH ========================
+File: `src/centinel/proxy_handler.py`.
+This module is part of Centinel Engine and is documented to improve
+navigation, maintenance, and technical auditability.
+
+Detected components:
+  - ProxyInfo
+  - ProxyValidator
+  - ProxyRotator
+  - load_proxy_config
+  - get_proxy_rotator
+
+Notes:
+- Keep this header in sync with structural changes in the file.
+- Prioritize operational clarity and behavior traceability.
+"""
+
+# Proxy Handler Module
+# AUTO-DOC-INDEX
+#
+# ES: Índice rápido
+#   1) Propósito del módulo
+#   2) Componentes principales
+#   3) Puntos de extensión
+#
+# EN: Quick index
+#   1) Module purpose
+#   2) Main components
+#   3) Extension points
+#
+# Secciones / Sections:
+#   - Configuración / Configuration
+#   - Lógica principal / Core logic
+#   - Integraciones / Integrations
+
+
+from __future__ import annotations
+
+import logging
+import os
+import secrets
+import threading
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable, List, Optional
+
+import httpx
+try:
+    import structlog  # type: ignore[import]
+except ModuleNotFoundError:
+    structlog = None  # type: ignore[assignment]
+
+try:
+    from centinel_engine.config_loader import load_config  # type: ignore[import]
+except ModuleNotFoundError:  # centinel_engine not installed (tests / forks)
+    def load_config(file_name: str = "", env: str = "prod") -> dict:  # type: ignore[misc]
+        """Fallback stub when centinel_engine package is not available."""
+        return {}
+
+DEFAULT_PROXY_TIMEOUT_SECONDS = 15.0
+DEFAULT_PROXY_TEST_URL = "https://httpbin.org/ip"
+
+
+@dataclass
+class ProxyInfo:
+    """Estado de un proxy en la sesión."""
+
+    url: str
+    consecutive_failures: int = 0
+    dead: bool = False
+    last_error: Optional[str] = None
+
+    def mark_success(self) -> None:
+        """Español: Función mark_success del módulo src/centinel/proxy_handler.py.
+
+        English: Function mark_success defined in src/centinel/proxy_handler.py.
+        """
+        self.consecutive_failures = 0
+        self.last_error = None
+
+    def mark_failure(self, reason: str) -> None:
+        """Español: Función mark_failure del módulo src/centinel/proxy_handler.py.
+
+        English: Function mark_failure defined in src/centinel/proxy_handler.py.
+        """
+        self.consecutive_failures += 1
+        self.last_error = reason
+        if self.consecutive_failures >= 3:
+            self.dead = True
+
+
+class ProxyValidator:
+    """Valida proxies al inicio con un timeout configurable."""
+
+    def __init__(
+        self,
+        *,
+        test_url: str = DEFAULT_PROXY_TEST_URL,
+        timeout_seconds: float = 10.0,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
+        """Español: Función __init__ del módulo src/centinel/proxy_handler.py.
+
+        English: Function __init__ defined in src/centinel/proxy_handler.py.
+        """
+        self.test_url = test_url
+        self.timeout_seconds = timeout_seconds
+        self.logger = logger or structlog.get_logger(__name__)
+
+    def validate(self, proxies: Iterable[str]) -> List[ProxyInfo]:
+        """Prueba proxies y devuelve los que responden correctamente."""
+        validated: List[ProxyInfo] = []
+        timeout = httpx.Timeout(self.timeout_seconds)
+        for proxy_url in proxies:
+            start = time.monotonic()
+            try:
+                # httpx ≥0.28: proxy is set on the client, not per-request.
+                with httpx.Client(timeout=timeout, proxy=proxy_url) as client:
+                    response = client.get(self.test_url)
+                elapsed = time.monotonic() - start
+                if response.status_code >= 400:
+                    self.logger.warning(
+                        "proxy_validation_failed",
+                        proxy=proxy_url,
+                        status_code=response.status_code,
+                        elapsed_seconds=round(elapsed, 3),
+                    )
+                    continue
+                self.logger.info(
+                    "proxy_validation_ok",
+                    proxy=proxy_url,
+                    status_code=response.status_code,
+                    elapsed_seconds=round(elapsed, 3),
+                )
+                validated.append(ProxyInfo(url=proxy_url))
+            except httpx.RequestError as exc:
+                elapsed = time.monotonic() - start
+                self.logger.warning(
+                    "proxy_validation_error",
+                    proxy=proxy_url,
+                    elapsed_seconds=round(elapsed, 3),
+                    error=str(exc),
+                )
+        return validated
+
+
+class ProxyRotator:
+    """Rotador de proxies con soporte para lista fija o rotación."""
+
+    def __init__(
+        self,
+        *,
+        mode: str,
+        proxies: List[ProxyInfo],
+        proxy_urls: List[str],
+        rotation_strategy: str = "round_robin",
+        rotation_every_n: int = 1,
+        proxy_timeout_seconds: float = DEFAULT_PROXY_TIMEOUT_SECONDS,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
+        """Español: Función __init__ del módulo src/centinel/proxy_handler.py.
+
+        English: Function __init__ defined in src/centinel/proxy_handler.py.
+        """
+        self.mode = mode
+        self.rotation_strategy = rotation_strategy
+        self.rotation_every_n = max(rotation_every_n, 1)
+        self.proxy_timeout_seconds = proxy_timeout_seconds
+        self.logger = logger or structlog.get_logger(__name__)
+        self._proxies = proxies
+        self._proxy_urls = proxy_urls
+        self._current_index = 0
+        self._requests_since_rotation = 0
+        self._current_proxy: Optional[ProxyInfo] = None
+        # RLock protects mutable rotation state (_current_proxy, _current_index,
+        # _requests_since_rotation, mode, _proxies) from concurrent access by
+        # snapshot threads. Reentrant so internal helpers can call locked methods.
+        self._lock = threading.RLock()
+
+    @property
+    def active_proxies(self) -> List[ProxyInfo]:
+        """Español: Función active_proxies del módulo src/centinel/proxy_handler.py.
+
+        English: Function active_proxies defined in src/centinel/proxy_handler.py.
+        """
+        with self._lock:
+            return [proxy for proxy in self._proxies if not proxy.dead]
+
+    def _fallback_to_direct(self) -> None:
+        """Español: Función _fallback_to_direct del módulo src/centinel/proxy_handler.py.
+
+        English: Function _fallback_to_direct defined in src/centinel/proxy_handler.py.
+        """
+        with self._lock:
+            if self.mode != "direct":
+                self.logger.warning("proxy_fallback_direct", reason="no_active_proxies")
+            self.mode = "direct"
+            self._current_proxy = None
+
+    def refresh_proxies(self, validator: ProxyValidator) -> bool:
+        """Revalida proxies cuando el pool está agotado."""
+        if not self._proxy_urls:
+            return False
+        validated = validator.validate(self._proxy_urls)
+        with self._lock:
+            self._proxies = validated
+            self._current_index = 0
+            self._requests_since_rotation = 0
+            self._current_proxy = None
+            if validated:
+                self.mode = "rotate"
+                self.logger.info("proxy_pool_refreshed", count=len(validated))
+                return True
+            return False
+
+    def _select_next_proxy(self) -> Optional[ProxyInfo]:
+        """Español: Función _select_next_proxy del módulo src/centinel/proxy_handler.py.
+
+        English: Function _select_next_proxy defined in src/centinel/proxy_handler.py.
+        """
+        with self._lock:
+            active = self.active_proxies
+            if not active:
+                self._fallback_to_direct()
+                return None
+            if self.rotation_strategy == "random":
+                return secrets.choice(active)
+            if self._current_index >= len(active):
+                self._current_index = 0
+            proxy = active[self._current_index]
+            self._current_index = (self._current_index + 1) % len(active)
+            return proxy
+
+    def get_proxy_for_request(self) -> Optional[str]:
+        """Obtiene el proxy para esta solicitud según la configuración."""
+        with self._lock:
+            if self.mode == "direct":
+                return None
+            active = self.active_proxies
+            if not active:
+                self._fallback_to_direct()
+                return None
+            if self.mode == "proxy_list":
+                self._current_proxy = active[0]
+                self.logger.debug(
+                    "proxy_selected",
+                    mode=self.mode,
+                    strategy=self.rotation_strategy,
+                    proxy=self._current_proxy.url,
+                )
+                return self._current_proxy.url
+            self._requests_since_rotation += 1
+            if (
+                self._current_proxy is None
+                or self._requests_since_rotation >= self.rotation_every_n
+            ):
+                self._current_proxy = self._select_next_proxy()
+                self._requests_since_rotation = 0
+                if self._current_proxy:
+                    self.logger.debug(
+                        "proxy_rotated",
+                        mode=self.mode,
+                        strategy=self.rotation_strategy,
+                        proxy=self._current_proxy.url,
+                    )
+            return self._current_proxy.url if self._current_proxy else None
+
+    def mark_success(self, proxy_url: str) -> None:
+        """Español: Función mark_success del módulo src/centinel/proxy_handler.py.
+
+        English: Function mark_success defined in src/centinel/proxy_handler.py.
+        """
+        with self._lock:
+            proxy = self._find_proxy(proxy_url)
+            if proxy:
+                proxy.mark_success()
+                self.logger.info(
+                    "proxy_marked_success",
+                    proxy=proxy.url,
+                )
+
+    def mark_failure(self, proxy_url: str, reason: str) -> None:
+        """Español: Función mark_failure del módulo src/centinel/proxy_handler.py.
+
+        English: Function mark_failure defined in src/centinel/proxy_handler.py.
+        """
+        with self._lock:
+            proxy = self._find_proxy(proxy_url)
+            if not proxy:
+                return
+            proxy.mark_failure(reason)
+            self.logger.warning(
+                "proxy_marked_failure",
+                proxy=proxy.url,
+                reason=reason,
+                consecutive_failures=proxy.consecutive_failures,
+            )
+            if proxy.dead:
+                self.logger.warning(
+                    "proxy_marked_dead",
+                    proxy=proxy.url,
+                    reason=proxy.last_error or "failure_threshold",
+                )
+            if not self.active_proxies:
+                self._fallback_to_direct()
+
+    def _find_proxy(self, proxy_url: str) -> Optional[ProxyInfo]:
+        """Español: Función _find_proxy del módulo src/centinel/proxy_handler.py.
+
+        English: Function _find_proxy defined in src/centinel/proxy_handler.py.
+        """
+        with self._lock:
+            for proxy in self._proxies:
+                if proxy.url == proxy_url:
+                    return proxy
+            return None
+
+
+def load_proxy_config(config_path: Optional[Path] = None) -> dict:
+    """Carga configuración de proxies desde YAML y variables de entorno."""
+    path = config_path or Path(os.getenv("PROXY_CONFIG_PATH", "config/prod/proxies.yaml"))
+    payload: dict = load_config(file_name=path.name, env="prod")
+
+    def env(name: str, default: Optional[str] = None) -> Optional[str]:
+        """Español: Función env del módulo src/centinel/proxy_handler.py.
+
+        English: Function env defined in src/centinel/proxy_handler.py.
+        """
+        return os.getenv(name, default)
+
+    proxies_env = env("PROXY_LIST")
+    proxies = payload.get("proxies", []) if not proxies_env else proxies_env.split(",")
+    proxies = [proxy.strip() for proxy in proxies if proxy.strip()]
+
+    return {
+        "mode": env("PROXY_MODE", str(payload.get("mode", "direct"))).lower(),
+        "rotation_strategy": env(
+            "PROXY_ROTATION_STRATEGY",
+            str(payload.get("rotation_strategy", "round_robin")),
+        ).lower(),
+        "rotation_every_n": int(
+            env("PROXY_ROTATION_EVERY_N", str(payload.get("rotation_every_n", 1)))
+        ),
+        "proxy_timeout_seconds": float(
+            env(
+                "PROXY_TIMEOUT_SECONDS",
+                str(payload.get("proxy_timeout_seconds", DEFAULT_PROXY_TIMEOUT_SECONDS)),
+            )
+        ),
+        "test_url": env("PROXY_TEST_URL", str(payload.get("test_url", DEFAULT_PROXY_TEST_URL))),
+        "proxies": proxies,
+    }
+
+
+_ROTATOR: Optional[ProxyRotator] = None
+_ROTATOR_INIT_LOCK = threading.Lock()
+
+
+def get_proxy_rotator(logger: Optional[logging.Logger] = None) -> ProxyRotator:
+    """Inicializa y devuelve el rotador de proxies.
+
+    Thread-safe singleton: the init lock prevents two threads from
+    constructing parallel ProxyRotator instances on first call.
+    """
+    global _ROTATOR
+    with _ROTATOR_INIT_LOCK:
+        if _ROTATOR is not None:
+            if _ROTATOR.mode != "direct" and not _ROTATOR.active_proxies:
+                config = load_proxy_config()
+                validator = ProxyValidator(
+                    test_url=config["test_url"],
+                    timeout_seconds=10.0,
+                    logger=logger or structlog.get_logger(__name__),
+                )
+                refreshed = _ROTATOR.refresh_proxies(validator)
+                if not refreshed:
+                    _ROTATOR._fallback_to_direct()
+            return _ROTATOR
+
+        logger = logger or structlog.get_logger(__name__)
+        config = load_proxy_config()
+        validator = ProxyValidator(
+            test_url=config["test_url"],
+            timeout_seconds=config["proxy_timeout_seconds"],
+            logger=logger,
+        )
+        # In direct mode proxies are never used; skip validation so
+        # placeholder entries (e.g. "http://user:pass@ip:port") don't
+        # raise during startup.
+        if config["mode"] == "direct":
+            validated = []
+        else:
+            validated = validator.validate(config["proxies"])
+        _ROTATOR = ProxyRotator(
+            mode=config["mode"],
+            proxies=validated,
+            proxy_urls=config["proxies"],
+            rotation_strategy=config["rotation_strategy"],
+            rotation_every_n=config["rotation_every_n"],
+            proxy_timeout_seconds=config["proxy_timeout_seconds"],
+            logger=logger,
+        )
+        if config["mode"] != "direct" and not validated:
+            logger.warning("proxy_startup_no_valid_proxies", fallback="direct")
+            _ROTATOR.mode = "direct"
+        return _ROTATOR

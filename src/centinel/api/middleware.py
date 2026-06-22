@@ -1,0 +1,421 @@
+"""
+======================== ÍNDICE / INDEX ========================
+1. Descripción general / Overview
+2. Componentes principales / Main components
+3. Notas de mantenimiento / Maintenance notes
+
+======================== ESPAÑOL ========================
+Archivo: `src/centinel/api/middleware.py`.
+Este módulo forma parte de Centinel Engine y está documentado para facilitar
+la navegación, mantenimiento y auditoría técnica.
+
+Componentes detectados:
+  - _is_production_environment
+  - _load_security_config
+  - _SlidingWindowLimiter
+  - _parse_networks
+  - _parse_blocklist
+  - _ip_in_blocklist
+  - ZeroTrustMiddleware
+  - _extract_client_ip
+  - install_zero_trust
+
+Notas:
+- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
+- Priorizar claridad operativa y trazabilidad del comportamiento.
+
+======================== ENGLISH ========================
+File: `src/centinel/api/middleware.py`.
+This module is part of Centinel Engine and is documented to improve
+navigation, maintenance, and technical auditability.
+
+Detected components:
+  - _is_production_environment
+  - _load_security_config
+  - _SlidingWindowLimiter
+  - _parse_networks
+  - _parse_blocklist
+  - _ip_in_blocklist
+  - ZeroTrustMiddleware
+  - _extract_client_ip
+  - install_zero_trust
+
+Notes:
+- Keep this header in sync with structural changes in the file.
+- Prioritize operational clarity and behavior traceability.
+"""
+
+# Middleware Module
+# AUTO-DOC-INDEX
+#
+# ES: Índice rápido
+#   1) Propósito del módulo
+#   2) Componentes principales
+#   3) Puntos de extensión
+#
+# EN: Quick index
+#   1) Module purpose
+#   2) Main components
+#   3) Extension points
+#
+# Secciones / Sections:
+#   - Configuración / Configuration
+#   - Lógica principal / Core logic
+#   - Integraciones / Integrations
+
+
+from __future__ import annotations
+
+import ipaddress
+import logging
+import os
+import time
+from collections import defaultdict, deque
+from pathlib import Path
+from typing import Any, Deque, DefaultDict
+
+import yaml
+from fastapi import FastAPI, Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+logger = logging.getLogger("centinel.middleware")
+
+# ---------------------------------------------------------------------------
+# Config helpers (Helpers de configuración)
+# ---------------------------------------------------------------------------
+
+# Path to the main config file (Ruta al archivo de configuración principal)
+_CONFIG_PATH = Path(__file__).resolve().parents[3] / "command_center" / "config.yaml"
+
+
+def _is_production_environment() -> bool:
+    """Return True when runtime environment indicates production mode.
+    (Retorna True cuando el entorno indica modo producción.)
+    """
+    return any(
+        os.getenv(name, "").strip().lower() in {"prod", "production"}
+        for name in ("CENTINEL_ENV", "ENV", "ENVIRONMENT", "APP_ENV")
+    )
+
+
+def _load_security_config() -> dict[str, Any]:
+    """Load the 'security' section from command_center/config.yaml.
+    (Carga la sección 'security' de command_center/config.yaml.)
+
+    Returns an empty dict when the file is missing or malformed so
+    the middleware degrades to permissive mode (no blocking).
+    (Retorna dict vacío si el archivo falta o es inválido para que
+    el middleware degrade a modo permisivo — sin bloqueo.)
+    """
+    if not _CONFIG_PATH.exists():
+        return {}
+    try:
+        raw = yaml.safe_load(_CONFIG_PATH.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError) as exc:
+        logger.warning("middleware_config_load_failed error=%s", exc)
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    sec = raw.get("security", {})
+    return sec if isinstance(sec, dict) else {}
+
+
+# ---------------------------------------------------------------------------
+# In-memory sliding-window rate limiter (Rate limiter deslizante en memoria)
+# ---------------------------------------------------------------------------
+# NOTE: This is intentionally simple and in-memory.  For horizontal scaling
+# (NOTA: Intencionalmente simple y en memoria.  Para escalado horizontal
+class _SlidingWindowLimiter:
+    """Per-IP sliding window rate limiter.
+    (Rate limiter de ventana deslizante por IP.)
+    """
+
+    # Security: cap tracked IPs to prevent memory exhaustion from DDoS.
+    # Seguridad: limitar IPs rastreadas para prevenir agotamiento de memoria por DDoS.
+    _MAX_TRACKED_IPS = 10_000
+
+    def __init__(self, max_requests: int = 60, window_seconds: int = 60) -> None:
+        self._max: int = max_requests
+        self._window: int = window_seconds
+        self._buckets: DefaultDict[str, Deque[float]] = defaultdict(deque)
+
+    def is_allowed(self, ip: str) -> bool:
+        """Return True if the IP is within its request budget.
+        (Retorna True si la IP está dentro de su presupuesto de requests.)
+        """
+        now = time.monotonic()
+        # Evict stale IPs when bucket count exceeds safety cap.
+        # Eliminar IPs obsoletas cuando el conteo excede el límite de seguridad.
+        if len(self._buckets) > self._MAX_TRACKED_IPS:
+            stale = [k for k, v in self._buckets.items() if not v or now - v[-1] > self._window]
+            for k in stale:
+                del self._buckets[k]
+        bucket = self._buckets[ip]
+        # Evict expired timestamps (Eliminar timestamps expirados)
+        while bucket and now - bucket[0] > self._window:
+            bucket.popleft()
+        if len(bucket) >= self._max:
+            return False
+        bucket.append(now)
+        return True
+
+    def reconfigure(self, max_requests: int, window_seconds: int) -> None:
+        """Hot-reload limits without restart.
+        (Reconfigura límites sin reiniciar.)
+        """
+        self._max = max_requests
+        self._window = window_seconds
+
+
+# ---------------------------------------------------------------------------
+# IP blocklist helpers (Helpers de blocklist de IPs)
+# ---------------------------------------------------------------------------
+
+
+def _parse_networks(
+    raw_list: list[str] | None,
+    *,
+    log_key: str,
+) -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
+    """Parse a list of IPs/CIDRs into network objects.
+    (Parsea una lista de IPs/CIDRs en objetos de red.)
+
+    Invalid entries are logged and skipped so a typo never crashes the API.
+    (Entradas inválidas se loguean y se omiten para que un typo nunca
+    rompa la API.)
+    """
+    nets: list[ipaddress.IPv4Network | ipaddress.IPv6Network] = []
+    if not raw_list:
+        return nets
+    for idx, entry in enumerate(raw_list):
+        candidate = entry.strip()
+        try:
+            nets.append(ipaddress.ip_network(candidate, strict=False))
+        except ValueError:
+            logger.warning("%s invalid_entry_index=%d entry_len=%d", log_key, idx, len(candidate))
+    return nets
+
+
+def _parse_blocklist(
+    raw_list: list[str] | None,
+) -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
+    """Wrapper preserving explicit blocklist semantics in logs/docs."""
+    return _parse_networks(raw_list, log_key="middleware_blocklist_invalid")
+
+
+def _ip_in_blocklist(
+    ip_str: str,
+    blocklist: list[ipaddress.IPv4Network | ipaddress.IPv6Network],
+) -> bool:
+    """Check if an IP address falls within any blocked network.
+    (Verifica si una IP cae dentro de alguna red bloqueada.)
+    """
+    if not blocklist:
+        return False
+    try:
+        addr = ipaddress.ip_address(ip_str)
+    except ValueError:
+        return False
+    return any(addr in net for net in blocklist)
+
+
+# ---------------------------------------------------------------------------
+# The middleware class (La clase de middleware)
+# ---------------------------------------------------------------------------
+
+
+class ZeroTrustMiddleware(BaseHTTPMiddleware):
+    """FastAPI middleware enforcing Zero Trust principles on every request.
+    (Middleware FastAPI que aplica principios Zero Trust en cada request.)
+
+    Checks (in order):
+      1. IP blocklist                → 403 Forbidden
+      2. Sliding-window rate limit   → 429 Too Many Requests
+      3. Request body size cap       → 413 Payload Too Large
+      4. Suspicious header rejection → 400 Bad Request
+
+    All checks are *disabled* when security.zero_trust is false (default).
+    (Todos los chequeos están *deshabilitados* cuando security.zero_trust
+    es false — por defecto.)
+    """
+
+    def __init__(self, app: FastAPI) -> None:
+        super().__init__(app)
+        self._cfg = _load_security_config()
+        self._enabled: bool = bool(self._cfg.get("zero_trust", False))
+
+        # Rate-limit defaults (Valores por defecto de rate-limit)
+        zt = (
+            self._cfg.get("zero_trust_config", {})
+            if isinstance(self._cfg.get("zero_trust_config"), dict)
+            else {}
+        )
+        self._limiter = _SlidingWindowLimiter(
+            max_requests=int(zt.get("rate_limit_rpm", 60)),
+            window_seconds=60,
+        )
+        self._max_body_bytes: int = int(zt.get("max_body_bytes", 1_048_576))  # 1 MB default
+
+        # Blocklist (Lista de bloqueo)
+        self._blocklist = _parse_blocklist(zt.get("ip_blocklist"))
+
+        # Trusted proxy networks for X-Forwarded-For parsing.
+        # (Redes proxy confiables para parsear X-Forwarded-For.)
+        self._trusted_proxy_nets = _parse_networks(
+            zt.get("trusted_proxy_cidrs"),
+            log_key="middleware_trusted_proxy_invalid",
+        )
+
+        # Headers that should never appear in legitimate CNE polling traffic
+        # (Headers que nunca deberían aparecer en tráfico legítimo de polling CNE)
+        self._blocked_headers: set[str] = set(h.lower() for h in zt.get("blocked_headers", []))
+
+        if self._enabled:
+            logger.info(
+                "zero_trust_enabled blocklist=%d rate_limit=%d/min max_body=%d blocked_headers=%s",
+                len(self._blocklist),
+                self._limiter._max,
+                self._max_body_bytes,
+                list(self._blocked_headers) or "none",
+            )
+        elif _is_production_environment():
+            logger.warning(
+                "zero_trust_disabled_in_production security.zero_trust=false config_path=%s",
+                _CONFIG_PATH,
+            )
+
+    # ------------------------------------------------------------------
+
+    async def dispatch(self, request: Request, call_next) -> Response:  # type: ignore[override]
+        """Process each request through the Zero Trust pipeline.
+        (Procesa cada request a través del pipeline Zero Trust.)
+        """
+        # Fast-path: when disabled, pass through immediately
+        # (Camino rápido: cuando está deshabilitado, pasa directo)
+        if not self._enabled:
+            return await call_next(request)
+
+        client_ip = _extract_client_ip(request, self._trusted_proxy_nets)
+
+        # 1. IP blocklist (Lista de bloqueo de IPs)
+        if _ip_in_blocklist(client_ip, self._blocklist):
+            logger.warning("zero_trust_blocked_ip ip=%s path=%s", client_ip, request.url.path)
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Forbidden"},
+            )
+
+        # 2. Rate limiting (Limitación de tasa)
+        if not self._limiter.is_allowed(client_ip):
+            logger.warning("zero_trust_rate_limited ip=%s path=%s", client_ip, request.url.path)
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Too many requests"},
+                headers={"Retry-After": "60"},
+            )
+
+        # 3. Body size cap (Límite de tamaño de cuerpo)
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                content_length_value = int(content_length)
+            except ValueError:
+                logger.warning(
+                    "zero_trust_invalid_content_length ip=%s value=%s",
+                    client_ip,
+                    content_length,
+                )
+                return JSONResponse(
+                    status_code=400,
+                    content={"detail": "Bad request"},
+                )
+            if content_length_value > self._max_body_bytes:
+                logger.warning(
+                    "zero_trust_payload_too_large ip=%s bytes=%s",
+                    client_ip,
+                    content_length,
+                )
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "Payload too large"},
+                )
+
+        # 4. Suspicious header rejection (Rechazo de headers sospechosos)
+        if self._blocked_headers:
+            for header in request.headers.keys():
+                if header.lower() in self._blocked_headers:
+                    logger.warning(
+                        "zero_trust_blocked_header ip=%s header=%s",
+                        client_ip,
+                        header,
+                    )
+                    return JSONResponse(
+                        status_code=400,
+                        content={"detail": "Bad request"},
+                    )
+
+        # -- All checks passed (Todos los chequeos pasaron) --
+        response = await call_next(request)
+
+        # Append security headers (Agregar headers de seguridad)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        return response
+
+
+# ---------------------------------------------------------------------------
+# Helpers (Funciones auxiliares)
+# ---------------------------------------------------------------------------
+
+
+def _extract_client_ip(
+    request: Request,
+    trusted_proxy_nets: list[ipaddress.IPv4Network | ipaddress.IPv6Network] | None = None,
+) -> str:
+    """Extract the real client IP respecting X-Forwarded-For behind a proxy.
+    (Extrae la IP real del cliente respetando X-Forwarded-For detrás de proxy.)
+
+    Falls back to request.client.host when the header is absent.
+    (Recurre a request.client.host cuando el header está ausente.)
+    """
+    direct_ip = request.client.host if request.client else "unknown"
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded and trusted_proxy_nets:
+        try:
+            direct_addr = ipaddress.ip_address(direct_ip)
+        except ValueError:
+            direct_addr = None
+        if direct_addr and any(direct_addr in net for net in trusted_proxy_nets):
+            # First IP in the chain is the original client
+            # (La primera IP en la cadena es el cliente original)
+            return forwarded.split(",")[0].strip()
+        logger.warning("zero_trust_untrusted_proxy_ignored source_ip=%s", direct_ip)
+    elif forwarded:
+        logger.warning("zero_trust_forwarded_for_ignored_no_trusted_proxy source_ip=%s", direct_ip)
+    if request.client:
+        return direct_ip
+    return "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Registration helper (Helper de registro)
+# ---------------------------------------------------------------------------
+
+
+def install_zero_trust(app: FastAPI) -> None:
+    """Install the Zero Trust middleware on a FastAPI app.
+    (Instala el middleware Zero Trust en una app FastAPI.)
+
+    Call this from main.py *after* CORS middleware so Zero Trust runs
+    first in the middleware stack (outermost = runs first).
+    (Llama esto desde main.py *después* del middleware CORS para que
+    Zero Trust corra primero en el stack — el más externo corre primero.)
+
+    Usage / Uso:
+        from centinel.api.middleware import install_zero_trust
+        install_zero_trust(app)
+    """
+    app.add_middleware(ZeroTrustMiddleware)
+    logger.info("zero_trust_middleware_installed")

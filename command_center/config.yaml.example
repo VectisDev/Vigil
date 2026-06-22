@@ -1,0 +1,324 @@
+# ============================================================
+# CONFIGURACIÓN CENTRAL DEL USUARIO (ES) / USER CENTRAL CONFIG (EN)
+# ============================================================
+# ES: Este archivo es el punto único de edición recomendado para operar
+#     C.E.N.T.I.N.E.L. de forma segura.
+# EN: This file is the recommended single editing point to operate
+#     C.E.N.T.I.N.E.L. safely.
+#
+# ES: Orden de lectura sugerido:
+#     1) Índice
+#     2) Sección 01 (obligatoria)
+#     3) Sección 02 y 03 (red / scraping)
+#     4) Resto de secciones según necesidad
+# EN: Suggested reading order:
+#     1) Index
+#     2) Section 01 (required)
+#     3) Sections 02 and 03 (network / scraping)
+#     4) Remaining sections as needed
+
+# ES: Convención binaria: todos los flags tipo enabled/monitor/critical/anonymize/encrypt
+#     usan true/false (booleano YAML, sin comillas).
+# EN: Binary convention: all flags such as enabled/monitor/critical/anonymize/encrypt
+#     use true/false (YAML booleans, without quotes).
+
+# ============================================================
+# ÍNDICE / INDEX
+# ============================================================
+# 01_core_control
+# 02_sources_and_endpoints
+# 03_network_and_fetch
+# 04_data_mapping_and_validation
+# 05_analysis_rules
+# 06_observability_and_alerts
+# 07_resilience_and_recovery
+# 08_blockchain_anchors
+
+# ============================================================
+# 01_core_control
+# ============================================================
+# ES: Interruptor maestro. Valores permitidos: "ON" o "OFF". "ON" habilita procesos automáticos.
+# EN: Master switch. Allowed values: "ON" or "OFF". "ON" enables automatic processes.
+master_switch: "OFF"
+
+# ES: URL base de referencia (placeholder). Puede no usarse si defines
+#     endpoints explícitos en la sección 02.
+# EN: Reference base URL (placeholder). It may be unused if explicit
+#     endpoints are defined in section 02.
+base_url: "https://results.example.org/api/v1/summary"
+
+# ES: Cadencia operativa recomendada (documentación guía).
+# EN: Recommended operating cadence (guidance documentation).
+scrape_cadence:
+  # ES: Frecuencia en días para mantenimiento/desarrollo.
+  # EN: Frequency in days for maintenance/development.
+  maintenance_days: 30
+  # ES: Frecuencia en horas para monitoreo normal.
+  # EN: Frequency in hours for regular monitoring.
+  monitoring_hours: 24
+  # ES: Frecuencia en minutos para elección activa.
+  # EN: Frequency in minutes for active election mode.
+  election_minutes: 5
+
+# ============================================================
+# 02_sources_and_endpoints
+# ============================================================
+# ES: Endpoints operativos. Usa URLs reales del proveedor oficial.
+# EN: Operational endpoints. Use real URLs from the official provider.
+endpoints:
+  # ES: Endpoint nacional principal.
+  # EN: Primary national endpoint.
+  nacional: "https://results.example.org/api/v1/nacional"
+  # ES: Endpoint de respaldo para total nacional.
+  # EN: Fallback endpoint for national totals.
+  fallback_nacional: "https://results.example.org/api/v1/nacional/fallback"
+
+# ES: Fuentes consultables por el motor.
+# EN: Sources queried by the engine.
+sources:
+  # ES: Fuente nacional de ejemplo.
+  # EN: Example national source.
+  - name: "Nacional (demo)"
+    source_id: "NACIONAL"
+    level: "PRES"
+    scope: "NATIONAL"
+
+  # ES: Fuente departamental de ejemplo.
+  # EN: Example department source.
+  - name: "Departamento Demo"
+    department_code: "99"
+    level: "PD"
+    scope: "DEPARTMENT"
+
+# ============================================================
+# 03_network_and_fetch
+# ============================================================
+# ES: Timeout por solicitud en segundos.
+# EN: Per-request timeout in seconds.
+timeout: 20
+
+# ES: Reintentos antes de fallar definitivamente.
+# EN: Retries before definitive failure.
+retries: 5
+
+# ES: Backoff exponencial base (segundos).
+# EN: Exponential backoff base (seconds).
+backoff_base_seconds: 2
+
+# ES: Backoff máximo entre reintentos (segundos).
+# EN: Maximum backoff between retries (seconds).
+backoff_max_seconds: 60
+
+# ES: Habilita respaldo seguro tras scrape exitoso y siempre en finally (default: true).
+# EN: Enables secure backup after successful scrape and always in finally (default: true).
+ENABLE_BACKUP: true
+
+# ES: Encabezados HTTP globales.
+# EN: Global HTTP headers.
+headers:
+  Accept: "application/json"
+  User-Agent: "C.E.N.T.I.N.E.L./1.0 (command-center-example)"
+
+# ES: Circuit breaker para proteger el pipeline ante caídas repetidas.
+# EN: Circuit breaker to protect the pipeline from repeated failures.
+circuit_breaker:
+  failure_threshold: 5
+  failure_window_seconds: 600
+  open_timeout_seconds: 1800
+  half_open_after_seconds: 600
+  success_threshold: 2
+  open_log_interval_seconds: 300
+
+# ES: Modo low-profile para reducir huella de scraping.
+# EN: Low-profile mode to reduce scraping footprint.
+low_profile:
+  enabled: false
+  base_interval_minutes: 60
+  jitter_percent: 25
+  timeout_seconds: 45
+  accept_languages:
+    - "es-HN,es;q=0.9,en-US;q=0.8,en;q=0.7"
+    - "en-US,en;q=0.9,es;q=0.7"
+  referers:
+    - "https://www.google.com/"
+    - "https://duckduckgo.com/"
+  user_agents:
+    - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    - "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0"
+
+# ES: Fallback con Playwright cuando HTTP directo falla.
+# EN: Playwright fallback when direct HTTP fails.
+use_playwright: false
+playwright_stealth: true
+playwright_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+playwright_locale: "es-HN"
+playwright_timezone: "America/Tegucigalpa"
+playwright_viewport:
+  width: 1280
+  height: 720
+
+# ============================================================
+# 04_data_mapping_and_validation
+# ============================================================
+# ES: Número esperado de candidatos (ajusta al proceso electoral real).
+# EN: Expected candidate count (adjust to real election process).
+candidate_count: 4
+
+# ES: Llaves mínimas esperadas en la respuesta.
+# EN: Minimum keys expected in the response.
+required_keys:
+  - "estadisticas"
+  - "resultados"
+
+# ES: Mapeo de campos del proveedor al esquema normalizado interno.
+# EN: Provider-to-internal normalized schema mapping.
+field_map:
+  totals:
+    valid_votes:
+      - "estadisticas.distribucion_votos.validos"
+    null_votes:
+      - "estadisticas.distribucion_votos.nulos"
+    blank_votes:
+      - "estadisticas.distribucion_votos.blancos"
+    total_votes:
+      - "estadisticas.distribucion_votos.total"
+  candidate_roots:
+    - "resultados"
+
+# ============================================================
+# 05_analysis_rules
+# ============================================================
+# ES: Reglas analíticas. Puedes apagar reglas específicas por entorno.
+# EN: Analytical rules. You can disable specific rules per environment.
+rules:
+  global_enabled: true
+  trend_shift:
+    enabled: true
+    threshold_percent: 10
+    max_hours: 3
+  processing_speed:
+    enabled: true
+    max_actas_per_15min: 500
+  irreversibility:
+    enabled: true
+    historical_participation_rate: 0.60
+    sqlite_path: "reports/irreversibility_state.db"
+  benford_law:
+    enabled: true
+    chi_square_threshold: 0.05
+    deviation_pct: 15
+    min_samples: 10
+  ml_outliers:
+    enabled: true
+    contamination: 0.1
+    min_samples: 5
+  basic_diff:
+    enabled: true
+    relative_vote_change_pct: 15
+  participation_anomaly:
+    enabled: true
+    scrutiny_jump_pct: 5
+  benford_first_digit:
+    enabled: true
+    mad_warning: 0.008
+    mad_critical: 0.015
+    chi_pvalue_critical: 0.01
+    min_samples: 15
+  last_digit_uniformity:
+    enabled: true
+    chi_pvalue_critical: 0.001
+    min_samples: 20
+  table_consistency:
+    enabled: true
+    total_tolerance: 1
+  participation_anomaly_advanced:
+    enabled: true
+    min_turnout_pct: 40
+    max_turnout_pct: 90
+    historical_mean: 0.6
+    historical_std: 0.1
+  turnout_impossible:
+    enabled: true
+    min_turnout_pct: 0
+    max_turnout_pct: 100
+  null_blank_votes:
+    enabled: true
+    warning_pct: 8
+    critical_pct: 12
+  snapshot_jump:
+    enabled: true
+    max_change_pct: 5
+    max_minutes: 10
+  participation_vote_correlation:
+    enabled: true
+    critical_r: 0.85
+    min_samples: 30
+  geographic_dispersion:
+    enabled: true
+    critical_cv: 0.45
+    min_departments: 5
+  runs_test:
+    enabled: true
+    critical_pvalue: 0.01
+    min_samples: 30
+  mesas_diff:
+    enabled: true
+
+# ============================================================
+# 06_observability_and_alerts
+# ============================================================
+# ES: Logging principal del motor.
+# EN: Main engine logging.
+logging:
+  level: "INFO"
+  file: "C.E.N.T.I.N.E.L.log"
+
+# ES: Configuración de alertas críticas.
+# EN: Critical alert configuration.
+alerts:
+  critical_anomaly_types: []
+  log_path: "alerts.log"
+  output_path: "data/alerts.json"
+
+# ============================================================
+# 07_resilience_and_recovery
+# ============================================================
+# ES: Recuperación automática ante fallos.
+# EN: Automatic recovery after failures.
+resilience:
+  auto_resume:
+    enabled: true
+    max_attempts: 5
+    backoff_base_seconds: 5
+    backoff_max_seconds: 60
+    retry_on: "any"
+  chaos:
+    enabled: false
+    failure_rate: 0.9
+    seed: 2026
+
+# ============================================================
+# 08_blockchain_anchors
+# ============================================================
+# ES: Anclaje genérico en blockchain (placeholder).
+# EN: Generic blockchain anchoring (placeholder).
+blockchain:
+  enabled: false
+  network: "base"
+  private_key: ""
+
+# ES: Configuración de Arbitrum (placeholder).
+# EN: Arbitrum configuration (placeholder).
+arbitrum:
+  enabled: false
+  network: "Arbitrum One"
+  rpc_url: ""
+  private_key: ""
+  contract_address: ""
+  explorer_url: "https://arbiscan.io/tx/"
+  interval_minutes: 60
+  batch_size: 19
+  auto_anchor_snapshots: true
+  # Redact tx hash/root/contract identifiers in logs for low-profile operations.
+  # Redacta identificadores tx/root/contrato en logs para operaciones de bajo perfil.
+  log_redact_identifiers: true

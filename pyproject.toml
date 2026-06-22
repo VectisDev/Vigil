@@ -1,0 +1,105 @@
+[tool.poetry]
+name = "centinel-engine"
+version = "0.1.0"
+description = "CENTINEL: trustless electoral integrity verification infrastructure for Latin America"
+authors = ["userf8a2c4 <contact@centinel.app>"]
+license = "AGPL-3.0-only"
+readme = "README.md"
+homepage = "https://github.com/userf8a2c4/centinel-engine"
+repository = "https://github.com/userf8a2c4/centinel-engine"
+documentation = "https://github.com/userf8a2c4/centinel-engine#readme"
+keywords = [
+  "electoral-integrity", "election-audit", "civic-tech", "transparency",
+  "hashchain", "open-data", "latin-america", "democracy", "forensics",
+  "trustless", "open-source-intelligence"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Topic :: Security",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Sociology",
+  "Natural Language :: English",
+  "Natural Language :: Spanish"
+]
+packages = [{ include = "centinel", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+requests = {version = ">=2.33.0", extras = ["socks"]}
+idna = ">=3.15"                   # CVE-2026-45409
+urllib3 = ">=2.7.0"
+playwright = ">=1.49.0"
+playwright-stealth = ">=1.0.6"
+pandas = ">=2.1.0"
+numpy = ">=1.24.0"
+scipy = ">=1.11.4"
+scikit-learn = ">=1.5.0"
+python-dateutil = ">=2.8.2"
+PyYAML = ">=6.0.2"
+python-dotenv = ">=1.2.2"
+cryptography = ">=46.0.7,<49.0.0"
+jsonschema = ">=4.22.0"
+rich = ">=13.7.0"
+pygments = ">=2.20.0"
+aiohttp = ">=3.13.4"
+httpx = ">=0.27.0,<1.0.0"
+apscheduler = ">=3.10.4,<4.0.0"
+flask-limiter = ">=3.7.0,<4.0.0"
+Flask = ">=3.0.0,<4.0.0"
+uvicorn = ">=0.30.0,<1.0.0"
+fastapi = ">=0.100.0,<0.150.0"
+tenacity = ">=8.2.0,<10.0.0"
+pydantic = ">=2.0.0,<3.0.0"
+pydantic-settings = ">=2.0.0,<3.0.0"
+structlog = ">=23.0.0,<26.0.0"
+typer = ">=0.9.0,<1.0.0"
+click = ">=8.0,<8.2"
+defusedxml = ">=0.7.1,<1.0.0"
+slowapi = ">=0.1.9,<1.0.0"
+psutil = ">=5.9.0"
+Jinja2 = ">=3.1.0,<4.0.0"
+WeasyPrint = ">=68.1,<69.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=9.0.3,<10.0.0"
+pytest-asyncio = ">=1.0.0,<2.0.0"
+ruff = ">=0.6.0,<0.7.0"
+black = ">=26.3.1,<27.0.0"
+flake8 = ">=7.0.0,<8.0.0"
+mypy = ">=1.10.0,<1.12.0"
+pytest-cov = ">=6.0.0,<8.0.0"
+pytest-httpx = ">=0.35.0"
+pytest-mock = ">=3.14.0,<4.0.0"
+responses = ">=0.25.0,<0.26.0"
+bandit = ">=1.7.9,<2.0.0"
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+addopts = [
+  "--import-mode=importlib",
+  "--ignore=scripts/chaos_test.py"
+]
+
+[tool.black]
+line-length = 120
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101", "B110"]
+exclude = ["chaos_test.py", "scripts/chaos_test.py"]
+
+[tool.poetry.scripts]
+centinel = "centinel.cli:main"
+command-center = "command_center.main:main"
+watchdog-daemon = "scripts.watchdog_daemon:main"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"

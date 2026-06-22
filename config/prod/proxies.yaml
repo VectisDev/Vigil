@@ -1,0 +1,57 @@
+# Perfil defensivo de proxies para C.E.N.T.I.N.E.L.
+# Defensive proxy profile for C.E.N.T.I.N.E.L.
+
+# ES: Política recomendada: conexión directa por defecto.
+# EN: Recommended policy: direct connection by default.
+mode: direct
+
+# ES: Mantener round_robin para distribuir carga cuando se habilite rotación.
+# EN: Keep round_robin to distribute load when rotation is enabled.
+rotation_strategy: round_robin
+
+# ES: Rotación lenta para evitar cambios de IP por cada request.
+# EN: Slow rotation to avoid changing IP on every request.
+rotation_every_n: 5
+
+# ES: Timeout de validación y request por proxy.
+# EN: Validation and per-request timeout for proxies.
+proxy_timeout_seconds: 15
+
+# ES: Endpoint liviano para validar salida de proxy.
+# EN: Lightweight endpoint for proxy egress validation.
+test_url: https://httpbin.org/ip
+
+proxies:
+  # ES: Formato esquema://[user:pass@]ip:port
+  # EN: Format scheme://[user:pass@]ip:port
+  - "http://user:pass@ip:port"
+  - "socks5://ip:port"
+
+# ── Tor / Modo privacidad ──────────────────────────────────────────────────
+# ES: Para enrutar TODO el tráfico de monitoreo por Tor (recomendado en
+#     jornadas electorales activas), establece en el entorno:
+#
+#   CENTINEL_PRIVACY_MODE=true   # suprime my_url en gossip broadcasts
+#   CENTINEL_TOR_ENABLED=true    # enruta requests CNE a través del daemon Tor local
+#   CENTINEL_TOR_PORT=9050       # opcional; éste es el valor por defecto
+#
+# CRÍTICO: usar socks5h:// (no socks5://) — el sufijo 'h' fuerza la resolución
+# DNS dentro de Tor. Sin él, los nombres de host se resuelven localmente y
+# el destino queda expuesto.
+#
+# Verificación antes de activar:
+#   curl --socks5-hostname 127.0.0.1:9050 https://check.torproject.org/api/ip
+#
+# EN: To route ALL monitoring traffic through Tor (recommended during active
+#     election periods), set in the environment:
+#
+#   CENTINEL_PRIVACY_MODE=true   # suppresses my_url in gossip broadcasts
+#   CENTINEL_TOR_ENABLED=true    # routes CNE requests through local Tor daemon
+#   CENTINEL_TOR_PORT=9050       # optional; this is the default
+#
+# CRITICAL: use socks5h:// (not socks5://) — the 'h' suffix forces DNS
+# resolution inside Tor. Without it, hostnames resolve locally and the
+# destination is leaked.
+#
+# Pre-activation check:
+#   curl --socks5-hostname 127.0.0.1:9050 https://check.torproject.org/api/ip

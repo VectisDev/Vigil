@@ -1,0 +1,147 @@
+{
+  "country": "UY",
+  "country_name": "Uruguay",
+  "divisions_label": "Departamentos",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/nacional"
+    },
+    {
+      "code": "01",
+      "name": "Artigas",
+      "abbr": "AR",
+      "iso": "UY-AR",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/01"
+    },
+    {
+      "code": "02",
+      "name": "Canelones",
+      "abbr": "CA",
+      "iso": "UY-CA",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/02"
+    },
+    {
+      "code": "03",
+      "name": "Cerro Largo",
+      "abbr": "CL",
+      "iso": "UY-CL",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/03"
+    },
+    {
+      "code": "04",
+      "name": "Colonia",
+      "abbr": "CO",
+      "iso": "UY-CO",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/04"
+    },
+    {
+      "code": "05",
+      "name": "Durazno",
+      "abbr": "DU",
+      "iso": "UY-DU",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/05"
+    },
+    {
+      "code": "06",
+      "name": "Flores",
+      "abbr": "FL",
+      "iso": "UY-FL",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/06"
+    },
+    {
+      "code": "07",
+      "name": "Florida",
+      "abbr": "FD",
+      "iso": "UY-FD",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/07"
+    },
+    {
+      "code": "08",
+      "name": "Lavalleja",
+      "abbr": "LA",
+      "iso": "UY-LA",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/08"
+    },
+    {
+      "code": "09",
+      "name": "Maldonado",
+      "abbr": "MA",
+      "iso": "UY-MA",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/09"
+    },
+    {
+      "code": "10",
+      "name": "Montevideo",
+      "abbr": "MO",
+      "iso": "UY-MO",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/10"
+    },
+    {
+      "code": "11",
+      "name": "Paysandú",
+      "abbr": "PA",
+      "iso": "UY-PA",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/11"
+    },
+    {
+      "code": "12",
+      "name": "Río Negro",
+      "abbr": "RN",
+      "iso": "UY-RN",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/12"
+    },
+    {
+      "code": "13",
+      "name": "Rivera",
+      "abbr": "RI",
+      "iso": "UY-RI",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/13"
+    },
+    {
+      "code": "14",
+      "name": "Rocha",
+      "abbr": "RO",
+      "iso": "UY-RO",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/14"
+    },
+    {
+      "code": "15",
+      "name": "Salto",
+      "abbr": "SA",
+      "iso": "UY-SA",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/15"
+    },
+    {
+      "code": "16",
+      "name": "San José",
+      "abbr": "SJ",
+      "iso": "UY-SJ",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/16"
+    },
+    {
+      "code": "17",
+      "name": "Soriano",
+      "abbr": "SO",
+      "iso": "UY-SO",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/17"
+    },
+    {
+      "code": "18",
+      "name": "Tacuarembó",
+      "abbr": "TA",
+      "iso": "UY-TA",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/18"
+    },
+    {
+      "code": "19",
+      "name": "Treinta y Tres",
+      "abbr": "TT",
+      "iso": "UY-TT",
+      "url": "https://resultados.corteelectoral.gub.uy/api/presidencial/departamento/19"
+    }
+  ]
+}

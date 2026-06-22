@@ -1,0 +1,189 @@
+{
+  "country": "PE",
+  "country_name": "Perú",
+  "divisions_label": "Regiones",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/nacional"
+    },
+    {
+      "code": "01",
+      "name": "Amazonas",
+      "abbr": "AM",
+      "iso": "PE-AM",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/01"
+    },
+    {
+      "code": "02",
+      "name": "Áncash",
+      "abbr": "AN",
+      "iso": "PE-AN",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/02"
+    },
+    {
+      "code": "03",
+      "name": "Apurímac",
+      "abbr": "AP",
+      "iso": "PE-AP",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/03"
+    },
+    {
+      "code": "04",
+      "name": "Arequipa",
+      "abbr": "AR",
+      "iso": "PE-AR",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/04"
+    },
+    {
+      "code": "05",
+      "name": "Ayacucho",
+      "abbr": "AY",
+      "iso": "PE-AY",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/05"
+    },
+    {
+      "code": "06",
+      "name": "Cajamarca",
+      "abbr": "CA",
+      "iso": "PE-CA",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/06"
+    },
+    {
+      "code": "07",
+      "name": "Callao",
+      "abbr": "CL",
+      "iso": "PE-CL",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/07"
+    },
+    {
+      "code": "08",
+      "name": "Cusco",
+      "abbr": "CU",
+      "iso": "PE-CU",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/08"
+    },
+    {
+      "code": "09",
+      "name": "Huancavelica",
+      "abbr": "HV",
+      "iso": "PE-HV",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/09"
+    },
+    {
+      "code": "10",
+      "name": "Huánuco",
+      "abbr": "HU",
+      "iso": "PE-HU",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/10"
+    },
+    {
+      "code": "11",
+      "name": "Ica",
+      "abbr": "IC",
+      "iso": "PE-IC",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/11"
+    },
+    {
+      "code": "12",
+      "name": "Junín",
+      "abbr": "JU",
+      "iso": "PE-JU",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/12"
+    },
+    {
+      "code": "13",
+      "name": "La Libertad",
+      "abbr": "LL",
+      "iso": "PE-LL",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/13"
+    },
+    {
+      "code": "14",
+      "name": "Lambayeque",
+      "abbr": "LA",
+      "iso": "PE-LA",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/14"
+    },
+    {
+      "code": "15",
+      "name": "Lima",
+      "abbr": "LI",
+      "iso": "PE-LI",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/15"
+    },
+    {
+      "code": "16",
+      "name": "Loreto",
+      "abbr": "LO",
+      "iso": "PE-LO",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/16"
+    },
+    {
+      "code": "17",
+      "name": "Madre de Dios",
+      "abbr": "MD",
+      "iso": "PE-MD",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/17"
+    },
+    {
+      "code": "18",
+      "name": "Moquegua",
+      "abbr": "MO",
+      "iso": "PE-MO",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/18"
+    },
+    {
+      "code": "19",
+      "name": "Pasco",
+      "abbr": "PA",
+      "iso": "PE-PA",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/19"
+    },
+    {
+      "code": "20",
+      "name": "Piura",
+      "abbr": "PI",
+      "iso": "PE-PI",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/20"
+    },
+    {
+      "code": "21",
+      "name": "Puno",
+      "abbr": "PU",
+      "iso": "PE-PU",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/21"
+    },
+    {
+      "code": "22",
+      "name": "San Martín",
+      "abbr": "SM",
+      "iso": "PE-SM",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/22"
+    },
+    {
+      "code": "23",
+      "name": "Tacna",
+      "abbr": "TA",
+      "iso": "PE-TA",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/23"
+    },
+    {
+      "code": "24",
+      "name": "Tumbes",
+      "abbr": "TU",
+      "iso": "PE-TU",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/24"
+    },
+    {
+      "code": "25",
+      "name": "Ucayali",
+      "abbr": "UC",
+      "iso": "PE-UC",
+      "url": "https://resultados.onpe.gob.pe/api/presidencial/region/25"
+    }
+  ]
+}

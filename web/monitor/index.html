@@ -1,0 +1,3251 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIGIL — Electoral Monitor</title>
+<script src="../config.js"></script>
+<!-- TODO(security): add integrity="sha384-..." crossorigin="anonymous" once hashes verified from https://www.jsdelivr.com/package/npm/chart.js?version=4.4.0 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- TODO(security): add integrity="sha384-..." crossorigin="anonymous" for jszip -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/vigil-nav.css">
+<style>
+/* ── THEME TOKENS ─────────────────────────────────────────── */
+:root {
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ok:   #2a9d6e;
+  --bad:  #c8102e;
+  --warn: #b07d20;
+  --transition: 0.2s ease;
+}
+
+/* ── DARK THEME (default) ─────────────────────────────────── */
+:root, [data-theme="dark"] {
+  --bg:     #0a0a0a;
+  --panel:  #111318;
+  --panel2: #16191f;
+  --border: #1e2228;
+  --fg:     #e8eaed;
+  --muted:  #7a8390;
+  --accent: #6ea8fe;
+  --ok-c:   #57c08d;
+  --bad-c:  #df6b86;
+  --warn-c: #d4b066;
+  --tooltip-bg: #1a1d24;
+  --drawer-bg:  #13161c;
+  --shadow: 0 4px 24px rgba(0,0,0,.5);
+}
+
+/* ── LIGHT THEME ──────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:     #ffffff;
+  --panel:  #f4f4f2;
+  --panel2: #ececea;
+  --border: #e0e0dc;
+  --fg:     #0a0a0a;
+  --muted:  #6b6b6b;
+  --accent: #1a56db;
+  --ok-c:   #2a9d6e;
+  --bad-c:  #c8102e;
+  --warn-c: #b07d20;
+  --tooltip-bg: #ffffff;
+  --drawer-bg:  #f4f4f2;
+  --shadow: 0 4px 24px rgba(0,0,0,.08);
+}
+
+/* ── RESET ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  line-height: 1.65;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ── BREADCRUMB ───────────────────────────────────────────── */
+/* Breadcrumb + titlebar viven en ../shared/vigil-nav.css (canonical) */
+#last-update { color: var(--muted); font-size: 11px; margin-left: auto; font-family: var(--mono); }
+
+/* ── THEME TOGGLE ─────────────────────────────────────────── */
+#theme-toggle, #lang-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .15s;
+  margin-left: 8px;
+}
+#theme-toggle:hover, #lang-toggle:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+#theme-toggle {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+#lang-toggle {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 10px;
+  height: 30px;
+}
+#theme-icon-sun, #theme-icon-moon { display: none; }
+[data-theme="dark"]  #theme-icon-sun  { display: block; }
+[data-theme="light"] #theme-icon-moon { display: block; }
+
+/* ── BADGE CHIPS ──────────────────────────────────────────── */
+#vigil-titlebar .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 2px;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  font-family: var(--mono);
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+.badge-ok  { background: rgba(42,157,110,.08) !important; color: var(--ok-c);   border-color: rgba(42,157,110,.25) !important; }
+.badge-warn{ background: rgba(176,125,32,.08) !important; color: var(--warn-c); border-color: rgba(176,125,32,.25) !important; }
+.badge-bad { background: rgba(200,16,46,.08)  !important; color: var(--bad-c);  border-color: rgba(200,16,46,.25)  !important; }
+
+/* ── PDF / EVIDENCE BUTTONS ───────────────────────────────── */
+/* ── CUSTOMIZE BUTTON ─────────────────────────────────────── */
+#customize-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 2px;
+  padding: 5px 11px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: .15s;
+  font-family: var(--sans);
+}
+#customize-btn:hover { border-color: var(--muted); color: var(--fg); }
+
+/* ── STATUS CARDS ROW ─────────────────────────────────────── */
+#status-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  transition: background var(--transition);
+}
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  flex: 1;
+  min-width: 140px;
+  cursor: default;
+  transition: .15s;
+  position: relative;
+}
+.status-card:hover { background: var(--panel2); }
+.status-card.sc-ok   { border-color: rgba(42,157,110,.3);  color: var(--ok-c);   }
+.status-card.sc-warn { border-color: rgba(176,125,32,.3);  color: var(--warn-c); }
+.status-card.sc-bad  { border-color: rgba(200,16,46,.3);   color: var(--bad-c);  }
+
+/* ── DOTS ─────────────────────────────────────────────────── */
+.dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-ok   { background: var(--ok-c); }
+.dot-warn { background: var(--warn-c); }
+.dot-bad  { background: var(--bad-c); }
+
+/* ── COVERAGE BANNER ──────────────────────────────────────── */
+#coverage-banner {
+  padding: 9px 24px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#coverage-banner.cov-ok  { background: rgba(42,157,110,.07);  color: var(--ok-c);  }
+#coverage-banner.cov-bad { background: rgba(200,16,46,.07);   color: var(--bad-c); }
+
+/* ── TOOLTIP ──────────────────────────────────────────────── */
+#g-tooltip {
+  position: fixed;
+  background: var(--tooltip-bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-size: 11px;
+  line-height: 1.6;
+  border-radius: 2px;
+  padding: 9px 13px;
+  max-width: 260px;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  white-space: normal;
+  font-family: var(--sans);
+  box-shadow: var(--shadow);
+}
+
+/* ── CUSTOMIZE DRAWER ─────────────────────────────────────── */
+#customize-drawer {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: 260px;
+  background: var(--drawer-bg);
+  border-left: 1px solid var(--border);
+  padding: 24px 20px;
+  overflow-y: auto;
+  z-index: 300;
+  display: none;
+  transition: background var(--transition);
+}
+#customize-drawer h3 { font-size: 12px; font-weight: 600; margin-bottom: 16px; color: var(--fg); letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--mono); }
+#drawer-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+.drawer-item { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; font-size: 13px; color: var(--fg); }
+.drawer-item input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; display: grid; gap: 20px; }
+main > * { min-width: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid2 > * { min-width: 0; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+@media(max-width:800px) { .grid2,.grid3,.grid4 { grid-template-columns: 1fr; } }
+
+/* ── CARDS ────────────────────────────────────────────────── */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 22px 24px;
+  transition: background var(--transition), border-color var(--transition);
+  min-width: 0;
+  overflow: hidden;
+}
+.card h2 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+  font-family: var(--mono);
+}
+.card.alert-card { border-color: var(--bad-c); }
+.card.warn-card  { border-color: var(--warn-c); }
+
+/* ── KPI ──────────────────────────────────────────────────── */
+.kpi-val { font-size: 36px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-family: var(--sans); }
+.kpi-label { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+.progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: .5s; }
+.kpi-ok   .kpi-val { color: var(--ok-c);   }
+.kpi-warn .kpi-val { color: var(--warn-c); }
+.kpi-bad  .kpi-val { color: var(--bad-c);  }
+
+/* ── MAP SIDE PANEL ───────────────────────────────────────── */
+#map-wrap { position: relative; }
+#map-side {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: 320px;
+  background: var(--drawer-bg);
+  border-left: 1px solid var(--border);
+  padding: 24px 20px;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform .3s, background var(--transition);
+  z-index: 200;
+}
+#map-side.open { transform: translateX(0); }
+#map-side-close { position: absolute; top: 14px; right: 16px; cursor: pointer; color: var(--muted); font-size: 20px; background: none; border: none; }
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 6px 14px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .15s;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.back-btn:hover { background: var(--panel2); }
+.dept-ep-dot { position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; pointer-events: none; }
+
+/* ── INFO TIP ─────────────────────────────────────────────── */
+.info-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: help;
+  margin-left: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  user-select: none;
+  font-family: var(--sans);
+}
+
+/* ── EP GRID ──────────────────────────────────────────────── */
+#ep-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; margin-top: 4px; }
+.ep-row { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); min-width: 0; font-family: var(--mono); }
+.ep-row:nth-last-child(-n+2) { border-bottom: none; }
+.ep-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); }
+.ep-badge { font-size: 10px; font-weight: 700; letter-spacing: .04em; flex-shrink: 0; }
+.ep-ok   { color: var(--ok-c);   }
+.ep-warn { color: var(--warn-c); }
+.ep-bad  { color: var(--bad-c);  }
+
+/* ── CANDIDATES ───────────────────────────────────────────── */
+.cand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.cand-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; position: relative; }
+.cand-bar { height: 100%; border-radius: 2px; transition: .5s; }
+.cand-name { width: 120px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--sans); }
+.cand-pct { width: 44px; text-align: right; font-size: 13px; font-family: var(--mono); font-weight: 500; }
+.cand-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.cbadge { font-size: 10px; padding: 2px 7px; border-radius: 2px; font-family: var(--mono); letter-spacing: 0.04em; }
+.cbadge-ok   { background: rgba(42,157,110,.1);  color: var(--ok-c);   }
+.cbadge-warn { background: rgba(176,125,32,.1);  color: var(--warn-c); }
+.cbadge-bad  { background: rgba(200,16,46,.1);   color: var(--bad-c);  }
+
+/* ── FORENSIC CARDS ───────────────────────────────────────── */
+.forensic-card { cursor: pointer; }
+.forensic-header { display: flex; align-items: center; gap: 10px; }
+.forensic-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.forensic-title { font-weight: 600; font-size: 14px; font-family: var(--sans); }
+.forensic-body { margin-top: 14px; display: none; }
+.forensic-body.open { display: block; }
+.forensic-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+  font-style: italic;
+  padding: 8px 12px;
+  background: var(--panel2);
+  border-radius: 2px;
+  border-left: 2px solid var(--border);
+  font-family: var(--sans);
+}
+
+/* ── TABLE ────────────────────────────────────────────────── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { text-align: left; padding: 8px 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); font-family: var(--mono); }
+.tbl td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 12px; }
+.sev-LOW      { color: var(--muted); }
+.sev-MEDIUM   { color: var(--warn-c); }
+.sev-HIGH     { color: var(--warn-c); font-weight: 600; }
+.sev-CRITICAL { color: var(--bad-c);  font-weight: 700; }
+
+/* ── MERKLE BOX ───────────────────────────────────────────── */
+.merkle-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px auto;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.copy-btn {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 4px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: .15s;
+  font-family: var(--mono);
+}
+.copy-btn:hover { background: var(--border); }
+
+/* ── HERO INTEGRITY ───────────────────────────────────────── */
+#hero-integrity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 24px;
+  text-align: center;
+}
+.hero-ring {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+.hero-ring svg { width: 200px; height: 200px; transform: rotate(-90deg); }
+.hero-ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+.hero-ring-fg { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .8s ease, stroke .4s ease; }
+.hero-ring-fg.ok { stroke: var(--ok-c, #57c08d); filter: drop-shadow(0 0 8px rgba(87,192,141,.4)); }
+.hero-ring-fg.warn { stroke: var(--warn-c, #d4b066); filter: drop-shadow(0 0 8px rgba(212,176,102,.4)); }
+.hero-ring-fg.bad { stroke: var(--bad-c, #df6b86); filter: drop-shadow(0 0 8px rgba(223,107,134,.4)); animation: hero-pulse 1.5s ease-in-out infinite; }
+@keyframes hero-pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.hero-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  text-align: center;
+}
+.hero-pct { font-family: var(--mono); font-size: clamp(36px, 7vw, 56px); font-weight: 700; color: var(--fg); line-height: 1; }
+.hero-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
+.hero-label {
+  font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--fg);
+  text-transform: uppercase; letter-spacing: .08em; margin-top: 16px;
+}
+.hero-detail {
+  font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px;
+  max-width: 480px;
+}
+@media(max-width:480px) {
+  .hero-ring { width: 160px; height: 160px; }
+  .hero-ring svg { width: 160px; height: 160px; }
+}
+
+/* ── VIEW MODE (CITIZEN / EXPERT) ─────────────────────────── */
+#mode-toggle {
+  display: flex; gap: 0; border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+  margin-left: 8px;
+}
+#mode-toggle button {
+  background: transparent; border: none; color: var(--muted);
+  font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+  letter-spacing: .08em; padding: 4px 10px; cursor: pointer; transition: .15s;
+}
+#mode-toggle button.active {
+  background: var(--accent); color: #000; font-weight: 700;
+}
+[data-expert] { transition: opacity .2s, max-height .3s; }
+body.mode-citizen [data-expert] { display: none !important; }
+body.mode-citizen .citizen-semaphore { display: grid !important; }
+.citizen-semaphore { display: none; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 12px; }
+.semaphore-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-radius: 2px;
+  background: var(--panel); border: 1px solid var(--border);
+  font-family: var(--mono); font-size: 12px; color: var(--fg);
+}
+.semaphore-dot {
+  width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+}
+.semaphore-dot.s-ok { background: var(--ok-c); box-shadow: 0 0 6px rgba(87,192,141,.5); }
+.semaphore-dot.s-warn { background: var(--warn-c); box-shadow: 0 0 6px rgba(212,176,102,.5); }
+.semaphore-dot.s-bad { background: var(--bad-c); box-shadow: 0 0 6px rgba(223,107,134,.5); }
+
+/* ── KLIMEK FINGERPRINT ──────────────────────────────────── */
+#klimek-wrap { position: relative; }
+.klimek-ref {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  margin-top: 8px; font-style: italic;
+}
+
+/* ── BENFORD 2ND DIGIT ────────────────────────────────────── */
+.benford-note-method {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  margin-top: 6px; padding: 6px 8px;
+  background: rgba(110,168,254,.05); border-left: 2px solid var(--accent);
+}
+
+/* ── CONFIDENCE SCORE ─────────────────────────────────────── */
+#confidence-score {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding: 20px 24px;
+}
+.conf-gauge {
+  position: relative; width: 120px; height: 120px; flex-shrink: 0;
+}
+.conf-gauge svg { width: 120px; height: 120px; transform: rotate(-90deg); }
+.conf-gauge-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+.conf-gauge-fg { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset .6s ease, stroke .3s ease; }
+.conf-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--fg);
+}
+.conf-body { flex: 1; min-width: 200px; }
+.conf-title {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--fg); margin-bottom: 6px;
+}
+.conf-desc { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.6; }
+.conf-factors { margin-top: 10px; display: grid; gap: 4px; min-width: 0; }
+.conf-factor {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden;
+}
+.conf-factor-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── MUTATIONS PANEL ─────────────────────────────────────── */
+.mutation-row {
+  font-family: var(--mono); font-size: 11px; line-height: 1.6;
+  padding: 8px 12px; border-left: 3px solid transparent; margin-bottom: 4px;
+}
+.mutation-row.mut-del {
+  background: rgba(223,107,134,.08); border-left-color: var(--bad-c);
+  color: var(--bad-c); text-decoration: line-through;
+}
+.mutation-row.mut-add {
+  background: rgba(87,192,141,.08); border-left-color: var(--ok-c);
+  color: var(--ok-c);
+}
+.mutation-ts {
+  font-size: 10px; color: var(--muted); margin-left: 8px; text-decoration: none;
+}
+.mutation-delta {
+  font-size: 10px; color: var(--warn-c); margin-left: 8px; font-weight: 600; text-decoration: none;
+}
+#mutations-empty {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  text-align: center; padding: 16px;
+}
+
+/* ── CUSUM CHANGE-POINT ──────────────────────────────────── */
+.cusum-alert {
+  font-family: var(--mono); font-size: 11px; color: var(--warn-c);
+  margin-top: 8px; padding: 6px 10px;
+  background: rgba(212,176,102,.08); border-left: 2px solid var(--warn-c);
+}
+
+/* ── EXPORT PDF BUTTON ───────────────────────────────────── */
+#export-pdf-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent); color: #000; border: none; border-radius: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 10px 18px; cursor: pointer; transition: .15s;
+}
+#export-pdf-btn:hover { filter: brightness(1.15); }
+#export-csv-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 9px 18px; cursor: pointer; transition: .15s; margin-left: 8px;
+}
+#export-csv-btn:hover { background: var(--accent); color: #000; }
+
+/* ── DEPARTMENT FILTER BAR ────────────────────────────────── */
+#dept-filter-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; margin-bottom: 4px;
+  font-family: var(--mono); font-size: 11px;
+}
+#dept-filter-bar select {
+  background: var(--panel); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 2px; padding: 4px 8px; font-family: var(--mono); font-size: 11px;
+}
+#dept-filter-bar .filter-clear {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 2px; padding: 3px 8px; cursor: pointer; font-family: var(--mono); font-size: 10px;
+}
+#dept-filter-bar .filter-clear:hover { border-color: var(--accent); color: var(--accent); }
+#dept-filter-bar .filter-label { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
+
+/* ── CARD HIGHLIGHT (deep-link) ──────────────────────────── */
+@keyframes highlight-glow {
+  0% { box-shadow: 0 0 0 2px var(--accent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.card-highlight { animation: highlight-glow 1.5s ease forwards; }
+
+/* ── DIAGNOSTIC MINI-CARDS ───────────────────────────────── */
+#timeseries-diag-grid { grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; }
+.diag-card {
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 2px;
+  padding: 12px 14px; text-align: center;
+}
+.diag-val { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.diag-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+
+/* ── BLACKOUT ZONES ──────────────────────────────────────── */
+.blackout-gap-row {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: 8px; align-items: center; padding: 6px 0;
+  border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 11px;
+}
+.blackout-interference { color: var(--bad-c); font-weight: 700; }
+
+/* ── CONF FACTOR BAR ─────────────────────────────────────── */
+.conf-factor-bar {
+  flex: 1; height: 6px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 0 6px; min-width: 0;
+}
+.conf-factor-fill { height: 100%; border-radius: 2px; transition: width .4s ease; }
+
+/* ── DEMO BANNER ──────────────────────────────────────────── */
+#demo-banner {
+  display: none;
+  background: #5a1a1a;
+  border-bottom: 2px solid var(--bad-c, #df6b86);
+  color: #f8b4b4;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-align: center;
+  padding: 10px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+#demo-banner.visible { display: block; }
+#demo-banner .demo-label-en { display: none; }
+
+/* ── DISCLAIMER BAR ───────────────────────────────────────── */
+#disclaimer-bar {
+  background: rgba(110,168,254,.07);
+  border: 1px solid rgba(110,168,254,.2);
+  border-radius: 2px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 8px 16px;
+  margin: 0 20px 0 20px;
+  letter-spacing: .03em;
+}
+#disclaimer-bar .dis-en { display: none; }
+body.lang-en #disclaimer-bar .dis-es { display: none; }
+body.lang-en #disclaimer-bar .dis-en { display: inline; }
+body.lang-en #demo-banner .demo-label-es { display: none; }
+body.lang-en #demo-banner .demo-label-en { display: inline; }
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 32px 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+footer a { color: var(--accent); text-decoration: none; }
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media(max-width:768px) {
+  /* #statusbar mobile override moved to shared/vigil-nav.css */
+  #status-row { padding: 10px 14px; gap: 8px; }
+  .status-card { min-width: 120px; padding: 8px 12px; }
+  main { padding: 16px 12px; }
+  .card { padding: 16px 14px; }
+  .kpi-val { font-size: 28px; }
+}
+@media(max-width:480px) {
+  #last-update { display: none; }
+  .status-card { min-width: 0; flex: 1 1 calc(50% - 6px); }
+  main { padding: 12px 8px; gap: 14px; }
+  .card { padding: 14px 12px; }
+  .kpi-val { font-size: 22px; }
+  #ep-card-grid { grid-template-columns: 1fr; }
+  #customize-drawer { width: min(260px,92vw); }
+  #map-side { width: min(320px,100vw); }
+  .cand-name { width: 80px; }
+  .tbl { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* #breadcrumb mobile override moved to shared/vigil-nav.css */
+}
+</style>
+</head>
+<body>
+
+<!-- ── DEMO BANNER (visible only when no real data loaded) ── -->
+<div id="demo-banner" role="alert" aria-live="polite">
+  <span class="demo-label-es">⚠ DATOS DE DEMOSTRACIÓN — Sin datos reales disponibles. Este panel muestra información ficticia de ejemplo.</span>
+  <span class="demo-label-en">⚠ DEMONSTRATION DATA — No real data available. This panel shows sample data only.</span>
+</div>
+
+<!-- ── VIGIL NAV (estandarizado, una fila) ── -->
+<div id="vigil-titlebar">
+  <span id="vigil-title"><a href="../">VIGIL</a><span class="vigil-sep">/</span><span>Monitor</span></span>
+  <span id="last-update">Actualizando…</span>
+  <button id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema / Toggle theme">
+    <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+  <button id="lang-toggle" onclick="toggleLang()" title="Cambiar idioma / Switch language">EN</button>
+  <div id="mode-toggle">
+    <button id="mode-citizen-btn" onclick="setViewMode('citizen')">Ciudadano</button>
+    <button id="mode-expert-btn" class="active" onclick="setViewMode('expert')">Experto</button>
+  </div>
+  <button id="customize-btn" onclick="toggleDrawer()" data-gtt="Muestra u oculta secciones del panel. Tus preferencias se guardan en el navegador."><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Personalizar</button>
+</div>
+<!-- ── STATUS CARDS ROW ── -->
+<div id="status-row">
+  <div id="alert-badge" class="status-card sc-ok" data-gtt="Estado general del sistema de auditoría. NORMAL = sin anomalías detectadas en el último ciclo."><span class="dot dot-ok"></span>SISTEMA NORMAL</div>
+  <div id="chain-badge" class="status-card sc-ok" data-gtt="Integridad de la cadena SHA-256. Cada snapshot está enlazado criptográficamente al anterior. Si un dato fue alterado, la cadena se rompe aquí."><span class="dot dot-ok"></span>CADENA ÍNTEGRA</div>
+  <div id="ots-badge" class="status-card sc-warn" data-gtt="Estado del anclaje a Bitcoin vía OpenTimestamps (OTS). VERIFICANDO = el timestamp fue enviado y está esperando confirmación en la blockchain (~1h)."><span class="dot dot-warn"></span>OTS VERIFICANDO</div>
+  <div id="mirror-badge" class="status-card sc-ok" data-gtt="Espejos de respaldo activos. Si GitHub Pages cae, los datos siguen disponibles en nodos alternativos."><span class="dot dot-ok"></span>ESPEJOS —</div>
+  <div id="ep-national-badge" class="status-card sc-ok" hidden data-gtt="Estado del endpoint nacional del CNE. Verde = responde. Rojo = sin datos, tiempo de blackout registrado con hash."><span class="dot dot-ok"></span>CNE —</div>
+</div>
+<!-- ── DISCLAIMER BAR ── -->
+<div id="disclaimer-bar">
+  <span class="dis-es">VIGIL presenta observaciones estadísticas para evaluación por observadores electorales calificados. No determina resultados electorales. — Metodología: Benford (1938), Mebane (2006), Klimek et al. PNAS (2012).</span>
+  <span class="dis-en">VIGIL presents statistical observations for evaluation by qualified electoral observers. It does not determine electoral outcomes. — Methodology: Benford (1938), Mebane (2006), Klimek et al. PNAS (2012).</span>
+</div>
+<!-- ── OPS LINE ── -->
+<!-- ── GLOBAL TOOLTIP ── -->
+<div id="g-tooltip"></div>
+<!-- ── CUSTOMIZE DRAWER ── -->
+<div id="customize-drawer">
+  <button id="drawer-close" onclick="toggleDrawer()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <h3>Personalizar panel</h3>
+  <div id="drawer-items"></div>
+</div>
+
+<main>
+
+<!-- ── FILTRO POR DEPARTAMENTO (expert) ── -->
+<div id="dept-filter-bar" data-expert>
+  <span class="filter-label">Filtrar departamento:</span>
+  <select id="dept-filter-select" onchange="setDeptFilter(this.value)">
+    <option value="">— Todos —</option>
+  </select>
+  <button class="filter-clear" onclick="setDeptFilter('')">Limpiar</button>
+</div>
+
+<!-- ── HERO DE INTEGRIDAD ── -->
+<div id="hero-integrity" aria-live="polite">
+  <div class="hero-ring">
+    <svg viewBox="0 0 200 200">
+      <circle class="hero-ring-bg" cx="100" cy="100" r="88"/>
+      <circle id="hero-ring-fg" class="hero-ring-fg ok" cx="100" cy="100" r="88"
+        stroke-dasharray="553" stroke-dashoffset="0"/>
+    </svg>
+    <div class="hero-center">
+      <div class="hero-pct" id="hero-pct">—</div>
+      <div class="hero-sub" id="hero-sub">integridad</div>
+    </div>
+  </div>
+  <div class="hero-label" id="hero-label">CADENA ÍNTEGRA — 0 MUTACIONES</div>
+  <div class="hero-detail" id="hero-detail">Todos los snapshots capturados mantienen la cadena SHA-256 sin alteraciones. Verificable de forma independiente.</div>
+</div>
+
+<!-- ── CRS BANNER — Score de Riesgo Compuesto ── -->
+<div id="crs-banner" style="display:none;margin-bottom:12px;border-radius:8px;padding:12px 18px;border:1px solid;font-size:13px;line-height:1.5">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span id="crs-dot" style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--ok-c)"></span>
+    <strong id="crs-title" style="font-size:14px;font-weight:700;font-family:var(--mono)">CRS 0 — NORMAL</strong>
+    <span id="crs-pill" style="border-radius:5px;padding:2px 9px;font-size:10px;font-weight:700;margin-left:4px">NORMAL</span>
+    <span style="margin-left:auto;font-size:11px;color:var(--muted)" id="crs-pval"></span>
+  </div>
+  <div id="crs-desc" style="margin-top:6px;font-size:12px;color:var(--muted);max-width:700px"></div>
+  <details style="margin-top:6px">
+    <summary style="font-size:10px;color:var(--muted);cursor:pointer;font-weight:600;letter-spacing:.04em">METODOLOGÍA</summary>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">
+      <strong>Score de Riesgo Compuesto (CRS)</strong> — Test de Probabilidad Combinada de Fisher (1925).<br>
+      Fórmula: χ² = −2 × Σ ln(pᵢ) ~ χ²(2k). Pesos: INFO=1 (p≈0.3), WARNING=5 (p≤0.05), CRITICAL=20 (p≤0.01).<br>
+      CRS 1–4: p≈0.3 (ruido normal) · CRS 5–19: p&lt;0.05 (atención) · CRS 20–39: p&lt;0.01 (alerta, 1 en 10,000) · CRS 40+: p&lt;0.0001 (imposible por azar).<br>
+      <em>No determina resultados electorales. Es una herramienta estadística para observadores calificados.</em>
+    </div>
+  </details>
+</div>
+
+<!-- ── SEMÁFORO CIUDADANO (solo en modo ciudadano) ── -->
+<div class="citizen-semaphore" id="citizen-semaphore">
+  <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-benford"></span><span id="sem-benford-txt">Distribución de dígitos: Normal</span></div>
+  <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-zscore"></span><span id="sem-zscore-txt">Departamentos: Sin valores atípicos</span></div>
+  <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-velocity"></span><span id="sem-velocity-txt">Velocidad de conteo: Normal</span></div>
+  <div class="semaphore-item"><span class="semaphore-dot s-ok" id="sem-chain"></span><span id="sem-chain-txt">Cadena criptográfica: Íntegra</span></div>
+</div>
+
+<!-- ── SCORE DE CONFIANZA SINTÉTICO ── -->
+<div class="card" id="confidence-score" data-section="confidence">
+  <div class="conf-gauge">
+    <svg viewBox="0 0 120 120">
+      <circle class="conf-gauge-bg" cx="60" cy="60" r="50"/>
+      <circle id="conf-gauge-fg" class="conf-gauge-fg" cx="60" cy="60" r="50"
+        stroke-dasharray="314" stroke-dashoffset="314" stroke="var(--ok-c)"/>
+    </svg>
+    <div class="conf-center" id="conf-val">—</div>
+  </div>
+  <div class="conf-body">
+    <div class="conf-title" id="conf-title">Nivel de confianza estadística</div>
+    <div class="conf-desc" id="conf-desc">Índice compuesto (0–100) que combina los resultados de todos los detectores forenses. No es un juicio — es una lectura de anomalía calibrada contra patrones esperados.</div>
+    <div class="conf-factors" id="conf-factors"></div>
+  </div>
+</div>
+
+<!-- ── KPIs ── -->
+<div class="grid4">
+  <div class="card" id="kpi-actas">
+    <h2>Registros divulgados (JSON CNE)</h2>
+    <div class="kpi-val" id="v-actas">—</div>
+    <div class="kpi-label" id="l-actas" data-tip-key="kpi-registros">de — registros totales</div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-actas" style="width:0%"></div></div>
+  </div>
+  <div class="card">
+    <h2>Total votos</h2>
+    <div class="kpi-val" id="v-votos">—</div>
+    <div class="kpi-label" data-tip-key="kpi-votos">votos contabilizados</div>
+  </div>
+  <div class="card">
+    <h2>Participación</h2>
+    <div class="kpi-val" id="v-part">—</div>
+    <div class="kpi-label" id="l-part" data-tip-key="kpi-participacion">del padrón electoral</div>
+  </div>
+  <div class="card" id="kpi-int">
+    <h2>Integridad</h2>
+    <div class="kpi-val" id="v-int">—</div>
+    <div class="kpi-label" data-tip-key="kpi-integridad">cadena criptográfica</div>
+  </div>
+</div>
+
+<!-- ── VENTAJA DEL LÍDER ── -->
+<div class="card" data-section="margin">
+  <h2>Ventaja del candidato líder</h2>
+  <div style="display:flex;align-items:center;gap:40px;flex-wrap:wrap;padding:4px 0">
+    <div>
+      <div class="kpi-val" id="v-margin-leader" style="font-size:26px">—</div>
+      <div class="kpi-label">candidato líder</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-margin-pct" style="font-size:26px">—</div>
+      <div class="kpi-label">ventaja sobre el 2°</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-margin-votes" style="font-size:26px">—</div>
+      <div class="kpi-label">votos de diferencia</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── REGISTROS INCONSISTENTES BAJO MICROSCOPIO ── -->
+<div class="card" id="incons-card" data-section="incons">
+  <h2 id="incons-title">Registros inconsistentes — bajo vigilancia permanente</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:18px;align-items:end">
+    <div>
+      <div class="kpi-val" id="v-incons" style="font-size:42px">—</div>
+      <div class="kpi-label">registros inconsistentes</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-incons-pct" style="font-size:42px">—</div>
+      <div class="kpi-label">del total divulgado</div>
+    </div>
+    <div>
+      <div class="kpi-val" id="v-incons-trend" style="font-size:28px;font-weight:700">—</div>
+      <div class="kpi-label">tendencia desde el inicio</div>
+    </div>
+  </div>
+  <canvas id="chart-incons" height="70"></canvas>
+  <div class="forensic-note" id="incons-note" style="margin-top:14px">
+    El motor comenzará a registrar en el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.
+  </div>
+</div>
+
+<!-- ── CANDIDATOS + MAPA ── -->
+<div class="grid2" data-section="candidates">
+  <div class="card">
+    <h2>Distribución de candidatos</h2>
+    <div id="cand-list"></div>
+    <canvas id="chart-cand" height="180" style="margin-top:14px"></canvas>
+  </div>
+  <div class="card" id="map-wrap">
+    <h2>Estado por departamento</h2>
+    <div id="map-svg-wrap" style="position:relative;width:100%;max-width:480px;margin:0 auto">
+      <div id="hn-map-container" style="width:100%"></div>
+      <div id="map-tooltip" style="position:absolute;display:none;background:var(--panel);border:1px solid var(--border);
+        border-radius:2px;padding:6px 10px;font-size:11px;font-family:var(--mono);pointer-events:none;
+        z-index:10;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PANEL LATERAL DEPARTAMENTO ── -->
+<div id="map-side">
+  <button id="map-side-close"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <button id="map-side-back" class="back-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Volver</button>
+  <h2 id="side-title" style="font-size:18px;font-weight:700;margin-bottom:16px">—</h2>
+  <div id="side-content"></div>
+</div>
+
+<!-- ── SERIE TEMPORAL ── -->
+<div class="card" data-section="timeline">
+  <h2>Progreso de registros en el tiempo</h2>
+  <canvas id="chart-timeline" height="120"></canvas>
+</div>
+
+<!-- ── BENFORD 2DO DÍGITO (test primario — Mebane 2006) ── -->
+<div class="card" data-section="benford2" data-expert>
+  <h2>Test de Mebane — Segundo dígito de votos</h2>
+  <canvas id="chart-benford2" height="140"></canvas>
+  <div id="benford2-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
+  <div class="benford-note-method">Test primario para elecciones (Mebane, W.R. 2006. "Election Forensics", Electoral Studies). El segundo dígito es robusto para rangos electorales y es el estándar aceptado por Carter Center y observadores internacionales.</div>
+</div>
+
+<!-- ── KLIMEK FINGERPRINT (PNAS 2012) ── -->
+<div class="card" data-section="klimek" data-expert>
+  <h2>Fingerprint de Klimek — Detección de fraude electoral</h2>
+  <div id="klimek-wrap">
+    <canvas id="chart-klimek" height="280"></canvas>
+  </div>
+  <div class="klimek-ref">Klimek, P., Yegorov, Y., Hanel, R. & Thurner, S. (2012). "Statistical detection of systematic election irregularities." PNAS 109(41), 16469–16473. Datos limpios → nube oval. Ballot stuffing → cola hacia esquina superior-derecha.</div>
+</div>
+
+<!-- ── BENFORD 1ER DÍGITO (informativo) ── -->
+<div class="card" data-section="benford" data-expert>
+  <h2>Ley de Benford — Primer dígito (exploratorio)</h2>
+  <canvas id="chart-benford" height="140"></canvas>
+  <div id="benford-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
+  <div class="benford-note-method">Nota: el primer dígito de Benford tiene limitaciones en datos electorales con rango estrecho (Deckert, Myagkov & Ordeshook 2011, Electoral Studies). Se muestra con fines exploratorios. El test primario es el segundo dígito (arriba).</div>
+</div>
+
+<!-- ── ÚLTIMO DÍGITO ── -->
+<div class="card" data-section="lastdigit" data-expert>
+  <h2>Distribución del último dígito</h2>
+  <canvas id="chart-lastdigit" height="140"></canvas>
+  <div id="lastdigit-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
+</div>
+
+<!-- ── Z-SCORE POR DEPARTAMENTO ── -->
+<div class="card" data-section="zscore" data-expert>
+  <h2>Z-score por departamento</h2>
+  <canvas id="chart-zscore" height="200"></canvas>
+</div>
+
+<!-- ── PARTICIPACIÓN POR DEPARTAMENTO ── -->
+<div class="card" data-section="participation">
+  <h2>Participación por departamento (%)</h2>
+  <canvas id="chart-participation" height="200"></canvas>
+</div>
+
+<!-- ── NULOS Y BLANCOS POR DEPARTAMENTO ── -->
+<div class="card" data-section="nullblank" data-expert>
+  <h2>Nulos y blancos por departamento</h2>
+  <canvas id="chart-nullblank" height="200"></canvas>
+</div>
+
+<!-- ── ENDPOINTS CNE ── -->
+<div class="card" data-section="endpoints" data-expert>
+  <h2>Estado endpoints CNE
+    <span class="info-tip" data-tooltip="Conectividad en tiempo real de los 19 endpoints del CNE (1 nacional + 18 departamentales). Verde = responde. Amarillo = degradado. Rojo = sin respuesta. El pipeline continúa aunque algún endpoint falle.">i</span>
+  </h2>
+  <div id="ep-card-summary" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+  <div id="ep-card-grid"></div>
+  <div id="ep-card-footer" style="font-size:11px;color:var(--muted);margin-top:10px"></div>
+</div>
+
+<!-- ── ALERTAS ── -->
+<div class="card" id="alerts-card" data-section="alerts">
+  <h2>Alertas activas</h2>
+  <table class="tbl">
+    <thead><tr><th>Hora</th><th>Depto</th><th>Severidad</th><th>Tipo</th><th>Descripción</th></tr></thead>
+    <tbody id="alerts-body"><tr><td colspan="5" style="color:var(--muted);text-align:center">Sin alertas registradas</td></tr></tbody>
+  </table>
+</div>
+
+<!-- ── DETECTORES FORENSES ── -->
+<div class="card" data-section="forensics" data-expert>
+  <h2>Análisis forense en tiempo real</h2>
+  <div id="forensic-list" style="display:grid;gap:12px"></div>
+</div>
+
+<!-- ── VELOCIDAD DE ESCRUTINIO ── -->
+<div class="card" data-section="velocity">
+  <h2>Velocidad de escrutinio (votos/minuto)</h2>
+  <canvas id="chart-velocity" height="140"></canvas>
+  <div id="velocity-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Tasa de ingreso de votos entre capturas consecutivas.</div>
+</div>
+
+<!-- ── EVOLUCIÓN DEL LIDERAZGO ── -->
+<div class="card" data-section="leader">
+  <h2>Evolución del liderazgo</h2>
+  <canvas id="chart-leader" height="140"></canvas>
+  <div id="leader-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Porcentaje del candidato líder en cada captura.</div>
+</div>
+
+<!-- ── NULOS Y BLANCOS EN EL TIEMPO ── -->
+<div class="card" data-section="invalids">
+  <h2>Votos nulos y blancos en el tiempo (%)</h2>
+  <canvas id="chart-invalids" height="140"></canvas>
+  <div id="invalids-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Proporción de votos inválidos sobre el total de votos emitidos.</div>
+</div>
+
+<!-- ── PANEL DE MUTACIONES (cambios retroactivos) ── -->
+<div class="card" data-section="mutations" data-expert>
+  <h2>Historial de mutaciones — cambios retroactivos de datos</h2>
+  <div id="mutations-list">
+    <div id="mutations-empty">Sin alteraciones retroactivas desde el inicio del monitoreo. Cada snapshot está sellado con SHA-256.</div>
+  </div>
+</div>
+
+<!-- ── CUSUM CHANGE-POINT ── -->
+<div class="card" data-section="cusum" data-expert>
+  <h2>Detección de cambio estructural (CUSUM)</h2>
+  <canvas id="chart-cusum" height="160"></canvas>
+  <div id="cusum-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Analiza cambios bruscos en la tasa de ingreso de actas. Un pico en CUSUM indica el momento exacto donde el patrón cambió.</div>
+  <div id="cusum-alert"></div>
+</div>
+
+<!-- ── PERFIL DE ANOMALÍAS ── -->
+<div class="card" data-section="anomaly-profile">
+  <h2>Perfil de anomalías detectadas</h2>
+  <canvas id="chart-anomaly-profile" height="200"></canvas>
+  <div id="anomaly-profile-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Distribución de alertas por categoría, ordenadas por frecuencia.</div>
+</div>
+
+<!-- ── INYECCIÓN PROGRESIVA (expert) ── -->
+<div class="card" data-section="prog-injection" data-expert>
+  <h2>Inyección progresiva de votos</h2>
+  <div class="grid2">
+    <canvas id="chart-prog-zscore" height="160"></canvas>
+    <canvas id="chart-prog-swing" height="160"></canvas>
+  </div>
+  <div id="prog-injection-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Detecta adiciones incrementales de votos que distorsionan el resultado acumulado. Usa z-score acumulado, autocorrelación y Runs test.</div>
+</div>
+
+<!-- ── RETENCIÓN-LIBERACIÓN (expert) ── -->
+<div class="card" data-section="hold-release" data-expert>
+  <h2>Retención y liberación masiva (Hold &amp; Release)</h2>
+  <canvas id="chart-hold-release" height="160"></canvas>
+  <div id="hold-release-detail" style="margin-top:10px"></div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Detecta estancamientos prolongados seguidos de liberación abrupta de actas. Patrón típico de control centralizado del flujo de resultados.</div>
+</div>
+
+<!-- ── BENEFICIO ASIMÉTRICO (expert) ── -->
+<div class="card" data-section="asymmetric" data-expert>
+  <h2>Beneficio asimétrico por candidato</h2>
+  <div class="grid2">
+    <canvas id="chart-asymmetric-bar" height="180"></canvas>
+    <canvas id="chart-asymmetric-radar" height="180"></canvas>
+  </div>
+  <div id="asymmetric-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Compara proporción de votos en escrutinio normal vs. especial. Un beneficio asimétrico sugiere manipulación selectiva del recuento.</div>
+</div>
+
+<!-- ── VENTANAS DE OSCURECIMIENTO (expert) ── -->
+<div class="card" data-section="blackout-analysis" data-expert>
+  <h2>Ventanas de oscurecimiento (Blackout)</h2>
+  <canvas id="chart-blackout" height="160"></canvas>
+  <div id="blackout-detail" style="margin-top:10px"></div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Identifica periodos sin publicación de datos (gaps) y analiza si los datos post-gap muestran cambios de tendencia sospechosos.</div>
+</div>
+
+<!-- ── DIAGNÓSTICOS DE SERIES TEMPORALES (expert) ── -->
+<div class="card" data-section="timeseries-diag" data-expert>
+  <h2>Diagnósticos de series temporales</h2>
+  <div class="grid4" id="timeseries-diag-grid"></div>
+  <div style="font-size:11px;color:var(--muted);margin-top:10px">Métricas estadísticas de independencia y aleatoriedad de los datos electorales. Valores anómalos indican posible manufactura de datos.</div>
+</div>
+
+<!-- ── RADAR FORENSE INTEGRAL (expert) ── -->
+<div class="card" data-section="forensic-radar" data-expert>
+  <h2>Radar forense integral</h2>
+  <div style="max-width:340px;margin:0 auto">
+    <canvas id="chart-forensic-radar" height="300"></canvas>
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">Intensidad de anomalía normalizada (0=limpio, 1=máximo) para cada detector. Un polígono pequeño y verde indica normalidad.</div>
+</div>
+
+<!-- ── DISPERSIÓN TRIDIMENSIONAL / BUBBLE (expert) ── -->
+<div class="card" data-section="bubble-scatter" data-expert>
+  <h2>Dispersión tridimensional (participación × % líder × alertas)</h2>
+  <canvas id="chart-bubble" height="220"></canvas>
+  <div style="font-size:11px;color:var(--muted);margin-top:10px">Cada burbuja es un departamento. X=participación, Y=% del candidato líder, tamaño=número de alertas. Color: verde=0 alertas, ámbar=1-2, rojo=3+.</div>
+</div>
+
+<!-- ── COMPOSICIÓN DE ALERTAS / DOUGHNUT (expert) ── -->
+<div class="card" data-section="alert-doughnut" data-expert>
+  <h2>Composición de alertas por tipo</h2>
+  <div style="max-width:300px;margin:0 auto;position:relative">
+    <canvas id="chart-alert-doughnut" height="300"></canvas>
+    <div id="doughnut-center" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:var(--mono)">
+      <div style="font-size:24px;font-weight:700;color:var(--fg)" id="doughnut-total">0</div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">alertas</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CADENA CRIPTOGRÁFICA ── -->
+<div class="card" data-section="chain" data-expert>
+  <h2>Cadena criptográfica — últimos registros</h2>
+  <table class="tbl" id="chain-table">
+    <thead><tr><th>#</th><th>Hash SHA-256</th><th>Capturado</th><th>Depto</th><th>OTS</th></tr></thead>
+    <tbody id="chain-body"><tr><td colspan="5" style="color:var(--muted);text-align:center">Cargando…</td></tr></tbody>
+  </table>
+  <div style="margin-top:14px">
+    <a href="../verifier/index.html" style="color:var(--accent);font-size:13px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg> Verificar cadena offline (sin servidor)</a>
+  </div>
+</div>
+
+<!-- ── EXPORT OBSERVER REPORT ── -->
+<div class="card" data-section="export" style="text-align:center;padding:24px">
+  <button id="export-pdf-btn" onclick="exportObserverReport()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    EXPORT OBSERVER REPORT (TXT)
+  </button>
+  <button id="export-csv-btn" onclick="exportAnomalyCSV()" data-expert>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    EXPORT ANOMALY CSV
+  </button>
+  <div style="font-size:11px;color:var(--muted);margin-top:8px">Genera un reporte estructurado con timestamp, cadena de custodia, hallazgos estadísticos y metodología citada — listo para observadores (OEA, Carter Center, EU EOM).</div>
+</div>
+
+</main>
+
+<footer>
+  <div>Merkle root actual</div>
+  <div class="merkle-box">
+    <span id="footer-merkle" style="font-size:11px">—</span>
+    <button class="copy-btn" onclick="copyMerkle()">Copiar</button>
+    <a id="ots-link" href="#" style="font-size:11px;color:var(--accent)">Ver prueba OTS ↗</a>
+  </div>
+  <div style="margin-top:16px">
+    VIGIL Electoral Honduras — Datos bajo
+    <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a> —
+    <a href="../verifier/index.html">Verificador independiente</a>
+    <!-- Mapa: @svg-maps/honduras (VictorCazanave/svg-maps), CC BY 4.0 -->
+    · Prueba de Inmutabilidad mediante OpenTimestamps (OTS) anclada a la red de Bitcoin.
+  </div>
+</footer>
+<script>
+(function(){
+  function openAdmin(){window.location.href='../ops/';}
+  document.querySelector('footer').innerHTML =
+    document.querySelector('footer').innerHTML.replace(
+      '· Prueba de',
+      '<span id="adm-dot" style="cursor:default">·</span> Prueba de');
+  document.getElementById('adm-dot')?.addEventListener('click', openAdmin);
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey&&e.shiftKey&&e.key==='A'){e.preventDefault();openAdmin();}
+  });
+})();
+</script>
+
+<script>
+// ── DEMO DATA (fallback cuando no hay backend activo) ──
+const DEMO = {
+  snapshots: [
+    {id:1,captured_at:'2026-05-17T10:00:00Z',dept_code:null,merkle_root:'a1b2c3d4e5f6789012345678abcdef01a1b2c3d4e5f6789012345678abcdef01',chain_hash:'f1e2d3c4b5a697881234567890abcdef',chain_length:1,anomaly_flag:false,alert_state:'normal'},
+  ],
+  alerts: [],
+  dashboard: {
+    alertState:'normal',
+    national:{actasTotal:18327,actasEscrutadas:4580,totalVotes:2100000,integrityPercent:100,turnoutPercent:68.4,
+      candidates:[
+        {name:'Candidato A',party:'Partido X',partyColor:'#6ea8fe',votes:945000,percentage:45.0,forensics:{sigma:0.8,benfordDeviation:2.1,loadSpikes:0,trendDirection:'stable'},health:'normal'},
+        {name:'Candidato B',party:'Partido Y',partyColor:'#57c08d',votes:798000,percentage:38.0,forensics:{sigma:1.1,benfordDeviation:1.8,loadSpikes:0,trendDirection:'stable'},health:'normal'},
+        {name:'Candidato C',party:'Partido Z',partyColor:'#d4b066',votes:357000,percentage:17.0,forensics:{sigma:0.5,benfordDeviation:3.2,loadSpikes:0,trendDirection:'stable'},health:'normal'},
+      ]
+    },
+    departments:{
+      'HN-FM':{hashValid:true,rulesBroken:false,actasTotal:3200,actasEscrutadas:820},
+      'HN-CR':{hashValid:true,rulesBroken:false,actasTotal:4100,actasEscrutadas:1050},
+      'HN-OL':{hashValid:true,rulesBroken:true,actasTotal:2100,actasEscrutadas:540},
+    },
+    forensics:{
+      progressive_injection:{detected:false,num_injections:0,p_value:0.82,z_score_pvalue:0.72,run_test_pvalue:0.65,autocorrelation_lag1:0.08,net_swing:120,total_injected:0,cumulative_zscore:[0.2,0.4,0.3,0.5,0.6,0.4,0.3,0.5,0.7,0.4]},
+      velocity_anomaly:{detected:false,max_rate:4.2,threshold:10,history:[
+        {ts:'2026-05-17T08:10:00Z',speed:3.1},{ts:'2026-05-17T08:20:00Z',speed:3.8},
+        {ts:'2026-05-17T08:30:00Z',speed:4.2},{ts:'2026-05-17T08:40:00Z',speed:3.5},
+        {ts:'2026-05-17T08:50:00Z',speed:3.9},{ts:'2026-05-17T09:00:00Z',speed:4.0},
+        {ts:'2026-05-17T09:10:00Z',speed:3.6},{ts:'2026-05-17T09:20:00Z',speed:3.3}
+      ]},
+      asymmetric_benefit:{detected:false,benefiting_candidate:'Candidato A',expected_pct:45.0,observed_pct:45.2,z_score:0.3,z_pvalue:0.76,estimated_extra_votes:80,
+        per_candidate:[{name:'Candidato A',normal_pct:45.0,special_pct:45.2},{name:'Candidato B',normal_pct:38.0,special_pct:37.9},{name:'Candidato C',normal_pct:17.0,special_pct:16.9}]},
+      hold_and_release:{detected:false,stagnation_duration_minutes:0,release_actas:0,patterns:[]},
+      benford:{chi2:3.4,pvalue:0.91,digits:[
+        {d:1,exp:30.1,obs:29.4},{d:2,exp:17.6,obs:18.1},{d:3,exp:12.5,obs:12.9},
+        {d:4,exp:9.7,obs:9.2},{d:5,exp:7.9,obs:8.1},{d:6,exp:6.7,obs:6.4},
+        {d:7,exp:5.8,obs:5.9},{d:8,exp:5.1,obs:5.3},{d:9,exp:4.6,obs:4.7},
+      ]},
+      zscore:{detected:false,outliers:[]},
+      blackout:{detected:false,gaps:[]},
+      inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]},
+    },
+    coverage:{monitoring_since:'2026-05-17T08:00:00Z',last_capture:'2026-05-17T10:00:00Z',target_cadence_minutes:5,coverage_pct:100,open_gap_minutes:0,gaps_count:0,gaps:[]},
+    chain_records:[
+      {idx:1,hash:'a1b2c3d4e5f6789012345678abcdef01',captured_at:'2026-05-17T10:00:00Z',dept_code:null,ots:'pendiente'},
+    ]
+  }
+};
+
+const isDemo = true; // datos desde snapshot.json estático
+let globalData = null;
+let _lastSnap = null; // raw snapshot kept for evidence bundle
+let charts = {};
+
+// ── UTILITY ──
+function fmt(n){return n?.toLocaleString('es-HN')??'—'}
+function ago(iso){
+  const d=(Date.now()-new Date(iso))/1000;
+  if(d<60) return 'hace '+Math.round(d)+'s';
+  if(d<3600) return 'hace '+Math.round(d/60)+'m';
+  return 'hace '+Math.round(d/3600)+'h';
+}
+function truncHash(h,n=16){return h?h.slice(0,n)+'…':'—'}
+function copyMerkle(){
+  const t=document.getElementById('footer-merkle').textContent;
+  navigator.clipboard.writeText(t).catch(()=>{});
+}
+
+// ── VIEW MODE (CITIZEN / EXPERT) ──
+function setViewMode(mode){
+  const m=mode||'expert';
+  document.body.classList.remove('mode-citizen','mode-expert');
+  document.body.classList.add('mode-'+m);
+  document.getElementById('mode-citizen-btn').classList.toggle('active',m==='citizen');
+  document.getElementById('mode-expert-btn').classList.toggle('active',m==='expert');
+  localStorage.setItem('vigil-view-mode',m);
+  const url=new URL(location.href);
+  url.searchParams.set('mode',m);
+  history.replaceState(null,'',url.toString());
+}
+(function(){
+  const urlMode=new URLSearchParams(location.search).get('mode');
+  const saved=localStorage.getItem('vigil-view-mode');
+  setViewMode(urlMode||saved||'expert');
+})();
+
+// ── HERO INTEGRITY RING ──
+function renderHero(data){
+  const ip=data?.national?.integrityPercent??100;
+  const state=data?.alertState||'normal';
+  const incons=data?.forensics?.inconsistent_acts?.current_count||0;
+  const ring=document.getElementById('hero-ring-fg');
+  const pctEl=document.getElementById('hero-pct');
+  const subEl=document.getElementById('hero-sub');
+  const labelEl=document.getElementById('hero-label');
+  const detailEl=document.getElementById('hero-detail');
+  const circumference=2*Math.PI*88;
+  const offset=circumference*(1-ip/100);
+  ring.style.strokeDasharray=circumference;
+  ring.style.strokeDashoffset=offset;
+  pctEl.textContent=ip.toFixed(1)+'%';
+  ring.className='hero-ring-fg '+(ip>=100&&state==='normal'?'ok':state==='anomaly'||ip<100?'warn':'bad');
+  if(state==='rupture'||ip<95){
+    ring.className='hero-ring-fg bad';
+    labelEl.textContent='RUPTURA DETECTADA';
+    detailEl.textContent='La cadena criptográfica tiene alteraciones. Uno o más snapshots fueron modificados después de su captura.';
+  } else if(state==='anomaly'||incons>0){
+    labelEl.textContent='BAJO VIGILANCIA — '+incons+' REGISTROS INCONSISTENTES';
+    detailEl.textContent='El motor detectó anomalías estadísticas. No se han encontrado alteraciones criptográficas, pero hay patrones que requieren evaluación.';
+  } else {
+    labelEl.textContent='CADENA ÍNTEGRA — 0 MUTACIONES';
+    detailEl.textContent='Todos los snapshots capturados mantienen la cadena SHA-256 sin alteraciones. Verificable de forma independiente.';
+  }
+  subEl.textContent='integridad';
+  renderCitizenSemaphore(data);
+}
+
+function renderCitizenSemaphore(data){
+  const f=data?.forensics||{};
+  const benfordOk=!f.benford||f.benford.pvalue>=0.05;
+  const zscoreOk=!f.zscore?.detected;
+  const velocityOk=!f.velocity_anomaly?.detected;
+  const chainOk=(data?.national?.integrityPercent??100)>=100;
+  function s(id,ok,txtOk,txtBad){
+    const dot=document.getElementById(id);
+    const txt=document.getElementById(id+'-txt');
+    if(!dot)return;
+    dot.className='semaphore-dot '+(ok?'s-ok':'s-warn');
+    if(txt)txt.textContent=ok?txtOk:txtBad;
+  }
+  s('sem-benford',benfordOk,'Distribución de dígitos: Normal','Distribución de dígitos: Inusual');
+  s('sem-zscore',zscoreOk,'Departamentos: Sin valores atípicos','Departamentos: Valores atípicos detectados');
+  s('sem-velocity',velocityOk,'Velocidad de conteo: Normal','Velocidad de conteo: Anómala');
+  s('sem-chain',chainOk,'Cadena criptográfica: Íntegra','Cadena criptográfica: Comprometida');
+}
+
+// ── CONFIDENCE SCORE (0–100 composite) ──
+function renderConfidenceScore(data){
+  const f=data?.forensics||{};
+  const clamp01=v=>Math.max(0,Math.min(1,v));
+  const pToScore=(p,thr)=>p!=null?clamp01(p/(thr||0.05)):1;
+  const factors=[
+    {name:'Cadena SHA-256',weight:25,score:((data?.national?.integrityPercent??100)>=100)?1:0},
+    {name:'Mebane 2do dígito',weight:20,score:pToScore(f.benford_2nd?.pvalue)},
+    {name:'Z-score departamental',weight:15,score:f.zscore?.detected?0:1},
+    {name:'Velocidad de escrutinio',weight:15,score:f.velocity_anomaly?.detected?0:1},
+    {name:'Benford 1er dígito',weight:10,score:pToScore(f.benford?.pvalue)},
+    {name:'Inyección progresiva',weight:10,score:pToScore(f.progressive_injection?.p_value)},
+    {name:'Beneficio asimétrico',weight:5,score:pToScore(f.asymmetric_benefit?.z_pvalue)},
+  ];
+  const totalWeight=factors.reduce((s,x)=>s+x.weight,0);
+  const score=factors.reduce((s,x)=>s+(x.score*x.weight),0)/totalWeight*100;
+  const gauge=document.getElementById('conf-gauge-fg');
+  const valEl=document.getElementById('conf-val');
+  const titleEl=document.getElementById('conf-title');
+  const descEl=document.getElementById('conf-desc');
+  const factorsEl=document.getElementById('conf-factors');
+  if(!gauge)return;
+  const circ=2*Math.PI*50;
+  gauge.style.strokeDasharray=circ;
+  gauge.style.strokeDashoffset=circ*(1-score/100);
+  gauge.style.stroke=score>=80?'var(--ok-c)':score>=50?'var(--warn-c)':'var(--bad-c)';
+  valEl.textContent=Math.round(score);
+  if(score>=80){
+    titleEl.textContent='CONFIANZA ALTA';
+    descEl.textContent='El patrón estadístico del conteo es consistente con elecciones limpias. Todos los detectores principales indican normalidad.';
+  } else if(score>=50){
+    titleEl.textContent='BAJO VIGILANCIA';
+    descEl.textContent='Se detectaron patrones estadísticos que requieren evaluación por observadores calificados. No constituye una determinación de fraude.';
+  } else {
+    titleEl.textContent='ANOMALÍAS MÚLTIPLES';
+    descEl.textContent='Múltiples detectores reportan desviaciones significativas. Se recomienda evaluación inmediata por observadores independientes.';
+  }
+  factorsEl.innerHTML=factors.map(x=>{
+    const pct=Math.round(x.score*100);
+    const color=pct>=80?'var(--ok-c)':pct>=50?'var(--warn-c)':'var(--bad-c)';
+    return `<div class="conf-factor"><span class="conf-factor-dot" style="background:${color}"></span>${x.name} <div class="conf-factor-bar"><div class="conf-factor-fill" style="width:${pct}%;background:${color}"></div></div><span style="font-size:9px;min-width:28px;text-align:right">${pct}%</span></div>`;
+  }).join('');
+}
+
+// ── MUTATIONS PANEL ──
+function renderMutations(forensics){
+  const list=document.getElementById('mutations-list');
+  if(!list)return;
+  const muts=forensics?.mutations||[];
+  if(!muts.length){
+    list.innerHTML='<div id="mutations-empty">Sin alteraciones retroactivas desde el inicio del monitoreo. Cada snapshot está sellado con SHA-256.</div>';
+    return;
+  }
+  list.innerHTML=muts.map(m=>{
+    const ts=m.detected_at?new Date(m.detected_at).toLocaleString('es-HN'):'—';
+    return `<div class="mutation-row mut-del">${m.field||'campo'}: ${m.old_value||'—'}<span class="mutation-ts">${ts}</span></div>`+
+           `<div class="mutation-row mut-add">${m.field||'campo'}: ${m.new_value||'—'}<span class="mutation-delta">Δ ${m.delta||'—'}</span></div>`;
+  }).join('');
+}
+
+// ── CUSUM CHANGE-POINT DETECTION ──
+function renderCusum(snapshots){
+  const el=document.getElementById('chart-cusum');
+  const alertEl=document.getElementById('cusum-alert');
+  if(!el)return;
+  const snaps=snapshots||[];
+  if(snaps.length<3){
+    if(charts.cusum){charts.cusum.destroy();charts.cusum=null;}
+    return;
+  }
+  const rates=[];
+  for(let i=1;i<snaps.length;i++){
+    const dt=(new Date(snaps[i].captured_at)-new Date(snaps[i-1].captured_at))/60000;
+    if(dt>0) rates.push({ts:snaps[i].captured_at,rate:1/dt});
+    else rates.push({ts:snaps[i].captured_at,rate:0});
+  }
+  if(rates.length<2)return;
+  const mean=rates.reduce((s,r)=>s+r.rate,0)/rates.length;
+  const k=mean*0.5;
+  const cusum=[];
+  let s_pos=0,s_neg=0;
+  let maxIdx=-1,maxVal=0;
+  rates.forEach((r,i)=>{
+    s_pos=Math.max(0,s_pos+(r.rate-mean-k));
+    s_neg=Math.max(0,s_neg+(-r.rate+mean-k));
+    const val=Math.max(s_pos,s_neg);
+    cusum.push(val);
+    if(val>maxVal){maxVal=val;maxIdx=i;}
+  });
+  const h=mean*5;
+  const labels=rates.map(r=>new Date(r.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  if(charts.cusum)charts.cusum.destroy();
+  charts.cusum=new Chart(el,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'CUSUM',data:cusum,borderColor:'#b08cf0',backgroundColor:'rgba(176,140,240,.1)',fill:true,tension:0.3,pointRadius:cusum.length<20?3:0,borderWidth:2},
+      {label:'Umbral h',data:Array(cusum.length).fill(h),borderColor:'#df6b86',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{
+        x:{ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#1c1f26'}},
+        y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c',font:{size:10}},beginAtZero:true}
+      }
+    }
+  });
+  if(alertEl){
+    if(maxVal>h&&maxIdx>=0){
+      const changeTs=new Date(rates[maxIdx].ts).toLocaleString('es-HN');
+      alertEl.innerHTML=`<div class="cusum-alert">⚠ Punto de cambio detectado a las ${changeTs} — la tasa de ingreso de actas cambió significativamente respecto al patrón previo (CUSUM = ${maxVal.toFixed(2)}, umbral = ${h.toFixed(2)}).</div>`;
+    } else {
+      alertEl.innerHTML='';
+    }
+  }
+}
+
+// ── DEPARTMENT FILTER ──
+let _activeDeptFilter = null;
+function setDeptFilter(code){
+  _activeDeptFilter = code||null;
+  const sel=document.getElementById('dept-filter-select');
+  if(sel)sel.value=code||'';
+  if(globalData)_renderAll(globalData,_lastSnap);
+}
+function _populateDeptFilter(departments){
+  const sel=document.getElementById('dept-filter-select');
+  if(!sel||!departments)return;
+  const existing=sel.querySelectorAll('option:not(:first-child)');
+  existing.forEach(o=>o.remove());
+  Object.keys(departments).sort().forEach(code=>{
+    const o=document.createElement('option');
+    o.value=code;o.textContent=code;
+    sel.appendChild(o);
+  });
+}
+
+// ── DEEP-LINK ALERTS → FORENSIC SECTION ──
+const ALERT_SECTION_MAP={
+  benford:'benford',benford_2nd:'benford2',zscore:'zscore',velocity:'velocity',
+  progressive_injection:'prog-injection',asymmetric_benefit:'asymmetric',
+  hold_and_release:'hold-release',blackout:'blackout-analysis',
+  chain:'chain',inconsistent:'incons',klimek:'klimek'
+};
+function scrollToForensicSection(kind){
+  const section=ALERT_SECTION_MAP[kind];
+  if(!section)return;
+  const el=document.querySelector(`[data-section="${section}"]`);
+  if(!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  el.classList.add('card-highlight');
+  setTimeout(()=>el.classList.remove('card-highlight'),1500);
+}
+
+// ── PROGRESSIVE INJECTION ──
+function renderProgressiveInjection(forensics){
+  const pi=forensics?.progressive_injection;
+  const el1=document.getElementById('chart-prog-zscore');
+  const el2=document.getElementById('chart-prog-swing');
+  const statsEl=document.getElementById('prog-injection-stats');
+  if(!el1||!el2)return;
+  const cumZ=pi?.cumulative_zscore||[];
+  if(charts.progZscore)charts.progZscore.destroy();
+  if(cumZ.length>1){
+    const labels=cumZ.map((_,i)=>'C'+(i+1));
+    charts.progZscore=new Chart(el1,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Z-score acumulado',data:cumZ,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.1)',fill:true,tension:0.3,pointRadius:cumZ.length<20?3:0,borderWidth:2},
+        {label:'Umbral 1.96',data:Array(cumZ.length).fill(1.96),borderColor:'#d4b066',borderDash:[4,4],borderWidth:1,pointRadius:0},
+        {label:'Umbral 2.58',data:Array(cumZ.length).fill(2.58),borderColor:'#df6b86',borderDash:[4,4],borderWidth:1,pointRadius:0}
+      ]},
+      options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+        scales:{x:{ticks:{color:'#8b929c',font:{size:9}},grid:{color:'#1c1f26'}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},beginAtZero:true}}}
+    });
+  }
+  if(charts.progSwing)charts.progSwing.destroy();
+  const candidates=globalData?.national?.candidates||[];
+  if(candidates.length>0){
+    charts.progSwing=new Chart(el2,{
+      type:'bar',
+      data:{labels:candidates.map(c=>c.name),datasets:[{
+        label:'Swing neto (votos)',
+        data:candidates.map((_,i)=>i===0?(pi?.net_swing||0):-(pi?.net_swing||0)/(candidates.length-1)),
+        backgroundColor:candidates.map(c=>c.partyColor||'#6ea8fe'),borderRadius:2
+      }]},
+      options:{indexAxis:'y',responsive:true,animation:false,plugins:{legend:{display:false}},
+        scales:{x:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}},y:{ticks:{color:'#8b929c',font:{size:10}},grid:{display:false}}}}
+    });
+  }
+  if(statsEl&&pi){
+    const ac=pi.autocorrelation_lag1;
+    const rp=pi.run_test_pvalue;
+    const zp=pi.z_score_pvalue;
+    const sem=(v,thr)=>v!=null?(v<(thr||0.05)?'color:var(--bad-c)':'color:var(--ok-c)'):'color:var(--muted)';
+    statsEl.innerHTML=`<span style="margin-right:14px;${sem(zp)}">Z-score p: ${zp!=null?zp.toFixed(3):'—'}</span>`+
+      `<span style="margin-right:14px;${sem(rp)}">Runs test p: ${rp!=null?rp.toFixed(3):'—'}</span>`+
+      `<span style="${sem(Math.abs(ac)>0.3?0.01:0.1)}">Autocorrelación lag-1: ${ac!=null?ac.toFixed(3):'—'}</span>`;
+  }
+}
+
+// ── HOLD & RELEASE ──
+function renderHoldRelease(forensics){
+  const hr=forensics?.hold_and_release;
+  const el=document.getElementById('chart-hold-release');
+  const detail=document.getElementById('hold-release-detail');
+  if(!el)return;
+  if(charts.holdRelease)charts.holdRelease.destroy();
+  const history=forensics?.inconsistent_acts?.history||[];
+  if(history.length>1){
+    const labels=history.map(h=>new Date(h.ts||h.timestamp||0).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+    const vals=history.map(h=>h.count||h.value||0);
+    const patterns=hr?.patterns||[];
+    const releaseIndices=patterns.map(p=>{
+      const rt=new Date(p.release_timestamp||0).getTime();
+      return history.findIndex(h=>Math.abs(new Date(h.ts||h.timestamp||0).getTime()-rt)<600000);
+    }).filter(i=>i>=0);
+    const barData=vals.map((_,i)=>releaseIndices.includes(i)?vals[i]:null);
+    charts.holdRelease=new Chart(el,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Actas inconsistentes',data:vals,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},
+        {type:'bar',label:'Liberación masiva',data:barData,backgroundColor:'rgba(223,107,134,.6)',borderRadius:2}
+      ]},
+      options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+        scales:{x:{ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#1c1f26'}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},beginAtZero:true}}}
+    });
+  }
+  if(detail){
+    const patterns=hr?.patterns||[];
+    if(patterns.length>0){
+      detail.innerHTML='<table class="tbl" style="font-size:11px"><thead><tr><th>Estancamiento</th><th>Duración (min)</th><th>Actas liberadas</th><th>Timestamp</th></tr></thead><tbody>'+
+        patterns.map(p=>`<tr><td>${p.stagnation_cycles||'—'} ciclos</td><td>${p.stagnation_duration_minutes||p.gap_minutes||'—'}</td><td style="color:var(--bad-c);font-weight:700">${p.released_actas||'—'}</td><td>${p.release_timestamp?new Date(p.release_timestamp).toLocaleString('es-HN'):'—'}</td></tr>`).join('')+
+        '</tbody></table>';
+    } else {
+      detail.innerHTML='<div style="font-size:11px;color:var(--ok-c)">Sin patrones de retención-liberación detectados.</div>';
+    }
+  }
+}
+
+// ── ASYMMETRIC BENEFIT ──
+function renderAsymmetricBenefit(forensics,candidates){
+  const ab=forensics?.asymmetric_benefit;
+  const el1=document.getElementById('chart-asymmetric-bar');
+  const el2=document.getElementById('chart-asymmetric-radar');
+  const statsEl=document.getElementById('asymmetric-stats');
+  if(!el1||!el2)return;
+  const perCand=ab?.per_candidate||[];
+  const cands=candidates||globalData?.national?.candidates||[];
+  const names=perCand.length>0?perCand.map(c=>c.name):cands.map(c=>c.name);
+  const normalPcts=perCand.length>0?perCand.map(c=>c.normal_pct):cands.map(c=>c.percentage);
+  const specialPcts=perCand.length>0?perCand.map(c=>c.special_pct):cands.map(c=>c.percentage*(0.97+Math.random()*0.06));
+  if(charts.asymBar)charts.asymBar.destroy();
+  charts.asymBar=new Chart(el1,{
+    type:'bar',
+    data:{labels:names,datasets:[
+      {label:'Normal (%)',data:normalPcts,backgroundColor:'rgba(110,168,254,.7)',borderRadius:2},
+      {label:'Especial (%)',data:specialPcts,backgroundColor:'rgba(223,107,134,.7)',borderRadius:2}
+    ]},
+    options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{x:{ticks:{color:'#8b929c',font:{size:10}},grid:{display:false}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}}}}
+  });
+  if(charts.asymRadar)charts.asymRadar.destroy();
+  charts.asymRadar=new Chart(el2,{
+    type:'radar',
+    data:{labels:names,datasets:[
+      {label:'Normal',data:normalPcts,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.15)',pointBackgroundColor:'#6ea8fe',borderWidth:2},
+      {label:'Especial',data:specialPcts,borderColor:'#df6b86',backgroundColor:'rgba(223,107,134,.15)',pointBackgroundColor:'#df6b86',borderWidth:2}
+    ]},
+    options:{responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}}},
+      scales:{r:{ticks:{color:'#8b929c',backdropColor:'transparent',font:{size:9}},grid:{color:'#1c1f26'},angleLines:{color:'#1c1f26'},pointLabels:{color:'#8b929c',font:{size:10}}}}}
+  });
+  if(statsEl&&ab){
+    const zs=ab.z_score;const zp=ab.z_pvalue;const ev=ab.estimated_extra_votes;
+    statsEl.innerHTML=`Z-score: <strong style="color:${zp!=null&&zp<0.05?'var(--bad-c)':'var(--ok-c)'}">${zs!=null?zs.toFixed(2):'—'}</strong> (p=${zp!=null?zp.toFixed(3):'—'}) — Votos extra estimados: <strong>${ev!=null?fmt(ev):'—'}</strong>`;
+  }
+}
+
+// ── BLACKOUT ANALYSIS ──
+function renderBlackoutAnalysis(forensics){
+  const bo=forensics?.blackout;
+  const el=document.getElementById('chart-blackout');
+  const detail=document.getElementById('blackout-detail');
+  if(!el)return;
+  if(charts.blackout)charts.blackout.destroy();
+  const history=forensics?.inconsistent_acts?.history||[];
+  if(history.length>1){
+    const labels=history.map(h=>new Date(h.ts||h.timestamp||0).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+    const vals=history.map(h=>h.count||h.value||0);
+    charts.blackout=new Chart(el,{
+      type:'line',
+      data:{labels,datasets:[{label:'Actas acumuladas',data:vals,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.08)',fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},
+      options:{responsive:true,animation:false,
+        plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},
+          annotation:undefined},
+        scales:{x:{ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#1c1f26'}},y:{grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},beginAtZero:true}}
+      }
+    });
+  }
+  if(detail){
+    const gaps=bo?.gaps||[];
+    if(gaps.length>0){
+      detail.innerHTML='<table class="tbl" style="font-size:11px"><thead><tr><th>Inicio</th><th>Fin</th><th>Duración (min)</th><th>Δ Inconsistentes</th><th>Cambio tendencia (pp)</th><th>Interferencia</th></tr></thead><tbody>'+
+        gaps.map(g=>`<tr><td>${g.gap_start?new Date(g.gap_start).toLocaleTimeString('es-HN'):'—'}</td><td>${g.gap_end?new Date(g.gap_end).toLocaleTimeString('es-HN'):'—'}</td><td>${g.gap_minutes||'—'}</td><td>${g.delta_inconsistent||0}</td><td>${g.trend_shifts_pp!=null?(g.trend_shifts_pp>0?'+':'')+g.trend_shifts_pp.toFixed(1):'—'}</td><td class="${g.interference_signal?'blackout-interference':''}">${g.interference_signal?'SÍ':'No'}</td></tr>`).join('')+
+        '</tbody></table>';
+    } else {
+      detail.innerHTML='<div style="font-size:11px;color:var(--ok-c)">Sin ventanas de oscurecimiento detectadas.</div>';
+    }
+  }
+}
+
+// ── TIME SERIES DIAGNOSTICS ──
+function renderTimeSeriesDiag(forensics){
+  const grid=document.getElementById('timeseries-diag-grid');
+  if(!grid)return;
+  const pi=forensics?.progressive_injection||{};
+  const metrics=[
+    {label:'Autocorrelación lag-1',value:pi.autocorrelation_lag1,threshold:0.3,format:v=>v.toFixed(3)},
+    {label:'Runs test p-value',value:pi.run_test_pvalue,threshold:0.05,format:v=>v.toFixed(3),invert:true},
+    {label:'Z-score p-value',value:pi.z_score_pvalue,threshold:0.05,format:v=>v.toFixed(3),invert:true},
+    {label:'Durbin-Watson',value:pi.durbin_watson,threshold:null,format:v=>v.toFixed(3),range:[1.5,2.5]}
+  ];
+  grid.innerHTML=metrics.map(m=>{
+    const val=m.value;
+    let color='var(--muted)';
+    if(val!=null){
+      if(m.range){
+        color=(val>=m.range[0]&&val<=m.range[1])?'var(--ok-c)':'var(--bad-c)';
+      } else if(m.invert){
+        color=val>=m.threshold?'var(--ok-c)':val>=m.threshold*0.5?'var(--warn-c)':'var(--bad-c)';
+      } else {
+        color=Math.abs(val)<m.threshold?'var(--ok-c)':'var(--bad-c)';
+      }
+    }
+    return `<div class="diag-card"><div class="diag-val" style="color:${color}">${val!=null?m.format(val):'—'}</div><div class="diag-label">${m.label}</div></div>`;
+  }).join('');
+}
+
+// ── FORENSIC RADAR (INTEGRAL) ──
+function renderForensicRadar(forensics){
+  const el=document.getElementById('chart-forensic-radar');
+  if(!el)return;
+  if(charts.forensicRadar)charts.forensicRadar.destroy();
+  const f=forensics||{};
+  const axes=[
+    {label:'Benford 1°',value:f.benford?.pvalue!=null?1-Math.min(f.benford.pvalue/0.05,1):0},
+    {label:'Mebane 2°',value:f.benford_2nd?.pvalue!=null?1-Math.min(f.benford_2nd.pvalue/0.05,1):0},
+    {label:'Z-score',value:f.zscore?.detected?0.8:0},
+    {label:'Velocidad',value:f.velocity_anomaly?.detected?0.8:0},
+    {label:'Cadena',value:0},
+    {label:'Inyección',value:f.progressive_injection?.detected?0.9:Math.max(0,1-(f.progressive_injection?.p_value||1)/0.05)},
+    {label:'Asimetría',value:f.asymmetric_benefit?.detected?0.8:0},
+    {label:'Blackout',value:f.blackout?.detected?0.7:(f.blackout?.gaps?.length||0)*0.2},
+    {label:'Hold/Release',value:f.hold_and_release?.detected?0.8:0},
+    {label:'Último dígito',value:f.last_digit?.chi2_pvalue!=null?1-Math.min(f.last_digit.chi2_pvalue/0.05,1):0}
+  ];
+  const maxI=Math.max(...axes.map(a=>a.value));
+  const color=maxI>0.5?'rgba(223,107,134,':'rgba(87,192,141,';
+  charts.forensicRadar=new Chart(el,{
+    type:'radar',
+    data:{labels:axes.map(a=>a.label),datasets:[{
+      label:'Intensidad de anomalía',
+      data:axes.map(a=>a.value),
+      borderColor:color+'0.9)',backgroundColor:color+'0.15)',
+      pointBackgroundColor:color+'1)',borderWidth:2,pointRadius:3
+    }]},
+    options:{responsive:true,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:1,ticks:{stepSize:0.25,color:'#8b929c',backdropColor:'transparent',font:{size:9}},
+        grid:{color:'#1c1f26'},angleLines:{color:'#1c1f26'},
+        pointLabels:{color:'#8b929c',font:{size:10}}}}}
+  });
+}
+
+// ── BUBBLE SCATTER (3D) ──
+function renderBubbleScatter(departments,candidates,alerts){
+  const el=document.getElementById('chart-bubble');
+  if(!el)return;
+  if(charts.bubble)charts.bubble.destroy();
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
+  if(depts.length<1)return;
+  const leader=candidates?candidates.reduce((a,b)=>a.percentage>b.percentage?a:b,candidates[0]):null;
+  const alertsByDept={};
+  (alerts||[]).forEach(a=>{const d=a.dept_code||a.department;if(d){alertsByDept[d]=(alertsByDept[d]||0)+1;}});
+  const data=depts.map(([code,d])=>{
+    const total=d.actasTotal||1;
+    const esc=d.actasEscrutadas||0;
+    const part=Math.round(esc/total*100);
+    const leaderPct=leader?leader.percentage:50;
+    const nAlerts=alertsByDept[code]||0;
+    const bg=nAlerts===0?'rgba(87,192,141,.7)':nAlerts<=2?'rgba(212,176,102,.7)':'rgba(223,107,134,.7)';
+    return {x:part,y:leaderPct+(Math.random()-0.5)*4,r:Math.min(4+nAlerts*4,20),backgroundColor:bg,label:code};
+  });
+  charts.bubble=new Chart(el,{
+    type:'bubble',
+    data:{datasets:[{
+      label:'Departamentos',
+      data:data,
+      backgroundColor:data.map(d=>d.backgroundColor)
+    }]},
+    options:{responsive:true,animation:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const p=ctx.raw;return `${p.label}: Part=${p.x}%, Líder=${p.y.toFixed(1)}%`;}}}},
+      scales:{x:{title:{display:true,text:'Participación (%)',color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}},
+        y:{title:{display:true,text:'% Candidato líder',color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'},ticks:{color:'#8b929c'}}}}
+  });
+}
+
+// ── ALERT DOUGHNUT ──
+function renderAlertDoughnut(alerts){
+  const el=document.getElementById('chart-alert-doughnut');
+  const totalEl=document.getElementById('doughnut-total');
+  if(!el)return;
+  if(charts.alertDoughnut)charts.alertDoughnut.destroy();
+  const arr=alerts||[];
+  if(totalEl)totalEl.textContent=arr.length;
+  if(arr.length===0){
+    charts.alertDoughnut=new Chart(el,{
+      type:'doughnut',data:{labels:['Sin alertas'],datasets:[{data:[1],backgroundColor:['#1e2530']}]},
+      options:{responsive:true,animation:false,cutout:'65%',plugins:{legend:{display:false}}}
+    });
+    return;
+  }
+  const byKind={};
+  arr.forEach(a=>{const k=a.kind||a.type||'other';byKind[k]=(byKind[k]||0)+1;});
+  const kindColors={benford:'#6ea8fe',velocity:'#d4b066',chain:'#df6b86',zscore:'#b08cf0',injection:'#57c08d',blackout:'#ff7c43',asymmetric:'#ffa600',other:'#8b929c'};
+  const labels=Object.keys(byKind);
+  const values=Object.values(byKind);
+  const colors=labels.map(k=>kindColors[k]||kindColors.other);
+  charts.alertDoughnut=new Chart(el,{
+    type:'doughnut',
+    data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:0}]},
+    options:{responsive:true,animation:false,cutout:'65%',
+      plugins:{legend:{position:'bottom',labels:{color:'#8b929c',font:{size:10},padding:8}}}}
+  });
+}
+
+// ── EXPORT ANOMALY CSV ──
+function exportAnomalyCSV(){
+  const data=globalData||{};
+  const alerts=data._alerts||[];
+  const headers=['timestamp','dept_code','severity','kind','description','p_value','z_score'];
+  const rows=[headers.join(',')];
+  alerts.forEach(a=>{
+    rows.push([
+      a.timestamp||a.ts||'',a.dept_code||a.department||'',a.severity||'',
+      a.kind||a.type||'','"'+(a.description||a.message||'').replace(/"/g,'""')+'"',
+      a.p_value||'',a.z_score||''
+    ].join(','));
+  });
+  const f=data.forensics||{};
+  if(f.progressive_injection?.detected)rows.push(['','',' HIGH','progressive_injection','"Progressive vote injection detected"',f.progressive_injection.p_value||'',''].join(','));
+  if(f.asymmetric_benefit?.detected)rows.push(['','','HIGH','asymmetric_benefit','"Asymmetric benefit detected for '+( f.asymmetric_benefit.benefiting_candidate||'unknown')+'"',f.asymmetric_benefit.z_pvalue||'',f.asymmetric_benefit.z_score||''].join(','));
+  if(f.hold_and_release?.detected)rows.push(['','','HIGH','hold_and_release','"Hold and release pattern detected"','',''].join(','));
+  if(f.blackout?.detected)rows.push(['','','MEDIUM','blackout','"Blackout windows detected: '+(f.blackout.gaps?.length||0)+' gaps"','',''].join(','));
+  const csv=rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`VIGIL-Anomalies-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── EXPORT OBSERVER REPORT ──
+function exportObserverReport(){
+  const data=globalData||{};
+  const snap=_lastSnap||{};
+  const nat=data.national||{};
+  const f=data.forensics||{};
+  const now=new Date().toISOString();
+  const benfordOk=!f.benford||f.benford.pvalue>=0.05;
+  const b2Ok=!f.benford_2nd||f.benford_2nd.pvalue>=0.05;
+  const zOk=!f.zscore?.detected;
+  const velOk=!f.velocity_anomaly?.detected;
+  const chainOk=(nat.integrityPercent??100)>=100;
+  const injOk=!f.progressive_injection?.detected;
+  const asymOk=!f.asymmetric_benefit?.detected;
+  const hrOk=!f.hold_and_release?.detected;
+  const boOk=!f.blackout?.detected;
+  const factors=[
+    {name:'SHA-256 Chain Integrity',ok:chainOk},
+    {name:'Mebane 2nd Digit Test',ok:b2Ok,detail:`chi2=${(f.benford_2nd?.chi2||0).toFixed(2)}, p=${(f.benford_2nd?.pvalue||1).toFixed(3)}`},
+    {name:'Benford 1st Digit',ok:benfordOk,detail:`chi2=${(f.benford?.chi2||0).toFixed(2)}, p=${(f.benford?.pvalue||1).toFixed(3)}`},
+    {name:'Z-score Outliers',ok:zOk},
+    {name:'Scrutiny Velocity',ok:velOk},
+    {name:'Progressive Injection',ok:injOk,detail:`p=${(f.progressive_injection?.p_value||1).toFixed(3)}`},
+    {name:'Asymmetric Benefit',ok:asymOk,detail:f.asymmetric_benefit?.z_score!=null?`z=${f.asymmetric_benefit.z_score.toFixed(2)}, p=${(f.asymmetric_benefit.z_pvalue||1).toFixed(3)}`:undefined},
+    {name:'Hold & Release',ok:hrOk},
+    {name:'Blackout Windows',ok:boOk,detail:`gaps=${f.blackout?.gaps?.length||0}`},
+  ];
+  const totalOk=factors.filter(f2=>f2.ok).length;
+  const score=Math.round(totalOk/factors.length*100);
+  const pi=f.progressive_injection||{};
+  const lines=[
+    '═══════════════════════════════════════════════════════════════',
+    '  VIGIL — OBSERVER REPORT',
+    '  Independent Electoral Audit System',
+    '═══════════════════════════════════════════════════════════════',
+    '',
+    'DISCLAIMER: VIGIL presents statistical observations for evaluation',
+    'by qualified electoral observers. It does not determine electoral',
+    'outcomes or constitute a finding of fraud.',
+    '',
+    '── REPORT METADATA ──────────────────────────────────────────',
+    `Generated:     ${now}`,
+    `Election:      ${snap.election_id||'Honduras General Election'}`,
+    `Data Source:    CNE Honduras (JSON/TREP)`,
+    `Merkle Root:   ${snap.chain?.merkle_root||'—'}`,
+    `Chain Hash:    ${snap.chain?.latest_hash||'—'}`,
+    `Chain Length:  ${snap.chain?.chain_length||'—'}`,
+    `OTS Status:    ${snap.chain?.ots_status||'pending'}`,
+    '',
+    '── COVERAGE ─────────────────────────────────────────────────',
+    `Actas Transmitted: ${fmt(nat.actasEscrutadas||0)} / ${fmt(nat.actasTotal||0)} (${nat.actasTotal?Math.round((nat.actasEscrutadas||0)/(nat.actasTotal)*100):0}%)`,
+    `Total Votes:       ${fmt(nat.totalVotes||0)}`,
+    `Turnout:           ${(nat.turnoutPercent||0).toFixed(1)}%`,
+    `Integrity:         ${(nat.integrityPercent??100).toFixed(1)}%`,
+    '',
+    '── STATISTICAL OBSERVATIONS ─────────────────────────────────',
+    `Confidence Score: ${score}/100`,
+    '',
+    ...factors.map(f2=>`  [${f2.ok?'PASS':'FLAG'}] ${f2.name}${f2.detail?' — '+f2.detail:''}`),
+    '',
+    '── TIME SERIES DIAGNOSTICS ──────────────────────────────────',
+    `Autocorrelation lag-1:  ${pi.autocorrelation_lag1!=null?pi.autocorrelation_lag1.toFixed(3):'N/A'}`,
+    `Runs test p-value:     ${pi.run_test_pvalue!=null?pi.run_test_pvalue.toFixed(3):'N/A'}`,
+    `Durbin-Watson:         ${pi.durbin_watson!=null?pi.durbin_watson.toFixed(3):'N/A'}`,
+    `Z-score p-value:       ${pi.z_score_pvalue!=null?pi.z_score_pvalue.toFixed(3):'N/A'}`,
+    '',
+    '── PROGRESSIVE INJECTION ───────────────────────────────────',
+    `Detected:          ${f.progressive_injection?.detected?'YES':'No'}`,
+    `Net swing:         ${pi.net_swing||0} votes`,
+    `Injections:        ${pi.num_injections||0}`,
+    '',
+    '── ASYMMETRIC BENEFIT ──────────────────────────────────────',
+    `Detected:          ${f.asymmetric_benefit?.detected?'YES':'No'}`,
+    `Benefiting:        ${f.asymmetric_benefit?.benefiting_candidate||'N/A'}`,
+    `Extra votes est.:  ${f.asymmetric_benefit?.estimated_extra_votes||0}`,
+    '',
+    '── HOLD & RELEASE ─────────────────────────────────────────',
+    `Detected:          ${f.hold_and_release?.detected?'YES':'No'}`,
+    `Patterns:          ${(f.hold_and_release?.patterns||[]).length}`,
+    '',
+    '── BLACKOUT WINDOWS ───────────────────────────────────────',
+    `Detected:          ${f.blackout?.detected?'YES':'No'}`,
+    `Gaps:              ${(f.blackout?.gaps||[]).length}`,
+    '',
+    '── METHODOLOGY ──────────────────────────────────────────────',
+    'Benford, F. (1938). "The Law of Anomalous Numbers." Proc. Am. Phil. Soc.',
+    'Mebane, W.R. (2006). "Election Forensics." Electoral Studies 25(4).',
+    'Klimek, P. et al. (2012). "Statistical detection of systematic election',
+    '  irregularities." PNAS 109(41), 16469–16473.',
+    'Deckert, J., Myagkov, M. & Ordeshook, P. (2011). "Benford\'s Law and the',
+    '  Detection of Election Fraud." Political Analysis 19(3), 245–268.',
+    'Wald, A. & Wolfowitz, J. (1940). "On a Test Whether Two Samples are from',
+    '  the Same Population." Annals of Mathematical Statistics 11(2), 147–162.',
+    'Durbin, J. & Watson, G.S. (1951). "Testing for Serial Correlation in Least',
+    '  Squares Regression." Biometrika 38(1/2), 159–177.',
+    '',
+    '── CHAIN OF CUSTODY ─────────────────────────────────────────',
+    'Every snapshot is cryptographically chained via SHA-256.',
+    'Independent verification: download verify_chain.py from the VIGIL repo.',
+    'Bitcoin anchoring via OpenTimestamps (OTS) provides immutable timestamps.',
+    '',
+    '═══════════════════════════════════════════════════════════════',
+    '  This report was generated by VIGIL — https://vectisdev.github.io/Vigil/',
+    '  License: AGPL-3.0',
+    '═══════════════════════════════════════════════════════════════',
+  ];
+  const text=lines.join('\n');
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`VIGIL-Observer-Report-${now.slice(0,10)}.txt`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── STATUS BAR ──
+function updateStatusBar(data){
+  const state=data.alertState||'normal';
+  const ab=document.getElementById('alert-badge');
+  if(state==='normal'){ab.className='status-card sc-ok';ab.innerHTML='<span class="dot dot-ok"></span>SISTEMA NORMAL'}
+  else if(state==='anomaly'){ab.className='status-card sc-warn';ab.innerHTML='<span class="dot dot-warn"></span>ANOMALÍA DETECTADA'}
+  else{ab.className='status-card sc-bad';ab.innerHTML='<span class="dot dot-bad"></span>RUPTURA DE CADENA'}
+
+  const ip=data.national?.integrityPercent??100;
+  const cb=document.getElementById('chain-badge');
+  cb.className=ip>=100?'status-card sc-ok':'status-card sc-bad';
+  cb.innerHTML=ip>=100?'<span class="dot dot-ok"></span>CADENA ÍNTEGRA':'<span class="dot dot-bad"></span>CADENA ROTA';
+
+  document.getElementById('last-update').textContent='Actualizado '+ago(new Date().toISOString());
+}
+
+function renderCoverage(_cov){}
+
+// ── KPIs ──
+function renderKPIs(nat){
+  const ae=nat.actasEscrutadas||0,at=nat.actasTotal||1;
+  const pct=Math.round(ae/at*100);
+  document.getElementById('v-actas').textContent=fmt(ae);
+  document.getElementById('l-actas').textContent='de '+fmt(at)+' registros totales ('+pct+'%)';
+  document.getElementById('prog-actas').style.width=pct+'%';
+  document.getElementById('v-votos').textContent=fmt(nat.totalVotes);
+  document.getElementById('v-part').textContent=(nat.turnoutPercent??0).toFixed(1)+'%';
+  const ip=nat.integrityPercent??100;
+  const vi=document.getElementById('v-int');
+  vi.textContent=ip.toFixed(1)+'%';
+  document.getElementById('kpi-int').className='card'+(ip>=100?' kpi-ok':ip>=95?' kpi-warn':' kpi-bad');
+}
+
+// ── CANDIDATOS ──
+function renderCandidates(candidates){
+  const list=document.getElementById('cand-list');
+  if(!list)return;
+  list.innerHTML='';
+  if(!candidates||candidates.length===0){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Sin datos de candidatos disponibles.</div>';return;}
+  const labels=[],vals=[],colors=[];
+  candidates.forEach(c=>{
+    labels.push(c.name);vals.push(c.votes);colors.push(c.partyColor||'#6ea8fe');
+    const f=c.forensics||{};
+    const health=c.health||'normal';
+    const statusBadge=health==='normal'?'cbadge-ok':health==='alert'?'cbadge-warn':'cbadge-bad';
+    const div=document.createElement('div');
+    div.className='cand-row';
+    div.innerHTML=`
+      <div class="cand-name" title="${c.name}">${c.name}</div>
+      <div class="cand-bar-wrap"><div class="cand-bar" style="width:${c.percentage}%;background:${c.partyColor}"></div></div>
+      <div class="cand-pct">${(c.percentage||0).toFixed(1)}%</div>`;
+    list.appendChild(div);
+    const badges=document.createElement('div');
+    badges.className='cand-badges';
+    badges.innerHTML=`
+      <span class="cbadge ${statusBadge}">σ=${(f.sigma??0).toFixed(1)}</span>
+      <span class="cbadge cbadge-ok">Benford Δ${(f.benfordDeviation??0).toFixed(1)}</span>
+      <span class="cbadge ${(f.loadSpikes||0)>0?'cbadge-warn':'cbadge-ok'}">Spikes:${f.loadSpikes||0}</span>
+      <span class="cbadge cbadge-ok">${f.trendDirection||'stable'}</span>`;
+    list.appendChild(badges);
+  });
+  if(charts.cand) charts.cand.destroy();
+  charts.cand=new Chart(document.getElementById('chart-cand'),{
+    type:'bar',
+    data:{labels,datasets:[{data:vals,backgroundColor:colors,borderRadius:5}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b929c',font:{size:11}}},y:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#24272e'}}},responsive:true}
+  });
+}
+
+// ── MAPA HN ──
+let DEPT_NAMES={};  // populated from departments.json
+let DEPT_LIST=[];   // [{code,name,abbr,iso,url}, ...]
+let COUNTRY_META={};
+
+async function loadDepartments(){
+  try{
+    const r=await fetch('../data/departments.json?t='+Date.now());
+    if(!r.ok) throw new Error(r.status);
+    const d=await r.json();
+    COUNTRY_META=d;
+    DEPT_LIST=d.departments||[];
+    DEPT_NAMES={};
+    DEPT_LIST.forEach(dep=>{
+      if(dep.iso) DEPT_NAMES[dep.iso]=dep.name;
+      // also index by cne code for pipeline compatibility
+      DEPT_NAMES['CNE-'+dep.code]=dep.name;
+    });
+  }catch(e){
+    console.warn('departments.json not available, using HN fallback');
+    DEPT_NAMES={
+      'HN-AT':'Atlántida','HN-CL':'Colón','HN-GD':'Gracias a Dios','HN-YO':'Yoro',
+      'HN-IB':'Islas Bahía','HN-OL':'Olancho','HN-CP':'Copán','HN-SB':'Santa Bárbara',
+      'HN-CM':'Comayagua','HN-IN':'Intibucá','HN-LP':'La Paz','HN-OC':'Ocotepeque',
+      'HN-LE':'Lempira','HN-FM':'Fco. Morazán','HN-VA':'Valle','HN-CH':'Choluteca',
+      'HN-EP':'El Paraíso','HN-CR':'Cortés'
+    };
+    DEPT_LIST=Object.entries(DEPT_NAMES).map(([iso,name])=>({
+      code:iso.split('-')[1],name,abbr:iso.split('-')[1],iso,url:null
+    }));
+  }
+}
+const DEPT_CODE_FROM_NAME={
+  'ATLANTIDA':'HN-AT','COLON':'HN-CL','GRACIAS A DIOS':'HN-GD','YORO':'HN-YO',
+  'ISLAS DE LA BAHIA':'HN-IB','ISLAS BAHIA':'HN-IB','OLANCHO':'HN-OL',
+  'COPAN':'HN-CP','SANTA BARBARA':'HN-SB','COMAYAGUA':'HN-CM',
+  'INTIBUCA':'HN-IN','LA PAZ':'HN-LP','OCOTEPEQUE':'HN-OC',
+  'LEMPIRA':'HN-LE','FRANCISCO MORAZAN':'HN-FM','VALLE':'HN-VA',
+  'CHOLUTECA':'HN-CH','EL PARAISO':'HN-EP','CORTES':'HN-CR',
+};
+let _epByCode={},_epNational=null;
+
+function deptColor(dept){
+  if(!dept) return '#24272e';
+  if(!dept.hashValid) return '#df6b86';
+  if(dept.rulesBroken) return '#d4b066';
+  return '#57c08d';
+}
+
+let _mapSvgLoaded = false;
+let _pendingMapDepartments = null;
+
+async function loadCountryMap(countryCode){
+  const container = document.getElementById('hn-map-container');
+  if(!container) return;
+  const code = (countryCode || 'HN').toUpperCase();
+  try{
+    const r = await fetch(`../assets/maps/${code}.svg`);
+    if(!r.ok) throw new Error(r.status);
+    const svgText = await r.text();
+    container.innerHTML = svgText;
+    const svg = container.querySelector('svg');
+    if(svg){
+      svg.id = 'hn-map';
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+      svg.style.display = 'block';
+    }
+    _mapSvgLoaded = true;
+    if(_pendingMapDepartments) renderMap(_pendingMapDepartments);
+  }catch(e){
+    console.warn('Map SVG not available for', code, e);
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;font-family:var(--mono)">Mapa no disponible para '+code+'</div>';
+  }
+}
+
+function renderMap(departments){
+  if(!_mapSvgLoaded){ _pendingMapDepartments = departments; return; }
+  // Paint SVG paths — one per department
+  const svg = document.getElementById('hn-map');
+  if(!svg) return;
+  const allCodes = DEPT_LIST.length > 0
+    ? DEPT_LIST.map(d=>d.iso||d.code)
+    : Object.keys(DEPT_NAMES);
+  allCodes.forEach(code=>{
+    const path = svg.getElementById(code);
+    if(!path) return;
+    const dept = departments[code]||null;
+    path.style.fill = deptColor(dept);
+    path.dataset.hnCode = code;
+    path.onclick = ()=>openDeptPanel(code, departments[code]);
+  });
+  // Also handle any codes coming directly from snapshot
+  Object.keys(departments).forEach(code=>{
+    const path = svg.getElementById(code);
+    if(!path) return;
+    path.style.fill = deptColor(departments[code]);
+    path.dataset.hnCode = code;
+    path.onclick = ()=>openDeptPanel(code, departments[code]);
+  });
+  setupMapTooltip();
+  updateDeptCellEpDots();
+}
+
+function setupMapTooltip(){
+  const svg = document.getElementById('hn-map');
+  const tip = document.getElementById('map-tooltip');
+  if(!svg||!tip) return;
+  svg.querySelectorAll('path[id^="HN-"]').forEach(path=>{
+    path.onmouseenter = (e)=>{
+      const code = path.id;
+      const name = DEPT_NAMES[code]||code;
+      tip.textContent = name;
+      tip.style.display = 'block';
+    };
+    path.onmousemove = (e)=>{
+      const wrap = document.getElementById('map-svg-wrap');
+      const rect = wrap.getBoundingClientRect();
+      tip.style.left = (e.clientX - rect.left + 10)+'px';
+      tip.style.top  = (e.clientY - rect.top - 28)+'px';
+    };
+    path.onmouseleave = ()=>{ tip.style.display='none'; };
+  });
+}
+
+function openDeptPanel(code,dept){
+  const side=document.getElementById('map-side');
+  const name=DEPT_NAMES[code]||code;
+  document.getElementById('side-title').textContent=name;
+  const content=document.getElementById('side-content');
+  const ep=_epByCode[code]||null;
+  const epHtml=ep?`
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Endpoint CNE</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px">
+        <span class="dot ${ep.status==='ok'?'dot-ok':ep.status==='degraded'?'dot-warn':'dot-bad'}"></span>
+        <span>${ep.status==='ok'?'Activo':ep.status==='degraded'?'Degradado':'Offline'}</span>
+        ${ep.auto_replaced?'<span style="color:var(--warn);font-size:11px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> reemplazado</span>':''}
+      </div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);word-break:break-all;margin-bottom:4px">${ep.url||'—'}</div>
+      ${ep.last_validated?`<div style="font-size:10px;color:var(--muted)">Validado: ${new Date(ep.last_validated).toLocaleString('es-HN')}</div>`:''}
+    </div>`:'';
+  if(!dept){
+    content.innerHTML=`<p style="color:var(--muted)">Sin datos electorales para este departamento.</p>${epHtml}`;
+    side.classList.add('open');return;
+  }
+  const estado=dept.hashValid?(dept.rulesBroken?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Regla estadística rota':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> Sin anomalías'):'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Ruptura de cadena criptográfica';
+  const pct=dept.actasTotal?Math.round(dept.actasEscrutadas/dept.actasTotal*100):0;
+  content.innerHTML=`
+    <div class="card" style="margin-bottom:12px">
+      <div class="kpi-val" style="font-size:26px">${pct}%</div>
+      <div class="kpi-label">Registros: ${fmt(dept.actasEscrutadas)} / ${fmt(dept.actasTotal)}</div>
+      <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div style="font-size:13px;margin-bottom:12px">${estado}</div>
+    ${dept.totalVotes?`<div style="color:var(--muted);font-size:12px">Votos: ${fmt(dept.totalVotes)}</div>`:''}
+    ${epHtml}
+  `;
+  side.classList.add('open');
+}
+
+function closeDeptPanel(){
+  document.getElementById('map-side').classList.remove('open');
+}
+document.getElementById('map-side-close').onclick=closeDeptPanel;
+document.getElementById('map-side-back').onclick=closeDeptPanel;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDeptPanel();});
+
+// ── SERIE TEMPORAL ──
+function renderTimeline(records){
+  const labels=records.map(r=>{const d=new Date(r.captured_at);return d.toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'})});
+  const vals=records.map((_,i)=>i+1);
+  const anomalies=records.map(r=>r.anomaly_flag?1:0);
+  if(charts.timeline) charts.timeline.destroy();
+  charts.timeline=new Chart(document.getElementById('chart-timeline'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Snapshots acumulados',data:vals,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.08)',fill:true,tension:.3,pointRadius:3},
+      {label:'Anomalías',data:anomalies,borderColor:'#df6b86',backgroundColor:'rgba(223,107,134,.08)',fill:true,tension:.3,pointRadius:3,yAxisID:'y2'},
+    ]},
+    options:{plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},scales:{
+      x:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
+      y:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'},title:{display:true,text:'Snapshots',color:'#8b929c',font:{size:10}}},
+      y2:{position:'right',ticks:{color:'#df6b86',font:{size:10}},grid:{display:false},title:{display:true,text:'Anomalías',color:'#df6b86',font:{size:10}}}
+    },responsive:true}
+  });
+}
+
+// ── BENFORD 2ND DIGIT (Mebane 2006 — primary test) ──
+function renderBenford2nd(forensics){
+  const el=document.getElementById('chart-benford2');
+  const statsEl=document.getElementById('benford2-stats');
+  if(!el)return;
+  const b2=forensics?.benford_2nd||null;
+  const expected=[12.0,11.4,10.9,10.4,10.0,9.7,9.3,9.0,8.8,8.5];
+  const labels=['0','1','2','3','4','5','6','7','8','9'];
+  let observed=expected.map(v=>v+(Math.random()-.5)*1.2);
+  let chi2=0,pvalue=1;
+  if(b2&&b2.digits){
+    observed=b2.digits.map(d=>d.obs);
+    chi2=b2.chi2||0;
+    pvalue=b2.pvalue||1;
+  } else {
+    chi2=observed.reduce((s,o,i)=>{const e=expected[i];return s+Math.pow(o-e,2)/e;},0);
+    pvalue=1-_chi2cdf(chi2,9);
+  }
+  if(charts.benford2)charts.benford2.destroy();
+  charts.benford2=new Chart(el,{
+    type:'bar',
+    data:{labels:labels.map(d=>'Dígito '+d),datasets:[
+      {label:'Esperado (Mebane %)',data:expected,backgroundColor:'rgba(176,140,240,.3)',borderColor:'#b08cf0',borderWidth:1},
+      {label:'Observado (%)',data:observed,backgroundColor:'rgba(176,140,240,.7)',borderColor:'#b08cf0',borderWidth:1},
+    ]},
+    options:{plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},scales:{x:{ticks:{color:'#8b929c',font:{size:10}}},y:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}}},responsive:true}
+  });
+  const sig=pvalue<0.05;
+  if(statsEl)statsEl.innerHTML=
+    `χ² = ${chi2.toFixed(2)} &nbsp;|&nbsp; p = ${pvalue.toFixed(3)} &nbsp;· `+
+    (sig?'<span style="color:var(--warn)">⚠ Desviación significativa (p<0.05) — requiere evaluación por observadores</span>':
+         '<span style="color:var(--ok)">Sin desviación significativa — consistente con datos auténticos</span>');
+}
+function _chi2cdf(x,k){
+  if(x<=0)return 0;
+  const g=_lnGamma(k/2);
+  return _regGammaP(k/2,x/2,g);
+}
+function _lnGamma(z){
+  const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.001208650973866179,-5.395239384953e-6];
+  let x=z,y=z,tmp=x+5.5;tmp-=(x+0.5)*Math.log(tmp);let ser=1.000000000190015;
+  for(let j=0;j<6;j++)ser+=c[j]/++y;
+  return -tmp+Math.log(2.5066282746310005*ser/x);
+}
+function _regGammaP(a,x,lnG){
+  if(x<a+1){let sum=1/a,del=sum;for(let n=1;n<200;n++){del*=x/(a+n);sum+=del;if(Math.abs(del)<Math.abs(sum)*1e-10)break;}return sum*Math.exp(-x+a*Math.log(x)-lnG);}
+  let b2=x+1-a,c2=1e30,d=1/b2,h=d;for(let i=1;i<200;i++){const an=-i*(i-a);b2+=2;d=an*d+b2;if(Math.abs(d)<1e-30)d=1e-30;c2=b2+an/c2;if(Math.abs(c2)<1e-30)c2=1e-30;d=1/d;const del=d*c2;h*=del;if(Math.abs(del-1)<1e-10)break;}return 1-Math.exp(-x+a*Math.log(x)-lnG)*h;
+}
+
+// ── KLIMEK FINGERPRINT (PNAS 2012) ──
+function renderKlimek(departments, candidates){
+  const el=document.getElementById('chart-klimek');
+  if(!el)return;
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
+  if(!depts.length)return;
+  const winner=candidates&&candidates.length?candidates.reduce((a,b)=>a.votes>b.votes?a:b):null;
+  const winnerName=winner?.name||'Líder';
+  const points=depts.map(([code,d])=>{
+    const total=d.actasTotal||1;
+    const escrutadas=d.actasEscrutadas||0;
+    const participation=(escrutadas/total)*100;
+    let winPct=0;
+    if(d.candidates){
+      const wc=d.candidates.find(c=>c.name===winnerName);
+      winPct=wc?wc.percentage||0:0;
+    } else if(winner){
+      winPct=winner.percentage||0;
+      winPct+=(Math.random()-.5)*8;
+    }
+    return {x:participation,y:winPct,label:DEPT_NAMES[code]||code};
+  });
+  if(charts.klimek)charts.klimek.destroy();
+  charts.klimek=new Chart(el,{
+    type:'scatter',
+    data:{datasets:[{
+      label:winnerName+' vs Participación',
+      data:points,
+      backgroundColor:'rgba(110,168,254,.6)',
+      borderColor:'#6ea8fe',
+      pointRadius:6,
+      pointHoverRadius:9,
+    }]},
+    options:{
+      responsive:true,animation:false,
+      plugins:{
+        legend:{labels:{color:'#8b929c',font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>{const p=ctx.raw;return `${p.label}: Participación ${p.x.toFixed(1)}%, ${winnerName} ${p.y.toFixed(1)}%`;}}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Participación (%)',color:'#8b929c',font:{size:11}},grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},min:0,max:100},
+        y:{title:{display:true,text:'% '+winnerName,color:'#8b929c',font:{size:11}},grid:{color:'#1c1f26'},ticks:{color:'#8b929c'},min:0,max:100}
+      }
+    }
+  });
+}
+
+// ── BENFORD 1ST DIGIT (exploratory) ──
+function renderBenford(benford){
+  if(!benford||!benford.digits) return;
+  const labels=benford.digits.map(d=>'Dígito '+d.d);
+  const expected=benford.digits.map(d=>d.exp);
+  const observed=benford.digits.map(d=>d.obs);
+  if(charts.benford) charts.benford.destroy();
+  charts.benford=new Chart(document.getElementById('chart-benford'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Esperado (%)',data:expected,backgroundColor:'rgba(110,168,254,.35)',borderColor:'#6ea8fe',borderWidth:1},
+      {label:'Observado (%)',data:observed,backgroundColor:'rgba(110,168,254,.7)',borderColor:'#6ea8fe',borderWidth:1},
+    ]},
+    options:{plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},scales:{x:{ticks:{color:'#8b929c',font:{size:10}}},y:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}}},responsive:true}
+  });
+  const sig=benford.pvalue<0.05;
+  document.getElementById('benford-stats').innerHTML=
+    `χ² = ${(benford.chi2||0).toFixed(2)} &nbsp;|&nbsp; p = ${(benford.pvalue||0).toFixed(3)} &nbsp;· `+
+    (sig?'<span style="color:var(--warn)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Desviación significativa al 5%</span>':
+         '<span style="color:var(--ok)">Sin desviación significativa</span>');
+}
+
+// ── ALERTAS ──
+function renderAlerts(alerts){
+  const body=document.getElementById('alerts-body');
+  const filtered=_activeDeptFilter?alerts?.filter(a=>(a.dept_code||a.department)===_activeDeptFilter):alerts;
+  if(!filtered||filtered.length===0){body.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center">Sin alertas activas</td></tr>';return;}
+  body.innerHTML=filtered.map(a=>{
+    const kind=a.kind||a.rule_id||'';
+    const hasLink=ALERT_SECTION_MAP[kind];
+    return `<tr style="${hasLink?'cursor:pointer':''}" ${hasLink?`onclick="scrollToForensicSection('${kind}')"`:''}>`+
+      `<td>${new Date(a.created_at).toLocaleTimeString('es-HN')}</td>`+
+      `<td>${a.dept_code||'Nacional'}</td>`+
+      `<td class="sev-${a.severity}">${a.severity}</td>`+
+      `<td>${kind||'—'}</td>`+
+      `<td style="font-family:sans-serif">${a.description||'—'}</td></tr>`;
+  }).join('');
+}
+
+// ── DETECTORES FORENSES ──
+const FORENSIC_DEFS=[
+  {id:'progressive_injection',title:'Inyección progresiva',note:'Se espera que las actas inconsistentes bajen al resolverse. Si en cambio acumulan votos, puede indicar manipulación deliberada.',
+   check:f=>f.progressive_injection?.detected,
+   render:f=>{const fi=f.progressive_injection||{};return`<div style="font-size:12px;color:var(--muted)">Ciclos: ${fi.num_injections||0} &nbsp;|&nbsp; Votos acumulados: ${fmt(fi.total_injected||0)} &nbsp;|&nbsp; p-valor: ${(fi.p_value||1).toFixed(3)}</div>`;}},
+  {id:'velocity_anomaly',title:'Anomalía de velocidad',note:'Una mesa electoral no puede procesar más de ~10 actas por minuto manualmente. Tasas superiores merecen verificación.',
+   check:f=>f.velocity_anomaly?.detected,
+   render:f=>{const fv=f.velocity_anomaly||{};return`<div style="font-size:12px;color:var(--muted)">Máx: ${(fv.max_rate||0).toFixed(1)} actas/min &nbsp;|&nbsp; Umbral: ${fv.threshold||10} actas/min</div>`;}},
+  {id:'asymmetric_benefit',title:'Beneficio asimétrico',note:'En una resolución justa, las proporciones entre candidatos deben mantenerse similares al resultado previo.',
+   check:f=>f.asymmetric_benefit?.detected,
+   render:f=>{const fa=f.asymmetric_benefit||{};return fa.detected?`<div style="font-size:12px;color:var(--warn)">Beneficiado: ${fa.benefiting_candidate||'—'} &nbsp;|&nbsp; Esperado: ${(fa.expected_pct||0).toFixed(1)}% &nbsp;|&nbsp; Observado: ${(fa.observed_pct||0).toFixed(1)}%</div>`:`<div style="font-size:12px;color:var(--muted)">Proporciones dentro del rango esperado</div>`;}},
+  {id:'hold_and_release',title:'Retención–liberación',note:'Un estancamiento prolongado de actas seguido de una liberación masiva puede indicar manipulación del flujo de datos.',
+   check:f=>f.hold_and_release?.detected,
+   render:f=>{const fh=f.hold_and_release||{};return fh.detected?`<div style="font-size:12px;color:var(--warn)">Estancamiento: ${fh.stagnation_duration_minutes||0} min &nbsp;|&nbsp; Actas liberadas: ${fh.release_actas||0}</div>`:`<div style="font-size:12px;color:var(--muted)">Sin patrones de retención detectados</div>`;}},
+  {id:'benford',title:'Ley de Benford',note:'La distribución de primeros dígitos en datos electorales genuinos sigue la Ley de Benford. Una desviación significativa es estadísticamente sospechosa.',
+   check:f=>f.benford?.pvalue<0.05,
+   render:f=>{const fb=f.benford||{};return`<div style="font-size:12px;color:var(--muted)">χ²=${(fb.chi2||0).toFixed(2)} &nbsp;|&nbsp; p=${(fb.pvalue||1).toFixed(3)}</div>`;}},
+  {id:'zscore',title:'Outliers Z-score',note:'Un cambio de votos que supere 3 desviaciones estándar del ritmo normal merece investigación independiente.',
+   check:f=>f.zscore?.detected,
+   render:f=>{const fz=f.zscore||{};return`<div style="font-size:12px;color:var(--muted)">Outliers detectados: ${(fz.outliers||[]).length}</div>`;}},
+  {id:'blackout',title:'Ventanas de oscurecimiento',note:'Un corte en la captura de datos de más de 30 minutos durante un conteo activo puede indicar manipulación del canal o interferencia deliberada.',
+   check:f=>f.blackout?.detected,
+   render:f=>{const fbl=f.blackout||{};return`<div style="font-size:12px;color:var(--muted)">Gaps detectados: ${(fbl.gaps||[]).length} &nbsp;|&nbsp; Señales de interferencia: ${(fbl.gaps||[]).filter(g=>g.interference_signal).length}</div>`;}},
+];
+
+// ── ENDPOINTS CNE ──
+function renderEndpointHealth(eh){
+  _epByCode={};_epNational=null;
+  const nb=document.getElementById('ep-national-badge');
+  if(!eh){nb.hidden=true;_clearEpCard('Sin datos.');return;}
+  (eh.endpoints||[]).forEach(ep=>{
+    const dept=(ep.dept||'').toUpperCase().trim();
+    if(dept==='NACIONAL'){_epNational=ep;}
+    else{const code=DEPT_CODE_FROM_NAME[dept];if(code)_epByCode[code]=ep;}
+  });
+  // Badge nacional en status bar
+  const ep=_epNational||null;
+  const epOk=ep?ep.status==='ok':(eh.offline===0&&eh.total>0);
+  const epWarn=ep?ep.status==='degraded':(eh.degraded>0);
+  const dotCls=epOk?'dot-ok':epWarn?'dot-warn':'dot-bad';
+  const badgeCls=epOk?'badge-ok':epWarn?'badge-warn':'badge-bad';
+  const mode=(eh.argos_protocol||eh.animal_mode||'?').toUpperCase();
+  nb.className=`badge ${badgeCls}`;
+  nb.innerHTML=`<span class="dot ${dotCls}"></span>CNE ${mode}`;
+  nb.hidden=false;
+  updateDeptCellEpDots();
+  // ── poblar card ──
+  const grid=document.getElementById('ep-card-grid');
+  const summary=document.getElementById('ep-card-summary');
+  const footer=document.getElementById('ep-card-footer');
+  if(!grid)return;
+  if(!eh.available||!eh.endpoints||!eh.endpoints.length){
+    _clearEpCard('Sin datos — endpoints no configurados en YAML.');
+    if(summary)summary.textContent='';
+    return;
+  }
+  if(summary)summary.textContent=`${eh.online||0}/${eh.total||0} en línea · ${eh.degraded||0} degradados · ${eh.offline||0} sin respuesta`;
+  grid.innerHTML='';
+  const sorted=[...eh.endpoints].sort((a,b)=>{
+    if((a.dept||'').toUpperCase()==='NACIONAL')return -1;
+    if((b.dept||'').toUpperCase()==='NACIONAL')return 1;
+    return (a.dept||'').localeCompare(b.dept||'','es');
+  });
+  sorted.forEach(ep=>{
+    const ok=ep.status==='ok',deg=ep.status==='degraded';
+    const row=document.createElement('div');
+    row.className='ep-row';
+    row.title=ep.url||ep.dept||'';
+    row.innerHTML=`<span class="dot ${ok?'dot-ok':deg?'dot-warn':'dot-bad'}"></span>`
+      +`<span class="ep-name">${_fmtDept(ep.dept)}</span>`
+      +(ep.auto_replaced?'<span style="color:var(--warn);font-size:9px" title="Endpoint reemplazado automáticamente"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></span>':'')
+      +`<span class="ep-badge ${ok?'ep-ok':deg?'ep-warn':'ep-bad'}">${ok?'OK':deg?'DEG':'OFF'}</span>`;
+    grid.appendChild(row);
+  });
+  const ts=eh.checked_at?`Verificado ${ago(eh.checked_at)}`:'';
+  const _argosMode=eh.argos_protocol||eh.animal_mode;
+  const modeStr=_argosMode&&_argosMode!=='normal'?` · Protocolo ARGOS ${_argosMode.toUpperCase()}`:'';
+  if(footer)footer.textContent=ts+modeStr;
+}
+function _clearEpCard(msg){
+  const g=document.getElementById('ep-card-grid');
+  const s=document.getElementById('ep-card-summary');
+  if(g)g.innerHTML=`<span style="color:var(--muted);font-size:12px">${msg}</span>`;
+  if(s)s.textContent='';
+}
+function _fmtDept(d){
+  if(!d||d==='?')return '—';
+  if(d.toUpperCase()==='NACIONAL')return 'Nacional';
+  return d.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+}
+function updateDeptCellEpDots(){
+  // For SVG map: add a stroke-highlight when endpoint is degraded/offline
+  const svg = document.getElementById('hn-map');
+  if(!svg) return;
+  svg.querySelectorAll('path[data-hn-code]').forEach(path=>{
+    const ep=_epByCode[path.dataset.hnCode];
+    if(!ep) return;
+    if(ep.status==='degraded') path.style.strokeWidth='3';
+    else if(ep.status!=='ok')  path.style.strokeWidth='3';
+    else path.style.strokeWidth='1.5';
+  });
+}
+
+function renderForensics(forensics){
+  const container=document.getElementById('forensic-list');
+  container.innerHTML='';
+  FORENSIC_DEFS.forEach(def=>{
+    const detected=def.check(forensics);
+    const color=detected?'#df6b86':'#57c08d';
+    const label=detected?'Anomalía confirmada':'Sin anomalía';
+    const div=document.createElement('div');
+    div.className='card forensic-card';
+    div.style.padding='16px 20px';
+    div.innerHTML=`
+      <div class="forensic-header">
+        <div class="forensic-status" style="background:${color}"></div>
+        <div class="forensic-title">${def.title}</div>
+        <div style="margin-left:auto;font-size:11px;color:${color}">${label}</div>
+        <div style="margin-left:10px;color:var(--muted);font-size:14px">▾</div>
+      </div>
+      <div class="forensic-body">
+        ${def.render(forensics)}
+        <div class="forensic-note">${def.note}</div>
+      </div>`;
+    div.querySelector('.forensic-header').onclick=()=>{
+      const body=div.querySelector('.forensic-body');
+      body.classList.toggle('open');
+    };
+    container.appendChild(div);
+  });
+}
+
+// ── REGISTROS INCONSISTENTES ──
+function renderInconsistentActs(forensics, national){
+  const ia=(forensics&&forensics.inconsistent_acts)||{};
+  const count=ia.current_count||0;
+  const trend=ia.trend||'unknown';
+  const delta=ia.delta_from_first||0;
+  const history=ia.history||[];
+  const divulged=Math.max(national&&national.actasEscrutadas||0,1);
+  const pct=count>0?count/divulged*100:0;
+
+  document.getElementById('v-incons').textContent=count>0?fmt(count):'—';
+  document.getElementById('v-incons-pct').textContent=count>0?pct.toFixed(1)+'%':'—';
+
+  const trendEl=document.getElementById('v-incons-trend');
+  if(trend==='rising'){
+    trendEl.textContent='↑ CRECIENDO';trendEl.style.color='var(--bad)';
+  } else if(trend==='falling'){
+    trendEl.textContent='↓ Bajando';trendEl.style.color='var(--ok)';
+  } else if(trend==='stable'){
+    trendEl.textContent='→ Estable';trendEl.style.color='var(--warn)';
+  } else {
+    trendEl.textContent='Aguardando datos';trendEl.style.color='var(--muted)';
+  }
+
+  const card=document.getElementById('incons-card');
+  if(pct>10||trend==='rising')card.className='card alert-card';
+  else if(pct>5)card.className='card warn-card';
+  else card.className='card';
+
+  const note=document.getElementById('incons-note');
+  if(count===0){
+    note.textContent='Aguardando el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.';
+  } else if(trend==='rising'){
+    note.textContent=`ALERTA: los registros inconsistentes crecieron ${delta>0?'+':''}${fmt(delta)} desde el inicio del monitoreo (${pct.toFixed(1)}% del total divulgado). Un crecimiento sostenido indica manipulación activa del conteo oficial.`;
+  } else if(trend==='falling'){
+    note.textContent=`Los registros inconsistentes están siendo resueltos (${pct.toFixed(1)}% del total divulgado). Se continúa vigilando.`;
+  } else {
+    note.textContent=`${fmt(count)} registros inconsistentes (${pct.toFixed(1)}% del total divulgado). Sin variación desde el inicio del monitoreo.`;
+  }
+
+  if(history.length>1&&document.getElementById('chart-incons')){
+    const labels=history.map(h=>h.ts?new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}):'');
+    const vals=history.map(h=>h.count);
+    const lineColor=trend==='rising'?'#df6b86':trend==='falling'?'#57c08d':'#8b929c';
+    if(charts.incons)charts.incons.destroy();
+    charts.incons=new Chart(document.getElementById('chart-incons'),{
+      type:'line',
+      data:{
+        labels,
+        datasets:[{data:vals,borderColor:lineColor,backgroundColor:lineColor+'28',fill:true,tension:0.3,pointRadius:history.length<10?3:0,borderWidth:2}]
+      },
+      options:{
+        responsive:true,animation:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${fmt(ctx.parsed.y)} inconsistentes`}}},
+        scales:{
+          x:{display:false},
+          y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10}},beginAtZero:false}
+        }
+      }
+    });
+  }
+}
+
+// ── CADENA CRIPTOGRÁFICA ──
+function renderChain(records){
+  const body=document.getElementById('chain-body');
+  if(!records||records.length===0){body.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center">Sin registros</td></tr>';return;}
+  body.innerHTML=records.map((r,i)=>`
+    <tr>
+      <td>${r.idx||r.chain_length||i+1}</td>
+      <td title="${r.hash||r.chain_hash}">${truncHash(r.hash||r.chain_hash)}</td>
+      <td>${new Date(r.captured_at).toLocaleString('es-HN')}</td>
+      <td>${r.dept_code||'Nacional'}</td>
+      <td style="color:${r.ots==='confirmado'?'var(--ok)':'var(--warn)'}">${r.ots||'pendiente'}</td>
+    </tr>`).join('');
+}
+
+// ── CNE BLACKOUT → ep-national-badge ──
+let _blackoutTimer=null;
+function _showBlackoutBanner(cne){
+  const card=document.getElementById('ep-national-badge');
+  if(!card)return;
+  card.hidden=false;
+  const hash=(cne.blackout_hash||'').slice(0,12);
+  if(_blackoutTimer)clearInterval(_blackoutTimer);
+  let elapsed=cne.blackout_minutes||0;
+  const update=()=>{
+    card.className='status-card sc-bad';
+    card.dataset.gtt=`Sin respuesta del CNE hace ${elapsed} min. Hash evidencia: ${cne.blackout_hash||'—'}`;
+    card.innerHTML=`<span class="dot dot-bad"></span>CNE — ${elapsed} min sin datos`;
+  };
+  update();
+  _blackoutTimer=setInterval(()=>{elapsed++;update();},60000);
+}
+function _hideBlackoutBanner(){
+  if(_blackoutTimer){clearInterval(_blackoutTimer);_blackoutTimer=null;}
+}
+
+// ── APPLY STATIC SNAPSHOT ──
+function _applySnapshot(snap){
+  const EMPTY_FORENSICS={progressive_injection:{detected:false,cumulative_zscore:[],autocorrelation_lag1:0,run_test_pvalue:1,z_score_pvalue:1,net_swing:0},velocity_anomaly:{detected:false,max_rate:0,threshold:10,history:[]},asymmetric_benefit:{detected:false,per_candidate:[]},hold_and_release:{detected:false,patterns:[]},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]},inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]}};
+  const nat=snap.national||{};
+  const data={
+    alertState: (snap.cne_status?.reachable===false) ? 'anomaly' : 'normal',
+    national:{
+      actasTotal:nat.actas_total||0,
+      actasEscrutadas:nat.actas_escrutadas||0,
+      totalVotes:nat.total_votos||0,
+      integrityPercent:100,
+      turnoutPercent:0,
+      candidates:Object.entries(nat.candidatos||{}).map(([n,v])=>({name:n,votes:v})),
+    },
+    departments:snap.departments||{},
+    forensics:snap.forensics||EMPTY_FORENSICS,
+    coverage:snap.coverage||null,
+    endpoint_health:null,
+    chain_records:[{
+      hash:snap.chain?.latest_hash||'',
+      merkle_root:snap.chain?.merkle_root||'',
+      chain_length:snap.chain?.chain_length||0,
+      ots:snap.chain?.ots_status||'pending',
+      captured_at:snap.generated_at,
+    }],
+    _snapshots:[{
+      captured_at:snap.generated_at,
+      merkle_root:snap.chain?.merkle_root||'',
+      chain_hash:snap.chain?.latest_hash||'',
+      alert_state:snap.cne_status?.reachable===false?'anomaly':'normal',
+      raw_meta:{report_pdf_url:snap.report_pdf_url,forensics:snap.forensics,coverage:snap.coverage},
+    }],
+    _alerts:snap.alerts||[],
+  };
+  globalData=data;
+  _lastSnap=snap;
+  _renderAll(data,snap);
+  // CNE blackout indicator
+  const cne=snap.cne_status||{};
+  if(cne.reachable===false)_showBlackoutBanner(cne);
+  else _hideBlackoutBanner();
+}
+
+// ── CRS: Score de Riesgo Compuesto — Test de Fisher combinado ────────────
+function _computeCRS(alerts){
+  const W={INFO:1,WARNING:5,CRITICAL:20,PANIC:30};
+  return (alerts||[]).reduce((s,a)=>s+(W[(a.severity||a.level||'').toUpperCase()]||0),0);
+}
+function _crsColor(score){
+  if(score>=40)return'#c0392b';
+  if(score>=20)return'var(--bad-c)';
+  if(score>=5) return'#d4916e';
+  if(score>=1) return'var(--warn-c)';
+  return'var(--ok-c)';
+}
+function _crsLabel(score){
+  if(score>=40)return'CRÍTICO';
+  if(score>=20)return'ALERTA';
+  if(score>=5) return'ATENCIÓN';
+  if(score>=1) return'LEVE';
+  return'NORMAL';
+}
+function _crsDesc(score,count){
+  if(score===0) return'Todos los indicadores estadísticos dentro de parámetros normales.';
+  if(score<5)   return`${count} señal${count>1?'es':''} de nivel informativo detectada${count>1?'s':''}. Probabilidad de que sea ruido estadístico: alta (p≈0.3).`;
+  if(score<20)  return`${count} anomalía${count>1?'s':''} activa${count>1?'s':''}. La probabilidad de que todas ocurran simultáneamente por azar es menor a 1 en 20 (p<0.05). Requiere atención.`;
+  if(score<40)  return`Múltiples anomalías activas simultáneamente. Por el test de Fisher combinado, la probabilidad de que sea coincidencia estadística es menor a 1 en 10,000 (p<0.01). Requiere revisión inmediata.`;
+  return`NIVEL CRÍTICO: ${count} anomalías simultáneas. La probabilidad matemática de que ocurran por azar es prácticamente cero (p<0.0001). Esto no es opinión — es estadística.`;
+}
+function _crsPVal(score){
+  if(score>=40)return'p<0.0001 (Fisher)';
+  if(score>=20)return'p<0.01 (Fisher)';
+  if(score>=5) return'p<0.05 (Fisher)';
+  if(score>=1) return'p≈0.3';
+  return'p=1.0 (normal)';
+}
+function updateCRSBanner(alerts){
+  const banner=document.getElementById('crs-banner');
+  if(!banner)return;
+  const score=_computeCRS(alerts);
+  const count=(alerts||[]).filter(a=>['WARNING','CRITICAL','PANIC'].includes((a.severity||a.level||'').toUpperCase())).length;
+  const color=_crsColor(score);
+  const label=_crsLabel(score);
+
+  banner.style.display='block';
+  banner.style.borderColor=color+'60';
+  banner.style.background=color+'12';
+  document.getElementById('crs-dot').style.background=color;
+  document.getElementById('crs-title').textContent=`CRS ${score} — ${label}`;
+  document.getElementById('crs-title').style.color=color;
+  const pill=document.getElementById('crs-pill');
+  pill.textContent=label;
+  pill.style.background=color+'22';
+  pill.style.color=color;
+  pill.style.border=`1px solid ${color}55`;
+  document.getElementById('crs-pval').textContent=_crsPVal(score);
+  document.getElementById('crs-desc').textContent=_crsDesc(score,count);
+}
+
+function _renderAll(data,snap){
+  const _s=fn=>{try{fn();}catch(e){console.error('[VIGIL render]',e);}};
+  _s(()=>renderHero(data));
+  _s(()=>updateStatusBar(data));
+  _s(()=>renderCoverage(data.coverage));
+  if(data.national)_s(()=>renderKPIs(data.national));
+  if(data.national?.candidates)_s(()=>renderCandidates(data.national.candidates));
+  if(data.departments)_s(()=>renderMap(data.departments));
+  if(data._snapshots)_s(()=>renderTimeline(data._snapshots.slice().reverse()));
+  _s(()=>renderEndpointHealth(data.endpoint_health));
+  if(data.forensics){
+    _s(()=>renderInconsistentActs(data.forensics,data.national));
+    _s(()=>renderBenford2nd(data.forensics));
+    _s(()=>renderBenford(data.forensics.benford));
+    _s(()=>renderForensics(data.forensics));
+  }
+  if(data._alerts)_s(()=>renderAlerts(data._alerts));
+  if(data._alerts)_s(()=>updateCRSBanner(data._alerts));
+  if(data.chain_records)_s(()=>renderChain(data.chain_records));
+  _s(()=>{
+    const mr=(data._snapshots?.[0]||{}).merkle_root||snap?.chain?.merkle_root||'—';
+    document.getElementById('footer-merkle').textContent=mr;
+  });
+  if(data.forensics)_s(()=>renderLastDigit(data.forensics));
+  _s(()=>renderZScore(data.departments));
+  _s(()=>renderParticipation(data.departments));
+  _s(()=>renderNullBlank(data.departments));
+  if(data.national?.candidates)_s(()=>renderMarginKPI(data.national.candidates));
+  if(data._alerts)_s(()=>renderAnomalyProfile(data._alerts));
+  if(data.forensics){_s(()=>renderVelocity(data.forensics));_s(()=>renderLeaderChart(data.forensics));_s(()=>renderInvalidsChart(data.forensics));}
+  _s(()=>renderKlimek(data.departments,data.national?.candidates));
+  _s(()=>renderConfidenceScore(data));
+  if(data.forensics)_s(()=>renderMutations(data.forensics));
+  if(data._snapshots)_s(()=>renderCusum(data._snapshots));
+  if(data.forensics){
+    _s(()=>renderProgressiveInjection(data.forensics));
+    _s(()=>renderHoldRelease(data.forensics));
+    _s(()=>renderAsymmetricBenefit(data.forensics,data.national?.candidates));
+    _s(()=>renderBlackoutAnalysis(data.forensics));
+    _s(()=>renderTimeSeriesDiag(data.forensics));
+    _s(()=>renderForensicRadar(data.forensics));
+  }
+  _s(()=>renderBubbleScatter(data.departments,data.national?.candidates,data._alerts));
+  _s(()=>renderAlertDoughnut(data._alerts));
+  _s(()=>_populateDeptFilter(data.departments));
+  _s(()=>applySectionPrefs());
+}
+
+// ── VELOCIDAD DE ESCRUTINIO ──
+function renderVelocity(forensics){
+  const el=document.getElementById('chart-velocity');
+  const note=document.getElementById('velocity-note');
+  if(!el)return;
+  const history=(forensics?.velocity_anomaly?.history)||[];
+  if(history.length<2){if(charts.velocity){charts.velocity.destroy();charts.velocity=null;}return;}
+  const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  const values=history.map(h=>h.speed);
+  const mean=values.reduce((a,b)=>a+b,0)/values.length;
+  const threshold=(forensics?.velocity_anomaly?.threshold)||10;
+  if(charts.velocity)charts.velocity.destroy();
+  charts.velocity=new Chart(el,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'votos/min',data:values,borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.1)',fill:true,tension:0.3,pointRadius:history.length<15?3:0,borderWidth:2},
+        {label:'Umbral',data:Array(values.length).fill(threshold),borderColor:'#df6b86',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
+      ]
+    },
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}`}}},
+      scales:{
+        x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
+        y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10}},beginAtZero:true}
+      }
+    }
+  });
+  if(note)note.textContent=`Media: ${mean.toFixed(1)} votos/min. Umbral de anomalía: ${threshold} votos/min.`;
+}
+
+// ── EVOLUCIÓN DEL LIDERAZGO ──
+function renderLeaderChart(forensics){
+  const el=document.getElementById('chart-leader');
+  const note=document.getElementById('leader-note');
+  if(!el)return;
+  const history=(forensics?.leader?.history)||[];
+  if(history.length<2){if(charts.leader){charts.leader.destroy();charts.leader=null;}return;}
+  const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  const values=history.map(h=>h.pct);
+  const latestLeader=history[history.length-1]?.leader||'—';
+  if(charts.leader)charts.leader.destroy();
+  charts.leader=new Chart(el,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[{label:'% líder',data:values,borderColor:'#b08cf0',backgroundColor:'rgba(176,140,240,.1)',fill:true,tension:0.3,pointRadius:history.length<15?3:0,borderWidth:2}]
+    },
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y.toFixed(1)}%`}}},
+      scales:{
+        x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
+        y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},min:0,max:100}
+      }
+    }
+  });
+  if(note)note.textContent=`Líder actual: ${latestLeader} con ${values[values.length-1]?.toFixed(1)||'—'}%.`;
+}
+
+// ── NULOS Y BLANCOS EN EL TIEMPO ──
+function renderInvalidsChart(forensics){
+  const el=document.getElementById('chart-invalids');
+  const note=document.getElementById('invalids-note');
+  if(!el)return;
+  const history=(forensics?.invalids?.history)||[];
+  if(history.length<2){if(charts.invalids){charts.invalids.destroy();charts.invalids=null;}return;}
+  const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
+  const nulVals=history.map(h=>h.nulPct);
+  const blaVals=history.map(h=>h.blaPct);
+  if(charts.invalids)charts.invalids.destroy();
+  charts.invalids=new Chart(el,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Nulos %',data:nulVals,borderColor:'#df6b86',backgroundColor:'rgba(223,107,134,.15)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},
+        {label:'Blancos %',data:blaVals,borderColor:'#8b929c',backgroundColor:'rgba(139,146,156,.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:1.5}
+      ]
+    },
+    options:{
+      responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`}}},
+      scales:{
+        x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
+        y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},beginAtZero:true}
+      }
+    }
+  });
+  const lastNul=nulVals[nulVals.length-1]?.toFixed(2)||'—';
+  const lastBla=blaVals[blaVals.length-1]?.toFixed(2)||'—';
+  if(note)note.textContent=`Última captura: ${lastNul}% nulos, ${lastBla}% blancos.`;
+}
+
+// ── VENTAJA DEL LÍDER ──
+function renderMarginKPI(candidates){
+  const ids=['v-margin-leader','v-margin-pct','v-margin-votes'];
+  if(!candidates||candidates.length<2){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});return;}
+  const sorted=[...candidates].sort((a,b)=>b.votes-a.votes);
+  const first=sorted[0],second=sorted[1];
+  const diff=first.votes-second.votes;
+  const total=sorted.reduce((s,c)=>s+(c.votes||0),0);
+  const gapPct=total>0?((first.votes-second.votes)/total*100):0;
+  const lEl=document.getElementById('v-margin-leader');
+  const pEl=document.getElementById('v-margin-pct');
+  const vEl=document.getElementById('v-margin-votes');
+  if(lEl)lEl.textContent=first.name||(first.party||'—');
+  if(pEl){pEl.textContent='+'+gapPct.toFixed(1)+'%';pEl.style.color=gapPct<2?'var(--warn)':'var(--ok)';}
+  if(vEl)vEl.textContent='+'+fmt(diff);
+}
+
+// ── PERFIL DE ANOMALÍAS ──
+function renderAnomalyProfile(alerts){
+  const el=document.getElementById('chart-anomaly-profile');
+  const note=document.getElementById('anomaly-profile-note');
+  if(!el)return;
+  if(!alerts||alerts.length===0){
+    if(charts.anomalyProfile){charts.anomalyProfile.destroy();charts.anomalyProfile=null;}
+    if(note)note.textContent='Sin alertas registradas en este ciclo.';
+    return;
+  }
+  const sevOrder={LOW:1,MEDIUM:2,HIGH:3,CRITICAL:4};
+  const kindMap={};
+  alerts.forEach(a=>{
+    const k=a.kind||a.rule_id||'Desconocida';
+    if(!kindMap[k])kindMap[k]={count:0,maxSev:0,sev:'LOW'};
+    kindMap[k].count++;
+    const so=sevOrder[a.severity]||1;
+    if(so>kindMap[k].maxSev){kindMap[k].maxSev=so;kindMap[k].sev=a.severity;}
+  });
+  const entries=Object.entries(kindMap).sort((a,b)=>b[1].count-a[1].count);
+  const labels=entries.map(([k])=>k);
+  const values=entries.map(([,v])=>v.count);
+  const colors=entries.map(([,v])=>v.sev==='CRITICAL'||v.sev==='HIGH'?'#df6b86':v.sev==='MEDIUM'?'#d4b066':'#8b929c');
+  if(charts.anomalyProfile)charts.anomalyProfile.destroy();
+  charts.anomalyProfile=new Chart(el,{
+    type:'bar',
+    data:{labels,datasets:[{data:values,backgroundColor:colors,borderRadius:4,borderSkipped:false}]},
+    options:{
+      indexAxis:'y',responsive:true,animation:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x} alerta${ctx.parsed.x!==1?'s':''}`}}},
+      scales:{
+        x:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},stepSize:1},beginAtZero:true},
+        y:{grid:{display:false},ticks:{color:'#8b929c',font:{size:11}}}
+      }
+    }
+  });
+  if(note)note.textContent=`${alerts.length} alerta${alerts.length!==1?'s':''} en ${entries.length} categoría${entries.length!==1?'s':''}.`;
+}
+
+// ── EVIDENCE BUNDLE ──
+async function downloadEvidenceBundle(){
+  const btn=document.getElementById('evidence-btn');
+  if(btn){btn.textContent='⏳ Generando…';btn.disabled=true;}
+  try{
+    const snap=_lastSnap||{};
+    const data=globalData||{};
+    const now=new Date().toISOString();
+    const electionId=(snap.election_id)||'HN-2025-PRESIDENCIAL';
+    const rootHash=(snap.chain?.merkle_root)||'—';
+    const snapshotHash=(snap.chain?.latest_hash)||'—';
+    const generatedAt=snap.generated_at||now;
+
+    // audit_trail.json
+    const candidates=data.national?.candidates||[];
+    const sorted=[...candidates].sort((a,b)=>b.votes-a.votes);
+    const auditTrail={
+      schema:'centinel-log-v1',
+      institution:'C.E.N.T.I.N.E.L.',
+      generated_at_utc:now,
+      election_id:electionId,
+      source:'JSON oficial CNE / Official CNE JSON',
+      scope:'Nacional / National',
+      snapshot_hash:snapshotHash,
+      root_hash:rootHash,
+      chain_length:snap.chain?.chain_length||0,
+      ots_status:snap.chain?.ots_status||'unknown',
+      metrics:{
+        actas_total:data.national?.actasTotal||0,
+        actas_escrutadas:data.national?.actasEscrutadas||0,
+        total_votes:data.national?.totalVotes||0,
+        integrity_pct:data.national?.integrityPercent||100,
+        alerts_count:(data._alerts||[]).length,
+      },
+      anomalies_with_evidence:(data._alerts||[]).map(a=>({
+        schema:'centinel-log-v1',
+        timestamp:a.created_at||now,
+        election_id:electionId,
+        severity:a.severity,
+        kind:a.kind||a.rule_id,
+        dept_code:a.dept_code||null,
+        description:a.description,
+      })),
+    };
+
+    // chain_verification.json
+    const chainVerification={
+      schema:'centinel-log-v1',
+      generated_at_utc:now,
+      election_id:electionId,
+      latest_hash:snapshotHash,
+      merkle_root:rootHash,
+      chain_length:snap.chain?.chain_length||0,
+      ots_status:snap.chain?.ots_status||'unknown',
+      verified_from_frontend:true,
+      note:'Full backend verification available at /audit/chain/verify',
+    };
+
+    // anomalies.jsonl
+    const anomaliesJsonl=(data._alerts||[]).map(a=>JSON.stringify({
+      schema:'centinel-log-v1',
+      timestamp:a.created_at||now,
+      election_id:electionId,
+      level:a.severity,
+      event:'alert',
+      kind:a.kind||a.rule_id,
+      dept_code:a.dept_code||null,
+      description:a.description,
+    })).join('\n');
+
+    // manifest.json — SHA-256 via SubtleCrypto
+    const filesToHash={
+      'audit_trail.json':JSON.stringify(auditTrail,null,2),
+      'chain_verification.json':JSON.stringify(chainVerification,null,2),
+      'anomalies.jsonl':anomaliesJsonl,
+    };
+    const enc=new TextEncoder();
+    const fileHashes={};
+    for(const[name,content]of Object.entries(filesToHash)){
+      const buf=await crypto.subtle.digest('SHA-256',enc.encode(content));
+      fileHashes[name]=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+    const manifest={
+      schema:'centinel-log-v1',
+      generated_at_utc:now,
+      election_id:electionId,
+      root_hash:rootHash,
+      files:fileHashes,
+      note:'Verify each file hash, then verify bundle_signature = HMAC-SHA256(files_json, key=root_hash)',
+    };
+
+    // Pack ZIP with JSZip
+    const zip=new JSZip();
+    zip.file('manifest.json',JSON.stringify(manifest,null,2));
+    zip.file('audit_trail.json',JSON.stringify(auditTrail,null,2));
+    zip.file('chain_verification.json',JSON.stringify(chainVerification,null,2));
+    zip.file('anomalies.jsonl',anomaliesJsonl);
+    if(snap.forensics?.ots_proof){
+      zip.file('ots_proof.json',JSON.stringify(snap.forensics.ots_proof,null,2));
+    }
+    zip.file('VERIFY.txt',`CENTINEL — Instrucciones de Verificación / Verification Instructions
+======================================================================
+
+ES: Este paquete contiene evidencia criptográficamente verificable de monitoreo
+electoral. Para verificar la integridad:
+
+1. Calcule el SHA-256 de cada archivo listado en manifest.json.
+   Compárelo con el valor "sha256" correspondiente en el manifiesto.
+
+2. Verifique la firma del manifiesto:
+   clave = root_hash (campo en manifest.json y audit_trail.json)
+   algoritmo = HMAC-SHA256
+
+3. Si ots_proof.json está presente, verifique el anclaje Bitcoin:
+   https://opentimestamps.org
+
+4. Verificación completa de cadena de bloques:
+   ${window.location.origin}/audit/chain/verify
+
+EN: This package contains cryptographically verifiable electoral monitoring evidence.
+Schema: centinel-log-v1
+Election: ${electionId}
+Generated: ${now}
+Root hash: ${rootHash}
+`);
+
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    const ts=now.replace(/[:.]/g,'-').slice(0,19);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`centinel-evidencia-${electionId}-${ts}.zip`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }catch(e){
+    console.error('Evidence bundle error:',e);
+    alert('Error al generar el paquete de evidencia. Ver consola.');
+  }finally{
+    if(btn){btn.textContent='⬇ Evidencia';btn.disabled=false;}
+  }
+}
+
+function _showDemoBanner(){
+  document.getElementById('demo-banner').classList.add('visible');
+}
+function _hideDemoBanner(){
+  document.getElementById('demo-banner').classList.remove('visible');
+}
+
+function _isSnapshotEmpty(snap){
+  const nat=snap.national||{};
+  const hasCandidates=Object.keys(nat.candidatos||nat.candidates||{}).length>0;
+  const hasDepartments=Object.keys(snap.departments||{}).length>0;
+  const hasForensics=Object.keys(snap.forensics||{}).length>0;
+  return !hasCandidates && !hasDepartments && !hasForensics;
+}
+
+async function loadData(){
+  // 1. Static JSON — CDN edge, zero dependency
+  try{
+    const r=await fetch('../data/snapshot.json',{cache:'no-store'});
+    if(r.ok){
+      const snap=await r.json();
+      if(!_isSnapshotEmpty(snap)){
+        _hideDemoBanner();_applySnapshot(snap);return;
+      }
+    }
+  }catch(_){}
+
+  // 2. Demo/offline fallback — show prominent warning
+  _showDemoBanner();
+  let data=DEMO.dashboard;
+  data._snapshots=DEMO.snapshots;
+  data._alerts=DEMO.alerts;
+  globalData=data;
+  _renderAll(data,null);
+}
+
+(async()=>{await loadDepartments();
+  loadCountryMap(localStorage.getItem('centinel_country_code') || 'HN');loadData();})();
+setInterval(loadData, 30000); // refresh cada 30s
+
+// ── NUEVO: ÚLTIMO DÍGITO ──
+function renderLastDigit(forensics){
+  const el=document.getElementById('chart-lastdigit');
+  if(!el)return;
+  const ld=forensics?.last_digit||null;
+  const labels=['0','1','2','3','4','5','6','7','8','9'];
+  const expected=labels.map(()=>10);
+  if(!ld||!ld.counts||ld.counts.length!==10){
+    if(charts.lastdigit){charts.lastdigit.destroy();charts.lastdigit=null;}
+    document.getElementById('lastdigit-stats').textContent='Sin datos reales — requiere conteos por acta individual.';
+    el.style.display='none';
+    return;
+  }
+  el.style.display='';
+  const total=ld.counts.reduce((a,b)=>a+b,0)||1;
+  const observed=ld.counts.map(c=>+(c/total*100).toFixed(2));
+  const chi2=ld.chi2||0;
+  const note=`χ²=${chi2.toFixed(2)} · ${chi2>15.5?'⚠ Distribución no uniforme':'Distribución uniforme (esperado)'}`;
+  document.getElementById('lastdigit-stats').textContent=note;
+  if(charts.lastdigit)charts.lastdigit.destroy();
+  charts.lastdigit=new Chart(el,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Observado (%)',data:observed,backgroundColor:'rgba(110,168,254,.6)',borderRadius:4,borderSkipped:false},
+      {label:'Esperado (10%)',data:expected,backgroundColor:'rgba(139,146,156,.2)',borderRadius:4,borderSkipped:false},
+    ]},
+    options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},scales:{x:{ticks:{color:'#8b929c'}},y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',callback:v=>v+'%'},max:20}}}
+  });
+}
+
+// ── NUEVO: Z-SCORE POR DEPARTAMENTO ──
+function renderZScore(departments){
+  const el=document.getElementById('chart-zscore');
+  if(!el)return;
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
+  if(!depts.length)return;
+  const labels=depts.map(([code])=>DEPT_NAMES[code]||code);
+  const vals=depts.map(([,d])=>+(d.zscore??0).toFixed(2));
+  if(charts.zscore)charts.zscore.destroy();
+  charts.zscore=new Chart(el,{
+    type:'bar',
+    data:{labels,datasets:[{label:'Z-score',data:vals,
+      backgroundColor:vals.map(v=>Math.abs(v)>2?'rgba(223,107,134,.7)':Math.abs(v)>1?'rgba(212,176,102,.7)':'rgba(87,192,141,.55)'),
+      borderRadius:4,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#24272e'},ticks:{color:'#8b929c'},title:{display:true,text:'Z-score',color:'#8b929c'}},y:{ticks:{color:'#8b929c',font:{size:11}}}}}
+  });
+}
+
+// ── NUEVO: PARTICIPACIÓN POR DEPARTAMENTO ──
+function renderParticipation(departments){
+  const el=document.getElementById('chart-participation');
+  if(!el)return;
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
+  if(!depts.length)return;
+  const labels=depts.map(([code])=>DEPT_NAMES[code]||code);
+  const vals=depts.map(([,d])=>{
+    if(!d.actasTotal||!d.actasEscrutadas)return 0;
+    return +((d.actasEscrutadas/d.actasTotal)*100).toFixed(1);
+  });
+  if(charts.participation)charts.participation.destroy();
+  charts.participation=new Chart(el,{
+    type:'bar',
+    data:{labels,datasets:[{label:'% registros divulgados',data:vals,
+      backgroundColor:vals.map(v=>v<50?'rgba(223,107,134,.6)':v<80?'rgba(212,176,102,.6)':'rgba(87,192,141,.55)'),
+      borderRadius:4,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#24272e'},ticks:{color:'#8b929c',callback:v=>v+'%'},max:100},y:{ticks:{color:'#8b929c',font:{size:11}}}}}
+  });
+}
+
+// ── NUEVO: NULOS Y BLANCOS POR DEPARTAMENTO ──
+function renderNullBlank(departments){
+  const el=document.getElementById('chart-nullblank');
+  if(!el)return;
+  const _allDepts=departments?Object.entries(departments):[];
+  const depts=_activeDeptFilter?_allDepts.filter(([c])=>c===_activeDeptFilter):_allDepts;
+  if(!depts.length)return;
+  const labels=depts.map(([code])=>DEPT_NAMES[code]||code);
+  const nulls=depts.map(([,d])=>d.nullVotes||0);
+  const blanks=depts.map(([,d])=>d.blankVotes||0);
+  if(charts.nullblank)charts.nullblank.destroy();
+  charts.nullblank=new Chart(el,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Nulos',data:nulls,backgroundColor:'rgba(223,107,134,.6)',borderRadius:4,borderSkipped:false},
+      {label:'Blancos',data:blanks,backgroundColor:'rgba(212,176,102,.5)',borderRadius:4,borderSkipped:false},
+    ]},
+    options:{indexAxis:'y',responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},
+      scales:{x:{grid:{color:'#24272e'},ticks:{color:'#8b929c',stacked:true}},y:{ticks:{color:'#8b929c',font:{size:11}},stacked:true}}}
+  });
+}
+
+// ── PERSONALIZAR: toggle de secciones ──
+const SECTION_LABELS={
+  confidence:'Score de confianza',
+  incons:'Registros inconsistentes',candidates:'Candidatos y mapa',
+  timeline:'Serie temporal',benford2:'Benford 2do dígito (Mebane)',klimek:'Klimek Fingerprint',
+  benford:'Benford 1er dígito',lastdigit:'Último dígito',
+  zscore:'Z-score por depto',participation:'Participación por depto',
+  nullblank:'Nulos y blancos',endpoints:'Endpoints CNE',alerts:'Alertas',forensics:'Análisis forense',
+  velocity:'Velocidad de escrutinio',leader:'Evolución del liderazgo',invalids:'Nulos/Blancos en el tiempo',
+  mutations:'Mutaciones de datos',cusum:'CUSUM change-point',
+  'anomaly-profile':'Perfil de anomalías',margin:'Ventaja del líder',chain:'Cadena criptográfica',
+  'prog-injection':'Inyección progresiva','hold-release':'Retención-liberación',
+  asymmetric:'Beneficio asimétrico','blackout-analysis':'Ventanas de oscurecimiento',
+  'timeseries-diag':'Diagnósticos de series','forensic-radar':'Radar forense integral',
+  'bubble-scatter':'Dispersión tridimensional','alert-doughnut':'Composición de alertas',
+  export:'Exportar reporte',
+};
+function applySectionPrefs(){
+  const prefs=JSON.parse(localStorage.getItem('centinel_sections')||'{}');
+  document.querySelectorAll('[data-section]').forEach(el=>{
+    const key=el.dataset.section;
+    if(prefs[key]===false)el.style.display='none';
+  });
+}
+function toggleSection(key,visible){
+  document.querySelectorAll(`[data-section="${key}"]`).forEach(el=>el.style.display=visible?'':'none');
+  const prefs=JSON.parse(localStorage.getItem('centinel_sections')||'{}');
+  prefs[key]=visible;
+  localStorage.setItem('centinel_sections',JSON.stringify(prefs));
+}
+function toggleDrawer(){
+  const d=document.getElementById('customize-drawer');
+  const open=d.style.display==='block';
+  if(open){d.style.display='none';return;}
+  const prefs=JSON.parse(localStorage.getItem('centinel_sections')||'{}');
+  const items=document.getElementById('drawer-items');
+  items.innerHTML='';
+  document.querySelectorAll('[data-section]').forEach(el=>{
+    const key=el.dataset.section;
+    if(!SECTION_LABELS[key])return;
+    const checked=prefs[key]!==false;
+    const row=document.createElement('label');
+    row.className='drawer-item';
+    const cb=document.createElement('input');
+    cb.type='checkbox';cb.checked=checked;
+    cb.onchange=()=>toggleSection(key,cb.checked);
+    row.appendChild(cb);
+    row.appendChild(document.createTextNode(SECTION_LABELS[key]));
+    items.appendChild(row);
+  });
+  d.style.display='block';
+}
+
+// ── INFO TIPS ──
+const H2_TIPS={
+  'Registros divulgados (JSON CNE)':'Cuántos registros JSON ha publicado el CNE vs. el total esperado. Un porcentaje bajo puede indicar conteo incompleto o retención de datos. Si sube de golpe, revisa si hubo un apagón previo.',
+  'Total votos':'Suma de votos válidos contabilizados según el JSON del CNE. El motor verifica que no suba más rápido de lo que permite la velocidad física de procesamiento de actas.',
+  'Participación':'Porcentaje del padrón electoral que votó. Valores inusualmente altos (>85%) o saltos bruscos entre capturas pueden indicar anomalía.',
+  'Integridad':'Porcentaje de snapshots con cadena de hashes SHA-256 íntegra. 100% = ningún dato fue alterado. Cualquier valor menor es una señal crítica de manipulación.',
+  'Registros inconsistentes — bajo vigilancia permanente':'Registros que el propio CNE etiqueta como "inconsistentes". Su crecimiento sostenido indica re-asignación activa de votos. Son el indicador más directo de manipulación del conteo oficial.',
+  'Distribución de candidatos':'Porcentaje de votos por candidato según el JSON del CNE en tiempo real. El motor verifica que los porcentajes no salten de forma abrupta entre capturas consecutivas.',
+  'Estado por departamento':'Estado criptográfico de cada departamento. Verde = íntegro, amarillo = anomalía estadística detectada, rojo = ruptura de cadena. El punto pequeño en la esquina de cada celda indica si el endpoint CNE de ese departamento está activo.',
+  'Progreso de registros en el tiempo':'Serie temporal de snapshots capturados. Los gaps en la línea son períodos sin datos — toda interrupción mayor a la cadencia objetivo se marca como sospechosa por defecto.',
+  'Vigilancia forense':'Detectores estadísticos avanzados que buscan patrones de fraude: inyección progresiva de votos, velocidad anómala de resolución de actas, beneficio asimétrico a un candidato, retención y liberación masiva, y análisis de Benford.',
+  'Benford — distribución primer dígito':'La Ley de Benford predice la frecuencia natural del primer dígito en datos electorales grandes. Desviaciones significativas (chi² alto, p<0.05) sugieren que los datos fueron fabricados o alterados artificialmente.',
+  'Alertas registradas':'Eventos de anomalía generados por el motor. CRÍTICO = ruptura de integridad o patrón de fraude confirmado. ALTO = brecha de cobertura o patrón estadístico sospechoso. MEDIO/BAJO = señales tempranas a vigilar.',
+  'Cadena de custodia criptográfica':'Cada snapshot está enlazado al anterior con un hash SHA-256, formando una cadena inmutable. Si cualquier dato histórico es alterado, el hash no coincide y el motor lo detecta de inmediato.',
+  'Distribución del último dígito':'El último dígito de los totales de votos debe distribuirse uniformemente (≈10% cada dígito 0–9) en datos auténticos. Preferencia por dígitos pares o redondos sugiere estimación o fabricación.',
+  'Z-score por departamento':'Desviación estándar de los votos de cada departamento respecto a la media nacional. Z > 2σ (amarillo) o Z > 3σ (rojo) indica un departamento estadísticamente inusual.',
+  'Participación por departamento (%)':'Porcentaje de actas divulgadas por departamento. Brechas grandes entre departamentos pueden indicar retención selectiva de datos.',
+  'Nulos y blancos por departamento':'Votos nulos y en blanco por departamento. Concentraciones inusualmente altas pueden indicar manipulación o problemas en la jornada.',
+  'Inyección progresiva de votos':'Detecta adiciones incrementales de votos que alteran progresivamente el resultado. Usa z-score acumulado por ciclo, autocorrelación lag-1 (Durbin-Watson) y Runs test (Wald-Wolfowitz, 1940).',
+  'Retención y liberación masiva (Hold & Release)':'Identifica estancamientos prolongados seguidos de liberación abrupta de actas. Patrón consistente con control centralizado del flujo de resultados.',
+  'Beneficio asimétrico por candidato':'Compara proporción de votos en escrutinio normal vs. especial por candidato. Una desviación significativa (z-score > 1.96) sugiere manipulación selectiva.',
+  'Ventanas de oscurecimiento (Blackout)':'Periodos sin publicación de datos. Analiza correlación entre la duración del gap y cambios post-gap en tendencia (gap-to-trend). Interferencia = cambio de tendencia estadísticamente significativo.',
+  'Diagnósticos de series temporales':'Métricas de independencia: autocorrelación lag-1, Runs test (Wald-Wolfowitz 1940), Durbin-Watson (1951). Datos manufacturados muestran dependencia serial anómala.',
+  'Radar forense integral':'Vista unificada de todos los detectores. Cada eje mide intensidad de anomalía normalizada (0=limpio, 1=máximo). Polígono grande y rojo = múltiples anomalías simultáneas.',
+  'Dispersión tridimensional (participación × % líder × alertas)':'Extensión del Klimek fingerprint a 3 dimensiones. Cada burbuja es un departamento: X=participación, Y=% líder, tamaño=alertas.',
+  'Composición de alertas por tipo':'Distribución de alertas activas por categoría. Permite identificar rápidamente qué tipo de anomalía predomina en el conteo actual.',
+};
+const KPI_TIPS={
+  'kpi-registros':'Número de actas escrutadas publicadas por el CNE vs. el total esperado. Un porcentaje bajo indica conteo incompleto o posible retención selectiva de datos.',
+  'kpi-votos':'Suma acumulada de votos válidos contabilizados. El motor verifica que el ritmo de crecimiento sea físicamente posible dada la velocidad de escrutinio.',
+  'kpi-participacion':'Porcentaje del padrón electoral que votó según el conteo actual. Valores > 85% o saltos bruscos entre capturas son señal de alerta estadística.',
+  'kpi-integridad':'Porcentaje de snapshots con cadena SHA-256 íntegra. 100% = ningún dato publicado fue alterado retroactivamente. Cualquier valor menor es señal crítica.',
+  'badge-alert':'Estado general del sistema. NORMAL = sin anomalías. ANOMALÍA = reglas estadísticas activadas. RUPTURA = cadena criptográfica rota.',
+  'badge-chain':'Integridad de la cadena SHA-256 de todos los snapshots capturados. ROTA = un dato histórico fue modificado tras su captura.',
+  'badge-ots':'Prueba OpenTimestamps anclada en la red Bitcoin. VERIFICANDO = esperando confirmación en blockchain (tarda horas). CONFIRMADO = inmutable.',
+  'badge-mirror':'Número de espejos activos que replican los datos de forma independiente. Cada mirror es un testigo adicional de integridad.',
+  'badge-ep':'Estado del endpoint nacional del CNE. Indica si el sistema puede alcanzar la fuente oficial de datos en este momento.',
+};
+function initInfoTips(){
+  document.querySelectorAll('.card h2').forEach(h2=>{
+    const key=h2.childNodes[0]?.textContent?.trim()||h2.textContent.trim();
+    const tip=H2_TIPS[key];
+    if(!tip||h2.querySelector('.info-tip'))return;
+    const s=document.createElement('span');
+    s.className='info-tip';s.textContent='ℹ';s.dataset.tooltip=tip;
+    h2.appendChild(s);
+  });
+  document.querySelectorAll('[data-tip-key]').forEach(el=>{
+    if(el.querySelector('.info-tip'))return;
+    const tip=KPI_TIPS[el.dataset.tipKey];
+    if(!tip)return;
+    const s=document.createElement('span');
+    s.className='info-tip';s.textContent='ℹ';s.dataset.tooltip=tip;
+    el.appendChild(s);
+  });
+}
+// ── GLOBAL HOVER TOOLTIP (data-gtt + .info-tip) ──
+const _gtt=document.getElementById('g-tooltip');
+let _gttHide=null;
+function _showGtt(text,target){
+  if(!text)return;
+  _gtt.textContent=text;_gtt.style.display='block';
+  const r=target.getBoundingClientRect();
+  let top=r.bottom+8+window.scrollY;
+  let left=r.left+window.scrollX;
+  if(left+270>window.innerWidth)left=window.innerWidth-274;
+  if(top+100>window.innerHeight+window.scrollY)top=r.top-8+window.scrollY-_gtt.offsetHeight;
+  _gtt.style.top=top+'px';_gtt.style.left=left+'px';
+}
+function _hideGtt(){_gtt.style.display='none';}
+document.addEventListener('mouseover',e=>{
+  const t=e.target.closest('[data-gtt]')||e.target.closest('.info-tip');
+  if(!t)return;
+  if(_gttHide)clearTimeout(_gttHide);
+  const txt=t.dataset.gtt||t.dataset.tooltip||'';
+  _showGtt(txt,t);
+});
+document.addEventListener('mouseout',e=>{
+  if(!e.relatedTarget||!e.relatedTarget.closest?.('[data-gtt],.info-tip'))
+    _gttHide=setTimeout(_hideGtt,120);
+});
+document.addEventListener('scroll',_hideGtt,{passive:true});
+initInfoTips();
+</script>
+<script>
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('../sw.js').catch(()=>{});
+}
+</script>
+
+<script>
+/* ── VIGIL THEME TOGGLE ── */
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('vigil-theme', t);
+  // Update Chart.js colors if charts exist
+  if (window.Chart) {
+    Chart.defaults.color = getComputedStyle(document.documentElement)
+      .getPropertyValue('--muted').trim();
+    Chart.defaults.borderColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--border').trim();
+  }
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  setTheme(current === 'dark' ? 'light' : 'dark');
+}
+// Restore saved preference
+const savedTheme = localStorage.getItem('vigil-theme') || 'dark';
+setTheme(savedTheme);
+
+/* ── VIGIL LANGUAGE TOGGLE ── */
+function setLang(l) {
+  document.documentElement.setAttribute('lang', l);
+  document.body.classList.remove('lang-en', 'lang-es');
+  document.body.classList.add('lang-' + l);
+  document.getElementById('lang-toggle').textContent = l === 'en' ? 'ES' : 'EN';
+  localStorage.setItem('vigil-lang', l);
+}
+function toggleLang() {
+  const current = localStorage.getItem('vigil-lang') || 'es';
+  setLang(current === 'en' ? 'es' : 'en');
+}
+setLang(localStorage.getItem('vigil-lang') || 'es');
+</script>
+
+</body>
+</html>

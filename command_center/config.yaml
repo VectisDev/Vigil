@@ -1,0 +1,314 @@
+master_switch: 'ON'
+scope:
+- presidential
+allow_mock: false
+cne_domains:
+- resultadosgenerales2025.cne.hn
+timestamp_max_age_hours: 2
+max_forward_drift_minutes: 10
+base_url: https://resultadosgenerales2025.cne.hn/api/presidencial/nacional
+endpoints:
+  nacional: https://resultadosgenerales2025.cne.hn/api/presidencial/nacional
+  '01': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/01
+  '02': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/02
+  '03': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/03
+  '04': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/04
+  '05': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/05
+  '06': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/06
+  '07': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/07
+  08: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/08
+  09: https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/09
+  '10': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/10
+  '11': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/11
+  '12': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/12
+  '13': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/13
+  '14': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/14
+  '15': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/15
+  '16': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/16
+  '17': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/17
+  '18': https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/18
+timeout: 15
+retries: 3
+backoff_base_seconds: 1
+backoff_max_seconds: 30
+ENABLE_BACKUP: true
+polling_rate_limit:
+  cooldown_seconds: 10
+  state_path: data/temp/polling_rate_limit.json
+headers:
+  Accept: application/json
+  User-Agent: C.E.N.T.I.N.E.L./1.0
+use_playwright: false
+playwright_stealth: true
+playwright_user_agent: C.E.N.T.I.N.E.L./1.0
+playwright_viewport:
+  width: 1280
+  height: 720
+playwright_locale: es-HN
+playwright_timezone: America/Tegucigalpa
+candidate_count: 10
+required_keys: []
+field_map:
+  totals:
+    valid_votes:
+    - estadisticas.distribucion_votos.validos
+    null_votes:
+    - estadisticas.distribucion_votos.nulos
+    blank_votes:
+    - estadisticas.distribucion_votos.blancos
+    total_votes:
+    - estadisticas.distribucion_votos.total
+  candidate_roots:
+  - resultados
+sources:
+- name: Nacional
+  source_id: NACIONAL
+  level: PRES
+  scope: NATIONAL
+- name: Atlántida
+  source_id: 01_atlantida
+  department_code: '01'
+  level: PRES
+  scope: DEPARTMENT
+- name: Choluteca
+  source_id: 02_choluteca
+  department_code: '02'
+  level: PRES
+  scope: DEPARTMENT
+- name: Colón
+  source_id: 03_colon
+  department_code: '03'
+  level: PRES
+  scope: DEPARTMENT
+- name: Comayagua
+  source_id: 04_comayagua
+  department_code: '04'
+  level: PRES
+  scope: DEPARTMENT
+- name: Copán
+  source_id: 05_copan
+  department_code: '05'
+  level: PRES
+  scope: DEPARTMENT
+- name: Cortés
+  source_id: 06_cortes
+  department_code: '06'
+  level: PRES
+  scope: DEPARTMENT
+- name: El Paraíso
+  source_id: 07_el_paraiso
+  department_code: '07'
+  level: PRES
+  scope: DEPARTMENT
+- name: Francisco Morazán
+  source_id: 08_francisco_morazan
+  department_code: 08
+  level: PRES
+  scope: DEPARTMENT
+- name: Gracias a Dios
+  source_id: 09_gracias_a_dios
+  department_code: 09
+  level: PRES
+  scope: DEPARTMENT
+- name: Intibucá
+  source_id: 10_intibuca
+  department_code: '10'
+  level: PRES
+  scope: DEPARTMENT
+- name: Islas de la Bahía
+  source_id: 11_islas_de_la_bahia
+  department_code: '11'
+  level: PRES
+  scope: DEPARTMENT
+- name: La Paz
+  source_id: 12_la_paz
+  department_code: '12'
+  level: PRES
+  scope: DEPARTMENT
+- name: Lempira
+  source_id: 13_lempira
+  department_code: '13'
+  level: PRES
+  scope: DEPARTMENT
+- name: Ocotepeque
+  source_id: 14_ocotepeque
+  department_code: '14'
+  level: PRES
+  scope: DEPARTMENT
+- name: Olancho
+  source_id: 15_olancho
+  department_code: '15'
+  level: PRES
+  scope: DEPARTMENT
+- name: Santa Bárbara
+  source_id: 16_santa_barbara
+  department_code: '16'
+  level: PRES
+  scope: DEPARTMENT
+- name: Valle
+  source_id: 17_valle
+  department_code: '17'
+  level: PRES
+  scope: DEPARTMENT
+- name: Yoro
+  source_id: 18_yoro
+  department_code: '18'
+  level: PRES
+  scope: DEPARTMENT
+logging:
+  level: INFO
+  file: C.E.N.T.I.N.E.L.log
+alerts:
+  critical_anomaly_types:
+  - ARITHMETIC_MISMATCH
+  - NEGATIVE_DELTA
+  - CHANGE_POINT
+  - RELATIVE_DELTA
+  - SCRUTINY_JUMP
+  - VOTE_BREAKDOWN_MISMATCH
+  log_path: alerts.log
+  output_path: data/alerts.json
+security:
+  zero_trust: true
+  zero_trust_config:
+    rate_limit_rpm: 20
+    max_body_bytes: 1048576
+    ip_blocklist: []
+    trusted_proxy_cidrs: []
+    blocked_headers: []
+  log_hashing: true
+  log_encryption: false
+  log_encryption_key_env: CENTINEL_LOG_KEY
+resilience:
+  auto_resume:
+    enabled: true
+    max_attempts: 5
+    backoff_base_seconds: 5
+    backoff_max_seconds: 60
+    retry_on: any
+  chaos:
+    enabled: false
+    failure_rate: 0.9
+    seed: 2026
+  dos_thresholds:
+    cpu: 90
+    memory: 90
+    disk: 95
+  watchdog_daemon:
+    enabled: true
+    check_interval_seconds: 30
+    cooldown_seconds: 120
+    failure_threshold: 3
+opentimestamps:
+  enabled: true
+  calendars:
+  - https://alice.btc.calendar.opentimestamps.org
+  - https://bob.btc.calendar.opentimestamps.org
+  - https://finney.calendar.eternitywall.com
+  - https://ots.btc.catallaxy.com
+  timeout_seconds: 30
+  pending_file: data/pending_ots.json
+custody:
+  verify_on_startup: true
+  verify_anchors_on_startup: false
+  verify_signatures: true
+  max_anchor_checks: 5
+  sign_hash_records: true
+  operator_id: default-operator
+rules:
+  global_enabled: true
+  basic_diff:
+    enabled: true
+  benford_first_digit:
+    enabled: true
+  benford_law:
+    enabled: true
+  geographic_dispersion:
+    enabled: true
+  granular_anomaly:
+    enabled: true
+    negative_delta_threshold: 0
+    delta_pct_alert: 0.5
+    delta_pct_time_window_minutes: 30
+    zscore_threshold: 3.0
+    zscore_min_abs_delta: 100
+    zscore_min_departments: 5
+    benford_pvalue_threshold: 0.05
+    benford_min_samples: 10
+    benford_min_vote: 10
+    turnout_min_pct: 0
+    turnout_max_pct: 100
+    reversal_min_lead_margin: 500
+    reversal_time_window_minutes: 30
+    reversal_min_negative_delta: 100
+    sum_mismatch_threshold: 1
+  inconsistency_rate:
+    enabled: true
+    severity: CRITICAL
+    critical_pct: 10
+    escalation_delta_pct: 0.5
+  irreversibility:
+    enabled: true
+    historical_participation_rate: 0.6
+    sqlite_path: reports/irreversibility_state.db
+  large_numbers_convergence:
+    enabled: true
+    min_samples: 30
+    z_threshold: 3.0
+    min_total_votes: 200
+  last_digit_uniformity:
+    enabled: true
+  late_mesa:
+    enabled: true
+  mesa_impossibility:
+    enabled: true
+  mesa_reconciliation:
+    enabled: true
+  mesas_diff:
+    enabled: true
+  ml_outliers:
+    enabled: true
+  null_blank_votes:
+    enabled: true
+    severity: CRITICAL
+    warning_pct: 8
+    critical_pct: 12
+  participation_anomaly:
+    enabled: true
+  participation_anomaly_advanced:
+    enabled: true
+    min_turnout_pct: 40
+    max_turnout_pct: 100
+    historical_mean: 88.15
+    historical_std: 5.51
+  participation_vote_correlation:
+    enabled: true
+    min_samples: 30
+    critical_r: 0.85
+  processing_speed:
+    enabled: true
+    max_actas_per_15min: 500
+  runs_test:
+    enabled: true
+    min_samples: 30
+    critical_pvalue: 0.01
+  snapshot_jump:
+    enabled: true
+    max_change_pct: 5
+    max_minutes: 10
+  table_consistency:
+    enabled: true
+    total_tolerance: 1
+  trend_shift:
+    enabled: true
+    threshold_percent: 10
+    max_hours: 3
+  turnout_impossible:
+    enabled: true
+    min_turnout_pct: 0
+    max_turnout_pct: 100
+centinel:
+  country: HN
+  year: '2025'
+  setup_at: '2026-05-25T06:15:14.290860+00:00'
+  setup_source: github-actions-wizard

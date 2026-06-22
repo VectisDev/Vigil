@@ -1,0 +1,13 @@
+{
+  "generated": "2026-06-07",
+  "method": "synthetic_from_national",
+  "n_departments": 18,
+  "seed": 2025,
+  "cv_leading_share": 0.0191,
+  "cv_turnout": 0.0289,
+  "calibrated_thresholds": {
+    "warning_cv": 0.15,
+    "critical_cv": 0.45,
+    "status": "VALIDATED_NO_FP"
+  }
+}

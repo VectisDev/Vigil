@@ -1,0 +1,140 @@
+.PHONY: help quickstart launch wizard setup install start stop restart status logs \
+        init snapshot collect audit analyze summary pipeline report calibrate \
+        security test-stress security-scan test lint \
+        test-security test-security-chaos test-security-all \
+        reproduce-2025-audit
+
+PYTHON_COMMAND ?= python
+SERVICE        := scripts/centinel_service.sh
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  INICIO RÁPIDO / QUICK START
+# ══════════════════════════════════════════════════════════════════════════════
+
+help: ## Muestra esta ayuda / Show this help
+	@printf '\n\033[1mCentinel Engine — Comandos disponibles / Available commands\033[0m\n\n'
+	@awk 'BEGIN{FS=":.*##"} /^[a-zA-Z_-]+:.*##/ { printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@printf '\n\033[1mEjemplo de inicio rápido / Quick start example:\033[0m\n'
+	@printf '  make install   # instalar dependencias\n'
+	@printf '  make launch    # abrir Centinel en el navegador\n'
+	@printf '  make start     # arrancar el pipeline en background\n\n'
+
+quickstart: ## Todo en uno: instalar + abrir en navegador / All-in-one: install + open browser
+	@./scripts/bootstrap.sh
+	@$(PYTHON_COMMAND) scripts/launch.py
+
+launch: ## Abrir Centinel en el navegador (instalar si es necesario) / Open Centinel in browser
+	@$(PYTHON_COMMAND) scripts/launch.py
+
+install: ## Instalar dependencias (Poetry o pip) / Install dependencies
+	@./scripts/bootstrap.sh
+
+wizard: ## Abrir el wizard de configuración en el navegador / Open setup wizard in browser
+	@$(PYTHON_COMMAND) scripts/launch.py
+
+setup: wizard ## Alias de wizard / Alias for wizard
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GESTIÓN DEL SERVICIO / SERVICE MANAGEMENT
+# ══════════════════════════════════════════════════════════════════════════════
+
+start: ## Iniciar el pipeline en segundo plano (autónomo) / Start pipeline in background
+	@bash $(SERVICE) start
+
+stop: ## Detener el pipeline / Stop the pipeline
+	@bash $(SERVICE) stop
+
+restart: ## Reiniciar el pipeline / Restart the pipeline
+	@bash $(SERVICE) restart
+
+status: ## Ver estado del pipeline / Check pipeline status
+	@bash $(SERVICE) status
+
+logs: ## Ver logs en tiempo real (Ctrl-C para salir) / Tail logs live
+	@bash $(SERVICE) logs
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  OPERACIÓN MANUAL / MANUAL OPERATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+init: ## Inicializar configuración y hashes / Initialize config and hashes
+	$(PYTHON_COMMAND) scripts/bootstrap.py
+
+snapshot: ## Capturar y hashear snapshot del CNE / Capture and hash CNE snapshot
+	$(PYTHON_COMMAND) scripts/download_and_hash.py
+
+collect: ## Recolectar datos / Collect data
+	mkdir -p logs
+	$(PYTHON_COMMAND) -m scripts.collector 2>&1 | tee logs/collector.log
+
+audit: ## Analizar snapshot actual / Analyze current snapshot
+	mkdir -p logs
+	$(PYTHON_COMMAND) -m scripts.snapshot 2>&1 | tee logs/audit.log
+
+analyze: ## Correr análisis de reglas / Run rules analysis
+	$(PYTHON_COMMAND) scripts/analyze_rules.py
+
+summary: ## Resumir hallazgos / Summarize findings
+	$(PYTHON_COMMAND) scripts/summarize_findings.py
+
+pipeline: ## Ejecutar pipeline UNA vez / Run pipeline ONCE
+	$(PYTHON_COMMAND) scripts/run_pipeline.py --once
+
+report: ## Generar informe PDF bilingüe / Generate bilingual PDF audit report
+	$(PYTHON_COMMAND) scripts/generate_report.py
+
+calibrate: ## Calibrar reglas contra datos reales HND-2025 / Calibrate rules against HND-2025 real data
+	$(PYTHON_COMMAND) scripts/calibrate_2025.py --data tests/fixtures/hnd_2025/
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  TESTS Y CALIDAD / TESTS AND QUALITY
+# ══════════════════════════════════════════════════════════════════════════════
+
+test: ## Correr todos los tests / Run all tests
+	$(PYTHON_COMMAND) -m pytest --import-mode=importlib
+
+test-stress: ## Tests de estrés / Stress tests
+	$(PYTHON_COMMAND) -m pytest tests/test_stress.py
+
+lint: ## Linter (flake8 + black) / Lint check
+	$(PYTHON_COMMAND) -m flake8 .
+	$(PYTHON_COMMAND) -m black --check .
+
+security: ## Escaneo de seguridad + tests / Security scan and tests
+	mkdir -p logs
+	$(PYTHON_COMMAND) -m bandit -r . -c bandit.yaml --severity-level medium 2>&1 | tee logs/security-bandit.log
+	$(PYTHON_COMMAND) -m pytest tests/test_security.py tests/test_attack_logger.py tests/test_advanced_security.py 2>&1 | tee logs/security-tests.log
+
+security-scan: ## Bandit + safety check
+	$(PYTHON_COMMAND) -m bandit -r .
+	$(PYTHON_COMMAND) -m safety check --full-report -r requirements.txt
+
+test-security: ## Tests de seguridad / Security tests
+	$(PYTHON_COMMAND) -m pytest tests/test_attack_logger.py tests/test_advanced_security.py tests/test_security_ecosystem.py
+
+test-security-chaos: ## Tests de caos / Chaos tests
+	$(PYTHON_COMMAND) -m pytest tests/chaos/test_security_chaos.py
+
+test-security-all: ## Todos los tests de seguridad / All security tests
+	$(PYTHON_COMMAND) -m pytest tests/test_attack_logger.py tests/test_advanced_security.py tests/test_security_ecosystem.py tests/chaos/test_security_chaos.py
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  REPRODUCIBILITY / REPRODUCIBILIDAD
+# ══════════════════════════════════════════════════════════════════════════════
+
+forensic-pdf: ## Generar PDF forense con datos reales HND-2025 / Generate forensic PDF with real HND-2025 data
+	$(PYTHON_COMMAND) scripts/generate_forensic_pdf.py --output centinel_hnd_2025_forensic.pdf
+
+reproduce-2025-audit: ## Reproducir análisis forense completo HND-2025 / Reproduce full HND-2025 forensic analysis
+	@echo "══════════════════════════════════════════════════════════════"
+	@echo "  Centinel — Reproducible Forensic Analysis: Honduras 2025"
+	@echo "══════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "Step 1/3: Running forensic engine on 64 real snapshots..."
+	$(PYTHON_COMMAND) scripts/forensic_hnd_2025.py
+	@echo ""
+	@echo "Step 2/3: Running replay pipeline (normalize + diff + rules)..."
+	$(PYTHON_COMMAND) scripts/replay_2025.py --data-dir tests/fixtures/hnd_2025/
+	@echo ""
+	@echo "Step 3/3: Done. Reports in reports/ directory."
+	@echo "══════════════════════════════════════════════════════════════"

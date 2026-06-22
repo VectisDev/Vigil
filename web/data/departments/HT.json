@@ -1,0 +1,84 @@
+{
+  "country": "HT",
+  "country_name": "Haití",
+  "divisions_label": "Departamentos",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://resultats.cep-ht.org/api/presidentielle/national"
+    },
+    {
+      "code": "01",
+      "name": "Artibonite",
+      "abbr": "AR",
+      "iso": "HT-AR",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/01"
+    },
+    {
+      "code": "02",
+      "name": "Centre",
+      "abbr": "CE",
+      "iso": "HT-CE",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/02"
+    },
+    {
+      "code": "03",
+      "name": "Grand'Anse",
+      "abbr": "GA",
+      "iso": "HT-GA",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/03"
+    },
+    {
+      "code": "04",
+      "name": "Nippes",
+      "abbr": "NI",
+      "iso": "HT-NI",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/04"
+    },
+    {
+      "code": "05",
+      "name": "Nord",
+      "abbr": "NO",
+      "iso": "HT-NO",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/05"
+    },
+    {
+      "code": "06",
+      "name": "Nord-Est",
+      "abbr": "NE",
+      "iso": "HT-NE",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/06"
+    },
+    {
+      "code": "07",
+      "name": "Nord-Ouest",
+      "abbr": "NW",
+      "iso": "HT-NW",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/07"
+    },
+    {
+      "code": "08",
+      "name": "Ouest",
+      "abbr": "OU",
+      "iso": "HT-OU",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/08"
+    },
+    {
+      "code": "09",
+      "name": "Sud",
+      "abbr": "SU",
+      "iso": "HT-SU",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/09"
+    },
+    {
+      "code": "10",
+      "name": "Sud-Est",
+      "abbr": "SE",
+      "iso": "HT-SE",
+      "url": "https://resultats.cep-ht.org/api/presidentielle/departement/10"
+    }
+  ]
+}

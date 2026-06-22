@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "65,598",
+      "porcentaje": 39.64
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "63,640",
+      "porcentaje": 38.46
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "31,457",
+      "porcentaje": 19.01
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "3,159",
+      "porcentaje": 1.91
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,610",
+      "porcentaje": 0.97
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "967",
+      "actas_divulgadas": "967"
+    },
+    "distribucion_votos": {
+      "validos": "165,466",
+      "nulos": "5,912",
+      "blancos": "3,381"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "814",
+      "actas_inconsistentes": "153"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Comayagua",
+    "codigo_cne": "04",
+    "peso_padron": 0.0505,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "country": "CL",
+  "country_name": "Chile",
+  "divisions_label": "Regiones",
+  "departments": [
+    {
+      "code": "00",
+      "name": "NACIONAL",
+      "abbr": "NAC",
+      "iso": null,
+      "url": "https://resultados.servel.cl/api/presidencial/nacional"
+    },
+    {
+      "code": "01",
+      "name": "Tarapacá",
+      "abbr": "TA",
+      "iso": "CL-TA",
+      "url": "https://resultados.servel.cl/api/presidencial/region/01"
+    },
+    {
+      "code": "02",
+      "name": "Antofagasta",
+      "abbr": "AN",
+      "iso": "CL-AN",
+      "url": "https://resultados.servel.cl/api/presidencial/region/02"
+    },
+    {
+      "code": "03",
+      "name": "Atacama",
+      "abbr": "AT",
+      "iso": "CL-AT",
+      "url": "https://resultados.servel.cl/api/presidencial/region/03"
+    },
+    {
+      "code": "04",
+      "name": "Coquimbo",
+      "abbr": "CO",
+      "iso": "CL-CO",
+      "url": "https://resultados.servel.cl/api/presidencial/region/04"
+    },
+    {
+      "code": "05",
+      "name": "Valparaíso",
+      "abbr": "VA",
+      "iso": "CL-VA",
+      "url": "https://resultados.servel.cl/api/presidencial/region/05"
+    },
+    {
+      "code": "06",
+      "name": "O'Higgins",
+      "abbr": "OH",
+      "iso": "CL-OH",
+      "url": "https://resultados.servel.cl/api/presidencial/region/06"
+    },
+    {
+      "code": "07",
+      "name": "Maule",
+      "abbr": "MA",
+      "iso": "CL-MA",
+      "url": "https://resultados.servel.cl/api/presidencial/region/07"
+    },
+    {
+      "code": "08",
+      "name": "Biobío",
+      "abbr": "BI",
+      "iso": "CL-BI",
+      "url": "https://resultados.servel.cl/api/presidencial/region/08"
+    },
+    {
+      "code": "09",
+      "name": "La Araucanía",
+      "abbr": "AR",
+      "iso": "CL-AR",
+      "url": "https://resultados.servel.cl/api/presidencial/region/09"
+    },
+    {
+      "code": "10",
+      "name": "Los Lagos",
+      "abbr": "LL",
+      "iso": "CL-LL",
+      "url": "https://resultados.servel.cl/api/presidencial/region/10"
+    },
+    {
+      "code": "11",
+      "name": "Aysén",
+      "abbr": "AY",
+      "iso": "CL-AY",
+      "url": "https://resultados.servel.cl/api/presidencial/region/11"
+    },
+    {
+      "code": "12",
+      "name": "Magallanes",
+      "abbr": "MA",
+      "iso": "CL-MA",
+      "url": "https://resultados.servel.cl/api/presidencial/region/12"
+    },
+    {
+      "code": "13",
+      "name": "Metropolitana",
+      "abbr": "RM",
+      "iso": "CL-RM",
+      "url": "https://resultados.servel.cl/api/presidencial/region/13"
+    },
+    {
+      "code": "14",
+      "name": "Los Ríos",
+      "abbr": "LR",
+      "iso": "CL-LR",
+      "url": "https://resultados.servel.cl/api/presidencial/region/14"
+    },
+    {
+      "code": "15",
+      "name": "Arica y Parinacota",
+      "abbr": "AP",
+      "iso": "CL-AP",
+      "url": "https://resultados.servel.cl/api/presidencial/region/15"
+    },
+    {
+      "code": "16",
+      "name": "Ñuble",
+      "abbr": "NB",
+      "iso": "CL-NB",
+      "url": "https://resultados.servel.cl/api/presidencial/region/16"
+    }
+  ]
+}

@@ -1,0 +1,438 @@
+#!/usr/bin/env python3
+"""
+======================== ÍNDICE / INDEX ========================
+1. Descripción general / Overview
+2. Componentes principales / Main components
+3. Notas de mantenimiento / Maintenance notes
+
+======================== ESPAÑOL ========================
+Archivo: `panic.py`.
+Este módulo forma parte de Centinel Engine y está documentado para facilitar
+la navegación, mantenimiento y auditoría técnica.
+
+Componentes detectados:
+  - utc_now
+  - utc_stamp
+  - prompt_confirmation
+  - prompt_emergency_token
+  - load_yaml
+  - update_master_switch
+  - set_panic_flag
+  - load_checkpoint_candidate
+  - resolve_alert_paths
+  - load_last_alerts
+  - latest_hash
+  - get_health_status
+  - build_report
+  - build_s3_client
+  - upload_to_bucket
+  - ...
+
+Notas:
+- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
+- Priorizar claridad operativa y trazabilidad del comportamiento.
+
+======================== ENGLISH ========================
+File: `panic.py`.
+This module is part of Centinel Engine and is documented to improve
+navigation, maintenance, and technical auditability.
+
+Detected components:
+  - utc_now
+  - utc_stamp
+  - prompt_confirmation
+  - prompt_emergency_token
+  - load_yaml
+  - update_master_switch
+  - set_panic_flag
+  - load_checkpoint_candidate
+  - resolve_alert_paths
+  - load_last_alerts
+  - latest_hash
+  - get_health_status
+  - build_report
+  - build_s3_client
+  - upload_to_bucket
+  - ...
+
+Notes:
+- Keep this header in sync with structural changes in the file.
+- Prioritize operational clarity and behavior traceability.
+"""
+
+# Panic Module
+# AUTO-DOC-INDEX
+#
+# ES: Índice rápido
+#   1) Propósito del módulo
+#   2) Componentes principales
+#   3) Puntos de extensión
+#
+# EN: Quick index
+#   1) Module purpose
+#   2) Main components
+#   3) Extension points
+#
+# Secciones / Sections:
+#   - Configuración / Configuration
+#   - Lógica principal / Core logic
+#   - Integraciones / Integrations
+
+
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import getpass
+import json
+import os
+import signal
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from centinel.paths import iter_all_hashes
+from monitoring.alerts import dispatch_alert
+from scripts.logging_utils import configure_logging
+
+DATA_DIR = Path("data")
+TEMP_DIR = DATA_DIR / "temp"
+REPORTS_DIR = Path("reports")
+HASH_DIR = Path("hashes")
+PANIC_FLAG_PATH = DATA_DIR / "panic_mode.json"
+
+CONFIG_PATHS = [
+    Path("command_center") / "config.yaml",
+    Path("config") / "config.yaml",
+    Path("config.yaml"),
+]
+
+logger = configure_logging("centinel.panic", log_file="logs/centinel.log")
+
+
+def utc_now() -> datetime:
+    """Español: Función utc_now del módulo panic.py.
+
+    English: Function utc_now defined in panic.py.
+    """
+    return datetime.now(timezone.utc)
+
+
+def utc_stamp() -> str:
+    """Español: Función utc_stamp del módulo panic.py.
+
+    English: Function utc_stamp defined in panic.py.
+    """
+    return utc_now().strftime("%Y-%m-%d_%H-%M-%S")
+
+
+def prompt_confirmation() -> None:
+    """Español: Función prompt_confirmation del módulo panic.py.
+
+    English: Function prompt_confirmation defined in panic.py.
+    """
+    first = input("¿Estás seguro? (si/no): ").strip().lower()
+    if first not in {"si", "sí", "yes", "y"}:
+        print("[!] Operación cancelada.")
+        raise SystemExit(1)
+    second = input('Escribe "PANIC" para continuar: ').strip()
+    if second != "PANIC":
+        print("[!] Confirmación incorrecta. Operación cancelada.")
+        raise SystemExit(1)
+
+
+def prompt_emergency_token() -> None:
+    """Español: Función prompt_emergency_token del módulo panic.py.
+
+    English: Function prompt_emergency_token defined in panic.py.
+    """
+    token_required = os.getenv("CENTINEL_PANIC_TOKEN") or os.getenv("PANIC_TOKEN")
+    if not token_required:
+        logger.critical(
+            "SECURITY: CENTINEL_PANIC_TOKEN is not set — panic mode is UNAUTHENTICATED. "
+            "Any user with CLI access can trigger emergency shutdown without authorization."
+        )
+        return
+    token = input("Token de emergencia: ").strip()
+    if token != token_required:
+        print("[!] Token inválido. Operación cancelada.")
+        raise SystemExit(1)
+
+
+def load_yaml(path: Path) -> dict[str, Any]:
+    """Español: Función load_yaml del módulo panic.py.
+
+    English: Function load_yaml defined in panic.py.
+    """
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except FileNotFoundError:
+        return {}
+    except yaml.YAMLError as exc:
+        logger.error("panic_config_invalid path=%s error=%s", path, exc)
+        return {}
+
+
+def update_master_switch(status: str) -> list[Path]:
+    """Español: Función update_master_switch del módulo panic.py.
+
+    English: Function update_master_switch defined in panic.py.
+    """
+    updated: list[Path] = []
+    for path in CONFIG_PATHS:
+        if not path.exists():
+            continue
+        config = load_yaml(path)
+        if not isinstance(config, dict):
+            logger.warning("panic_config_not_dict path=%s", path)
+            continue
+        config["master_switch"] = status
+        path.write_text(
+            yaml.safe_dump(config, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        updated.append(path)
+    return updated
+
+
+def set_panic_flag(user: str, timestamp: str) -> dict[str, Any]:
+    """Español: Función set_panic_flag del módulo panic.py.
+
+    English: Function set_panic_flag defined in panic.py.
+    """
+    payload = {
+        "active": True,
+        "user": user,
+        "timestamp": timestamp,
+        "reason": "manual_panic",
+    }
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    PANIC_FLAG_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    return payload
+
+
+def load_checkpoint_candidate() -> dict[str, Any]:
+    """Español: Función load_checkpoint_candidate del módulo panic.py.
+
+    English: Function load_checkpoint_candidate defined in panic.py.
+    """
+    for path in (TEMP_DIR / "checkpoint.json", TEMP_DIR / "pipeline_checkpoint.json"):
+        if path.exists():
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(payload, dict):
+                    return payload
+            except json.JSONDecodeError as exc:
+                logger.warning("panic_checkpoint_invalid path=%s error=%s", path, exc)
+    return {}
+
+
+def resolve_alert_paths() -> tuple[Path, Path]:
+    """Español: Función resolve_alert_paths del módulo panic.py.
+
+    English: Function resolve_alert_paths defined in panic.py.
+    """
+    alerts_log_path = Path("alerts.log")
+    alerts_output_path = Path("data/alerts.json")
+    for path in CONFIG_PATHS:
+        if not path.exists():
+            continue
+        config = load_yaml(path)
+        if not isinstance(config, dict):
+            continue
+        alerts_config = config.get("alerts", {}) if isinstance(config.get("alerts", {}), dict) else {}
+        if alerts_config.get("log_path"):
+            alerts_log_path = Path(alerts_config["log_path"])
+        if alerts_config.get("output_path"):
+            alerts_output_path = Path(alerts_config["output_path"])
+    return alerts_log_path, alerts_output_path
+
+
+def load_last_alerts(limit: int = 10) -> list[dict[str, Any]]:
+    """Español: Función load_last_alerts del módulo panic.py.
+
+    English: Function load_last_alerts defined in panic.py.
+    """
+    alerts_log_path, alerts_output_path = resolve_alert_paths()
+    alerts: list[dict[str, Any]] = []
+    if alerts_log_path.exists():
+        lines = alerts_log_path.read_text(encoding="utf-8").strip().splitlines()
+        for line in lines[-limit:]:
+            try:
+                payload = json.loads(line)
+                if isinstance(payload, dict):
+                    alerts.append(payload)
+            except json.JSONDecodeError:
+                alerts.append({"raw": line})
+        return alerts
+    if alerts_output_path.exists():
+        try:
+            payload = json.loads(alerts_output_path.read_text(encoding="utf-8"))
+            if isinstance(payload, list):
+                return payload[-limit:]
+            if isinstance(payload, dict):
+                return [payload]
+        except json.JSONDecodeError as exc:
+            logger.warning("panic_alerts_invalid path=%s error=%s", alerts_output_path, exc)
+    return alerts
+
+
+def latest_hash() -> str | None:
+    """Español: Función latest_hash del módulo panic.py.
+
+    English: Function latest_hash defined in panic.py.
+    """
+    hash_files = list(reversed(iter_all_hashes(hash_root=HASH_DIR)))
+    if not hash_files:
+        return None
+    content = hash_files[0].read_text(encoding="utf-8").strip()
+    if not content:
+        return None
+    try:
+        payload = json.loads(content)
+        if isinstance(payload, dict):
+            return payload.get("chained_hash") or payload.get("hash")
+    except json.JSONDecodeError:
+        return content.splitlines()[-1]
+    return None
+
+
+def get_health_status() -> dict[str, Any]:
+    """Español: Función get_health_status del módulo panic.py.
+
+    English: Function get_health_status defined in panic.py.
+    """
+    try:
+        from monitoring.strict_health import is_healthy_strict
+
+        ok, diagnostics = asyncio.run(is_healthy_strict())
+        return {"ok": ok, "diagnostics": diagnostics}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "message": f"healthcheck_error: {exc}"}
+
+
+def build_report(user: str, timestamp: str, checkpoint: dict[str, Any]) -> dict[str, Any]:
+    """Español: Función build_report del módulo panic.py.
+
+    English: Function build_report defined in panic.py.
+    """
+    report = {
+        "panic_activated_at": timestamp,
+        "user": user,
+        "health": get_health_status(),
+        "last_alerts": load_last_alerts(limit=10),
+        "final_hash": latest_hash(),
+        "checkpoint_summary": {
+            "stage": checkpoint.get("stage"),
+            "latest_snapshot": checkpoint.get("latest_snapshot"),
+            "last_content_hash": checkpoint.get("last_content_hash"),
+        },
+    }
+    return report
+
+
+def send_alert_message(report_url: str | None, final_hash: str | None, timestamp: str) -> None:
+    """Español: Función send_alert_message del módulo panic.py.
+
+    English: Function send_alert_message defined in panic.py.
+    """
+    message = "MODO PÁNICO ACTIVADO"
+    if report_url:
+        message += f" - Reporte: {report_url}"
+    context = {
+        "timestamp": timestamp,
+        "report_url": report_url,
+        "final_hash": final_hash,
+        "checkpoint_hash": final_hash,
+        "source": "panic_mode",
+    }
+    dispatch_alert("PANIC", message, context)
+
+
+def shutdown_worker() -> None:
+    """Español: Función shutdown_worker del módulo panic.py.
+
+    English: Function shutdown_worker defined in panic.py.
+    """
+    pid_env = os.getenv("CENTINEL_WORKER_PID")
+    pid_path = DATA_DIR / "worker.pid"
+    pid: int | None = None
+    if pid_env and pid_env.isdigit():
+        pid = int(pid_env)
+    elif pid_path.exists():
+        raw = pid_path.read_text(encoding="utf-8").strip()
+        if raw.isdigit():
+            pid = int(raw)
+    if pid is None:
+        logger.warning("panic_worker_pid_missing")
+        return
+    try:
+        os.kill(pid, signal.SIGTERM)
+        logger.info("panic_worker_sigterm pid=%s", pid)
+        time.sleep(2)
+    except ProcessLookupError:
+        logger.warning("panic_worker_not_found pid=%s", pid)
+    except PermissionError:
+        logger.error("panic_worker_permission_denied pid=%s", pid)
+
+
+def main() -> int:
+    """Español: Función main del módulo panic.py.
+
+    English: Function main defined in panic.py.
+    """
+    parser = argparse.ArgumentParser(description="Activa el modo pánico de Centinel Engine.")
+    parser.add_argument("--user", help="Usuario que activa el modo pánico.")
+    args = parser.parse_args()
+
+    prompt_confirmation()
+    prompt_emergency_token()
+
+    user = args.user or os.getenv("PANIC_USER") or getpass.getuser()
+    timestamp = utc_now().isoformat()
+    stamp = utc_stamp()
+
+    try:
+        panic_flag = set_panic_flag(user, timestamp)
+        updated = update_master_switch("OFF")
+        logger.info("panic_master_switch_off paths=%s", [p.as_posix() for p in updated])
+    except Exception as exc:  # noqa: BLE001
+        logger.error("panic_pause_failed error=%s", exc)
+
+    checkpoint = load_checkpoint_candidate()
+    panic_dir = REPORTS_DIR / "panic" / stamp
+    panic_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = panic_dir / "panic_checkpoint.json"
+    checkpoint_payload = {
+        "captured_at": timestamp,
+        "source": "panic_mode",
+        "checkpoint": checkpoint,
+    }
+    checkpoint_path.write_text(json.dumps(checkpoint_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    report = build_report(user, timestamp, checkpoint)
+    report_path = panic_dir / "panic_report.json"
+    report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    try:
+        send_alert_message(None, report.get("final_hash"), timestamp)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("panic_alert_publish_failed error=%s", exc)
+
+    try:
+        shutdown_worker()
+    except Exception as exc:  # noqa: BLE001
+        logger.error("panic_worker_shutdown_failed error=%s", exc)
+
+    logger.critical("MODO PÁNICO ACTIVADO por %s/%s", user, timestamp)
+    print("[!] MODO PÁNICO ACTIVADO.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

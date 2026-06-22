@@ -1,0 +1,41 @@
+CENTINEL — OpenTimestamps Merkle Root
+Dataset: Honduras 2025 Presidential Election (CNE)
+Files anchored: 64 JSON snapshots (2025-12-03 to 2025-12-10)
+Merkle root (SHA-256): f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780
+OTS proof file: MERKLE_ROOT_HN2025.ots
+Calendars: bob.btc.calendar.opentimestamps.org, finney.calendar.eternitywall.com, btc.calendar.catallaxy.com
+Status: CONFIRMED — Bitcoin attestation complete (3/3 calendars: bob, finney, catallaxy), verified 2026-06-13.
+Anchoring module: src/centinel/core/anchoring.py
+
+Note (2026-06-12): the .ots committed on 2026-06-07 was malformed (missing the
+OpenTimestamps file header — a bug in anchor_snapshot_chain's serialization,
+now fixed) and was rejected by `ots verify`/`ots info`. This file is a fresh,
+correctly-formatted resubmission of the SAME Merkle root, attested by 3
+independent calendars.
+
+Verification:
+  pip install opentimestamps-client
+  ots verify -d f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780 \
+      tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots
+
+  (the -d flag verifies the digest directly — no need to have the original
+  64 snapshot files on disk to check the Bitcoin anchor status)
+
+Bitcoin confirmation is COMPLETE. The committed .ots file (3721 bytes) now
+contains the full attestation path from all 3 independent calendars. Anyone
+can independently verify with:
+
+  ots upgrade tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots
+  # -> "Got 1 attestation(s) from ..." x3, "Success! Timestamp complete"
+
+Full `ots verify` (which prints the exact Bitcoin block height/timestamp)
+additionally requires a local Bitcoin node (bitcoind with RPC access) — not
+required to confirm the timestamp's validity, only to display block details
+inline.
+
+Reproducibility:
+  PYTHONPATH=src python3 -c "
+  from centinel.core.anchoring import anchor_snapshot_chain
+  r = anchor_snapshot_chain('tests/fixtures/hnd_2025/')
+  print(r.merkle_root)  # must equal f17dbfe...
+  "

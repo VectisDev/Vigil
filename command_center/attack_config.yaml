@@ -1,0 +1,82 @@
+# ============================================================
+# BITÁCORA FORENSE DE ATAQUES (ES) / ATTACK FORENSICS LOGBOOK (EN)
+# ============================================================
+# ES: Configuración de captura, rotación y resumen de eventos sospechosos.
+# EN: Configuration for capture, rotation, and summary of suspicious events.
+#
+# ES: Índice:
+# EN: Index:
+# 01_estado_y_log_principal
+# 02_umbral_frecuencia_y_red
+# 03_iocs_y_rutas_sensibles
+# 04_resumen_externo
+# 05_honeypot
+
+# ES: Convención binaria: todos los flags tipo enabled/monitor/critical/anonymize/encrypt
+#     usan true/false (booleano YAML, sin comillas).
+# EN: Binary convention: all flags such as enabled/monitor/critical/anonymize/encrypt
+#     use true/false (YAML booleans, without quotes).
+
+# Attack Forensics Logbook config / Configuración Bitácora Forense de Atacantes
+enabled: true
+log_path: logs/attack_log.jsonl
+rotation_interval: 86400
+max_file_size_mb: 10
+retention_days: 30
+log_rotation_days: 7
+frequency_window_seconds: 60
+sequence_window_size: 40
+max_requests_per_ip: 20
+flood_log_sample_ratio: 10
+monitor_unexpected_connections: true
+expected_listen_ports: [443, 8080, 8081]
+geoip_city_db_path: ""
+
+suspicious_user_agents:
+  - sqlmap
+  - nmap
+  - nikto
+  - masscan
+  - acunetix
+
+brute_force_paths:
+  - /admin
+  - /login
+  - /wp-login
+  - /api/internal
+
+tor_exit_nodes: []
+
+external_summary:
+  enabled: true
+  critical_only: true
+  channel: webhook
+  anonymize: true
+  webhook_url: ""
+
+honeypot:
+  enabled: true
+  host: 127.0.0.1
+  port: 8080
+  firewall_default_deny: true
+  routes:
+    - /debug
+    - /admin
+    - /api/internal
+    - /login
+    - /wp-admin
+    - /wp-login.php
+    - /phpmyadmin
+    - /manager/html
+    - /.env
+    - /server-status
+    - /actuator
+    - /jenkins/login
+    - /grafana/login
+    - /admin/config
+    - /api/v1/admin/users
+    - /auth/reset
+    - /backoffice
+    - /console
+    - /db-admin
+    - /internal/metrics

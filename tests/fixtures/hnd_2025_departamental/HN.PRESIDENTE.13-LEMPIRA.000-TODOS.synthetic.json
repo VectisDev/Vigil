@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "61,020",
+      "porcentaje": 38.67
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "63,629",
+      "porcentaje": 40.32
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "28,129",
+      "porcentaje": 17.82
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "3,466",
+      "porcentaje": 2.2
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "1,560",
+      "porcentaje": 0.99
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "892",
+      "actas_divulgadas": "892"
+    },
+    "distribucion_votos": {
+      "validos": "157,807",
+      "nulos": "5,779",
+      "blancos": "2,593"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "760",
+      "actas_inconsistentes": "132"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Lempira",
+    "codigo_cne": "13",
+    "peso_padron": 0.0466,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

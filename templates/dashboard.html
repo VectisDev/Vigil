@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C.E.N.T.I.N.E.L. Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1f6e1;&#xfe0f;</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#0A1428;color:#E0E6ED;min-height:100vh;display:flex;flex-direction:column}
+
+/* Header */
+.header{background:linear-gradient(135deg,#0D1B2A 0%,#1B2838 100%);border-bottom:2px solid #00A3E0;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.header h1{font-size:1.4rem;letter-spacing:2px;color:#00A3E0}
+.header-right{display:flex;align-items:center;gap:.75rem}
+.badge{background:#00C853;color:#0A1428;padding:.25rem .75rem;border-radius:4px;font-size:.75rem;font-weight:700}
+#conn-indicator{font-size:.7rem;color:#7A8BA3;display:flex;align-items:center;gap:4px}
+#conn-dot{width:6px;height:6px;border-radius:50%;background:#00C853;transition:background .3s}
+#conn-dot.off{background:#FF5252}
+
+/* Tabs */
+.tabs{display:flex;background:#0D1B2A;border-bottom:1px solid #1E3048;padding:0 2rem}
+.tab{padding:.85rem 2rem;cursor:pointer;color:#7A8BA3;font-size:.85rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:3px solid transparent;transition:all .2s;user-select:none}
+.tab:hover{color:#E0E6ED;background:#111D2E}
+.tab.active{color:#00A3E0;border-bottom-color:#00A3E0}
+.tab-content{display:none;flex:1}
+.tab-content.active{display:flex;flex-direction:column;flex:1}
+
+/* Container */
+.container{max-width:1400px;margin:0 auto;padding:1.5rem;width:100%;flex:1}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem}
+.card{background:#111D2E;border:1px solid #1E3048;border-radius:8px;padding:1.25rem;transition:border-color .2s}
+.card:hover{border-color:#00A3E055}
+.card h3{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#7A8BA3;margin-bottom:.5rem}
+.card .value{font-size:1.4rem;font-weight:700;color:#00A3E0;word-break:break-word}
+.card .value.ok{color:#00C853}
+.card .value.warn{color:#FF9800}
+.card .value.err{color:#FF5252}
+
+/* Section */
+.section{background:#111D2E;border:1px solid #1E3048;border-radius:8px;padding:1.25rem;margin-bottom:1rem}
+.section h2{font-size:.95rem;color:#00A3E0;margin-bottom:.75rem;border-bottom:1px solid #1E3048;padding-bottom:.5rem;display:flex;align-items:center;justify-content:space-between}
+.section h2 .updated{font-size:.65rem;color:#4A5568;font-weight:400}
+
+/* Map section */
+.map-container{display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap}
+.map-svg-wrap{flex:1;min-width:300px;max-width:700px}
+.map-svg-wrap svg{width:100%;height:auto}
+.map-legend{min-width:220px;flex:0 0 220px}
+.legend-title{font-size:.8rem;color:#7A8BA3;text-transform:uppercase;letter-spacing:1px;margin-bottom:.75rem;font-weight:600}
+.legend-item{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;font-size:.82rem}
+.legend-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.legend-dot.neutral{background:#D4C9A8;border:1px solid #A09070}
+.legend-dot.warning{background:#FF9800;box-shadow:0 0 8px #FF980066}
+.legend-dot.danger{background:#FF5252;box-shadow:0 0 8px #FF525266}
+
+/* Department list */
+.dept-list{margin-top:1rem}
+.dept-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-bottom:1px solid #1E304833;font-size:.82rem;transition:background .15s}
+.dept-item:hover{background:#1E304833}
+.dept-name{display:flex;align-items:center;gap:.5rem}
+.dept-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dept-status-dot.ok{background:#D4C9A8}
+.dept-status-dot.rule_broken{background:#FF9800;box-shadow:0 0 6px #FF980066}
+.dept-status-dot.hash_broken{background:#FF5252;box-shadow:0 0 6px #FF525266}
+.dept-detail{color:#7A8BA3;font-size:.75rem}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;color:#7A8BA3;padding:.5rem;border-bottom:1px solid #1E3048;font-weight:600}
+td{padding:.5rem;border-bottom:1px solid #1E304833;word-break:break-all}
+.mono{font-family:'SF Mono','Cascadia Code',monospace;font-size:.78rem;color:#8FAABE}
+
+/* Alerts */
+.alert-item{padding:.75rem;border-left:3px solid #FF9800;margin-bottom:.5rem;background:#1a1a2e;border-radius:0 4px 4px 0;font-size:.85rem}
+.alert-item.critical{border-left-color:#FF5252}
+
+/* Spinner */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #1E3048;border-top-color:#00A3E0;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Status dots */
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.status-dot.green{background:#00C853}
+.status-dot.red{background:#FF5252}
+
+/* Placeholder */
+.placeholder-section{display:flex;align-items:center;justify-content:center;min-height:400px;color:#4A5568;font-size:1.1rem;font-style:italic;flex:1}
+
+/* SVG map styles */
+.dept-path{fill:#1E3048;stroke:#2A4060;stroke-width:1;cursor:pointer;transition:fill .3s,filter .3s}
+.dept-path:hover{filter:brightness(1.3)}
+.dept-path.ok{fill:#D4C9A8}
+.dept-path.rule_broken{fill:#FF9800;filter:drop-shadow(0 0 6px #FF980066)}
+.dept-path.hash_broken{fill:#FF5252;filter:drop-shadow(0 0 8px #FF525266)}
+.dept-label{fill:#E0E6ED;font-size:3.5px;font-family:'Inter',system-ui,sans-serif;pointer-events:none;text-anchor:middle;font-weight:600}
+
+/* Tooltip */
+.map-tooltip{position:absolute;background:#0D1B2A;border:1px solid #00A3E0;border-radius:6px;padding:.5rem .75rem;font-size:.78rem;color:#E0E6ED;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;white-space:nowrap}
+.map-tooltip .tt-dept{font-weight:700;color:#00A3E0;margin-bottom:2px}
+.map-tooltip .tt-status{display:flex;align-items:center;gap:4px}
+
+/* Footer */
+.footer{text-align:center;padding:1.5rem;color:#4A5568;font-size:.7rem;border-top:1px solid #1E3048}
+.empty{color:#4A5568;font-style:italic;font-size:.85rem}
+
+@media(max-width:768px){
+  .tabs{padding:0 .5rem;overflow-x:auto}
+  .tab{padding:.7rem 1rem;font-size:.75rem;white-space:nowrap}
+  .header{padding:.75rem 1rem}
+  .header h1{font-size:1.1rem}
+  .container{padding:1rem}
+  .cards{grid-template-columns:1fr 1fr}
+  .card .value{font-size:1.1rem}
+  .map-container{flex-direction:column}
+  .map-legend{flex:1;min-width:auto}
+  td,th{padding:.35rem;font-size:.78rem}
+}
+@media(max-width:400px){
+  .cards{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>C.E.N.T.I.N.E.L.</h1>
+  <div class="header-right">
+    <span id="conn-indicator"><span id="conn-dot"></span><span id="conn-text">Conectado</span></span>
+    <span class="badge">OBSERVADOR NEUTRAL</span>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" data-tab="ciudadano">Ciudadano</div>
+  <div class="tab" data-tab="auditor">Auditor</div>
+  <div class="tab" data-tab="ethos">ETHOS</div>
+</div>
+
+<!-- ======================== TAB: CIUDADANO ======================== -->
+<div class="tab-content active" id="tab-ciudadano">
+<div class="container">
+  <div class="cards">
+    <div class="card"><h3>Estado API</h3><div id="api-status" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Departamentos OK</h3><div id="dept-ok-count" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Reglas Rotas</h3><div id="dept-warn-count" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Hashes Rotos</h3><div id="dept-err-count" class="value"><span class="spinner"></span></div></div>
+  </div>
+
+  <div class="section">
+    <h2>Mapa de Calor &mdash; Honduras <span class="updated" id="map-update"></span></h2>
+    <div class="map-container">
+      <div class="map-svg-wrap" style="position:relative">
+        <div class="map-tooltip" id="map-tooltip">
+          <div class="tt-dept"></div>
+          <div class="tt-status"></div>
+        </div>
+        <!-- SVG Map of Honduras 18 departments -->
+        <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cortés -->
+          <path id="map-cortes" class="dept-path" d="M28,18 L42,15 L48,20 L52,28 L46,38 L38,40 L30,36 L24,28 Z"/>
+          <text class="dept-label" x="38" y="29">Cortés</text>
+
+          <!-- Atlántida -->
+          <path id="map-atlantida" class="dept-path" d="M52,10 L70,8 L78,12 L80,20 L72,26 L60,28 L52,24 L48,18 Z"/>
+          <text class="dept-label" x="66" y="18">Atlántida</text>
+
+          <!-- Colón -->
+          <path id="map-colon" class="dept-path" d="M80,6 L100,4 L112,8 L116,16 L110,24 L96,28 L84,24 L78,16 Z"/>
+          <text class="dept-label" x="97" y="16">Colón</text>
+
+          <!-- Gracias a Dios -->
+          <path id="map-gracias_a_dios" class="dept-path" d="M116,4 L148,2 L168,8 L172,18 L164,30 L148,36 L130,32 L120,24 L114,14 Z"/>
+          <text class="dept-label" x="144" y="18">Gracias a Dios</text>
+
+          <!-- Yoro -->
+          <path id="map-yoro" class="dept-path" d="M52,28 L72,26 L84,24 L96,28 L98,38 L90,46 L76,48 L62,44 L52,38 Z"/>
+          <text class="dept-label" x="74" y="38">Yoro</text>
+
+          <!-- Islas de la Bahía -->
+          <path id="map-islas_de_la_bahia" class="dept-path" d="M58,0 L72,0 L74,4 L68,6 L58,4 Z"/>
+          <text class="dept-label" x="66" y="4" style="font-size:2.5px">I. Bahía</text>
+
+          <!-- Santa Bárbara -->
+          <path id="map-santa_barbara" class="dept-path" d="M14,28 L28,22 L38,28 L38,40 L32,48 L22,48 L14,42 Z"/>
+          <text class="dept-label" x="26" y="38" style="font-size:3px">Sta. Bárbara</text>
+
+          <!-- Copán -->
+          <path id="map-copan" class="dept-path" d="M2,30 L14,26 L18,34 L18,46 L12,52 L4,50 L0,42 Z"/>
+          <text class="dept-label" x="10" y="42">Copán</text>
+
+          <!-- Ocotepeque -->
+          <path id="map-ocotepeque" class="dept-path" d="M0,50 L8,46 L14,52 L12,60 L6,64 L0,60 Z"/>
+          <text class="dept-label" x="7" y="56" style="font-size:2.5px">Ocotepeque</text>
+
+          <!-- Lempira -->
+          <path id="map-lempira" class="dept-path" d="M10,52 L22,48 L30,52 L32,62 L26,68 L16,68 L8,62 Z"/>
+          <text class="dept-label" x="20" y="60">Lempira</text>
+
+          <!-- Intibucá -->
+          <path id="map-intibuca" class="dept-path" d="M26,52 L38,48 L46,52 L48,62 L40,68 L30,66 L24,60 Z"/>
+          <text class="dept-label" x="36" y="60" style="font-size:3px">Intibucá</text>
+
+          <!-- Comayagua -->
+          <path id="map-comayagua" class="dept-path" d="M38,40 L52,38 L62,44 L64,56 L56,64 L44,64 L38,54 Z"/>
+          <text class="dept-label" x="50" y="52" style="font-size:3px">Comayagua</text>
+
+          <!-- La Paz -->
+          <path id="map-la_paz" class="dept-path" d="M40,64 L52,62 L58,68 L54,76 L44,78 L38,72 Z"/>
+          <text class="dept-label" x="48" y="72">La Paz</text>
+
+          <!-- Francisco Morazán -->
+          <path id="map-francisco_morazan" class="dept-path" d="M56,44 L76,48 L90,46 L94,56 L88,66 L76,70 L64,68 L56,60 Z"/>
+          <text class="dept-label" x="74" y="58" style="font-size:2.8px">Fco. Morazán</text>
+
+          <!-- Olancho -->
+          <path id="map-olancho" class="dept-path" d="M96,28 L120,24 L138,32 L152,40 L148,56 L136,66 L118,68 L104,62 L94,52 L94,38 Z"/>
+          <text class="dept-label" x="122" y="48">Olancho</text>
+
+          <!-- El Paraíso -->
+          <path id="map-el_paraiso" class="dept-path" d="M88,62 L104,62 L118,68 L122,80 L114,90 L100,92 L88,84 L82,74 Z"/>
+          <text class="dept-label" x="102" y="78" style="font-size:3px">El Paraíso</text>
+
+          <!-- Valle -->
+          <path id="map-valle" class="dept-path" d="M62,80 L74,76 L82,82 L80,92 L72,98 L62,94 Z"/>
+          <text class="dept-label" x="72" y="88">Valle</text>
+
+          <!-- Choluteca -->
+          <path id="map-choluteca" class="dept-path" d="M74,82 L88,78 L98,86 L100,98 L90,106 L76,104 L70,96 Z"/>
+          <text class="dept-label" x="86" y="94" style="font-size:3px">Choluteca</text>
+        </svg>
+      </div>
+
+      <div class="map-legend">
+        <div class="legend-title">Leyenda</div>
+        <div class="legend-item"><div class="legend-dot neutral"></div> Sin alertas &mdash; Sistema limpio</div>
+        <div class="legend-item"><div class="legend-dot warning"></div> Regla rota &mdash; Anomal&iacute;a detectada</div>
+        <div class="legend-item"><div class="legend-dot danger"></div> Hash roto &mdash; Integridad comprometida</div>
+
+        <div class="dept-list" id="dept-list">
+          <div style="padding:.5rem;color:#4A5568"><span class="spinner"></span> Cargando departamentos...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Alertas Activas</h2>
+    <div id="alerts-list"><span class="spinner"></span> Cargando...</div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== TAB: AUDITOR ======================== -->
+<div class="tab-content" id="tab-auditor">
+<div class="container">
+  <div class="cards">
+    <div class="card"><h3>Estado API</h3><div id="aud-api-status" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>&Uacute;ltimo Snapshot</h3><div id="aud-snapshot-ts" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Departamento</h3><div id="aud-snapshot-dept" class="value"><span class="spinner"></span></div></div>
+    <div class="card"><h3>Alertas Activas</h3><div id="aud-alert-count" class="value"><span class="spinner"></span></div></div>
+  </div>
+  <div class="section">
+    <h2>Snapshot M&aacute;s Reciente <span class="updated" id="aud-last-update"></span></h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+      <tbody id="aud-snapshot-table"><tr><td colspan="2"><span class="spinner"></span> Cargando...</td></tr></tbody>
+    </table>
+  </div>
+  <div class="section">
+    <h2>Alertas</h2>
+    <div id="aud-alerts-list"><span class="spinner"></span> Cargando...</div>
+  </div>
+  <div class="section">
+    <h2>Resumen</h2>
+    <div id="aud-summary-content"><span class="spinner"></span> Cargando...</div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== TAB: ETHOS ======================== -->
+<div class="tab-content" id="tab-ethos">
+<div class="container">
+  <div class="placeholder-section">
+    ETHOS &mdash; M&oacute;dulo en desarrollo
+  </div>
+</div>
+</div>
+
+<div class="footer">C.E.N.T.I.N.E.L. Engine &mdash; Auditor&iacute;a Electoral Transparente &mdash; <a href="/docs" style="color:#00A3E0;text-decoration:none">API Docs</a></div>
+
+<script>
+/* ===== Utilities ===== */
+function esc(s){if(!s)return'\u2014';const d=document.createElement('div');d.textContent=String(s);return d.innerHTML}
+const MAX_RETRIES=3,BASE_DELAY=1000;
+async function f(url,attempt){
+  attempt=attempt||0;
+  try{const r=await fetch(url,{signal:AbortSignal.timeout(15000)});if(!r.ok)throw new Error(r.status);return await r.json()}
+  catch(e){if(attempt<MAX_RETRIES){await new Promise(res=>setTimeout(res,BASE_DELAY*Math.pow(2,attempt)+Math.random()*500));return f(url,attempt+1)}return null}
+}
+const $=id=>document.getElementById(id);
+
+/* ===== Tab switching ===== */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    $('tab-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ===== Department display names ===== */
+const DEPT_NAMES={
+  atlantida:'Atlántida',choluteca:'Choluteca',colon:'Colón',
+  comayagua:'Comayagua',copan:'Copán',cortes:'Cortés',
+  el_paraiso:'El Paraíso',francisco_morazan:'Francisco Morazán',
+  gracias_a_dios:'Gracias a Dios',intibuca:'Intibucá',
+  islas_de_la_bahia:'Islas de la Bahía',la_paz:'La Paz',
+  lempira:'Lempira',ocotepeque:'Ocotepeque',olancho:'Olancho',
+  santa_barbara:'Santa Bárbara',valle:'Valle',yoro:'Yoro'
+};
+const STATUS_LABELS={ok:'Sin alertas',rule_broken:'Regla rota',hash_broken:'Hash roto'};
+const STATUS_COLORS={ok:'#D4C9A8',rule_broken:'#FF9800',hash_broken:'#FF5252'};
+
+/* ===== Tooltip ===== */
+const tooltip=$('map-tooltip');
+document.querySelectorAll('.dept-path').forEach(path=>{
+  path.addEventListener('mouseenter',e=>{
+    const dept=path.id.replace('map-','');
+    const name=DEPT_NAMES[dept]||dept;
+    const status=path.dataset.status||'ok';
+    tooltip.querySelector('.tt-dept').textContent=name;
+    tooltip.querySelector('.tt-status').innerHTML=
+      '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+STATUS_COLORS[status]+'"></span> '+STATUS_LABELS[status];
+    tooltip.style.opacity='1';
+  });
+  path.addEventListener('mousemove',e=>{
+    const wrap=path.closest('.map-svg-wrap');
+    const rect=wrap.getBoundingClientRect();
+    tooltip.style.left=(e.clientX-rect.left+12)+'px';
+    tooltip.style.top=(e.clientY-rect.top-10)+'px';
+  });
+  path.addEventListener('mouseleave',()=>{tooltip.style.opacity='0'});
+});
+
+/* ===== Main data loading ===== */
+let apiOk=true,consecutiveFails=0,pollInterval=15000,pollTimer=null;
+
+async function loadCiudadano(){
+  const [health,deptStatus,alerts]=await Promise.all([
+    f('/api/health'),f('/api/departments/status'),f('/alerts')
+  ]);
+  const now=new Date().toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  apiOk=!!(health&&health.status==='ok');
+  if(apiOk){consecutiveFails=0;pollInterval=15000}else{consecutiveFails++;pollInterval=Math.min(15000*Math.pow(2,consecutiveFails),120000)}
+
+  $('conn-dot').className=apiOk?'':'off';
+  $('conn-text').textContent=apiOk?'Conectado':'Reconectando\u2026';
+
+  if(apiOk){$('api-status').className='value ok';$('api-status').innerHTML='<span class="status-dot green"></span>Operativo'}
+  else{$('api-status').className='value err';$('api-status').innerHTML='<span class="status-dot red"></span>Reconectando'}
+
+  /* Update map and counters */
+  let okCount=0,warnCount=0,errCount=0;
+  if(deptStatus&&Array.isArray(deptStatus)){
+    let listHtml='';
+    deptStatus.forEach(d=>{
+      const el=$('map-'+d.department);
+      if(el){el.className='dept-path '+d.status;el.dataset.status=d.status}
+      if(d.status==='ok')okCount++;
+      else if(d.status==='rule_broken')warnCount++;
+      else if(d.status==='hash_broken')errCount++;
+      const name=DEPT_NAMES[d.department]||d.department;
+      listHtml+='<div class="dept-item"><span class="dept-name"><span class="dept-status-dot '+d.status+'"></span>'+esc(name)+'</span><span class="dept-detail">'+STATUS_LABELS[d.status]+'</span></div>';
+    });
+    $('dept-list').innerHTML=listHtml;
+  }
+  $('dept-ok-count').className='value ok';$('dept-ok-count').textContent=okCount;
+  $('dept-warn-count').className=warnCount>0?'value warn':'value ok';$('dept-warn-count').textContent=warnCount;
+  $('dept-err-count').className=errCount>0?'value err':'value ok';$('dept-err-count').textContent=errCount;
+  $('map-update').textContent=apiOk?'Actualizado: '+now:'';
+
+  /* Alerts */
+  if(alerts&&alerts.length>0){
+    $('alerts-list').innerHTML=alerts.slice(0,20).map(a=>{
+      const txt=esc(a.descripcion||a.description||JSON.stringify(a));
+      const cls=(a.severity==='critical'||a.nivel==='critico')?'alert-item critical':'alert-item';
+      return '<div class="'+cls+'">'+txt+'</div>';
+    }).join('');
+  }else{$('alerts-list').innerHTML='<span class="empty">Sin alertas activas.</span>'}
+}
+
+async function loadAuditor(){
+  const [health,snap,alerts,summaries]=await Promise.all([
+    f('/api/health'),f('/snapshots/latest'),f('/alerts'),f('/api/summaries')
+  ]);
+  const now=new Date().toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ok=!!(health&&health.status==='ok');
+
+  $('aud-last-update').textContent=ok?'Actualizado: '+now:'';
+  if(ok){$('aud-api-status').className='value ok';$('aud-api-status').innerHTML='<span class="status-dot green"></span>Operativo'}
+  else{$('aud-api-status').className='value err';$('aud-api-status').innerHTML='<span class="status-dot red"></span>Reconectando'}
+
+  if(snap){
+    $('aud-snapshot-ts').textContent=snap.timestamp_utc||'\u2014';
+    $('aud-snapshot-dept').textContent=snap.department_code||'\u2014';
+    let rows='';
+    const fields=[['Hash',snap.snapshot_id],['Departamento',snap.department_code],['Timestamp UTC',snap.timestamp_utc],['Hash Previo',snap.previous_hash],['TX Hash',snap.tx_hash],['IPFS CID',snap.ipfs_cid]];
+    fields.forEach(([k,v])=>{rows+='<tr><td>'+esc(k)+'</td><td class="mono">'+esc(v)+'</td></tr>'});
+    $('aud-snapshot-table').innerHTML=rows;
+  }else{
+    $('aud-snapshot-ts').textContent='\u2014';$('aud-snapshot-dept').textContent='\u2014';
+    $('aud-snapshot-table').innerHTML='<tr><td colspan="2" class="empty">Sin snapshots disponibles</td></tr>';
+  }
+  if(alerts&&alerts.length>0){
+    $('aud-alert-count').className='value warn';$('aud-alert-count').textContent=alerts.length;
+    $('aud-alerts-list').innerHTML=alerts.slice(0,20).map(a=>{
+      const txt=esc(a.descripcion||a.description||JSON.stringify(a));
+      const cls=(a.severity==='critical'||a.nivel==='critico')?'alert-item critical':'alert-item';
+      return '<div class="'+cls+'">'+txt+'</div>';
+    }).join('');
+  }else{$('aud-alert-count').className='value ok';$('aud-alert-count').textContent='0';$('aud-alerts-list').innerHTML='<span class="empty">Sin alertas activas.</span>'}
+  if(summaries&&summaries.summary&&summaries.summary.length>0){
+    $('aud-summary-content').innerHTML=summaries.summary.map(l=>'<p style="margin-bottom:.5rem">'+esc(l)+'</p>').join('');
+  }else{$('aud-summary-content').innerHTML='<span class="empty">Sin resumen disponible.</span>'}
+}
+
+async function load(){
+  await Promise.all([loadCiudadano(),loadAuditor()]);
+  clearTimeout(pollTimer);pollTimer=setTimeout(load,pollInterval);
+}
+load();
+document.addEventListener('visibilitychange',function(){if(!document.hidden){clearTimeout(pollTimer);load()}});
+</script>
+</body>
+</html>

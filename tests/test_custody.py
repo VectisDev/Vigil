@@ -1,0 +1,545 @@
+"""
+======================== ÍNDICE / INDEX ========================
+1. Descripción general / Overview
+2. Componentes principales / Main components
+3. Notas de mantenimiento / Maintenance notes
+
+======================== ESPAÑOL ========================
+Archivo: `tests/test_custody.py`.
+Este módulo forma parte de Centinel Engine y está documentado para facilitar
+la navegación, mantenimiento y auditoría técnica.
+
+Componentes detectados:
+  - TestVerifyChain
+  - TestVerifyChainFromEntries
+  - TestOperatorSignature
+  - TestHashRecordSignature
+  - TestComputeExpectedHash
+  - TestVerifyAnchor
+  - TestStartupVerification
+
+Notas:
+- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
+- Priorizar claridad operativa y trazabilidad del comportamiento.
+
+======================== ENGLISH ========================
+File: `tests/test_custody.py`.
+This module is part of Centinel Engine and is documented to improve
+navigation, maintenance, and technical auditability.
+
+Detected components:
+  - TestVerifyChain
+  - TestVerifyChainFromEntries
+  - TestOperatorSignature
+  - TestHashRecordSignature
+  - TestComputeExpectedHash
+  - TestVerifyAnchor
+  - TestStartupVerification
+
+Notes:
+- Keep this header in sync with structural changes in the file.
+- Prioritize operational clarity and behavior traceability.
+"""
+
+import hashlib
+import json
+
+import pytest
+
+from centinel.core.custody import (
+    _compute_expected_hash,
+    generate_operator_keypair,
+    run_startup_verification,
+    sign_hash_record,
+    sign_snapshot,
+    verify_chain,
+    verify_chain_from_entries,
+    verify_hash_record_signature,
+    verify_snapshot_signature,
+)
+
+# ---------------------------------------------------------------------------
+# verify_chain tests
+# ---------------------------------------------------------------------------
+
+
+def _write_chain_record(hash_root, index, record, *, source="cne"):
+    """Write a hash record using the canonical production layout.
+
+    The real pipeline (and iter_all_hashes / verify_chain) consume
+    ``<hash_root>/<source>/snapshot_<NNN>.sha256``. Tests must exercise
+    that exact on-disk contract so a green result actually means the
+    chain was discovered and verified — not vacuously empty.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+
+    source_dir = _Path(hash_root) / source
+    source_dir.mkdir(parents=True, exist_ok=True)
+    path = source_dir / f"snapshot_{index:03d}.sha256"
+    path.write_text(_json.dumps(record, sort_keys=True), encoding="utf-8")
+    return path
+
+
+class TestVerifyChain:
+    """Pruebas de verify_chain."""
+
+    def test_empty_directory(self, tmp_path):
+        """Directorio vacío retorna válido con 0 eslabones."""
+        result = verify_chain(tmp_path)
+        assert result.valid is True
+        assert result.total_links == 0
+        assert result.verified_links == 0
+
+    def test_single_link(self, tmp_path):
+        """Un solo eslabón sin previous_hash es válido."""
+        data_payload = {"hash": "abc123", "timestamp": "2026-01-01T00:00:00Z"}
+        data_bytes = json.dumps(
+            data_payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8")
+        expected = _compute_expected_hash(None, data_bytes)
+
+        record = {**data_payload, "chained_hash": expected}
+        _write_chain_record(tmp_path, 1, record)
+
+        result = verify_chain(tmp_path)
+        assert result.valid is True
+        assert result.total_links == 1
+        assert result.verified_links == 1
+
+    def test_valid_chain(self, tmp_path):
+        """Cadena de 3 eslabones válida."""
+        previous = None
+        for i in range(3):
+            data_payload = {"hash": f"data_{i}", "index": i}
+            data_bytes = json.dumps(
+                data_payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+            ).encode("utf-8")
+            chained = _compute_expected_hash(previous, data_bytes)
+
+            record = {**data_payload, "chained_hash": chained}
+            if previous:
+                record["previous_hash"] = previous
+
+            _write_chain_record(tmp_path, i, record)
+            previous = chained
+
+        result = verify_chain(tmp_path)
+        assert result.valid is True
+        assert result.total_links == 3
+        assert result.verified_links == 3
+
+    def test_broken_chain(self, tmp_path):
+        """Cadena con hash manipulado se detecta como rota."""
+        import time as _time
+
+        previous = None
+        for i in range(3):
+            data_payload = {"hash": f"data_{i}", "index": i}
+            data_bytes = json.dumps(
+                data_payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+            ).encode("utf-8")
+            chained = _compute_expected_hash(previous, data_bytes)
+
+            # Corromper el segundo eslabón
+            if i == 1:
+                chained = "0" * 64
+
+            record = {**data_payload, "chained_hash": chained}
+            if previous:
+                record["previous_hash"] = previous
+
+            _write_chain_record(tmp_path, i, record)
+            # Ensure distinct mtime ordering
+            _time.sleep(0.05)
+            previous = chained
+
+        result = verify_chain(tmp_path)
+        assert result.valid is False
+        assert result.broken_at is not None
+
+    def test_corrupted_json(self, tmp_path):
+        """Archivo JSON corrupto se reporta como error."""
+        source_dir = tmp_path / "cne"
+        source_dir.mkdir(parents=True)
+        (source_dir / "snapshot_000.sha256").write_text("{corrupted", encoding="utf-8")
+
+        result = verify_chain(tmp_path)
+        assert len(result.errors) > 0
+        assert any("read_error" in e for e in result.errors)
+
+
+class TestVerifyChainFromEntries:
+    """Pruebas de verify_chain_from_entries."""
+
+    def test_empty(self):
+        result = verify_chain_from_entries([])
+        assert result.valid is True
+        assert result.total_links == 0
+
+    def test_valid_entries(self):
+        entries = []
+        previous = None
+        for i in range(5):
+            data = f"entry_{i}"
+            h = _compute_expected_hash(previous, data.encode("utf-8"))
+            entries.append({"hash": h, "data": data})
+            previous = h
+
+        result = verify_chain_from_entries(entries)
+        assert result.valid is True
+        assert result.verified_links == 5
+
+    def test_tampered_entry(self):
+        entries = []
+        previous = None
+        for i in range(3):
+            data = f"entry_{i}"
+            h = _compute_expected_hash(previous, data.encode("utf-8"))
+            entries.append({"hash": h, "data": data})
+            previous = h
+
+        # Tamper with middle entry
+        entries[1]["hash"] = "deadbeef" * 8
+        result = verify_chain_from_entries(entries)
+        assert result.valid is False
+        assert result.broken_at == 1
+
+
+# ---------------------------------------------------------------------------
+# Ed25519 signature tests
+# ---------------------------------------------------------------------------
+
+
+class TestOperatorSignature:
+    """Pruebas de firma Ed25519 del operador."""
+
+    def test_generate_keypair(self, tmp_path):
+        """Genera par de claves Ed25519."""
+        result = generate_operator_keypair(key_dir=tmp_path, operator_id="test-op")
+        assert result["operator_id"] == "test-op"
+        assert (tmp_path / "operator_private.pem").exists()
+        assert (tmp_path / "operator_public.pem").exists()
+        assert len(result["public_key_hex"]) == 64  # 32 bytes hex
+
+    def test_sign_and_verify_snapshot(self, tmp_path):
+        """Firma y verifica un snapshot."""
+        generate_operator_keypair(key_dir=tmp_path, operator_id="test-op")
+        data = b'{"votes":100,"candidate":"Alice"}'
+
+        sig_result = sign_snapshot(
+            data, key_path=tmp_path / "operator_private.pem", operator_id="test-op"
+        )
+        assert sig_result.operator_id == "test-op"
+        assert sig_result.signature_hex
+        assert sig_result.public_key_hex
+
+        # Verificar con clave pública
+        valid = verify_snapshot_signature(
+            data,
+            sig_result.signature_hex,
+            public_key_path=tmp_path / "operator_public.pem",
+        )
+        assert valid is True
+
+        # Verificar con hex directo
+        valid_hex = verify_snapshot_signature(
+            data,
+            sig_result.signature_hex,
+            public_key_hex=sig_result.public_key_hex,
+        )
+        assert valid_hex is True
+
+    def test_invalid_signature_rejected(self, tmp_path):
+        """Firma manipulada se rechaza."""
+        generate_operator_keypair(key_dir=tmp_path)
+        data = b"original data"
+
+        sig_result = sign_snapshot(data, key_path=tmp_path / "operator_private.pem")
+
+        # Manipular firma
+        bad_sig = "00" * 64
+        valid = verify_snapshot_signature(data, bad_sig, public_key_hex=sig_result.public_key_hex)
+        assert valid is False
+
+    def test_different_data_fails(self, tmp_path):
+        """Datos diferentes producen verificación fallida."""
+        generate_operator_keypair(key_dir=tmp_path)
+
+        sig_result = sign_snapshot(b"data A", key_path=tmp_path / "operator_private.pem")
+
+        valid = verify_snapshot_signature(
+            b"data B",
+            sig_result.signature_hex,
+            public_key_hex=sig_result.public_key_hex,
+        )
+        assert valid is False
+
+    def test_missing_key_raises(self, tmp_path):
+        """Falta de clave privada lanza FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            sign_snapshot(b"data", key_path=tmp_path / "nonexistent.pem")
+
+
+class TestHashRecordSignature:
+    """Pruebas de firma de registros de hash."""
+
+    def test_sign_and_verify_record(self, tmp_path):
+        """Firma un registro de hash y lo verifica."""
+        generate_operator_keypair(key_dir=tmp_path, operator_id="audit-op")
+        record = {
+            "hash": "abc123def456",
+            "chained_hash": "789012345678",
+            "timestamp": "2026-01-15T00:00:00Z",
+        }
+
+        signed = sign_hash_record(
+            record, key_path=tmp_path / "operator_private.pem", operator_id="audit-op"
+        )
+        assert "operator_signature" in signed
+        assert signed["operator_signature"]["algorithm"] == "Ed25519"
+        assert signed["operator_signature"]["operator_id"] == "audit-op"
+
+        assert verify_hash_record_signature(signed) is True
+
+    def test_tampered_record_fails(self, tmp_path):
+        """Registro alterado post-firma falla verificación."""
+        generate_operator_keypair(key_dir=tmp_path)
+        record = {"hash": "aaa", "chained_hash": "bbb"}
+
+        signed = sign_hash_record(record, key_path=tmp_path / "operator_private.pem")
+
+        signed["hash"] = "MANIPULATED"
+        assert verify_hash_record_signature(signed) is False
+
+    def test_record_without_signature(self):
+        """Registro sin firma retorna False."""
+        record = {"hash": "abc", "chained_hash": "def"}
+        assert verify_hash_record_signature(record) is False
+
+
+# ---------------------------------------------------------------------------
+# _compute_expected_hash tests
+# ---------------------------------------------------------------------------
+
+
+class TestComputeExpectedHash:
+    """Pruebas de _compute_expected_hash."""
+
+    def test_without_previous(self):
+        data = b"hello"
+        expected = hashlib.sha256(b"hello").hexdigest()
+        assert _compute_expected_hash(None, data) == expected
+
+    def test_with_previous(self):
+        prev = "abc123"
+        data = b"hello"
+        expected = hashlib.sha256(b"abc123hello").hexdigest()
+        assert _compute_expected_hash(prev, data) == expected
+
+    def test_deterministic(self):
+        h1 = _compute_expected_hash("prev", b"data")
+        h2 = _compute_expected_hash("prev", b"data")
+        assert h1 == h2
+
+    def test_different_previous_different_hash(self):
+        h1 = _compute_expected_hash("prev_a", b"data")
+        h2 = _compute_expected_hash("prev_b", b"data")
+        assert h1 != h2
+
+
+# ---------------------------------------------------------------------------
+# verify_anchor tests (mocked)
+# ---------------------------------------------------------------------------
+
+
+class TestVerifyAnchor:
+    """Pruebas de verify_anchor (stub post-Arbitrum, Zero Cost / OTS-only).
+
+    English: Tests for verify_anchor (post-Arbitrum stub, Zero Cost / OTS-only).
+
+    Arbitrum/web3 anchoring was permanently removed (Zero Cost principle).
+    verify_anchor() is now a deliberate stub that always returns
+    valid=False with error="use_anchoring_module", directing callers to
+    centinel.core.anchoring.verify_ots_proof(). These tests lock in that
+    contract so a future change can't silently re-enable a paid path.
+    """
+
+    def test_returns_stub_result(self):
+        from centinel.core.custody import verify_anchor
+
+        result = verify_anchor("0xtx123", "0x" + "ab" * 32)
+
+        assert result.valid is False
+        assert result.tx_hash == "0xtx123"
+        assert result.expected_root == "0x" + "ab" * 32
+        assert result.error == "use_anchoring_module"
+        assert result.ots_proof_file is None
+        assert result.bitcoin_block_height is None
+
+    def test_handles_missing_expected_root(self):
+        from centinel.core.custody import verify_anchor
+
+        result = verify_anchor("0xtx123")
+
+        assert result.valid is False
+        assert result.expected_root == ""
+        assert result.error == "use_anchoring_module"
+
+    def test_ignores_legacy_kwargs_for_api_compatibility(self):
+        """contract_address / max_retries son aceptados pero ignorados.
+
+        English: contract_address / max_retries are accepted but ignored.
+        Retained only so any not-yet-migrated caller doesn't raise
+        TypeError; both are scheduled for removal in v13.
+        """
+        from centinel.core.custody import verify_anchor
+
+        result = verify_anchor(
+            "0xtx123",
+            "0x" + "ab" * 32,
+            contract_address="0xcontract",
+            max_retries=5,
+        )
+
+        assert result.valid is False
+        assert result.error == "use_anchoring_module"
+
+
+class TestVerifyAnchorFromLog:
+    """Pruebas de verify_anchor_from_log."""
+
+    def test_missing_log_file(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        result = verify_anchor_from_log(tmp_path / "does_not_exist.json")
+
+        assert result.valid is False
+        assert result.error is not None
+        assert result.error.startswith("log_read_error")
+
+    def test_invalid_json(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        log_file = tmp_path / "anchor.json"
+        log_file.write_text("{not valid json", encoding="utf-8")
+
+        result = verify_anchor_from_log(log_file)
+
+        assert result.valid is False
+        assert result.error is not None
+        assert result.error.startswith("log_read_error")
+
+    def test_missing_tx_hash(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        log_file = tmp_path / "anchor.json"
+        log_file.write_text(json.dumps({"root": "0x" + "ab" * 32}), encoding="utf-8")
+
+        result = verify_anchor_from_log(log_file)
+
+        assert result.valid is False
+        assert result.error == "missing_tx_hash_in_log"
+        assert result.expected_root == "0x" + "ab" * 32
+
+    def test_delegates_to_verify_anchor(self, tmp_path):
+        from centinel.core.custody import verify_anchor_from_log
+
+        log_file = tmp_path / "anchor.json"
+        log_file.write_text(
+            json.dumps({"tx_hash": "0xtx123", "root": "0x" + "ab" * 32}),
+            encoding="utf-8",
+        )
+
+        result = verify_anchor_from_log(log_file)
+
+        # Delegates to the verify_anchor stub -> use_anchoring_module
+        assert result.valid is False
+        assert result.tx_hash == "0xtx123"
+        assert result.expected_root == "0x" + "ab" * 32
+        assert result.error == "use_anchoring_module"
+
+
+# ---------------------------------------------------------------------------
+# Startup verification tests
+# ---------------------------------------------------------------------------
+
+
+class TestStartupVerification:
+    """Pruebas de verificación al arranque."""
+
+    def test_no_hash_dir(self, tmp_path):
+        """Sin directorio de hashes retorna válido vacío."""
+        report = run_startup_verification(
+            hash_dir=tmp_path / "nonexistent",
+            anchor_log_dir=tmp_path / "no_anchors",
+        )
+        assert report.overall_valid is True
+        assert report.chain_result is not None
+
+    def test_valid_chain_startup(self, tmp_path):
+        """Cadena válida al arranque pasa verificación."""
+        hash_dir = tmp_path / "hashes"
+        hash_dir.mkdir()
+
+        previous = None
+        for i in range(3):
+            data_payload = {"hash": f"h{i}", "idx": i}
+            data_bytes = json.dumps(
+                data_payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+            ).encode("utf-8")
+            chained = _compute_expected_hash(previous, data_bytes)
+            record = {**data_payload, "chained_hash": chained}
+            if previous:
+                record["previous_hash"] = previous
+            _write_chain_record(hash_dir, i, record)
+            previous = chained
+
+        report = run_startup_verification(
+            hash_dir=hash_dir,
+            anchor_log_dir=tmp_path / "anchors",
+            verify_signatures=False,
+        )
+        assert report.overall_valid is True
+        assert report.chain_result.verified_links == 3
+
+    def test_report_serializable(self, tmp_path):
+        """El reporte se serializa correctamente a JSON."""
+        report = run_startup_verification(
+            hash_dir=tmp_path,
+            anchor_log_dir=tmp_path,
+        )
+        d = report.to_dict()
+        serialized = json.dumps(d)
+        assert "overall_valid" in serialized
+
+    def test_signature_verification_at_startup(self, tmp_path):
+        """Firmas válidas pasan verificación al arranque."""
+        hash_dir = tmp_path / "hashes"
+        hash_dir.mkdir()
+        key_dir = tmp_path / "keys"
+
+        generate_operator_keypair(key_dir=key_dir, operator_id="startup-op")
+
+        data_payload = {"hash": "test", "idx": 0}
+        data_bytes = json.dumps(
+            data_payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8")
+        chained = _compute_expected_hash(None, data_bytes)
+
+        record = {**data_payload, "chained_hash": chained}
+        sign_hash_record(
+            record,
+            key_path=key_dir / "operator_private.pem",
+            operator_id="startup-op",
+        )
+        _write_chain_record(hash_dir, 0, record)
+
+        report = run_startup_verification(
+            hash_dir=hash_dir,
+            anchor_log_dir=tmp_path / "anchors",
+            verify_signatures=True,
+        )
+        assert report.overall_valid is True
+        assert report.chain_result.verified_links == 1
+        assert len(report.signature_failures) == 0

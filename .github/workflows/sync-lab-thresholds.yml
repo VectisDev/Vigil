@@ -1,0 +1,43 @@
+name: Sync Lab Thresholds
+
+# ponytail: candidate for merge into ci.yml as an additional conditional job
+# once ci.yml adopts path filters. Keep standalone while ci.yml runs on every push.
+
+on:
+  push:
+    branches: [main, dev-v12]
+    paths:
+      - 'command_center/*.yaml'
+      - 'config/prod/rate_limiter.yaml'
+      - 'scripts/generate_lab_thresholds.py'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Generate lab-thresholds.json
+        run: python scripts/generate_lab_thresholds.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add web/lab-thresholds.json
+          git diff --cached --quiet && echo "No changes" || (
+            git commit -m "chore: sync lab thresholds from config [skip ci]"
+            git push
+          )

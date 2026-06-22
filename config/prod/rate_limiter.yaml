@@ -1,0 +1,9 @@
+active_mode: normal
+max_requests_per_hour: 240
+capacity: 3
+timeout_seconds: 30
+jitter_seconds: 5
+hard_ceiling:
+  max_requests_per_hour: 480
+  min_interval_seconds: 1
+  max_burst: 8

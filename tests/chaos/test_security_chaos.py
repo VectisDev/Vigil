@@ -1,0 +1,88 @@
+"""
+======================== ÍNDICE / INDEX ========================
+1. Descripción general / Overview
+2. Componentes principales / Main components
+3. Notas de mantenimiento / Maintenance notes
+
+======================== ESPAÑOL ========================
+Archivo: `tests/chaos/test_security_chaos.py`.
+Este módulo forma parte de Centinel Engine y está documentado para facilitar
+la navegación, mantenimiento y auditoría técnica.
+
+Componentes detectados:
+  - test_chaos_simulated_ddos_generates_single_air_gap
+  - test_chaos_integrity_tampering_detected
+  - test_chaos_oom_signal_persists_backup
+
+Notas:
+- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
+- Priorizar claridad operativa y trazabilidad del comportamiento.
+
+======================== ENGLISH ========================
+File: `tests/chaos/test_security_chaos.py`.
+This module is part of Centinel Engine and is documented to improve
+navigation, maintenance, and technical auditability.
+
+Detected components:
+  - test_chaos_simulated_ddos_generates_single_air_gap
+  - test_chaos_integrity_tampering_detected
+  - test_chaos_oom_signal_persists_backup
+
+Notes:
+- Keep this header in sync with structural changes in the file.
+- Prioritize operational clarity and behavior traceability.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from centinel.defense.advanced_security import AdvancedSecurityConfig, AdvancedSecurityManager
+
+
+def test_chaos_simulated_ddos_generates_single_air_gap(monkeypatch) -> None:
+    """Simulated DDoS bursts should converge into one air-gap decision.
+
+    Ráfagas DDoS simuladas deben converger en una sola decisión de air-gap.
+    """
+    manager = AdvancedSecurityManager(
+        AdvancedSecurityConfig(honeypot_flood_trigger_count=3, honeypot_flood_window_seconds=60)
+    )
+    calls: list[str] = []
+    monkeypatch.setattr(manager, "air_gap", lambda reason: calls.append(reason))
+
+    for _ in range(6):
+        manager.on_attack_event({"classification": "flood", "ip": "198.51.100.80"})
+
+    assert calls == ["honeypot_flood_threshold", "honeypot_flood_threshold"]
+
+
+def test_chaos_integrity_tampering_detected(tmp_path: Path) -> None:
+    """Unexpected file creation should be captured as integrity anomaly.
+
+    Creación inesperada de archivo debe capturarse como anomalía de integridad.
+    """
+    manager = AdvancedSecurityManager(
+        AdvancedSecurityConfig(integrity_paths=[str(tmp_path / "*.py")])
+    )
+    (tmp_path / "tampered.py").write_text("print('tamper')", encoding="utf-8")
+
+    triggers = manager.detect_internal_anomalies()
+
+    assert "new_file_detected" in triggers
+
+
+def test_chaos_oom_signal_persists_backup(monkeypatch) -> None:
+    """OOM-like signal should persist backup metadata before shutdown.
+
+    Señal tipo OOM debe persistir metadata de backup antes de apagar.
+    """
+    manager = AdvancedSecurityManager(AdvancedSecurityConfig())
+    calls: list[str] = []
+    monkeypatch.setattr(
+        manager.backups, "maybe_backup", lambda force=False: calls.append(f"backup:{force}")
+    )
+
+    manager._handle_oom_like_signal(15, None)
+
+    assert "backup:True" in calls

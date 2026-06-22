@@ -1,0 +1,59 @@
+{
+  "resultados": [
+    {
+      "partido": "",
+      "candidato": "NASRY JUAN ASFURA ZABLAH",
+      "votos": "247,466",
+      "porcentaje": 38.79
+    },
+    {
+      "partido": "",
+      "candidato": "SALVADOR ALEJANDRO CESAR NASRALLA SALUM",
+      "votos": "259,114",
+      "porcentaje": 40.62
+    },
+    {
+      "partido": "",
+      "candidato": "RIXI RAMONA MONCADA GODOY",
+      "votos": "118,622",
+      "porcentaje": 18.6
+    },
+    {
+      "partido": "",
+      "candidato": "JORGE NELSON AVILA GUTIERREZ",
+      "votos": "6,356",
+      "porcentaje": 1.0
+    },
+    {
+      "partido": "",
+      "candidato": "MARIO ENRIQUE RIVERA CALLEJAS",
+      "votos": "6,356",
+      "porcentaje": 1.0
+    }
+  ],
+  "estadisticas": {
+    "totalizacion_actas": {
+      "actas_totales": "3,645",
+      "actas_divulgadas": "3,645"
+    },
+    "distribucion_votos": {
+      "validos": "637,917",
+      "nulos": "21,545",
+      "blancos": "14,276"
+    },
+    "estado_actas_divulgadas": {
+      "actas_correctas": "3,258",
+      "actas_inconsistentes": "387"
+    }
+  },
+  "_meta": {
+    "tipo": "SINTÉTICO",
+    "descripcion": "Datos departamentales sintéticos generados de la suma nacional HN 2025",
+    "nota": "Los datos reales departamentales del CNE no están disponibles públicamente",
+    "departamento": "Francisco Morazán",
+    "codigo_cne": "08",
+    "peso_padron": 0.1902,
+    "seed": 2025,
+    "generado": "2026-06-07"
+  }
+}

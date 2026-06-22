@@ -1,0 +1,126 @@
+# ============================================================
+# SEGURIDAD AVANZADA (ES) / ADVANCED SECURITY (EN)
+# ============================================================
+# ES: Ajustes avanzados de honeypot, airgap, backups e integridad.
+# EN: Advanced settings for honeypot, airgap, backups, and integrity.
+#
+# ES: Índice:
+# EN: Index:
+# 01_interruptores_y_honeypot
+# 02_airgap_y_anomalias
+# 03_backups_e_integridad
+# 04_rotacion_ua_proxy_alertas
+# 05_prometheus_y_parametros_cpu
+# 06_reglas_solidity
+
+# ES: Convención binaria: todos los flags tipo enabled/monitor/critical/anonymize/encrypt
+#     usan true/false (booleano YAML, sin comillas).
+# EN: Binary convention: all flags such as enabled/monitor/critical/anonymize/encrypt
+#     use true/false (YAML booleans, without quotes).
+
+enabled: true
+honeypot_enabled: true
+honeypot_host: "127.0.0.1"
+honeypot_port: 8081
+honeypot_endpoints:
+  - "/admin"
+  - "/login"
+  - "/api/v1/results"
+  - "/debug"
+  - "/wp-admin"
+  - "/wp-login.php"
+  - "/phpmyadmin"
+  - "/manager/html"
+  - "/.env"
+  - "/server-status"
+  - "/actuator"
+  - "/jenkins/login"
+  - "/grafana/login"
+  - "/admin/config"
+  - "/api/internal"
+  - "/api/v1/admin/users"
+  - "/auth/reset"
+  - "/backoffice"
+  - "/console"
+  - "/db-admin"
+
+airgap_min_minutes: 5
+airgap_max_minutes: 20
+
+cpu_threshold_percent: 75
+cpu_sustain_seconds: 90
+memory_threshold_percent: 80
+anomaly_consecutive_limit: 3
+honeypot_flood_trigger_count: 2
+honeypot_flood_window_seconds: 60
+integrity_max_established_connections: 75
+
+backup_provider: "s3"
+backup_interval: 1800
+auto_backup_forensic_logs: true
+backup_retention_days: 7
+backup_paths:
+  - "hashes/**/*.sha256"
+  - "data/snapshots/**/*.json"
+  - "logs/attack_log*.jsonl*"
+integrity_paths:
+  - "core/*.py"
+  - "scripts/run_pipeline.py"
+
+user_agents_list:
+  - "Mozilla/5.0 (compatible; Centinel-Engine/1.0)"
+  - "Centinel-AuditoriaHN/1.0 bot"
+  - "Centinel-ElectorHN/1.0 (auditoria publica)"
+  - "Centinel-HN/1.0 (monitoreo electoral)"
+  - "Centinel-GuardianHN/1.0 (integridad de datos)"
+  - "Centinel-ObserverHN/1.0 (validacion de snapshots)"
+  - "Centinel-CollectorHN/1.0 (captura distribuida)"
+  - "Centinel-ForensicsHN/1.0 (telemetria segura)"
+  - "Centinel-ComplianceHN/1.0 (verificacion normativa)"
+  - "Centinel-WatchHN/1.0 (deteccion de anomalias)"
+  - "Centinel-VitalsHN/1.0 (estado operacional)"
+  - "Centinel-AnchorHN/1.0 (anclaje blockchain)"
+  - "Centinel-TraceHN/1.0 (trazabilidad forense)"
+  - "Centinel-GuardHN/1.0 (defensa perimetral)"
+  - "Centinel-AegisHN/1.0 (resiliencia activa)"
+rotate_every_min_polls: 10
+rotate_every_max_polls: 30
+
+proxy_list:
+  - "http://198.51.100.11:8080"
+  - "http://198.51.100.12:8080"
+  - "http://198.51.100.13:8080"
+  - "http://198.51.100.14:8080"
+  - "http://198.51.100.15:8080"
+  - "http://198.51.100.16:8080"
+  - "http://198.51.100.17:8080"
+  - "http://198.51.100.18:8080"
+alert_escalation_failures: 3
+honeypot_threshold_per_minute: 100
+prometheus_enabled: true
+prometheus_port: 8000
+cpu_adaptive_margin_percent: 20
+cpu_spike_grace_seconds: 15
+cpu_baseline_window: 6
+alert_sms_webhook: ""
+solidity_contract_paths:
+  - "contracts/**/*.sol"
+solidity_blocked_patterns:
+  - "tx.origin"
+  - "delegatecall"
+  - "selfdestruct"
+
+# CORS Configuration (ES/EN)
+# ES: Dominios permitidos para CORS. Define explícitamente qué orígenes pueden hacer
+#     requests a este servidor. Por defecto, CORS está DESHABILITADO (lista vacía).
+#     Riesgo: CORS_ORIGINS=* permite que cualquier dominio haga preguntas al servidor
+#     (verifier-hijacking attack: atacante publica verifier en otro dominio, lo hace
+#     preguntar a TU testigo). Solución: whitelist explícito.
+# EN: Allowed domains for CORS. Explicitly define which origins can make requests
+#     to this server. By default, CORS is DISABLED (empty list).
+#     Risk: CORS_ORIGINS=* allows any domain to query your server (verifier-hijacking:
+#     attacker publishes verifier on other domain, makes it query your witness).
+#     Solution: explicit whitelist.
+cors_allowed_origins:
+  - "https://userf8a2c4.github.io/centinel-engine"
+  - "http://localhost:3000"
