@@ -243,6 +243,35 @@ function renderRiskRibbon() {
   ribbon.style.background = `linear-gradient(to right, ${stops.join(', ')})`;
 }
 
+// Chart.js plugin: pinta bandas verticales coloreadas en el fondo de charts temporales.
+// El ojo del observador (experto o no) localiza zonas anómalas sin leer ejes ni números.
+const crsBandsPlugin = {
+  id: 'crsBands',
+  beforeDatasetsDraw(chart, _args, opts) {
+    const arr = opts?.crsArray;
+    if (!arr || arr.length < 2) return;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+    const n = arr.length;
+    const span = chartArea.right - chartArea.left;
+    const w = span / (n - 1);
+    ctx.save();
+    for (let i = 0; i < n; i++) {
+      const s = arr[i] || 0;
+      if (s < 1) continue;
+      const color =
+        s >= 40 ? 'rgba(192, 57, 43, 0.45)' :
+        s >= 20 ? 'rgba(223, 107, 134, 0.38)' :
+        s >= 5  ? 'rgba(232, 160, 74, 0.32)' :
+                  'rgba(212, 176, 102, 0.25)';
+      ctx.fillStyle = color;
+      const xi = chartArea.left + (i / (n - 1)) * span;
+      ctx.fillRect(xi - w/2, chartArea.top, w, chartArea.bottom - chartArea.top);
+    }
+    ctx.restore();
+  }
+};
+
 // ── PBKDF2 helpers ──
 async function pbkdf2Key(password, salt, iterations){
   const enc = new TextEncoder();
@@ -478,10 +507,12 @@ function renderTimelineReplay(snaps){
     options:{responsive:true,animation:false,
       plugins:{
         legend:{display:false},
-        tooltip:{callbacks:{label:ctx=>`Snapshots acumulados al ${ctx.label}: ${ctx.raw}`}}
+        tooltip:{callbacks:{label:ctx=>`Snapshots acumulados al ${ctx.label}: ${ctx.raw}`}},
+        crsBands:{crsArray:crsHistory}
       },
       scales:{x:{ticks:{color:'#8b929c',maxRotation:45,font:{size:10}},grid:{color:'#24272e'}},
-              y:{grid:{color:'#24272e'},ticks:{color:'#8b929c'}}}}
+              y:{grid:{color:'#24272e'},ticks:{color:'#8b929c'}}}},
+    plugins:[crsBandsPlugin]
   });
 }
 
