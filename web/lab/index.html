@@ -4546,9 +4546,9 @@ const crsBandsPlugin = {
       const s=arr[i]||0;
       // Map either category count (lab) or numeric score (replay) → color band.
       let rgb=null;
-      if      (s>=3 || s>=20)          rgb=[192, 57, 43];   // rojo
-      else if (s===2 || (s>=5 && s<20)) rgb=[232,160, 74];   // naranja
-      else if (s>=1)                    rgb=[212,176,102];   // ámbar
+      if      (s>=3)                    rgb=[192, 57, 43];   // rojo
+      else if (s===2)                  rgb=[232,160, 74];   // naranja
+      else if (s>=1)                   rgb=[212,176,102];   // ámbar
       if(!rgb) continue;
       const xi=ca.left+(i/(n-1))*span;
       const w=Math.max(1,span/(n-1));
