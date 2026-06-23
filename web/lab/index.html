@@ -767,22 +767,22 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
 <!-- Partidos — full width -->
 <div class="card chart-card" data-chart-id="s-chart-cand" style="margin-bottom:12px">
-  <div class="chart-wrap" style="height:180px"><canvas id="s-chart-cand"></canvas></div>
+  <div class="chart-wrap" style="height:180px"><canvas id="s-chart-cand" role="img" aria-label="Gráfico de votos acumulados por candidato a lo largo del tiempo"></canvas></div>
 </div>
 
 <!-- Timeline — full width -->
 <div class="card chart-card" data-chart-id="s-chart-timeline" style="margin-bottom:12px">
-  <div class="chart-wrap" style="height:160px"><canvas id="s-chart-timeline"></canvas></div>
+  <div class="chart-wrap" style="height:160px"><canvas id="s-chart-timeline" role="img" aria-label="Línea de tiempo — actas escrutadas por snap de 5 minutos"></canvas></div>
 </div>
 
 <!-- Distribuciones de dígitos — par lógico -->
 <div class="chart-group-2">
   <div class="card chart-card" data-chart-id="s-chart-benford">
-    <div class="chart-wrap" style="height:200px"><canvas id="s-chart-benford"></canvas></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="s-chart-benford" role="img" aria-label="Análisis de Benford — distribución observada vs esperada del primer dígito"></canvas></div>
     <div id="s-benford-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-lastdigit">
-    <div class="chart-wrap" style="height:200px"><canvas id="s-chart-lastdigit"></canvas></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="s-chart-lastdigit" role="img" aria-label="Distribución del último dígito de los totales de votos"></canvas></div>
     <div id="s-lastdigit-stats" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
 </div>
@@ -790,43 +790,43 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 <!-- Stats por departamento — trío lógico -->
 <div class="chart-group-3">
   <div class="card chart-card" data-chart-id="s-chart-zscore">
-    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-zscore"></canvas></div>
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-zscore" role="img" aria-label="Z-score de participación electoral por departamento"></canvas></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-participation">
-    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-participation"></canvas></div>
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-participation" role="img" aria-label="Tasa de participación electoral por departamento"></canvas></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-nullblank">
-    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-nullblank"></canvas></div>
+    <div class="chart-wrap" style="height:180px"><canvas id="s-chart-nullblank" role="img" aria-label="Evolución de tasa de votos nulos y blancos por snap"></canvas></div>
   </div>
 </div>
 
 <!-- Velocidad — full width -->
 <div class="card chart-card" data-chart-id="s-chart-velocity" style="margin-bottom:12px">
-  <div class="chart-wrap" style="height:180px"><canvas id="s-chart-velocity"></canvas></div>
+  <div class="chart-wrap" style="height:180px"><canvas id="s-chart-velocity" role="img" aria-label="Velocidad de ingreso de actas por snap"></canvas></div>
 </div>
 
 <!-- Líder — full width -->
 <div class="card chart-card" data-chart-id="s-chart-leader" style="margin-bottom:12px">
-  <div class="chart-wrap" style="height:160px"><canvas id="s-chart-leader"></canvas></div>
+  <div class="chart-wrap" style="height:160px"><canvas id="s-chart-leader" role="img" aria-label="Ventaja del candidato líder a lo largo del tiempo"></canvas></div>
 </div>
 
 <!-- Tendencia — full width -->
 <div class="card chart-card" data-chart-id="s-chart-trend" style="margin-bottom:12px">
-  <div class="chart-wrap" style="height:180px"><canvas id="s-chart-trend"></canvas></div>
+  <div class="chart-wrap" style="height:180px"><canvas id="s-chart-trend" role="img" aria-label="Tendencia de votos por candidato"></canvas></div>
 </div>
 
 <!-- Perfil de Anomalías — full width -->
 <div class="card chart-card" data-chart-id="s-chart-anomaly-profile" style="margin-bottom:12px">
-  <div class="chart-wrap" style="height:220px"><canvas id="s-chart-anomaly-profile"></canvas></div>
+  <div class="chart-wrap" style="height:220px"><canvas id="s-chart-anomaly-profile" role="img" aria-label="Perfil de anomalías detectadas por categoría (A–E)"></canvas></div>
 </div>
 
 <!-- Nulos/Tiempo + Margen — par lógico -->
 <div class="chart-group-2">
   <div class="card chart-card" data-chart-id="s-chart-invalids">
-    <div class="chart-wrap" style="height:160px"><canvas id="s-chart-invalids"></canvas></div>
+    <div class="chart-wrap" style="height:160px"><canvas id="s-chart-invalids" role="img" aria-label="Evolución de votos inválidos y nulos en el tiempo"></canvas></div>
   </div>
   <div class="card chart-card" data-chart-id="s-chart-margin">
-    <div class="chart-wrap" style="height:160px"><canvas id="s-chart-margin"></canvas></div>
+    <div class="chart-wrap" style="height:160px"><canvas id="s-chart-margin" role="img" aria-label="Margen de votos entre el primer y segundo candidato"></canvas></div>
   </div>
 </div>
 
@@ -1014,7 +1014,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
 
     <!-- Network Canvas Visualization -->
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;min-height:420px;position:relative">
-      <canvas id="network-canvas" style="width:100%;height:400px;border-radius:6px;background:rgba(0,0,0,.2);display:block"></canvas>
+      <canvas id="network-canvas" role="img" aria-label="Visualización de red de nodos del enjambre de testigos" style="width:100%;height:400px;border-radius:6px;background:rgba(0,0,0,.2);display:block"></canvas>
       <div style="font-size:9px;color:var(--muted);margin-top:6px;padding:6px;background:rgba(55,65,81,.3);border-radius:4px;display:flex;gap:12px;flex-wrap:wrap">
         <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#22d3ee;flex-shrink:0"></span><span data-i18n="sw_legend_local">LOCAL (nosotros)</span></span>
         <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></span><span data-i18n="sw_legend_honest">Nodos honestos</span></span>
@@ -1069,7 +1069,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
       <div style="font-size:9px;color:var(--muted);font-weight:600;margin-bottom:8px" data-i18n="sw_timeline_title">LÍNEA DE TIEMPO — Elección en Progreso</div>
       <div style="position:relative;height:60px">
-        <canvas id="audit-timeline-canvas" style="width:100%;height:60px;display:block;border-radius:4px;background:rgba(0,0,0,.2)"></canvas>
+        <canvas id="audit-timeline-canvas" role="img" aria-label="Línea de tiempo de auditoría de la cadena de hash" style="width:100%;height:60px;display:block;border-radius:4px;background:rgba(0,0,0,.2)"></canvas>
       </div>
       <div style="font-size:9px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between">
         <span data-i18n="sw_timeline_start">Inicio</span>
