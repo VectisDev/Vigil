@@ -691,6 +691,9 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
         border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"
         title="Mapa de calor de riesgo compuesto (CRS) — cada banda = 1 snapshot. Verde=normal · Ámbar=1 categoría · Naranja=2 categorías · Rojo=3+ categorías o violación criptográfica. Categorías independientes: A) integridad criptográfica · B) calidad de datos · C) comportamiento temporal · D) consistencia aritmética · E) infraestructura adversarial. INDICADOR OPERACIONAL — no constituye prueba estadística formal de fraude. Calibración empírica pendiente (HND 2017/2021)."></div>
     </div>
+    <div style="font-size:9px;color:var(--muted);letter-spacing:.02em;line-height:1.3;padding-top:1px">
+      Indicador operacional · no constituye prueba estadística formal de fraude · calibración pendiente <a href="https://github.com/VectisDev/Vigil/blob/main/docs/methodology/crs.md" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">(metodología)</a>
+    </div>
   </div>
 
   <span id="sim-info">Snap 0 / — | 0%</span>
@@ -698,6 +701,9 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
     padding:3px 8px;border-radius:3px;background:#3a7d5a;color:#fff;border:1px solid #3a7d5a;
     letter-spacing:.04em;white-space:nowrap" title="CRS del snapshot actual">CRS 0 · NORMAL</span>
   <span class="sim-badge" id="sim-badge">DETENIDO</span>
+  <span id="render-clock" style="font-family:var(--mono);font-size:9px;color:var(--muted);
+    letter-spacing:.04em;white-space:nowrap;padding-left:8px;border-left:1px solid var(--border);margin-left:4px"
+    title="Wall-clock UTC del análisis — cadena de custodia para observadores internacionales">—</span>
 </div>
 
 <!-- Active injections quick-bar — appears only when injections are active -->
@@ -1265,6 +1271,10 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
       <div class="acad-label" data-i18n="acad_lbl_thresh">Umbrales activos</div>
       <div style="font-size:12px;color:var(--fg);margin-top:2px" id="acad-thresh-label">—</div>
     </div>
+    <div title="Marca de tiempo wall-clock UTC del momento en que se renderizó esta página — cadena de custodia para observadores OEA / Carter Center.">
+      <div class="acad-label">Análisis generado (UTC)</div>
+      <div style="font-size:12px;color:var(--fg);margin-top:2px;font-family:var(--mono)" id="acad-render-ts">—</div>
+    </div>
   </div>
 </div>
 
@@ -1374,36 +1384,48 @@ function _labCrsForSnap(snap, prev, runningBenford){
 }
 
 // Helper: count INDEPENDENT anomaly categories from snap._cd populated by evaluateCheapRules.
-// Categoría A (criptográfica/determinística) → retorna 3 directo (rojo).
-// Categorías B–E → cuenta de categorías distintas (cap 3).
+// Una categoría "dispara" si tiene ≥1 CRITICAL o ≥2 WARN distintos. Esto elimina el ruido
+// de un único WARN persistente (e.g., nulos crónicos del baseline real HND ~7-8%) sin
+// perder convergencia genuina de anomalías. Cat A (criptográfica) con CRITICAL → rojo directo.
+// Pendiente de calibración empírica con HND 2017/2021.
 function _catCountFromCd(cd){
   if(!cd) return 0;
-  // Categoría A — violaciones determinísticas → rojo directo, sin contar.
+  // Cat A — violaciones determinísticas. CRITICAL → rojo directo.
   const catA = ['snap_jump_neg','binary_tamper','ots_attack','zt_bypass'];
-  for(const k of catA){ if(cd[k]) return 3; }
-  // Categorías aproximadamente independientes entre sí.
-  const cats = {
+  for(const k of catA){
+    const v = cd[k];
+    if(v && v.level === 'CRITICAL') return 3;
+  }
+  const catMap = {
+    A: ['snap_jump_neg','binary_tamper','ots_attack','zt_bypass'],
     B: ['partial_data','null_crit','null_warn','incons_crit','incons_delta'],
     C: ['snap_jump_pct','speed_max','part_jump','part_zscore','ts_monotone','throttled'],
     D: ['delta_pct','vote_change','duplication','forced_part'],
     E: ['ddos','cdn_mirrors','cache_stale','coordinated','concentration','vis_down']
   };
-  const fired = new Set();
-  // Exact-key match for fixed rule keys.
-  for(const [cat, keys] of Object.entries(cats)){
-    if(keys.some(k => cd[k])) fired.add(cat);
+  const prefixCat = { 'reversal_': 'D', 'delta_pct_': 'D', 'vote_chg_': 'D' };
+  const tally = {A:{crit:0,warn:0},B:{crit:0,warn:0},C:{crit:0,warn:0},D:{crit:0,warn:0},E:{crit:0,warn:0}};
+  for(const [k,v] of Object.entries(cd)){
+    if(!v || !v.level) continue;
+    if(k.startsWith('_')) continue;
+    let cat = null;
+    for(const [c, keys] of Object.entries(catMap)){
+      if(keys.includes(k)){ cat = c; break; }
+    }
+    if(!cat){
+      for(const [pfx, c] of Object.entries(prefixCat)){
+        if(k.startsWith(pfx)){ cat = c; break; }
+      }
+    }
+    if(!cat) continue;
+    if(v.level === 'CRITICAL') tally[cat].crit++;
+    else if(v.level === 'WARN') tally[cat].warn++;
   }
-  // Reversiones de candidato (claves dinámicas reversal_XXX) → Cat D.
-  for(const k of Object.keys(cd)){
-    if(k.startsWith('reversal_'))   { fired.add('D'); break; }
+  let fired = 0;
+  for(const t of Object.values(tally)){
+    if(t.crit >= 1 || t.warn >= 2) fired++;
   }
-  for(const k of Object.keys(cd)){
-    if(k.startsWith('delta_pct_'))  { fired.add('D'); break; }
-  }
-  for(const k of Object.keys(cd)){
-    if(k.startsWith('vote_chg_'))   { fired.add('D'); break; }
-  }
-  return Math.min(fired.size, 3);
+  return Math.min(fired, 3);
 }
 
 // Pre-compute CRS for ALL snapshots in the loaded dataset (called once after loadDataset).
@@ -1501,14 +1523,18 @@ function renderLabRiskRibbon(){
     }
     ribbon.style.background=`linear-gradient(to right,${parts.join(',')})`;
   }
-  // Update CRS badge — colorea por categoría, muestra score numérico legacy.
+  // Update CRS badge — fuente única de verdad: conteo de categorías independientes.
+  // Score numérico legacy queda en el tooltip para herramientas externas que lo consumen.
   const badge=document.getElementById('lab-crs-badge');
   if(badge){
     const cur=_labCRS();
     const idx=Math.min(SIM.idx||0, (labCatHistory.length||1)-1);
     const cats=labCatHistory[idx]||0;
     const col=_labCatColor(cats);
-    badge.textContent=`CRS ${cur} · ${_labCatLabel(cats)}`;
+    const catWord = cats===1 ? 'categoría' : 'categorías';
+    const catTxt = cats>=3 ? '3+ categorías' : `${cats} ${catWord}`;
+    badge.textContent=`${catTxt} · ${_labCatLabel(cats)}`;
+    badge.title=`Conteo de categorías de anomalía independientes activas (A–E). CRS numérico legacy (Σ pesos): ${cur}. Indicador operacional, no test estadístico formal.`;
     badge.style.background=col;
     badge.style.color=cats>=2?'#fff':'#0a0a0a';
     badge.style.borderColor=col;
@@ -4524,11 +4550,9 @@ const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
   scales:{x:{ticks:{color:'#8b929c',font:{size:10},maxRotation:MOB?45:undefined,maxTicksLimit:X_TICKS_LIMIT},grid:{color:'#1c1f26'}},
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
 
-// Plugin: pinta bandas de calor en la BASE del chart + tinte muy sutil sobre los datos.
-// El strip sólido en la base es el indicador pre-atencional para no-expertos;
-// el tinte (alpha 0.07) NO tapa los datos para que el experto siga leyendo curvas.
-// Input `crsArray` acepta: (a) conteos de categorías (0–3+) del lab; (b) scores numéricos
-// del replay. La función mapea ambos esquemas al mismo color band.
+// Plugin: pinta bandas de calor en la BASE del chart + tinte muy sutil sobre los datos
+// + patrón de puntos redundante por severidad (WCAG 2.2 AA: color no es la única señal).
+// Input `crsArray` = conteo de categorías independientes (0–3+) por snapshot.
 // NOTE: This is an operational indicator, not a formal hypothesis test —
 // thresholds pending HND 2017/2021 empirical calibration.
 const crsBandsPlugin = {
@@ -4540,24 +4564,39 @@ const crsBandsPlugin = {
     if(!ca)return;
     const n=arr.length;
     const span=ca.right-ca.left;
-    const STRIP=5; // px — franja sólida en la base
+    const STRIP=6; // px — franja sólida en la base (espacio para dots)
     ctx.save();
+    // Pass 1: tinte sutil + franja sólida con color.
     for(let i=0;i<n;i++){
       const s=arr[i]||0;
-      // Map either category count (lab) or numeric score (replay) → color band.
       let rgb=null;
-      if      (s>=3)                    rgb=[192, 57, 43];   // rojo
-      else if (s===2)                  rgb=[232,160, 74];   // naranja
-      else if (s>=1)                   rgb=[212,176,102];   // ámbar
+      if      (s>=3) rgb=[192, 57, 43];   // rojo    — 3+ categorías o Cat A directo
+      else if (s===2) rgb=[232,160, 74];  // naranja — 2 categorías
+      else if (s>=1) rgb=[212,176,102];   // ámbar   — 1 categoría
       if(!rgb) continue;
       const xi=ca.left+(i/(n-1))*span;
       const w=Math.max(1,span/(n-1));
-      // Tinte sutil sobre el área de datos (no tapa las curvas).
       ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.07)`;
       ctx.fillRect(xi-w/2, ca.top, w, ca.bottom-ca.top-STRIP);
-      // Franja sólida en la base — indicador pre-atencional principal.
-      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.90)`;
+      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.92)`;
       ctx.fillRect(xi-w/2, ca.bottom-STRIP, w, STRIP);
+    }
+    // Pass 2: patrón redundante de puntos — distingue niveles para deuteranopía/protanopía
+    // sin depender del matiz. 1 punto = ámbar · 2 = naranja · 3 = rojo.
+    ctx.fillStyle='rgba(8,11,15,0.78)';
+    const DOT=1.3;
+    for(let i=0;i<n;i++){
+      const s=arr[i]||0;
+      const dots = s>=3 ? 3 : s===2 ? 2 : s>=1 ? 1 : 0;
+      if(!dots) continue;
+      const xi=ca.left+(i/(n-1))*span;
+      const cy=ca.bottom-STRIP/2;
+      for(let d=0;d<dots;d++){
+        const off=(d-(dots-1)/2)*1.9;
+        ctx.beginPath();
+        ctx.arc(xi+off, cy, DOT, 0, Math.PI*2);
+        ctx.fill();
+      }
     }
     ctx.restore();
   }
@@ -5620,6 +5659,11 @@ function _updateAcadPanel(){
   set('acad-alerts-label',simAlerts.length);
   set('acad-crit-label',crit);
   set('acad-thresh-label',`${activeThresh} / ${RULES_DEFS.length}`);
+  // Wall-clock UTC del análisis — cadena de custodia para observadores internacionales.
+  const _utc = new Date().toISOString().replace('T',' ').slice(0,16)+' UTC';
+  set('acad-render-ts', _utc);
+  const rc = document.getElementById('render-clock');
+  if(rc) rc.textContent = _utc;
   const preregRow=document.getElementById('acad-prereq-row');
   if(preregRow){
     const stored=localStorage.getItem('centinel_acad_prereg');
