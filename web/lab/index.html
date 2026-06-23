@@ -1446,6 +1446,7 @@ function precomputeLabCRS(){
   _logEMute = true;
   const _savedLeader = historyLeader.slice();
   const _savedLeadPct = historyLeadPct.slice();
+  const _savedTop3 = historyTop3.slice();
   const _savedAlertLast = Object.assign({}, _alertLast);
   try {
     for(let i=0;i<SIM.snapshots.length;i++){
@@ -1467,6 +1468,7 @@ function precomputeLabCRS(){
     _logEMute = false;
     historyLeader.length = 0; historyLeader.push(..._savedLeader);
     historyLeadPct.length = 0; historyLeadPct.push(..._savedLeadPct);
+    historyTop3.length = 0; historyTop3.push(..._savedTop3);
     for(const k of Object.keys(_alertLast)) delete _alertLast[k];
     Object.assign(_alertLast, _savedAlertLast);
   }
@@ -1551,6 +1553,7 @@ let historyTimeline = [];
 let historyIncons = [];
 let historyLeader = [];
 let historyLeadPct = [];
+let historyTop3 = []; // [{abbrev,pct}, ...] per snap, top 3 by votes
 let historyVelocity = [];
 let historyTrend = [];
 let historyInvalids = [];
@@ -2218,7 +2221,7 @@ const _LOG_FULL_EN = {
 };
 const _LOG_PHRASES_EN = [
   // ── Forensic Visualization Panel — dynamic titles & stats ──
-  ['Evolución del Liderazgo — ','Leadership Over Time — '],
+  ['Top 3 Partidos — Evolución','Top 3 Parties — Evolution'],
   ['Margen 1° vs 2° — ','1st vs 2nd Margin — '],
   ['⚠ Umbral violado','⚠ Threshold violated'],
   ['⚠ Violación detectada','⚠ Violation detected'],
@@ -4061,7 +4064,7 @@ function simStop(){
   // Recompute CRS from snapshot anomalies (preserves dataset heat zones after stop)
   if(SERIES)precomputeLabCRS(); else {labCrsHistory=[];labCatHistory=[];renderLabRiskRibbon();}
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
-  historyLeader=[];historyLeadPct=[];
+  historyLeader=[];historyLeadPct=[];historyTop3=[];
   historyVelocity=[];historyTrend=[];historyInvalids=[];historyMargin=[];historyAnomalyCounts={};
   Object.keys(_alertLast).forEach(k=>delete _alertLast[k]);
   Object.values(EVENTS).forEach(e=>{if(e._hc!==undefined)delete e._hc;if(e._cascade!==undefined)delete e._cascade;});
@@ -4446,11 +4449,14 @@ function evaluateCheapRules(snap,idx){
 
   // Track running history for expensive checks
   if(snap.partidos?.length){
-    const leader=snap.partidos.reduce((a,b)=>b.votos>a.votos?b:a);
+    const sorted=[...snap.partidos].sort((a,b)=>(b.votos||0)-(a.votos||0));
+    const leader=sorted[0];
     historyLeader.push(leader.abbrev);
     historyLeadPct.push(leader.pct);
     if(historyLeader.length>288)historyLeader.shift();
     if(historyLeadPct.length>288)historyLeadPct.shift();
+    historyTop3.push(sorted.slice(0,3).map(p=>({abbrev:p.abbrev,pct:p.pct??0})));
+    if(historyTop3.length>288)historyTop3.shift();
   }
 }
 
@@ -4750,20 +4756,38 @@ function renderVelocity(){
 }
 
 function renderLeader(snap){
-  if(historyLeadPct.length<2)return;
-  const labs=historyVelocity.length===historyLeadPct.length?historyVelocity.map(h=>h.ts):historyLeadPct.map((_,i)=>i);
-  const colors=[];const pts=[];
-  for(let i=0;i<historyLeader.length;i++){
-    const changed=i>0&&historyLeader[i]!==historyLeader[i-1];
-    colors.push(changed?'rgba(252,211,77,1)':'rgba(176,140,240,.8)');
-    pts.push(changed?6:0);
+  if(historyTop3.length<2)return;
+  const labs=historyVelocity.length===historyTop3.length?historyVelocity.map(h=>h.ts):historyTop3.map((_,i)=>i);
+  // Collect all party abbreviations that appear in top 3 across history
+  const partiesInTop3=[];
+  for(const frame of historyTop3){
+    for(const p of (frame||[])){
+      if(p?.abbrev&&!partiesInTop3.includes(p.abbrev))partiesInTop3.push(p.abbrev);
+    }
   }
-  mk('s-chart-leader',{type:'line',data:{labels:labs,datasets:[
-    {label:_trMsg('% Líder'),data:historyLeadPct,borderColor:'rgba(176,140,240,.7)',pointBackgroundColor:colors,pointRadius:pts,fill:true,backgroundColor:'rgba(176,140,240,.08)',tension:.3}]},
+  const TOP_COLORS=['rgba(176,140,240,.9)','rgba(110,168,254,.9)','rgba(87,192,141,.85)'];
+  const datasets=partiesInTop3.slice(0,3).map((abbrev,rank)=>{
+    const col=PARTY_COLORS[abbrev]
+      ? PARTY_COLORS[abbrev]+'cc'
+      : TOP_COLORS[rank]||TOP_COLORS[2];
+    const data=historyTop3.map(frame=>{
+      const entry=(frame||[]).find(p=>p.abbrev===abbrev);
+      return entry?entry.pct:null;
+    });
+    const changeColors=historyLeader.map((ldr,i)=>i>0&&historyLeader[i]!==historyLeader[i-1]&&ldr===abbrev?'rgba(252,211,77,1)':col);
+    const pts=historyLeader.map((ldr,i)=>i>0&&historyLeader[i]!==historyLeader[i-1]&&ldr===abbrev?6:0);
+    return{label:abbrev,data,borderColor:col,backgroundColor:col.replace(/[\d.]+\)$/,'0.06)'),
+      pointBackgroundColor:changeColors,pointRadius:pts,
+      spanGaps:true,fill:rank===0,tension:.3,borderWidth:rank===0?2:1.5};
+  });
+  const last=historyTop3[historyTop3.length-1]||[];
+  const subText=last.slice(0,3).map(p=>`${p.abbrev} ${p.pct!=null?p.pct.toFixed(1)+'%':'—'}`).join('  ·  ');
+  mk('s-chart-leader',{type:'line',data:{labels:labs,datasets},
     plugins:[crsBandsPlugin],
-    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg(`Evolución del Liderazgo — ${historyLeader[historyLeader.length-1]||'?'}`),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:4}},
+    options:{...CHART_OPT,plugins:{title:{display:true,text:_trMsg('Top 3 Partidos — Evolución'),color:'#8b929c',font:{size:11,weight:'600'},padding:{bottom:2}},
+      subtitle:{display:true,text:subText,color:'#8b929c',font:{size:8.5},padding:{bottom:4}},
       crsBands:{crsArray:_crsSliceForLength(labs.length)},
-      legend:{display:false}},
+      legend:{display:true,labels:{color:'#8b929c',font:{size:9},boxWidth:10,padding:8}}},
       scales:{x:{ticks:{color:'#8b929c',maxTicksLimit:X_TICKS_LIMIT,font:{size:8}},grid:{color:'#1c1f26'}},
              y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'},title:{display:true,text:_trMsg('%'),color:'#8b929c'}}}}});
 }
