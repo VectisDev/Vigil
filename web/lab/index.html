@@ -689,7 +689,7 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
       <span style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">CRS</span>
       <div id="lab-risk-ribbon" style="flex:1;height:14px;border-radius:3px;background:#3a7d5a;cursor:help;
         border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"
-        title="Mapa de calor de riesgo compuesto (CRS) — cada banda = 1 snapshot. Verde=normal · Ámbar=leve · Naranja=atención (p<0.05) · Rojo=alerta (p<0.01) · Crimson=crítico (p<0.0001, imposible por azar). Calculado desde anomalías estadísticas detectadas: rollbacks, inconsistencias, salto de escrutinio, reversiones de votos, datos truncados."></div>
+        title="Mapa de calor de riesgo compuesto (CRS) — cada banda = 1 snapshot. Verde=normal · Ámbar=1 categoría · Naranja=2 categorías · Rojo=3+ categorías o violación criptográfica. Categorías independientes: A) integridad criptográfica · B) calidad de datos · C) comportamiento temporal · D) consistencia aritmética · E) infraestructura adversarial. INDICADOR OPERACIONAL — no constituye prueba estadística formal de fraude. Calibración empírica pendiente (HND 2017/2021)."></div>
     </div>
   </div>
 
@@ -1297,11 +1297,18 @@ let scheduledInjections = [];
 let injMode = 'instant';
 let simAlerts = [];
 
-// ── CRS: Score de Riesgo Compuesto (Composite Risk Score) ─────────────────
-// Test de Probabilidad Combinada de Fisher: χ² = -2×Σln(pᵢ) ~ χ²(2k)
-// Pesos: INFO=1, WARN=5, CRITICAL=20 — proporcionales a −ln(p).
-// CRS por snapshot se calcula directamente desde anomalías estadísticas detectadas.
-let labCrsHistory = [];   // pre-computed CRS for each snapshot in current dataset
+// ── CRS: Composite Risk Signal (operational indicator) ────────────────────
+// Counts INDEPENDENT anomaly categories per snapshot (0–3+):
+//   A) Cryptographic integrity   D) Arithmetic consistency
+//   B) Data quality              E) Adversarial infrastructure
+//   C) Temporal behavior
+// 1 categoría → ámbar · 2 → naranja · 3+ → rojo
+// Cryptographic violations (Cat A) bypass counting → direct red.
+// Conceptually inspired by Fisher (1925) convergence of independent evidence,
+// but NOT a formal hypothesis test. Thresholds are conservative heuristics
+// pending empirical calibration with HND 2017/2021 historical data.
+let labCrsHistory = [];   // numeric weighted score (legacy, used by badge/tooltips)
+let labCatHistory = [];   // category count per snapshot (drives all color bands)
 let labCrsRules   = [];   // parallel array: list of rule names that fired at each snap
 
 // Compute CRS for ONE snapshot directly from anomaly signals (no logging side-effects).
@@ -1366,14 +1373,75 @@ function _labCrsForSnap(snap, prev, runningBenford){
   return {crs, rules};
 }
 
+// Helper: count INDEPENDENT anomaly categories from snap._cd populated by evaluateCheapRules.
+// Categoría A (criptográfica/determinística) → retorna 3 directo (rojo).
+// Categorías B–E → cuenta de categorías distintas (cap 3).
+function _catCountFromCd(cd){
+  if(!cd) return 0;
+  // Categoría A — violaciones determinísticas → rojo directo, sin contar.
+  const catA = ['snap_jump_neg','binary_tamper','ots_attack','zt_bypass'];
+  for(const k of catA){ if(cd[k]) return 3; }
+  // Categorías aproximadamente independientes entre sí.
+  const cats = {
+    B: ['partial_data','null_crit','null_warn','incons_crit','incons_delta'],
+    C: ['snap_jump_pct','speed_max','part_jump','part_zscore','ts_monotone','throttled'],
+    D: ['delta_pct','vote_change','duplication','forced_part'],
+    E: ['ddos','cdn_mirrors','cache_stale','coordinated','concentration','vis_down']
+  };
+  const fired = new Set();
+  // Exact-key match for fixed rule keys.
+  for(const [cat, keys] of Object.entries(cats)){
+    if(keys.some(k => cd[k])) fired.add(cat);
+  }
+  // Reversiones de candidato (claves dinámicas reversal_XXX) → Cat D.
+  for(const k of Object.keys(cd)){
+    if(k.startsWith('reversal_'))   { fired.add('D'); break; }
+  }
+  for(const k of Object.keys(cd)){
+    if(k.startsWith('delta_pct_'))  { fired.add('D'); break; }
+  }
+  for(const k of Object.keys(cd)){
+    if(k.startsWith('vote_chg_'))   { fired.add('D'); break; }
+  }
+  return Math.min(fired.size, 3);
+}
+
 // Pre-compute CRS for ALL snapshots in the loaded dataset (called once after loadDataset).
+// Uses evaluateCheapRules to populate snap._cd, then derives both:
+//   labCrsHistory[i] — legacy numeric score (badge/tooltips)
+//   labCatHistory[i] — category count (0–3) → drives all color bands & ribbon
 function precomputeLabCRS(){
-  labCrsHistory=[]; labCrsRules=[];
+  labCrsHistory=[]; labCatHistory=[]; labCrsRules=[];
   if(!SIM.snapshots || !SIM.snapshots.length){renderLabRiskRibbon();return;}
-  for(let i=0;i<SIM.snapshots.length;i++){
-    const r = _labCrsForSnap(SIM.snapshots[i], i>0?SIM.snapshots[i-1]:null);
-    labCrsHistory.push(r.crs);
-    labCrsRules.push(r.rules);
+  const W = {CRITICAL:20, WARN:5, INFO:1};
+  // Suprime logging durante precompute + aísla efectos secundarios en arrays globales.
+  // evaluateCheapRules empuja a historyLeader/historyLeadPct; restauramos al salir.
+  _logEMute = true;
+  const _savedLeader = historyLeader.slice();
+  const _savedLeadPct = historyLeadPct.slice();
+  const _savedAlertLast = Object.assign({}, _alertLast);
+  try {
+    for(let i=0;i<SIM.snapshots.length;i++){
+      const snap = SIM.snapshots[i];
+      evaluateCheapRules(snap, i);  // popula snap._cd
+      const cd = snap._cd || {};
+      let score = 0; const rules = [];
+      for(const [k,v] of Object.entries(cd)){
+        if(k.startsWith('_')) continue;       // skip metadata fields
+        if(!v || !v.level) continue;
+        score += W[v.level] || 0;
+        rules.push(v.msg || k);
+      }
+      labCrsHistory.push(score);
+      labCatHistory.push(_catCountFromCd(cd));
+      labCrsRules.push(rules);
+    }
+  } finally {
+    _logEMute = false;
+    historyLeader.length = 0; historyLeader.push(..._savedLeader);
+    historyLeadPct.length = 0; historyLeadPct.push(..._savedLeadPct);
+    for(const k of Object.keys(_alertLast)) delete _alertLast[k];
+    Object.assign(_alertLast, _savedAlertLast);
   }
   renderLabRiskRibbon();
 }
@@ -1386,12 +1454,26 @@ function _labCRS(){
   return (labCrsHistory[idx]||0) + inj;
 }
 
+// Color por CONTEO de categorías independientes (fuente única de verdad).
+function _labCatColor(cats){
+  if(cats>=3) return'#c0392b';   // rojo    — 3+ categorías o evento criptográfico
+  if(cats>=2) return'#e8a04a';   // naranja — convergencia moderada
+  if(cats>=1) return'#d4b066';   // ámbar   — anomalía aislada
+  return'#3a7d5a';               // verde   — sin anomalías
+}
+function _labCatLabel(cats){
+  if(cats>=3) return'ALERTA';
+  if(cats>=2) return'ATENCIÓN';
+  if(cats>=1) return'LEVE';
+  return'NORMAL';
+}
+// Legacy: color por score numérico (usado por badge para mantener compatibilidad).
 function _labCrsColor(score){
-  if(score>=40)return'#c0392b';   // crimson
-  if(score>=20)return'#df6b86';   // rojo
-  if(score>=5) return'#e8a04a';   // naranja
-  if(score>=1) return'#d4b066';   // ámbar
-  return'#3a7d5a';                 // verde sólido (no var, para contraste)
+  if(score>=40)return'#c0392b';
+  if(score>=20)return'#df6b86';
+  if(score>=5) return'#e8a04a';
+  if(score>=1) return'#d4b066';
+  return'#3a7d5a';
 }
 function _labCrsLabel(score){
   if(score>=40)return'CRÍTICO';
@@ -1403,28 +1485,32 @@ function _labCrsLabel(score){
 function renderLabRiskRibbon(){
   const ribbon=document.getElementById('lab-risk-ribbon');
   if(!ribbon)return;
-  if(labCrsHistory.length<2){
-    ribbon.style.background=_labCrsColor(labCrsHistory[0]||0);
+  const src = labCatHistory.length ? labCatHistory : labCrsHistory;
+  const colorFn = labCatHistory.length ? _labCatColor : _labCrsColor;
+  if(src.length<2){
+    ribbon.style.background=colorFn(src[0]||0);
   } else {
     // Discrete bands (one stop per snap) → razor-sharp heat zones
-    const n=labCrsHistory.length;
+    const n=src.length;
     const parts=[];
     for(let i=0;i<n;i++){
-      const c=_labCrsColor(labCrsHistory[i]);
+      const c=colorFn(src[i]);
       const a=(i/n*100).toFixed(2);
       const b=((i+1)/n*100).toFixed(2);
       parts.push(`${c} ${a}%`,`${c} ${b}%`);
     }
     ribbon.style.background=`linear-gradient(to right,${parts.join(',')})`;
   }
-  // Update CRS badge if exists
+  // Update CRS badge — colorea por categoría, muestra score numérico legacy.
   const badge=document.getElementById('lab-crs-badge');
   if(badge){
     const cur=_labCRS();
-    const col=_labCrsColor(cur);
-    badge.textContent=`CRS ${cur} · ${_labCrsLabel(cur)}`;
+    const idx=Math.min(SIM.idx||0, (labCatHistory.length||1)-1);
+    const cats=labCatHistory[idx]||0;
+    const col=_labCatColor(cats);
+    badge.textContent=`CRS ${cur} · ${_labCatLabel(cats)}`;
     badge.style.background=col;
-    badge.style.color=cur>=5?'#fff':'#0a0a0a';
+    badge.style.color=cats>=2?'#fff':'#0a0a0a';
     badge.style.borderColor=col;
   }
 }
@@ -2490,7 +2576,9 @@ function _triggerAttackAlert(panelId){
 }
 
 // Standalone logs
+let _logEMute = false;  // se activa durante precomputeLabCRS para evitar spam del log
 function logE(sev,msg){
+  if(_logEMute) return;
   const cls={INFO:'tl-muted',WARN:'tl-warn',CRITICAL:'tl-bad',OK:'tl-ok'}[sev]||'tl-muted';
   appendLog('telem-engine',cls,`[${tsLog()}] [${sev.padEnd(8,' ')}] ${_trMsg(msg)}`);
 }
@@ -3940,7 +4028,7 @@ function simStop(){
   if(SERIES)SIM.snapshots=deepClone(SERIES.snapshots);
   activeInjections=[];scheduledInjections=[];simAlerts=[];
   // Recompute CRS from snapshot anomalies (preserves dataset heat zones after stop)
-  if(SERIES)precomputeLabCRS(); else {labCrsHistory=[];renderLabRiskRibbon();}
+  if(SERIES)precomputeLabCRS(); else {labCrsHistory=[];labCatHistory=[];renderLabRiskRibbon();}
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
   historyLeader=[];historyLeadPct=[];
   historyVelocity=[];historyTrend=[];historyInvalids=[];historyMargin=[];historyAnomalyCounts={};
@@ -4436,38 +4524,48 @@ const CHART_OPT={animation:false,responsive:true,maintainAspectRatio:false,
   scales:{x:{ticks:{color:'#8b929c',font:{size:10},maxRotation:MOB?45:undefined,maxTicksLimit:X_TICKS_LIMIT},grid:{color:'#1c1f26'}},
          y:{ticks:{color:'#8b929c'},grid:{color:'#1c1f26'}}}};
 
-// Plugin: pinta bandas verticales coloreadas de CRS en el fondo de charts temporales.
-// Guía visual para experto y no-experto: el ojo localiza zonas anómalas sin leer ejes.
+// Plugin: pinta bandas de calor en la BASE del chart + tinte muy sutil sobre los datos.
+// El strip sólido en la base es el indicador pre-atencional para no-expertos;
+// el tinte (alpha 0.07) NO tapa los datos para que el experto siga leyendo curvas.
+// Input `crsArray` acepta: (a) conteos de categorías (0–3+) del lab; (b) scores numéricos
+// del replay. La función mapea ambos esquemas al mismo color band.
+// NOTE: This is an operational indicator, not a formal hypothesis test —
+// thresholds pending HND 2017/2021 empirical calibration.
 const crsBandsPlugin = {
   id:'crsBands',
   beforeDatasetsDraw(chart,_args,opts){
     const arr=opts?.crsArray;
     if(!arr||arr.length<2)return;
-    const {ctx,chartArea}=chart;
-    if(!chartArea)return;
+    const {ctx,chartArea:ca}=chart;
+    if(!ca)return;
     const n=arr.length;
-    const span=chartArea.right-chartArea.left;
-    const w=span/(n-1);
+    const span=ca.right-ca.left;
+    const STRIP=5; // px — franja sólida en la base
     ctx.save();
     for(let i=0;i<n;i++){
       const s=arr[i]||0;
-      if(s<1)continue;
-      const color=
-        s>=40?'rgba(192, 57, 43, 0.45)':
-        s>=20?'rgba(223, 107, 134, 0.38)':
-        s>=5 ?'rgba(232, 160, 74, 0.32)':
-              'rgba(212, 176, 102, 0.25)';
-      ctx.fillStyle=color;
-      const xi=chartArea.left+(i/(n-1))*span;
-      ctx.fillRect(xi-w/2,chartArea.top,w,chartArea.bottom-chartArea.top);
+      // Map either category count (lab) or numeric score (replay) → color band.
+      let rgb=null;
+      if      (s>=3)                    rgb=[192, 57, 43];   // rojo
+      else if (s===2)                  rgb=[232,160, 74];   // naranja
+      else if (s>=1)                   rgb=[212,176,102];   // ámbar
+      if(!rgb) continue;
+      const xi=ca.left+(i/(n-1))*span;
+      const w=Math.max(1,span/(n-1));
+      // Tinte sutil sobre el área de datos (no tapa las curvas).
+      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.07)`;
+      ctx.fillRect(xi-w/2, ca.top, w, ca.bottom-ca.top-STRIP);
+      // Franja sólida en la base — indicador pre-atencional principal.
+      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.90)`;
+      ctx.fillRect(xi-w/2, ca.bottom-STRIP, w, STRIP);
     }
     ctx.restore();
   }
 };
-// Helper: devuelve el slice de labCrsHistory que corresponde a los datos visibles del chart
+// Devuelve el slice de labCatHistory (conteo de categorías) alineado con los datos visibles.
 function _crsSliceForLength(len){
-  if(!labCrsHistory||!labCrsHistory.length||!len)return [];
-  return labCrsHistory.slice(0,Math.min(len,labCrsHistory.length));
+  if(!labCatHistory||!labCatHistory.length||!len)return [];
+  return labCatHistory.slice(0,Math.min(len,labCatHistory.length));
 }
 function mk(id,cfg){if(SC[id])SC[id].destroy();
   const c=document.getElementById(id);if(!c)return;
