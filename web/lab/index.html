@@ -612,6 +612,10 @@ code.inline{background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--f
   @page{margin:8mm;size:A4 portrait}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
+/* WCAG 2.4.11 — focus appearance: visible ring for keyboard navigation */
+button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;border-radius:2px
+}
 </style>
 </head>
 <body>
@@ -1598,7 +1602,7 @@ function _buildToggleBar(){
   const bar=document.getElementById('chart-toggle-bar');
   if(!bar)return;
   const en=currentLabLang()==='en';
-  bar.innerHTML=CHART_DEFS.map(d=>`<span class="chart-chip${_isChartVisible(d.id)?'':' off'}" data-chart-id="${d.id}" onclick="toggleChartVis('${d.id}')">${en?d.labelEn:d.label}</span>`).join('');
+  bar.innerHTML=CHART_DEFS.map(d=>`<span class="chart-chip${_isChartVisible(d.id)?'':' off'}" role="button" tabindex="0" data-chart-id="${d.id}" onclick="toggleChartVis('${d.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleChartVis('${d.id}')}">${en?d.labelEn:d.label}</span>`).join('');
   _applyChartPrefs();
 }
 
@@ -4887,7 +4891,7 @@ function renderForensics(snap,benf,lastd,last10,ext){
   const na='<span class="badge b-na">N/A</span>';
   function badge(level){return level==='CRITICAL'?crit:level==='WARN'?warn:ok;}
   function card(label,status,detail){
-    return`<div class="forensic-card"><div class="forensic-hdr" onclick="this.nextElementSibling.classList.toggle('open')"><span class="forensic-title">${_trMsg(label)}</span>${status}</div><div class="forensic-body">${_trMsg(detail)}</div></div>`;
+    return`<div class="forensic-card"><div class="forensic-hdr" role="button" tabindex="0" onclick="this.nextElementSibling.classList.toggle('open')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.nextElementSibling.classList.toggle('open')}"><span class="forensic-title">${_trMsg(label)}</span>${status}</div><div class="forensic-body">${_trMsg(detail)}</div></div>`;
   }
   const verdicts=[];
 
