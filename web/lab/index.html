@@ -1536,7 +1536,7 @@ function renderLabRiskRibbon(){
     badge.textContent=`${catTxt} · ${_labCatLabel(cats)}`;
     badge.title=`Conteo de categorías de anomalía independientes activas (A–E). CRS numérico legacy (Σ pesos): ${cur}. Indicador operacional, no test estadístico formal.`;
     badge.style.background=col;
-    badge.style.color=cats>=2?'#fff':'#0a0a0a';
+    badge.style.color=(cats===1||cats===2)?'#080b0f':'#fff';
     badge.style.borderColor=col;
   }
 }
