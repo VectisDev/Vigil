@@ -1208,6 +1208,7 @@ const isDemo = true; // datos desde snapshot.json estático
 let globalData = null;
 let _lastSnap = null; // raw snapshot kept for evidence bundle
 let charts = {};
+let _monitorCatCache = []; // per-snapshot category count (0-3) for heat zones
 
 // ── UTILITY ──
 function fmt(n){return n?.toLocaleString('es-HN')??'—'}
@@ -2116,11 +2117,12 @@ function renderTimeline(records){
   if(charts.timeline) charts.timeline.destroy();
   charts.timeline=new Chart(document.getElementById('chart-timeline'),{
     type:'line',
+    plugins:[crsBandsPlugin],
     data:{labels,datasets:[
       {label:'Snapshots acumulados',data:vals,borderColor:'#6ea8fe',backgroundColor:'rgba(110,168,254,.08)',fill:true,tension:.3,pointRadius:3},
       {label:'Anomalías',data:anomalies,borderColor:'#df6b86',backgroundColor:'rgba(223,107,134,.08)',fill:true,tension:.3,pointRadius:3,yAxisID:'y2'},
     ]},
-    options:{plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}}},scales:{
+    options:{plugins:{legend:{labels:{color:'#8b929c',font:{size:11}}},crsBands:{crsArray:_monitorCatCache}},scales:{
       x:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'}},
       y:{ticks:{color:'#8b929c',font:{size:10}},grid:{color:'#1c1f26'},title:{display:true,text:'Snapshots',color:'#8b929c',font:{size:10}}},
       y2:{position:'right',ticks:{color:'#df6b86',font:{size:10}},grid:{display:false},title:{display:true,text:'Anomalías',color:'#df6b86',font:{size:10}}}
@@ -2593,6 +2595,60 @@ function updateCRSBanner(alerts){
   document.getElementById('crs-desc').textContent=_crsDesc(score,count);
 }
 
+// CRS = Composite Risk Signal (operational indicator, not a formal hypothesis test).
+// Monitor uses anomaly_flag (boolean from backend rules) as the signal source since
+// evaluateCheapRules is not available client-side in live mode. This gives binary
+// amber (1) / clean (0). Graduated colors (orange/red) require the lab view with
+// the full rules engine. Thresholds pending HND 2017/2021 calibration.
+const crsBandsPlugin={
+  id:'crsBands',
+  beforeDatasetsDraw(chart,_args,opts){
+    const arr=opts?.crsArray;
+    if(!arr||arr.length<2)return;
+    const{ctx,chartArea:ca}=chart;if(!ca)return;
+    const n=arr.length,span=ca.right-ca.left,STRIP=6;
+    ctx.save();
+    for(let i=0;i<n;i++){
+      const s=arr[i]||0;let rgb=null;
+      if(s>=3)rgb=[192,57,43];else if(s===2)rgb=[232,160,74];else if(s>=1)rgb=[212,176,102];
+      if(!rgb)continue;
+      const xi=ca.left+(i/(n-1))*span,w=Math.max(1,span/(n-1));
+      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.07)`;
+      ctx.fillRect(xi-w/2,ca.top,w,ca.bottom-ca.top-STRIP);
+      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.92)`;
+      ctx.fillRect(xi-w/2,ca.bottom-STRIP,w,STRIP);
+    }
+    ctx.fillStyle='rgba(8,11,15,0.78)';const DOT=1.3;
+    for(let i=0;i<n;i++){
+      const s=arr[i]||0,dots=s>=3?3:s===2?2:s>=1?1:0;if(!dots)continue;
+      const xi=ca.left+(i/(n-1))*span,cy=ca.bottom-STRIP/2;
+      for(let d=0;d<dots;d++){
+        const off=(d-(dots-1)/2)*1.9;
+        ctx.beginPath();ctx.arc(xi+off,cy,DOT,0,Math.PI*2);ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+};
+
+function _buildMonitorCatHistory(snapshots){
+  if(!snapshots||!snapshots.length)return[];
+  return snapshots.map(s=>s.anomaly_flag?1:0);
+}
+
+function _catsForTsHistory(tsHistory){
+  const snaps=globalData?._snapshots||[];
+  if(!snaps.length||!tsHistory.length)return tsHistory.map(()=>0);
+  const snapsSorted=snaps.map(s=>({t:new Date(s.captured_at).getTime(),flag:s.anomaly_flag}))
+    .sort((a,b)=>a.t-b.t);
+  return tsHistory.map(h=>{
+    const t=new Date(h.ts).getTime();
+    let nearest=null,minDiff=Infinity;
+    for(const s of snapsSorted){const d=Math.abs(s.t-t);if(d<minDiff){minDiff=d;nearest=s;}}
+    return(nearest&&minDiff<600000&&nearest.flag)?1:0;
+  });
+}
+
 function _renderAll(data,snap){
   const _s=fn=>{try{fn();}catch(e){console.error('[VIGIL render]',e);}};
   _s(()=>renderHero(data));
@@ -2601,7 +2657,7 @@ function _renderAll(data,snap){
   if(data.national)_s(()=>renderKPIs(data.national));
   if(data.national?.candidates)_s(()=>renderCandidates(data.national.candidates));
   if(data.departments)_s(()=>renderMap(data.departments));
-  if(data._snapshots)_s(()=>renderTimeline(data._snapshots.slice().reverse()));
+  if(data._snapshots){_monitorCatCache=_buildMonitorCatHistory(data._snapshots.slice().reverse());_s(()=>renderTimeline(data._snapshots.slice().reverse()));}
   _s(()=>renderEndpointHealth(data.endpoint_health));
   if(data.forensics){
     _s(()=>renderInconsistentActs(data.forensics,data.national));
@@ -2652,9 +2708,11 @@ function renderVelocity(forensics){
   const values=history.map(h=>h.speed);
   const mean=values.reduce((a,b)=>a+b,0)/values.length;
   const threshold=(forensics?.velocity_anomaly?.threshold)||10;
+  const velCats=_catsForTsHistory(history);
   if(charts.velocity)charts.velocity.destroy();
   charts.velocity=new Chart(el,{
     type:'line',
+    plugins:[crsBandsPlugin],
     data:{
       labels,
       datasets:[
@@ -2664,7 +2722,7 @@ function renderVelocity(forensics){
     },
     options:{
       responsive:true,animation:false,
-      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}`}}},
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}`}},crsBands:{crsArray:velCats}},
       scales:{
         x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
         y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10}},beginAtZero:true}
@@ -2684,16 +2742,18 @@ function renderLeaderChart(forensics){
   const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
   const values=history.map(h=>h.pct);
   const latestLeader=history[history.length-1]?.leader||'—';
+  const leaderCats=_catsForTsHistory(history);
   if(charts.leader)charts.leader.destroy();
   charts.leader=new Chart(el,{
     type:'line',
+    plugins:[crsBandsPlugin],
     data:{
       labels,
       datasets:[{label:'% líder',data:values,borderColor:'#b08cf0',backgroundColor:'rgba(176,140,240,.1)',fill:true,tension:0.3,pointRadius:history.length<15?3:0,borderWidth:2}]
     },
     options:{
       responsive:true,animation:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y.toFixed(1)}%`}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y.toFixed(1)}%`}},crsBands:{crsArray:leaderCats}},
       scales:{
         x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
         y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},min:0,max:100}
@@ -2713,9 +2773,11 @@ function renderInvalidsChart(forensics){
   const labels=history.map(h=>new Date(h.ts).toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}));
   const nulVals=history.map(h=>h.nulPct);
   const blaVals=history.map(h=>h.blaPct);
+  const invalCats=_catsForTsHistory(history);
   if(charts.invalids)charts.invalids.destroy();
   charts.invalids=new Chart(el,{
     type:'line',
+    plugins:[crsBandsPlugin],
     data:{
       labels,
       datasets:[
@@ -2725,7 +2787,7 @@ function renderInvalidsChart(forensics){
     },
     options:{
       responsive:true,animation:false,
-      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`}}},
+      plugins:{legend:{labels:{color:'#8b929c',font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`}},crsBands:{crsArray:invalCats}},
       scales:{
         x:{display:true,ticks:{color:'#8b929c',font:{size:9},maxTicksLimit:8},grid:{color:'#24272e'}},
         y:{grid:{color:'#24272e'},ticks:{color:'#8b929c',font:{size:10},callback:v=>v+'%'},beginAtZero:true}
