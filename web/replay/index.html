@@ -219,7 +219,7 @@ function computeCRS(alerts) {
   return alerts.reduce((s, a) => s + (W[(a.severity||a.level||'').toUpperCase()] || 0), 0);
 }
 function crsColor(score) {
-  if (score >= 40) return '#c0392b';
+  if (score >= 40) return '#e74c3c';
   if (score >= 20) return 'var(--bad)';
   if (score >= 5)  return '#d4916e';
   if (score >= 1)  return 'var(--warn)';
