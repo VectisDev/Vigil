@@ -7,6 +7,7 @@
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="../shared/vigil-nav.css">
 <style>
 :root{
@@ -5624,8 +5625,257 @@ function downloadTelemTxt(panel){
 }
 
 function downloadPDF(){
-  logE('INFO',_trMsg('Abriendo diálogo de impresión — selecciona "Guardar como PDF"'));
-  window.print();
+  if(typeof window.jspdf === 'undefined'){
+    logE('WARN',_trMsg('jsPDF no disponible — abriendo diálogo de impresión'));
+    window.print();
+    return;
+  }
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ format:'a4', unit:'mm', orientation:'portrait' });
+    const W=210, H=297, M=12;
+
+    // ── Colores
+    const BG=[8,11,15], PANEL=[13,17,23], BORDER=[30,37,48];
+    const FG=[231,233,236], MUTED=[139,146,156];
+    const RED=[231,76,60], AMBER=[212,176,102], OK=[87,192,141], ACCENT=[110,168,254];
+
+    const datasetLabel = document.getElementById('dataset-select')?.options[document.getElementById('dataset-select')?.selectedIndex]?.text || '—';
+    const chainTxt = document.getElementById('k-int')?.textContent?.trim() || '—';
+    const snaps = SIM.snapshots || [];
+    const catHist = labCatHistory || [];
+    const alerts = (simAlerts||[]).slice(0,15);
+
+    const anomSnaps = catHist.filter(c=>c>0).length;
+    const maxCat = catHist.length ? Math.max(...catHist) : 0;
+    const curCat = catHist[SIM.idx] ?? 0;
+
+    // ── Fn helpers
+    const fmtDate = d => { try{ return new Date(d).toISOString().replace('T',' ').slice(0,19)+' UTC'; }catch(e){ return String(d); }};
+    const catColor = c => c>=3?RED:c===2?[232,160,74]:c===1?AMBER:OK;
+    const catLabel = c => c>=3?'CRÍTICO':c===2?'ALERTA':c===1?'PRECAUCIÓN':'NOMINAL';
+    const sevColor = s => s==='CRITICAL'||s==='critical'?RED:s==='WARNING'||s==='warning'?AMBER:MUTED;
+
+    // ══════════════════════════════════════════════════════════════
+    // PÁGINA 1 — Resumen ejecutivo
+    // ══════════════════════════════════════════════════════════════
+
+    // Header bar
+    doc.setFillColor(...BG);
+    doc.rect(0,0,W,H,'F');
+    doc.setFillColor(...PANEL);
+    doc.rect(0,0,W,18,'F');
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...ACCENT);
+    doc.text('VIGIL — REPORTE FORENSE',M,11);
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED);
+    doc.text('CRS v1.0 · Composite Risk Signal · Indicador operacional compuesto',M,16);
+    doc.text(`Generado: ${fmtDate(new Date())}`,W-M,16,{align:'right'});
+
+    // Separador
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.3);
+    doc.line(M,19,W-M,19);
+
+    let y=26;
+
+    // Dataset info box
+    doc.setFillColor(...PANEL);
+    doc.roundedRect(M,y,W-M*2,14,1,1,'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(7);
+    doc.setTextColor(...MUTED);
+    doc.text('CONJUNTO DE DATOS',M+4,y+5);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...FG);
+    doc.text(datasetLabel,M+4,y+11);
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MUTED);
+    doc.text(`${snaps.length} snapshots`,W-M-4,y+11,{align:'right'});
+    y+=18;
+
+    // CRS summary — 3 stat boxes
+    const boxes=[
+      { label:'CRS ACTUAL', val:catLabel(curCat), sub:`Snap ${SIM.idx+1}/${snaps.length}`, col:catColor(curCat) },
+      { label:'CRS MÁXIMO', val:catLabel(maxCat), sub:`${anomSnaps} snaps anómalos`, col:catColor(maxCat) },
+      { label:'CADENA', val:chainTxt.length>14?chainTxt.slice(0,14)+'…':chainTxt, sub:'SHA-256 + Ed25519', col:chainTxt.includes('OK')||chainTxt.includes('✓')||chainTxt.includes('VALID')?OK:RED },
+    ];
+    const BW=(W-M*2-8)/3;
+    boxes.forEach((b,i)=>{
+      const bx=M+i*(BW+4);
+      doc.setFillColor(...PANEL);
+      doc.roundedRect(bx,y,BW,20,1,1,'F');
+      doc.setDrawColor(...b.col);
+      doc.setLineWidth(0.5);
+      doc.line(bx+2,y+1,bx+2,y+19);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(...MUTED);
+      doc.text(b.label,bx+6,y+7);
+      doc.setFontSize(9.5);
+      doc.setTextColor(...b.col);
+      doc.text(b.val,bx+6,y+14);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(...MUTED);
+      doc.text(b.sub,bx+6,y+19);
+    });
+    y+=25;
+
+    // Disclaimer
+    doc.setFillColor(13,24,38);
+    doc.roundedRect(M,y,W-M*2,13,1,1,'F');
+    doc.setDrawColor(...ACCENT);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(M,y,W-M*2,13,1,1,'S');
+    doc.setFont('helvetica','bolditalic');
+    doc.setFontSize(6.5);
+    doc.setTextColor(...ACCENT);
+    doc.text('Indicador operacional compuesto — convergencia de anomalías independientes.',M+4,y+5.5);
+    doc.setFont('helvetica','italic');
+    doc.setTextColor(150,180,220);
+    doc.text('No constituye prueba estadística formal de fraude. Para investigación supervisada por profesional calificado.',M+4,y+10);
+    y+=17;
+
+    // Alerts table
+    if(alerts.length){
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7);
+      doc.setTextColor(...MUTED);
+      doc.text(`ALERTAS RECIENTES (${alerts.length})`,M,y+5);
+      y+=8;
+
+      // Table header
+      doc.setFillColor(...BORDER);
+      doc.rect(M,y,W-M*2,6,'F');
+      doc.setTextColor(...MUTED);
+      doc.setFontSize(6);
+      doc.text('TIEMPO',M+2,y+4);
+      doc.text('SEV',M+38,y+4);
+      doc.text('TIPO',M+52,y+4);
+      doc.text('DESCRIPCIÓN',M+72,y+4);
+      y+=6;
+
+      alerts.forEach((a,i)=>{
+        const rowBg=i%2===0?PANEL:[11,15,21];
+        doc.setFillColor(...rowBg);
+        doc.rect(M,y,W-M*2,5.5,'F');
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(5.8);
+        doc.setTextColor(...MUTED);
+        doc.text(fmtDate(a.ts).slice(0,19),M+2,y+3.8);
+        const sc=sevColor(a.sev);
+        doc.setTextColor(...sc);
+        doc.text(String(a.sev||'').slice(0,8),M+38,y+3.8);
+        doc.setTextColor(...FG);
+        doc.text(String(a.tipo||'').slice(0,12),M+52,y+3.8);
+        const desc=String(a.desc||'');
+        doc.text(desc.slice(0,55)+(desc.length>55?'…':''),M+72,y+3.8);
+        y+=5.5;
+        if(y>H-20){ doc.addPage(); doc.setFillColor(...BG); doc.rect(0,0,W,H,'F'); y=M; }
+      });
+      y+=4;
+    } else {
+      doc.setFontSize(7.5);
+      doc.setTextColor(...MUTED);
+      doc.text('Sin alertas registradas en esta sesión.',M,y+5);
+      y+=10;
+    }
+
+    // Footer p.1
+    doc.setDrawColor(...BORDER);
+    doc.line(M,H-10,W-M,H-10);
+    doc.setFontSize(6);
+    doc.setTextColor(...MUTED);
+    doc.text('VIGIL · Sistema de Monitoreo Electoral · vectisdev.github.io/Vigil',M,H-6);
+    doc.text('1 / 2',W-M,H-6,{align:'right'});
+
+    // ══════════════════════════════════════════════════════════════
+    // PÁGINA 2 — Gráficos forenses
+    // ══════════════════════════════════════════════════════════════
+    doc.addPage();
+    doc.setFillColor(...BG);
+    doc.rect(0,0,W,H,'F');
+
+    // Header p.2
+    doc.setFillColor(...PANEL);
+    doc.rect(0,0,W,14,'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...ACCENT);
+    doc.text('GRÁFICOS FORENSES',M,9);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(...MUTED);
+    doc.text(datasetLabel,W-M,9,{align:'right'});
+    doc.setDrawColor(...BORDER);
+    doc.line(M,15,W-M,15);
+
+    // Chart grid 3×2
+    const charts=[
+      { id:'s-chart-timeline', label:'Participación Temporal' },
+      { id:'s-chart-cand', label:'Votos por Candidato' },
+      { id:'s-chart-velocity', label:'Velocidad de Escrutinio' },
+      { id:'s-chart-benford', label:'Ley de Benford (1er dígito)' },
+      { id:'s-chart-lastdigit', label:'Último Dígito' },
+      { id:'s-chart-nullblank', label:'Nulos y Blancos' },
+    ];
+    const cols=3, rows=2;
+    const chartW=(W-M*2-6*(cols-1)/cols)/cols;
+    const chartH=55;
+    const startY=20;
+
+    charts.forEach((ch,i)=>{
+      const col=i%cols, row=Math.floor(i/cols);
+      const cx=M+col*(chartW+5);
+      const cy=startY+row*(chartH+12);
+      // Box
+      doc.setFillColor(...PANEL);
+      doc.roundedRect(cx,cy,chartW,chartH+8,1,1,'F');
+      // Label
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(6);
+      doc.setTextColor(...MUTED);
+      doc.text(ch.label.toUpperCase(),cx+2,cy+5);
+      // Chart image
+      const el=document.getElementById(ch.id);
+      if(el){
+        try{
+          const dataUrl=el.toDataURL('image/png');
+          doc.addImage(dataUrl,'PNG',cx+1,cy+7,chartW-2,chartH-1);
+        }catch(e){
+          doc.setFontSize(6);doc.setTextColor(...MUTED);
+          doc.text('[gráfico no disponible]',cx+2,cy+chartH/2+7);
+        }
+      } else {
+        doc.setFontSize(6);doc.setTextColor(...MUTED);
+        doc.text('[elemento no encontrado]',cx+2,cy+chartH/2+7);
+      }
+    });
+
+    // Footer p.2
+    doc.setDrawColor(...BORDER);
+    doc.line(M,H-10,W-M,H-10);
+    doc.setFontSize(6);
+    doc.setTextColor(...MUTED);
+    doc.text('VIGIL · Sistema de Monitoreo Electoral · vectisdev.github.io/Vigil',M,H-6);
+    doc.text('2 / 2',W-M,H-6,{align:'right'});
+
+    // ── Save
+    const ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+    const fname=`vigil-forense-${ts}.pdf`;
+    doc.save(fname);
+    logE('OK',_trMsg(`PDF forense generado: ${fname}`));
+  }catch(err){
+    logE('ERROR',_trMsg(`Error generando PDF: ${err.message}`));
+    window.print();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
