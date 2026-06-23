@@ -14,7 +14,7 @@
 | ISO/IEC 27042:2015 | Análisis e interpretación de evidencia digital | ~70% |
 | ISO/IEC 27005:2018 | Gestión de riesgos de seguridad de la información | ~40% |
 | ISO/IEC 25010:2011 | Calidad de producto software (SQuaRE) | ~60% |
-| ISO/IEC 40500:2012 / WCAG 2.2 AA | Accesibilidad de contenido web | ~55% |
+| ISO/IEC 40500:2012 / WCAG 2.2 AA | Accesibilidad de contenido web | ~80% |
 | ISO 8601:2019 | Representación de fechas y horas | ✅ completo |
 | ISO 690:2021 | Referencias bibliográficas y citas | ✅ completo |
 | NIST SP 800-53 Rev 5 | Controles de seguridad y privacidad | ~50% |
