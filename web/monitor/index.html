@@ -868,7 +868,7 @@ footer a { color: var(--accent); text-decoration: none; }
       <div class="kpi-label">tendencia desde el inicio</div>
     </div>
   </div>
-  <canvas id="chart-incons" height="70"></canvas>
+  <canvas id="chart-incons" height="70" role="img" aria-label="Inconsistencias detectadas por snap"></canvas>
   <div class="forensic-note" id="incons-note" style="margin-top:14px">
     El motor comenzará a registrar en el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.
   </div>
@@ -879,7 +879,7 @@ footer a { color: var(--accent); text-decoration: none; }
   <div class="card">
     <h2>Distribución de candidatos</h2>
     <div id="cand-list"></div>
-    <canvas id="chart-cand" height="180" style="margin-top:14px"></canvas>
+    <canvas id="chart-cand" height="180" style="margin-top:14px" role="img" aria-label="Votos por candidato en el tiempo"></canvas>
   </div>
   <div class="card" id="map-wrap">
     <h2>Estado por departamento</h2>
@@ -903,13 +903,13 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── SERIE TEMPORAL ── -->
 <div class="card" data-section="timeline">
   <h2>Progreso de registros en el tiempo</h2>
-  <canvas id="chart-timeline" height="120"></canvas>
+  <canvas id="chart-timeline" height="120" role="img" aria-label="Línea de tiempo — actas escrutadas por snap"></canvas>
 </div>
 
 <!-- ── BENFORD 2DO DÍGITO (test primario — Mebane 2006) ── -->
 <div class="card" data-section="benford2" data-expert>
   <h2>Test de Mebane — Segundo dígito de votos</h2>
-  <canvas id="chart-benford2" height="140"></canvas>
+  <canvas id="chart-benford2" height="140" role="img" aria-label="Análisis de Benford complementario — distribución de dígitos"></canvas>
   <div id="benford2-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
   <div class="benford-note-method">Test primario para elecciones (Mebane, W.R. 2006. "Election Forensics", Electoral Studies). El segundo dígito es robusto para rangos electorales y es el estándar aceptado por Carter Center y observadores internacionales.</div>
 </div>
@@ -918,7 +918,7 @@ footer a { color: var(--accent); text-decoration: none; }
 <div class="card" data-section="klimek" data-expert>
   <h2>Fingerprint de Klimek — Detección de fraude electoral</h2>
   <div id="klimek-wrap">
-    <canvas id="chart-klimek" height="280"></canvas>
+    <canvas id="chart-klimek" height="280" role="img" aria-label="Gráfico de Klimek — detección de roundoff en datos electorales"></canvas>
   </div>
   <div class="klimek-ref">Klimek, P., Yegorov, Y., Hanel, R. & Thurner, S. (2012). "Statistical detection of systematic election irregularities." PNAS 109(41), 16469–16473. Datos limpios → nube oval. Ballot stuffing → cola hacia esquina superior-derecha.</div>
 </div>
@@ -926,7 +926,7 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── BENFORD 1ER DÍGITO (informativo) ── -->
 <div class="card" data-section="benford" data-expert>
   <h2>Ley de Benford — Primer dígito (exploratorio)</h2>
-  <canvas id="chart-benford" height="140"></canvas>
+  <canvas id="chart-benford" height="140" role="img" aria-label="Análisis de Benford — distribución de primer dígito vs esperada"></canvas>
   <div id="benford-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
   <div class="benford-note-method">Nota: el primer dígito de Benford tiene limitaciones en datos electorales con rango estrecho (Deckert, Myagkov & Ordeshook 2011, Electoral Studies). Se muestra con fines exploratorios. El test primario es el segundo dígito (arriba).</div>
 </div>
@@ -934,26 +934,26 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── ÚLTIMO DÍGITO ── -->
 <div class="card" data-section="lastdigit" data-expert>
   <h2>Distribución del último dígito</h2>
-  <canvas id="chart-lastdigit" height="140"></canvas>
+  <canvas id="chart-lastdigit" height="140" role="img" aria-label="Distribución del último dígito de totales de votos"></canvas>
   <div id="lastdigit-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Calculando…</div>
 </div>
 
 <!-- ── Z-SCORE POR DEPARTAMENTO ── -->
 <div class="card" data-section="zscore" data-expert>
   <h2>Z-score por departamento</h2>
-  <canvas id="chart-zscore" height="200"></canvas>
+  <canvas id="chart-zscore" height="200" role="img" aria-label="Z-score de participación por departamento"></canvas>
 </div>
 
 <!-- ── PARTICIPACIÓN POR DEPARTAMENTO ── -->
 <div class="card" data-section="participation">
   <h2>Participación por departamento (%)</h2>
-  <canvas id="chart-participation" height="200"></canvas>
+  <canvas id="chart-participation" height="200" role="img" aria-label="Tasa de participación por departamento"></canvas>
 </div>
 
 <!-- ── NULOS Y BLANCOS POR DEPARTAMENTO ── -->
 <div class="card" data-section="nullblank" data-expert>
   <h2>Nulos y blancos por departamento</h2>
-  <canvas id="chart-nullblank" height="200"></canvas>
+  <canvas id="chart-nullblank" height="200" role="img" aria-label="Tasa de votos nulos y blancos por snap"></canvas>
 </div>
 
 <!-- ── ENDPOINTS CNE ── -->
@@ -984,21 +984,21 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── VELOCIDAD DE ESCRUTINIO ── -->
 <div class="card" data-section="velocity">
   <h2>Velocidad de escrutinio (votos/minuto)</h2>
-  <canvas id="chart-velocity" height="140"></canvas>
+  <canvas id="chart-velocity" height="140" role="img" aria-label="Velocidad de ingreso de actas por snap"></canvas>
   <div id="velocity-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Tasa de ingreso de votos entre capturas consecutivas.</div>
 </div>
 
 <!-- ── EVOLUCIÓN DEL LIDERAZGO ── -->
 <div class="card" data-section="leader">
   <h2>Evolución del liderazgo</h2>
-  <canvas id="chart-leader" height="140"></canvas>
+  <canvas id="chart-leader" height="140" role="img" aria-label="Ventaja del candidato líder en el tiempo"></canvas>
   <div id="leader-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Porcentaje del candidato líder en cada captura.</div>
 </div>
 
 <!-- ── NULOS Y BLANCOS EN EL TIEMPO ── -->
 <div class="card" data-section="invalids">
   <h2>Votos nulos y blancos en el tiempo (%)</h2>
-  <canvas id="chart-invalids" height="140"></canvas>
+  <canvas id="chart-invalids" height="140" role="img" aria-label="Evolución de votos inválidos y nulos"></canvas>
   <div id="invalids-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Proporción de votos inválidos sobre el total de votos emitidos.</div>
 </div>
 
@@ -1013,7 +1013,7 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── CUSUM CHANGE-POINT ── -->
 <div class="card" data-section="cusum" data-expert>
   <h2>Detección de cambio estructural (CUSUM)</h2>
-  <canvas id="chart-cusum" height="160"></canvas>
+  <canvas id="chart-cusum" height="160" role="img" aria-label="CUSUM — suma acumulada de desviaciones de participación"></canvas>
   <div id="cusum-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Analiza cambios bruscos en la tasa de ingreso de actas. Un pico en CUSUM indica el momento exacto donde el patrón cambió.</div>
   <div id="cusum-alert"></div>
 </div>
@@ -1021,7 +1021,7 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── PERFIL DE ANOMALÍAS ── -->
 <div class="card" data-section="anomaly-profile">
   <h2>Perfil de anomalías detectadas</h2>
-  <canvas id="chart-anomaly-profile" height="200"></canvas>
+  <canvas id="chart-anomaly-profile" height="200" role="img" aria-label="Perfil de anomalías detectadas por categoría (A–E)"></canvas>
   <div id="anomaly-profile-note" style="margin-top:10px;font-size:12px;color:var(--muted)">Distribución de alertas por categoría, ordenadas por frecuencia.</div>
 </div>
 
@@ -1029,8 +1029,8 @@ footer a { color: var(--accent); text-decoration: none; }
 <div class="card" data-section="prog-injection" data-expert>
   <h2>Inyección progresiva de votos</h2>
   <div class="grid2">
-    <canvas id="chart-prog-zscore" height="160"></canvas>
-    <canvas id="chart-prog-swing" height="160"></canvas>
+    <canvas id="chart-prog-zscore" height="160" role="img" aria-label="Z-score progresivo de participación"></canvas>
+    <canvas id="chart-prog-swing" height="160" role="img" aria-label="Swing progresivo de votos"></canvas>
   </div>
   <div id="prog-injection-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Detecta adiciones incrementales de votos que distorsionan el resultado acumulado. Usa z-score acumulado, autocorrelación y Runs test.</div>
 </div>
@@ -1038,7 +1038,7 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- ── RETENCIÓN-LIBERACIÓN (expert) ── -->
 <div class="card" data-section="hold-release" data-expert>
   <h2>Retención y liberación masiva (Hold &amp; Release)</h2>
-  <canvas id="chart-hold-release" height="160"></canvas>
+  <canvas id="chart-hold-release" height="160" role="img" aria-label="Patrón de retención y liberación de actas"></canvas>
   <div id="hold-release-detail" style="margin-top:10px"></div>
   <div style="font-size:11px;color:var(--muted);margin-top:6px">Detecta estancamientos prolongados seguidos de liberación abrupta de actas. Patrón típico de control centralizado del flujo de resultados.</div>
 </div>
@@ -1047,8 +1047,8 @@ footer a { color: var(--accent); text-decoration: none; }
 <div class="card" data-section="asymmetric" data-expert>
   <h2>Beneficio asimétrico por candidato</h2>
   <div class="grid2">
-    <canvas id="chart-asymmetric-bar" height="180"></canvas>
-    <canvas id="chart-asymmetric-radar" height="180"></canvas>
+    <canvas id="chart-asymmetric-bar" height="180" role="img" aria-label="Asimetría de barras — comparación de distribuciones por candidato"></canvas>
+    <canvas id="chart-asymmetric-radar" height="180" role="img" aria-label="Radar de asimetría — perfil multidimensional de anomalías"></canvas>
   </div>
   <div id="asymmetric-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Compara proporción de votos en escrutinio normal vs. especial. Un beneficio asimétrico sugiere manipulación selectiva del recuento.</div>
 </div>
