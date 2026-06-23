@@ -1,14 +1,14 @@
 {
-  "cycle": 22,
-  "cycle_hash": "6fc09b4436bfddaaddefb54d85a76ab4ef8e8c8bb9776ed8be4a25326db479d7",
-  "timestamp": "2026-06-23T13:26:34.799441+00:00",
+  "cycle": 23,
+  "cycle_hash": "346968f7ad82c879fb302649b35b1acd8d89b3f17d35ad30cad5b3ad2504dbb0",
+  "timestamp": "2026-06-23T13:29:34.799530+00:00",
   "results": [
     {
       "endpoint": "HN-nacional-nacional",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30368.1,
+      "latency_ms": 30368.0,
       "error": "timeout_after_30s"
     },
     {
@@ -40,7 +40,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30367.6,
+      "latency_ms": 30367.7,
       "error": "timeout_after_30s"
     },
     {
@@ -48,7 +48,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30367.4,
+      "latency_ms": 30367.5,
       "error": "timeout_after_30s"
     },
     {
@@ -56,7 +56,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30367.6,
+      "latency_ms": 30367.7,
       "error": "timeout_after_30s"
     },
     {
@@ -96,7 +96,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30367.4,
+      "latency_ms": 30367.5,
       "error": "timeout_after_30s"
     },
     {
