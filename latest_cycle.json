@@ -1,7 +1,7 @@
 {
-  "cycle": 20,
-  "cycle_hash": "543f4eb4d2511c34f5528876526b1d2af7f3a11c1a8f7885f47d21b1cfffadf8",
-  "timestamp": "2026-06-24T15:15:35.647806+00:00",
+  "cycle": 21,
+  "cycle_hash": "5eadb5721f50ee544d8612e45cfee82430c9d8a832e5ff92ce7dc841ac533847",
+  "timestamp": "2026-06-24T15:18:35.647916+00:00",
   "results": [
     {
       "endpoint": "HN-nacional-nacional",
@@ -16,7 +16,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30447.6,
+      "latency_ms": 30447.5,
       "error": "timeout_after_30s"
     },
     {
@@ -64,7 +64,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30447.6,
+      "latency_ms": 30447.5,
       "error": "timeout_after_30s"
     },
     {
