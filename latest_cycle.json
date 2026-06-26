@@ -1,54 +1,54 @@
 {
-  "cycle": 62,
-  "cycle_hash": "3ce9b97e08c0db1f2e0043f305e6b8fb95da555dbcbb9cc14c221d9e078a6136",
-  "timestamp": "2026-06-26T11:47:54.118310+00:00",
+  "cycle": 63,
+  "cycle_hash": "8ea50471116f445e325dfea4a1cd48eefb24bc73af9aacead48ef00e4b4d4e1e",
+  "timestamp": "2026-06-26T11:50:54.118592+00:00",
   "results": [
     {
       "endpoint": "HN-nacional-nacional",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30182.2,
-      "error": "timeout_after_30s"
+      "latency_ms": 10019.5,
+      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
     },
     {
       "endpoint": "HN-01-dept_01",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.8,
-      "error": "timeout_after_30s"
+      "latency_ms": 10019.2,
+      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
     },
     {
       "endpoint": "HN-02-dept_02",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30182.1,
-      "error": "timeout_after_30s"
+      "latency_ms": 10019.1,
+      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
     },
     {
       "endpoint": "HN-03-dept_03",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30182.1,
-      "error": "timeout_after_30s"
+      "latency_ms": 10019.0,
+      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
     },
     {
       "endpoint": "HN-04-dept_04",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.9,
-      "error": "timeout_after_30s"
+      "latency_ms": 10019.0,
+      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
     },
     {
       "endpoint": "HN-05-dept_05",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.7,
+      "latency_ms": 30181.8,
       "error": "timeout_after_30s"
     },
     {
@@ -56,7 +56,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.9,
+      "latency_ms": 30182.0,
       "error": "timeout_after_30s"
     },
     {
@@ -64,7 +64,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.8,
+      "latency_ms": 30182.0,
       "error": "timeout_after_30s"
     },
     {
@@ -72,7 +72,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.7,
+      "latency_ms": 30181.9,
       "error": "timeout_after_30s"
     },
     {
@@ -80,7 +80,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.7,
+      "latency_ms": 30181.8,
       "error": "timeout_after_30s"
     },
     {
@@ -88,7 +88,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.6,
+      "latency_ms": 30181.7,
       "error": "timeout_after_30s"
     },
     {
@@ -96,7 +96,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.6,
+      "latency_ms": 30181.7,
       "error": "timeout_after_30s"
     },
     {
@@ -104,7 +104,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.4,
+      "latency_ms": 30181.6,
       "error": "timeout_after_30s"
     },
     {
@@ -112,7 +112,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.4,
+      "latency_ms": 30181.5,
       "error": "timeout_after_30s"
     },
     {
@@ -120,7 +120,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.4,
+      "latency_ms": 30181.6,
       "error": "timeout_after_30s"
     },
     {
@@ -128,7 +128,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.3,
+      "latency_ms": 30181.4,
       "error": "timeout_after_30s"
     },
     {
@@ -136,7 +136,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.2,
+      "latency_ms": 30181.4,
       "error": "timeout_after_30s"
     },
     {
@@ -144,7 +144,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.2,
+      "latency_ms": 30181.3,
       "error": "timeout_after_30s"
     },
     {
@@ -152,7 +152,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30181.1,
+      "latency_ms": 30181.2,
       "error": "timeout_after_30s"
     }
   ]
