@@ -1,26 +1,10 @@
 {
-  "cycle": 46,
-  "cycle_hash": "d925fca6cc40ad50e39d8f55bb6d6d1eac6ff6fdf23b72c37cf101b30e6211e5",
-  "timestamp": "2026-06-26T10:59:54.119040+00:00",
+  "cycle": 47,
+  "cycle_hash": "db226545e2d1aa02eadfd012f75ea4831170dafb66290d3c55f806a9ab0651d4",
+  "timestamp": "2026-06-26T11:02:54.119110+00:00",
   "results": [
     {
       "endpoint": "HN-nacional-nacional",
-      "success": false,
-      "status": null,
-      "hash": null,
-      "latency_ms": 30186.1,
-      "error": "timeout_after_30s"
-    },
-    {
-      "endpoint": "HN-01-dept_01",
-      "success": false,
-      "status": null,
-      "hash": null,
-      "latency_ms": 30185.7,
-      "error": "timeout_after_30s"
-    },
-    {
-      "endpoint": "HN-02-dept_02",
       "success": false,
       "status": null,
       "hash": null,
@@ -28,11 +12,27 @@
       "error": "timeout_after_30s"
     },
     {
+      "endpoint": "HN-01-dept_01",
+      "success": false,
+      "status": null,
+      "hash": null,
+      "latency_ms": 30185.5,
+      "error": "timeout_after_30s"
+    },
+    {
+      "endpoint": "HN-02-dept_02",
+      "success": false,
+      "status": null,
+      "hash": null,
+      "latency_ms": 30185.8,
+      "error": "timeout_after_30s"
+    },
+    {
       "endpoint": "HN-03-dept_03",
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.9,
+      "latency_ms": 30185.8,
       "error": "timeout_after_30s"
     },
     {
@@ -40,7 +40,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.7,
+      "latency_ms": 30185.6,
       "error": "timeout_after_30s"
     },
     {
@@ -48,7 +48,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.5,
+      "latency_ms": 30185.4,
       "error": "timeout_after_30s"
     },
     {
@@ -56,7 +56,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.7,
+      "latency_ms": 30185.6,
       "error": "timeout_after_30s"
     },
     {
@@ -64,7 +64,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.7,
+      "latency_ms": 30185.5,
       "error": "timeout_after_30s"
     },
     {
@@ -72,7 +72,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.6,
+      "latency_ms": 30185.5,
       "error": "timeout_after_30s"
     },
     {
@@ -80,7 +80,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.6,
+      "latency_ms": 30185.4,
       "error": "timeout_after_30s"
     },
     {
@@ -88,7 +88,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.5,
+      "latency_ms": 30185.4,
       "error": "timeout_after_30s"
     },
     {
@@ -96,7 +96,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.5,
+      "latency_ms": 30185.3,
       "error": "timeout_after_30s"
     },
     {
@@ -104,7 +104,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.4,
+      "latency_ms": 30185.2,
       "error": "timeout_after_30s"
     },
     {
@@ -112,7 +112,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.3,
+      "latency_ms": 30185.1,
       "error": "timeout_after_30s"
     },
     {
@@ -120,7 +120,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.3,
+      "latency_ms": 30185.2,
       "error": "timeout_after_30s"
     },
     {
@@ -128,7 +128,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.2,
+      "latency_ms": 30185.0,
       "error": "timeout_after_30s"
     },
     {
@@ -136,7 +136,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.1,
+      "latency_ms": 30185.0,
       "error": "timeout_after_30s"
     },
     {
@@ -144,7 +144,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.1,
+      "latency_ms": 30184.9,
       "error": "timeout_after_30s"
     },
     {
@@ -152,7 +152,7 @@
       "success": false,
       "status": null,
       "hash": null,
-      "latency_ms": 30185.1,
+      "latency_ms": 30184.9,
       "error": "timeout_after_30s"
     }
   ]
