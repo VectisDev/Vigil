@@ -77,5 +77,5 @@ jobs:
 
       - name: Create chain verification
         run: |
-          git log data/reputation --oneline -10 > chain-verification.txt
+          git log refs/heads/data/reputation --oneline -10 > chain-verification.txt
           cat chain-verification.txt
