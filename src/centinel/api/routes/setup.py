@@ -314,6 +314,35 @@ def discover_endpoints(req: DiscoverRequest) -> dict:
     updated = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     endpoints = updated.get("cne", {}).get("presidential_endpoints", [])
 
+    # ES: Sonda de formato — detecta si la autoridad publica JSON/CSV/etc.
+    #     y sugiere el mapeo de columnas para CSV. Best-effort: nunca
+    #     tumba el descubrimiento.
+    # EN: Format probe — detects whether the authority publishes
+    #     JSON/CSV/etc. and suggests the CSV column mapping. Best-effort:
+    #     never breaks discovery.
+    detected_format = "unknown"
+    field_map_suggestion: dict | None = None
+    try:
+        import requests as _requests
+
+        from centinel.format_detector import PARSEABLE_FORMATS, detect_format
+
+        probe = _requests.get(main_url, timeout=10)
+        detected_format = detect_format(
+            probe.content, probe.headers.get("Content-Type"), main_url
+        )
+        if detected_format == "csv":
+            from centinel.schema_adapter import suggest_csv_field_map
+            field_map_suggestion = suggest_csv_field_map(probe.content)
+        logger.info(
+            "format_probe url=%s format=%s parseable=%s",
+            _sl(main_url), detected_format,
+            detected_format in PARSEABLE_FORMATS,
+        )
+    except Exception as probe_exc:  # noqa: BLE001
+        logger.warning("format_probe_failed url=%s err=%s",
+                       _sl(main_url), _sl(str(probe_exc)))
+
     logger.info(
         "discover_endpoints url=%s country=%s found=%d",
         _sl(main_url), _sl(country_code), len(endpoints),
@@ -326,6 +355,8 @@ def discover_endpoints(req: DiscoverRequest) -> dict:
         "changed": result.get("changed", False),
         "healthy_count": result.get("healthy_count", 0),
         "endpoints": endpoints,
+        "detected_format": detected_format,
+        "field_map_suggestion": field_map_suggestion,
     }
 
 
