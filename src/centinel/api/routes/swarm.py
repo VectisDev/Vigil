@@ -210,8 +210,9 @@ async def swarm_create_room(request: Request) -> dict:
 
     _rooms[room_code] = _engine._node_id
     my_url = _engine.my_url or ""
+    room_code_log = room_code.replace("\r", "").replace("\n", "")
 
-    logger.info("swarm_room_created code=%.6s node_id=%s", room_code, _engine._node_id)
+    logger.info("swarm_room_created code=%.6s node_id=%s", room_code_log, _engine._node_id)
     return {
         "room_code": room_code,
         "node_id": _engine._node_id,
