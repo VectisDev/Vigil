@@ -314,75 +314,28 @@ def discover_endpoints(req: DiscoverRequest) -> dict:
     updated = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     endpoints = updated.get("cne", {}).get("presidential_endpoints", [])
 
-    # ES: Sonda de formato — detecta si la autoridad publica JSON/CSV/etc.
-    #     y sugiere el mapeo de columnas para CSV. Best-effort: nunca
-    #     tumba el descubrimiento.
-    # EN: Format probe — detects whether the authority publishes
-    #     JSON/CSV/etc. and suggests the CSV column mapping. Best-effort:
-    #     never breaks discovery.
+    # ES: Formato del país — se toma del preset (`result_format`) sin hacer
+    #     ninguna petición de red a la URL del operador. La detección real
+    #     por contenido ocurre en la ingesta (download_and_hash.py), donde
+    #     la URL ya pasó el allowlist anti-SSRF de `_is_cne_endpoint`.
+    #     "auto" = el formato se detecta en la primera captura.
+    # EN: Country format — taken from the preset (`result_format`) with no
+    #     network request to the operator-provided URL. Real content-based
+    #     detection happens at ingestion (download_and_hash.py), where the
+    #     URL already passed `_is_cne_endpoint`'s anti-SSRF allowlist.
+    #     "auto" = format is detected on the first capture.
     detected_format = "unknown"
     field_map_suggestion: dict | None = None
     try:
-        from urllib.parse import urlparse as _urlparse
-
-        import urllib3 as _urllib3
-
-        from centinel.defense.security_utils import resolve_outbound_target
-        from centinel.format_detector import PARSEABLE_FORMATS, detect_format
-
-        # Anti-SSRF: la URL del operador nunca llega al cliente HTTP.
-        # resolve_outbound_target valida https + credenciales + resolución a
-        # IP pública, y el GET va contra la IP pinneada con verificación de
-        # hostname TLS — el mismo patrón de scripts/collector.py.
-        # Anti-SSRF: the operator-provided URL never reaches the HTTP client.
-        # resolve_outbound_target validates https + credentials + public-IP
-        # resolution, and the GET targets the pinned IP with TLS hostname
-        # verification — same pattern as scripts/collector.py.
-        target = resolve_outbound_target(
-            main_url,
-            require_https=True,
-            enforce_public_ip_resolution=True,
-        )
-        if target is None:
-            raise ValueError("main_url rechazada por el guard anti-SSRF")
-
-        parsed = _urlparse(main_url)
-        probe_path = parsed.path or "/"
-        if parsed.query:
-            probe_path = f"{probe_path}?{parsed.query}"
-        pinned_ip = (sorted(target.resolved_ips)[0]
-                     if target.resolved_ips else target.host)
-        pool = _urllib3.HTTPSConnectionPool(
-            host=pinned_ip,
-            port=target.port,
-            assert_hostname=target.host,
-            server_hostname=target.host,
-            cert_reqs="CERT_REQUIRED",
-        )
-        try:
-            probe = pool.request(
-                "GET", probe_path,
-                headers={"Host": target.host},
-                timeout=_urllib3.Timeout(total=10),
-                retries=False, redirect=False,
-            )
-        finally:
-            pool.close()
-
-        detected_format = detect_format(
-            probe.data, probe.headers.get("Content-Type"), main_url
-        )
-        if detected_format == "csv":
-            from centinel.schema_adapter import suggest_csv_field_map
-            field_map_suggestion = suggest_csv_field_map(probe.data)
-        logger.info(
-            "format_probe url=%s format=%s parseable=%s",
-            _sl(main_url), detected_format,
-            detected_format in PARSEABLE_FORMATS,
-        )
-    except Exception as probe_exc:  # noqa: BLE001
-        logger.warning("format_probe_failed url=%s err=%s",
-                       _sl(main_url), _sl(str(probe_exc)))
+        if country_code in LATAM_COUNTRIES:
+            detected_format = LATAM_COUNTRIES[country_code].result_format or "auto"
+        else:
+            detected_format = "auto"
+        logger.info("format_hint country=%s format=%s (from preset)",
+                    _sl(country_code), detected_format)
+    except Exception as fmt_exc:  # noqa: BLE001
+        logger.warning("format_hint_failed country=%s err=%s",
+                       _sl(country_code), _sl(str(fmt_exc)))
 
     logger.info(
         "discover_endpoints url=%s country=%s found=%d",
