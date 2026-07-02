@@ -314,6 +314,76 @@ def discover_endpoints(req: DiscoverRequest) -> dict:
     updated = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     endpoints = updated.get("cne", {}).get("presidential_endpoints", [])
 
+    # ES: Sonda de formato — detecta si la autoridad publica JSON/CSV/etc.
+    #     y sugiere el mapeo de columnas para CSV. Best-effort: nunca
+    #     tumba el descubrimiento.
+    # EN: Format probe — detects whether the authority publishes
+    #     JSON/CSV/etc. and suggests the CSV column mapping. Best-effort:
+    #     never breaks discovery.
+    detected_format = "unknown"
+    field_map_suggestion: dict | None = None
+    try:
+        from urllib.parse import urlparse as _urlparse
+
+        import urllib3 as _urllib3
+
+        from centinel.defense.security_utils import resolve_outbound_target
+        from centinel.format_detector import PARSEABLE_FORMATS, detect_format
+
+        # Anti-SSRF: la URL del operador nunca llega al cliente HTTP.
+        # resolve_outbound_target valida https + credenciales + resolución a
+        # IP pública, y el GET va contra la IP pinneada con verificación de
+        # hostname TLS — el mismo patrón de scripts/collector.py.
+        # Anti-SSRF: the operator-provided URL never reaches the HTTP client.
+        # resolve_outbound_target validates https + credentials + public-IP
+        # resolution, and the GET targets the pinned IP with TLS hostname
+        # verification — same pattern as scripts/collector.py.
+        target = resolve_outbound_target(
+            main_url,
+            require_https=True,
+            enforce_public_ip_resolution=True,
+        )
+        if target is None:
+            raise ValueError("main_url rechazada por el guard anti-SSRF")
+
+        parsed = _urlparse(main_url)
+        probe_path = parsed.path or "/"
+        if parsed.query:
+            probe_path = f"{probe_path}?{parsed.query}"
+        pinned_ip = (sorted(target.resolved_ips)[0]
+                     if target.resolved_ips else target.host)
+        pool = _urllib3.HTTPSConnectionPool(
+            host=pinned_ip,
+            port=target.port,
+            assert_hostname=target.host,
+            server_hostname=target.host,
+            cert_reqs="CERT_REQUIRED",
+        )
+        try:
+            probe = pool.request(
+                "GET", probe_path,
+                headers={"Host": target.host},
+                timeout=_urllib3.Timeout(total=10),
+                retries=False, redirect=False,
+            )
+        finally:
+            pool.close()
+
+        detected_format = detect_format(
+            probe.data, probe.headers.get("Content-Type"), main_url
+        )
+        if detected_format == "csv":
+            from centinel.schema_adapter import suggest_csv_field_map
+            field_map_suggestion = suggest_csv_field_map(probe.data)
+        logger.info(
+            "format_probe url=%s format=%s parseable=%s",
+            _sl(main_url), detected_format,
+            detected_format in PARSEABLE_FORMATS,
+        )
+    except Exception as probe_exc:  # noqa: BLE001
+        logger.warning("format_probe_failed url=%s err=%s",
+                       _sl(main_url), _sl(str(probe_exc)))
+
     logger.info(
         "discover_endpoints url=%s country=%s found=%d",
         _sl(main_url), _sl(country_code), len(endpoints),
@@ -326,6 +396,8 @@ def discover_endpoints(req: DiscoverRequest) -> dict:
         "changed": result.get("changed", False),
         "healthy_count": result.get("healthy_count", 0),
         "endpoints": endpoints,
+        "detected_format": detected_format,
+        "field_map_suggestion": field_map_suggestion,
     }
 
 

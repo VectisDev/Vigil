@@ -48,6 +48,12 @@ playwright_locale: es-HN
 playwright_timezone: America/Tegucigalpa
 candidate_count: 10
 required_keys: []
+# Formato de resultados de la autoridad electoral: json (default) | csv | auto.
+# Results format published by the electoral authority: json (default) | csv | auto.
+# 'auto' detecta por contenido (format_detector); cada source puede declarar
+# su propio 'format:'. / 'auto' detects from content; each source may declare
+# its own 'format:'.
+result_format: json
 field_map:
   totals:
     valid_votes:
@@ -60,6 +66,19 @@ field_map:
     - estadisticas.distribucion_votos.total
   candidate_roots:
   - resultados
+  # Mapeo de columnas para fuentes CSV (INE-PREP México, TSE Brasil, etc.).
+  # Sin declarar, el parser auto-mapea nombres comunes del continente y
+  # falla con error explícito si no reconoce columnas — nunca inventa datos.
+  # CSV column mapping (Mexico INE-PREP, Brazil TSE, etc.). If omitted, the
+  # parser auto-maps common continent column names and fails with an explicit
+  # error when unrecognized — never invents data.
+  # csv:
+  #   party_column: PARTIDO
+  #   candidate_column: CANDIDATO
+  #   votes_column: VOTOS
+  #   valid_column: VOTOS_VALIDOS
+  #   null_column: VOTOS_NULOS
+  #   blank_column: VOTOS_BLANCOS
 sources:
 - name: Nacional
   source_id: NACIONAL
