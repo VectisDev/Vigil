@@ -15,7 +15,7 @@
 [![Tests](https://img.shields.io/badge/tests-526%20passing-2f855a.svg)](#validation-status)
 [![Security](https://img.shields.io/badge/security-audited-2f855a.svg)](docs/security/SECURITY-REVIEW.md)
 [![Zero Cost](https://img.shields.io/badge/deployment-zero%20cost-2f855a.svg)](#design-principles)
-[![LATAM](https://img.shields.io/badge/countries-HN%20%7C%20GT%20%7C%20SV%20%7C%20NI%20%7C%20MX%20%7C%20CO-orange.svg)](#supported-countries)
+[![LATAM](https://img.shields.io/badge/countries-HN%20validated%20%C2%B7%2020%20LATAM%20presets-orange.svg)](#supported-countries)
 
 ---
 
@@ -135,16 +135,64 @@ python verify/verify_chain.py tests/fixtures/hnd_2025/
 
 ## Supported Countries
 
-| Country | Code | Electoral Authority | Status |
-|---------|------|---------------------|--------|
-| 🇭🇳 Honduras | `HN` | Consejo Nacional Electoral (CNE) | ✅ Production-ready — piloted on 2025 general election |
-| 🇬🇹 Guatemala | `GT` | Tribunal Supremo Electoral (TSE) | 🔧 Configured — awaiting field test |
-| 🇸🇻 El Salvador | `SV` | Tribunal Supremo Electoral (TSE) | 🔧 Configured — awaiting field test |
-| 🇳🇮 Nicaragua | `NI` | Consejo Supremo Electoral (CSE) | 🔧 Configured — awaiting field test |
-| 🇲🇽 Mexico | `MX` | Instituto Nacional Electoral (INE) | 🔧 Configured — awaiting field test |
-| 🇨🇴 Colombia | `CO` | Registraduría Nacional | 🔧 Configured — awaiting field test |
+VIGIL ingests electoral results **format-agnostically**. When you select a country
+and enter the official results URL, the system detects the payload format
+(JSON or CSV) and dispatches the right parser — **no new code per country**.
+This is what makes continental coverage real rather than aspirational: the
+authorities of the Americas publish in JSON (Honduras/Guatemala/Brazil TREP) or
+CSV (Mexico INE-PREP, Argentina, Brazil open data), and both are parsed by the
+same universal adapter into one canonical snapshot.
 
-Adding a new country requires only a preset in [`src/centinel/countries.py`](src/centinel/countries.py).
+**Coverage tiers (honest status):**
+
+**Tier 1 — Production-validated end to end**
+
+| Country | Code | Electoral Authority | Format | Status |
+|---------|------|---------------------|--------|--------|
+| 🇭🇳 Honduras | `HN` | Consejo Nacional Electoral (CNE) | JSON | ✅ Piloted on the 2025 general election — real endpoints, dataset anchored to Bitcoin |
+
+**Tier 2 — Preset ready, operator supplies the results URL, format auto-detected**
+
+Administrative divisions and the electoral authority are pre-mapped; the operator
+pastes the official results URL and the format (JSON/CSV) is detected on capture.
+
+| Country | Code | Authority | Divisions |
+|---------|------|-----------|-----------|
+| 🇬🇹 Guatemala | `GT` | Tribunal Supremo Electoral | 22 |
+| 🇸🇻 El Salvador | `SV` | Tribunal Supremo Electoral | 14 |
+| 🇳🇮 Nicaragua | `NI` | Consejo Supremo Electoral | 17 |
+| 🇨🇷 Costa Rica | `CR` | Tribunal Supremo de Elecciones | 7 |
+| 🇵🇦 Panamá | `PA` | Tribunal Electoral | 13 |
+| 🇲🇽 México | `MX` | Instituto Nacional Electoral (INE / PREP) | 32 |
+| 🇨🇴 Colombia | `CO` | Registraduría Nacional | 33 |
+| 🇻🇪 Venezuela | `VE` | Consejo Nacional Electoral | 24 |
+| 🇵🇪 Perú | `PE` | JNE / ONPE | 25 |
+| 🇪🇨 Ecuador | `EC` | Consejo Nacional Electoral | 24 |
+| 🇧🇴 Bolivia | `BO` | Tribunal Supremo Electoral | 9 |
+| 🇨🇱 Chile | `CL` | Servicio Electoral (SERVEL) | 16 |
+| 🇦🇷 Argentina | `AR` | Cámara Nacional Electoral | 24 |
+| 🇺🇾 Uruguay | `UY` | Corte Electoral | 19 |
+| 🇵🇾 Paraguay | `PY` | Tribunal Superior de Justicia Electoral | 18 |
+| 🇧🇷 Brasil | `BR` | Tribunal Superior Eleitoral | 27 |
+| 🇩🇴 Rep. Dominicana | `DO` | Junta Central Electoral | 32 |
+
+> The URL patterns shipped for Tier-2 presets are placeholders — the operator
+> must supply the real results URL for the election in question. Once supplied,
+> ingestion, hashing, and the 23+ forensic rules work identically to Honduras.
+
+**Tier 3 — Preset exists, but no known public real-time results portal**
+
+| Country | Code | Note |
+|---------|------|------|
+| 🇨🇺 Cuba | `CU` | No open results feed published |
+| 🇭🇹 Haití | `HT` | No stable public results portal |
+
+Adding or promoting a country requires only a preset in
+[`src/centinel/countries.py`](src/centinel/countries.py) plus, if the format
+isn't JSON/CSV, registering a parser in
+[`src/centinel/schema_adapter.py`](src/centinel/schema_adapter.py) (XML/HTML are
+already detected; only the parser is pending). PDF (scanned actas) needs OCR and
+is out of scope for now.
 
 ---
 
