@@ -1,0 +1,122 @@
+name: CI Auto-Heal
+
+# Autocuración determinista del CI (Capa 1). Gemelo de heal-web.yml.
+# Deterministic CI self-healing (Layer 1). Twin of heal-web.yml.
+#
+# Regla de oro: solo arregla lo MECÁNICO y demostrable (formato Black,
+# imports sin uso). NUNCA salta tests ni suprime alertas de seguridad para
+# forzar verde — eso destruiría la credibilidad del proyecto. Los fallos de
+# test/seguridad se reportan pero jamás se silencian aquí.
+#
+# Golden rule: only fixes MECHANICAL, provable issues (Black formatting,
+# unused imports). NEVER skips tests or suppresses security alerts to force
+# green — that would destroy the project's credibility. Test/security
+# failures are reported but never silenced here.
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Solo reportar, no commitear (dry-run)"
+        type: boolean
+        default: false
+
+# Necesita write para commitear los arreglos de formato de vuelta al PR.
+# Needs write to commit formatting fixes back to the PR branch.
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-autoheal-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  autoheal:
+    name: Auto-Heal (format + imports)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Solo PRs del mismo repo: no se puede (ni se debe) empujar a forks.
+    # Same-repo PRs only: cannot (and must not) push to forks.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.1
+        with:
+          python-version: "3.11"
+
+      - name: Install healing tools
+        run: |
+          python -m pip install --upgrade pip
+          # Mismas versiones que el job de lint del CI (ci.yml) para que el
+          # formato aplicado sea exactamente el que el check exige.
+          python -m pip install "black>=25.0.0,<26.0.0" "autoflake>=2.3.0,<3.0.0"
+
+      - name: Heal changed Python files (Black + unused imports)
+        id: heal
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" == "0000000000000000000000000000000000000000" ]]; then
+            echo "No base SHA (manual run) — healing all tracked .py files."
+            mapfile -t changed_py < <(git ls-files '*.py')
+          else
+            mapfile -t changed_py < <(git diff --name-only "${BASE_SHA}" "HEAD" -- '*.py' | { grep -v -E '^tests/fixtures/' || true; })
+          fi
+
+          if (( ${#changed_py[@]} == 0 )); then
+            echo "No Python files to heal."
+            echo "healed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 1) Quitar imports y variables sin uso — mecánico, seguro.
+          #    Remove unused imports/vars — mechanical, safe.
+          python -m autoflake \
+            --in-place --remove-all-unused-imports --remove-unused-variables \
+            --ignore-init-module-imports \
+            "${changed_py[@]}"
+
+          # 2) Formato Black — el mismo que exige el check de lint.
+          #    Black formatting — exactly what the lint check requires.
+          python -m black "${changed_py[@]}"
+
+          if git diff --quiet; then
+            echo "Nothing to heal — files already clean."
+            echo "healed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "healed=true" >> "$GITHUB_OUTPUT"
+            git --no-pager diff --stat
+          fi
+
+      - name: Commit healed files back to the PR
+        if: steps.heal.outputs.healed == 'true' && inputs.dry_run != true
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name  "centinel-healer[bot]"
+          git config user.email "centinel-healer@users.noreply.github.com"
+          git add -A
+          git commit -m "style: auto-heal formato Black + imports sin uso [bot]"
+          # Reintento con rebase por si el PR avanzó mientras corría.
+          # Rebase-retry in case the PR moved while running.
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${{ github.head_ref }}"; then
+              echo "Pushed healed commit."
+              break
+            fi
+            echo "Push rejected (attempt $attempt) — rebasing and retrying."
+            git pull --rebase origin "${{ github.head_ref }}" || true
+            sleep $((attempt * 2))
+          done
