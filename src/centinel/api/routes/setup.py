@@ -325,7 +325,21 @@ def discover_endpoints(req: DiscoverRequest) -> dict:
     try:
         import requests as _requests
 
+        from centinel.defense.security_utils import is_safe_outbound_url
         from centinel.format_detector import PARSEABLE_FORMATS, detect_format
+
+        # Anti-SSRF: https + resolución a IP pública obligatorias antes de
+        # tocar una URL provista por el operador (mismo guard que
+        # _is_cne_endpoint en la ingesta).
+        # Anti-SSRF: https + public-IP resolution required before touching
+        # an operator-provided URL (same guard as ingestion's
+        # _is_cne_endpoint).
+        if not is_safe_outbound_url(
+            main_url,
+            require_https=True,
+            enforce_public_ip_resolution=True,
+        ):
+            raise ValueError("main_url rechazada por el guard anti-SSRF")
 
         probe = _requests.get(main_url, timeout=10)
         detected_format = detect_format(

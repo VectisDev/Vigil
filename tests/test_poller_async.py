@@ -34,9 +34,6 @@ Detected components:
 """
 
 import asyncio
-import os
-
-import pytest
 
 from centinel.core.poller_async import (
     ETHICAL_FLOOR_SECONDS,
