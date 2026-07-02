@@ -118,7 +118,6 @@ async def get_checkpoint() -> dict:
     from centinel.federation.gossip import (
         _load_or_generate_keypair,
         _current_merkle_root,
-        _derive_node_id,
         NodePayload,
     )
     from datetime import datetime, timezone
@@ -165,7 +164,8 @@ async def swarm_status() -> dict:
     """Return current swarm state: running, peer count, consensus, peer list."""
     if _engine is None:
         # Return minimal offline status — still expose node_id so OPS can display it
-        from centinel.federation.gossip import _load_or_generate_keypair, _derive_node_id
+        from centinel.federation.gossip import _load_or_generate_keypair
+
         try:
             pub_hex, node_id, _ = _load_or_generate_keypair()
         except Exception:
@@ -210,8 +210,9 @@ async def swarm_create_room(request: Request) -> dict:
 
     _rooms[room_code] = _engine._node_id
     my_url = _engine.my_url or ""
+    room_code_log = room_code.replace("\r", "").replace("\n", "")
 
-    logger.info("swarm_room_created code=%.6s node_id=%s", room_code, _engine._node_id)
+    logger.info("swarm_room_created code=%.6s node_id=%s", room_code_log, _engine._node_id)
     return {
         "room_code": room_code,
         "node_id": _engine._node_id,
@@ -557,6 +558,7 @@ async def get_reputation_report() -> dict:
     try:
         from centinel.federation.gossip import _load_or_generate_keypair
         from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
         _, _, priv_path = _load_or_generate_keypair()
         if priv_path.exists():
             privkey = load_pem_private_key(priv_path.read_bytes(), password=None)
@@ -608,8 +610,7 @@ async def get_task_assignment() -> dict:
 
     status = _engine.get_status()
     active_nodes: list[tuple[str, int]] = [
-        (p["node_id"], p.get("arrival_order", idx))
-        for idx, p in enumerate(status.get("peers", []))
+        (p["node_id"], p.get("arrival_order", idx)) for idx, p in enumerate(status.get("peers", []))
     ]
     # Include this node itself
     my_id = status.get("node_id")
