@@ -38,7 +38,14 @@ Describe el flujo operativo completo de C.E.N.T.I.N.E.L. y las cadencias recomen
 | --- | --- | --- |
 | **Mantenimiento / desarrollo** | 1 vez al mes | Validar pipeline y mantener integridad básica. |
 | **Monitoreo normal** | Cada 24–72 horas | Seguimiento regular con bajo impacto. |
-| **Elección activa** | Cada 5–15 minutos | Detección cercana en periodos críticos. |
+| **Elección activa** | Cada 3 minutos (piso ético) | Detección cercana en periodos críticos — preset "Noche electoral" (estándar NYT/MinnPost). |
+
+> **Capacidad y estiramiento automático.** El poller asíncrono soporta hasta
+> 100 endpoints. El piso de 3 minutos se sostiene con ≤24 endpoints por host
+> (techo de 480 req/h/host); con más endpoints en un mismo host, el intervalo
+> efectivo se estira automáticamente (ej. 100 endpoints de 1 host → 12.5 min)
+> y queda registrado en logs y `latest_cycle.json`. Ver tabla completa en
+> [RATE_LIMITING.md](../RATE_LIMITING.md).
 
 ### Señales para ajustar la cadencia
 - **Aumentar frecuencia** si hay cambios recurrentes en fuentes oficiales.
@@ -91,7 +98,14 @@ Describes the full operational flow of C.E.N.T.I.N.E.L. and recommended cadences
 | --- | --- | --- |
 | **Maintenance / development** | Once per month | Validate pipeline and maintain baseline integrity. |
 | **Normal monitoring** | Every 24–72 hours | Regular tracking with low impact. |
-| **Active election** | Every 5–15 minutes | Near-real-time detection during critical periods. |
+| **Active election** | Every 3 minutes (ethical floor) | Near-real-time detection during critical periods — "Election night" preset (NYT/MinnPost standard). |
+
+> **Capacity and automatic stretching.** The async poller supports up to
+> 100 endpoints. The 3-minute floor holds with ≤24 endpoints per host
+> (480 req/h/host ceiling); with more endpoints on a single host the
+> effective interval auto-stretches (e.g. 100 endpoints on 1 host → 12.5 min)
+> and is recorded in logs and `latest_cycle.json`. Full table in
+> [RATE_LIMITING.md](../RATE_LIMITING.md).
 
 ### Signals to adjust cadence
 - **Increase frequency** if official sources change frequently.
