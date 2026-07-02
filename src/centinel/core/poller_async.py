@@ -7,14 +7,29 @@ Async polling engine for N endpoints with guaranteed interval.
 Diseño / Design:
   - Corre como long-running job dentro de GitHub Actions (hasta 5.5h)
     Runs as long-running job inside GitHub Actions (up to 5.5h)
-  - GitHub ve 1 job; asyncio gestiona 100 endpoints en paralelo
-    GitHub sees 1 job; asyncio manages 100 endpoints in parallel
+  - GitHub ve 1 job; asyncio gestiona hasta MAX_ENDPOINTS (100) en paralelo
+    GitHub sees 1 job; asyncio manages up to MAX_ENDPOINTS (100) in parallel
   - Hash chain actualizada 1 vez por ciclo (batch), no por endpoint
     Hash chain updated once per cycle (batch), not per endpoint
   - Graceful shutdown antes del límite de 6h de GitHub
     Graceful shutdown before GitHub's 6h job limit
   - Integra con hashchain.py y endpoint_monitor.py existentes
     Integrates with existing hashchain.py and endpoint_monitor.py
+
+Capacidad honesta / Honest capacity:
+  El fetch de 100 endpoints en paralelo toma segundos, pero el presupuesto
+  ético por host manda: con el techo de rate limit (480 req/h/host por
+  defecto), un solo host admite como máximo 24 endpoints a ciclo de 3 min.
+  Con más endpoints en un mismo host, el intervalo efectivo se estira
+  automáticamente (resolve_safe_interval). 100 endpoints multi-host sí
+  sostienen el ciclo de 3 minutos.
+
+  Fetching 100 endpoints in parallel takes seconds, but the per-host
+  ethical budget rules: with the rate-limit ceiling (default 480 req/h
+  per host), a single host supports at most 24 endpoints at a 3-min
+  cycle. With more endpoints on one host, the effective interval is
+  stretched automatically (resolve_safe_interval). 100 multi-host
+  endpoints do sustain the 3-minute cycle.
 
 Author: CENTINEL Team
 License: AGPL-3.0
@@ -27,7 +42,9 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import os
+import random
 import signal
 import subprocess
 import sys
@@ -36,6 +53,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
 
 import aiohttp
 
@@ -46,6 +64,118 @@ logging.basicConfig(
     datefmt="%Y-%m-%dT%H:%M:%SZ",
 )
 log = logging.getLogger("centinel.poller_async")
+
+
+# ── Límites de capacidad / Capacity limits ─────────────────────────────────────
+
+# Capacidad tope del poller: suficiente para cualquier país del continente
+# (2× los 50 estados de EE.UU.). Configs mayores se truncan con warning.
+# Poller capacity cap: enough for any country in the continent
+# (2× the 50 US states). Larger configs are truncated with a warning.
+MAX_ENDPOINTS = 100
+
+# Piso ético del intervalo: 1 consulta cada 3 minutos por endpoint.
+# Solo CENTINEL_CEILING_UNLOCKED=1 (ritual de desbloqueo del panel /ops)
+# permite bajar de aquí — espejo del preset "Apagón / Crítico".
+# Ethical interval floor: 1 request every 3 minutes per endpoint.
+# Only CENTINEL_CEILING_UNLOCKED=1 (unlock ritual from the /ops panel)
+# allows going below — mirrors the "Apagón / Crítico" preset.
+ETHICAL_FLOOR_SECONDS = 180
+
+# Techo de requests/hora por host si rate_limiter.yaml no está disponible.
+# Per-host requests/hour ceiling if rate_limiter.yaml is unavailable.
+DEFAULT_HOST_RPH_CEILING = 480
+
+_RATE_LIMITER_CONFIG = Path("config/prod/rate_limiter.yaml")
+
+
+def load_host_rph_ceiling(config_path: Path = _RATE_LIMITER_CONFIG) -> int:
+    """
+    Lee el techo duro de requests/hora por host desde rate_limiter.yaml.
+    Reads the hard per-host requests/hour ceiling from rate_limiter.yaml.
+
+    Fallback: DEFAULT_HOST_RPH_CEILING (480).
+    """
+    try:
+        import yaml
+        cfg = yaml.safe_load(config_path.read_text()) or {}
+        ceiling = int(cfg.get("hard_ceiling", {}).get("max_requests_per_hour", 0))
+        if ceiling > 0:
+            return ceiling
+    except Exception as exc:  # noqa: BLE001
+        log.warning("rate_limiter_config_read_failed err=%s — using default %d",
+                    exc, DEFAULT_HOST_RPH_CEILING)
+    return DEFAULT_HOST_RPH_CEILING
+
+
+def endpoints_per_host(endpoints: list["EndpointConfig"]) -> dict[str, int]:
+    """
+    Agrupa endpoints por hostname. Nunca loguea URLs completas.
+    Groups endpoints by hostname. Never logs full URLs.
+    """
+    counts: dict[str, int] = {}
+    for ep in endpoints:
+        host = urlparse(ep.url).hostname or "unknown"
+        counts[host] = counts.get(host, 0) + 1
+    return counts
+
+
+def resolve_safe_interval(
+    endpoints: list["EndpointConfig"],
+    requested_seconds: int,
+    rph_ceiling: Optional[int] = None,
+) -> int:
+    """
+    Calcula el intervalo efectivo que respeta el piso ético y el
+    presupuesto de requests/hora por host.
+    Computes the effective interval honoring the ethical floor and the
+    per-host requests/hour budget.
+
+    KaTeX:
+      interval_efectivo = max(solicitado, piso_ético,
+                              ceil(max_endpoints_por_host × 3600 / rph))
+
+    Ejemplos con rph=480 / Examples with rph=480:
+      ≤24 endpoints en 1 host → 180s (3 min) se mantiene / holds
+      100 endpoints en 1 host → 750s (12.5 min)
+      100 endpoints en 5 hosts (20 c/u) → 180s (3 min)
+    """
+    effective = requested_seconds
+
+    if effective < ETHICAL_FLOOR_SECONDS:
+        if os.environ.get("CENTINEL_CEILING_UNLOCKED") == "1":
+            log.warning(
+                "ethical_floor_bypassed interval=%ds — CENTINEL_CEILING_UNLOCKED=1 "
+                "(preset Apagón/Crítico). Reactivar límites al cesar la emergencia.",
+                effective,
+            )
+        else:
+            log.warning(
+                "interval_below_ethical_floor requested=%ds raised_to=%ds — "
+                "límite ético: 1 consulta / 3 min (desbloqueo: CENTINEL_CEILING_UNLOCKED=1)",
+                effective, ETHICAL_FLOOR_SECONDS,
+            )
+            effective = ETHICAL_FLOOR_SECONDS
+
+    ceiling = rph_ceiling if rph_ceiling else load_host_rph_ceiling()
+    per_host = endpoints_per_host(endpoints)
+    if per_host:
+        busiest_host, busiest_count = max(per_host.items(), key=lambda kv: kv[1])
+        min_interval_for_budget = math.ceil(busiest_count * 3600 / ceiling)
+        if min_interval_for_budget > effective:
+            log.warning(
+                "interval_stretched_for_host_budget host=%s endpoints=%d "
+                "rph_ceiling=%d interval %ds → %ds — "
+                "presupuesto por host: máx %d endpoints a %ds / "
+                "per-host budget: max %d endpoints at %ds",
+                busiest_host, busiest_count, ceiling,
+                effective, min_interval_for_budget,
+                ceiling * effective // 3600, effective,
+                ceiling * effective // 3600, effective,
+            )
+            effective = min_interval_for_budget
+
+    return effective
 
 
 # ── Modelos de datos / Data models ─────────────────────────────────────────────
@@ -93,16 +223,40 @@ class FetchResult:
 
 # ── Fetch asíncrono / Async fetch ──────────────────────────────────────────────
 
+# Reintentos por endpoint dentro de un ciclo / Per-endpoint retries within a cycle
+FETCH_MAX_ATTEMPTS = 3
+FETCH_BACKOFF_BASE_SECONDS = 2.0
+RETRY_AFTER_CAP_SECONDS = 60.0
+_RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+
+
+def _retry_delay(attempt: int, retry_after_header: Optional[str]) -> float:
+    """
+    Delay antes del siguiente intento: honra Retry-After (cap 60s dentro
+    del ciclo), si no backoff exponencial 2s/4s con jitter.
+    Delay before next attempt: honors Retry-After (60s cap within the
+    cycle), else exponential 2s/4s backoff with jitter.
+    """
+    if retry_after_header:
+        try:
+            return min(float(retry_after_header), RETRY_AFTER_CAP_SECONDS)
+        except ValueError:
+            pass  # Retry-After con fecha HTTP → usa backoff / HTTP-date form → backoff
+    return FETCH_BACKOFF_BASE_SECONDS * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+
+
 async def fetch_one(
     session: aiohttp.ClientSession,
     endpoint: EndpointConfig,
 ) -> FetchResult:
     """
-    Fetch un endpoint y calcula su SHA-256.
-    Fetch one endpoint and compute its SHA-256.
+    Fetch un endpoint y calcula su SHA-256, con reintentos y backoff.
+    Fetch one endpoint and compute its SHA-256, with retries and backoff.
 
-    Degradación graceful: nunca propaga excepciones.
-    Graceful degradation: never propagates exceptions.
+    Hasta FETCH_MAX_ATTEMPTS intentos por ciclo; en 429/5xx honra
+    Retry-After. Degradación graceful: nunca propaga excepciones.
+    Up to FETCH_MAX_ATTEMPTS attempts per cycle; honors Retry-After on
+    429/5xx. Graceful degradation: never propagates exceptions.
 
     Args:
         session:   ClientSession compartida / Shared ClientSession
@@ -114,51 +268,63 @@ async def fetch_one(
     """
     t_start = time.monotonic()
     timestamp = datetime.now(timezone.utc).isoformat()
+    last_error: Optional[str] = None
+    last_status: Optional[int] = None
 
-    try:
-        async with session.get(
-            endpoint.url,
-            headers=endpoint.headers,
-            timeout=aiohttp.ClientTimeout(total=endpoint.timeout_seconds),
-            ssl=True,
-        ) as response:
-            content = await response.read()
-            latency_ms = (time.monotonic() - t_start) * 1000
-            content_hash = hashlib.sha256(content).hexdigest()
+    for attempt in range(1, FETCH_MAX_ATTEMPTS + 1):
+        retry_after: Optional[str] = None
+        try:
+            async with session.get(
+                endpoint.url,
+                headers=endpoint.headers,
+                timeout=aiohttp.ClientTimeout(total=endpoint.timeout_seconds),
+                ssl=True,
+            ) as response:
+                content = await response.read()
 
-            return FetchResult(
-                endpoint_id=endpoint.id,
-                timestamp_utc=timestamp,
-                success=response.status < 400,
-                status_code=response.status,
-                content_hash=content_hash,
-                content_bytes=content,
-                error=None if response.status < 400 else f"http_{response.status}",
-                latency_ms=latency_ms,
+                if response.status < 400:
+                    return FetchResult(
+                        endpoint_id=endpoint.id,
+                        timestamp_utc=timestamp,
+                        success=True,
+                        status_code=response.status,
+                        content_hash=hashlib.sha256(content).hexdigest(),
+                        content_bytes=content,
+                        error=None,
+                        latency_ms=(time.monotonic() - t_start) * 1000,
+                    )
+
+                last_status = response.status
+                last_error = f"http_{response.status}"
+                if response.status not in _RETRYABLE_STATUS:
+                    break  # 4xx no transitorio: no reintentar / non-transient 4xx
+                retry_after = response.headers.get("Retry-After")
+
+        except asyncio.TimeoutError:
+            last_status = None
+            last_error = f"timeout_after_{endpoint.timeout_seconds}s"
+        except Exception as exc:  # noqa: BLE001
+            last_status = None
+            last_error = str(exc)[:200]
+
+        if attempt < FETCH_MAX_ATTEMPTS:
+            delay = _retry_delay(attempt, retry_after)
+            log.info(
+                "fetch_retry endpoint=%s attempt=%d/%d delay=%.1fs err=%s",
+                endpoint.id, attempt, FETCH_MAX_ATTEMPTS, delay, last_error,
             )
+            await asyncio.sleep(delay)
 
-    except asyncio.TimeoutError:
-        return FetchResult(
-            endpoint_id=endpoint.id,
-            timestamp_utc=timestamp,
-            success=False,
-            status_code=None,
-            content_hash=None,
-            content_bytes=None,
-            error=f"timeout_after_{endpoint.timeout_seconds}s",
-            latency_ms=(time.monotonic() - t_start) * 1000,
-        )
-    except Exception as exc:  # noqa: BLE001
-        return FetchResult(
-            endpoint_id=endpoint.id,
-            timestamp_utc=timestamp,
-            success=False,
-            status_code=None,
-            content_hash=None,
-            content_bytes=None,
-            error=str(exc)[:200],
-            latency_ms=(time.monotonic() - t_start) * 1000,
-        )
+    return FetchResult(
+        endpoint_id=endpoint.id,
+        timestamp_utc=timestamp,
+        success=False,
+        status_code=last_status,
+        content_hash=None,
+        content_bytes=None,
+        error=last_error,
+        latency_ms=(time.monotonic() - t_start) * 1000,
+    )
 
 
 async def fetch_all(endpoints: list[EndpointConfig]) -> list[FetchResult]:
@@ -169,10 +335,12 @@ async def fetch_all(endpoints: list[EndpointConfig]) -> list[FetchResult]:
     Tiempo total = max(latencias_individuales), no la suma.
     Total time = max(individual_latencies), not their sum.
 
-    Con 100 endpoints y timeout=30s:
-    With 100 endpoints and timeout=30s:
-      Peor caso / Worst case: ~32 segundos / seconds
+    Con 100 endpoints (MAX_ENDPOINTS) y timeout=30s:
+    With 100 endpoints (MAX_ENDPOINTS) and timeout=30s:
       Caso típico / Typical:  ~3-8 segundos / seconds
+      Peor caso / Worst case: ~32s sin reintentos; con los 3 intentos
+      y backoff de fetch_one, hasta ~100s / ~32s without retries; with
+      fetch_one's 3 attempts plus backoff, up to ~100s
 
     Args:
         endpoints: Lista de endpoints a consultar / List of endpoints to query
@@ -333,11 +501,82 @@ class BatchHashChain:
 
 # ── Git commit del ciclo / Cycle git commit ────────────────────────────────────
 
+PUSH_MAX_ATTEMPTS = 3
+
+
+def _push_branch_with_retry(
+    data_branch: str,
+    cwd: Optional[str] = None,
+    attempts: int = PUSH_MAX_ATTEMPTS,
+) -> bool:
+    """
+    Push con reintentos: en rechazo (ej. slots A/B solapados empujando a la
+    misma branch) hace pull --rebase y reintenta con backoff.
+    Push with retries: on rejection (e.g. overlapping A/B slots pushing to
+    the same branch) it pull --rebases and retries with backoff.
+
+    Returns:
+        True si el push llegó / True if the push landed.
+    """
+    for attempt in range(1, attempts + 1):
+        try:
+            subprocess.run(
+                ["git", "push", "origin", data_branch] if data_branch
+                else ["git", "push"],
+                check=True, capture_output=True, cwd=cwd,
+            )
+            return True
+        except subprocess.CalledProcessError as exc:
+            stderr = exc.stderr.decode() if exc.stderr else ""
+            log.warning(
+                "push_failed branch=%s attempt=%d/%d err=%s",
+                data_branch or "current", attempt, attempts, stderr[:200],
+            )
+            if attempt == attempts:
+                return False
+            subprocess.run(
+                ["git", "pull", "--rebase", "origin", data_branch]
+                if data_branch else ["git", "pull", "--rebase"],
+                capture_output=True, cwd=cwd,
+            )
+            time.sleep(2 ** attempt)
+    return False
+
+
+def flush_pending_push(data_branch: str) -> bool:
+    """
+    Empuja commits locales pendientes de la data branch (batching de push).
+    Usado al cierre del poller y cada CENTINEL_PUSH_EVERY_N ciclos.
+    Pushes pending local commits of the data branch (push batching).
+    Used at poller shutdown and every CENTINEL_PUSH_EVERY_N cycles.
+    """
+    if data_branch:
+        import tempfile
+        worktree_dir = Path(tempfile.mkdtemp(prefix="centinel-push-"))
+        try:
+            subprocess.run(
+                ["git", "worktree", "add", "--checkout", str(worktree_dir), data_branch],
+                check=True, capture_output=True,
+            )
+            return _push_branch_with_retry(data_branch, cwd=str(worktree_dir))
+        except subprocess.CalledProcessError as exc:
+            stderr = exc.stderr.decode() if exc.stderr else ""
+            log.error("flush_push_worktree_failed err=%s", stderr[:200])
+            return False
+        finally:
+            subprocess.run(
+                ["git", "worktree", "remove", "--force", str(worktree_dir)],
+                capture_output=True,
+            )
+    return _push_branch_with_retry("")
+
+
 def _push_to_data_branch(
     cycle_number: int,
     cycle_hash: str,
     results: list[FetchResult],
     data_branch: str,
+    do_push: bool = True,
 ) -> None:
     """
     Push snapshot data to a dedicated data branch using git worktree.
@@ -356,6 +595,9 @@ def _push_to_data_branch(
         cycle_hash:   SHA-256 cycle hash for commit message.
         results:      FetchResult list from this cycle.
         data_branch:  Name of the data branch (e.g. "data").
+        do_push:      Push after committing. False = commit local solamente
+                      (el push por lotes lo publica después) / commit locally
+                      only (batched push publishes it later).
     """
     import tempfile
 
@@ -391,7 +633,7 @@ def _push_to_data_branch(
         if summary_src.exists():
             (worktree_dir / "latest_cycle.json").write_text(summary_src.read_text())
 
-        # Commit and push from the worktree
+        # Commit from the worktree; push only when the batch is due
         ok_count = sum(1 for r in results if r.success)
         subprocess.run(["git", "add", "-A"], check=True, capture_output=True,
                        cwd=str(worktree_dir))
@@ -401,10 +643,8 @@ def _push_to_data_branch(
              f"ok:{ok_count}/{len(results)}"],
             check=True, capture_output=True, cwd=str(worktree_dir),
         )
-        subprocess.run(
-            ["git", "push", "origin", data_branch],
-            check=True, capture_output=True, cwd=str(worktree_dir),
-        )
+        if do_push:
+            _push_branch_with_retry(data_branch, cwd=str(worktree_dir))
 
     finally:
         subprocess.run(
@@ -417,18 +657,25 @@ def commit_cycle(
     cycle_number: int,
     cycle_hash: str,
     results: list[FetchResult],
+    do_push: bool = True,
+    effective_interval_seconds: Optional[int] = None,
 ) -> None:
     """
     Commit atómico de los datos del ciclo al repositorio.
     Atomic commit of cycle data to repository.
 
-    1 commit por ciclo (no 100 commits por endpoint).
-    1 commit per cycle (not 100 commits per endpoint).
+    1 commit por ciclo (no 100 commits por endpoint); push por lotes
+    cada CENTINEL_PUSH_EVERY_N ciclos para no saturar la data branch.
+    1 commit per cycle (not 100 commits per endpoint); batched push
+    every CENTINEL_PUSH_EVERY_N cycles to avoid flooding the data branch.
 
     Args:
         cycle_number: Número del ciclo / Cycle number
         cycle_hash:   Hash del ciclo para el mensaje / Cycle hash for commit msg
         results:      Lista de FetchResult / FetchResult list
+        do_push:      Push en este ciclo / Push on this cycle
+        effective_interval_seconds: Intervalo efectivo (transparencia en
+                      latest_cycle.json) / Effective interval (transparency)
     """
     data_dir = Path("data/snapshots")
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -450,6 +697,7 @@ def commit_cycle(
         "cycle":      cycle_number,
         "cycle_hash": cycle_hash,
         "timestamp":  datetime.now(timezone.utc).isoformat(),
+        "effective_interval_seconds": effective_interval_seconds,
         "results": [
             {
                 "endpoint":   r.endpoint_id,
@@ -474,7 +722,8 @@ def commit_cycle(
             # Push snapshots to dedicated data branch using worktree
             # so the main branch codebase is never polluted with data files.
             # ES: Los snapshots van a la branch de datos, no a main.
-            _push_to_data_branch(cycle_number, cycle_hash, results, data_branch)
+            _push_to_data_branch(cycle_number, cycle_hash, results, data_branch,
+                                 do_push=do_push)
         else:
             # Legacy: commit directly to current branch
             subprocess.run(["git", "add", "data/"], check=True, capture_output=True)
@@ -489,9 +738,11 @@ def commit_cycle(
                 check=True,
                 capture_output=True,
             )
-            subprocess.run(["git", "push"], check=True, capture_output=True)
-        log.info("git commit cycle=%d hash=%s branch=%s",
-                 cycle_number, cycle_hash[:16], data_branch or "current")
+            if do_push:
+                _push_branch_with_retry("")
+        log.info("git commit cycle=%d hash=%s branch=%s push=%s",
+                 cycle_number, cycle_hash[:16], data_branch or "current",
+                 "yes" if do_push else "batched")
     except subprocess.CalledProcessError as exc:
         stderr = exc.stderr.decode() if exc.stderr else ""
         log.error("git commit failed cycle=%d err=%s", cycle_number, stderr[:200])
@@ -528,6 +779,13 @@ class ContinuousPoller:
         self.hash_chain = BatchHashChain()
         self._shutdown = False
         self._cycle = 0
+        # Push por lotes: 1 push cada N ciclos (commits locales cada ciclo)
+        # Batched push: 1 push every N cycles (local commits every cycle)
+        try:
+            self.push_every = max(1, int(os.environ.get("CENTINEL_PUSH_EVERY_N", "5")))
+        except ValueError:
+            self.push_every = 5
+        self._pending_push = False
 
         # Graceful shutdown en SIGTERM
         # GitHub Actions envía SIGTERM al acercarse al límite
@@ -545,17 +803,19 @@ class ContinuousPoller:
         Main poller loop.
 
         Flujo por ciclo / Per-cycle flow:
-          1. fetch_all()     — 100 endpoints en paralelo / in parallel
+          1. fetch_all()     — hasta MAX_ENDPOINTS en paralelo / up to MAX_ENDPOINTS in parallel
           2. hash_chain.append() — 1 entrada en la cadena / 1 chain entry
-          3. commit_cycle()  — 1 git commit / 1 git commit
+          3. commit_cycle()  — 1 git commit; push cada push_every ciclos
+                               1 git commit; push every push_every cycles
           4. sleep           — hasta completar el intervalo / until interval completes
         """
         job_start = time.monotonic()
         log.info(
-            "poller_start endpoints=%d interval=%ds max_runtime=%ds",
+            "poller_start endpoints=%d interval=%ds max_runtime=%ds push_every=%d",
             len(self.endpoints),
             self.interval,
             self.max_runtime,
+            self.push_every,
         )
 
         while not self._shutdown:
@@ -603,9 +863,16 @@ class ContinuousPoller:
                     f"fallback-{self._cycle}-{timestamp}".encode()
                 ).hexdigest()
 
-            # 3. Git commit
+            # 3. Git commit — push solo cuando toca el lote
+            #    Git commit — push only when the batch is due
+            do_push = (self._cycle % self.push_every == 0)
             try:
-                commit_cycle(self._cycle, cycle_hash, results)
+                commit_cycle(
+                    self._cycle, cycle_hash, results,
+                    do_push=do_push,
+                    effective_interval_seconds=self.interval,
+                )
+                self._pending_push = not do_push
             except Exception as exc:  # noqa: BLE001
                 log.error("commit_failed cycle=%d err=%s", self._cycle, exc)
 
@@ -622,10 +889,31 @@ class ContinuousPoller:
             if sleep_time > 0 and not self._shutdown:
                 time.sleep(sleep_time)
 
+        # Flush final: publica commits del lote pendiente antes de salir
+        # Final flush: publish pending batched commits before exiting
+        if self._pending_push:
+            pushed = flush_pending_push(os.environ.get("DATA_BRANCH", ""))
+            log.info("final_push_flush ok=%s", pushed)
+
         log.info("poller_shutdown cycles=%d", self._cycle)
 
 
 # ── Carga de endpoints / Endpoint loader ───────────────────────────────────────
+
+def _cap_endpoints(endpoints: list[EndpointConfig]) -> list[EndpointConfig]:
+    """
+    Aplica el tope MAX_ENDPOINTS (100): configs mayores se truncan.
+    Applies the MAX_ENDPOINTS cap (100): larger configs are truncated.
+    """
+    if len(endpoints) > MAX_ENDPOINTS:
+        log.warning(
+            "endpoints_capped configured=%d max=%d — truncando: la capacidad "
+            "del poller es %d endpoints / truncating: poller capacity is %d",
+            len(endpoints), MAX_ENDPOINTS, MAX_ENDPOINTS, MAX_ENDPOINTS,
+        )
+        return endpoints[:MAX_ENDPOINTS]
+    return endpoints
+
 
 def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
     """
@@ -636,6 +924,9 @@ def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
                                          generated by Setup Wizard (zero user friction)
     2. command_center/endpoints.json  <- fallback manual / manual fallback
     3. ENDPOINTS_JSON env var         <- fallback CI secret
+
+    Máximo MAX_ENDPOINTS (100) endpoints; el exceso se trunca con warning.
+    Maximum MAX_ENDPOINTS (100) endpoints; overflow truncated with warning.
 
     Nunca loguea URLs. Never logs URLs.
 
@@ -674,7 +965,7 @@ def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
                         "endpoints_loaded source=config.yaml count=%d country=%s",
                         len(endpoints), country,
                     )
-                    return endpoints
+                    return _cap_endpoints(endpoints)
         except Exception as exc:  # noqa: BLE001
             log.warning("config_yaml_read_failed err=%s — trying fallback", exc)
 
@@ -695,7 +986,7 @@ def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
             ]
             if endpoints:
                 log.info("endpoints_loaded source=endpoints.json count=%d", len(endpoints))
-                return endpoints
+                return _cap_endpoints(endpoints)
         except Exception as exc:  # noqa: BLE001
             log.warning("endpoints_json_read_failed err=%s — trying env", exc)
 
@@ -716,7 +1007,7 @@ def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
             ]
             if endpoints:
                 log.info("endpoints_loaded source=env count=%d", len(endpoints))
-                return endpoints
+                return _cap_endpoints(endpoints)
         except Exception as exc:  # noqa: BLE001
             log.error("endpoints_env_parse_failed err=%s", exc)
 
@@ -738,13 +1029,21 @@ def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="CENTINEL Async Continuous Poller — 100 endpoints × N min × costo cero"
+        description=(
+            "CENTINEL Async Continuous Poller — hasta 100 endpoints × costo cero. "
+            "Piso ético: 3 min. Un solo host admite máx ~24 endpoints a 3 min "
+            "(techo 480 req/h/host); con más, el intervalo se estira solo. "
+            "/ Up to 100 endpoints × zero cost. Ethical floor: 3 min. A single "
+            "host takes ~24 endpoints max at 3 min (480 req/h/host ceiling); "
+            "beyond that the interval auto-stretches."
+        )
     )
     parser.add_argument(
         "--interval",
         type=int,
         default=3,
-        help="Intervalo de polling en minutos (default: 3) / Polling interval in minutes",
+        help="Intervalo de polling en minutos (default: 3, piso ético) / "
+             "Polling interval in minutes (default: 3, ethical floor)",
     )
     parser.add_argument(
         "--data-branch",
@@ -776,9 +1075,12 @@ if __name__ == "__main__":
     if args.data_branch:
         os.environ["DATA_BRANCH"] = args.data_branch
 
+    # Piso ético + presupuesto por host / Ethical floor + per-host budget
+    interval_seconds = resolve_safe_interval(endpoints, args.interval * 60)
+
     poller = ContinuousPoller(
         endpoints=endpoints,
-        interval_seconds=args.interval * 60,
+        interval_seconds=interval_seconds,
         max_runtime_seconds=args.max_runtime,
     )
     poller.run()

@@ -99,6 +99,38 @@ CENTINEL enforces absolute ceilings that **no preset can exceed**:
 | Min interval | 2 seconds | Prevents burst patterns detectable by WAFs |
 | Max burst | 8 | Limits concurrent token availability |
 
+## Poller Capacity: Endpoints per Host vs. Minimum Interval
+
+The async poller (`src/centinel/core/poller_async.py`) supports up to
+**100 endpoints** (`MAX_ENDPOINTS`, enforced — larger configs are truncated)
+with a **3-minute ethical floor** (`ETHICAL_FLOOR_SECONDS`). Fetching 100
+endpoints in parallel takes seconds; the binding constraint is the per-host
+requests/hour ceiling. `resolve_safe_interval()` enforces:
+
+```
+effective_interval = max(requested, 180s, ceil(endpoints_on_busiest_host × 3600 / rph_ceiling))
+```
+
+With the 480 req/h hard ceiling:
+
+| Endpoints on one host | Minimum interval | Notes |
+|---|---|---|
+| ≤ 24 | 3 min (180 s) | Honduras today: 19 endpoints, one CNE host — 3 min holds |
+| 50 | 6.25 min (375 s) | Auto-stretched, logged, recorded in `latest_cycle.json` |
+| 100 | 12.5 min (750 s) | Single-host worst case |
+| 100 across ≥5 hosts (≤24 each) | 3 min (180 s) | Multi-country / multi-authority swarm |
+
+The stretch is automatic and transparent: a warning is logged and the
+effective interval is written to `latest_cycle.json` on every cycle.
+`CENTINEL_CEILING_UNLOCKED=1` (the /ops "Apagón / Crítico" unlock ritual)
+bypasses the 3-minute floor but **never** the per-host budget — the target
+server's protection is not negotiable.
+
+The poller also retries per endpoint (3 attempts, exponential backoff,
+`Retry-After` honored on 429/5xx) and batches git pushes
+(`CENTINEL_PUSH_EVERY_N`, default 5 cycles, with pull-rebase retry) so
+overlapping poller slots do not drop cycles.
+
 ### Custom Mode
 
 Only user-created "custom" presets can bypass these ceilings. When a user creates
