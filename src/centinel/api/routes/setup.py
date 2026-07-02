@@ -323,31 +323,58 @@ def discover_endpoints(req: DiscoverRequest) -> dict:
     detected_format = "unknown"
     field_map_suggestion: dict | None = None
     try:
-        import requests as _requests
+        from urllib.parse import urlparse as _urlparse
 
-        from centinel.defense.security_utils import is_safe_outbound_url
+        import urllib3 as _urllib3
+
+        from centinel.defense.security_utils import resolve_outbound_target
         from centinel.format_detector import PARSEABLE_FORMATS, detect_format
 
-        # Anti-SSRF: https + resolución a IP pública obligatorias antes de
-        # tocar una URL provista por el operador (mismo guard que
-        # _is_cne_endpoint en la ingesta).
-        # Anti-SSRF: https + public-IP resolution required before touching
-        # an operator-provided URL (same guard as ingestion's
-        # _is_cne_endpoint).
-        if not is_safe_outbound_url(
+        # Anti-SSRF: la URL del operador nunca llega al cliente HTTP.
+        # resolve_outbound_target valida https + credenciales + resolución a
+        # IP pública, y el GET va contra la IP pinneada con verificación de
+        # hostname TLS — el mismo patrón de scripts/collector.py.
+        # Anti-SSRF: the operator-provided URL never reaches the HTTP client.
+        # resolve_outbound_target validates https + credentials + public-IP
+        # resolution, and the GET targets the pinned IP with TLS hostname
+        # verification — same pattern as scripts/collector.py.
+        target = resolve_outbound_target(
             main_url,
             require_https=True,
             enforce_public_ip_resolution=True,
-        ):
+        )
+        if target is None:
             raise ValueError("main_url rechazada por el guard anti-SSRF")
 
-        probe = _requests.get(main_url, timeout=10)
+        parsed = _urlparse(main_url)
+        probe_path = parsed.path or "/"
+        if parsed.query:
+            probe_path = f"{probe_path}?{parsed.query}"
+        pinned_ip = (sorted(target.resolved_ips)[0]
+                     if target.resolved_ips else target.host)
+        pool = _urllib3.HTTPSConnectionPool(
+            host=pinned_ip,
+            port=target.port,
+            assert_hostname=target.host,
+            server_hostname=target.host,
+            cert_reqs="CERT_REQUIRED",
+        )
+        try:
+            probe = pool.request(
+                "GET", probe_path,
+                headers={"Host": target.host},
+                timeout=_urllib3.Timeout(total=10),
+                retries=False, redirect=False,
+            )
+        finally:
+            pool.close()
+
         detected_format = detect_format(
-            probe.content, probe.headers.get("Content-Type"), main_url
+            probe.data, probe.headers.get("Content-Type"), main_url
         )
         if detected_format == "csv":
             from centinel.schema_adapter import suggest_csv_field_map
-            field_map_suggestion = suggest_csv_field_map(probe.content)
+            field_map_suggestion = suggest_csv_field_map(probe.data)
         logger.info(
             "format_probe url=%s format=%s parseable=%s",
             _sl(main_url), detected_format,
