@@ -584,7 +584,17 @@ async function saveElectoralUrl() {
         res.style.background = 'rgba(87,192,141,.08)';
         res.style.border = '1px solid rgba(87,192,141,.25)';
         res.style.color = 'var(--ok)';
-        res.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> ${n} endpoint${n !== 1 ? 's' : ''} descubierto${n !== 1 ? 's' : ''} — tabla actualizada`;
+        // Badge de formato detectado (JSON/CSV parseables; XML/HTML/PDF aún sin parser)
+        const fmt = (d.detected_format || '').toUpperCase();
+        let fmtBadge = '';
+        if (fmt && fmt !== 'UNKNOWN') {
+          const parseable = fmt === 'JSON' || fmt === 'CSV';
+          fmtBadge = ` <span class="badge ${parseable ? 'badge-ok' : 'badge-warn'}" title="${parseable ? 'Formato soportado — adaptador automático' : 'Formato detectado — parser pendiente'}">${fmt}</span>`;
+        }
+        res.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> ${n} endpoint${n !== 1 ? 's' : ''} descubierto${n !== 1 ? 's' : ''} — tabla actualizada${fmtBadge}`;
+        if (d.field_map_suggestion && fmt === 'CSV') {
+          auditLog('Formato CSV detectado — mapeo sugerido: ' + JSON.stringify(d.field_map_suggestion));
+        }
       }
     } else {
       // API error — show message but URL is saved locally
