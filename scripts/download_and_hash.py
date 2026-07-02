@@ -592,6 +592,62 @@ def resolve_endpoint(source: dict[str, Any], endpoints: dict[str, str]) -> str |
     return source.get("endpoint")
 
 
+def _adapt_non_json_payload(
+    response: Any,
+    source: dict[str, Any],
+    config: dict[str, Any],
+    source_id: str,
+    fmt: str | None = None,
+) -> dict[str, Any]:
+    """
+    ES: Camino universal no-JSON: detecta el formato del payload crudo
+        (CSV/XML/HTML/PDF) y despacha al parser registrado en
+        schema_adapter. El resultado es el mismo dict normalizado que
+        consume el resto del pipeline — hashes y rules engine intactos.
+    EN: Universal non-JSON path: detects the raw payload format
+        (CSV/XML/HTML/PDF) and dispatches to the parser registered in
+        schema_adapter. The result is the same normalized dict the rest
+        of the pipeline consumes — hashes and rules engine untouched.
+
+    Raises:
+        UnsupportedFormatError / ValueError: formato sin parser o columnas
+        irreconocibles — el caller lo trata como fallo de fuente, nunca
+        inventa datos. / format without parser or unrecognizable columns —
+        caller treats it as source failure, never invents data.
+    """
+    from centinel.format_detector import detect_format
+    from centinel.schema_adapter import parse_payload
+
+    raw = response.content
+    content_type = response.headers.get("Content-Type", "")
+    detected = detect_format(raw, content_type, str(response.url))
+    logger.info(
+        "format_detected source=%s format=%s content_type=%s",
+        source_id, detected, content_type.split(";")[0],
+    )
+
+    scope = source.get("scope")
+    adapted = parse_payload(
+        raw,
+        fmt or detected,
+        content_type=content_type,
+        url=str(response.url),
+        field_map=config.get("field_map"),
+        country_code=str(config.get("centinel", {}).get("country", "XX")),
+        dept_cne_code=str(source.get("department_code") or "00"),
+        dept_name=str(source.get("name", "")),
+        scope="departamental" if scope == "DEPARTMENT" else "nacional",
+        source_name=source_id,
+    )
+    payload = adapted.to_snapshot_dict()
+    if not payload.get("timestamp_utc"):
+        # CSV/planos no traen timestamp embebido: registrar hora de captura
+        # Flat CSVs carry no embedded timestamp: record capture time
+        payload["timestamp_utc"] = datetime.now(timezone.utc).isoformat()
+    payload["format"] = detected
+    return payload
+
+
 def process_sources(
     sources: list[dict[str, Any]],
     endpoints: dict[str, str],
@@ -695,16 +751,41 @@ def process_sources(
                 had_errors = True
                 continue
 
+            # ES: Formato por fuente: 'json' (default, camino HN intacto);
+            #     'csv' fija el parser; 'auto' detecta por contenido.
+            # EN: Per-source format: 'json' (default, HN path untouched);
+            #     'csv' pins the parser; 'auto' detects from content.
+            source_format = str(
+                source.get("format") or config.get("result_format") or "json"
+            ).lower()
             try:
-                response, payload = request_json_with_retry(
-                    session,
-                    endpoint,
-                    retry_config=retry_config,
-                    timeout=float(config.get("timeout", retry_config.timeout_seconds)),
-                    logger=structured_logger,
-                    context={"source": source_label},
-                    alert_hook=alert_hook,
-                )
+                if source_format == "json":
+                    response, payload = request_json_with_retry(
+                        session,
+                        endpoint,
+                        retry_config=retry_config,
+                        timeout=float(config.get("timeout", retry_config.timeout_seconds)),
+                        logger=structured_logger,
+                        context={"source": source_label},
+                        alert_hook=alert_hook,
+                    )
+                else:
+                    response = request_with_retry(
+                        session,
+                        endpoint,
+                        retry_config=retry_config,
+                        timeout=float(config.get("timeout", retry_config.timeout_seconds)),
+                        logger=structured_logger,
+                        context={"source": source_label},
+                        alert_hook=alert_hook,
+                    )
+                    payload = _adapt_non_json_payload(
+                        response,
+                        source,
+                        config,
+                        source_id,
+                        fmt=None if source_format == "auto" else source_format,
+                    )
             except Exception as e:
                 logger.error("Fallo al descargar %s: %s", endpoint, e)
                 # ES: Si el CNE responde 429/503, escribir throttle por fuente para no sobrecargarla.
@@ -782,15 +863,20 @@ def process_sources(
             # EN: CNE schema validation before persisting — detects poisoned responses or API
             #     changes. CENTINEL_STRICT_VALIDATION=1 rejects; default warns only.
             try:
-                from centinel.core.normalize import validate_cne_response as _validate_cne
-                _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
-                if isinstance(_raw_for_validation, dict):
-                    _cne_errors = _validate_cne(_raw_for_validation, source_id)
-                    if _cne_errors and os.getenv("CENTINEL_STRICT_VALIDATION", "0") == "1":
-                        logger.error("suspect_response_rejected source=%s errors=%s",
-                                     source_id, _cne_errors)
-                        had_errors = True
-                        continue
+                # ES: El schema CNE crudo solo aplica al camino JSON; los payloads
+                #     adaptados (CSV, etc.) ya salieron normalizados del parser.
+                # EN: The raw CNE schema only applies to the JSON path; adapted
+                #     payloads (CSV, etc.) left the parser already normalized.
+                if source_format == "json":
+                    from centinel.core.normalize import validate_cne_response as _validate_cne
+                    _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
+                    if isinstance(_raw_for_validation, dict):
+                        _cne_errors = _validate_cne(_raw_for_validation, source_id)
+                        if _cne_errors and os.getenv("CENTINEL_STRICT_VALIDATION", "0") == "1":
+                            logger.error("suspect_response_rejected source=%s errors=%s",
+                                         source_id, _cne_errors)
+                            had_errors = True
+                            continue
             except Exception as _val_exc:
                 logger.debug("cne_validation_skipped source=%s error=%s", source_id, _val_exc)
 

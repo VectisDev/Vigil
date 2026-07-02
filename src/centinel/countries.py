@@ -43,6 +43,11 @@ class CountryPreset:
     # HN: 120s (2 min) — production-validated 2025, proven non-DDoS with 19 endpoints.
     # Other countries: 300s (5 min) — safe default until field-tested.
     election_interval_seconds: int = 300
+    # Formato de resultados publicado por la autoridad electoral.
+    # None = auto-detectar por contenido (format_detector). "json"/"csv"
+    # fija el parser sin sonda. Results format published by the electoral
+    # authority. None = auto-detect from content; "json"/"csv" pins the parser.
+    result_format: Optional[str] = None
 
     @property
     def divisions_count(self) -> int:
@@ -165,6 +170,7 @@ LATAM_COUNTRIES: Dict[str, CountryPreset] = {
         national_url="https://resultadosgenerales2025.cne.hn/api/presidencial/nacional",
         national_filename_pattern=r"(\d{4}-\d{2}-\d{2} \d{2}_\d{2}_\d{2})",
         election_interval_seconds=120,
+        result_format="json",  # TREP CNE 2025 — validado en producción / production-validated
     ),
     "GT": CountryPreset(
         code="GT",
