@@ -1,82 +1,3 @@
-"""
-======================== ÍNDICE / INDEX ========================
-1. Descripción general / Overview
-2. Componentes principales / Main components
-3. Notas de mantenimiento / Maintenance notes
-
-======================== ESPAÑOL ========================
-Archivo: `scripts/analyze_rules.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
-la navegación, mantenimiento y auditoría técnica.
-
-Componentes detectados:
-  - _load_config
-  - _load_snapshot
-  - _latest_snapshots
-  - _normalize_level
-  - _extract_level
-  - _extract_department
-  - _strip_unwanted_fields
-  - _build_source_map
-  - _normalize_department_label
-  - _allowed_departments
-  - _aggregate_national
-  - _filter_presidential_snapshot
-  - _locate_hashchain
-  - main
-  - bloque_main
-
-Notas:
-- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
-- Priorizar claridad operativa y trazabilidad del comportamiento.
-
-======================== ENGLISH ========================
-File: `scripts/analyze_rules.py`.
-This module is part of Centinel Engine and is documented to improve
-navigation, maintenance, and technical auditability.
-
-Detected components:
-  - _load_config
-  - _load_snapshot
-  - _latest_snapshots
-  - _normalize_level
-  - _extract_level
-  - _extract_department
-  - _strip_unwanted_fields
-  - _build_source_map
-  - _normalize_department_label
-  - _allowed_departments
-  - _aggregate_national
-  - _filter_presidential_snapshot
-  - _locate_hashchain
-  - main
-  - bloque_main
-
-Notes:
-- Keep this header in sync with structural changes in the file.
-- Prioritize operational clarity and behavior traceability.
-"""
-
-# Analyze Rules Module
-# AUTO-DOC-INDEX
-#
-# ES: Índice rápido
-#   1) Propósito del módulo
-#   2) Componentes principales
-#   3) Puntos de extensión
-#
-# EN: Quick index
-#   1) Module purpose
-#   2) Main components
-#   3) Extension points
-#
-# Secciones / Sections:
-#   - Configuración / Configuration
-#   - Lógica principal / Core logic
-#   - Integraciones / Integrations
-
-
-
 from __future__ import annotations
 
 import json
@@ -324,16 +245,24 @@ def _broadcast_findings_urgent(result: object, snapshot_id: str) -> None:
     # Mapping of specialization → priority rule keys (soft — all rules still run)
     _SPEC_RULES: dict[str, set[str]] = {
         "temporal": {
-            "timestamp_monotonicity", "nocturnal_acceleration",
-            "hold_and_release", "late_mesa",
+            "timestamp_monotonicity",
+            "nocturnal_acceleration",
+            "hold_and_release",
+            "late_mesa",
         },
         "statistical": {
-            "benford_law", "z_score", "vote_share",
-            "standard_deviation", "coefficient_variation",
+            "benford_law",
+            "z_score",
+            "vote_share",
+            "standard_deviation",
+            "coefficient_variation",
         },
         "structural": {
-            "hashchain_integrity", "irreversibility", "acta_dedup",
-            "endpoint_health", "mesa_completeness",
+            "hashchain_integrity",
+            "irreversibility",
+            "acta_dedup",
+            "endpoint_health",
+            "mesa_completeness",
         },
     }
     priority_rules = _SPEC_RULES.get(specialization, set())
