@@ -24,23 +24,6 @@
   --skel-a:#161b22;--skel-b:#1f2630;
   --accent-tint:110,168,254;--ok-tint:87,192,141;--warn-tint:212,176,102;--bad-tint:223,107,134;
 }
-body.light-mode {
-  --bg: #f8f9fa;
-  --panel: #ffffff;
-  --panel2: #f0f2f5;
-  --border: #d0d7de;
-  --fg: #0d1117;
-  --muted: #57606a;
-  --accent: #0969da;
-  --accent-glow: rgba(9,105,218,0.15);
-  --ok: #1a7f37;
-  --bad: #cf222e;
-  --warn: #9a6700;
-  --purple: #6639ba;
-  --ok-tint: 26,127,55;
-  --bad-tint: 207,34,46;
-  --warn-tint: 154,103,0;
-}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);
   line-height:1.6;font-size:14px;-webkit-font-smoothing:antialiased;min-height:100vh;
@@ -892,8 +875,6 @@ kbd{display:inline-block;background:var(--panel2);border:1px solid var(--border)
 .wiz-preset-name{font-size:12px;font-weight:600;color:var(--fg)}
 .wiz-preset-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4}
 .wiz-nav{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
-
-/* ═══════════════════════════════════════════════════════════
 
 /* ── DEV MODE VISIBILITY ── */
 .dev-only { display: none !important; }
