@@ -7,6 +7,21 @@ No build step, no bundler — everything is served as-is.
 
 ---
 
+## Coding philosophy: ponytail (lazy senior dev mode)
+
+Read `AGENTS.md` at repo root before writing or modifying code — it's the full ruleset
+(adopted from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)). Short
+version: before adding code, check in order — does it need to exist? does it already exist
+in this codebase? does stdlib/a native feature/an installed dependency already do it? can it
+be one line? — and only then write the minimum. Delete over add. No abstractions or
+dependencies that weren't asked for. The one carve-out: cryptographic/forensic-integrity code
+(`src/centinel/core`, `federation`, `defense`, `api`, `command_center/`,
+`verify/verify_chain.py`) sometimes duplicates hash/verification logic *on purpose* so a
+generator and an independent verifier don't share a bug — don't "deduplicate" that without
+reading `docs/audits/audit-20260703-CoreDeadCodeFindings.md` first.
+
+---
+
 ## File map — web/ops/ panel
 
 | File | Lines | Content |
