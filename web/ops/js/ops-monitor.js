@@ -1,35 +1,6 @@
 // ══════════════════════════════════════════════════════════
 // DOWNLOADS
 // ══════════════════════════════════════════════════════════
-function _logTxtContent(id){
-  const ts = new Date().toISOString();
-  if(id==='log-general'){
-    const hdr = `# VIGIL — Actividad (alerts.json)\n# Exportado: ${ts}\n# Entradas: ${logData.length}\n${'─'.repeat(72)}\n`;
-    const rows = logData.map(e=>`${e.timestamp||'—'}\t${(e.level||'INFO').padEnd(8)}\t${e.message||e.description||''}\t${[e.rule_id,e.kind,e.dept_code].filter(Boolean).join('|')||''}`).join('\n');
-    return hdr + rows;
-  }
-  if(id==='log-attacks'){
-    const hdr = `# VIGIL — Attack Log (attack_log.jsonl)\n# Exportado: ${ts}\n# Entradas: ${attackData.length}\n${'─'.repeat(72)}\n`;
-    const rows = attackData.map(e=>JSON.stringify(e)).join('\n');
-    return hdr + rows;
-  }
-  if(id==='log-audit'){
-    const hdr = `# VIGIL — Audit Trail (commits de configuración)\n# Exportado: ${ts}\n# Entradas: ${auditData.length}\n${'─'.repeat(72)}\n`;
-    const rows = auditData.map(c=>`${c.sha.slice(0,7)}\t${c.commit.author.date}\t${c.commit.author.name||''}\t${c.commit.message.split('\n')[0]}`).join('\n');
-    return hdr + rows;
-  }
-  return '';
-}
-
-function downloadTxt(id, filename){
-  const content = _logTxtContent(id);
-  if(!content) return;
-  const blob = new Blob([content],{type:'text/plain;charset=utf-8'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a'); a.href=url; a.download=filename; a.click();
-  URL.revokeObjectURL(url);
-}
-
 function downloadPdf(id){
   const exported = new Date().toISOString();
   const TITLES = {'log-general':'Actividad VIGIL (alerts.json)','log-attacks':'Attack Log (attack_log.jsonl)','log-audit':'Audit Trail — Commits de configuración'};
@@ -93,18 +64,6 @@ tr:nth-child(even) td{background:#fafafa}
   const url  = URL.createObjectURL(blob);
   const w    = window.open(url,'_blank');
   if(!w) URL.revokeObjectURL(url);
-}
-
-function copyLog(id){
-  const content = _logTxtContent(id);
-  if(!content) return;
-  navigator.clipboard.writeText(content).then(()=>{
-    const wrap = document.getElementById(id);
-    if(!wrap) return;
-    const old = wrap.style.outline;
-    wrap.style.outline='1px solid var(--ok)';
-    setTimeout(()=>wrap.style.outline=old,600);
-  });
 }
 
 function generateIncidentReport(){
@@ -488,8 +447,6 @@ function _startPipelinePoll() {
     }
   }, 10000); // poll every 10s
 }
-
-function doEmergencia() { openEmergencyModal(); }
 
 function openEmergencyModal() {
   document.getElementById('emg-confirm-step1').style.display = '';

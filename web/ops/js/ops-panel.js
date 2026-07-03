@@ -639,13 +639,6 @@ async function confirmApply(){
   }
 }
 
-function requestPat(){
-  return new Promise(resolve=>{
-    document.getElementById('pat-modal').classList.add('open');
-    document.getElementById('pat-modal')._resolve = resolve;
-  });
-}
-
 function confirmPat(){
   const input = document.getElementById('pat-input');
   const pat = input.value.trim();
