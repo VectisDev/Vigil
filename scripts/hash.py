@@ -71,8 +71,6 @@ def load_previous_chain_hash() -> str:
     return payload.get("chained_hash", "0" * 64)
 
 
-
-
 def validate_json_file(path: Path) -> None:
     """Validate JSON syntax strictly before hashing.
 
@@ -123,6 +121,7 @@ def maybe_sign_hash_record(
     if not sign_records:
         return payload
     from centinel.core.custody import sign_hash_record  # lazy import
+
     return sign_hash_record(payload, key_path=key_path, operator_id=operator_id)
 
 

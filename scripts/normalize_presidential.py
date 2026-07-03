@@ -1,5 +1,5 @@
-"""Internal library — not a CLI entry point. Imported by pipeline modules.
-"""
+"""Internal library — not a CLI entry point. Imported by pipeline modules."""
+
 import json
 import logging
 import re

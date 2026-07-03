@@ -1,5 +1,5 @@
-"""Internal library — not a CLI entry point. Imported by pipeline modules.
-"""
+"""Internal library — not a CLI entry point. Imported by pipeline modules."""
+
 from __future__ import annotations
 
 import hashlib

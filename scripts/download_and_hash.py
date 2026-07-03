@@ -130,7 +130,10 @@ def _write_throttle(source_id: str, reason: str = "429") -> None:
     )
     logger.warning(
         "source_throttled source=%s until=%s reason=%s minutes=%d",
-        source_id, until.isoformat(), reason, _THROTTLE_MINUTES,
+        source_id,
+        until.isoformat(),
+        reason,
+        _THROTTLE_MINUTES,
     )
 
 
@@ -541,7 +544,9 @@ def _adapt_non_json_payload(
     detected = detect_format(raw, content_type, str(response.url))
     logger.info(
         "format_detected source=%s format=%s content_type=%s",
-        source_id, detected, content_type.split(";")[0],
+        source_id,
+        detected,
+        content_type.split(";")[0],
     )
 
     scope = source.get("scope")
@@ -630,7 +635,9 @@ def process_sources(
                 continue
 
             if not _check_robots_allowed(endpoint):
-                logger.warning("robots_txt_blocked source=%s endpoint=%s — skipping per robots.txt", source_id, endpoint)
+                logger.warning(
+                    "robots_txt_blocked source=%s endpoint=%s — skipping per robots.txt", source_id, endpoint
+                )
                 continue
 
             # ES: Salto cooperativo — deshabilitado en cierre electoral (cada nodo
@@ -673,9 +680,7 @@ def process_sources(
             #     'csv' fija el parser; 'auto' detecta por contenido.
             # EN: Per-source format: 'json' (default, HN path untouched);
             #     'csv' pins the parser; 'auto' detects from content.
-            source_format = str(
-                source.get("format") or config.get("result_format") or "json"
-            ).lower()
+            source_format = str(source.get("format") or config.get("result_format") or "json").lower()
             try:
                 if source_format == "json":
                     response, payload = request_json_with_retry(
@@ -727,9 +732,7 @@ def process_sources(
                         exception_type=type(e).__name__,
                     )
                 except Exception as diag_exc:  # noqa: BLE001
-                    logger.warning(
-                        "connectivity_diagnosis_skipped error=%s", diag_exc
-                    )
+                    logger.warning("connectivity_diagnosis_skipped error=%s", diag_exc)
                 breaker.record_failure(now)
                 _persist_breaker_state(breaker)
                 if breaker.consume_open_alert():
@@ -787,12 +790,12 @@ def process_sources(
                 #     payloads (CSV, etc.) left the parser already normalized.
                 if source_format == "json":
                     from centinel.core.normalize import validate_cne_response as _validate_cne
+
                     _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
                     if isinstance(_raw_for_validation, dict):
                         _cne_errors = _validate_cne(_raw_for_validation, source_id)
                         if _cne_errors and os.getenv("CENTINEL_STRICT_VALIDATION", "0") == "1":
-                            logger.error("suspect_response_rejected source=%s errors=%s",
-                                         source_id, _cne_errors)
+                            logger.error("suspect_response_rejected source=%s errors=%s", source_id, _cne_errors)
                             had_errors = True
                             continue
             except Exception as _val_exc:
@@ -842,14 +845,20 @@ def process_sources(
     if _total_sources > 0:
         _pct = len(processed_sources) / _total_sources * 100
         if _pct < 82:
-            logger.critical("swarm_coverage pct=%.1f%% status=CRITICAL covered=%d/%d",
-                            _pct, len(processed_sources), _total_sources)
+            logger.critical(
+                "swarm_coverage pct=%.1f%% status=CRITICAL covered=%d/%d", _pct, len(processed_sources), _total_sources
+            )
         elif _pct < 90:
-            logger.warning("swarm_coverage pct=%.1f%% status=ELEVATED covered=%d/%d",
-                           _pct, len(processed_sources), _total_sources)
+            logger.warning(
+                "swarm_coverage pct=%.1f%% status=ELEVATED covered=%d/%d", _pct, len(processed_sources), _total_sources
+            )
         else:
-            logger.info("swarm_coverage pct=%.1f%% status=HIGH_TRUST covered=%d/%d",
-                        _pct, len(processed_sources), _total_sources)
+            logger.info(
+                "swarm_coverage pct=%.1f%% status=HIGH_TRUST covered=%d/%d",
+                _pct,
+                len(processed_sources),
+                _total_sources,
+            )
 
     if not had_errors:
         _clear_checkpoint()
@@ -905,9 +914,7 @@ def _persist_snapshot_payload(
         )
     except Exception as exc:  # noqa: BLE001
         if require_signature:
-            raise RuntimeError(
-                f"signature_required_but_failed file={hash_file.name} error={exc}"
-            ) from exc
+            raise RuntimeError(f"signature_required_but_failed file={hash_file.name} error={exc}") from exc
         logger.warning("operator_sign_failed file=%s error=%s", hash_file.name, exc)
 
     write_atomic(
@@ -981,9 +988,9 @@ def _use_fallback_snapshot(
     original_timestamp = payload.get("timestamp") or payload.get("timestamp_utc")
     if original_timestamp is None and snapshot_path is not None:
         try:
-            original_timestamp = datetime.fromtimestamp(
-                snapshot_path.stat().st_mtime, tz=timezone.utc
-            ).isoformat(timespec="microseconds")
+            original_timestamp = datetime.fromtimestamp(snapshot_path.stat().st_mtime, tz=timezone.utc).isoformat(
+                timespec="microseconds"
+            )
         except OSError:
             original_timestamp = None
 
@@ -1046,9 +1053,7 @@ def _load_fallback_sequence_state() -> None:
             continue
         # Never move a counter backwards: take the max of any in-memory
         # value and the persisted one.
-        _FALLBACK_SEQUENCE_COUNTERS[source_id] = max(
-            _FALLBACK_SEQUENCE_COUNTERS.get(source_id, 0), seq
-        )
+        _FALLBACK_SEQUENCE_COUNTERS[source_id] = max(_FALLBACK_SEQUENCE_COUNTERS.get(source_id, 0), seq)
 
 
 def _persist_fallback_sequence_state() -> None:
@@ -1061,9 +1066,7 @@ def _persist_fallback_sequence_state() -> None:
     """
     try:
         _FALLBACK_SEQUENCE_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        payload = json.dumps(
-            _FALLBACK_SEQUENCE_COUNTERS, ensure_ascii=False, sort_keys=True
-        ).encode("utf-8")
+        payload = json.dumps(_FALLBACK_SEQUENCE_COUNTERS, ensure_ascii=False, sort_keys=True).encode("utf-8")
         write_atomic(_FALLBACK_SEQUENCE_STATE_PATH, payload)
     except Exception as exc:  # noqa: BLE001
         logger.warning("fallback_sequence_state_persist_failed error=%s", exc)
@@ -1127,9 +1130,7 @@ def _checkpoint_lock(timeout_seconds: float = 30.0) -> Iterator[None]:
                 break
             except BlockingIOError:
                 if time.monotonic() >= deadline:
-                    raise TimeoutError(
-                        f"checkpoint_lock_timeout path={lock_path} timeout={timeout_seconds}s"
-                    )
+                    raise TimeoutError(f"checkpoint_lock_timeout path={lock_path} timeout={timeout_seconds}s")
                 time.sleep(0.1)
         try:
             yield
@@ -1245,11 +1246,9 @@ def main() -> None:
         _active_set = _requested & _known_ids
         if _active_set:
             sources = [s for s in sources if resolve_source_id(s) in _active_set]
-            logger.info("active_sources_filter count=%d/%d ids=%s",
-                        len(sources), len(_known_ids), sorted(_active_set))
+            logger.info("active_sources_filter count=%d/%d ids=%s", len(sources), len(_known_ids), sorted(_active_set))
         else:
-            logger.warning("active_sources_empty — all requested IDs unknown; scraping all %d sources",
-                           len(sources))
+            logger.warning("active_sources_empty — all requested IDs unknown; scraping all %d sources", len(sources))
 
     endpoints = config.get("endpoints", {})
     process_sources(sources, endpoints, config)
