@@ -245,16 +245,24 @@ def _broadcast_findings_urgent(result: object, snapshot_id: str) -> None:
     # Mapping of specialization → priority rule keys (soft — all rules still run)
     _SPEC_RULES: dict[str, set[str]] = {
         "temporal": {
-            "timestamp_monotonicity", "nocturnal_acceleration",
-            "hold_and_release", "late_mesa",
+            "timestamp_monotonicity",
+            "nocturnal_acceleration",
+            "hold_and_release",
+            "late_mesa",
         },
         "statistical": {
-            "benford_law", "z_score", "vote_share",
-            "standard_deviation", "coefficient_variation",
+            "benford_law",
+            "z_score",
+            "vote_share",
+            "standard_deviation",
+            "coefficient_variation",
         },
         "structural": {
-            "hashchain_integrity", "irreversibility", "acta_dedup",
-            "endpoint_health", "mesa_completeness",
+            "hashchain_integrity",
+            "irreversibility",
+            "acta_dedup",
+            "endpoint_health",
+            "mesa_completeness",
         },
     }
     priority_rules = _SPEC_RULES.get(specialization, set())

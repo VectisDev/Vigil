@@ -288,12 +288,14 @@ def build_rules_alerts_table(alerts: list) -> list:
         just = str(alert.get("justification") or alert.get("message") or "")
         if len(just) > 90:
             just = just[:87] + "…"
-        rows.append([
-            str(alert.get("type") or alert.get("rule") or ""),
-            str(alert.get("severity") or ""),
-            str(alert.get("department") or "—"),
-            just,
-        ])
+        rows.append(
+            [
+                str(alert.get("type") or alert.get("rule") or ""),
+                str(alert.get("severity") or ""),
+                str(alert.get("department") or "—"),
+                just,
+            ]
+        )
     return rows
 
 
@@ -730,12 +732,8 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
         for row_idx, row in enumerate(rules_alerts_rows[1:], start=1):
             sev = str(row[1]).upper() if len(row) > 1 else ""
             if sev in _SEVERITY_BG:
-                sev_style.append(
-                    ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor(_SEVERITY_BG[sev]))
-                )
-                sev_style.append(
-                    ("TEXTCOLOR", (1, row_idx), (1, row_idx), colors.HexColor(_SEVERITY_FG[sev]))
-                )
+                sev_style.append(("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor(_SEVERITY_BG[sev])))
+                sev_style.append(("TEXTCOLOR", (1, row_idx), (1, row_idx), colors.HexColor(_SEVERITY_FG[sev])))
         alerts_tbl.setStyle(TableStyle(sev_style))
         elements.append(alerts_tbl)
         elements.append(Spacer(1, 8))
@@ -1024,7 +1022,6 @@ def main() -> None:
         sig_path.write_text(f"{pdf_hash}  {output_path.name}\n")
         print(f"SHA-256: {pdf_hash}")
         print(f"Signature written to: {sig_path}")
-
 
 
 if __name__ == "__main__":
