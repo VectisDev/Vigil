@@ -1,74 +1,4 @@
 #!/usr/bin/env python
-"""
-======================== ÍNDICE / INDEX ========================
-1. Descripción general / Overview
-2. Componentes principales / Main components
-3. Notas de mantenimiento / Maintenance notes
-
-======================== ESPAÑOL ========================
-Archivo: `scripts/generate_report.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
-la navegación, mantenimiento y auditoría técnica.
-
-Componentes detectados:
-  - load_snapshot_files
-  - build_snapshot_metrics
-  - build_anomalies
-  - build_heatmap
-  - build_benford_data
-  - _register_pdf_fonts
-  - NumberedCanvas
-  - create_pdf_charts
-  - build_pdf_report
-  - main
-  - bloque_main
-
-Notas:
-- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
-- Priorizar claridad operativa y trazabilidad del comportamiento.
-
-======================== ENGLISH ========================
-File: `scripts/generate_report.py`.
-This module is part of Centinel Engine and is documented to improve
-navigation, maintenance, and technical auditability.
-
-Detected components:
-  - load_snapshot_files
-  - build_snapshot_metrics
-  - build_anomalies
-  - build_heatmap
-  - build_benford_data
-  - _register_pdf_fonts
-  - NumberedCanvas
-  - create_pdf_charts
-  - build_pdf_report
-  - main
-  - bloque_main
-
-Notes:
-- Keep this header in sync with structural changes in the file.
-- Prioritize operational clarity and behavior traceability.
-"""
-
-# Generate Report Module
-# AUTO-DOC-INDEX
-#
-# ES: Índice rápido
-#   1) Propósito del módulo
-#   2) Componentes principales
-#   3) Puntos de extensión
-#
-# EN: Quick index
-#   1) Module purpose
-#   2) Main components
-#   3) Extension points
-#
-# Secciones / Sections:
-#   - Configuración / Configuration
-#   - Lógica principal / Core logic
-#   - Integraciones / Integrations
-
-
 from __future__ import annotations
 
 import argparse
@@ -358,12 +288,14 @@ def build_rules_alerts_table(alerts: list) -> list:
         just = str(alert.get("justification") or alert.get("message") or "")
         if len(just) > 90:
             just = just[:87] + "…"
-        rows.append([
-            str(alert.get("type") or alert.get("rule") or ""),
-            str(alert.get("severity") or ""),
-            str(alert.get("department") or "—"),
-            just,
-        ])
+        rows.append(
+            [
+                str(alert.get("type") or alert.get("rule") or ""),
+                str(alert.get("severity") or ""),
+                str(alert.get("department") or "—"),
+                just,
+            ]
+        )
     return rows
 
 
@@ -800,12 +732,8 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
         for row_idx, row in enumerate(rules_alerts_rows[1:], start=1):
             sev = str(row[1]).upper() if len(row) > 1 else ""
             if sev in _SEVERITY_BG:
-                sev_style.append(
-                    ("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor(_SEVERITY_BG[sev]))
-                )
-                sev_style.append(
-                    ("TEXTCOLOR", (1, row_idx), (1, row_idx), colors.HexColor(_SEVERITY_FG[sev]))
-                )
+                sev_style.append(("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor(_SEVERITY_BG[sev])))
+                sev_style.append(("TEXTCOLOR", (1, row_idx), (1, row_idx), colors.HexColor(_SEVERITY_FG[sev])))
         alerts_tbl.setStyle(TableStyle(sev_style))
         elements.append(alerts_tbl)
         elements.append(Spacer(1, 8))
@@ -1094,7 +1022,6 @@ def main() -> None:
         sig_path.write_text(f"{pdf_hash}  {output_path.name}\n")
         print(f"SHA-256: {pdf_hash}")
         print(f"Signature written to: {sig_path}")
-
 
 
 if __name__ == "__main__":

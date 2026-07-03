@@ -1,71 +1,4 @@
 #!/usr/bin/env python
-"""
-======================== ÍNDICE / INDEX ========================
-1. Descripción general / Overview
-2. Componentes principales / Main components
-3. Notas de mantenimiento / Maintenance notes
-
-======================== ESPAÑOL ========================
-Archivo: `scripts/collector.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
-la navegación, mantenimiento y auditoría técnica.
-
-Componentes detectados:
-  - configure_logging
-  - load_yaml
-  - is_safe_http_url
-  - fetch_json_with_retry
-  - validate_collected_payloads
-  - detect_statistical_anomalies
-  - run_collection
-  - main
-  - bloque_main
-
-Notas:
-- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
-- Priorizar claridad operativa y trazabilidad del comportamiento.
-
-======================== ENGLISH ========================
-File: `scripts/collector.py`.
-This module is part of Centinel Engine and is documented to improve
-navigation, maintenance, and technical auditability.
-
-Detected components:
-  - configure_logging
-  - load_yaml
-  - is_safe_http_url
-  - fetch_json_with_retry
-  - validate_collected_payloads
-  - detect_statistical_anomalies
-  - run_collection
-  - main
-  - bloque_main
-
-Notes:
-- Keep this header in sync with structural changes in the file.
-- Prioritize operational clarity and behavior traceability.
-"""
-
-# Collector Module
-# AUTO-DOC-INDEX
-#
-# ES: Índice rápido
-#   1) Propósito del módulo
-#   2) Componentes principales
-#   3) Puntos de extensión
-#
-# EN: Quick index
-#   1) Module purpose
-#   2) Main components
-#   3) Extension points
-#
-# Secciones / Sections:
-#   - Configuración / Configuration
-#   - Lógica principal / Core logic
-#   - Integraciones / Integrations
-
-
-
 from __future__ import annotations
 
 import json
@@ -322,6 +255,7 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
     )
     user_agents = [str(agent) for agent in user_agents if str(agent).strip()]
     from centinel.proxy_handler import get_proxy_rotator  # lazy import
+
     rotator = get_proxy_rotator(LOGGER)
 
     if not sources:
@@ -340,6 +274,7 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
         # "auto": probe swarm status with a single fast call
         try:
             import requests as _req_probe
+
             _sr = _req_probe.get(
                 f"http://127.0.0.1:{_SWARM_PORT}/api/swarm/status",
                 timeout=0.5,
@@ -367,6 +302,7 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
         if _swarm_coop:
             try:
                 import requests as _req
+
                 _r = _req.get(
                     f"http://127.0.0.1:{_SWARM_PORT}/api/swarm/last_scraped",
                     params={"source_id": source_id},
@@ -377,11 +313,13 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
                     if _scraped_at:
                         from datetime import timezone as _tz
                         import dateutil.parser as _dp  # type: ignore[import]
+
                         _age = (datetime.now(_tz.utc) - _dp.parse(_scraped_at)).total_seconds()
                         if _age < _SWARM_FRESHNESS_SECS:
                             LOGGER.info(
                                 "collector_swarm_coop_skip source_id=%s age_secs=%.0f",
-                                source_id, _age,
+                                source_id,
+                                _age,
                             )
                             continue
             except Exception:
@@ -406,6 +344,7 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
             if _swarm_coop:
                 try:
                     import hashlib as _hl, requests as _req
+
                     _content_hash = _hl.sha256(
                         json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()
                     ).hexdigest()
