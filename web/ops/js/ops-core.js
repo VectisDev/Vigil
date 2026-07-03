@@ -661,11 +661,6 @@ function deptDotColor(code, configured){
   if(status.cls === 'warn') return '#d4b066'; // Tardío
   return '#3a3f49'; // sin datos todavía
 }
-function getEndpointUrl(code){
-  const ep = localConfig['config/prod/endpoints.yaml']?.cne?.presidential_endpoints || [];
-  return ep.find(e => (e.department_code||'').toString().padStart(2,'0') === code)?.url || '';
-}
-
 function updateStatusBadges(){
   const ep = localConfig['config/prod/endpoints.yaml'] || {};
   const animal = ep?.healing?.argos_protocol || ep?.healing?.animal_mode || 'normal';
@@ -881,14 +876,4 @@ function onEasyUrlInput(val){
   markDirty();
 }
 
-function syncText(key, val){
-  const ids = {
-    mainurl:['inp-main-url'],  // easy field handled separately via onEasyUrlInput
-  };
-  (ids[key]||[]).forEach(id=>{
-    const el = document.getElementById(id);
-    if(el && el.value!==val) el.value=val;
-  });
-  markDirty();
-}
 
