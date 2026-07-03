@@ -1964,7 +1964,6 @@ function getCurrentRole(){ return sessionStorage.getItem('centinel_role') || 'op
 function getCurrentSeedId(){ return sessionStorage.getItem('centinel_seed_id') || 'S??'; }
 
 // ── Encrypted PAT helpers (AES-256-GCM + HKDF key wrapping) ─────────────────
-function _b64e(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))); }
 function _b64d(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
 function _hexToBytes(hex){ return new Uint8Array(hex.match(/.{2}/g).map(b=>parseInt(b,16))); }
 
