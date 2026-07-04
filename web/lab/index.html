@@ -4801,13 +4801,18 @@ function renderLeader(snap){
     const col=PARTY_COLORS[abbrev]
       ? PARTY_COLORS[abbrev]+'cc'
       : TOP_COLORS[rank]||TOP_COLORS[2];
+    // ponytail: faint tint for the leader's filled area. col is either an 8-digit hex
+    // (party color + 'cc' alpha) or an rgba() string — derive a ~10%-alpha fill that
+    // works for both. The old col.replace(/[\d.]+\)$/,…) only matched rgba() and silently
+    // left hex party colors at full 'cc' alpha, which painted the whole chart solid red.
+    const fillCol=PARTY_COLORS[abbrev]?PARTY_COLORS[abbrev]+'1a':col.replace(/[\d.]+\)$/,'0.10)');
     const data=historyTop3.map(frame=>{
       const entry=(frame||[]).find(p=>p.abbrev===abbrev);
       return entry?entry.pct:null;
     });
     const changeColors=historyLeader.map((ldr,i)=>i>0&&historyLeader[i]!==historyLeader[i-1]&&ldr===abbrev?'rgba(252,211,77,1)':col);
     const pts=historyLeader.map((ldr,i)=>i>0&&historyLeader[i]!==historyLeader[i-1]&&ldr===abbrev?6:0);
-    return{label:abbrev,data,borderColor:col,backgroundColor:col.replace(/[\d.]+\)$/,'0.06)'),
+    return{label:abbrev,data,borderColor:col,backgroundColor:fillCol,
       pointBackgroundColor:changeColors,pointRadius:pts,
       spanGaps:true,fill:rank===0,tension:.3,borderWidth:rank===0?2:1.5};
   });
