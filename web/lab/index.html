@@ -1559,6 +1559,11 @@ let historyTrend = [];
 let historyInvalids = [];
 let historyMargin = [];
 let historyAnomalyCounts = {};
+// ponytail: guards historyVelocity/historyTrend/historyInvalids/historyMargin/
+// historyLeader/historyLeadPct/historyTop3 against duplicate/out-of-order .push()
+// when renderSimFrame re-renders the same idx (pause, threshold toggle, lang switch)
+// or the scrubber seeks backward. -1 means "no frame recorded yet".
+let _lastHistoryIdx = -1;
 
 const CHART_DEFS=[
   {id:'s-chart-cand',label:'Partidos',labelEn:'Parties'},
@@ -4066,6 +4071,7 @@ function simStop(){
   historyBenford=[];historyTimeline=[];historyIncons=[];simChains=[];
   historyLeader=[];historyLeadPct=[];historyTop3=[];
   historyVelocity=[];historyTrend=[];historyInvalids=[];historyMargin=[];historyAnomalyCounts={};
+  _lastHistoryIdx=-1;
   Object.keys(_alertLast).forEach(k=>delete _alertLast[k]);
   Object.values(EVENTS).forEach(e=>{if(e._hc!==undefined)delete e._hc;if(e._cascade!==undefined)delete e._cascade;});
   renderActiveInjections();renderAlerts();
@@ -4255,7 +4261,7 @@ function renderDeptGrid(snap,depts){
 // ═══════════════════════════════════════════════════════════════════════════
 // CENTINEL RULE ENGINE — evaluated on every tick
 // ═══════════════════════════════════════════════════════════════════════════
-function evaluateCheapRules(snap,idx){
+function evaluateCheapRules(snap,idx,isNewFrame){
   const d=snap._cd={};
   const prev=idx>0?SIM.snapshots[idx-1]:null;
 
@@ -4447,8 +4453,9 @@ function evaluateCheapRules(snap,idx){
     flag('concentration',true,'CRITICAL',
       `Concentración extrema: partido[0] captó 93% en ${snap._concentration} mesas`);
 
-  // Track running history for expensive checks
-  if(snap.partidos?.length){
+  // Track running history for expensive checks (only on genuinely new frames —
+  // see isNewFrame guard in renderSimFrame)
+  if(isNewFrame&&snap.partidos?.length){
     const sorted=[...snap.partidos].sort((a,b)=>(b.votos||0)-(a.votos||0));
     const leader=sorted[0];
     historyLeader.push(leader.abbrev);
@@ -4468,6 +4475,28 @@ function renderSimFrame(idx){
   // Skip heavy chart redraws at 60× (only update KPIs)
   const fastMode=SIM.speed>=100;
 
+  // ponytail: renderSimFrame(idx) is called far more often than idx actually advances
+  // (pause, scrubber drag, threshold toggle, lang switch all re-render the same or an
+  // earlier idx). historyVelocity/historyTrend/historyInvalids/historyMargin/
+  // historyLeader/historyLeadPct/historyTop3 are cumulative .push() arrays (unlike
+  // historyBenford/historyTimeline/historyIncons below, which are recomputed from
+  // scratch every render) — without this guard they grow with duplicate/out-of-order
+  // entries instead of mirroring SIM.idx, which is what produced the garbled charts.
+  const isNewFrame=idx>_lastHistoryIdx;
+  if(!isNewFrame){
+    const n=idx+1;
+    historyVelocity.length=Math.min(historyVelocity.length,n);
+    historyTrend.length=Math.min(historyTrend.length,n);
+    historyInvalids.length=Math.min(historyInvalids.length,n);
+    historyMargin.length=Math.min(historyMargin.length,n);
+    historyLeader.length=Math.min(historyLeader.length,n);
+    historyLeadPct.length=Math.min(historyLeadPct.length,n);
+    historyTop3.length=Math.min(historyTop3.length,n);
+  }
+  // Not Math.max: after a backward seek the arrays are truncated down to idx, so a
+  // later forward re-visit of that same idx must be treated as "new" again too.
+  _lastHistoryIdx=idx;
+
   // Accumulate history
   historyBenford=SIM.snapshots.slice(0,idx+1)
     .flatMap(s=>(s.partidos||[]).map(p=>p.votos)).filter(v=>v>0);
@@ -4476,20 +4505,22 @@ function renderSimFrame(idx){
     ts:tsShort(s.ts),actas:s.actas_divulgadas||0,anom:s._chain_broken_pct||s._false_hash||s._rollback?1:0}));
   historyIncons=SIM.snapshots.slice(0,idx+1).map(s=>s.inconsistentes||0);
 
-  // Accumulate new histories
+  // Accumulate new histories (only on genuinely new frames — see isNewFrame guard above)
   const prevSnap=idx>0?SIM.snapshots[idx-1]:null;
   const actasDelta=prevSnap?(snap.actas_divulgadas||0)-(prevSnap.actas_divulgadas||0):0;
-  historyVelocity.push({ts:tsShort(snap.ts),speed:snap._cd?._speed15||actasDelta});
-  if(historyVelocity.length>288)historyVelocity.shift();
-  historyTrend.push({ts:tsShort(snap.ts),real:snap.actas_divulgadas||0,predicted:snap._cd?.trend?.predicted||null});
-  if(historyTrend.length>288)historyTrend.shift();
-  const totalV=(snap.validos||0)+(snap.nulos||0)+(snap.blancos||0);
-  historyInvalids.push({ts:tsShort(snap.ts),nulPct:totalV?((snap.nulos||0)/totalV*100):0,blaPct:totalV?((snap.blancos||0)/totalV*100):0});
-  if(historyInvalids.length>288)historyInvalids.shift();
-  if(snap.partidos?.length>=2){
-    const sorted=[...snap.partidos].sort((a,b)=>(b.votos||0)-(a.votos||0));
-    historyMargin.push({ts:tsShort(snap.ts),margin:(sorted[0].votos||0)-(sorted[1].votos||0),leader:sorted[0].abbrev});
-    if(historyMargin.length>288)historyMargin.shift();
+  if(isNewFrame){
+    historyVelocity.push({ts:tsShort(snap.ts),speed:snap._cd?._speed15??actasDelta});
+    if(historyVelocity.length>288)historyVelocity.shift();
+    historyTrend.push({ts:tsShort(snap.ts),real:snap.actas_divulgadas||0,predicted:snap._cd?.trend?.predicted||null});
+    if(historyTrend.length>288)historyTrend.shift();
+    const totalV=(snap.validos||0)+(snap.nulos||0)+(snap.blancos||0);
+    historyInvalids.push({ts:tsShort(snap.ts),nulPct:totalV?((snap.nulos||0)/totalV*100):0,blaPct:totalV?((snap.blancos||0)/totalV*100):0});
+    if(historyInvalids.length>288)historyInvalids.shift();
+    if(snap.partidos?.length>=2){
+      const sorted=[...snap.partidos].sort((a,b)=>(b.votos||0)-(a.votos||0));
+      historyMargin.push({ts:tsShort(snap.ts),margin:(sorted[0].votos||0)-(sorted[1].votos||0),leader:sorted[0].abbrev});
+      if(historyMargin.length>288)historyMargin.shift();
+    }
   }
   const anomFlags=['_rollback','_hold_release','_benford_biased','_nocturnal','_uniformidad_sospechosa',
     '_duplication','_ts_drift','_chain_broken_pct','_cdn_mirrors_poisoned','_concentration',
@@ -4520,7 +4551,7 @@ function renderSimFrame(idx){
     chainOk?'cadena íntegra':'cadena comprometida';
 
   // Cheap rule evaluation — runs every tick regardless of speed
-  evaluateCheapRules(snap,idx);
+  evaluateCheapRules(snap,idx,isNewFrame);
 
   // Refresh CRS badge for current frame (ribbon was pre-computed at dataset load)
   renderLabRiskRibbon();
@@ -5090,7 +5121,21 @@ function renderForensics(snap,benf,lastd,last10,ext){
   verdicts.push(card('Throttling / Estancamiento',badge(cd.throttled?'WARN':'OK'),
     snap._throttled?'CNE: cadencia artificial detectada — conteo detenido deliberadamente':'Cadencia de actualización normal'));
 
-  document.getElementById('s-forensic-list').innerHTML=verdicts.join('');
+  // ponytail: renderForensics() rebuilds the whole grid every simTick, which used to
+  // silently discard any card a user had expanded within the ~150ms before the next
+  // tick. Preserve open state across the rebuild, keyed by rule title (stable — unlike
+  // card index/status/detail, which change tick to tick).
+  const list=document.getElementById('s-forensic-list');
+  const openTitles=new Set([...list.querySelectorAll('.forensic-card')]
+    .filter(c=>c.querySelector('.forensic-body')?.classList.contains('open'))
+    .map(c=>c.querySelector('.forensic-title')?.textContent));
+  list.innerHTML=verdicts.join('');
+  if(openTitles.size){
+    list.querySelectorAll('.forensic-card').forEach(c=>{
+      const title=c.querySelector('.forensic-title')?.textContent;
+      if(title&&openTitles.has(title))c.querySelector('.forensic-body')?.classList.add('open');
+    });
+  }
 }
 
 function emitEngineEvents(snap,idx,benf,lastd,ext){
