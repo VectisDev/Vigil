@@ -1,7 +1,7 @@
 {
-  "cycle": 58,
-  "cycle_hash": "2ae491cd08d34391ba495715f1f41312976d3aa1500c1b792c13712edb34ea08",
-  "timestamp": "2026-10-13T15:51:30.522787+00:00",
+  "cycle": 59,
+  "cycle_hash": "7e0a5084cb7a2a5524a46060caf448084c08161e7a4ced76312bf58b31a23096",
+  "timestamp": "2026-10-13T15:54:40.548664+00:00",
   "effective_interval_seconds": 180,
   "results": [
     {
@@ -9,7 +9,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 32829.2,
+      "latency_ms": 55452.5,
       "error": "http_503"
     },
     {
@@ -17,7 +17,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 42971.8,
+      "latency_ms": 29195.8,
       "error": "http_503"
     },
     {
@@ -25,7 +25,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 52017.9,
+      "latency_ms": 39706.9,
       "error": "http_503"
     },
     {
@@ -33,7 +33,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 36195.2,
+      "latency_ms": 26647.5,
       "error": "http_503"
     },
     {
@@ -41,7 +41,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 33880.3,
+      "latency_ms": 27210.6,
       "error": "http_503"
     },
     {
@@ -49,7 +49,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 38938.7,
+      "latency_ms": 27373.3,
       "error": "http_503"
     },
     {
@@ -57,7 +57,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 30827.1,
+      "latency_ms": 30654.5,
       "error": "http_503"
     },
     {
@@ -65,7 +65,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 32035.0,
+      "latency_ms": 33101.4,
       "error": "http_503"
     },
     {
@@ -73,7 +73,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 41498.8,
+      "latency_ms": 30625.7,
       "error": "http_503"
     },
     {
@@ -81,7 +81,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 32296.1,
+      "latency_ms": 28537.0,
       "error": "http_503"
     },
     {
@@ -89,7 +89,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 45402.3,
+      "latency_ms": 28994.5,
       "error": "http_503"
     },
     {
@@ -97,7 +97,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 32557.0,
+      "latency_ms": 28274.9,
       "error": "http_503"
     },
     {
@@ -105,7 +105,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 33094.0,
+      "latency_ms": 39357.6,
       "error": "http_503"
     },
     {
@@ -113,7 +113,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 37529.3,
+      "latency_ms": 33995.8,
       "error": "http_503"
     },
     {
@@ -121,7 +121,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 34669.2,
+      "latency_ms": 30145.9,
       "error": "http_503"
     },
     {
@@ -129,7 +129,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 33618.3,
+      "latency_ms": 35128.6,
       "error": "http_503"
     },
     {
@@ -137,7 +137,7 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 37154.4,
+      "latency_ms": 31771.7,
       "error": "http_503"
     },
     {
@@ -145,16 +145,16 @@
       "success": false,
       "status": 503,
       "hash": null,
-      "latency_ms": 38375.6,
+      "latency_ms": 48272.7,
       "error": "http_503"
     },
     {
       "endpoint": "HN-18-dept_18",
       "success": false,
-      "status": 503,
+      "status": null,
       "hash": null,
-      "latency_ms": 35255.7,
-      "error": "http_503"
+      "latency_ms": 62043.1,
+      "error": "timeout_after_30s"
     }
   ]
 }
