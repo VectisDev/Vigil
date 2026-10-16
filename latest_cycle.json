@@ -1,103 +1,103 @@
 {
-  "cycle": 14,
-  "cycle_hash": "a5117f6ad080ee49419af4e0cceee571d13840e074c6e2816289e2b8ac2ccdb1",
-  "timestamp": "2026-10-16T03:35:18.885805+00:00",
+  "cycle": 15,
+  "cycle_hash": "f68f64bd75b6ab7568b60c4663a847f5dc848e580aef11d89e7dd586d584ddda",
+  "timestamp": "2026-10-16T03:37:04.336543+00:00",
   "effective_interval_seconds": 180,
   "results": [
     {
       "endpoint": "HN-nacional-nacional",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 74970.5,
-      "error": "timeout_after_30s"
+      "latency_ms": 1180.8,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-01-dept_01",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 74970.4,
-      "error": "timeout_after_30s"
+      "latency_ms": 1180.9,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-02-dept_02",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 74970.4,
-      "error": "timeout_after_30s"
+      "latency_ms": 1182.6,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-03-dept_03",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 74970.4,
-      "error": "timeout_after_30s"
+      "latency_ms": 1177.4,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-04-dept_04",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 74970.3,
-      "error": "timeout_after_30s"
+      "latency_ms": 1181.9,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-05-dept_05",
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76408.9,
+      "latency_ms": 1380.9,
       "error": "http_404"
     },
     {
       "endpoint": "HN-06-dept_06",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 75087.9,
-      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
+      "latency_ms": 1386.0,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-07-dept_07",
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76416.9,
+      "latency_ms": 1389.7,
       "error": "http_404"
     },
     {
       "endpoint": "HN-08-dept_08",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 75087.9,
-      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
+      "latency_ms": 1389.5,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-09-dept_09",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 75087.9,
-      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
+      "latency_ms": 1389.8,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-10-dept_10",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 75087.9,
-      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
+      "latency_ms": 1588.0,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-11-dept_11",
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76206.1,
+      "latency_ms": 1592.6,
       "error": "http_404"
     },
     {
@@ -105,23 +105,23 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76407.4,
+      "latency_ms": 1592.5,
       "error": "http_404"
     },
     {
       "endpoint": "HN-13-dept_13",
       "success": false,
-      "status": null,
+      "status": 404,
       "hash": null,
-      "latency_ms": 75087.8,
-      "error": "Cannot connect to host resultadosgenerales2025.cne.hn:443 ssl:default [Temporary failure in name resolution]"
+      "latency_ms": 1596.3,
+      "error": "http_404"
     },
     {
       "endpoint": "HN-14-dept_14",
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76203.2,
+      "latency_ms": 1594.9,
       "error": "http_404"
     },
     {
@@ -129,7 +129,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76205.8,
+      "latency_ms": 1862.5,
       "error": "http_404"
     },
     {
@@ -137,7 +137,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76209.5,
+      "latency_ms": 1796.0,
       "error": "http_404"
     },
     {
@@ -145,7 +145,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76414.9,
+      "latency_ms": 1864.2,
       "error": "http_404"
     },
     {
@@ -153,7 +153,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 76211.8,
+      "latency_ms": 1867.2,
       "error": "http_404"
     }
   ]
