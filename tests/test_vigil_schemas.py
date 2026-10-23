@@ -5,8 +5,8 @@
 3. Notas de mantenimiento / Maintenance notes
 
 ======================== ESPAÑOL ========================
-Archivo: `tests/test_centinel_schemas.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Archivo: `tests/test_vigil_schemas.py`.
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -20,8 +20,8 @@ Notas:
 - Priorizar claridad operativa y trazabilidad del comportamiento.
 
 ======================== ENGLISH ========================
-File: `tests/test_centinel_schemas.py`.
-This module is part of Centinel Engine and is documented to improve
+File: `tests/test_vigil_schemas.py`.
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -41,9 +41,9 @@ from vigil.schemas import validate_and_normalize
 
 
 def test_validate_actas_normalizes():
-    """Español: Función test_validate_actas_normalizes del módulo tests/test_centinel_schemas.py.
+    """Español: Función test_validate_actas_normalizes del módulo tests/test_vigil_schemas.py.
 
-    English: Function test_validate_actas_normalizes defined in tests/test_centinel_schemas.py.
+    English: Function test_validate_actas_normalizes defined in tests/test_vigil_schemas.py.
     """
     payload = {
         "acta_id": "A1",
@@ -62,9 +62,9 @@ def test_validate_actas_normalizes():
 
 
 def test_validate_actas_migrates_fields():
-    """Español: Función test_validate_actas_migrates_fields del módulo tests/test_centinel_schemas.py.
+    """Español: Función test_validate_actas_migrates_fields del módulo tests/test_vigil_schemas.py.
 
-    English: Function test_validate_actas_migrates_fields defined in tests/test_centinel_schemas.py.
+    English: Function test_validate_actas_migrates_fields defined in tests/test_vigil_schemas.py.
     """
     payload = {
         "id_acta": "A2",
@@ -83,9 +83,9 @@ def test_validate_actas_migrates_fields():
 
 
 def test_validate_resultados_rejects_invalid_counts():
-    """Español: Función test_validate_resultados_rejects_invalid_counts del módulo tests/test_centinel_schemas.py.
+    """Español: Función test_validate_resultados_rejects_invalid_counts del módulo tests/test_vigil_schemas.py.
 
-    English: Function test_validate_resultados_rejects_invalid_counts defined in tests/test_centinel_schemas.py.
+    English: Function test_validate_resultados_rejects_invalid_counts defined in tests/test_vigil_schemas.py.
     """
     payload = {
         "acta_id": "A3",
@@ -101,9 +101,9 @@ def test_validate_resultados_rejects_invalid_counts():
 
 
 def test_validate_rejects_invalid_json_bytes():
-    """Español: Función test_validate_rejects_invalid_json_bytes del módulo tests/test_centinel_schemas.py.
+    """Español: Función test_validate_rejects_invalid_json_bytes del módulo tests/test_vigil_schemas.py.
 
-    English: Function test_validate_rejects_invalid_json_bytes defined in tests/test_centinel_schemas.py.
+    English: Function test_validate_rejects_invalid_json_bytes defined in tests/test_vigil_schemas.py.
     """
     with pytest.raises(ValueError):
         validate_and_normalize(b"not-json", "actas")

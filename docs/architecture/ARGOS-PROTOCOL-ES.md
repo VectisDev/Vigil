@@ -1,8 +1,8 @@
-# Protocolo ARGOS — Cinco Capas de Defensa de Centinel
+# Protocolo ARGOS — Cinco Capas de Defensa de Vigil
 
 ## Introducción
 
-El sistema Centinel implementa el Protocolo ARGOS: cinco capas de defensa independientes. Cada una protege contra una clase específica de amenazas. Se ejecutan en paralelo, no dependen una de otra, y la mayoría son autónomas.
+El sistema Vigil implementa el Protocolo ARGOS: cinco capas de defensa independientes. Cada una protege contra una clase específica de amenazas. Se ejecutan en paralelo, no dependen una de otra, y la mayoría son autónomas.
 
 ---
 
@@ -67,7 +67,7 @@ Implementar **cifrado de tránsito ChaCha20Poly1305**:
 ## 🦌 Venado — Evasión de Timing
 
 ### Problema Resuelto
-**Timing attacks:** Un atacante que sabe "Centinel captura cada 30 segundos" puede programar un ataque para los 29 segundos, justo antes.
+**Timing attacks:** Un atacante que sabe "Vigil captura cada 30 segundos" puede programar un ataque para los 29 segundos, justo antes.
 
 ### Solución
 Implementar **jitter + decoy snapshots**:
@@ -139,7 +139,7 @@ Implementar **freeze autónomo + exponential backoff**:
    
 2. **Congelación (si score ≥ 75):**
    - Snapshot atómico del estado actual
-   - Crea lock file (`/tmp/centinel.lock`)
+   - Crea lock file (`/tmp/vigil.lock`)
    - Deja de capturar nuevos datos
    - Registra todo en `attack_log.jsonl`
 
@@ -158,7 +158,7 @@ Implementar **freeze autónomo + exponential backoff**:
 
 ### Indicadores
 - `kill_switch.py`: módulo principal
-- Lock file: `/tmp/centinel.lock` (visible)
+- Lock file: `/tmp/vigil.lock` (visible)
 - Recovery state: `hashes/recovery_state.json`
 - Attack events: `hashes/attack_log.jsonl` (JSONL append-only)
 
@@ -190,7 +190,7 @@ Implementar **freeze autónomo + exponential backoff**:
 
 ### Ver Estado del Protocolo ARGOS
 ```bash
-centinel panel
+vigil panel
 ```
 
 Salida esperada:
@@ -218,7 +218,7 @@ Salida esperada:
 
 3. **Si Tejón (kill switch) activado:**
    ```bash
-   cat /tmp/centinel.lock
+   cat /tmp/vigil.lock
    # Verá: reason, frozen_at, recovery_state
    ```
 

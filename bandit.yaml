@@ -1,5 +1,5 @@
-# Bandit configuration for Centinel CI hardening.
-# Configuración de Bandit para endurecimiento de CI en Centinel.
+# Bandit configuration for Vigil CI hardening.
+# Configuración de Bandit para endurecimiento de CI en Vigil.
 
 exclude_dirs:
   - tests

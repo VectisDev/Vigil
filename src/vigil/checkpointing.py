@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/checkpointing.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -24,7 +24,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/checkpointing.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -409,6 +409,7 @@ class CheckpointManager:
             algorithm=hashes.SHA256(),
             length=32,
             salt=iv,
+            # Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
             info=b"centinel-checkpoint",
         )
         derived_key = hkdf.derive(self._base_key)

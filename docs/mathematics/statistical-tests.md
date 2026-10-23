@@ -1,18 +1,18 @@
 # Pruebas Estadisticas Clasicas / Classical Statistical Tests
 
 Documentacion de las pruebas estadisticas clasicas implementadas en las reglas
-de deteccion de Centinel.
+de deteccion de Vigil.
 
-Documentation for classical statistical tests implemented in Centinel's
+Documentation for classical statistical tests implemented in Vigil's
 detection rules.
 
 **Archivos fuente / Source files:**
-- `src/centinel/core/rules/runs_test_rule.py`
-- `src/centinel/core/rules/last_digit_uniformity_rule.py`
-- `src/centinel/core/rules/large_numbers_rule.py`
-- `src/centinel/core/rules/correlation_participation_vote_rule.py`
-- `src/centinel/core/rules/inconsistency_rate_rule.py`
-- `src/centinel/core/rules/granular_anomaly_rule.py` (z-scores)
+- `src/vigil/core/rules/runs_test_rule.py`
+- `src/vigil/core/rules/last_digit_uniformity_rule.py`
+- `src/vigil/core/rules/large_numbers_rule.py`
+- `src/vigil/core/rules/correlation_participation_vote_rule.py`
+- `src/vigil/core/rules/inconsistency_rate_rule.py`
+- `src/vigil/core/rules/granular_anomaly_rule.py` (z-scores)
 
 ---
 

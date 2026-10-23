@@ -36,7 +36,8 @@ served by GitHub Pages, so its code and data are public. Actions that change
 state are protected elsewhere:
 
 - **Local API** (`/api/setup/*`): configuration changes require a valid operator
-  key in the `X-Centinel-Key` header, verified server-side in constant time.
+  key in the `X-Vigil-Key` header (the pre-rename `X-Centinel-Key` is also
+  accepted), verified server-side in constant time.
 - **GitHub**: dispatching workflows or editing configuration requires a GitHub
   token with the corresponding permissions.
 

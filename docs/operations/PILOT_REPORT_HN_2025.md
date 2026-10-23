@@ -6,20 +6,20 @@
 **Versión:** 1.0  
 **Datos fuente:** 64 archivos JSON originales del CNE, elecciones 30/11/2025  
 **Período de publicación:** 2025-12-03 16:25 → 2025-12-10 17:03  
-**Método:** Análisis forense retroactivo — motor CENTINEL dev-v12  
+**Método:** Análisis forense retroactivo — motor VIGIL dev-v12  
 
 ---
 
 ## Declaración de método / Method Statement
 
-Este reporte se basa en el análisis retroactivo del motor CENTINEL sobre
+Este reporte se basa en el análisis retroactivo del motor VIGIL sobre
 64 archivos JSON originales publicados por el Consejo Nacional Electoral (CNE)
 de Honduras durante el escrutinio de las elecciones generales del 30 de
 noviembre de 2025. Las capturas fueron realizadas manualmente (no con el
 sistema automatizado de polling cada ≤5 minutos) durante el período
 3-10 de diciembre de 2025.
 
-**CENTINEL no afirma fraude.** Los hallazgos son anomalías estadísticas y
+**VIGIL no afirma fraude.** Los hallazgos son anomalías estadísticas y
 operacionales detectadas automáticamente. Su interpretación corresponde a
 evaluadores humanos independientes con acceso al contexto completo.
 
@@ -44,7 +44,7 @@ evaluadores humanos independientes con acceso al contexto completo.
 
 > **Nota sobre método de captura:** Las capturas del piloto 2025 fueron
 > manuales, con intervalo mediano de 60 minutos. El sistema automatizado
-> de CENTINEL (≤5 minutos) no estaba activo en este período. Los gaps
+> de VIGIL (≤5 minutos) no estaba activo en este período. Los gaps
 > nocturnos reflejan ausencia del operador humano, no del sistema.
 
 ---
@@ -129,7 +129,7 @@ la tasa máxima físicamente plausible con personal dedicado es aproximadamente
 
 **Evento menor:** 5 ciclos (2025-12-05 12:07 → 16:00), 2,404 inconsistentes.
 
-Regla CENTINEL aplicada: `irreversibility` — detecta cuando el backlog
+Regla VIGIL aplicada: `irreversibility` — detecta cuando el backlog
 de actas inconsistentes permanece estático mientras el escrutinio avanza.
 
 ### 3.4 Inyección progresiva — 17 ciclos [ALTO]
@@ -181,7 +181,7 @@ sin resolución documentada en los datos disponibles.
 
 ```bash
 # Clonar y ejecutar análisis completo
-git clone https://github.com/VectisDev/centinel.git
+git clone https://github.com/VectisDev/Vigil.git
 cd centinel && git checkout dev-v12
 
 # Los 64 archivos JSON originales del CNE están en:
@@ -201,7 +201,7 @@ python verify/verify_chain.py tests/fixtures/hnd_2025/
 
 ## 6. Metodología de detección / Detection Methodology
 
-| Regla CENTINEL | Config key | Hallazgo detectado |
+| Regla VIGIL | Config key | Hallazgo detectado |
 |----------------|------------|-------------------|
 | Saltos entre snapshots | `snapshot_jump` | Resolución 39.15 actas/min |
 | Irreversibilidad estadística | `irreversibility` | Estancamiento 25 ciclos |
@@ -211,6 +211,6 @@ python verify/verify_chain.py tests/fixtures/hnd_2025/
 
 ---
 
-*CENTINEL — AGPL-3.0 — RPT-CENTINEL-OPS-2025-HN-01 v1.0*  
-*Análisis generado automáticamente por el motor CENTINEL dev-v12*  
+*VIGIL — AGPL-3.0 — RPT-CENTINEL-OPS-2025-HN-01 v1.0*  
+*Análisis generado automáticamente por el motor VIGIL dev-v12*  
 *Los datos fuente (64 JSON) están en `tests/fixtures/hnd_2025/`*

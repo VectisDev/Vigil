@@ -1,6 +1,6 @@
-"""Pure SHA-256 hash-chain primitives for Centinel Engine.
+"""Pure SHA-256 hash-chain primitives for VIGIL.
 
-Primitivas puras de cadena hash SHA-256 para Centinel Engine.
+Primitivas puras de cadena hash SHA-256 para VIGIL.
 
 Contains only deterministic, side-effect-free functions so they can be
 imported by scripts/download_and_hash.py (data layer) and by any future

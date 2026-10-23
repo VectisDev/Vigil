@@ -5,7 +5,7 @@ procesamiento anomalas en actas electorales.
 
 Mathematical documentation for the processing speed anomaly detection rule.
 
-**Archivo fuente / Source file:** `src/centinel/core/rules/processing_speed_rule.py`
+**Archivo fuente / Source file:** `src/vigil/core/rules/processing_speed_rule.py`
 **config_key:** `processing_speed`
 **Severidad / Severity:** High
 

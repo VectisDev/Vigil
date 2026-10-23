@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `tests/test_inconsistency_rate_rule.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -24,7 +24,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `tests/test_inconsistency_rate_rule.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -79,7 +79,7 @@ def _cne_snap(actas_inconsistentes: int, actas_correctas: int) -> dict:
 
 
 def _canonical_snap(actas_inconsistentes: int, actas_divulgadas: int) -> dict:
-    """Construye un snapshot en formato canónico de Centinel."""
+    """Construye un snapshot en formato canónico de Vigil."""
     return {
         "actas_inconsistentes": actas_inconsistentes,
         "actas_divulgadas": actas_divulgadas,
@@ -190,7 +190,7 @@ def test_no_alert_zero_actas_divulgadas():
 
 
 def test_canonical_format():
-    """La regla debe funcionar con el formato canónico de Centinel."""
+    """La regla debe funcionar con el formato canónico de Vigil."""
     snap = _canonical_snap(actas_inconsistentes=1500, actas_divulgadas=10000)  # 15%
     alerts = apply(snap, None, CONFIG_DEFAULT)
     level_alerts = [a for a in alerts if "Nivel Crítico" in a["type"]]

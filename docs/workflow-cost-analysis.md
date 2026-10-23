@@ -4,7 +4,7 @@
 
 **Total Monthly Cost: $0 (Well within 60-minute free tier)**
 
-All Centinel workflows together use ~5 minutes of GitHub Actions per month, leaving 55 minutes of free tier unused.
+All Vigil workflows together use ~5 minutes of GitHub Actions per month, leaving 55 minutes of free tier unused.
 
 ## Workflow Breakdown
 
@@ -215,4 +215,4 @@ Even with aggressive scaling scenarios, costs remain **$0** by:
 
 ---
 
-**Conclusion:** GitHub Actions costs are $0 and will remain so at any reasonable scale. The 60-minute monthly limit is more than sufficient for Centinel's gossip protocol, even with hundreds of swarms.
+**Conclusion:** GitHub Actions costs are $0 and will remain so at any reasonable scale. The 60-minute monthly limit is more than sufficient for Vigil's gossip protocol, even with hundreds of swarms.

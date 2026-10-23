@@ -1,18 +1,18 @@
-# Centinel Swarm: Modelo de Reputación Bayesiana Persistente para Redes P2P de Auditoría Electoral
+# Vigil Swarm: Modelo de Reputación Bayesiana Persistente para Redes P2P de Auditoría Electoral
 
 **Documento técnico para revisión académica**
 
-**Autores:** Carlos Zelaya (Proyecto Centinel) · PhD Devis Alvarado (UPNFM) *(co-revisión)*
+**Autores:** Carlos Zelaya (Proyecto Vigil) · PhD Devis Alvarado (UPNFM) *(co-revisión)*
 
 **Fecha:** 31 de mayo de 2026 · Versión 1.0
 
-**Clasificación:** Confidencial — uso interno del proyecto Centinel
+**Clasificación:** Confidencial — uso interno del proyecto Vigil
 
 ---
 
 ## Resumen ejecutivo
 
-Centinel es un sistema de auditoría electoral distribuida que opera sobre datos públicos del CNE de Honduras. Sus nodos intercambian attestaciones criptográficas mediante un protocolo gossip para detectar inconsistencias en los resultados publicados. Este documento describe el **Modelo de Reputación Bayesiana Persistente (PBTM, Persistent Bayesian Trust Model)** que gobierna cómo los nodos del swarm evalúan la confiabilidad de sus pares, resistiendo ataques Sybil y distinguiendo fallos benignos (cortes eléctricos) de traiciones deliberadas (datos manipulados).
+Vigil es un sistema de auditoría electoral distribuida que opera sobre datos públicos del CNE de Honduras. Sus nodos intercambian attestaciones criptográficas mediante un protocolo gossip para detectar inconsistencias en los resultados publicados. Este documento describe el **Modelo de Reputación Bayesiana Persistente (PBTM, Persistent Bayesian Trust Model)** que gobierna cómo los nodos del swarm evalúan la confiabilidad de sus pares, resistiendo ataques Sybil y distinguiendo fallos benignos (cortes eléctricos) de traiciones deliberadas (datos manipulados).
 
 ---
 
@@ -20,7 +20,7 @@ Centinel es un sistema de auditoría electoral distribuida que opera sobre datos
 
 ### 1.1 Contexto
 
-Durante las elecciones generales de Honduras (2025), el servidor del CNE publicó snapshots JSON de resultados parciales cada 5–15 minutos. Múltiples instancias de Centinel monitorearon estos datos en paralelo. El problema central es: **¿cómo decide un nodo a cuál de sus pares creerle cuando existe discrepancia?**
+Durante las elecciones generales de Honduras (2025), el servidor del CNE publicó snapshots JSON de resultados parciales cada 5–15 minutos. Múltiples instancias de Vigil monitorearon estos datos en paralelo. El problema central es: **¿cómo decide un nodo a cuál de sus pares creerle cuando existe discrepancia?**
 
 ### 1.2 Definición del problema
 
@@ -156,7 +156,7 @@ $$\text{Silencio} \rightarrow \begin{cases} \text{Corte eléctrico} & \text{(nod
 
 ### 5.2 Protocolo de clasificación diferida
 
-Centinel usa una **penalización mínima reversible** durante el período de silencio:
+Vigil usa una **penalización mínima reversible** durante el período de silencio:
 
 ```
 1. t₀: nodo n_j deja de responder
@@ -267,7 +267,7 @@ Si el swarm se particiona en dos componentes $\mathcal{N}_A$ y $\mathcal{N}_B$ (
 
 ---
 
-## 8. Integración con el Stack Criptográfico de Centinel
+## 8. Integración con el Stack Criptográfico de Vigil
 
 ```
 Capa 1: Ed25519         → firma de attestations y findings
@@ -309,7 +309,7 @@ El PBTM opera en la Capa 4: **asume** que las firmas Ed25519 son correctas (Capa
 
 ### 10.2 Trabajo futuro
 
-- **Reputación federada multi-país:** cuando Centinel opere simultáneamente en Honduras, Guatemala y El Salvador, ¿deben compartirse scores de reputación entre swarms? Hipótesis: solo si los operadores son los mismos.
+- **Reputación federada multi-país:** cuando Vigil opere simultáneamente en Honduras, Guatemala y El Salvador, ¿deben compartirse scores de reputación entre swarms? Hipótesis: solo si los operadores son los mismos.
 - **Proof of Consistent Work formal:** definir la ventana de tiempo y tolerancia exacta para la prueba de trabajo consistente que automatiza la entrada a Ring-1 sin intervención humana.
 - **Análisis de equilibrio Nash:** modelar el sistema como un juego de $k$ jugadores con incentivos y verificar si la estrategia honesta es un equilibrio de Nash.
 
@@ -382,16 +382,16 @@ class ReputationEngine:
 
 ## Licencia y Citación
 
-Este documento es parte del proyecto Centinel (AGPL-3.0). Para citar en publicaciones académicas:
+Este documento es parte del proyecto Vigil (AGPL-3.0). Para citar en publicaciones académicas:
 
 ```bibtex
 @techreport{zelaya2026centinel,
-  title  = {Centinel Swarm: Persistent Bayesian Trust Model
+  title  = {Vigil Swarm: Persistent Bayesian Trust Model
              for Distributed Electoral Integrity Auditing},
   author = {Zelaya, Carlos and Alvarado, Devis},
   year   = {2026},
   month  = {5},
-  institution = {Proyecto Centinel / UPNFM},
+  institution = {Proyecto Vigil / UPNFM},
   note   = {Documento técnico interno v1.0}
 }
 ```
@@ -400,4 +400,4 @@ Este documento es parte del proyecto Centinel (AGPL-3.0). Para citar en publicac
 
 *"La democracia no se defiende sola. Necesita testigos."*
 
-— Proyecto Centinel, Honduras 2025
+— Proyecto Vigil, Honduras 2025

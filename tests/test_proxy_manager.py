@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `tests/test_proxy_manager.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -25,7 +25,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `tests/test_proxy_manager.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -142,7 +142,7 @@ class TestUserAgentPool:
         links to the repository.
         """
         vigil_count = sum(1 for ua in USER_AGENT_POOL if ua.startswith("VIGIL-"))
-        repo_link_count = sum(1 for ua in USER_AGENT_POOL if "github.com/VectisDev/centinel" in ua)
+        repo_link_count = sum(1 for ua in USER_AGENT_POOL if "github.com/VectisDev/Vigil" in ua)
         assert vigil_count == len(USER_AGENT_POOL)
         assert repo_link_count == len(USER_AGENT_POOL)
 

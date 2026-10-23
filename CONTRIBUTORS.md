@@ -1,12 +1,12 @@
-# Contributing to Centinel Engine
+# Contributing to VIGIL
 
-**ES: Contribuyendo a Centinel Engine**
+**ES: Contribuyendo a VIGIL**
 
 ## Welcome Contributors
 
-Centinel Engine is open-source under AGPL-3.0. We welcome technical contributions, bug reports, audits, and operational feedback.
+VIGIL is open-source under AGPL-3.0. We welcome technical contributions, bug reports, audits, and operational feedback.
 
-**ES: Centinel Engine es open-source bajo AGPL-3.0. Damos la bienvenida a contribuciones técnicas, reportes de bugs, auditorías y feedback operativo.**
+**ES: VIGIL es open-source bajo AGPL-3.0. Damos la bienvenida a contribuciones técnicas, reportes de bugs, auditorías y feedback operativo.**
 
 ---
 
@@ -98,8 +98,8 @@ Core tests (custody, hashing, transparency) must pass. Peripheral tests (API, ch
 ## Development Setup
 
 ```bash
-git clone https://github.com/userf8a2c4/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/VectisDev/Vigil.git
+cd vigil
 poetry install
 poetry run pytest -q
 ```

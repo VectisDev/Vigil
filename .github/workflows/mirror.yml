@@ -1,4 +1,4 @@
-# CENTINEL — Multi-platform code & evidence mirroring
+# VIGIL — Multi-platform code & evidence mirroring
 # Mirror automático multi-plataforma para código y evidencia
 #
 # Audit finding addressed: Point 4 — GitHub monoculture (single-platform dependency).
@@ -144,7 +144,7 @@ jobs:
           BRANCH="${GITHUB_REF##*/}"
           CODEBERG_HEAD="$(curl -fsS \
               -H "Authorization: token ${CODEBERG_TOKEN}" \
-              "https://codeberg.org/api/v1/repos/VectisDev/centinel/branches/${BRANCH}" \
+              "https://codeberg.org/api/v1/repos/VectisDev/Vigil/branches/${BRANCH}" \
               | python3 -c 'import sys,json; print(json.load(sys.stdin)["commit"]["id"])' 2>/dev/null || echo "UNKNOWN")"
 
           echo "GitHub HEAD ($BRANCH):   ${GITHUB_HEAD}"
@@ -209,7 +209,7 @@ jobs:
           {
             "centinel_mirror_manifest_version": 1,
             "tool": "centinel-resilience-mirror",
-            "tool_url": "https://github.com/VectisDev/centinel",
+            "tool_url": "https://github.com/VectisDev/Vigil",
             "bundle_filename": "${{ steps.meta.outputs.bundle_name }}",
             "bundle_sha256": "${BUNDLE_SHA}",
             "git_head_sha": "${{ steps.meta.outputs.head_sha }}",
@@ -267,9 +267,9 @@ jobs:
           ia upload "${IA_ID}" \
               "${{ steps.meta.outputs.bundle_name }}" \
               "${{ steps.meta.outputs.bundle_name }}.manifest.json" \
-              --metadata="title:CENTINEL Resilience Mirror ${MONTH}" \
-              --metadata="description:Periodic git-bundle snapshots of the CENTINEL repository, uploaded as part of the project's multi-platform resilience policy. Each bundle is independently verifiable against the GitHub source and SHA-256 hashes recorded in the manifest." \
-              --metadata="creator:CENTINEL Project (VectisDev)" \
+              --metadata="title:VIGIL Resilience Mirror ${MONTH}" \
+              --metadata="description:Periodic git-bundle snapshots of the VIGIL repository, uploaded as part of the project's multi-platform resilience policy. Each bundle is independently verifiable against the GitHub source and SHA-256 hashes recorded in the manifest." \
+              --metadata="creator:VIGIL Project (VectisDev)" \
               --metadata="subject:electoral-audit" \
               --metadata="subject:centinel" \
               --metadata="subject:internet-freedom-infrastructure" \

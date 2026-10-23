@@ -4,7 +4,7 @@
 
 ## Español
 
-La API pública de C.E.N.T.I.N.E.L. expone endpoints de solo lectura para
+La API pública de VIGIL expone endpoints de solo lectura para
 consultar snapshots, alertas y verificar la cadena de hashes.
 
 ### Endpoints
@@ -68,7 +68,7 @@ El límite es configurable via la variable de entorno `RATE_LIMIT` (default: `60
 
 ## English
 
-The C.E.N.T.I.N.E.L. public API exposes read-only endpoints to query snapshots,
+The VIGIL public API exposes read-only endpoints to query snapshots,
 alerts, and hashchain verification.
 
 ### Endpoints

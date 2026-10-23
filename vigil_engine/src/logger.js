@@ -19,9 +19,9 @@
  */
 
 /**
- * Logger estructurado para Centinel Engine.
+ * Logger estructurado para VIGIL.
  *
- * Structured logger for Centinel Engine.
+ * Structured logger for VIGIL.
  */
 
 import winston from "winston";

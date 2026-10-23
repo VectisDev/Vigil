@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/core/anchoring_payload.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -23,7 +23,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/core/anchoring_payload.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -79,6 +79,7 @@ def hash_bytes(payload: bytes) -> str:
 
 def _build_root_payload(raw_bytes: bytes, diff_bytes: bytes, rules_bytes: bytes) -> bytes:
     parts = [
+        # Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
         b"centinel-anchor-v1",
         b"raw",
         str(len(raw_bytes)).encode("utf-8"),

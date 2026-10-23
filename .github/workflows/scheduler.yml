@@ -1,4 +1,4 @@
-name: C.E.N.T.I.N.E.L. Data Fetcher
+name: VIGIL Data Fetcher
 on:
   schedule:
     - cron: '*/15 * * * *' # Corre cada 15 minutos

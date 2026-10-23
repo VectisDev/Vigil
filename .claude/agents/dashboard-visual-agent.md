@@ -19,8 +19,8 @@ and academic reviewers.
 **Visual assets you own:**
 - `web/ops/` — operational dashboard (SpaceX design system, ops.css)
 - `web/monitor/` and `web/lab/` — secondary panels
-- `src/centinel/reports/pdf_generator.py` — executive PDF reports
-- `src/centinel/reports/visualizations.py` — matplotlib/plotly/seaborn
+- `src/vigil/reports/pdf_generator.py` — executive PDF reports
+- `src/vigil/reports/visualizations.py` — matplotlib/plotly/seaborn
 
 ## Design System (web/ops/)
 

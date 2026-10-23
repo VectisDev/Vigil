@@ -57,7 +57,7 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 PYV="$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
 if ! python3 -c 'import sys; raise SystemExit(0 if sys.version_info[:2] >= (3,10) else 1)'; then
-  print_fail "Python $PYV detected; Centinel needs >=3.10."
+  print_fail "Python $PYV detected; Vigil needs >=3.10."
   exit 2
 fi
 print_ok "Python $PYV"

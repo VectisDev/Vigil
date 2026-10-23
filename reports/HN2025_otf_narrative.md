@@ -1,7 +1,7 @@
 # Lo que los datos dijeron — y nadie quería escuchar
 ## Análisis forense independiente: Elección Presidencial Honduras, diciembre 2025
 
-**Prepared by:** Centinel Engine — Citizen Electoral Audit Infrastructure  
+**Prepared by:** VIGIL — Citizen Electoral Audit Infrastructure  
 **Data source:** Public JSON API, Consejo Nacional Electoral (CNE) Honduras  
 **Period covered:** December 3–10, 2025 (64 hourly snapshots)  
 **Status:** Reproducible — all raw files and analysis code are open source
@@ -12,19 +12,19 @@
 
 Este documento no requiere conocimientos técnicos. Está escrito para organizaciones que financian herramientas de transparencia electoral, observadores internacionales, y periodistas de investigación.
 
-Describe qué encontró un sistema automatizado de auditoría — llamado **Centinel** — al analizar los datos oficiales publicados por el CNE de Honduras durante el conteo de la elección presidencial de 2025.
+Describe qué encontró un sistema automatizado de auditoría — llamado **Vigil** — al analizar los datos oficiales publicados por el CNE de Honduras durante el conteo de la elección presidencial de 2025.
 
 Todo lo descrito aquí proviene de los propios datos del CNE. No es una opinión. Es lo que el sistema publicó, medido con matemática básica.
 
 ---
 
-## El problema que Centinel resuelve
+## El problema que Vigil resuelve
 
 Las autoridades electorales modernas publican resultados a través de APIs de internet — archivos de datos que cualquiera puede descargar. En teoría, esto garantiza transparencia. En la práctica, nadie tiene el tiempo ni las herramientas para monitorear esos datos hora a hora durante una semana, comparar cada versión con la anterior, y detectar si algo cambia de forma imposible.
 
-Centinel hace exactamente eso, de forma automática, continua, y verificable.
+Vigil hace exactamente eso, de forma automática, continua, y verificable.
 
-En Honduras 2025, un ciudadano lo hizo **a mano**. Hora a hora. Durante una semana. Lo que encontró fue ignorado hasta que fue demasiado tarde para actuar. Centinel nació de esa experiencia.
+En Honduras 2025, un ciudadano lo hizo **a mano**. Hora a hora. Durante una semana. Lo que encontró fue ignorado hasta que fue demasiado tarde para actuar. Vigil nació de esa experiencia.
 
 ---
 
@@ -138,9 +138,9 @@ incons.   brecha    salta    escrutinio     actas   11k→42k     actas
 
 ## Por qué esto importa para el futuro
 
-### Lo que Centinel habría permitido en tiempo real
+### Lo que Vigil habría permitido en tiempo real
 
-Si Centinel hubiera estado operando durante la elección de 2025 con los detectores actuales, cada uno de estos eventos habría generado una alerta automática en segundos:
+Si Vigil hubiera estado operando durante la elección de 2025 con los detectores actuales, cada uno de estos eventos habría generado una alerta automática en segundos:
 
 - **Blackout iniciado** → alerta CRITICAL en ≤5 minutos → notificación a observadores
 - **Mutación del universo** → alerta CRITICAL → evidencia inmutable con hash SHA-256
@@ -152,7 +152,7 @@ Eso significa que en lugar de que un ciudadano documentara esto manualmente hora
 
 El ciudadano que documentó estos hallazgos manualmente en diciembre de 2025 recibió ataques coordinados en redes sociales y fue sometido a restricciones de alcance (shadowban) en plataformas tras publicar los resultados. Los registros de esos ataques también están documentados en el repositorio de evidencia.
 
-Centinel está diseñado específicamente para sobrevivir ese escenario:
+Vigil está diseñado específicamente para sobrevivir ese escenario:
 - Los datos se anclan en Bitcoin (OpenTimestamps) — nadie puede modificar un hash ya anclado
 - El sistema opera en múltiples nodos independientes — no hay un punto único de silencio
 - El código es AGPL-3.0 — cualquier persona en cualquier país puede desplegarlo
@@ -161,7 +161,7 @@ Centinel está diseñado específicamente para sobrevivir ese escenario:
 
 El análisis aquí presentado se realizó sobre datos **del propio gobierno**. No requirió acceso especial, filtraciones ni fuentes confidenciales. Solo requirió descargar los archivos que el CNE publicó en internet y aplicar matemática básica.
 
-Eso significa que Centinel puede adaptarse a cualquier país que publique datos electorales en formato digital. La guía de replicación está documentada en `docs/REPLICATION_GUIDE.md`.
+Eso significa que Vigil puede adaptarse a cualquier país que publique datos electorales en formato digital. La guía de replicación está documentada en `docs/REPLICATION_GUIDE.md`.
 
 ---
 
@@ -187,7 +187,7 @@ Eso significa que Centinel puede adaptarse a cualquier país que publique datos 
 
 ## Sobre la neutralidad de este análisis
 
-Centinel no determina quién ganó ni quién debería haber ganado. Reporta hechos verificables sobre los datos oficiales.
+Vigil no determina quién ganó ni quién debería haber ganado. Reporta hechos verificables sobre los datos oficiales.
 
 Los hallazgos de este documento son reproducibles: cualquier persona puede descargar los 64 archivos JSON del repositorio público, ejecutar el script de análisis, y obtener exactamente los mismos resultados. El código está disponible en GitHub bajo licencia AGPL-3.0.
 
@@ -197,19 +197,19 @@ La neutralidad no es una declaración de principios — es una propiedad técnic
 
 ## Contacto y reproducibilidad
 
-- **Repositorio:** `github.com/userf8a2c4/centinel-engine`
+- **Repositorio:** `github.com/VectisDev/Vigil`
 - **Datos Honduras 2025:** `github.com/userf8a2c4/hnd-electoral-audit-2025`
 - **Script de análisis:** `scripts/calibrate_2025.py`
 - **Datos brutos:** `hnd-electoral-audit-2025/data/` (64 archivos JSON, SHA-256 verificables)
 
 Para reproducir este análisis:
 ```bash
-git clone https://github.com/userf8a2c4/centinel-engine
+git clone https://github.com/VectisDev/Vigil
 git clone https://github.com/userf8a2c4/hnd-electoral-audit-2025
-cd centinel-engine
+cd vigil
 python scripts/calibrate_2025.py --data ../hnd-electoral-audit-2025/data
 ```
 
 ---
 
-*Este documento fue generado automáticamente a partir del análisis de Centinel Engine v0.1 y revisado editorialmente para audiencia no-técnica. La versión técnica completa está disponible en `reports/calibration_2025.md`.*
+*Este documento fue generado automáticamente a partir del análisis de VIGIL v0.1 y revisado editorialmente para audiencia no-técnica. La versión técnica completa está disponible en `reports/calibration_2025.md`.*

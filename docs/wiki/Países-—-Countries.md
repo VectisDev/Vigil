@@ -4,7 +4,7 @@
 
 ## Español
 
-VIGIL lee los resultados **sin depender del formato**: al indicar la URL oficial, detecta si la publicación es JSON o CSV y aplica el analizador correcto. No hace falta código nuevo por país. Hay configuraciones listas para 21 países (`src/centinel/countries.py`).
+VIGIL lee los resultados **sin depender del formato**: al indicar la URL oficial, detecta si la publicación es JSON o CSV y aplica el analizador correcto. No hace falta código nuevo por país. Hay configuraciones listas para 21 países (`src/vigil/countries.py`).
 
 ### Nivel 1 — Validado de extremo a extremo
 
@@ -46,15 +46,15 @@ Las divisiones administrativas y la autoridad ya están mapeadas. Las URL inclui
 
 ### Agregar o promover un país
 
-1. Añade o ajusta el preset en [`src/centinel/countries.py`](https://github.com/VectisDev/Vigil/blob/main/src/centinel/countries.py).
-2. Si el formato no es JSON ni CSV, registra un analizador en [`src/centinel/schema_adapter.py`](https://github.com/VectisDev/Vigil/blob/main/src/centinel/schema_adapter.py): XML y HTML ya se detectan; falta su analizador. Los PDF escaneados requieren OCR y hoy quedan fuera de alcance.
+1. Añade o ajusta el preset en [`src/vigil/countries.py`](https://github.com/VectisDev/Vigil/blob/main/src/vigil/countries.py).
+2. Si el formato no es JSON ni CSV, registra un analizador en [`src/vigil/schema_adapter.py`](https://github.com/VectisDev/Vigil/blob/main/src/vigil/schema_adapter.py): XML y HTML ya se detectan; falta su analizador. Los PDF escaneados requieren OCR y hoy quedan fuera de alcance.
 3. Ajusta los umbrales de dominio (participación, velocidad de escrutinio) al sistema electoral del país; ver la [guía de replicación](https://github.com/VectisDev/Vigil/blob/main/docs/operations/REPLICATION_GUIDE.md).
 
 ---
 
 ## English
 
-VIGIL reads results **format-agnostically**: given the official URL, it detects whether the feed is JSON or CSV and applies the right parser. No new code is needed per country. Presets exist for 21 countries (`src/centinel/countries.py`).
+VIGIL reads results **format-agnostically**: given the official URL, it detects whether the feed is JSON or CSV and applies the right parser. No new code is needed per country. Presets exist for 21 countries (`src/vigil/countries.py`).
 
 ### Tier 1 — Validated end to end
 
@@ -96,6 +96,6 @@ Administrative divisions and the authority are already mapped. The bundled URLs 
 
 ### Adding or promoting a country
 
-1. Add or adjust the preset in [`src/centinel/countries.py`](https://github.com/VectisDev/Vigil/blob/main/src/centinel/countries.py).
-2. If the format is neither JSON nor CSV, register a parser in [`src/centinel/schema_adapter.py`](https://github.com/VectisDev/Vigil/blob/main/src/centinel/schema_adapter.py): XML and HTML are already detected; only their parser is missing. Scanned PDFs need OCR and are out of scope for now.
+1. Add or adjust the preset in [`src/vigil/countries.py`](https://github.com/VectisDev/Vigil/blob/main/src/vigil/countries.py).
+2. If the format is neither JSON nor CSV, register a parser in [`src/vigil/schema_adapter.py`](https://github.com/VectisDev/Vigil/blob/main/src/vigil/schema_adapter.py): XML and HTML are already detected; only their parser is missing. Scanned PDFs need OCR and are out of scope for now.
 3. Tune the domain thresholds (turnout, counting speed) to the country's electoral system; see the [replication guide](https://github.com/VectisDev/Vigil/blob/main/docs/operations/REPLICATION_GUIDE.md).

@@ -1,5 +1,5 @@
 """
-Deterministic task partitioner for Centinel Swarm (max 12 nodes).
+Deterministic task partitioner for Vigil Swarm (max 12 nodes).
 
 With N active nodes sorted by arrival_order, CNE sources are distributed by:
     source[i] → node at slot_index (i % N)

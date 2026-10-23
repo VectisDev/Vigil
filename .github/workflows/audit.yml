@@ -104,7 +104,7 @@ jobs:
               await fetch(`https://ntfy.sh/${topic}`, {
                 method: 'POST',
                 headers: { 'Priority': 'high', 'Tags': 'warning,floppy_disk' },
-                body: `Centinel — git push falló 3 veces en audit. Los datos están en disco y se reintentarán en el próximo ciclo (3h). Revisa el Issue abierto en tu repo.`
+                body: `Vigil — git push falló 3 veces en audit. Los datos están en disco y se reintentarán en el próximo ciclo (3h). Revisa el Issue abierto en tu repo.`
               }).catch(() => {});
             }
             // Open Issue (deduplication)

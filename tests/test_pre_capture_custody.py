@@ -1,5 +1,5 @@
 """
-CENTINEL — Test suite for the pre-capture custody module
+VIGIL — Test suite for the pre-capture custody module
 =========================================================
 
 Tests cover:

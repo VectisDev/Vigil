@@ -42,7 +42,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements-prod.txt
 FROM base AS runtime
 
 # Security: non-root user.
-RUN groupadd -r centinel && useradd -r -g centinel -d /app -s /sbin/nologin centinel
+RUN groupadd -r vigil && useradd -r -g vigil -d /app -s /sbin/nologin vigil
 
 # Copy installed Python packages from builder.
 COPY --from=builder /install /usr/local
@@ -63,11 +63,11 @@ COPY --from=frontend-builder /frontend/dist /app/static/dashboard
 
 # Writable directories for runtime data.
 RUN mkdir -p /app/logs /app/data /app/hashes && \
-    chown -R centinel:centinel /app/logs /app/data /app/hashes
+    chown -R vigil:vigil /app/logs /app/data /app/hashes
 
 EXPOSE 8080
 
-USER centinel
+USER vigil
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=5 \
     CMD curl -f http://localhost:8080/live || exit 1

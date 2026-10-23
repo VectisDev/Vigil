@@ -1,5 +1,5 @@
-# Testigos de confianza — Centinela Electoral Honduras
-# Cada testigo ejecuta su propia instancia de centinel-engine en un servidor independiente.
+# Testigos de confianza — VIGIL Honduras
+# Cada testigo ejecuta su propia instancia de vigil en un servidor independiente.
 # Para agregar un testigo: pedirle que corra generate_secrets.sh y compartir su VIGIL_PUBLIC_KEY.
 
 witnesses: []

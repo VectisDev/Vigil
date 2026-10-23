@@ -2,16 +2,16 @@
 
 **Version:** 1.0 | **Date:** 2026-06-01 | **Status:** Active
 
-**ES:** Modelo formal de amenazas para Centinel Engine  
-**EN:** Formal threat model for Centinel Engine
+**ES:** Modelo formal de amenazas para VIGIL  
+**EN:** Formal threat model for VIGIL
 
 ---
 
 ## 1. System Overview / Descripcion General del Sistema
 
-### What Centinel does / Que hace Centinel
+### What Vigil does / Que hace Vigil
 
-Centinel is a transparency-log protocol for adversarial electoral custody.
+Vigil is a transparency-log protocol for adversarial electoral custody.
 It captures periodic snapshots of data published by an electoral authority,
 chains them cryptographically (SHA-256), signs them with operator keys
 (Ed25519), anchors the Merkle root to an external ledger (Bitcoin via
@@ -20,7 +20,7 @@ independent witnesses. The design follows the Certificate Transparency
 (RFC 6962) lineage, with the fundamental inversion that the publishing
 authority---not a network intermediary---is the primary adversary.
 
-Centinel no cuenta votos, no afirma fraude, y no reemplaza al tribunal
+Vigil no cuenta votos, no afirma fraude, y no reemplaza al tribunal
 electoral. Produce un registro de custodia verificable: prueba de que los
 datos capturados no fueron alterados silenciosamente, y prueba de que un
 corte de acceso dirigido dejo huella firmada e inmutable.
@@ -123,7 +123,7 @@ corte de acceso dirigido dejo huella firmada e inmutable.
 
 ### 3.4 Insider / Operador Malicioso o Comprometido
 
-- **Capability:** Full access to Centinel instance, keys, configuration. Can modify code, suppress alerts, fabricate attestations.
+- **Capability:** Full access to Vigil instance, keys, configuration. Can modify code, suppress alerts, fabricate attestations.
 - **Motivation:** Corrupted, coerced, or bribed operator working against the system's purpose.
 - **Note:** This is the hardest threat to mitigate with a single-operator deployment.
 
@@ -187,7 +187,7 @@ corte de acceso dirigido dejo huella firmada e inmutable.
 |--------|-------------|-----------------|
 | Git metadata exposure | Commits reveal operator identity, timezone, email | **Residual risk**---pseudonym strategy recommended but not enforced |
 | Key custody under coercion | Operator forced to hand over Ed25519 private key | Multi-witness federation (Corollary) degrades gracefully; but requires >=2 independent operators |
-| Device seizure | Physical access to running Centinel instance | Encrypted backups (ChaCha20-Poly1305); but runtime state is in memory |
+| Device seizure | Physical access to running Vigil instance | Encrypted backups (ChaCha20-Poly1305); but runtime state is in memory |
 | Public attribution | Operator publicly known as project maintainer | **Residual risk**---foundation adoption or pseudonym strategy recommended |
 
 ---
@@ -209,7 +209,7 @@ corte de acceso dirigido dejo huella firmada e inmutable.
 | Modify historical snapshots | Hash chain (A2) | Medium | Critical | SHA-256 chain (T1); any change propagates forward as mismatch | Requires SHA-256 collision (infeasible) |
 | Alter data in transit (MITM) | Snapshot integrity (A1) | Medium | High | Multi-witness consensus (T2/T4); divergence detected if >=2 witnesses honest | All witnesses on same network path |
 | Tamper with attack_log | Forensic trail (A6) | Low | Medium | Append-only design; Merkle root covers log state | Single-operator deployment has no external log verification |
-| Modify Centinel binary on witness | All assets | Low | Critical | Auto-audit (Lagartija) binary integrity scanning; mirror coherence check | MD5 used (could upgrade to BLAKE3) |
+| Modify Vigil binary on witness | All assets | Low | Critical | Auto-audit (Lagartija) binary integrity scanning; mirror coherence check | MD5 used (could upgrade to BLAKE3) |
 
 ### Repudiation / Repudio
 
@@ -271,7 +271,7 @@ corte de acceso dirigido dejo huella firmada e inmutable.
 
 | Defense | Mechanism |
 |---------|-----------|
-| **Code/data separation** | centinel-engine (code) and centinel-data (artifacts) in separate repos |
+| **Code/data separation** | vigil (code) and centinel-data (artifacts) in separate repos |
 | **Encrypted backups** | ChaCha20-Poly1305 for critical state and hash artifacts |
 | **Non-fatal design** | Every defense component degrades gracefully; no single failure blocks capture |
 | **Timing jitter (Venado)** | +/- 30% random variation in capture cadence to resist pattern-matching |

@@ -1,4 +1,4 @@
-# Governance Document — Centinel Engine
+# Governance Document — VIGIL
 ## Documento de Gobernanza
 
 **Version:** 1.1 | **Date:** 2026-05-18 | **Status:** Active
@@ -9,7 +9,7 @@
 
 ### Propósito
 
-Este documento define quién controla el proyecto Centinel Engine, cómo se toman las
+Este documento define quién controla el proyecto VIGIL, cómo se toman las
 decisiones, la política de conflicto de intereses, y cómo se incorporan nuevos
 contribuyentes. Es un requisito estándar de organizaciones como NDI, Carter Center y EU EOM
 para cualquier solicitud de grant.
@@ -48,7 +48,7 @@ Compuesto por representantes de:
 
 Los mantenedores y contribuyentes del proyecto NO pueden:
 
-1. **Usar Centinel Engine para favorecer a un candidato o partido específico**
+1. **Usar VIGIL para favorecer a un candidato o partido específico**
    — el sistema es 100% agnóstico a candidatos y partidos
 2. **Integrar nombres de candidatos reales en código, tests o documentación**
    — usar siempre placeholders neutros ("Candidato A", "Partido X")
@@ -158,7 +158,7 @@ académica de:
 
 ### Purpose
 
-This document defines who controls the Centinel Engine project, how decisions are made,
+This document defines who controls the VIGIL project, how decisions are made,
 the conflict of interest policy, and how new contributors are incorporated. It is a
 standard requirement for organizations such as NDI, Carter Center, and EU EOM for any
 grant application.
@@ -169,7 +169,7 @@ grant application.
 
 **Absolute prohibitions** — maintainers and contributors may NOT:
 
-1. Use Centinel Engine to favor a specific candidate or party
+1. Use VIGIL to favor a specific candidate or party
 2. Include real candidate names in code, tests, or documentation
 3. Share private electoral data obtained for technical validation with third parties
 4. Receive remuneration from political parties or candidates while working on the project

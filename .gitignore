@@ -49,7 +49,7 @@ node_modules/
 *.key
 secrets.yaml
 
-# Centinel runtime state (never commit)
+# Vigil runtime state (never commit)
 .centinel-setup.json
 keys/
 web/access.json

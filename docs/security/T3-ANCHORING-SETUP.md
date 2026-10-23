@@ -9,7 +9,7 @@ The original risk: **if the external anchor is the author's own Git repo, the ad
 
 ## Solution: Layered Anchoring
 
-Centinel now implements a **layered anchoring strategy** combining three independent proof-of-publication mechanisms:
+Vigil now implements a **layered anchoring strategy** combining three independent proof-of-publication mechanisms:
 
 ### Layer 1: OpenTimestamps → Bitcoin (Decentralized)
 
@@ -19,7 +19,7 @@ Centinel now implements a **layered anchoring strategy** combining three indepen
 
 **Implementation:**
 ```python
-from centinel.anchor.opentimestamps import submit_to_opentimestamps, compute_merkle_root
+from vigil.anchor.opentimestamps import submit_to_opentimestamps, compute_merkle_root
 
 snapshot_hashes = [...]  # List of snapshot SHA-256 hashes
 merkle_root = compute_merkle_root(snapshot_hashes)
@@ -101,8 +101,8 @@ OR in JSON format (preferred for auditability):
 
 1. **Push weekly** to each mirror (via CI/CD or manual cron):
    ```bash
-   # In centinel-engine CI/CD
-   python -m centinel.anchor.mirror_pusher \
+   # In vigil CI/CD
+   python -m vigil.anchor.mirror_pusher \
      --merkle-root "$WEEKLY_MERKLE_ROOT" \
      --operator-name "Honduras-TSE-Monitor-2028"
    ```
@@ -129,8 +129,8 @@ OR in JSON format (preferred for auditability):
 
 ```python
 # verify_merkle_against_mirrors.py
-from centinel.anchor.opentimestamps import verify_opentimestamps_proof
-from centinel.anchor.mirror_verifier import verify_against_mirrors
+from vigil.anchor.opentimestamps import verify_opentimestamps_proof
+from vigil.anchor.mirror_verifier import verify_against_mirrors
 
 merkle_root = "f1a2b3c4d5e6f7a8..."
 snapshot_hashes = [...]  # Reconstructed from local chain
@@ -209,7 +209,7 @@ python -m pytest tests/test_t3_anchoring.py
 
 # 2. Compute Merkle root
 python -c "
-from centinel.anchor.opentimestamps import compute_merkle_root
+from vigil.anchor.opentimestamps import compute_merkle_root
 hashes = ['abc123...', 'def456...', 'ghi789...']
 root = compute_merkle_root(hashes)
 print(f'Merkle root: {root}')
@@ -218,14 +218,14 @@ print(f'Merkle root: {root}')
 # 3. Submit to OpenTimestamps (testnet)
 export OTS_SERVER=https://a.pool.opentimestamps.org
 python -c "
-from centinel.anchor.opentimestamps import submit_to_opentimestamps
+from vigil.anchor.opentimestamps import submit_to_opentimestamps
 proof = submit_to_opentimestamps('f1a2b3c4d5e6f7a8...')
 print(f'Proof: {proof.to_dict()}')
 "
 
 # 4. Verify proof
 python -c "
-from centinel.anchor.opentimestamps import verify_opentimestamps_proof, OpenTimestampsProof
+from vigil.anchor.opentimestamps import verify_opentimestamps_proof, OpenTimestampsProof
 proof_dict = {...}
 proof = OpenTimestampsProof.from_dict(proof_dict)
 valid = verify_opentimestamps_proof(proof)
@@ -235,7 +235,7 @@ print(f'Valid: {valid}')
 
 ---
 
-## Integration with Centinel Workflows
+## Integration with Vigil Workflows
 
 ### At snapshot collection time
 ```python
@@ -259,8 +259,8 @@ def collect_and_anchor():
 ### At verification time
 ```python
 # auditor runs locally
-from centinel.core.custody import verify_chain_from_entries
-from centinel.anchor.opentimestamps import verify_opentimestamps_proof
+from vigil.core.custody import verify_chain_from_entries
+from vigil.anchor.opentimestamps import verify_opentimestamps_proof
 
 result = verify_chain_from_entries(hash_files)
 print(f"Chain valid: {result.valid}")

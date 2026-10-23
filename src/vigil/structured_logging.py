@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/structured_logging.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -19,7 +19,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/structured_logging.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -87,7 +87,7 @@ def setup_logging(log_level: str, storage_path: Path) -> structlog.BoundLogger:
     log_dir.mkdir(parents=True, exist_ok=True)
 
     file_handler = TimedRotatingFileHandler(
-        log_dir / "centinel.log",
+        log_dir / "vigil.log",
         when="midnight",
         backupCount=30,
         encoding="utf-8",

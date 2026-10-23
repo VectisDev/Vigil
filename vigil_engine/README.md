@@ -1,4 +1,4 @@
-# C.E.N.T.I.N.E.L. Engine v1.0
+# VIGIL Engine v1.0
 
 ## Español
 
@@ -45,7 +45,7 @@ npm install
 ### Variables de entorno
 Copia `.env.example` a `.env` y completa los valores:
 
-- `CENTINEL_MODE`: `maintenance`, `monitoring` o `election`.
+- `VIGIL_MODE`: `maintenance`, `monitoring` o `election`.
 - `RPC_URL`: endpoint RPC (Alchemy/Infura).
 - `CHAIN`: `base` o `arbitrum`.
 - `PRIVATE_KEY`: clave privada de la wallet dedicada.
@@ -61,7 +61,7 @@ npm start
 
 ### Estructura
 ```
-centinel-engine/
+vigil/
   src/
     config.js
     scraper.js
@@ -127,7 +127,7 @@ npm install
 ### Environment variables
 Copy `.env.example` to `.env` and fill in values:
 
-- `CENTINEL_MODE`: `maintenance`, `monitoring`, or `election`.
+- `VIGIL_MODE`: `maintenance`, `monitoring`, or `election`.
 - `RPC_URL`: RPC endpoint (Alchemy/Infura).
 - `CHAIN`: `base` or `arbitrum`.
 - `PRIVATE_KEY`: dedicated wallet private key.
@@ -143,7 +143,7 @@ npm start
 
 ### Structure
 ```
-centinel-engine/
+vigil/
   src/
     config.js
     scraper.js

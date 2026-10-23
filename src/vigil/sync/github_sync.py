@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-_REPO   = os.getenv("GITHUB_REPOSITORY", "VectisDev/centinel")
+_REPO   = os.getenv("GITHUB_REPOSITORY", "VectisDev/Vigil")
 _TOKEN  = os.getenv("GITHUB_TOKEN", "")
 _BRANCH = os.getenv("GITHUB_PAGES_BRANCH", "main")
 _API    = f"https://api.github.com/repos/{_REPO}"

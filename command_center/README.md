@@ -2,7 +2,7 @@
 
 ## Español
 
-Esta carpeta es el **único lugar** que debes editar para configurar C.E.N.T.I.N.E.L. en producción.
+Esta carpeta es el **único lugar** que debes editar para configurar VIGIL en producción.
 Centraliza la configuración operativa y el panel de control del sistema.
 
 Archivos editables:
@@ -42,7 +42,7 @@ Archivos editables:
 
 ## English
 
-This folder is the **only place** you should edit to configure C.E.N.T.I.N.E.L. in production.
+This folder is the **only place** you should edit to configure VIGIL in production.
 It centralizes operational configuration and the system control panel.
 
 Editable files:

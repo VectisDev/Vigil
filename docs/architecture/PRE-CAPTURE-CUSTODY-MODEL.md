@@ -1,4 +1,4 @@
-# CENTINEL — Pre-Capture Evidentiary Custody Model
+# VIGIL — Pre-Capture Evidentiary Custody Model
 # Modelo de Custodia de Evidencia Pre-Captura
 
 **Audit finding addressed:** Point 1 — Pre-capture custody gap.
@@ -8,12 +8,12 @@
 
 ## 1. The problem / El problema
 
-CENTINEL's hash chain provides strong tamper-evidence for captured data
+VIGIL's hash chain provides strong tamper-evidence for captured data
 **after** it enters the system. But it currently cannot answer a critical
 evidentiary question: **how do we prove the JSON came from the CNE server
 and not from our own software?**
 
-La cadena de hashes de CENTINEL provee fuerte evidencia anti-tampering
+La cadena de hashes de VIGIL provee fuerte evidencia anti-tampering
 para los datos capturados **después** de que entran al sistema. Pero
 actualmente no puede responder una pregunta crítica de evidencia: **¿cómo
 probamos que el JSON vino del servidor del CNE y no de nuestro propio
@@ -109,11 +109,11 @@ entre "bytes recibidos de la red" y "JSON entregado al motor de reglas."
 ### Minimal integration snippet / Fragmento mínimo de integración
 
 ```python
-# In src/centinel/core/poller.py — minimal integration
-# En src/centinel/core/poller.py — integración mínima
+# In src/vigil/core/poller.py — minimal integration
+# En src/vigil/core/poller.py — integración mínima
 
 import urllib.request
-from centinel.core.pre_capture_custody import (
+from vigil.core.pre_capture_custody import (
     build_envelope,
     sign_envelope,
     extract_tls_metadata,
@@ -227,9 +227,9 @@ Es seguro publicar — no contiene material de clave privada.
 
 ## 5. Independent verification procedure / Procedimiento de verificación independiente
 
-Any third party can verify an envelope without access to CENTINEL's code:
+Any third party can verify an envelope without access to VIGIL's code:
 
-Cualquier tercero puede verificar un sobre sin acceso al código de CENTINEL:
+Cualquier tercero puede verificar un sobre sin acceso al código de VIGIL:
 
 ```python
 import json, hashlib
@@ -266,12 +266,12 @@ print("✓ All checks passed")
 ```
 
 This verification uses only the Python standard library plus `cryptography`
-— no CENTINEL code is required. This is intentional: observers who distrust
-CENTINEL's code can verify independently.
+— no VIGIL code is required. This is intentional: observers who distrust
+VIGIL's code can verify independently.
 
 Esta verificación usa solo la librería estándar de Python más `cryptography`
-— no se requiere código de CENTINEL. Esto es intencional: observadores que
-desconfíen del código de CENTINEL pueden verificar de forma independiente.
+— no se requiere código de VIGIL. Esto es intencional: observadores que
+desconfíen del código de VIGIL pueden verificar de forma independiente.
 
 ---
 
@@ -303,12 +303,12 @@ desconfíen del código de CENTINEL pueden verificar de forma independiente.
 
 ## 7. File path for integration / Ruta de archivo para integración
 
-Place in the CENTINEL repository at:
+Place in the VIGIL repository at:
 
-Colocar en el repositorio CENTINEL en:
+Colocar en el repositorio VIGIL en:
 
 ```
-src/centinel/core/pre_capture_custody.py   ← the module
+src/vigil/core/pre_capture_custody.py   ← the module
 tests/test_pre_capture_custody.py          ← its test suite
 docs/architecture/PRE-CAPTURE-CUSTODY-MODEL.md ← this document
 ```

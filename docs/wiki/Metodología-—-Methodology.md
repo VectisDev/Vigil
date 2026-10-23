@@ -4,7 +4,7 @@
 
 ## Español
 
-VIGIL combina **24 reglas estadísticas** (registradas en `src/centinel/core/rules/`) y **7 detectores forenses** de actas inconsistentes (`src/auditor/inconsistent_acts.py`). Ninguna regla decide sola: cada hallazgo es una señal para evaluación humana.
+VIGIL combina **24 reglas estadísticas** (registradas en `src/vigil/core/rules/`) y **7 detectores forenses** de actas inconsistentes (`src/auditor/inconsistent_acts.py`). Ninguna regla decide sola: cada hallazgo es una señal para evaluación humana.
 
 ### Qué buscan las reglas
 
@@ -42,7 +42,7 @@ Todos los umbrales se configuran en `config/prod/rules.yaml`. Los valores por de
 
 ## English
 
-VIGIL combines **24 statistical rules** (registered in `src/centinel/core/rules/`) and **7 forensic detectors** for inconsistent tally sheets (`src/auditor/inconsistent_acts.py`). No rule decides on its own: every finding is a signal for human evaluation.
+VIGIL combines **24 statistical rules** (registered in `src/vigil/core/rules/`) and **7 forensic detectors** for inconsistent tally sheets (`src/auditor/inconsistent_acts.py`). No rule decides on its own: every finding is a signal for human evaluation.
 
 ### What the rules look for
 

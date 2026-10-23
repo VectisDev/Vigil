@@ -2,7 +2,7 @@
 
 ## Overview
 
-Centinel's zero-cost architecture uses **only free GitHub APIs**. This document verifies that every API call used is covered by GitHub's free tier.
+Vigil's zero-cost architecture uses **only free GitHub APIs**. This document verifies that every API call used is covered by GitHub's free tier.
 
 ## Free GitHub APIs Used
 
@@ -163,7 +163,7 @@ When adding features, verify:
 
 ## Conclusion
 
-**Centinel's zero-cost guarantee is enforceable:**
+**Vigil's zero-cost guarantee is enforceable:**
 - Every API call is documented and free
 - Storage costs are $0 (GitHub owns the hardware)
 - Compute costs are $0 (included in free Actions tier)

@@ -1,4 +1,4 @@
-# Emergency Procedures | Guía de Emergencia Centinel
+# Emergency Procedures | Guía de Emergencia Vigil
 
 **Version:** 1.0 | **Date:** 2026-05-18 | **Status:** Active
 
@@ -13,12 +13,12 @@ Documento de una sola página para actuar en 2 minutos bajo estrés.
 - `python maintain.py status`
 
 **Pasos exactos (copiar-pegar)**
-1. `docker logs centinel-engine --tail 200`
+1. `docker logs vigil --tail 200`
 2. `docker-compose down && docker-compose up -d`
 3. `python maintain.py status`
 
 **Dónde mirar logs**
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 - `logs/` (si existe en el servidor)
 
 **Cuándo y cómo activar modo pánico**
@@ -33,16 +33,16 @@ Documento de una sola página para actuar en 2 minutos bajo estrés.
 ### 2) Recibo alertas críticas constantes
 **Qué verificar primero (comandos simples)**
 - `python maintain.py status`
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 
 **Pasos exactos (copiar-pegar)**
 1. `python maintain.py status`
-2. `docker logs centinel-engine --tail 200`
+2. `docker logs vigil --tail 200`
 3. `python maintain.py checkpoint-now`
 4. Si persiste: `python panic.py`
 
 **Dónde mirar logs**
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 - Alertas en el canal de alertas
 
 **Cuándo y cómo activar modo pánico**
@@ -57,16 +57,16 @@ Documento de una sola página para actuar en 2 minutos bajo estrés.
 ### 3) Sospecho ataque o bloqueo
 **Qué verificar primero (comandos simples)**
 - `python maintain.py status`
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 
 **Pasos exactos (copiar-pegar)**
 1. `python panic.py`
-2. `docker logs centinel-engine --tail 200`
+2. `docker logs vigil --tail 200`
 3. `python maintain.py checkpoint-now`
 4. Aísla la máquina (bloquea tráfico entrante si aplica).
 
 **Dónde mirar logs**
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 - Logs del firewall/ingreso (si existen)
 
 **Cuándo y cómo activar modo pánico**
@@ -87,7 +87,7 @@ Documento de una sola página para actuar en 2 minutos bajo estrés.
 2. `docker-compose down`
 
 **Dónde mirar logs**
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 
 **Cuándo y cómo activar modo pánico**
 - Siempre que necesites detener todo de inmediato.
@@ -110,7 +110,7 @@ Documento de una sola página para actuar en 2 minutos bajo estrés.
 
 **Dónde mirar logs**
 - Logs del proveedor (panel o CLI)
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 
 **Cuándo y cómo activar modo pánico**
 - Tras recuperar el host, si hay comportamiento anómalo.
@@ -134,7 +134,7 @@ Documento de una sola página para actuar en 2 minutos bajo estrés.
 
 **Dónde mirar logs**
 - Logs de restauración del proveedor
-- `docker logs centinel-engine --tail 200`
+- `docker logs vigil --tail 200`
 
 **Cuándo y cómo activar modo pánico**
 - Si la restauración no es confiable o hay corrupción.
@@ -151,7 +151,7 @@ python maintain.py status
 python maintain.py checkpoint-now
 python panic.py
 docker-compose down && docker-compose up -d
-docker logs centinel-engine --tail 200
+docker logs vigil --tail 200
 ```
 
 ## Datos críticos a mano
@@ -169,13 +169,13 @@ docker logs centinel-engine --tail 200
 
 ## English Summary — Emergency Procedures
 
-This document is the operator's field guide for Centinel Engine incidents. Act within 2 minutes; escalate only after stabilizing.
+This document is the operator's field guide for VIGIL incidents. Act within 2 minutes; escalate only after stabilizing.
 
 ### Quick Diagnostic
 
 ```bash
 python maintain.py status          # service health
-docker logs centinel-engine --tail 50  # recent logs (if using Docker)
+docker logs vigil --tail 50  # recent logs (if using Docker)
 ```
 
 ### Scenario Matrix
@@ -197,35 +197,35 @@ Si GitHub Actions no está disponible (incidencia de GitHub, límite de minutos 
 ### Opción 1 — Docker Compose (recomendado si tienes Docker)
 
 ```bash
-git clone https://github.com/TU_USUARIO/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/TU_USUARIO/vigil.git
+cd vigil
 cp config/secrets/.env.example config/secrets/.env  # añade DATA_REPO_TOKEN si lo tienes
-docker-compose up -d centinel-engine centinel-watchdog
+docker-compose up -d vigil centinel-watchdog
 ```
 
-El servicio captura automáticamente cada 15 minutos con las mismas garantías que en GitHub Actions. Los datos quedan en `data/`. Para ver logs: `docker-compose logs -f centinel-engine`.
+El servicio captura automáticamente cada 15 minutos con las mismas garantías que en GitHub Actions. Los datos quedan en `data/`. Para ver logs: `docker-compose logs -f vigil`.
 
 ### Opción 2 — Python directo con cron del sistema
 
 ```bash
-git clone https://github.com/TU_USUARIO/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/TU_USUARIO/vigil.git
+cd vigil
 pip install -r requirements.txt
 
 # Ejecución puntual:
 python -m scripts.download_and_hash
 
 # Captura continua cada 15 min con cron:
-echo "*/15 * * * * cd $(pwd) && python -m scripts.download_and_hash >> /tmp/centinel.log 2>&1" | crontab -
+echo "*/15 * * * * cd $(pwd) && python -m scripts.download_and_hash >> /tmp/vigil.log 2>&1" | crontab -
 ```
 
-No requiere configuración adicional. Verifica con `tail -f /tmp/centinel.log`.
+No requiere configuración adicional. Verifica con `tail -f /tmp/vigil.log`.
 
 ### Opción 3 — CLI de centinel (si tienes Poetry)
 
 ```bash
-git clone https://github.com/TU_USUARIO/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/TU_USUARIO/vigil.git
+cd vigil
 poetry install
 poetry run centinel cron --interval 15m
 ```

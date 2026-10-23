@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `vigil_engine/proxy_manager.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -22,7 +22,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `vigil_engine/proxy_manager.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -55,11 +55,11 @@ ROTATION_TRIGGER_CODES = {403, 429}
 # secrets.choice is cryptographically unpredictable, harder to fingerprint than random.
 # Downgrade to random.choice only if secrets overhead becomes measurable in load tests.
 USER_AGENT_POOL = (
-    "VIGIL-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
-    "VIGIL-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/centinel)",
-    "VIGIL-Electoral-Monitor/1.0 (public-data-audit; +https://github.com/VectisDev/centinel)",
-    "VIGIL-Engine/1.0 (Decreto-170-2006-HN; +https://github.com/VectisDev/centinel)",
-    "VIGIL-Watchdog/1.0 (electoral-transparency; +https://github.com/VectisDev/centinel)",
+    "VIGIL-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/Vigil)",
+    "VIGIL-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/Vigil)",
+    "VIGIL-Electoral-Monitor/1.0 (public-data-audit; +https://github.com/VectisDev/Vigil)",
+    "VIGIL-Engine/1.0 (Decreto-170-2006-HN; +https://github.com/VectisDev/Vigil)",
+    "VIGIL-Watchdog/1.0 (electoral-transparency; +https://github.com/VectisDev/Vigil)",
 )
 
 _ACCEPT_POOL = (
@@ -73,7 +73,7 @@ _LANGUAGE_POOL = (
     "en-US,en;q=0.8,es-HN;q=0.6,es;q=0.4",
 )
 _FETCH_MODE_POOL = ("navigate", "cors", "no-cors")
-_REFERER_POOL = ("", "https://github.com/VectisDev/centinel")
+_REFERER_POOL = ("", "https://github.com/VectisDev/Vigil")
 
 
 class ProxyAndUAManager:

@@ -1,6 +1,6 @@
 """
-Módulo unificado de Z-score para CENTINEL.
-Unified Z-score module for CENTINEL.
+Módulo unificado de Z-score para VIGIL.
+Unified Z-score module for VIGIL.
 
 Resuelve la inconsistencia dev-v10 de tres variantes no justificadas.
 Establece dos familias únicas: Z_prop (proporciones) y Z_emp (empírico muestral).

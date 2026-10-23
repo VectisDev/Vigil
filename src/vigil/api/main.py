@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/api/main.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -32,7 +32,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/api/main.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -121,7 +121,7 @@ async def _lifespan(application: FastAPI):  # noqa: ARG001
     yield
 
 
-app = FastAPI(title="C.E.N.T.I.N.E.L. Public API", version="0.1.0", lifespan=_lifespan)
+app = FastAPI(title="VIGIL Public API", version="0.1.0", lifespan=_lifespan)
 logger = logging.getLogger(__name__)
 
 # Mount /audit/* router for independent third-party verification.

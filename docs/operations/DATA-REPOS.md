@@ -12,13 +12,13 @@
 Centinel-engine no almacena datos electorales en el mismo repositorio que el código. Esto es una decisión de diseño deliberada por tres razones:
 
 **1. Auditoría limpia / Clean audit trail**  
-El historial de commits de centinel-engine contiene solo cambios de código. El historial de centinel-data contiene solo actualizaciones de datos. Un auditor puede revisar cada uno sin ruido del otro.
+El historial de commits de vigil contiene solo cambios de código. El historial de centinel-data contiene solo actualizaciones de datos. Un auditor puede revisar cada uno sin ruido del otro.
 
 **2. Trazabilidad de datos / Data traceability**  
 Cada snapshot publicado en centinel-data tiene su propio commit con timestamp, hash SHA-256 y origen. Es posible reconstruir el estado de los datos en cualquier punto del tiempo sin mezclar con despliegues de código.
 
 **3. Resiliencia y replicación / Resilience and replication**  
-centinel-data es un repositorio público independiente. Cualquier organización puede hacer fork o clonar solo los datos, sin necesidad de ejecutar el motor. Los datos sobreviven aunque centinel-engine sea eliminado.
+centinel-data es un repositorio público independiente. Cualquier organización puede hacer fork o clonar solo los datos, sin necesidad de ejecutar el motor. Los datos sobreviven aunque vigil sea eliminado.
 
 ---
 
@@ -26,7 +26,7 @@ centinel-data es un repositorio público independiente. Cualquier organización 
 
 ```
   ┌─────────────────────────────────────────┐
-  │           centinel-engine               │
+  │           vigil               │
   │  (código, workflows, análisis)          │
   └──────────────────┬──────────────────────┘
                      │
@@ -61,12 +61,12 @@ centinel-data es un repositorio público independiente. Cualquier organización 
 
 ```
 1. GENERACIÓN
-   centinel-engine captura datos del endpoint CNE
+   vigil captura datos del endpoint CNE
    → sha256(datos) → hash chain
    → diffs vs snapshot anterior
 
 2. PUBLICACIÓN LOCAL
-   Commit en centinel-engine:
+   Commit en vigil:
      data/, hashes/, diffs/, reports/
 
 3. PUSH A centinel-data
@@ -89,7 +89,7 @@ centinel-data es un repositorio público independiente. Cualquier organización 
 
 ## Verificar desde cero / Verify from scratch
 
-Cualquier auditor puede verificar la integridad de los datos sin confiar en Centinel:
+Cualquier auditor puede verificar la integridad de los datos sin confiar en Vigil:
 
 ```bash
 # Clonar solo los datos
@@ -118,13 +118,13 @@ for h in hashes:
 Si el secret `DATA_REPO_TOKEN` no está configurado, el sistema opera en modo local sin error:
 
 ```
-DATA_REPO_TOKEN ausente → datos se quedan en centinel-engine
+DATA_REPO_TOKEN ausente → datos se quedan en vigil
                         → ningún workflow falla
                         → ningún mensaje de error al usuario
                         → centinel-data no se crea
 ```
 
-Este es el comportamiento por defecto al hacer fork. Los datos se acumulan localmente en `data/`, `hashes/`, `diffs/`, `reports/` dentro de centinel-engine. Todo el análisis y la auditoría funcionan igual.
+Este es el comportamiento por defecto al hacer fork. Los datos se acumulan localmente en `data/`, `hashes/`, `diffs/`, `reports/` dentro de vigil. Todo el análisis y la auditoría funcionan igual.
 
 Para activar la publicación a centinel-data, ver [SETUP-GUIDE.md](SETUP-GUIDE.md).
 

@@ -18,8 +18,8 @@ make lint               # flake8 + black
 
 ### Agregar una regla estadística
 
-1. Crea `src/centinel/core/rules/<nombre>_rule.py` con una función `apply(current_data, previous_data, config)` decorada con `@rule(name=..., severity=..., description=..., config_key=...)`.
-2. Añade el módulo a `_RULE_MODULES` en `src/centinel/core/rules_engine.py` para que se registre al iniciar.
+1. Crea `src/vigil/core/rules/<nombre>_rule.py` con una función `apply(current_data, previous_data, config)` decorada con `@rule(name=..., severity=..., description=..., config_key=...)`.
+2. Añade el módulo a `_RULE_MODULES` en `src/vigil/core/rules_engine.py` para que se registre al iniciar.
 3. Define sus umbrales en `config/prod/rules.yaml` bajo el mismo `config_key`.
 4. Agrega pruebas en `tests/` y documenta la técnica y sus limitaciones en la [metodología](https://github.com/VectisDev/Vigil/blob/main/docs/research/METHODOLOGY.md).
 
@@ -58,8 +58,8 @@ make lint               # flake8 + black
 
 ### Add a statistical rule
 
-1. Create `src/centinel/core/rules/<name>_rule.py` with an `apply(current_data, previous_data, config)` function decorated with `@rule(name=..., severity=..., description=..., config_key=...)`.
-2. Add the module to `_RULE_MODULES` in `src/centinel/core/rules_engine.py` so it registers at startup.
+1. Create `src/vigil/core/rules/<name>_rule.py` with an `apply(current_data, previous_data, config)` function decorated with `@rule(name=..., severity=..., description=..., config_key=...)`.
+2. Add the module to `_RULE_MODULES` in `src/vigil/core/rules_engine.py` so it registers at startup.
 3. Define its thresholds in `config/prod/rules.yaml` under the same `config_key`.
 4. Add tests under `tests/` and document the technique and its limitations in the [methodology](https://github.com/VectisDev/Vigil/blob/main/docs/research/METHODOLOGY.md).
 

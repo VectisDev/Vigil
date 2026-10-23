@@ -508,7 +508,7 @@ def main() -> None:
         poetry run watchdog-daemon --simulate-dos           # Via Poetry
     """
     parser = argparse.ArgumentParser(
-        description="C.E.N.T.I.N.E.L. Watchdog Daemon — obsessive self-healing monitor",
+        description="VIGIL Watchdog Daemon — obsessive self-healing monitor",
     )
     parser.add_argument(
         "--simulate-dos",

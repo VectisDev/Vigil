@@ -1,7 +1,7 @@
 """
-Multi-Witness Federation for Centinel Engine.
+Multi-Witness Federation for VIGIL.
 
-ES: Federación de Múltiples Testigos para Centinel Engine.
+ES: Federación de Múltiples Testigos para VIGIL.
 
 Coordina ≥2 testigos para verificar datos de elecciones.
 Detecta si CNE bloquea/manipula un testigo (sibling witnesses comparan Merkle roots).

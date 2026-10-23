@@ -50,6 +50,7 @@ from typing import Optional
 __all__ = ["Share", "ShareFormatError", "serialize_share", "parse_share"]
 
 
+# Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
 BEGIN_MARKER = "-----BEGIN CENTINEL SHAMIR SHARE-----"
 END_MARKER = "-----END CENTINEL SHAMIR SHARE-----"
 

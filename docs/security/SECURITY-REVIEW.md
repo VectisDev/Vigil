@@ -82,7 +82,7 @@ def track_redirects(response):
 ## D12: External Anchoring (OTS + Bitcoin)
 
 ### Objetivo
-Timestamp independiente: Merkle root se ancla a Bitcoin blockchain, verificable sin Centinel.
+Timestamp independiente: Merkle root se ancla a Bitcoin blockchain, verificable sin Vigil.
 
 ### Fortalezas ✅
 
@@ -394,7 +394,7 @@ Ninguna detectada. ✅
 
 ### MEDIAS — ✅ RESUELTAS
 1. ✅ **D11.1:** Timeout configurable vía env var
-   `CENTINEL_ENDPOINT_TIMEOUT` — IMPLEMENTADO
+   `VIGIL_ENDPOINT_TIMEOUT` — IMPLEMENTADO
 2. ✅ **D13.3:** Consensus threshold configurable
    (`consensus_threshold` param, default mayoría, 4 tests)
 3. ✅ **D12.3:** Arbitrum fallback — redes `arbitrum-one` /
@@ -415,7 +415,7 @@ Ninguna detectada. ✅
 
 ## Auditoría Externa: Verificación OTS Offline (D12.1)
 
-Un auditor puede verificar el timestamp Bitcoin **sin confiar en Centinel**:
+Un auditor puede verificar el timestamp Bitcoin **sin confiar en Vigil**:
 
 ```bash
 # 1. Obtener prueba OTS del checkpoint
@@ -483,13 +483,13 @@ Health check del operador debe alertar si drift > 5s.
 
 ```bash
 # Dailies:
-centinel audit run --health-score
+vigil audit run --health-score
 
 # Nightly:
 tail -100 hashes/attack_log.jsonl | jq '.event' | sort | uniq -c
 
 # Weekly:
-centinel audit history --limit 168 > health_report.txt
+vigil audit history --limit 168 > health_report.txt
 ```
 
 ---

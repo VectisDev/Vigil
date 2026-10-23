@@ -138,7 +138,7 @@ class FederationAttackLog:
     # ── Public API ────────────────────────────────────────────────────────────
 
     def is_swarm_targeted(self, event: dict) -> bool:
-        """True if the attack targets Centinel paths or is sustained DoS.
+        """True if the attack targets Vigil paths or is sustained DoS.
 
         Filters generic internet scan noise (wp-login, /admin, etc.) that is
         not relevant to other monitoring nodes in the surveillance network.

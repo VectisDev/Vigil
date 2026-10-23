@@ -7,9 +7,9 @@ Mathematical documentation for Benford's Law rules used in electoral count
 anomaly detection.
 
 **Archivos fuente / Source files:**
-- `src/centinel/core/rules/benford_first_digit_rule.py`
-- `src/centinel/core/rules/benford_law_rule.py` (stub, logica en el anterior)
-- `src/centinel/core/rules/granular_anomaly_rule.py` (Benford por departamento)
+- `src/vigil/core/rules/benford_first_digit_rule.py`
+- `src/vigil/core/rules/benford_law_rule.py` (stub, logica en el anterior)
+- `src/vigil/core/rules/granular_anomaly_rule.py` (Benford por departamento)
 - `src/auditor/inconsistent_acts.py` (Benford sobre escrutinio especial)
 
 ---

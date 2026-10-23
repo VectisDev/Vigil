@@ -1,15 +1,15 @@
-# CENTINEL — Threshold Pre-Registration
+# VIGIL — Threshold Pre-Registration
 # Pre-Registro de Umbrales Estadísticos
 
 **Status / Estado:** LOCKED — thresholds below are immutable for any electoral
 event analyzed after this document's commit date.
 
 **Propósito:** Este documento pre-registra los 23 umbrales estadísticos de
-CENTINEL antes de cualquier evento electoral futuro, eliminando la posibilidad
+VIGIL antes de cualquier evento electoral futuro, eliminando la posibilidad
 de ajuste post-hoc (p-hacking). Cualquier modificación posterior a la fecha
 de commit es detectable criptográficamente.
 
-**Purpose:** Pre-registers CENTINEL's 23 statistical thresholds before any
+**Purpose:** Pre-registers VIGIL's 23 statistical thresholds before any
 future electoral event, eliminating the possibility of post-hoc adjustment
 (p-hacking). Any modification after the commit date is cryptographically
 detectable.

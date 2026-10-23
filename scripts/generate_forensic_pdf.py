@@ -179,14 +179,14 @@ def build_forensic_pdf(tracker: InconsistentActsTracker, output_path: str) -> No
     # ══════════════════════════════════════════════════════════════════════════
     # PAGE 1: Executive Summary (Bilingual ES/EN)
     # ══════════════════════════════════════════════════════════════════════════
-    elements.append(p("C.E.N.T.I.N.E.L. — Informe Forense: Honduras 2025", "HeadingPrimary"))
+    elements.append(p("VIGIL — Informe Forense: Honduras 2025", "HeadingPrimary"))
     elements.append(Spacer(1, 8))
 
-    elements.append(p("Que es Centinel / What is Centinel", "HeadingSecondary"))
+    elements.append(p("Que es Vigil / What is Vigil", "HeadingSecondary"))
     elements.append(p(
-        "Centinel es un motor de auditoria electoral de codigo abierto que monitorea transmisiones "
+        "Vigil es un motor de auditoria electoral de codigo abierto que monitorea transmisiones "
         "de resultados en tiempo real, detectando anomalias estadisticas mediante analisis forense automatizado. "
-        "Centinel is an open-source electoral audit engine that monitors real-time result transmissions, "
+        "Vigil is an open-source electoral audit engine that monitors real-time result transmissions, "
         "detecting statistical anomalies through automated forensic analysis."
     ))
     elements.append(Spacer(1, 8))
@@ -474,7 +474,7 @@ def build_forensic_pdf(tracker: InconsistentActsTracker, output_path: str) -> No
         canvas.saveState()
         canvas.setFont(regular_font, 8)
         canvas.setFillColor(colors.grey)
-        canvas.drawString(1.5 * cm, 0.75 * cm, "C.E.N.T.I.N.E.L. — Informe Forense Honduras 2025")
+        canvas.drawString(1.5 * cm, 0.75 * cm, "VIGIL — Informe Forense Honduras 2025")
         canvas.drawRightString(
             page_size[0] - 1.5 * cm, 0.75 * cm,
             f"Generado: {gen_ts}",

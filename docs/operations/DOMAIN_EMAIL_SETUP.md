@@ -9,8 +9,8 @@
 ### Paso 1 — Registrar dominio (10 minutos, ~$10/año)
 
 1. Ir a https://porkbun.com
-2. Buscar: `centinel.hn` o `centinelelectoral.org` o `centinel-audit.org`
-3. Si `centinel.hn` no está disponible (TLD Honduras puede requerir trámite),
+2. Buscar: `vigil.hn` o `centinelelectoral.org` o `centinel-audit.org`
+3. Si `vigil.hn` no está disponible (TLD Honduras puede requerir trámite),
    usar `.org` — es el más creíble para proyectos cívicos.
 4. Registrar con pago por tarjeta. NO activar privacidad de WHOIS si el proyecto
    eventualmente busca ser público (la transparencia es un activo).
@@ -18,7 +18,7 @@
 **Dominios sugeridos (en orden de preferencia):**
 - `centinelelectoral.org` (~$10/año)
 - `centinel-audit.org` (~$10/año)
-- `centinel.lat` (~$15/año, muy impactante para la narrativa LATAM)
+- `vigil.lat` (~$15/año, muy impactante para la narrativa LATAM)
 
 ### Paso 2 — Email con ProtonMail (gratis, cifrado, $0)
 
@@ -51,6 +51,6 @@ Para OTF en particular, un dominio `.org` con nombre descriptivo
 es señal de organización seria. `centinel-audit.org` o
 `centinelelectoral.org` comunican el propósito inmediatamente.
 
-`centinel.lat` es la opción más impactante narrativamente
+`vigil.lat` es la opción más impactante narrativamente
 ("auditoría electoral para toda Latinoamérica").
 

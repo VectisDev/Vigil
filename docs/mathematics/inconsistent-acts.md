@@ -1,9 +1,9 @@
 # Deteccion Forense de Actas Inconsistentes / Forensic Inconsistent-Acts Detection
 
 Documentacion de los metodos estadisticos y heuristicos del modulo forense
-de actas inconsistentes de Centinel.
+de actas inconsistentes de Vigil.
 
-Documentation for the statistical and heuristic methods in Centinel's forensic
+Documentation for the statistical and heuristic methods in Vigil's forensic
 inconsistent-acts module.
 
 **Archivo fuente / Source file:** `src/auditor/inconsistent_acts.py`

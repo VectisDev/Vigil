@@ -5,8 +5,8 @@
 3. Notas de mantenimiento / Maintenance notes
 
 ======================== ESPAÑOL ========================
-Archivo: `tests/test_centinel_config.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Archivo: `tests/test_vigil_config.py`.
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -19,8 +19,8 @@ Notas:
 - Priorizar claridad operativa y trazabilidad del comportamiento.
 
 ======================== ENGLISH ========================
-File: `tests/test_centinel_config.py`.
-This module is part of Centinel Engine and is documented to improve
+File: `tests/test_vigil_config.py`.
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -42,9 +42,9 @@ from vigil.config import load_config
 
 
 def test_load_config_validates_and_loads(monkeypatch, tmp_path):
-    """Español: Función test_load_config_validates_and_loads del módulo tests/test_centinel_config.py.
+    """Español: Función test_load_config_validates_and_loads del módulo tests/test_vigil_config.py.
 
-    English: Function test_load_config_validates_and_loads defined in tests/test_centinel_config.py.
+    English: Function test_load_config_validates_and_loads defined in tests/test_vigil_config.py.
     """
     sources = [
         {
@@ -67,9 +67,9 @@ def test_load_config_validates_and_loads(monkeypatch, tmp_path):
 
 
 def test_load_config_rejects_short_interval(monkeypatch, tmp_path):
-    """Español: Función test_load_config_rejects_short_interval del módulo tests/test_centinel_config.py.
+    """Español: Función test_load_config_rejects_short_interval del módulo tests/test_vigil_config.py.
 
-    English: Function test_load_config_rejects_short_interval defined in tests/test_centinel_config.py.
+    English: Function test_load_config_rejects_short_interval defined in tests/test_vigil_config.py.
     """
     sources = [
         {
@@ -86,9 +86,9 @@ def test_load_config_rejects_short_interval(monkeypatch, tmp_path):
 
 
 def test_load_config_rejects_missing_storage_path(monkeypatch, tmp_path):
-    """Español: Función test_load_config_rejects_missing_storage_path del módulo tests/test_centinel_config.py.
+    """Español: Función test_load_config_rejects_missing_storage_path del módulo tests/test_vigil_config.py.
 
-    English: Function test_load_config_rejects_missing_storage_path defined in tests/test_centinel_config.py.
+    English: Function test_load_config_rejects_missing_storage_path defined in tests/test_vigil_config.py.
     """
     sources = [
         {

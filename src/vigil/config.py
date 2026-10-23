@@ -6,12 +6,12 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/config.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
   - SourceConfig
-  - CentinelSettings
+  - VigilSettings
   - load_config
 
 Notas:
@@ -20,12 +20,12 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/config.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
   - SourceConfig
-  - CentinelSettings
+  - VigilSettings
   - load_config
 
 Notes:
@@ -115,10 +115,10 @@ class SourceConfig(BaseModel):
         return value
 
 
-class CentinelSettings(BaseSettings):
-    """Variables de entorno y archivo .env para Centinel.
+class VigilSettings(BaseSettings):
+    """Variables de entorno y archivo .env para Vigil.
 
-    English: Environment variables and .env file for Centinel.
+    English: Environment variables and .env file for Vigil.
     """
 
     model_config = SettingsConfigDict(
@@ -139,16 +139,19 @@ class CentinelSettings(BaseSettings):
             raise ValueError(f"STORAGE_PATH is not a directory: {self.STORAGE_PATH}")
 
 
-def load_config() -> CentinelSettings:
+# Deprecated alias kept for code written before the VIGIL rename.
+CentinelSettings = VigilSettings
+
+def load_config() -> VigilSettings:
     """/** Carga y valida configuración, fallando con detalle. / Load and validate configuration, failing with details. **/"""
     try:
         if _HAS_PYDANTIC_SETTINGS:
-            settings = CentinelSettings()
+            settings = VigilSettings()
         else:
             raw_sources = os.getenv("SOURCES")
             sources = json.loads(raw_sources) if raw_sources else None
             storage_path = os.getenv("STORAGE_PATH")
-            settings = CentinelSettings(
+            settings = VigilSettings(
                 SOURCES=sources,
                 STORAGE_PATH=Path(storage_path) if storage_path else None,
                 LOG_LEVEL=os.getenv("LOG_LEVEL", "INFO"),

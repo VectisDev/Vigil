@@ -6,7 +6,7 @@ para cambios relativos de votos entre snapshots.
 Documentation for the Isolation Forest-based outlier detection method for
 relative vote changes between snapshots.
 
-**Archivo fuente / Source file:** `src/centinel/core/rules/ml_outliers_rule.py`
+**Archivo fuente / Source file:** `src/vigil/core/rules/ml_outliers_rule.py`
 **config_key:** `ml_outliers`
 **Severidad / Severity:** Medium
 

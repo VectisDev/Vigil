@@ -1,17 +1,17 @@
 version: "3.9"
 
-# Docker Compose para Centinel Engine
+# Docker Compose para VIGIL
 # - Diseño resiliente con healthchecks estrictos, restart agresivo y límites de recursos.
 # - Logs persistentes en volumen local; estado en cloud storage.
 
 services:
-  centinel-engine:
+  vigil:
     # Construye la imagen localmente desde el Dockerfile del repo.
     build:
       context: .
       dockerfile: Dockerfile
-    image: centinel-engine:latest
-    container_name: centinel-engine
+    image: vigil:latest
+    container_name: vigil
     command: ["python", "scripts/run_pipeline.py", "--run-now"]
 
     # Reinicio automático agresivo en caso de caída.
@@ -100,7 +100,7 @@ services:
     #   - redis
 
   centinel-watchdog:
-    image: centinel-engine:latest
+    image: vigil:latest
     container_name: centinel-watchdog
     restart: always
     command: ["python", "scripts/watchdog.py"]
@@ -115,12 +115,12 @@ services:
       # Security: mount Docker socket read-only to limit container escape risk.
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
-      - centinel-engine
+      - vigil
     networks:
       - centinel-internal
 
   centinel-supervisor:
-    image: centinel-engine:latest
+    image: vigil:latest
     container_name: centinel-supervisor
     restart: always
     command: ["python", "scripts/supervisor.py"]
@@ -132,7 +132,7 @@ services:
       - ./data:/app/data
       - ./hashes:/app/hashes
     depends_on:
-      - centinel-engine
+      - vigil
     networks:
       - centinel-internal
 

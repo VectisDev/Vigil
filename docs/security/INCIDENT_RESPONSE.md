@@ -1,4 +1,4 @@
-# Incident Response Protocol — Centinel Engine
+# Incident Response Protocol — VIGIL
 ## Protocolo de Respuesta a Incidentes
 
 **Version:** 1.0 | **Date:** 2025-05-17 | **Status:** Active
@@ -9,7 +9,7 @@
 
 ### Propósito
 
-Este documento define qué hace el operador de Centinel Engine cuando el sistema detecta una
+Este documento define qué hace el operador de VIGIL cuando el sistema detecta una
 anomalía estadística o criptográfica durante un proceso electoral. Define la cadena de
 notificación, la preservación de evidencia digital y la plantilla de reporte de incidente.
 
@@ -113,7 +113,7 @@ la anomalía técnicamente)                                   │
 
 ### Preservación de Evidencia Digital
 
-La evidencia forense de Centinel Engine tiene valor legal cuando:
+La evidencia forense de VIGIL tiene valor legal cuando:
 
 1. **El hash chain está íntegro**: cada bloque referencia el hash del anterior
 2. **El ancla Bitcoin existe**: el primer hash del día está en OpenTimestamps
@@ -145,7 +145,7 @@ sha256sum evidence_package.zip > evidence_package.zip.sha256
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REPORTE DE INCIDENTE — CENTINEL ENGINE
+REPORTE DE INCIDENTE — VIGIL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Número de referencia: INC-[YYYYMMDD]-[SEQ]
 Fecha/hora UTC: 
@@ -202,7 +202,7 @@ Estas condiciones son esperadas y NO deben escalar:
 
 ### Purpose
 
-This document defines what the Centinel Engine operator does when the system detects a
+This document defines what the VIGIL operator does when the system detects a
 statistical or cryptographic anomaly during an electoral process. It defines the notification
 chain, digital evidence preservation, and the incident report template.
 
@@ -222,7 +222,7 @@ chain, digital evidence preservation, and the incident report template.
 
 ### Digital Evidence Preservation
 
-Centinel Engine forensic evidence has legal value when:
+VIGIL forensic evidence has legal value when:
 
 1. **The hash chain is intact**: each block references the hash of the previous one
 2. **The Bitcoin anchor exists**: the first hash of the day is in OpenTimestamps
@@ -235,7 +235,7 @@ Centinel Engine forensic evidence has legal value when:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-INCIDENT REPORT — CENTINEL ENGINE
+INCIDENT REPORT — VIGIL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Reference number: INC-[YYYYMMDD]-[SEQ]
 Date/time UTC:

@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `tests/test_config.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -21,7 +21,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `tests/test_config.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -79,7 +79,7 @@ def test_load_config_reads_yaml(tmp_path, monkeypatch):
                         "scope": "NATIONAL",
                     }
                 ],
-                "logging": {"level": "INFO", "file": "centinel.log"},
+                "logging": {"level": "INFO", "file": "vigil.log"},
                 "blockchain": {
                     "enabled": False,
                     "network": "polygon-mumbai",
@@ -150,7 +150,7 @@ def test_load_config_rejects_invalid_master_switch(tmp_path, monkeypatch):
                 "sources": [
                     {"name": "custom", "department_code": "99", "level": "NAT", "scope": "NATIONAL"}
                 ],
-                "logging": {"level": "INFO", "file": "centinel.log"},
+                "logging": {"level": "INFO", "file": "vigil.log"},
                 "blockchain": {
                     "enabled": False,
                     "network": "polygon-mumbai",

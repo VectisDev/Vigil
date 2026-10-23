@@ -7,9 +7,9 @@ Mathematical documentation for rules detecting abrupt voting trend changes
 between consecutive snapshots.
 
 **Archivos fuente / Source files:**
-- `src/centinel/core/rules/trend_shift_rule.py`
-- `src/centinel/core/rules/snapshot_jump_rule.py`
-- `src/centinel/core/rules/granular_anomaly_rule.py` (cambio porcentual brusco, reversion de liderazgo)
+- `src/vigil/core/rules/trend_shift_rule.py`
+- `src/vigil/core/rules/snapshot_jump_rule.py`
+- `src/vigil/core/rules/granular_anomaly_rule.py` (cambio porcentual brusco, reversion de liderazgo)
 
 ---
 

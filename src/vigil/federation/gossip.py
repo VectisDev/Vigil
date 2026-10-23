@@ -1,5 +1,5 @@
 """
-Gossip protocol engine for Centinel P2P node network.
+Gossip protocol engine for Vigil P2P node network.
 
 Each node broadcasts its signed attestation (NodePayload) to known peers
 via HTTP POST. When a node receives a new attestation it fans out to 2
@@ -39,8 +39,8 @@ logger = logging.getLogger("vigil.federation.gossip")
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _KEYS_DIR = _REPO_ROOT / "keys"
 
-_BOOTSTRAP_URL_TEMPLATE = "https://vectisdev.github.io/centinel/peers/{country}.json"
-_BOOTSTRAP_BACKUP_TEMPLATE = "https://raw.githubusercontent.com/vectisdev/centinel/main/peers/{country}.json"
+_BOOTSTRAP_URL_TEMPLATE = "https://vectisdev.github.io/Vigil/peers/{country}.json"
+_BOOTSTRAP_BACKUP_TEMPLATE = "https://raw.githubusercontent.com/VectisDev/Vigil/main/peers/{country}.json"
 _DNS_BOOTSTRAP_DOMAIN = "peers-{country}.centinel.vectisdev.com"
 
 _HARDCODED_SEEDS: list[str] = [
@@ -61,7 +61,7 @@ _FINDING_RATE_LIMIT = 20  # max findings broadcast per minute per node
 _FINDING_RATE_WINDOW = 60.0  # sliding window in seconds
 _BROADCAST_SEVERITIES = {"HIGH", "CRITICAL"}
 _LRU_PUBKEY_CACHE_SIZE = 50  # bounded by max swarm size; historical buffer
-_MAX_SWARM_PEERS = 12  # hard cap — Centinel operates as a tight, known swarm
+_MAX_SWARM_PEERS = 12  # hard cap — Vigil operates as a tight, known swarm
 
 
 # ── Data structures ───────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ _MAX_SWARM_PEERS = 12  # hard cap — Centinel operates as a tight, known swarm
 
 @dataclass
 class NodePayload:
-    """Signed attestation broadcast by a Centinel node."""
+    """Signed attestation broadcast by a Vigil node."""
 
     node_id: str  # sha256(public_key_hex)[:16]
     public_key_hex: str  # Ed25519 public key (64 hex chars)
@@ -102,12 +102,12 @@ class NodePayload:
 
 @dataclass
 class FindingPayload:
-    """Signed anomaly/attack finding broadcast by a Centinel node.
+    """Signed anomaly/attack finding broadcast by a Vigil node.
 
     finding_type values:
       "rule_violation" — fired by the rules engine (late_mesa, hold_and_release, …)
       "anomaly"        — fired by the anomaly detector (Benford, z-score, …)
-      "swarm_attack"   — infrastructure attack directed at Centinel endpoints
+      "swarm_attack"   — infrastructure attack directed at Vigil endpoints
     """
 
     finding_id: str  # sha256(node_id+timestamp+rule_key)[:16] — dedup key
@@ -333,7 +333,7 @@ async def _bootstrap_from_dns_over_https(country: str) -> list[str]:
 
 
 def _bootstrap_from_mdns() -> list[str]:
-    """Discover local Centinel nodes via UDP multicast. Returns list of base URLs."""
+    """Discover local Vigil nodes via UDP multicast. Returns list of base URLs."""
     urls: list[str] = []
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

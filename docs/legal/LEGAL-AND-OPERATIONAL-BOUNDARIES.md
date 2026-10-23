@@ -3,12 +3,12 @@
 ## Español
 
 ### Propósito de este documento
-Este documento resume el marco legal hondureño aplicable a C.E.N.T.I.N.E.L. y define límites operativos claros para garantizar una operación cívica, técnica y no intrusiva. Complementa el [README](../README.md) y el flujo operativo descrito en [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md).
+Este documento resume el marco legal hondureño aplicable a VIGIL y define límites operativos claros para garantizar una operación cívica, técnica y no intrusiva. Complementa el [README](../README.md) y el flujo operativo descrito en [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md).
 
 ### Marco legal hondureño aplicable
 **Base principal:**
 
-| Norma | Referencia | Alcance para C.E.N.T.I.N.E.L. |
+| Norma | Referencia | Alcance para VIGIL |
 | --- | --- | --- |
 | **Ley de Transparencia y Acceso a la Información Pública** | Decreto 170-2006 (reformas Decreto 60-2022) | Reconoce el derecho ciudadano a acceder a información pública y obliga a facilitar su acceso por medios electrónicos. |
 
@@ -26,7 +26,7 @@ Este documento resume el marco legal hondureño aplicable a C.E.N.T.I.N.E.L. y d
 > Nota: Esta lista no sustituye asesoría legal. Se mantiene como referencia operativa para el uso responsable de datos públicos, acorde con los principios de transparencia expuestos en el [README](../README.md).
 
 ### Límites operativos (no intrusivo)
-C.E.N.T.I.N.E.L. es un sistema técnico independiente para observar y auditar datos electorales públicos. Su operación se limita a:
+VIGIL es un sistema técnico independiente para observar y auditar datos electorales públicos. Su operación se limita a:
 
 1. **Uso exclusivo de fuentes públicas** publicadas por canales oficiales.
 2. **Scraping defensivo y respetuoso**, evitando cargas excesivas y respetando intervalos de consulta (ver [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)).
@@ -35,7 +35,7 @@ C.E.N.T.I.N.E.L. es un sistema técnico independiente para observar y auditar da
 5. **Producción de evidencia técnica reproducible**, con trazabilidad y hashes encadenados (ver [METHODOLOGY.md](METHODOLOGY.md)).
 
 ### Disclaimer no intrusivo
-- **C.E.N.T.I.N.E.L. no es un sistema de monitoreo invasivo.**
+- **VIGIL no es un sistema de monitoreo invasivo.**
 - **No realiza acciones de intrusión, manipulación o modificación** sobre sistemas oficiales.
 - **No representa posiciones partidarias ni emite juicios políticos.**
 - **Su finalidad es técnica y cívica:** auditoría y evidencia verificable con trazabilidad histórica.
@@ -51,12 +51,12 @@ C.E.N.T.I.N.E.L. es un sistema técnico independiente para observar y auditar da
 ## English
 
 ### Purpose of this document
-This document summarizes the Honduran legal framework applicable to C.E.N.T.I.N.E.L. and defines clear operational boundaries to ensure a civic, technical, and non-intrusive operation. It complements the [README](../README.md) and the operating flow described in [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md).
+This document summarizes the Honduran legal framework applicable to VIGIL and defines clear operational boundaries to ensure a civic, technical, and non-intrusive operation. It complements the [README](../README.md) and the operating flow described in [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md).
 
 ### Applicable Honduran legal framework
 **Primary basis:**
 
-| Regulation | Reference | Scope for C.E.N.T.I.N.E.L. |
+| Regulation | Reference | Scope for VIGIL |
 | --- | --- | --- |
 | **Law on Transparency and Access to Public Information** | Decree 170-2006 (amended by Decree 60-2022) | Recognizes the citizen right to access public information and obliges facilitation through electronic means. |
 
@@ -74,7 +74,7 @@ This document summarizes the Honduran legal framework applicable to C.E.N.T.I.N.
 > Note: This list does not replace legal advice. It is maintained as an operational reference for responsible use of public data, aligned with the transparency principles in the [README](../README.md).
 
 ### Operational boundaries (non-intrusive)
-C.E.N.T.I.N.E.L. is an independent technical system to observe and audit public electoral data. Its operation is limited to:
+VIGIL is an independent technical system to observe and audit public electoral data. Its operation is limited to:
 
 1. **Exclusive use of public sources** published through official channels.
 2. **Defensive, respectful scraping**, avoiding excessive load and honoring query intervals (see [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)).
@@ -83,7 +83,7 @@ C.E.N.T.I.N.E.L. is an independent technical system to observe and audit public 
 5. **Production of reproducible technical evidence**, with traceability and chained hashes (see [METHODOLOGY.md](METHODOLOGY.md)).
 
 ### Non-intrusive disclaimer
-- **C.E.N.T.I.N.E.L. is not an invasive monitoring system.**
+- **VIGIL is not an invasive monitoring system.**
 - **It does not perform intrusion, manipulation, or modification** of official systems.
 - **It does not represent partisan positions or political judgments.**
 - **Its purpose is technical and civic:** auditing and verifiable evidence with historical traceability.

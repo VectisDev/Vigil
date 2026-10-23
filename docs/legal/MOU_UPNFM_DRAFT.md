@@ -1,6 +1,6 @@
 # Memorándum de Entendimiento
 # Universidad Pedagógica Nacional Francisco Morazán (UPNFM)
-# Proyecto CENTINEL
+# Proyecto VIGIL
 
 **Documento:** MOU-CENTINEL-UPNFM-2026-01  
 **Estado:** Borrador — pendiente revisión y firma  
@@ -10,8 +10,8 @@
 
 ## Las partes / The parties
 
-**PARTE A — Proyecto CENTINEL**  
-Repositorio: github.com/VectisDev/centinel  
+**PARTE A — Proyecto VIGIL**  
+Repositorio: github.com/VectisDev/Vigil  
 Representado por: VectisDev  
 Correo de contacto: ___________
 
@@ -26,9 +26,9 @@ Correo institucional: ___________
 ## Objeto / Purpose
 
 Las partes acuerdan colaborar en la validación académica independiente
-del motor estadístico y forense del sistema CENTINEL, con miras a:
+del motor estadístico y forense del sistema VIGIL, con miras a:
 
-1. Revisar y validar la metodología estadística del motor CENTINEL
+1. Revisar y validar la metodología estadística del motor VIGIL
    (23 reglas forenses, convenciones Z-score, implementación Benford 2BL).
 2. Co-firmar el Working Paper WP-CENTINEL-2026-01 como co-autor académico.
 3. Colaborar en la producción y envío del preprint arXiv
@@ -38,7 +38,7 @@ del motor estadístico y forense del sistema CENTINEL, con miras a:
 
 ---
 
-## Compromisos de la Parte A / CENTINEL commitments
+## Compromisos de la Parte A / VIGIL commitments
 
 - Proporcionar acceso completo al código fuente, datos y documentación.
 - Atribuir co-autoría académica en todos los productos derivados.
@@ -50,7 +50,7 @@ del motor estadístico y forense del sistema CENTINEL, con miras a:
 
 ## Compromisos de la Parte B / UPNFM commitments
 
-- Revisar la metodología estadística del motor CENTINEL.
+- Revisar la metodología estadística del motor VIGIL.
 - Firmar el Working Paper WP-CENTINEL-2026-01 como co-autor.
 - Proporcionar retroalimentación académica sobre las 23 reglas forenses.
 - Participar como co-autor en el preprint arXiv.
@@ -59,7 +59,7 @@ del motor estadístico y forense del sistema CENTINEL, con miras a:
 
 ## Propiedad intelectual / Intellectual property
 
-- El código fuente de CENTINEL permanece bajo licencia AGPL-3.0.
+- El código fuente de VIGIL permanece bajo licencia AGPL-3.0.
 - Los working papers y publicaciones serán de acceso abierto (CC BY 4.0).
 - Ninguna parte reclama derechos exclusivos sobre los datos del CNE,
   que son públicos por ley.
@@ -69,7 +69,7 @@ del motor estadístico y forense del sistema CENTINEL, con miras a:
 ## Neutralidad / Neutrality
 
 Ambas partes confirman que su colaboración es de naturaleza
-técnica y estadística exclusivamente. CENTINEL no afirma fraude
+técnica y estadística exclusivamente. VIGIL no afirma fraude
 electoral; detecta anomalías estadísticas en datos públicos del CNE
 para evaluación humana independiente. Esta declaración aplica a
 todos los productos derivados de esta colaboración.
@@ -85,7 +85,7 @@ renovable por acuerdo mutuo.
 
 ## Firmas / Signatures
 
-**Por el Proyecto CENTINEL:**
+**Por el Proyecto VIGIL:**
 
 Nombre: _________________________  
 Cargo: Investigador Principal  

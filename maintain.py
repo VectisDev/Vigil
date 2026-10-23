@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `maintain.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -33,7 +33,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `maintain.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -467,7 +467,7 @@ def command_status(runtime: RuntimeConfig, logger: logging.Logger) -> None:
     }
 
     if console:
-        console.print("[bold cyan]Centinel Engine Status[/bold cyan]")
+        console.print("[bold cyan]VIGIL Status[/bold cyan]")
         console.print_json(json.dumps(status_payload, ensure_ascii=False, default=str))
     else:
         print(json.dumps(status_payload, ensure_ascii=False, indent=2, default=str))
@@ -716,7 +716,7 @@ def ensure_recent_proactive_scan(logger: logging.Logger, max_age_minutes: int = 
 def build_parser() -> argparse.ArgumentParser:
     """Create argument parser with subcommands."""
 
-    parser = argparse.ArgumentParser(description="Herramienta de mantenimiento para Centinel Engine.")
+    parser = argparse.ArgumentParser(description="Herramienta de mantenimiento para VIGIL.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("checkpoint-now", help="Forzar checkpoint inmediato.")

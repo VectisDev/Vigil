@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/download.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -25,7 +25,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/download.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -116,7 +116,7 @@ async def fetch_content(
     English: Fetch content with conditional headers.
     """
     headers = {
-        "User-Agent": "CentinelEngine/0.4.0",
+        "User-Agent": "VigilEngine/0.4.0",
     }
     if if_none_match:
         headers["If-None-Match"] = if_none_match
@@ -261,6 +261,7 @@ def _build_chain_payload(
             logger.warning("hashchain_previous_hash_invalid value=%s", normalized)
 
     parts = [
+        # Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
         b"centinel-chain-v1",
         b"prev",
         str(len(previous_hash_bytes)).encode("utf-8"),

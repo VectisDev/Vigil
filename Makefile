@@ -5,7 +5,7 @@
         reproduce-2025-audit
 
 PYTHON_COMMAND ?= python
-SERVICE        := scripts/centinel_service.sh
+SERVICE        := scripts/vigil_service.sh
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  INICIO RÁPIDO / QUICK START
@@ -16,14 +16,14 @@ help: ## Muestra esta ayuda / Show this help
 	@awk 'BEGIN{FS=":.*##"} /^[a-zA-Z_-]+:.*##/ { printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@printf '\n\033[1mEjemplo de inicio rápido / Quick start example:\033[0m\n'
 	@printf '  make install   # instalar dependencias\n'
-	@printf '  make launch    # abrir Centinel en el navegador\n'
+	@printf '  make launch    # abrir Vigil en el navegador\n'
 	@printf '  make start     # arrancar el pipeline en background\n\n'
 
 quickstart: ## Todo en uno: instalar + abrir en navegador / All-in-one: install + open browser
 	@./scripts/bootstrap.sh
 	@$(PYTHON_COMMAND) scripts/launch.py
 
-launch: ## Abrir Centinel en el navegador (instalar si es necesario) / Open Centinel in browser
+launch: ## Abrir Vigil en el navegador (instalar si es necesario) / Open Vigil in browser
 	@$(PYTHON_COMMAND) scripts/launch.py
 
 install: ## Instalar dependencias (Poetry o pip) / Install dependencies
@@ -127,7 +127,7 @@ forensic-pdf: ## Generar PDF forense con datos reales HND-2025 / Generate forens
 
 reproduce-2025-audit: ## Reproducir análisis forense completo HND-2025 / Reproduce full HND-2025 forensic analysis
 	@echo "══════════════════════════════════════════════════════════════"
-	@echo "  Centinel — Reproducible Forensic Analysis: Honduras 2025"
+	@echo "  Vigil — Reproducible Forensic Analysis: Honduras 2025"
 	@echo "══════════════════════════════════════════════════════════════"
 	@echo ""
 	@echo "Step 1/3: Running forensic engine on 64 real snapshots..."

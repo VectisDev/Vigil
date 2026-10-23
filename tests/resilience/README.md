@@ -2,9 +2,9 @@
 
 ## Objetivo / Objective
 
-Español: Esta suite valida la resiliencia operativa del motor Centinel para auditoría electoral pública (solo JSON del CNE a nivel nacional/departamental). Se enfoca en tolerancia a fallas, recuperación y trazabilidad para observadores internacionales.
+Español: Esta suite valida la resiliencia operativa del motor Vigil para auditoría electoral pública (solo JSON del CNE a nivel nacional/departamental). Se enfoca en tolerancia a fallas, recuperación y trazabilidad para observadores internacionales.
 
-English: This suite validates operational resilience for Centinel's public election audit engine (CNE JSON at national/department level only). It focuses on fault tolerance, recovery, and traceability for international observers.
+English: This suite validates operational resilience for Vigil's public election audit engine (CNE JSON at national/department level only). It focuses on fault tolerance, recovery, and traceability for international observers.
 
 ## Qué valida / What it validates
 

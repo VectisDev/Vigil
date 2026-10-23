@@ -1,5 +1,5 @@
-# Regional Narrative — Why Central America Needs Centinel
-# Narrativa Regional — Por que Centroamerica Necesita Centinel
+# Regional Narrative — Why Central America Needs Vigil
+# Narrativa Regional — Por que Centroamerica Necesita Vigil
 
 **Version:** 1.0 | **Date:** 2026-06-01 | **Status:** Active
 **Audience / Audiencia:** Grant evaluators, program officers, regional democracy funders
@@ -56,7 +56,7 @@ International observers from the EU noted "serious concerns about the integrity
 of the tabulation process," including unexplained delays in acta processing.
 
 **Honduras 2025.** The Consejo Nacional Electoral conducted general elections
-on November 30, 2025. Centinel Engine monitored the results transmission system
+on November 30, 2025. VIGIL monitored the results transmission system
 continuously. The system detected a 13-hour communication blackout during a
 critical phase of the count, followed by a trend shift. Bulk resolution of 39
 actas per minute was detected during post-blackout catch-up periods. Prolonged
@@ -100,7 +100,7 @@ elections. The tools that did exist were:
 - **Post-hoc:** Reports are published weeks or months after the election, when
   political facts on the ground have already been established.
 
-Centinel fills this gap. It requires no accreditation, no budget, no permission,
+Vigil fills this gap. It requires no accreditation, no budget, no permission,
 and no cooperation from the electoral authority. It produces cryptographic
 evidence anchored to Bitcoin's blockchain, verifiable offline by any third party,
 in real time during the count.
@@ -111,7 +111,7 @@ in real time during the count.
 
 ### Electoral Authority Overview / Panorama de Autoridades Electorales
 
-| Country / Pais | Authority / Autoridad | Code | Data Format | Transparency Gaps | Centinel Status |
+| Country / Pais | Authority / Autoridad | Code | Data Format | Transparency Gaps | Vigil Status |
 |---|---|---|---|---|---|
 | Honduras | Consejo Nacional Electoral (CNE) | HN | JSON API (TREP/SIEDE) | API undocumented; endpoints change between elections; no acta-level hash publication; history of overnight shutdowns | Production-ready |
 | Guatemala | Tribunal Supremo Electoral (TSE) | GT | JSON API (transmision) | Delayed acta publication; no incremental change log; API rate-limited during high-traffic periods | Configured |
@@ -134,8 +134,8 @@ in real time during the count.
 ### Readiness Assessment / Evaluacion de Preparacion
 
 - **Production-ready (HN):** Full pipeline validated with real election data. 24 statistical detectors tested. Cryptographic chain anchored to Bitcoin. Dashboard operational.
-- **Configured (GT, SV, MX, CO):** Country preset exists in `src/centinel/countries.py`. Scraper adapter skeleton implemented. Normalization schema defined. Awaiting field test with real election data.
-- **Configured-limited (NI):** Country preset exists but data availability is structurally constrained by the CSE's refusal to publish acta-level results. Centinel can monitor what is published but cannot achieve full acta-level coverage without a change in CSE policy or alternative data sources (e.g., parallel quick count from civil society).
+- **Configured (GT, SV, MX, CO):** Country preset exists in `src/vigil/countries.py`. Scraper adapter skeleton implemented. Normalization schema defined. Awaiting field test with real election data.
+- **Configured-limited (NI):** Country preset exists but data availability is structurally constrained by the CSE's refusal to publish acta-level results. Vigil can monitor what is published but cannot achieve full acta-level coverage without a change in CSE policy or alternative data sources (e.g., parallel quick count from civil society).
 
 ---
 
@@ -152,7 +152,7 @@ Honduras was selected as the proof-of-concept deployment for three reasons:
 2. **ISP complicity.** Honduran telecommunications infrastructure is
    concentrated among a small number of providers with documented relationships
    to political actors. Rate limiting and selective throttling during election
-   night are expected, not exceptional. Centinel's architecture — designed for
+   night are expected, not exceptional. Vigil's architecture — designed for
    intermittent connectivity and peer-to-peer snapshot sharing — was stress-tested
    against real network hostility.
 
@@ -160,16 +160,16 @@ Honduras was selected as the proof-of-concept deployment for three reasons:
    Between 2017 and 2025, multiple electoral observers and political activists
    were killed or threatened. A tool that can operate remotely, anonymously,
    and without physical presence at polling stations addresses a real safety
-   gap. Centinel operators do not need to identify themselves, be accredited,
+   gap. Vigil operators do not need to identify themselves, be accredited,
    or be physically present in Honduras.
 
-Honduras is the hardest case in the region. If Centinel produces reliable,
+Honduras is the hardest case in the region. If Vigil produces reliable,
 cryptographically verifiable results under Honduran conditions, it will
 function in any Central American context.
 
 ### What Was Captured / Que se Capturo
 
-During the November-December 2025 general election count, Centinel Engine
+During the November-December 2025 general election count, VIGIL
 processed **64 real snapshots** of the CNE's results transmission system
 (SIEDE). Each snapshot was:
 
@@ -186,7 +186,7 @@ The CNE's results API ceased updating for approximately 13 hours during a
 critical phase of the count. When updates resumed, the distribution of newly
 reported actas showed a statistically significant shift in party vote shares
 compared to the pre-blackout trend. This pattern is consistent with the
-Honduras 2017 precedent. Centinel's blackout detector (`detect_blackout_windows`)
+Honduras 2017 precedent. Vigil's blackout detector (`detect_blackout_windows`)
 flagged this automatically, with cryptographic timestamps proving the exact
 duration and the before/after data states.
 
@@ -243,12 +243,12 @@ Key preparation tasks:
 - Adapt normalization schema for Guatemala's departamento/municipio structure
   (340 municipios vs. Honduras's 298)
 - Conduct pre-election dry run during TSE's voter roll publication period
-- Deploy at least 3 independent Centinel nodes operated by different
+- Deploy at least 3 independent Vigil nodes operated by different
   organizations to establish multi-operator redundancy
 - Test P2P witness swarm under Guatemalan network conditions
 
 Guatemala is the natural second target: its TSE publishes data via a JSON API
-similar to Honduras's SIEDE, its electoral cycle aligns with Centinel's
+similar to Honduras's SIEDE, its electoral cycle aligns with Vigil's
 development timeline, and its 2023 election demonstrated both the need for
 independent monitoring and the TSE's capacity for transparent data publication
 (despite external political interference from the Attorney General's office).
@@ -258,7 +258,7 @@ independent monitoring and the TSE's capacity for transparent data publication
 **Timeline:** 2028-2029
 **Target:** Multi-country simultaneous monitoring capability
 
-The regional federation phase extends Centinel from a single-country tool to
+The regional federation phase extends Vigil from a single-country tool to
 a coordinated multi-country monitoring network:
 
 - **Unified dashboard:** A single interface showing election monitoring status
@@ -266,14 +266,14 @@ a coordinated multi-country monitoring network:
 - **Cross-country anomaly comparison:** Statistical baselines from validated
   elections (Honduras, Guatemala) used to calibrate detectors for new
   deployments (El Salvador, Nicaragua)
-- **Swarm interoperability:** Centinel nodes in different countries can share
+- **Swarm interoperability:** Vigil nodes in different countries can share
   cryptographic attestations via the P2P gossip protocol, creating a
   regional evidence chain
 - **Operator network:** Training and onboarding pipeline for civil society
   organizations across the region, targeting 10-15 independent operators
   per country by 2029
 - **Mexico and Colombia integration:** These larger democracies serve as
-  stress tests for Centinel's scalability (Mexico: 150K+ polling stations;
+  stress tests for Vigil's scalability (Mexico: 150K+ polling stations;
   Colombia: complex geographic fragmentation) and as credibility anchors
   for the regional network
 
@@ -298,7 +298,7 @@ a coordinated multi-country monitoring network:
 
 - **Relevant programs:** Elections and Political Processes, Digital Democracy,
   Civil Society Support
-- **Fit:** Centinel directly addresses DRL's priority of "supporting credible,
+- **Fit:** Vigil directly addresses DRL's priority of "supporting credible,
   inclusive, and transparent electoral processes." Its zero-cost, open-source
   model aligns with DRL's emphasis on sustainability beyond grant periods.
   Honduras is a DRL priority country.
@@ -309,7 +309,7 @@ a coordinated multi-country monitoring network:
 
 - **Relevant programs:** Latin America and Caribbean program, Innovation grants
 - **Fit:** NED funds tools that "strengthen democratic institutions through
-  technology." Centinel's AGPL license and zero-cost deployment model ensure
+  technology." Vigil's AGPL license and zero-cost deployment model ensure
   the tool remains a public good. NED has funded electoral monitoring
   technology in Honduras and Guatemala previously.
 - **Typical range:** $50K-$150K for technology development; $30K-$80K for
@@ -320,7 +320,7 @@ a coordinated multi-country monitoring network:
 - **Relevant programs:** Electoral Integrity Initiative, Open Election Data
   Initiative, DemTools
 - **Fit:** NDI's DemTools platform (including DemCloud, Apollo) demonstrates
-  institutional commitment to open-source electoral technology. Centinel
+  institutional commitment to open-source electoral technology. Vigil
   complements DemTools by adding cryptographic verification — a capability
   NDI's existing tools lack. NDI has field offices in Honduras and Guatemala.
 - **Mechanism:** Technology partnership, co-deployment, or sub-grant
@@ -329,7 +329,7 @@ a coordinated multi-country monitoring network:
 
 - **Relevant programs:** Democracy Program, Electoral observation missions
 - **Fit:** The Carter Center has observed elections in Honduras (2017),
-  Guatemala (2019, 2023), and other Central American countries. Centinel
+  Guatemala (2019, 2023), and other Central American countries. Vigil
   provides a tool that extends observation capacity between missions and
   provides cryptographic evidence that complements traditional observation
   reports. The Center's 2017 Honduras report specifically identified the
@@ -341,7 +341,7 @@ a coordinated multi-country monitoring network:
 - **Relevant programs:** Latin America Program, Information and Digital Rights
   program
 - **Fit:** OSF funds "tools that increase government transparency and
-  accountability." Centinel's anti-capture design (AGPL license preventing
+  accountability." Vigil's anti-capture design (AGPL license preventing
   privatization, zero-cost preventing vendor lock-in) aligns with OSF's
   emphasis on structural accountability. OSF has funded electoral integrity
   work in Honduras and Guatemala.
@@ -352,7 +352,7 @@ a coordinated multi-country monitoring network:
 - **Relevant programs:** Open-source public interest technology, civil society
   infrastructure
 - **Fit:** #StartSmall funds "open-source tools that serve the public
-  interest." Centinel's fully open-source architecture, zero-cost deployment
+  interest." Vigil's fully open-source architecture, zero-cost deployment
   model, and Bitcoin-anchored timestamping align with #StartSmall's emphasis
   on decentralized, censorship-resistant infrastructure. The P2P witness
   swarm design eliminates single points of failure or capture.
@@ -373,7 +373,7 @@ Budget details are documented in [BUDGET_NARRATIVE.md](BUDGET_NARRATIVE.md).
 
 ### What the Money Buys / Que Compra el Dinero
 
-Centinel's core infrastructure costs zero dollars to operate — it runs on
+Vigil's core infrastructure costs zero dollars to operate — it runs on
 GitHub Actions' free tier, requires no servers, and has no licensing fees.
 Grant funding covers:
 
@@ -389,7 +389,7 @@ Grant funding covers:
 
 ### Alignment Summary / Resumen de Alineacion
 
-| Funder | Primary Interest | Centinel Alignment | Ask Range |
+| Funder | Primary Interest | Vigil Alignment | Ask Range |
 |---|---|---|---|
 | USAID/DRL | Electoral processes, Honduras priority | Direct: field-tested in HN, open-source, sustainable | $100K - $200K |
 | NED | Democracy technology, Latin America | Direct: AGPL public good, multi-country | $50K - $150K |
@@ -407,8 +407,8 @@ Grant funding covers:
 | Acta | Official tally sheet from a single polling station (mesa), recording vote counts per party |
 | TREP | Transmision de Resultados Electorales Preliminares — the preliminary results system used by Central American electoral authorities |
 | SIEDE | Sistema de Escrutinio y Divulgacion Electronica — Honduras CNE's electronic results system |
-| Blackout window | A period during which the electoral authority's results API stops updating, detected by Centinel's `detect_blackout_windows` rule |
-| Witness swarm | A network of independent Centinel nodes sharing cryptographically signed snapshots via P2P gossip protocol |
+| Blackout window | A period during which the electoral authority's results API stops updating, detected by Vigil's `detect_blackout_windows` rule |
+| Witness swarm | A network of independent Vigil nodes sharing cryptographically signed snapshots via P2P gossip protocol |
 | Hash chain | A sequence of SHA-256 hashes where each block includes the hash of the previous block, creating a tamper-evident chain of custody |
 | OpenTimestamps | A protocol for anchoring data hashes to Bitcoin's blockchain, providing an external, decentralized timestamp that cannot be falsified |
 

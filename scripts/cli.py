@@ -390,7 +390,7 @@ def build_parser() -> argparse.ArgumentParser:
     Build the main argument parser.
     """
     parser = argparse.ArgumentParser(
-        description="CLI para ejecutar el pipeline Proyecto C.E.N.T.I.N.E.L. y consultar estado."
+        description="CLI para ejecutar el pipeline Proyecto VIGIL y consultar estado."
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

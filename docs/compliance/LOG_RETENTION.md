@@ -28,4 +28,4 @@ Solo logs operativos (no evidencia) pueden eliminarse, mediante:
 3. Nunca eliminar snapshots ni hash chain — estos son permanentes por diseño.
 
 ---
-*Ver también: `docs/operations/EVIDENCE-PUBLICATION-SLA.md`, `centinel_engine/secure_backup.py`.*
+*Ver también: `docs/operations/EVIDENCE-PUBLICATION-SLA.md`, `vigil_engine/secure_backup.py`.*

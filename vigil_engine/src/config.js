@@ -19,9 +19,9 @@
  */
 
 /**
- * Configuración centralizada de Centinel Engine.
+ * Configuración centralizada de VIGIL.
  *
- * Central configuration for Centinel Engine.
+ * Central configuration for VIGIL.
  */
 
 import dotenv from "dotenv";
@@ -54,7 +54,7 @@ const userAgents = [
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0",
-  "Centinel-Engine/1.0 (proyecto ciudadano open source de transparencia en Honduras - https://github.com/tu-usuario/centinel-engine)"
+  "Vigil-Engine/1.0 (proyecto ciudadano open source de transparencia en Honduras - https://github.com/tu-usuario/vigil)"
 ];
 
 const minutesToMs = (minutes) => minutes * 60 * 1000;
@@ -85,7 +85,7 @@ const cadenceByMode = {
 const cadence = cadenceByMode[mode] || cadenceByMode.maintenance;
 
 const config = {
-  appName: "centinel-engine",
+  appName: "vigil",
   version: "1.0",
   mode,
   urls,

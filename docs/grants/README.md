@@ -13,11 +13,11 @@ Materials for grant applications, bounty programs, and institutional partnership
 | [INSTITUTIONAL_READINESS.md](INSTITUTIONAL_READINESS.md) | Institutional readiness assessment |
 | [ROADMAP.md](ROADMAP.md) | Feature roadmap |
 | [DASHBOARD-BLUEPRINT-2029.md](DASHBOARD-BLUEPRINT-2029.md) | Long-term dashboard vision |
-| [REGIONAL-NARRATIVE.md](REGIONAL-NARRATIVE.md) | Why Central America needs Centinel — regional context, country matrix, scaling strategy |
+| [REGIONAL-NARRATIVE.md](REGIONAL-NARRATIVE.md) | Why Central America needs Vigil — regional context, country matrix, scaling strategy |
 
 ## Grant & Bounty Targets
 
-| Program | Focus | CENTINEL Fit |
+| Program | Focus | VIGIL Fit |
 |---------|-------|--------------|
 | [Gitcoin](https://gitcoin.co) / [Octant](https://octant.app) | Civic-tech, open-source, public goods | ✅ Strong — democracy infra, AGPL, zero cost |
 | [Open Society Foundations](https://www.opensocietyfoundations.org) | Electoral integrity, Latin America | ✅ Strong — LATAM focus, field-tested HN 2025 |

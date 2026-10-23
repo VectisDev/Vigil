@@ -3,7 +3,7 @@ Español: Monitor proactivo standalone de endpoints para ejecución como daemon 
 
 # English: Crontab example (every 30 minutes) with UTC-safe logging.
 # Español: Ejemplo de crontab (cada 30 minutos) con logging seguro en UTC.
-# */30 * * * * cd /workspace/centinel-engine && /usr/bin/python3 scripts/monitor_endpoints.py --once >> logs/monitor_endpoints.log 2>&1
+# */30 * * * * cd /workspace/vigil && /usr/bin/python3 scripts/monitor_endpoints.py --once >> logs/monitor_endpoints.log 2>&1
 """
 
 from __future__ import annotations

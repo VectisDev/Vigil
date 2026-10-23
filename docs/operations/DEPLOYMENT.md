@@ -9,7 +9,7 @@ El servicio API aplica límites en memoria por IP usando una ventana de 60 segun
 - **Global:** 100 requests por minuto.
 - **Verificación de hashchain:** 10 requests por minuto.
 
-Para ajustar límites, edita los valores en `src/centinel/api/main.py`:
+Para ajustar límites, edita los valores en `src/vigil/api/main.py`:
 
 - `global_rate_limiter` → `RateLimitConfig(limit=100, window_seconds=60)`
 - `compare_rate_limiter` → `RateLimitConfig(limit=10, window_seconds=60)`
@@ -37,7 +37,7 @@ The API service applies in-memory IP-based limits using a 60-second window:
 - **Global:** 100 requests per minute.
 - **Hashchain verification:** 10 requests per minute.
 
-To adjust limits, edit the values in `src/centinel/api/main.py`:
+To adjust limits, edit the values in `src/vigil/api/main.py`:
 
 - `global_rate_limiter` → `RateLimitConfig(limit=100, window_seconds=60)`
 - `compare_rate_limiter` → `RateLimitConfig(limit=10, window_seconds=60)`
@@ -56,7 +56,7 @@ The service will send a success ping every 5 minutes. If scraping fails more tha
 
 ### Healthcheck del worker de pipeline
 
-En despliegue Docker/Compose, el contenedor `centinel-engine` (worker) se valida por **heartbeat reciente** en `data/heartbeat.json` en lugar de un endpoint HTTP.
+En despliegue Docker/Compose, el contenedor `vigil` (worker) se valida por **heartbeat reciente** en `data/heartbeat.json` en lugar de un endpoint HTTP.
 
 - El healthcheck falla si no existe heartbeat.
 - El healthcheck falla si el heartbeat supera 10 minutos de antigüedad.

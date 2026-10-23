@@ -2,10 +2,10 @@
 DEPRECATED — Este módulo fue eliminado por violar el principio de Costo Cero.
 DEPRECATED — This module was removed for violating the Zero Cost principle.
 
-El anclaje criptográfico de CENTINEL usa exclusivamente OpenTimestamps / Bitcoin,
+El anclaje criptográfico de VIGIL usa exclusivamente OpenTimestamps / Bitcoin,
 que es gratuito, no requiere claves privadas ni pago de gas fees.
 
-CENTINEL's cryptographic anchoring uses exclusively OpenTimestamps / Bitcoin,
+VIGIL's cryptographic anchoring uses exclusively OpenTimestamps / Bitcoin,
 which is free, requires no private keys, and incurs no gas fees.
 
 Migración / Migration:

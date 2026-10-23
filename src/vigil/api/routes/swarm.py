@@ -1,5 +1,5 @@
 """
-Swarm API endpoints for Centinel gossip network.
+Swarm API endpoints for Vigil gossip network.
 
 Provides:
   GET  /api/checkpoint    — This node's signed attestation (for peers to pull)

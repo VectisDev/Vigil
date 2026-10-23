@@ -33,8 +33,8 @@ El asistente se abre en el navegador (por defecto en `http://127.0.0.1:7474`) y 
 | `make start` / `make stop` | Inicia o detiene el pipeline continuo en segundo plano |
 | `make status` / `make logs` | Muestra el estado o sigue los registros en vivo |
 | `make reproduce-2025-audit` | Reproduce el análisis forense de Honduras 2025 |
-| `centinel doctor` | Antes de una elección, comprueba que se cumple la seguridad que promete el modo activo |
-| `centinel panel show` | Panel del operador en la terminal |
+| `vigil doctor` | Antes de una elección, comprueba que se cumple la seguridad que promete el modo activo |
+| `vigil panel show` | Panel del operador en la terminal |
 
 ### Instancia pública con GitHub Actions
 
@@ -87,8 +87,8 @@ The wizard opens in the browser (by default at `http://127.0.0.1:7474`) and guid
 | `make start` / `make stop` | Starts or stops the continuous background pipeline |
 | `make status` / `make logs` | Shows status or follows the live logs |
 | `make reproduce-2025-audit` | Reproduces the Honduras 2025 forensic analysis |
-| `centinel doctor` | Before an election, checks that the security the active mode promises is actually in place |
-| `centinel panel show` | Operator panel in the terminal |
+| `vigil doctor` | Before an election, checks that the security the active mode promises is actually in place |
+| `vigil panel show` | Operator panel in the terminal |
 
 ### Public instance with GitHub Actions
 

@@ -1,5 +1,5 @@
 """
-Election lifecycle endpoints for Centinel.
+Election lifecycle endpoints for Vigil.
 
 POST /api/election/finalize  — trigger the end-of-election sequence
 GET  /api/election/status    — current election state

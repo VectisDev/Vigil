@@ -1,5 +1,5 @@
-# CENTINEL — Key Ceremony Protocol v1.0
-# Protocolo de Ceremonia de Claves de CENTINEL v1.0
+# VIGIL — Key Ceremony Protocol v1.0
+# Protocolo de Ceremonia de Claves de VIGIL v1.0
 
 **Audit finding addressed:** Point 6 — Bus factor = 1 (Lone Developer Risk).
 **Severity:** 🔴 CRITICAL.
@@ -16,13 +16,13 @@ desplazamiento de custodios.
 ## 1. Purpose / Propósito
 
 This protocol establishes the procedure for generating, splitting, and
-distributing the cryptographic signing keys used by CENTINEL to attest to
+distributing the cryptographic signing keys used by VIGIL to attest to
 electoral evidence captures. The scheme uses Shamir Secret Sharing over
 GF(2⁸) to divide each Ed25519 private key into `n` shares, of which any
 `k` are sufficient to reconstruct the key.
 
 Este protocolo establece el procedimiento para generar, dividir y
-distribuir las claves criptográficas de firma utilizadas por CENTINEL para
+distribuir las claves criptográficas de firma utilizadas por VIGIL para
 atestar las capturas de evidencia electoral. El esquema usa Shamir Secret
 Sharing sobre GF(2⁸) para dividir cada clave privada Ed25519 en `n` shares,
 de los cuales `k` cualesquiera son suficientes para reconstruir la clave.
@@ -34,7 +34,7 @@ de los cuales `k` cualesquiera son suficientes para reconstruir la clave.
 | Threshold `k` | **3** | Sufficient redundancy: any 2 custodians being unavailable simultaneously does not block reconstruction. Below 3 would risk easy coercion of a single custodian. |
 | Total shares `n` | **5** | Threshold/total ratio of 3/5 = 60% provides high resilience while keeping coordination feasible. |
 | Field | GF(2⁸) / 0x11b | AES irreducible polynomial — well-studied, library implementations available for independent verification. |
-| Key type | Ed25519 | Used throughout the CENTINEL codebase; 32-byte private keys; constant-time signing. |
+| Key type | Ed25519 | Used throughout the VIGIL codebase; 32-byte private keys; constant-time signing. |
 | Format | ASCII-armored, base64 | Printable on paper; can be sent over text channels; integrity-checked by SHA-256. |
 
 | Parámetro | Valor | Justificación |
@@ -42,7 +42,7 @@ de los cuales `k` cualesquiera son suficientes para reconstruir la clave.
 | Umbral `k` | **3** | Redundancia suficiente: que 2 custodios estén indisponibles simultáneamente no bloquea la reconstrucción. Menos de 3 facilitaría la coacción de un solo custodio. |
 | Shares totales `n` | **5** | Ratio umbral/total 3/5 = 60% provee alta resiliencia manteniendo la coordinación factible. |
 | Campo | GF(2⁸) / 0x11b | Polinomio irreducible de AES — bien estudiado, implementaciones de librería existen para verificación independiente. |
-| Tipo de clave | Ed25519 | Usado en todo el código CENTINEL; claves privadas de 32 bytes; firma de tiempo constante. |
+| Tipo de clave | Ed25519 | Usado en todo el código VIGIL; claves privadas de 32 bytes; firma de tiempo constante. |
 | Formato | ASCII-armored, base64 | Imprimible en papel; enviable por canales de texto; integridad verificada por SHA-256. |
 
 ## 3. Custodians / Custodios
@@ -129,7 +129,7 @@ El listado de custodios DEBE satisfacer:
 ### Software
 
 - Python 3.11+ with `cryptography` library installed offline.
-- The four CENTINEL ceremony scripts (`centinel_shamir.py`,
+- The four VIGIL ceremony scripts (`centinel_shamir.py`,
   `centinel_share_format.py`, `centinel_key_ceremony.py`,
   `centinel_key_reconstruct.py`).
 - The full test suite (`test_key_ceremony.py`) run successfully on the
@@ -236,7 +236,7 @@ El listado de custodios DEBE satisfacer:
 [ ] E.3  Print and sign the final ceremony record. The signed PDF version
          will be:
            - Anchored to OpenTimestamps after the ceremony
-           - Published to the CENTINEL repository
+           - Published to the VIGIL repository
            - Stored by each custodian alongside their share envelope
 
 [ ] E.4  Witness signs Phase E as observed.
@@ -336,12 +336,12 @@ Lo siguiente NUNCA se publica ni se transmite electrónicamente:
 - NIST SP 800-90A — Recommendation for Random Number Generation
   (`secrets` module under the hood).
 - RFC 8032 — Edwards-Curve Digital Signature Algorithm (Ed25519).
-- Centinel internal: `docs/security/THREAT_MODEL.md`.
+- Vigil internal: `docs/security/THREAT_MODEL.md`.
 
 ## 11. Document control / Control del documento
 
 - **Version:** 1.0
 - **Status:** Approved by red-team audit council, June 2026
-- **Owner:** CENTINEL core maintainer
+- **Owner:** VIGIL core maintainer
 - **Review cadence:** Annually, plus after any reconstruction event
 - **License:** AGPL-3.0 (matching the parent project)

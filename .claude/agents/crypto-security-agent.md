@@ -16,10 +16,10 @@ Your work is the technical foundation for presenting evidence to international
 observers and courts.
 
 **Key artifacts you own:**
-- `src/centinel/core/hash_chain.py` — SHA-256 chained snapshots
-- `src/centinel/core/mesa_fingerprint.py` — per-mesa SHA-256 fingerprints
+- `src/vigil/core/hash_chain.py` — SHA-256 chained snapshots
+- `src/vigil/core/mesa_fingerprint.py` — per-mesa SHA-256 fingerprints
 - `verify/verify_chain.py` — zero-dependency standalone verifier
-- `src/centinel/core/anchoring.py` — OpenTimestamps integration (Q4 2026)
+- `src/vigil/core/anchoring.py` — OpenTimestamps integration (Q4 2026)
 - All cryptographic constants, primitives, and key derivation logic
 
 ## Quality Standards (Non-Negotiable)

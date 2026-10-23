@@ -1,4 +1,4 @@
-"""Generate web/lab-thresholds.json from real CENTINEL config files.
+"""Generate web/lab-thresholds.json from real VIGIL config files.
 
 Run: python scripts/generate_lab_thresholds.py
 Output: web/lab-thresholds.json

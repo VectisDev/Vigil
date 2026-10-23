@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Centinel Launcher — doble clic para abrir en el navegador.
+Vigil Launcher — doble clic para abrir en el navegador.
 
-Abre Centinel en tu navegador con un solo doble clic.
+Abre Vigil en tu navegador con un solo doble clic.
 No se necesita abrir ninguna terminal.
 
 Works like Jupyter Notebook: starts the server in background
@@ -133,7 +133,7 @@ def _start_server(python: Path) -> subprocess.Popen:
 # ── main ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    print("Iniciando Centinel… / Starting Centinel…")
+    print("Iniciando Vigil… / Starting Vigil…")
 
     # Bootstrap deps (no-op if already ready)
     try:
@@ -171,7 +171,7 @@ def main() -> None:
     page = "/setup/" if not SETUP_MARKER.exists() else "/"
     url = f"http://{HOST}:{PORT}{page}"
 
-    print(f"Abriendo Centinel en tu navegador… / Opening Centinel in your browser…")
+    print(f"Abriendo Vigil en tu navegador… / Opening Vigil in your browser…")
     webbrowser.open(url)
 
     # Keep the process alive as long as we own the server
@@ -179,7 +179,7 @@ def main() -> None:
         try:
             server_process.wait()
         except KeyboardInterrupt:
-            print("\nCerrando Centinel… / Closing Centinel…")
+            print("\nCerrando Vigil… / Closing Vigil…")
             server_process.terminate()
 
 

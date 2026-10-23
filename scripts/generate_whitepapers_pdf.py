@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Compile Centinel whitepapers to legible PDFs.
+Compile Vigil whitepapers to legible PDFs.
 
 Renders the LaTeX source semantically (sections, theorem environments,
 math as Unicode, tables, accents, lists) with reportlab. Not a full TeX
@@ -295,7 +295,7 @@ def compile_public():
     out = DOCS / "centinel-engine-whitepaper-v1.pdf"
     doc = SimpleDocTemplate(str(out), pagesize=A4, topMargin=22 * mm,
                             bottomMargin=20 * mm, leftMargin=22 * mm,
-                            rightMargin=22 * mm, title="Centinela Whitepaper v1.0")
+                            rightMargin=22 * mm, title="VIGIL Whitepaper v1.0")
     story = []
     title_done = False
     for kind, payload in parse_latex(src):
@@ -332,7 +332,7 @@ def compile_internal():
     out = DOCS / "INTERNAL-whitepaper-es.pdf"
     doc = SimpleDocTemplate(str(out), pagesize=A4, topMargin=22 * mm,
                             bottomMargin=20 * mm, leftMargin=22 * mm,
-                            rightMargin=22 * mm, title="Centinela Whitepaper Interno")
+                            rightMargin=22 * mm, title="VIGIL Whitepaper Interno")
     story = []
 
     def md_inline(s):

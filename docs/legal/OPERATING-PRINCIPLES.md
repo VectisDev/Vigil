@@ -1,38 +1,38 @@
-# Principios Operativos de C.E.N.T.I.N.E.L.
+# Principios Operativos de VIGIL
 
 ## [ES] Español
 
 ### 1. Naturaleza del Sistema
 
-C.E.N.T.I.N.E.L. es un sistema técnico de observación y auditoría de datos electorales
+VIGIL es un sistema técnico de observación y auditoría de datos electorales
 **exclusivamente públicos**.
 
 No es una organización política.
 No es un medio de comunicación.
 No es un actor electoral.
 
-C.E.N.T.I.N.E.L. es un sistema diseñado para registrar, comparar y publicar automáticamente
+VIGIL es un sistema diseñado para registrar, comparar y publicar automáticamente
 cambios observables en datos oficiales divulgados por terceros.
 
 ---
 
 ### 2. Propósito Fundamental
 
-El propósito de C.E.N.T.I.N.E.L. es:
+El propósito de VIGIL es:
 
 - preservar evidencia pública en el tiempo
 - permitir comparaciones históricas verificables
 - hacer visibles cambios, inconsistencias y patrones temporales
 - reducir la dependencia de interpretaciones subjetivas
 
-C.E.N.T.I.N.E.L. no busca persuadir.
+VIGIL no busca persuadir.
 Busca **permitir observar**.
 
 ---
 
 ### 3. Neutralidad Técnica Estricta
 
-C.E.N.T.I.N.E.L. opera bajo neutralidad técnica absoluta.
+VIGIL opera bajo neutralidad técnica absoluta.
 
 Esto implica que el sistema:
 
@@ -48,7 +48,7 @@ independientemente de su impacto político.
 
 ### 4. Reproducibilidad Total (Principio Rector)
 
-> **Todo resultado publicado por C.E.N.T.I.N.E.L. debe ser reproducible
+> **Todo resultado publicado por VIGIL debe ser reproducible
 > por cualquier tercero independiente.**
 
 Para cumplir este principio:
@@ -65,7 +65,7 @@ Si un resultado no puede reproducirse, se considera inválido.
 
 ### 5. Transparencia Radical y Continua
 
-C.E.N.T.I.N.E.L. publica de forma explícita:
+VIGIL publica de forma explícita:
 
 - cuándo se obtuvieron los datos
 - desde qué fuente pública
@@ -73,7 +73,7 @@ C.E.N.T.I.N.E.L. publica de forma explícita:
 - qué reglas se aplicaron
 - qué resultados se generaron
 
-C.E.N.T.I.N.E.L. también publica cuando **no se detectan eventos**.
+VIGIL también publica cuando **no se detectan eventos**.
 
 La ausencia de cambios es información relevante
 y forma parte del registro histórico.
@@ -98,7 +98,7 @@ Esto garantiza trazabilidad completa.
 
 ### 7. Automatización Basada en Reglas
 
-C.E.N.T.I.N.E.L. opera exclusivamente mediante reglas objetivas predefinidas.
+VIGIL opera exclusivamente mediante reglas objetivas predefinidas.
 
 - no existen decisiones manuales en tiempo de ejecución
 - no existe curaduría humana de resultados
@@ -111,7 +111,7 @@ una regla documentada se activa.
 
 ### 8. Lenguaje Técnico Controlado
 
-C.E.N.T.I.N.E.L. utiliza deliberadamente un vocabulario técnico restringido.
+VIGIL utiliza deliberadamente un vocabulario técnico restringido.
 
 Evita términos acusatorios o interpretativos como:
 - fraude
@@ -132,14 +132,14 @@ El lenguaje es parte del diseño del sistema.
 
 ### 9. Alcance y Limitaciones
 
-C.E.N.T.I.N.E.L. declara explícitamente sus límites:
+VIGIL declara explícitamente sus límites:
 
 - no accede a sistemas internos
 - no valida procesos no publicados
 - no certifica resultados electorales
 - no reemplaza a autoridades electorales
 
-C.E.N.T.I.N.E.L. observa **lo que se publica** y **cómo cambia en el tiempo**.
+VIGIL observa **lo que se publica** y **cómo cambia en el tiempo**.
 Nada más. Nada menos.
 
 ---
@@ -154,14 +154,14 @@ Cualquier persona puede:
 - proponer mejoras técnicas
 - cuestionar resultados con evidencia verificable
 
-C.E.N.T.I.N.E.L. no solicita confianza.
+VIGIL no solicita confianza.
 Funciona bajo verificación independiente.
 
 ---
 
 ### 11. Persistencia Operativa
 
-C.E.N.T.I.N.E.L. opera de forma continua y predecible.
+VIGIL opera de forma continua y predecible.
 
 - no se activa por coyuntura política
 - no se desactiva por presión externa
@@ -174,11 +174,11 @@ no en hallazgos aislados.
 
 ### Declaración Operativa
 
-C.E.N.T.I.N.E.L. no interpreta.
-C.E.N.T.I.N.E.L. no opina.
-C.E.N.T.I.N.E.L. no acusa.
+VIGIL no interpreta.
+VIGIL no opina.
+VIGIL no acusa.
 
-C.E.N.T.I.N.E.L. **registra**, **compara** y **publica**.
+VIGIL **registra**, **compara** y **publica**.
 
 La interpretación queda siempre en manos del observador.
 
@@ -188,35 +188,35 @@ La interpretación queda siempre en manos del observador.
 
 ### 1. System Nature
 
-C.E.N.T.I.N.E.L. is a technical system for observation and auditing of **exclusively public**
+VIGIL is a technical system for observation and auditing of **exclusively public**
 electoral data.
 
 It is not a political organization.
 It is not a media outlet.
 It is not an electoral actor.
 
-C.E.N.T.I.N.E.L. is designed to register, compare, and automatically publish
+VIGIL is designed to register, compare, and automatically publish
 observable changes in official data released by third parties.
 
 ---
 
 ### 2. Core Purpose
 
-The purpose of C.E.N.T.I.N.E.L. is to:
+The purpose of VIGIL is to:
 
 - preserve public evidence over time
 - enable verifiable historical comparisons
 - make visible changes, inconsistencies, and temporal patterns
 - reduce dependence on subjective interpretation
 
-C.E.N.T.I.N.E.L. does not seek to persuade.
+VIGIL does not seek to persuade.
 It seeks to **enable observation**.
 
 ---
 
 ### 3. Strict Technical Neutrality
 
-C.E.N.T.I.N.E.L. operates under absolute technical neutrality.
+VIGIL operates under absolute technical neutrality.
 
 This means the system:
 
@@ -231,7 +231,7 @@ All data is treated identically, regardless of political implications.
 
 ### 4. Total Reproducibility (Governing Principle)
 
-> **Any result published by C.E.N.T.I.N.E.L. must be reproducible
+> **Any result published by VIGIL must be reproducible
 > by any independent third party.**
 
 To ensure this:
@@ -248,7 +248,7 @@ If a result cannot be reproduced, it is considered invalid.
 
 ### 5. Radical and Continuous Transparency
 
-C.E.N.T.I.N.E.L. explicitly publishes:
+VIGIL explicitly publishes:
 
 - when data was retrieved
 - from which public source
@@ -256,7 +256,7 @@ C.E.N.T.I.N.E.L. explicitly publishes:
 - which rules were applied
 - what outputs were generated
 
-C.E.N.T.I.N.E.L. also publishes when **no events are detected**.
+VIGIL also publishes when **no events are detected**.
 
 The absence of change is relevant information
 and part of the historical record.
@@ -281,7 +281,7 @@ This guarantees full traceability.
 
 ### 7. Rule-Based Automation
 
-C.E.N.T.I.N.E.L. operates exclusively through predefined objective rules.
+VIGIL operates exclusively through predefined objective rules.
 
 - no manual decisions at runtime
 - no human curation of outputs
@@ -293,7 +293,7 @@ A publication occurs only when a documented rule is triggered.
 
 ### 8. Controlled Technical Language
 
-C.E.N.T.I.N.E.L. deliberately uses a restricted technical vocabulary.
+VIGIL deliberately uses a restricted technical vocabulary.
 
 It avoids accusatory or interpretive terms such as:
 - fraud
@@ -314,14 +314,14 @@ Language is a design component of the system.
 
 ### 9. Scope and Limitations
 
-C.E.N.T.I.N.E.L. explicitly declares its limits:
+VIGIL explicitly declares its limits:
 
 - no access to internal systems
 - no validation of unpublished processes
 - no certification of electoral outcomes
 - no replacement of electoral authorities
 
-C.E.N.T.I.N.E.L. observes **what is published** and **how it changes over time**.
+VIGIL observes **what is published** and **how it changes over time**.
 Nothing more. Nothing less.
 
 ---
@@ -336,14 +336,14 @@ Any person may:
 - propose technical improvements
 - challenge outputs with verifiable evidence
 
-C.E.N.T.I.N.E.L. does not require trust.
+VIGIL does not require trust.
 It operates on independent verification.
 
 ---
 
 ### 11. Operational Persistence
 
-C.E.N.T.I.N.E.L. operates continuously and predictably.
+VIGIL operates continuously and predictably.
 
 - it does not activate based on political context
 - it does not deactivate due to external pressure
@@ -355,10 +355,10 @@ Its credibility is based on consistency, not isolated findings.
 
 ### Operational Statement
 
-C.E.N.T.I.N.E.L. does not interpret.
-C.E.N.T.I.N.E.L. does not opine.
-C.E.N.T.I.N.E.L. does not accuse.
+VIGIL does not interpret.
+VIGIL does not opine.
+VIGIL does not accuse.
 
-C.E.N.T.I.N.E.L. **records**, **compares**, and **publishes**.
+VIGIL **records**, **compares**, and **publishes**.
 
 Interpretation is left entirely to the observer.

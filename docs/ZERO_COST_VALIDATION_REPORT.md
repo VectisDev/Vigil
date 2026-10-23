@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Centinel's architecture has been validated to guarantee **zero infrastructure costs** with **infinite horizontal scalability**. The system achieves this by:
+Vigil's architecture has been validated to guarantee **zero infrastructure costs** with **infinite horizontal scalability**. The system achieves this by:
 
 1. **Using only GitHub's free APIs** (Issues, Releases, Actions)
 2. **Computing consensus locally** (zero network transmission costs)
@@ -94,7 +94,7 @@ Centinel's architecture has been validated to guarantee **zero infrastructure co
 
 **API Endpoint:**
 ```
-https://raw.githubusercontent.com/vectisdev/centinel/data/api/data/reputation/nodes.json
+https://raw.githubusercontent.com/VectisDev/Vigil/data/api/data/reputation/nodes.json
 ```
 - Free public access
 - No rate limiting for public repos
@@ -348,7 +348,7 @@ This principle is mathematically guaranteed because:
 
 ## Conclusion
 
-**Centinel achieves infinite scalability at zero cost.**
+**Vigil achieves infinite scalability at zero cost.**
 
 The architecture is fully verified, tested, and guaranteed to remain cost-free regardless of how many swarms or nodes are added. This represents the ideal economics for distributed electoral audit networks: more participants = more security, with zero additional infrastructure cost.
 

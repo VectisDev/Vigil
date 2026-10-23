@@ -15,7 +15,7 @@ from vigil.paths import iter_all_hashes, SNAPSHOTS_SUBDIR
 from scripts.logging_utils import configure_logging, log_event
 from vigil.core.hashchain import compute_hash
 
-logger = configure_logging("vigil.bootstrap", log_file="logs/centinel.log")
+logger = configure_logging("vigil.bootstrap", log_file="logs/vigil.log")
 
 COMMAND_CENTER_DIR = Path("command_center")
 CONFIG_TEMPLATE_PATH = COMMAND_CENTER_DIR / "config.yaml.example"
@@ -336,7 +336,7 @@ def bootstrap_config(force: bool = False) -> int:
 
 def main() -> int:
     """/** Entrada principal del script. / Script entry point. **/"""
-    parser = argparse.ArgumentParser(description="Bootstrap Centinel configuration")
+    parser = argparse.ArgumentParser(description="Bootstrap Vigil configuration")
     parser.add_argument(
         "--force",
         action="store_true",

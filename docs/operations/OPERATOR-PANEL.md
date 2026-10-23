@@ -4,13 +4,13 @@
 
 ```bash
 # Panel interactivo en terminal
-centinel panel show
+vigil panel show
 
 # Panel con detalles
-centinel panel show --verbose
+vigil panel show --verbose
 
 # Panel en JSON (máquinas/APIs)
-centinel panel json
+vigil panel json
 ```
 
 ---
@@ -19,7 +19,7 @@ centinel panel json
 
 ```
 ╔════════════════════════════════════════════════════════════════╗
-║ CENTINEL — Estado Operacional / Operational Status             ║
+║ VIGIL — Estado Operacional / Operational Status             ║
 ╠════════════════════════════════════════════════════════════════╣
 │                                                                │
 │  AMENAZA GENERAL / Threat Score:   22/100 🟢 VERDE            │
@@ -39,7 +39,7 @@ centinel panel json
 │  Conectividad:    4/4 endpoints UP       [100%]              │
 │  Snapshots:       2847 captured          [Last: 30s ago]      │
 │                                                                │
-│  ⓘ Detalles: centinel panel show --verbose                    │
+│  ⓘ Detalles: vigil panel show --verbose                    │
 │  ⓘ Auditoría: cat hashes/attack_log.jsonl                     │
 ╚════════════════════════════════════════════════════════════════╝
 ```
@@ -209,7 +209,7 @@ Snapshots: 2847 captured  [Last: 30s ago]
 ## Modo Verbose (--verbose)
 
 ```bash
-centinel panel show --verbose
+vigil panel show --verbose
 ```
 
 Muestra detalles adicionales:
@@ -225,14 +225,14 @@ Lock file present: false
 - **Last merkle update:** Timestamp exacto de última actualización
 - **Threat events (24h):** Número de eventos de amenaza en últimas 24h
 - **Recovery attempts:** Intentos de recuperación del kill switch
-- **Lock file:** Si `/tmp/centinel.lock` existe (congelado?)
+- **Lock file:** Si `/tmp/vigil.lock` existe (congelado?)
 
 ---
 
 ## Panel JSON (API)
 
 ```bash
-centinel panel json
+vigil panel json
 ```
 
 O vía HTTP:
@@ -310,10 +310,10 @@ Tejón: 🔴 FROZEN  (Intento 3/5, próximo en 10s)
 
 ```bash
 # Ver panel actualizado cada 5 segundos
-watch 'poetry run centinel panel show'
+watch 'poetry run vigil panel show'
 
 # O con jq en vivo
-watch 'poetry run centinel panel json | jq .threat_score'
+watch 'poetry run vigil panel json | jq .threat_score'
 ```
 
 ---
@@ -321,7 +321,7 @@ watch 'poetry run centinel panel json | jq .threat_score'
 ## Troubleshooting Panel
 
 ### Panel no muestra defensas
-- Verifica: `ls -la src/centinel/core/argos_protocol.py`
+- Verifica: `ls -la src/vigil/core/argos_protocol.py`
 - Reinstala: `poetry install`
 
 ### Panel muestra CRITICAL en todo
@@ -329,8 +329,8 @@ watch 'poetry run centinel panel json | jq .threat_score'
 - Ejecutar `centinel snapshot` para inicializar
 
 ### Panel freezado (no se actualiza)
-- Mata proceso: `pkill -f 'centinel panel'`
-- Reinicia: `centinel panel show`
+- Mata proceso: `pkill -f 'vigil panel'`
+- Reinicia: `vigil panel show`
 
 ---
 

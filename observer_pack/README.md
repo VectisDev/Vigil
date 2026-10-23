@@ -1,21 +1,21 @@
-# Centinel Engine — Observer Pack
+# VIGIL — Observer Pack
 
 **Para evaluadores de grants, revisores técnicos y observadores electorales internacionales.**
 **For grant evaluators, technical reviewers, and international electoral observers.**
 
-Este directorio es el punto de entrada único para comprender y evaluar Centinel Engine.
-This directory is the single entry point to understand and evaluate Centinel Engine.
+Este directorio es el punto de entrada único para comprender y evaluar VIGIL.
+This directory is the single entry point to understand and evaluate VIGIL.
 
 ---
 
-## ¿Qué es Centinel Engine? / What is Centinel Engine?
+## ¿Qué es VIGIL? / What is VIGIL?
 
-Centinel Engine es una herramienta de auditoría electoral de código abierto (AGPL-3.0) diseñada
+VIGIL es una herramienta de auditoría electoral de código abierto (AGPL-3.0) diseñada
 específicamente para Honduras. Descarga los datos oficiales del CNE cada pocos minutos durante
 el escrutinio, los encadena criptográficamente con SHA-256, y aplica 24 detectores estadísticos
 para detectar manipulación en tiempo real.
 
-Centinel Engine is an open-source electoral audit tool (AGPL-3.0) designed specifically for Honduras.
+VIGIL is an open-source electoral audit tool (AGPL-3.0) designed specifically for Honduras.
 It downloads official CNE data every few minutes during the vote count, chains it cryptographically
 with SHA-256, and applies 24 statistical detectors to detect manipulation in real time.
 
@@ -37,10 +37,10 @@ with SHA-256, and applies 24 statistical detectors to detect manipulation in rea
 ## Demo Pública / Public Demo
 
 **Panel en vivo / Live panel:**
-`https://userf8a2c4.github.io/centinel-engine/panel/`
+`https://userf8a2c4.github.io/vigil/panel/`
 
 **Reporte PDF más reciente / Latest PDF report:**
-`https://userf8a2c4.github.io/centinel-engine/reports/latest.pdf`
+`https://userf8a2c4.github.io/vigil/reports/latest.pdf`
 
 ---
 
@@ -72,8 +72,8 @@ with SHA-256, and applies 24 statistical detectors to detect manipulation in rea
 
 ```bash
 # Clonar y ejecutar en 3 comandos / Clone and run in 3 commands
-git clone https://github.com/userf8a2c4/centinel-engine
-cd centinel-engine
+git clone https://github.com/VectisDev/Vigil
+cd vigil
 make install && make wizard && make pipeline
 ```
 

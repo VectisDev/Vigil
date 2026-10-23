@@ -1,5 +1,5 @@
 """
-CENTINEL — Async Continuous Poller
+VIGIL — Async Continuous Poller
 ====================================
 Motor de polling asíncrono para N endpoints con intervalo garantizado.
 Async polling engine for N endpoints with guaranteed interval.
@@ -31,7 +31,7 @@ Capacidad honesta / Honest capacity:
   stretched automatically (resolve_safe_interval). 100 multi-host
   endpoints do sustain the 3-minute cycle.
 
-Author: CENTINEL Team
+Author: VIGIL Team
 License: AGPL-3.0
 """
 
@@ -402,6 +402,7 @@ class BatchHashChain:
                     return json.loads(lines[-1])["cycle_hash"]
                 except (json.JSONDecodeError, KeyError):
                     pass
+        # Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
         return hashlib.sha256(b"CENTINEL-ASYNC-POLLER-GENESIS-2026").hexdigest()
 
     def _merkle_root(self, hashes: list[str]) -> str:
@@ -1030,7 +1031,7 @@ def load_endpoints(allow_empty: bool = False) -> list[EndpointConfig]:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "CENTINEL Async Continuous Poller — hasta 100 endpoints × costo cero. "
+            "VIGIL Async Continuous Poller — hasta 100 endpoints × costo cero. "
             "Piso ético: 3 min. Un solo host admite máx ~24 endpoints a 3 min "
             "(techo 480 req/h/host); con más, el intervalo se estira solo. "
             "/ Up to 100 endpoints × zero cost. Ethical floor: 3 min. A single "

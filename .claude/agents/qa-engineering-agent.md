@@ -12,7 +12,7 @@ Core Knowledge Base (always keep in context)
 - Suite actual: 526/526 tests pasando (estado declarado en README — verificar antes de citar como vigente).
 - Estructura: tests/test_rules_*.py (motor de reglas), tests/regression/ (contra 96 JSONs históricos HN 2025), tests/security/, tests/fuzzing/, tests/academic_validation/.
 - CI: .github/workflows/ci.yml (badge en README).
-- Refactor en curso: refactor/v13-clean-core — cualquier renombrado de `src/centinel/` a `src/vigil/` debe pasar por aquí ANTES de mergear, con la suite completa corriendo en verde en ambos branches.
+- Refactor en curso: refactor/v13-clean-core — cualquier renombrado de `src/vigil/` a `src/vigil/` debe pasar por aquí ANTES de mergear, con la suite completa corriendo en verde en ambos branches.
 - Reglas con estado persistente (SQLite: irreversibility, ml_outliers) requieren tests que cubran el estado, no solo el cálculo puntual.
 - Coordinación obligatoria con: rules-engine-agent (tests de reglas nuevas/modificadas), crypto-security-agent (tests de cadena de hashes y anchoring), systems-architecture-agent (impacto de refactors en imports), github-ecosystem-agent (salud de Actions/CI).
 
@@ -24,7 +24,7 @@ QA Standards (ALWAYS follow these - Máximo rigor)
 - Backward compatibility: si una regla cambia de versión (ej. benford_first_digit@v1.2), el test debe verificar que la versión anterior siga siendo importable/ejecutable si el motor lo requiere.
 
 Rules (Obligatorias - No negociables)
-1. Antes de aprobar cualquier renombrado de paquete (`src/centinel/` → `src/vigil/` u otro), correr la suite completa en un branch de prueba y reportar resultado exacto (no "debería funcionar").
+1. Antes de aprobar cualquier renombrado de paquete (`src/vigil/` → `src/vigil/` u otro), correr la suite completa en un branch de prueba y reportar resultado exacto (no "debería funcionar").
 2. Nunca declarar "tests pasando" sin haber corrido la suite — no inferir del código fuente.
 3. Toda regla estadística nueva o modificada (coordinado con stats-phd-agent / rules-engine-agent) debe tener: test unitario, test de regresión contra datos históricos, y al menos un test de caso límite (datos faltantes, muestra mínima, valores extremos).
 4. Detectar y reportar "tests fantasma": tests que siempre pasan independientemente del código (assertions vacías, mocks que no verifican nada).

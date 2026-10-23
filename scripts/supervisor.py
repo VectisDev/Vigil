@@ -105,7 +105,7 @@ def run_supervisor(command: list[str], logger: logging.Logger) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Centinel external defensive supervisor")
+    parser = argparse.ArgumentParser(description="Vigil external defensive supervisor")
     parser.add_argument("command", nargs="*", help="Optional command override")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")

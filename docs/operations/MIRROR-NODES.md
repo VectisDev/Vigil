@@ -1,4 +1,4 @@
-# CENTINEL — Multi-Platform Resilience Mirroring
+# VIGIL — Multi-Platform Resilience Mirroring
 # Espejado Multi-Plataforma para Resiliencia
 
 **Audit finding addressed:** Point 4 — GitHub monoculture (single-platform dependency).
@@ -6,11 +6,11 @@
 
 ## 1. Purpose / Propósito
 
-CENTINEL operates as a public electoral evidence preservation system.
+VIGIL operates as a public electoral evidence preservation system.
 A system that depends on a single commercial platform (GitHub / Microsoft)
 for code, evidence storage, and operation is **vulnerable to:**
 
-CENTINEL opera como sistema de preservación de evidencia electoral pública.
+VIGIL opera como sistema de preservación de evidencia electoral pública.
 Un sistema que depende de una sola plataforma comercial (GitHub / Microsoft)
 para código, almacenamiento de evidencia y operación es **vulnerable a:**
 
@@ -31,9 +31,9 @@ como Open Technology Fund.
 
 ## 2. The mirror network / La red de espejos
 
-CENTINEL maintains continuous mirrors on three independent platforms:
+VIGIL maintains continuous mirrors on three independent platforms:
 
-CENTINEL mantiene espejos continuos en tres plataformas independientes:
+VIGIL mantiene espejos continuos en tres plataformas independientes:
 
 | Node | Platform | Jurisdiction | Role |
 |------|----------|--------------|------|
@@ -85,7 +85,7 @@ CENTINEL mantiene espejos continuos en tres plataformas independientes:
 
 1. **Codeberg account** (free):
    - Sign up at https://codeberg.org with a low-attribution email.
-   - Create a repository: `VectisDev/centinel` (empty, will be populated
+   - Create a repository: `VectisDev/Vigil` (empty, will be populated
      by the first mirror run).
    - Generate a Personal Access Token: Settings → Applications →
      "Manage Access Tokens" → Generate New Token with scopes:
@@ -111,10 +111,10 @@ Actions → "New repository secret", añadir:
 
 #### C. Deploy the workflow / Desplegar el workflow
 
-Copy `mirror.yml` to `.github/workflows/mirror.yml` in the CENTINEL repo
+Copy `mirror.yml` to `.github/workflows/mirror.yml` in the VIGIL repo
 and push to `main`. The first run will be triggered automatically.
 
-Copiar `mirror.yml` a `.github/workflows/mirror.yml` en el repo CENTINEL
+Copiar `mirror.yml` a `.github/workflows/mirror.yml` en el repo VIGIL
 y hacer push a `main`. La primera ejecución se disparará automáticamente.
 
 #### D. Verify / Verificar
@@ -135,10 +135,10 @@ Después de la primera ejecución exitosa:
 
 ## 4. Verifying a mirror in case of GitHub unavailability
 
-If `github.com/VectisDev/centinel` becomes unavailable, anyone can
+If `github.com/VectisDev/Vigil` becomes unavailable, anyone can
 restore the full repository from a mirror:
 
-Si `github.com/VectisDev/centinel` deja de estar disponible, cualquiera
+Si `github.com/VectisDev/Vigil` deja de estar disponible, cualquiera
 puede restaurar el repositorio completo desde un espejo:
 
 ### From Codeberg / Desde Codeberg
@@ -176,14 +176,14 @@ Per the Treasurer agent's zero-cost mandate:
 
 Conforme al mandato de costo cero del agente Treasurer:
 
-| Resource | Tier | CENTINEL usage | Headroom |
+| Resource | Tier | VIGIL usage | Headroom |
 |----------|------|----------------|----------|
 | GitHub Actions minutes | 2,000/month free | ~30 min/month for mirroring | 98.5% available |
 | GitHub storage | 500 MB free packages | ~0 (mirroring is push-only) | 100% available |
 | Codeberg | "Fair use" no published quota | <100 MB repo, low push frequency | Well within fair use |
 | Internet Archive uploads | Free, rate-limited | ~1 bundle/day max, ~50 MB each | Within published guidelines |
 
-| Recurso | Tier | Uso CENTINEL | Margen |
+| Recurso | Tier | Uso VIGIL | Margen |
 |---------|------|--------------|--------|
 | Minutos GitHub Actions | 2,000/mes gratis | ~30 min/mes para mirror | 98.5% disponible |
 | GitHub storage | 500 MB gratis | ~0 (mirror es push-only) | 100% disponible |

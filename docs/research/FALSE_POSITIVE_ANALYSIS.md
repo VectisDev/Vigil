@@ -1,5 +1,5 @@
-# Análisis de Tasa de Falsos Positivos — CENTINEL Engine dev-v12
-# False Positive Rate Analysis — CENTINEL Engine dev-v12
+# Análisis de Tasa de Falsos Positivos — VIGIL dev-v12
+# False Positive Rate Analysis — VIGIL dev-v12
 
 **Working Paper WP-CENTINEL-2026-01**  
 **Fecha / Date:** 2026-06-07  
@@ -11,7 +11,7 @@
 ## Resumen ejecutivo / Executive Summary
 
 Este documento reporta los resultados de un análisis de tasa de falsos positivos
-(FP) sobre las reglas estadísticas del motor CENTINEL dev-v12, realizado mediante
+(FP) sobre las reglas estadísticas del motor VIGIL dev-v12, realizado mediante
 simulación Monte Carlo de 500 ensayos sobre datos sintéticos limpios calibrados
 para representar conteos de votos por departamento en Honduras.
 
@@ -21,7 +21,7 @@ presentó una tasa de falsos positivos del **100%** sobre datos limpios simulado
 (2BL, Mebane 2006) presentó una tasa del **1.2%** (6/500), por debajo del
 umbral de diseño del 5%.
 
-This document reports false positive rate analysis for the CENTINEL dev-v12
+This document reports false positive rate analysis for the VIGIL dev-v12
 statistical rules engine via 500-trial Monte Carlo simulation on clean synthetic
 data calibrated to Honduran per-department vote count distributions.
 
@@ -36,7 +36,7 @@ canonical second-digit implementation (2BL, Mebane 2006) exhibited **1.2%**
 
 ### 1.1 Contexto / Context
 
-CENTINEL aplica 23 reglas forenses sobre datos JSON del CNE de Honduras.
+VIGIL aplica 23 reglas forenses sobre datos JSON del CNE de Honduras.
 Un requisito fundamental es mantener FP < 5% sobre datos electorales limpios.
 
 La versión dev-v10 presentaba tres inconsistencias metodológicas identificadas:
@@ -49,7 +49,7 @@ La versión dev-v10 presentaba tres inconsistencias metodológicas identificadas
 
 Análisis metodológico y técnico exclusivamente. No evalúa datos electorales
 reales ni emite juicios sobre integridad de procesos electorales específicos.
-CENTINEL no afirma fraude; detecta anomalías para evaluación humana independiente.
+VIGIL no afirma fraude; detecta anomalías para evaluación humana independiente.
 
 ---
 
@@ -152,7 +152,7 @@ obligatoria (NIST Engineering Statistics Handbook, §1.3.5).
 ## 5. Reproducibilidad / Reproducibility
 
 ```bash
-git clone https://github.com/VectisDev/centinel.git
+git clone https://github.com/VectisDev/Vigil.git
 cd centinel && git checkout dev-v12
 pip install numpy scipy pandas pytest
 PYTHONPATH=src python docs/research/run_fp_analysis.py
@@ -189,7 +189,7 @@ PYTHONPATH=src python docs/research/run_fp_analysis.py
   *Working paper*, University of Michigan.
 - Mebane, W.R. Jr. (2011). Comment on "Benford's Law and the detection of
   election fraud." *Political Analysis*, 19(3), 269–272.
-- CENTINEL Project (2026). Honduras 2025 Presidential Election — CNE TREP
+- VIGIL Project (2026). Honduras 2025 Presidential Election — CNE TREP
   Snapshots (64 JSON files). Zenodo. https://doi.org/10.5281/zenodo.20598892
 
 - NIST/SEMATECH (2012). Engineering Statistics Handbook, §1.3.5.
@@ -208,4 +208,4 @@ Tegucigalpa, Honduras
 _Firma: _________________________ Fecha: _____________
 
 ---
-*CENTINEL — AGPL-3.0 — WP-CENTINEL-2026-01 v1.0*
+*VIGIL — AGPL-3.0 — WP-CENTINEL-2026-01 v1.0*

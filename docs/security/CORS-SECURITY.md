@@ -4,9 +4,9 @@
 
 ## Overview
 
-Cross-Origin Resource Sharing (CORS) controls which domains can make HTTP requests to your Centinel witness server. This document explains the risk model and configuration.
+Cross-Origin Resource Sharing (CORS) controls which domains can make HTTP requests to your Vigil witness server. This document explains the risk model and configuration.
 
-**ES: CORS controla qué dominios pueden hacer requests HTTP a tu servidor testigo Centinel. Este documento explica el modelo de riesgo y configuración.**
+**ES: CORS controla qué dominios pueden hacer requests HTTP a tu servidor testigo Vigil. Este documento explica el modelo de riesgo y configuración.**
 
 ---
 
@@ -32,7 +32,7 @@ The attacker can:
 
 ### Priority
 
-Centinel reads CORS origins in this priority order:
+Vigil reads CORS origins in this priority order:
 
 1. **Environment variable `CORS_ORIGINS`** (runtime override)
    ```bash
@@ -41,7 +41,7 @@ Centinel reads CORS origins in this priority order:
 2. **Config file** (`command_center/advanced_security_config.yaml`)
    ```yaml
    cors_allowed_origins:
-     - "https://userf8a2c4.github.io/centinel-engine"
+     - "https://userf8a2c4.github.io/vigil"
      - "http://localhost:3000"
    ```
 3. **Default: Empty list** (CORS disabled — no cross-origin requests allowed)
@@ -52,7 +52,7 @@ For the public GitHub Pages verifier + local development:
 
 ```yaml
 cors_allowed_origins:
-  - "https://userf8a2c4.github.io/centinel-engine"
+  - "https://userf8a2c4.github.io/vigil"
   - "http://localhost:3000"
 ```
 
@@ -83,7 +83,7 @@ cors_allowed_origins:
 
 ```yaml
 cors_allowed_origins:
-  - "https://userf8a2c4.github.io/centinel-engine"
+  - "https://userf8a2c4.github.io/vigil"
   - "https://auditor-org.org/verifier"
 ```
 
@@ -114,7 +114,7 @@ If you do not set `CORS_ORIGINS` or config, CORS is **disabled** (empty list).
 **When setting up a witness:**
 
 1. Decide which verifier implementations should be able to query your witness
-   - Public GitHub Pages verifier (required): `https://userf8a2c4.github.io/centinel-engine`
+   - Public GitHub Pages verifier (required): `https://userf8a2c4.github.io/vigil`
    - Academic auditors: `https://university-auditor.org/verify`
    - Your own auditor tools: `http://localhost:3000` (dev only)
 
@@ -144,4 +144,4 @@ If you're building a new verifier and want to query a witness:
 
 - [OWASP: Cross-Origin Resource Sharing (CORS)](https://owasp.org/www-community/Cross-Origin_Resource_Sharing_(CORS))
 - Mozilla MDN: [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
-- Centinel API: `src/centinel/api/main.py` (function `_load_cors_origins`)
+- Vigil API: `src/vigil/api/main.py` (function `_load_cors_origins`)

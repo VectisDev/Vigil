@@ -3,7 +3,7 @@
 ## Español
 
 ### Propósito
-Describe el flujo operativo completo de C.E.N.T.I.N.E.L. y las cadencias recomendadas para distintos modos. Se alinea con el [README](../README.md) y con el marco legal de [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
+Describe el flujo operativo completo de VIGIL y las cadencias recomendadas para distintos modos. Se alinea con el [README](../README.md) y con el marco legal de [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
 
 ### Flujo operativo detallado (6 pasos)
 1. **Captura de datos públicos**
@@ -63,7 +63,7 @@ Describe el flujo operativo completo de C.E.N.T.I.N.E.L. y las cadencias recomen
 ## English
 
 ### Purpose
-Describes the full operational flow of C.E.N.T.I.N.E.L. and recommended cadences for different modes. It aligns with the [README](../README.md) and the legal framework in [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
+Describes the full operational flow of VIGIL and recommended cadences for different modes. It aligns with the [README](../README.md) and the legal framework in [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
 
 ### Detailed operational flow (6 steps)
 1. **Capture public data**

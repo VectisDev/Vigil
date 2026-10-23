@@ -70,7 +70,7 @@ Archivo: hashes/checkpoint_frozen.json
 ### 2. Lock File
 ```
 Acción: Crear señal visible de congelamiento
-Archivo: /tmp/centinel.lock
+Archivo: /tmp/vigil.lock
 {
   "frozen_at": "2026-05-16T14:30:00Z",
   "reason": "Merkle divergence detected (40 pts) + Benford anomaly (25 pts) = 65 pts",
@@ -181,10 +181,10 @@ kill_switch:
 
 ```bash
 # Override configuración YAML
-CENTINEL_KILL_SWITCH_ENABLED=true
-CENTINEL_KILL_SWITCH_THREAT_THRESHOLD=75
-CENTINEL_KILL_SWITCH_MAX_ATTEMPTS=5
-CENTINEL_KILL_SWITCH_BACKOFF_BASE_1=2
+VIGIL_KILL_SWITCH_ENABLED=true
+VIGIL_KILL_SWITCH_THREAT_THRESHOLD=75
+VIGIL_KILL_SWITCH_MAX_ATTEMPTS=5
+VIGIL_KILL_SWITCH_BACKOFF_BASE_1=2
 ```
 
 ---
@@ -195,7 +195,7 @@ CENTINEL_KILL_SWITCH_BACKOFF_BASE_1=2
 
 ```bash
 # Panel interactivo
-centinel panel
+vigil panel
 
 # Salida esperada si está READY:
 ⚔️ Tejón (Kill Switch):  READY    (no activado)
@@ -206,10 +206,10 @@ centinel panel
 
 ### Revisar Lock File
 
-Si ves `/tmp/centinel.lock`:
+Si ves `/tmp/vigil.lock`:
 
 ```bash
-cat /tmp/centinel.lock
+cat /tmp/vigil.lock
 # Verá JSON con frozen_at, reason, recovery_state
 ```
 
@@ -309,7 +309,7 @@ Acciones:
 
 ### ¿Congelado pero debería recuperarse?
 
-**Síntoma:** `/tmp/centinel.lock` existe, pero no avanza en recuperación
+**Síntoma:** `/tmp/vigil.lock` existe, pero no avanza en recuperación
 
 **Checklist:**
 1. ¿Mirrors accesibles? `ls -la hashes/mirrors/`

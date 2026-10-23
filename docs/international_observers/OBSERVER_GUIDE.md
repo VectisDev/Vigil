@@ -1,5 +1,5 @@
-# CENTINEL — Guía Técnica para Observadores Internacionales
-# CENTINEL — Technical Guide for International Observers
+# VIGIL — Guía Técnica para Observadores Internacionales
+# VIGIL — Technical Guide for International Observers
 
 **Versión / Version:** 1.0 · **Fecha / Date:** 2026-06-07  
 **Audiencia / Audience:** OEA · Carter Center · UE EOM · OSCE/ODIHR · IFES · NDI  
@@ -7,34 +7,34 @@
 
 ---
 
-## 1. ¿Qué es CENTINEL? / What is CENTINEL?
+## 1. ¿Qué es VIGIL? / What is VIGIL?
 
-CENTINEL es un sistema de software libre que captura, encadena criptográficamente y
+VIGIL es un sistema de software libre que captura, encadena criptográficamente y
 analiza estadísticamente los datos que publica el Consejo Nacional Electoral (CNE)
 durante las elecciones en Honduras. Está diseñado para ser usado por observadores
 electorales, periodistas y ciudadanos **sin acceso especial, sin costo y sin
 necesidad de cooperación del CNE**.
 
-**Principio fundamental:** CENTINEL no afirma fraude. Detecta anomalías estadísticas
+**Principio fundamental:** VIGIL no afirma fraude. Detecta anomalías estadísticas
 en datos públicos y proporciona prueba criptográfica de integridad para evaluación
 humana independiente.
 
 ---
 
-## 2. Qué puede y qué no puede hacer CENTINEL / Capabilities and limitations
+## 2. Qué puede y qué no puede hacer VIGIL / Capabilities and limitations
 
-### ✅ Lo que CENTINEL hace / What CENTINEL does
+### ✅ Lo que VIGIL hace / What VIGIL does
 
 | Capacidad | Descripción |
 |-----------|-------------|
 | **Captura de datos** | Descarga automáticamente los JSONs del CNE cada 2-5 minutos |
 | **Cadena criptográfica** | Cada captura está enlazada con SHA-256 — cualquier modificación rompe la cadena |
 | **23 reglas forenses** | Detección automática de: apagones de comunicación, tasas imposibles, anomalías de Benford, inconsistencias aritméticas por mesa |
-| **Prueba verificable** | `verify_chain.py` — cualquier tercero puede verificar la integridad offline sin instalar CENTINEL |
+| **Prueba verificable** | `verify_chain.py` — cualquier tercero puede verificar la integridad offline sin instalar VIGIL |
 | **Anclaje Bitcoin** | OpenTimestamps: prueba temporal inmutable de que los datos existían antes de un momento dado |
 | **Reproducibilidad** | Un solo comando reproduce toda la auditoría: `make reproduce-2025-audit` |
 
-### ❌ Lo que CENTINEL NO hace / What CENTINEL does NOT do
+### ❌ Lo que VIGIL NO hace / What VIGIL does NOT do
 
 - **No analiza actas físicas** — solo los datos JSON que el CNE publica en línea
 - **No accede** a sistemas internos del CNE ni a ninguna red privada
@@ -44,7 +44,7 @@ humana independiente.
 
 ---
 
-## 3. Cómo usar CENTINEL en campo / How to use CENTINEL in the field
+## 3. Cómo usar VIGIL en campo / How to use VIGIL in the field
 
 ### Opción A — Verificar la cadena (sin instalar nada)
 
@@ -52,7 +52,7 @@ El observador solo necesita Python 3.6+ (incluido en la mayoría de sistemas):
 
 ```bash
 # Descargar el verificador standalone (sin dependencias)
-curl -O https://raw.githubusercontent.com/VectisDev/centinel/main/verify/verify_chain.py
+curl -O https://raw.githubusercontent.com/VectisDev/Vigil/main/verify/verify_chain.py
 
 # Verificar un directorio de snapshots
 python3 verify_chain.py /ruta/a/los/snapshots/
@@ -70,7 +70,7 @@ python3 verify_chain.py /ruta/a/los/snapshots/
 
 ```bash
 # Clonar (una vez)
-git clone https://github.com/VectisDev/centinel.git
+git clone https://github.com/VectisDev/Vigil.git
 cd centinel
 
 # Instalar dependencias (una vez)
@@ -130,7 +130,7 @@ casi cerrado (≥90%). Señal de inyección tardía de datos.
 
 ### Verificar la cadena de hashes
 
-Cada snapshot de CENTINEL incluye el hash SHA-256 del snapshot anterior.
+Cada snapshot de VIGIL incluye el hash SHA-256 del snapshot anterior.
 Para verificar que ningún dato fue alterado después de la captura:
 
 ```bash
@@ -162,7 +162,7 @@ y que ninguno fue modificado después de ese momento.
 
 ## 6. Neutralidad y limitaciones / Neutrality and limitations
 
-CENTINEL es políticamente neutral y metodológicamente transparente:
+VIGIL es políticamente neutral y metodológicamente transparente:
 
 - **Código abierto** (AGPL-3.0): cualquier experto puede auditar la metodología
 - **Reproducible**: los mismos datos + el mismo código = los mismos resultados
@@ -171,11 +171,11 @@ CENTINEL es políticamente neutral y metodológicamente transparente:
 
 **Limitaciones técnicas importantes para observadores:**
 
-1. CENTINEL analiza los datos *publicados* por el CNE. Si el CNE publica datos
-   incorrectos desde el origen, CENTINEL detectará las inconsistencias internas
+1. VIGIL analiza los datos *publicados* por el CNE. Si el CNE publica datos
+   incorrectos desde el origen, VIGIL detectará las inconsistencias internas
    pero no puede detectar manipulaciones previas a la publicación.
 
-2. Los hallazgos de CENTINEL son anomalías estadísticas. Su causa — error técnico,
+2. Los hallazgos de VIGIL son anomalías estadísticas. Su causa — error técnico,
    cambio metodológico, o manipulación intencional — requiere investigación adicional.
 
 3. Los umbrales han sido calibrados contra datos de Honduras 2025. Para otros países
@@ -185,21 +185,21 @@ CENTINEL es políticamente neutral y metodológicamente transparente:
 
 ## 7. Preguntas frecuentes de observadores / Observer FAQ
 
-**¿Puedo citar los hallazgos de CENTINEL en un informe oficial de observación?**
+**¿Puedo citar los hallazgos de VIGIL en un informe oficial de observación?**
 Sí, con la aclaración de que son anomalías estadísticas en datos públicos del CNE,
-no conclusiones sobre fraude. Citar como: *"El sistema CENTINEL detectó [hallazgo]
+no conclusiones sobre fraude. Citar como: *"El sistema VIGIL detectó [hallazgo]
 en los datos publicados por el CNE el [fecha]."*
 
-**¿Cómo sé que CENTINEL no ha sido manipulado?**
-El código fuente es público (github.com/VectisDev/centinel, AGPL-3.0). Cualquier
+**¿Cómo sé que VIGIL no ha sido manipulado?**
+El código fuente es público (github.com/VectisDev/Vigil, AGPL-3.0). Cualquier
 experto técnico puede auditar el código y reproducir los resultados desde los datos
 originales del CNE con un solo comando.
 
 **¿Funciona en otros países además de Honduras?**
-Sí. CENTINEL tiene configuraciones para Guatemala, El Salvador, Nicaragua, México
+Sí. VIGIL tiene configuraciones para Guatemala, El Salvador, Nicaragua, México
 y Colombia. Agregar un nuevo país requiere solo un archivo de configuración.
 
-**¿Cuánto cuesta operar CENTINEL?**
+**¿Cuánto cuesta operar VIGIL?**
 Cero. Opera completamente en la capa gratuita de GitHub. No requiere servidores,
 contratos de nube ni presupuesto operativo.
 
@@ -209,7 +209,7 @@ contratos de nube ni presupuesto operativo.
 
 | Recurso | URL |
 |---------|-----|
-| Repositorio principal | https://github.com/VectisDev/centinel |
+| Repositorio principal | https://github.com/VectisDev/Vigil |
 | Verificador de cadena | `verify/verify_chain.py` |
 | Metodología estadística | `docs/research/METHODOLOGY.md` |
 | Análisis de falsos positivos | `docs/research/FALSE_POSITIVE_ANALYSIS.md` |
@@ -219,6 +219,6 @@ contratos de nube ni presupuesto operativo.
 
 ---
 
-*CENTINEL — Software libre de auditoría electoral · AGPL-3.0*  
+*VIGIL — Software libre de auditoría electoral · AGPL-3.0*  
 *Políticamente neutral · Reproducible · Verificable por cualquier tercero*  
-*github.com/VectisDev/centinel*
+*github.com/VectisDev/Vigil*

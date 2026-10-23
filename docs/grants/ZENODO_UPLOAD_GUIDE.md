@@ -40,12 +40,12 @@ Tamaño esperado: ~70 KB
 | Campo | Valor a pegar |
 |-------|---------------|
 | **Title** | Honduras 2025 Presidential Election — CNE TREP Snapshots (64 JSON files) |
-| **Authors** | CENTINEL Project |
-| **Description** | 64 JSON snapshots captured from Honduras CNE TREP system during the count of the November 30, 2025 general elections (December 3-10, 2025). Includes national-level presidential results: candidate votes, actas totales/divulgadas/inconsistentes. Merkle root anchored to Bitcoin via OpenTimestamps: f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780. Collected and analyzed by CENTINEL (github.com/VectisDev/centinel). |
+| **Authors** | VIGIL Project |
+| **Description** | 64 JSON snapshots captured from Honduras CNE TREP system during the count of the November 30, 2025 general elections (December 3-10, 2025). Includes national-level presidential results: candidate votes, actas totales/divulgadas/inconsistentes. Merkle root anchored to Bitcoin via OpenTimestamps: f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780. Collected and analyzed by VIGIL (github.com/VectisDev/Vigil). |
 | **License** | Creative Commons Attribution 4.0 |
 | **Resource type** | Dataset |
 | **Keywords** | electoral forensics, Honduras, CNE, TREP, election data, open data, Benford law, cryptographic audit |
-| **Related identifiers** | https://github.com/VectisDev/centinel (is supplemented by) |
+| **Related identifiers** | https://github.com/VectisDev/Vigil (is supplemented by) |
 
 ### 5. Publicar y copiar el DOI
 

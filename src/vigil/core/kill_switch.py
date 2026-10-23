@@ -25,7 +25,7 @@ from .argos_protocol import ArgosLayer, DefenseStatus
 
 logger = logging.getLogger(__name__)
 
-LOCK_FILE = Path(tempfile.gettempdir()) / "centinel.lock"
+LOCK_FILE = Path(tempfile.gettempdir()) / "vigil.lock"
 FROZEN_CHECKPOINT_PATH = Path("hashes/checkpoint_frozen.json")
 
 

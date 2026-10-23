@@ -1,7 +1,7 @@
 """
-OpenTimestamps Integration for Centinel Engine.
+OpenTimestamps Integration for VIGIL.
 
-ES: Integración de OpenTimestamps para Centinel Engine.
+ES: Integración de OpenTimestamps para VIGIL.
 
 Provee anclaje criptográfico a Bitcoin blockchain vía OpenTimestamps.
 Permite auditor verificar: "Este checkpoint fue creado antes de TIMESTAMP"

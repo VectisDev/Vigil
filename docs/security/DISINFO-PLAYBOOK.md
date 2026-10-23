@@ -1,5 +1,5 @@
-# CENTINEL — Disinformation Response Playbook
-# Manual de Respuesta a Desinformación de CENTINEL
+# VIGIL — Disinformation Response Playbook
+# Manual de Respuesta a Desinformación de VIGIL
 
 **Audit finding addressed:** Point 9 — Disinformation playbook missing.
 **Hallazgo de auditoría:** Punto 9 — Ausencia de manual anti-desinformación.
@@ -34,14 +34,14 @@ a responder a nuestro encuadre en lugar de establecer el propio.*
 
 ### Public statement / Declaración pública
 
-**About CENTINEL — What it is, what it is not, and what to question**
-**Sobre CENTINEL — Qué es, qué no es, y qué cuestionar**
+**About VIGIL — What it is, what it is not, and what to question**
+**Sobre VIGIL — Qué es, qué no es, y qué cuestionar**
 
-CENTINEL is open-source software for capturing and cryptographically
+VIGIL is open-source software for capturing and cryptographically
 preserving publicly published electoral data. It is designed to be
 questioned. Here is everything a critic might want to investigate:
 
-CENTINEL es software de código abierto para capturar y preservar
+VIGIL es software de código abierto para capturar y preservar
 criptográficamente datos electorales publicados públicamente. Está
 diseñado para ser cuestionado. Aquí está todo lo que un crítico podría
 querer investigar:
@@ -49,7 +49,7 @@ querer investigar:
 **1. Who funds us / Quién nos financia:**
 No external funding as of June 9, 2026. Development is unfunded volunteer work.
 The fiscal custodian for grant receipt is IGETEL S.A. (Honduras). A full
-conflict-of-interest declaration is published at https://github.com/VectisDev/centinel/blob/main/docs. We invite scrutiny.
+conflict-of-interest declaration is published at https://github.com/VectisDev/Vigil/blob/main/docs. We invite scrutiny.
 
 **2. Who built it / Quién lo construyó:**
 Carlos Zelaya (handle: VectisDev), a software engineer in Honduras, with
@@ -67,13 +67,13 @@ do not provide that interpretation.
 
 **5. How to reproduce every finding / Cómo reproducir cada hallazgo:**
 ```bash
-git clone https://github.com/VectisDev/centinel
+git clone https://github.com/VectisDev/Vigil
 make reproduce-2025-audit
 ```
 The raw data and all processing scripts are in the repository.
 
 **6. How to find bugs in our code / Cómo encontrar errores en nuestro código:**
-Open an issue or submit a pull request at https://github.com/VectisDev/centinel. We take corrections
+Open an issue or submit a pull request at https://github.com/VectisDev/Vigil. We take corrections
 seriously and will publish corrections prominently.
 
 ---
@@ -86,14 +86,14 @@ seriously and will publish corrections prominently.
 
 ---
 
-**A1. "CENTINEL is funded by a foreign government / political party"**
-**"CENTINEL está financiado por un gobierno extranjero / partido político"**
+**A1. "VIGIL is funded by a foreign government / political party"**
+**"VIGIL está financiado por un gobierno extranjero / partido político"**
 
 *Response:*
-CENTINEL has received zero funding as of June 9, 2026. Every line of code was
+VIGIL has received zero funding as of June 9, 2026. Every line of code was
 written on a volunteer basis. Our fiscal sponsor for future grant
 applications is IGETEL S.A., a Honduran private company. All potential
-donors and institutional relationships are disclosed at https://github.com/VectisDev/centinel/blob/main/docs. The
+donors and institutional relationships are disclosed at https://github.com/VectisDev/Vigil/blob/main/docs. The
 allegation is false; if evidence exists, we invite its public presentation
 so we can address it.
 
@@ -103,7 +103,7 @@ so we can address it.
 **"El desarrollador tiene motivaciones políticas contra [partido/candidato]"**
 
 *Response:*
-CENTINEL applies identical statistical rules to all candidates and all
+VIGIL applies identical statistical rules to all candidates and all
 parties. The code is public; anyone can verify it treats all candidates
 symmetrically. We have published our methodology, thresholds, and
 false-positive analysis publicly. Our findings on HN 2025 flagged
@@ -123,7 +123,7 @@ has been since June 9, 2026. IGETEL's role is limited to fiscal custodianship
 for grant receipt — they handle banking and administrative infrastructure
 for grants under an agreed commission. IGETEL has no influence over the
 methodology, statistical thresholds, findings, or publication decisions.
-The conflict-of-interest declaration at https://github.com/VectisDev/centinel/blob/main/docs details the governance
+The conflict-of-interest declaration at https://github.com/VectisDev/Vigil/blob/main/docs details the governance
 separation. We disclosed this proactively precisely because we anticipated
 this question.
 
@@ -152,7 +152,7 @@ any grant, the amount, funder, and any conditions will be published in full.
 *Response:*
 This is a legitimate methodological concern that we take seriously. Our
 response has three parts: (1) The thresholds are documented with their
-academic and calibration basis in https://github.com/VectisDev/centinel/blob/main/docs/. (2) Before any future live
+academic and calibration basis in https://github.com/VectisDev/Vigil/blob/main/docs/. (2) Before any future live
 electoral event, we will publish a formal threshold pre-registration to a
 timestamped public record (Zenodo + OpenTimestamps) with locked thresholds
 that cannot be changed after the event begins. (3) The HN 2025 analysis
@@ -171,7 +171,7 @@ rate below 5% across our 23 rules. We acknowledge this sample size is
 below what we would want for publication in a peer-reviewed journal, and
 we have documented this limitation explicitly in [WP-CENTINEL-2026-01](docs/research/WP-CENTINEL-2026-01.md).
 We are expanding the validation to 10,000 trials. In the meantime, we
-encourage independent replication: the simulation code is at https://github.com/VectisDev/centinel/blob/main/docs and
+encourage independent replication: the simulation code is at https://github.com/VectisDev/Vigil/blob/main/docs and
 anyone can run it with any seed or trial count. What we report as
 anomalies are statistically significant under our calibration; whether
 they are causal of anything is a human judgment we do not make.
@@ -188,7 +188,7 @@ where the academic literature (Mebane 2006–2015, Klimek et al. 2012)
 suggests Benford's law can serve as an anomaly indicator rather than
 a definitive fraud detector. We use Benford as one of 23 complementary
 rules — no single rule is dispositive. When Benford fires, we note it;
-we do not conclude fraud. The full methodological discussion is at https://github.com/VectisDev/centinel/blob/main/docs.
+we do not conclude fraud. The full methodological discussion is at https://github.com/VectisDev/Vigil/blob/main/docs.
 We welcome peer review from statisticians who disagree.
 
 ---
@@ -197,7 +197,7 @@ We welcome peer review from statisticians who disagree.
 **"Los hallazgos ya eran conocidos; esto no es información nueva"**
 
 *Response:*
-Correct — CENTINEL does not claim to have discovered previously unknown
+Correct — VIGIL does not claim to have discovered previously unknown
 facts about any election. What we provide is a cryptographically
 preserved, reproducible, and timestamped record of publicly published
 data. The value is evidentiary preservation, not journalistic discovery.
@@ -210,7 +210,7 @@ independently verifiable by anyone with a laptop.
 **"Solo miraron el JSON nacional, no las actas físicas reales"**
 
 *Response:*
-Correct, and we document this explicitly. CENTINEL audits the JSON
+Correct, and we document this explicitly. VIGIL audits the JSON
 published by the CNE — it does not examine physical ballots, voting
 machines, or any in-person process. Our scope is exactly this: the
 digital data that the electoral authority chose to publish publicly.
@@ -224,14 +224,14 @@ question for human observers with physical access.
 
 ---
 
-**C1. "CENTINEL hacked the CNE servers"**
-**"CENTINEL hackeó los servidores del CNE"**
+**C1. "VIGIL hacked the CNE servers"**
+**"VIGIL hackeó los servidores del CNE"**
 
 *Response:*
-CENTINEL is a data capture tool, not an intrusion tool. It sends standard
+VIGIL is a data capture tool, not an intrusion tool. It sends standard
 HTTP GET requests to publicly accessible CNE URLs — the same requests that
 any browser makes when a citizen visits the CNE website. The CNE publishes
-its results for public consumption; CENTINEL consumes them programmatically
+its results for public consumption; VIGIL consumes them programmatically
 and preserves them cryptographically. This is scraping, not hacking. Our
 code is public and anyone can verify it makes no write requests to any
 server.
@@ -249,7 +249,7 @@ third party (the Bitcoin miners), cannot be retroactively altered, and is
 verifiable by anyone with access to the Bitcoin blockchain. Once a chain
 root is anchored, the operator cannot alter any prior capture without
 breaking the hash chain and invalidating the OTS proof. The anchor
-transactions are at https://github.com/VectisDev/centinel/blob/main/docs.
+transactions are at https://github.com/VectisDev/Vigil/blob/main/docs.
 
 ---
 
@@ -271,12 +271,12 @@ question.
 **"El repositorio podría ser eliminado o modificado en GitHub"**
 
 *Response:*
-This is a valid concern and we have addressed it directly: CENTINEL
+This is a valid concern and we have addressed it directly: VIGIL
 maintains continuous mirrors on Codeberg (Germany), the Internet Archive
 (USA), and is targeting a third independent node. Every mirror operation
 is logged publicly. If the GitHub repository is taken down, the mirrors
 remain and the Internet Archive is a court-recognized preservation service.
-The mirror log is at https://github.com/VectisDev/centinel/blob/main/docs.
+The mirror log is at https://github.com/VectisDev/Vigil/blob/main/docs.
 
 ---
 
@@ -318,7 +318,7 @@ attacks.
 The methodology has been submitted for academic review to the Mathematics
 Department of UPNFM (Prof. Devis Alvarado). Peer review is ongoing. We
 invite any qualified mathematician or statistician to review the work at
-https://github.com/VectisDev/centinel/blob/main/docs/ and publish their critique. The code does not become more or less
+https://github.com/VectisDev/Vigil/blob/main/docs/ and publish their critique. The code does not become more or less
 correct based on the credentials of its author — only on whether the
 mathematics is sound.
 
@@ -328,7 +328,7 @@ mathematics is sound.
 **"Esto está diseñado para minar la confianza en las instituciones democráticas"**
 
 *Response:*
-The opposite is our goal. CENTINEL does not create doubt — it creates
+The opposite is our goal. VIGIL does not create doubt — it creates
 verifiability. When data is verifiably preserved, institutions that act
 correctly have nothing to fear. When doubt exists, it is because
 institutions have acted in ways that cannot withstand scrutiny. Opacity
@@ -347,11 +347,11 @@ electoral data for themselves rather than relying on trust alone.
 **"Esto está coordinado con la oposición [partido político]"**
 
 *Response:*
-CENTINEL is independent of all Honduran political parties. It has no
+VIGIL is independent of all Honduran political parties. It has no
 coordination, funding, communication, or organizational ties to any
 political party in Honduras or elsewhere. The methodology applies to all
 parties. If any party benefits from accurate electoral data preservation,
-it is the party that behaves correctly — CENTINEL cannot control which
+it is the party that behaves correctly — VIGIL cannot control which
 party that is.
 
 ---
@@ -361,10 +361,10 @@ party that is.
 
 *Response:*
 An institution auditing itself is, by definition, not an independent
-audit. The CNE's internal validation processes are valuable, and CENTINEL
+audit. The CNE's internal validation processes are valuable, and VIGIL
 does not question their good faith. However, international democratic
 standards (OAS, Carter Center, OSCE) consistently recommend independent
-external verification. CENTINEL provides that independence: it requires
+external verification. VIGIL provides that independence: it requires
 no CNE cooperation, no institutional accreditation, and no access beyond
 what the CNE publishes publicly.
 
@@ -374,7 +374,7 @@ what the CNE publishes publicly.
 **"Esto se usará para incitar violencia post-electoral / desestabilización"**
 
 *Response:*
-CENTINEL publishes data and statistical findings — it does not organize
+VIGIL publishes data and statistical findings — it does not organize
 political action, call for protests, or advocate for any outcome. The
 legal, political, and civic response to any findings is the exclusive
 responsibility of citizens, civil society, and legal institutions. We are
@@ -394,7 +394,7 @@ declaraciones oficiales, se activa el siguiente protocolo:
 
 ```
 Hour 0: DETECTION
-  - Monitor: Google Alerts on "CENTINEL electoral", project handles,
+  - Monitor: Google Alerts on "VIGIL electoral", project handles,
     and key personnel names.
   - Classify the attack: Category A / B / C / D / E (from Part 2).
   - Activate: Carlos + 1 trusted collaborator minimum.
@@ -476,33 +476,33 @@ Template:
 ## PART 4 — Pre-event public statement template
 ## PARTE 4 — Plantilla de declaración pública pre-evento
 
-*Publish 30 days before any electoral event CENTINEL will monitor.*
-*Publicar 30 días antes de cualquier evento electoral que CENTINEL monitoree.*
+*Publish 30 days before any electoral event VIGIL will monitor.*
+*Publicar 30 días antes de cualquier evento electoral que VIGIL monitoree.*
 
 ---
 
-**[EN]** CENTINEL is preparing to monitor the [EVENT NAME] on June 9, 2026.
+**[EN]** VIGIL is preparing to monitor the [EVENT NAME] on June 9, 2026.
 Before the event, we are publishing:
 
-1. Our full methodology: https://github.com/VectisDev/centinel/blob/main/docs/
-2. Our statistical thresholds, pre-registered and timestamped: https://github.com/VectisDev/centinel/blob/main/docs/
-3. Our operator identity and institutional relationships: https://github.com/VectisDev/centinel/blob/main/docs/
-4. Our conflict-of-interest declaration: https://github.com/VectisDev/centinel/blob/main/docs/
-5. Our false-positive analysis: https://github.com/VectisDev/centinel/blob/main/docs/
-6. Instructions to independently reproduce our setup: https://github.com/VectisDev/centinel/blob/main/docs/
+1. Our full methodology: https://github.com/VectisDev/Vigil/blob/main/docs/
+2. Our statistical thresholds, pre-registered and timestamped: https://github.com/VectisDev/Vigil/blob/main/docs/
+3. Our operator identity and institutional relationships: https://github.com/VectisDev/Vigil/blob/main/docs/
+4. Our conflict-of-interest declaration: https://github.com/VectisDev/Vigil/blob/main/docs/
+5. Our false-positive analysis: https://github.com/VectisDev/Vigil/blob/main/docs/
+6. Instructions to independently reproduce our setup: https://github.com/VectisDev/Vigil/blob/main/docs/
 
 We welcome independent parallel monitoring by any party that wishes to
 verify our findings during the event.
 
-**[ES]** CENTINEL se prepara para monitorear [NOMBRE DEL EVENTO] el
+**[ES]** VIGIL se prepara para monitorear [NOMBRE DEL EVENTO] el
 [FECHA]. Antes del evento, publicamos:
 
-1. Metodología completa: https://github.com/VectisDev/centinel/blob/main/docs/
-2. Umbrales estadísticos, pre-registrados con timestamp: https://github.com/VectisDev/centinel/blob/main/docs/
-3. Identidad del operador y relaciones institucionales: https://github.com/VectisDev/centinel/blob/main/docs/
-4. Declaración de conflicto de interés: https://github.com/VectisDev/centinel/blob/main/docs/
-5. Análisis de tasa de falsos positivos: https://github.com/VectisDev/centinel/blob/main/docs/
-6. Instrucciones para reproducir nuestra configuración de forma independiente: https://github.com/VectisDev/centinel/blob/main/docs/
+1. Metodología completa: https://github.com/VectisDev/Vigil/blob/main/docs/
+2. Umbrales estadísticos, pre-registrados con timestamp: https://github.com/VectisDev/Vigil/blob/main/docs/
+3. Identidad del operador y relaciones institucionales: https://github.com/VectisDev/Vigil/blob/main/docs/
+4. Declaración de conflicto de interés: https://github.com/VectisDev/Vigil/blob/main/docs/
+5. Análisis de tasa de falsos positivos: https://github.com/VectisDev/Vigil/blob/main/docs/
+6. Instrucciones para reproducir nuestra configuración de forma independiente: https://github.com/VectisDev/Vigil/blob/main/docs/
 
 Damos la bienvenida al monitoreo paralelo independiente de cualquier
 parte que desee verificar nuestros hallazgos durante el evento.

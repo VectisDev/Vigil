@@ -2,7 +2,7 @@
 
 > Referencia rápida de lo que VIGIL puede solicitar hoy, por país.
 > Los números de intervalo son **los que el poller impone automáticamente**
-> (`resolve_safe_interval` en `src/centinel/core/poller_async.py`), no aspiraciones.
+> (`resolve_safe_interval` en `src/vigil/core/poller_async.py`), no aspiraciones.
 
 ## Cómo leer esta tabla
 
@@ -115,7 +115,7 @@ resultados en tiempo real que monitorear.
 
 ## Notas sobre los límites
 
-- **Piso ético inquebrantable: 3 minutos.** Solo `CENTINEL_CEILING_UNLOCKED=1` (ritual de
+- **Piso ético inquebrantable: 3 minutos.** Solo `VIGIL_CEILING_UNLOCKED=1` (ritual de
   emergencia del panel `/ops`, preset "Apagón / Crítico") lo baja — y aun así el
   presupuesto por host se sigue respetando; nunca se abusa del servidor ajeno.
 - **Capacidad tope: 100 endpoints** (`MAX_ENDPOINTS`). Configuraciones mayores se truncan
@@ -128,7 +128,7 @@ resultados en tiempo real que monitorear.
   está pendiente; PDF (actas escaneadas) requiere OCR, fuera de alcance por ahora.
 - **Fuentes:** política de rate limit en [`config/prod/rate_limiter.yaml`](../../config/prod/rate_limiter.yaml)
   y [`docs/RATE_LIMITING.md`](../RATE_LIMITING.md); presets en
-  [`src/centinel/countries.py`](../../src/centinel/countries.py).
+  [`src/vigil/countries.py`](../../src/vigil/countries.py).
 
 > Tabla generada a partir de los presets reales de `countries.py` y de la función
 > `resolve_safe_interval`. Para regenerarla tras cambiar divisiones o el techo de rate

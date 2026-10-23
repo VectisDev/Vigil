@@ -3,7 +3,7 @@
 **Version:** 1.0 | **Date:** 2026-05-18 | **Status:** Active
 
 ## Contexto
-Esta nota resume qué puede presentar hoy C.E.N.T.I.N.E.L. en conversaciones de alto nivel con entes como OEA/UE/Carter Center, y qué reforzar para aumentar confianza externa.
+Esta nota resume qué puede presentar hoy VIGIL en conversaciones de alto nivel con entes como OEA/UE/Carter Center, y qué reforzar para aumentar confianza externa.
 
 ## Lo que ya está listo
 
@@ -62,7 +62,7 @@ Esta nota resume qué puede presentar hoy C.E.N.T.I.N.E.L. en conversaciones de 
 # Institutional Readiness for Multilateral Observation Partners
 
 ## Context
-This note summarizes what C.E.N.T.I.N.E.L. can already present in serious conversations with organizations such as OAS/EU/Carter Center, and what should be strengthened to raise external confidence.
+This note summarizes what VIGIL can already present in serious conversations with organizations such as OAS/EU/Carter Center, and what should be strengthened to raise external confidence.
 
 ## What is already ready
 

@@ -46,6 +46,6 @@ const validateConfig = () => {
 };
 
 validateConfig();
-logger.info({ msg: "Centinel Engine starting", version: config.version, chain: config.chain });
+logger.info({ msg: "VIGIL starting", version: config.version, chain: config.chain });
 
 scheduler.start();

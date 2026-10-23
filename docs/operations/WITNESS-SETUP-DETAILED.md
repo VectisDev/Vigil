@@ -2,9 +2,9 @@
 
 **ES: Configuración de Testigo — Guía Paso a Paso Detallada**
 
-Instructions for a new organization becoming a Centinel witness operator.
+Instructions for a new organization becoming a Vigil witness operator.
 
-**ES: Instrucciones para que una nueva organización se convierta en operador de testigo Centinel.**
+**ES: Instrucciones para que una nueva organización se convierta en operador de testigo Vigil.**
 
 ---
 
@@ -28,8 +28,8 @@ Instructions for a new organization becoming a Centinel witness operator.
 
 ```bash
 cd /opt
-git clone https://github.com/userf8a2c4/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/VectisDev/Vigil.git
+cd vigil
 ```
 
 **Verify:**
@@ -55,7 +55,7 @@ poetry shell
 
 **Verify:**
 ```bash
-poetry run python -c "import centinel; print('Centinel core OK')"
+poetry run python -c "import centinel; print('Vigil core OK')"
 ```
 
 ---
@@ -140,9 +140,9 @@ git config user.email "witness@example.com"
 
 # Create README
 cat > README.md << 'EOF'
-# Centinel Mirror — [Your Organization]
+# Vigil Mirror — [Your Organization]
 
-Checkpoint mirror for Centinel witness operated by [Your Organization].
+Checkpoint mirror for Vigil witness operated by [Your Organization].
 
 Checkpoints updated weekly (or more frequently during elections).
 
@@ -159,7 +159,7 @@ git commit -m "Initial mirror repository"
 git remote add origin https://github.com/your-org/centinel-mirror.git
 git push -u origin main
 
-cd ../..  # Back to centinel-engine root
+cd ../..  # Back to vigil root
 ```
 
 ---
@@ -173,13 +173,13 @@ Create a cron job to run `centinel snapshot` every 5 minutes:
 crontab -e
 
 # Add line:
-*/5 * * * * cd /opt/centinel-engine && poetry run centinel snapshot >> logs/cron.log 2>&1
+*/5 * * * * cd /opt/vigil && poetry run centinel snapshot >> logs/cron.log 2>&1
 ```
 
 **Verify cron is running:**
 ```bash
 # Check recent cron output
-tail -20 /opt/centinel-engine/logs/cron.log
+tail -20 /opt/vigil/logs/cron.log
 
 # Should see snapshot creation messages
 ```
@@ -212,7 +212,7 @@ export B2_APPLICATION_KEY="your-key"
 **Test backup:**
 ```bash
 poetry run python -c "
-from centinel.backup import backup_hashes
+from vigil.backup import backup_hashes
 backup_hashes()
 print('Backup successful')
 "
@@ -250,7 +250,7 @@ Create a cron job for weekly checkpoints (e.g., Sunday at 00:00 UTC):
 crontab -e
 
 # Add line (Sunday at 00:00 UTC):
-0 0 * * 0 cd /opt/centinel-engine && \
+0 0 * * 0 cd /opt/vigil && \
   poetry run centinel checkpoint --create && \
   git -C hashes/mirrors add checkpoint-*.json && \
   git -C hashes/mirrors commit -m "Weekly checkpoint" && \
@@ -275,7 +275,7 @@ If you want auditors to query your witness via REST API:
 
 ```bash
 # Start API server
-poetry run uvicorn centinel.api.main:app --host 0.0.0.0 --port 8000 &
+poetry run uvicorn vigil.api.main:app --host 0.0.0.0 --port 8000 &
 
 # Test endpoint
 curl -s http://localhost:8000/api/health
@@ -289,14 +289,14 @@ curl -s http://localhost:8000/api/health
 # Create service file
 sudo tee /etc/systemd/system/centinel.service > /dev/null << 'EOF'
 [Unit]
-Description=Centinel Witness Engine
+Description=Vigil Witness Engine
 After=network.target
 
 [Service]
 User=centinel
-WorkingDirectory=/opt/centinel-engine
-ExecStart=/opt/centinel-engine/.venv/bin/python \
-  -m uvicorn centinel.api.main:app --host 0.0.0.0 --port 8000
+WorkingDirectory=/opt/vigil
+ExecStart=/opt/vigil/.venv/bin/python \
+  -m uvicorn vigil.api.main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
 
@@ -322,8 +322,8 @@ sudo certbot certonly --standalone -d witness.example.com
 
 # Option B: Self-signed (for testing)
 openssl req -new -x509 -days 365 -nodes \
-  -out /opt/centinel-engine/cert.pem \
-  -keyout /opt/centinel-engine/key.pem
+  -out /opt/vigil/cert.pem \
+  -keyout /opt/vigil/key.pem
 
 # Configure nginx reverse proxy
 sudo tee /etc/nginx/sites-available/centinel > /dev/null << 'EOF'
@@ -358,7 +358,7 @@ Create a public file announcing your witness:
 
 ```bash
 cat > hashes/WITNESS.md << 'EOF'
-# Centinel Witness — [Your Organization]
+# Vigil Witness — [Your Organization]
 
 Operated by: [Organization Name]  
 Public key: [operator_public.pem]  
@@ -403,7 +403,7 @@ Once your witness is live:
 
 1. **Email electoral authority:** Announce your witness, provide URL + public key
 2. **Email auditors:** Provide witness URL + instructions to verify
-3. **Update Centinel registry:** PR to add your mirror to master list (https://github.com/userf8a2c4/centinel-engine/pulls)
+3. **Update Vigil registry:** PR to add your mirror to master list (https://github.com/VectisDev/Vigil/pulls)
 
 ---
 
@@ -413,7 +413,7 @@ Before elections, run comprehensive tests:
 
 ```bash
 # Health check
-poetry run centinel status
+poetry run vigil status
 
 # Verify chain integrity
 poetry run centinel verify --chain
@@ -422,7 +422,7 @@ poetry run centinel verify --chain
 curl -s https://witness.example.com/api/health
 
 # Test backup
-poetry run python -c "from centinel.backup import backup_hashes; backup_hashes()"
+poetry run python -c "from vigil.backup import backup_hashes; backup_hashes()"
 
 # Test sibling connectivity
 for sibling in sibling-1.example.com sibling-2.example.com; do

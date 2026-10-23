@@ -37,10 +37,10 @@ polling_rate_limit:
   state_path: data/temp/polling_rate_limit.json
 headers:
   Accept: application/json
-  User-Agent: C.E.N.T.I.N.E.L./1.0
+  User-Agent: VIGIL/1.0
 use_playwright: false
 playwright_stealth: true
-playwright_user_agent: C.E.N.T.I.N.E.L./1.0
+playwright_user_agent: VIGIL/1.0
 playwright_viewport:
   width: 1280
   height: 720
@@ -176,7 +176,7 @@ sources:
   scope: DEPARTMENT
 logging:
   level: INFO
-  file: C.E.N.T.I.N.E.L.log
+  file: VIGILlog
 alerts:
   critical_anomaly_types:
   - ARITHMETIC_MISMATCH

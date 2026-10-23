@@ -1,5 +1,5 @@
 """
-SchemaAdapter: converts raw electoral payloads into Centinel Snapshot objects.
+SchemaAdapter: converts raw electoral payloads into Vigil Snapshot objects.
 
 Each country's electoral authority publishes data in its own format. This
 module provides adapters that parse those formats into the canonical
@@ -94,7 +94,7 @@ def _dept_code_from_filename(filename: str) -> str:
 
 @dataclass
 class AdaptedSnapshot:
-    """Parsed CNE data ready to be stored as a Centinel Snapshot."""
+    """Parsed CNE data ready to be stored as a Vigil Snapshot."""
 
     timestamp_utc: str          # ISO 8601, from CNE filename (NOT wall clock)
     country_code: str           # "HN"

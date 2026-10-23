@@ -8,7 +8,7 @@
 - **Verificación:** Presente y funcionante
 
 ### 2. ✅ UNIFICACIÓN DE Z-SCORE - IMPLEMENTADO
-- **Módulo:** `src/centinel/core/rules/zscore_unified.py`
+- **Módulo:** `src/vigil/core/rules/zscore_unified.py`
 - **Familias:**
   - Familia A (Proportion): Para vote shares, turnout. SE = √(p₀(1-p₀)/n)
   - Familia B (Empirical): Para counts, deltas. Std con ddof=1
@@ -22,7 +22,7 @@
 - **Referencia:** NIST Engineering Statistics Handbook, Agresti & Coull (1998), Wald test
 
 ### 3. ✅ UNIFICACIÓN DE BENFORD - ARQUITECTURA CLARA
-- **Módulo:** `src/centinel/core/rules/benford_unified.py`
+- **Módulo:** `src/vigil/core/rules/benford_unified.py`
 - **Canonical Test:** Benford 2nd-digit (2BL)
   - Mebane (2006, 2010): Robust para datos electorales
   - FP rate < 5% en Honduras 2025 vs 100% para 1er dígito

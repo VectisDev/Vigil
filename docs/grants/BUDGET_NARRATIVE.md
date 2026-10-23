@@ -1,4 +1,4 @@
-# CENTINEL — Budget Narrative
+# VIGIL — Budget Narrative
 # Narrativa Presupuestaria
 
 **Grant:** OTF Internet Freedom Fund IFF-2026-06  
@@ -10,11 +10,11 @@
 
 ## Principio presupuestario / Budgetary principle
 
-CENTINEL opera a **costo cero absoluto** — sin servidores, sin contratos de nube,
+VIGIL opera a **costo cero absoluto** — sin servidores, sin contratos de nube,
 sin licencias de software. Los fondos solicitados no financian operación; financian
 **validación, expansión académica e impacto documentado**.
 
-CENTINEL operates at **zero operational cost** — no servers, no cloud contracts,
+VIGIL operates at **zero operational cost** — no servers, no cloud contracts,
 no software licenses. Requested funds do not finance operations; they finance
 **validation, academic expansion, and documented impact**.
 
@@ -32,7 +32,7 @@ no software licenses. Requested funds do not finance operations; they finance
 | Publicación open-access (arXiv + journal submission) | USD 2,000 | APCs si se acepta en revista Q1; arXiv es gratuito |
 
 *Justificación:* La validación académica independiente es el único gap técnico
-que CENTINEL no puede resolver internamente. El Prof. Alvarado de la UPNFM ya
+que VIGIL no puede resolver internamente. El Prof. Alvarado de la UPNFM ya
 conoce el proyecto; los fondos permiten formalizar la colaboración.
 
 ---
@@ -47,7 +47,7 @@ conoce el proyecto; los fondos permiten formalizar la colaboración.
 | Adaptación de schemas JSON para 2 países nuevos | USD 4,000 | 100 hrs desarrollo × $40/hr |
 | Documentación localizada (ES) para cada país | USD 3,000 | Guías de observadores adaptadas al contexto local |
 
-*Justificación:* CENTINEL ya tiene configuraciones para GT y SV en el código.
+*Justificación:* VIGIL ya tiene configuraciones para GT y SV en el código.
 Los fondos financian la prueba de campo real, no el desarrollo desde cero.
 Costo por país adicional: ~$7,500 — fracción del costo de una misión de observación.
 
@@ -62,7 +62,7 @@ Costo por país adicional: ~$7,500 — fracción del costo de una misión de obs
 | Infraestructura de opsec para operadores | USD 2,000 | Equipos seguros, VPN empresarial, gestión de claves para operadores en campo |
 | Capacitación en seguridad digital para operadores | USD 2,000 | Talleres con periodistas y sociedad civil en HN, GT, SV |
 
-*Justificación:* CENTINEL opera en entornos de alto riesgo. La auditoría
+*Justificación:* VIGIL opera en entornos de alto riesgo. La auditoría
 independiente es un requisito para ser tomado en serio por misiones internacionales
 y es exigida explícitamente por OTF en proyectos de tecnología electoral.
 
@@ -114,14 +114,14 @@ Una presentación ante la OEA vale más que 10 comunicados de prensa.
 
 ## Sostenibilidad post-grant / Post-grant sustainability
 
-Al término del período de financiamiento, CENTINEL continuará operando a costo
+Al término del período de financiamiento, VIGIL continuará operando a costo
 cero en GitHub free tier, con el código publicado bajo AGPL-3.0. La validación
 académica y la expansión regional son inversiones de una sola vez; el sistema
 no requiere mantenimiento continuo pagado.
 
-**CENTINEL es sostenible por diseño — no por financiamiento recurrente.**
+**VIGIL es sostenible por diseño — no por financiamiento recurrente.**
 
 ---
 
-*CENTINEL — AGPL-3.0 — docs/grants/BUDGET_NARRATIVE.md v1.0*  
+*VIGIL — AGPL-3.0 — docs/grants/BUDGET_NARRATIVE.md v1.0*  
 *OTF Internet Freedom Fund IFF-2026-06 · USD 75,000 · 18 meses*

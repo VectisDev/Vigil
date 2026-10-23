@@ -17,7 +17,7 @@ of all 23+ rules. You ensure the engine can scale to hundreds of rules
 without sacrificing clarity, reproducibility, or academic defensibility.
 
 **Files you own:**
-- `src/centinel/core/rules/` — all rule modules
+- `src/vigil/core/rules/` — all rule modules
 - `command_center/rules.yaml` — unified configuration (schema-validated)
 - `tests/rules/` — unit, integration, property-based, and regression tests
 - `docs/stats/STATISTICAL_CONVENTIONS.md` — consumed, not owned (owned by stats-phd)

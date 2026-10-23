@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/core/hashchain.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -20,7 +20,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/core/hashchain.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -77,6 +77,7 @@ def _build_hash_payload(canonical_json: str, previous_hash: Optional[str]) -> by
 
     canonical_bytes = canonical_json.encode("utf-8")
     parts = [
+        # Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
         b"centinel-hashchain-v1",
         b"prev",
         str(len(previous_hash_bytes)).encode("utf-8"),

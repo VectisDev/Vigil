@@ -2,7 +2,7 @@
 
 ## Overview
 
-CENTINEL implements ethical rate limiting for scraping electoral authority websites.
+VIGIL implements ethical rate limiting for scraping electoral authority websites.
 This document describes the research-backed limits, the legal basis, and the
 operational modes available.
 
@@ -91,7 +91,7 @@ configure their own rules. Recommended thresholds from Cloudflare documentation:
 
 ## Hard Ceilings
 
-CENTINEL enforces absolute ceilings that **no preset can exceed**:
+VIGIL enforces absolute ceilings that **no preset can exceed**:
 
 | Ceiling | Value | Rationale |
 |---------|-------|-----------|
@@ -101,7 +101,7 @@ CENTINEL enforces absolute ceilings that **no preset can exceed**:
 
 ## Poller Capacity: Endpoints per Host vs. Minimum Interval
 
-The async poller (`src/centinel/core/poller_async.py`) supports up to
+The async poller (`src/vigil/core/poller_async.py`) supports up to
 **100 endpoints** (`MAX_ENDPOINTS`, enforced — larger configs are truncated)
 with a **3-minute ethical floor** (`ETHICAL_FLOOR_SECONDS`). Fetching 100
 endpoints in parallel takes seconds; the binding constraint is the per-host
@@ -122,28 +122,28 @@ With the 480 req/h hard ceiling:
 
 The stretch is automatic and transparent: a warning is logged and the
 effective interval is written to `latest_cycle.json` on every cycle.
-`CENTINEL_CEILING_UNLOCKED=1` (the /ops "Apagón / Crítico" unlock ritual)
+`VIGIL_CEILING_UNLOCKED=1` (the /ops "Apagón / Crítico" unlock ritual)
 bypasses the 3-minute floor but **never** the per-host budget — the target
 server's protection is not negotiable.
 
 The poller also retries per endpoint (3 attempts, exponential backoff,
 `Retry-After` honored on 429/5xx) and batches git pushes
-(`CENTINEL_PUSH_EVERY_N`, default 5 cycles, with pull-rebase retry) so
+(`VIGIL_PUSH_EVERY_N`, default 5 cycles, with pull-rebase retry) so
 overlapping poller slots do not drop cycles.
 
 ### Custom Mode
 
 Only user-created "custom" presets can bypass these ceilings. When a user creates
-a custom preset that exceeds the hard ceiling, CENTINEL:
+a custom preset that exceeds the hard ceiling, VIGIL:
 1. Allows the configuration (operator assumes responsibility)
 2. Logs a CRITICAL warning
 3. Labels the mode as "custom" in all telemetry
-4. Does NOT label it as a CENTINEL preset
+4. Does NOT label it as a VIGIL preset
 
 This ensures that aggressive scraping beyond research-backed limits is always
-an explicit operator decision, never a CENTINEL default.
+an explicit operator decision, never a VIGIL default.
 
-## Red Lines (what CENTINEL never does)
+## Red Lines (what VIGIL never does)
 
 - More than 10 req/sec sustained to a single endpoint
 - Ignore 429/503 responses (always backs off)
@@ -177,7 +177,7 @@ modes:
 ### Runtime switching
 
 ```python
-from centinel_engine.rate_limiter import switch_mode
+from vigil_engine.rate_limiter import switch_mode
 
 switch_mode("electoral")         # Switch to election night mode
 switch_mode("aggressive")        # Switch to blackout/critical mode
@@ -194,11 +194,11 @@ exceed them.
 
 ### 1. Honest User-Agent
 
-All requests use `Centinel-Engine/1.0 (+https://github.com/VectisDev/centinel)`.
+All requests use `Vigil-Engine/1.0 (+https://github.com/VectisDev/Vigil)`.
 No fake browser UAs (Chrome/Firefox/Safari). The User-Agent links to the open-source
 project so any server admin can verify our mission.
 
-Implementation: `centinel_engine/proxy_manager.py:USER_AGENT_POOL`
+Implementation: `vigil_engine/proxy_manager.py:USER_AGENT_POOL`
 
 ### 2. robots.txt Respect
 
@@ -212,10 +212,10 @@ Implementation: `scripts/download_and_hash.py:_check_robots_allowed()`
 
 When the server sends a `Retry-After` header in a 429/503 response, the rate
 limiter uses that value as the minimum wait time. The server's explicit directive
-always takes priority over CENTINEL's internal backoff calculations.
+always takes priority over VIGIL's internal backoff calculations.
 
-Implementation: `src/centinel/downloader.py:_perform_request()` extracts the header,
-`centinel_engine/rate_limiter.py:notify_response()` enforces it.
+Implementation: `src/vigil/downloader.py:_perform_request()` extracts the header,
+`vigil_engine/rate_limiter.py:notify_response()` enforces it.
 
 ## Adaptive Behavior
 

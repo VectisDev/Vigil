@@ -1,7 +1,7 @@
-# Centinel Performance Roadmap 2026
+# Vigil Performance Roadmap 2026
 
 ## Objetivo
-Optimizar Centinel para soportar 1000+ nodos sin degradación de performance ni costos lineales.
+Optimizar Vigil para soportar 1000+ nodos sin degradación de performance ni costos lineales.
 
 ---
 
@@ -18,8 +18,8 @@ Optimizar Centinel para soportar 1000+ nodos sin degradación de performance ni 
 ```
 
 **Archivos a modificar:**
-- `src/centinel/swarm/gossip.py` → agregar telemetría
-- `src/centinel/audit/validator.py` → medir validación
+- `src/vigil/swarm/gossip.py` → agregar telemetría
+- `src/vigil/audit/validator.py` → medir validación
 
 **Métrica de éxito:** Dashboard mostrando 95th percentile de cada métrica
 
@@ -42,7 +42,7 @@ Propuesta:
 
 **Implementación:**
 ```python
-# src/centinel/audit/forensic.py
+# src/vigil/audit/forensic.py
 class ForensicLogger:
   def __init__(self, retention_days=30, archive_after=7):
     self.rotation_policy = RotationPolicy(
@@ -82,7 +82,7 @@ Propuesta:
 
 **Implementación:**
 ```python
-# src/centinel/reputation/cache.py
+# src/vigil/reputation/cache.py
 class ReputationCache:
   def __init__(self, redis_client, ttl_seconds=3600):
     self.redis = redis_client
@@ -124,7 +124,7 @@ Propuesta:
 
 **Implementación:**
 ```python
-# src/centinel/swarm/gossip.py
+# src/vigil/swarm/gossip.py
 class AdaptiveGossip:
   def calculate_fanout(self, round_metrics):
     avg_latency = round_metrics.avg_latency_ms
@@ -168,7 +168,7 @@ Propuesta:
 
 **Implementación:**
 ```python
-# src/centinel/audit/validator.py
+# src/vigil/audit/validator.py
 class ParallelValidator:
   def __init__(self, worker_count=4):
     self.workers = [Worker() for _ in range(worker_count)]

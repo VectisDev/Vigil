@@ -60,7 +60,7 @@ run_url   = f"https://github.com/{OWNER}/{REPO}/actions/runs/{RUN_ID}"
 
 lines = [
     "=" * 62,
-    "  CENTINEL — CLAVES DE ACCESO AL PANEL OPS",
+    "  VIGIL — CLAVES DE ACCESO AL PANEL OPS",
     "=" * 62,
     f"  País:      {COUNTRY}",
     f"  Generado:  {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",

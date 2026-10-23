@@ -4,7 +4,7 @@
 
 
 
-# [ES] Notas de Parche – C.E.N.T.I.N.E.L.
+# [ES] Notas de Parche – VIGIL
 
 **Versión:** v0.X.X (o fecha/commit si no hay release aún)  
 **Fecha:** 08-ene-2026  
@@ -29,13 +29,13 @@
 - [cualquier advertencia, plan futuro, agradecimiento a feedback, etc.]
 - [si aplica: enlace a issue/PR relacionado]
 
-**Objetivo de C.E.N.T.I.N.E.L.:** Monitoreo independiente, neutral y transparente de datos electorales públicos. Solo números. Solo hechos. Código abierto MIT para el pueblo hondureño.
+**Objetivo de VIGIL:** Monitoreo independiente, neutral y transparente de datos electorales públicos. Solo números. Solo hechos. Código abierto MIT para el pueblo hondureño.
 
 
 -------------
 
 
-# [EN] Patch Notes – C.E.N.T.I.N.E.L.
+# [EN] Patch Notes – VIGIL
 
 **Version:** v0.X.X (or date/commit if no release yet)  
 **Date:** January 08, 2026  
@@ -60,4 +60,4 @@
 - [any warnings, future plans, thanks to feedback, etc.]
 - [if applicable: link to related issue/PR]
 
-**C.E.N.T.I.N.E.L. Goal:** Independent, neutral and transparent monitoring of public electoral data. Only numbers. Only facts. MIT open-source for the Honduran people.
+**VIGIL Goal:** Independent, neutral and transparent monitoring of public electoral data. Only numbers. Only facts. MIT open-source for the Honduran people.

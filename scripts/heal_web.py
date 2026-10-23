@@ -73,7 +73,7 @@ def run(dry_run: bool = False) -> int:
     healed = 0
     errors = 0
 
-    print(f"\n{BOLD}CENTINEL Web Healer{RESET}")
+    print(f"\n{BOLD}VIGIL Web Healer{RESET}")
     print(f"{'─'*50}")
 
     for rel in CRITICAL_FILES:
@@ -113,7 +113,7 @@ def run(dry_run: bool = False) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="CENTINEL web healer")
+    parser = argparse.ArgumentParser(description="VIGIL web healer")
     parser.add_argument("--dry-run", action="store_true", help="Only report, don't fix")
     args = parser.parse_args()
     sys.exit(run(dry_run=args.dry_run))

@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/utils/logs.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -23,7 +23,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/utils/logs.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -97,7 +97,7 @@ def _load_log_security_config() -> dict[str, Any]:
 # Hash chain (Cadena de hashes)
 # ---------------------------------------------------------------------------
 
-# Centinel value for the very first entry in the chain
+# Vigil value for the very first entry in the chain
 # (Valor centinela para la primera entrada en la cadena)
 _GENESIS_HASH = "0" * 64
 

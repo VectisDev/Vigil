@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Genera .env con todos los secretos necesarios para centinel-engine.
+# Genera .env con todos los secretos necesarios para vigil.
 # Ejecutar UNA VEZ en el servidor. Guardar .env de forma segura (no commitear).
 
 set -euo pipefail

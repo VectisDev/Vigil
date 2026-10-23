@@ -7,8 +7,8 @@ Documentation for rules analyzing geographic patterns and statistical
 correlations between turnout and vote share.
 
 **Archivos fuente / Source files:**
-- `src/centinel/core/rules/geographic_dispersion_rule.py`
-- `src/centinel/core/rules/correlation_participation_vote_rule.py`
+- `src/vigil/core/rules/geographic_dispersion_rule.py`
+- `src/vigil/core/rules/correlation_participation_vote_rule.py`
 
 ---
 

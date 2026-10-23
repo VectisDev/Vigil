@@ -1,4 +1,4 @@
-# Demo deployment for Centinel Engine — minimum viable for auditor verification.
+# Demo deployment for VIGIL — minimum viable for auditor verification.
 #
 # This compose file launches ONLY the FastAPI server with public /audit/* endpoints.
 # No secrets, no external storage, no proxy chain required. Designed to let an
@@ -16,7 +16,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: centinel-engine:demo
+    image: vigil:demo
     container_name: centinel-demo
     restart: unless-stopped
     command:

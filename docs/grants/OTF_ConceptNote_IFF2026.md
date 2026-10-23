@@ -143,5 +143,5 @@ El equipo ha demostrado capacidad técnica real, no solo teórica: el motor fore
 
 ---
 
-*VIGIL — AGPL-3.0 — github.com/vectisdev/centinel (repositorio aún bajo el nombre histórico CENTINEL; migración de nombre en curso)*  
+*VIGIL — AGPL-3.0 — github.com/VectisDev/Vigil (repositorio aún bajo el nombre histórico VIGIL; migración de nombre en curso)*  
 *Documento preparado por el equipo VIGIL · Junio 2026*

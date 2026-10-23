@@ -19,7 +19,7 @@ Al hacer fork y activar el primer push a `main`, el setup wizard:
 
 1. Detecta si GitHub Pages está habilitado en el repositorio.
 2. Si no lo está, intenta activarlo vía GitHub API con el token automático del workflow.
-3. Actualiza el `README.md` con el link real al panel (`https://{tu-usuario}.github.io/centinel-engine/`).
+3. Actualiza el `README.md` con el link real al panel (`https://{tu-usuario}.github.io/vigil/`).
 4. A partir de ahí, cada push a `main` que modifique `web/**` redespliega el panel automáticamente.
 
 El panel incluye datos de simulación por defecto. Los datos reales se publican cuando el motor corre.
@@ -34,7 +34,7 @@ El wizard abre un Issue en tu repositorio con un link directo. El único paso:
 2. En **"Source"**, selecciona: **GitHub Actions**
 3. Clic en **Save**
 
-El panel estará disponible en `https://{tu-usuario}.github.io/centinel-engine/` en el siguiente push.
+El panel estará disponible en `https://{tu-usuario}.github.io/vigil/` en el siguiente push.
 
 ---
 
@@ -60,11 +60,11 @@ No se requiere ningún servicio externo ni cuenta de terceros.
 <summary>Configurar dominio propio</summary>
 
 1. Ve a **Settings → Pages** de tu repositorio
-2. En **"Custom domain"**, escribe tu dominio (ej. `centinel.tudominio.org`)
-3. En tu proveedor DNS, añade un registro CNAME: `centinel.tudominio.org → {tu-usuario}.github.io`
+2. En **"Custom domain"**, escribe tu dominio (ej. `vigil.tudominio.org`)
+3. En tu proveedor DNS, añade un registro CNAME: `vigil.tudominio.org → {tu-usuario}.github.io`
 4. Activa **"Enforce HTTPS"** una vez que el dominio esté verificado
 
-El wizard actualizará el placeholder `CENTINEL_PAGES_URL` en README.md con el dominio personalizado si detecta que está configurado.
+El wizard actualizará el placeholder `VIGIL_PAGES_URL` en README.md con el dominio personalizado si detecta que está configurado.
 
 </details>
 

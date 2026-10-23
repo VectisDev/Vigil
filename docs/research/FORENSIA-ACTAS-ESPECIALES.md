@@ -5,7 +5,7 @@
 El escrutinio especial —actas con inconsistencias, apartadas y
 procesadas al final con menos escrutinio público— es históricamente el
 punto de consolidación de fraude en Honduras (2017, 2024). Hasta esta
-capa, Centinel sellaba el JSON completo del CNE pero **analizaba solo
+capa, Vigil sellaba el JSON completo del CNE pero **analizaba solo
 agregados**: detectaba que el total nacional cambiaba, no *qué mesa*
 fue modificada ni *entre qué fases*.
 
@@ -15,7 +15,7 @@ publicar detalle por mesa, todo degrada con gracia y nada se rompe.
 
 ## Dependencia honesta de la fuente
 
-Centinel audita el **JSON que publica el CNE**, no actas físicas. La
+Vigil audita el **JSON que publica el CNE**, no actas físicas. La
 efectividad de esta capa depende de qué publique el CNE:
 
 | El CNE publica… | Capacidad real |
@@ -32,12 +32,12 @@ entregue. Esta capa explota todo lo que el CNE sí publique.
 `extract_mesas()` solo miraba la raíz del JSON. El payload real del
 CNE anida las mesas dentro de `departamentos[].mesas[]`, por lo que
 toda regla basada solo en `extract_mesas` era ciega a ese detalle.
-`collect_all_mesas()` (`src/centinel/core/rules/common.py`) recorre
+`collect_all_mesas()` (`src/vigil/core/rules/common.py`) recorre
 ambos niveles y anota el departamento de origen.
 
 ## Componentes
 
-### Módulo forense — `src/centinel/core/mesa_forensics.py`
+### Módulo forense — `src/vigil/core/mesa_forensics.py`
 
 - `mesa_fingerprint(mesa)` — SHA-256 del sub-objeto canónico de la
   mesa (claves ordenadas, se excluyen claves internas `_*`). Permite

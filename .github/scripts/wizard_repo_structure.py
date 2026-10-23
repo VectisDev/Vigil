@@ -154,7 +154,7 @@ def build_tree(depts):
     readme = (
         f"# centinel-data — {COUNTRY} {YEAR}\n\n"
         f"Datos públicos de auditoría electoral.\n"
-        f"Publicados automáticamente por [Centinel](https://github.com/VectisDev/centinel).\n\n"
+        f"Publicados automáticamente por [Vigil](https://github.com/VectisDev/Vigil).\n\n"
         f"## Estructura\n\n"
         f"```\n"
         f"snapshots/\n"
@@ -174,7 +174,7 @@ def build_tree(depts):
         f"| `00` | Nacional (TODOS) | `snapshots/nacional/` |\n"
         f"{dept_list}\n\n"
         f"---\n"
-        f"*Generado automáticamente por el Setup Wizard de Centinel.*\n"
+        f"*Generado automáticamente por el Setup Wizard de Vigil.*\n"
     )
     add("README.md", readme)
 

@@ -81,7 +81,7 @@ Si detecta divergencia:
 ### Nightly Consensus Check
 
 ```python
-from centinel.federation.multi_witness import FederationCoordinator
+from vigil.federation.multi_witness import FederationCoordinator
 
 # Configuration: list of sibling witness URLs
 SIBLING_WITNESSES = [

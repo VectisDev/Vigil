@@ -1,5 +1,5 @@
 """
-Calibración de reglas Centinel contra datos reales CNE Honduras 2025.
+Calibración de reglas Vigil contra datos reales CNE Honduras 2025.
 
 Ejecutar:
     python scripts/calibrate_2025.py --data /path/to/hnd-electoral-audit-2025/data
@@ -443,7 +443,7 @@ def write_markdown_report(
     warnings = [a for a in alerts if a["severity"] == "WARNING"]
 
     lines = [
-        "# Reporte de Calibración Centinel — Honduras 2025",
+        "# Reporte de Calibración Vigil — Honduras 2025",
         "",
         f"**Fecha de análisis:** {datetime.now().strftime('%Y-%m-%d %H:%M')} UTC",
         f"**Snapshots analizados:** {len(summary)}",
@@ -531,7 +531,7 @@ def write_markdown_report(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Calibrar reglas Centinel contra JSON CNE 2025")
+    parser = argparse.ArgumentParser(description="Calibrar reglas Vigil contra JSON CNE 2025")
     parser.add_argument(
         "--data",
         type=Path,

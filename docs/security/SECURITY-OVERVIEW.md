@@ -2,8 +2,8 @@
 
 ## Current posture / Postura actual
 
-Centinel opera con enfoque de hardening progresivo y mínimo privilegio.
-Centinel operates with progressive hardening and least-privilege principles.
+Vigil opera con enfoque de hardening progresivo y mínimo privilegio.
+Vigil operates with progressive hardening and least-privilege principles.
 
 ### Zero-trust (partial)
 - Validación explícita de configuración crítica.

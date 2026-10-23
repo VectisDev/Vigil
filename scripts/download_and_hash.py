@@ -41,7 +41,7 @@ from monitoring.health import get_health_state
 from scripts.logging_utils import configure_logging, log_event
 from vigil.core.custody import sign_hash_record
 
-logger = configure_logging("vigil.download", log_file="logs/centinel.log")
+logger = configure_logging("vigil.download", log_file="logs/vigil.log")
 
 DEFAULT_CONFIG_PATH = "config.yaml"
 COMMAND_CENTER_PATH = Path("command_center") / "config.yaml"
@@ -69,7 +69,7 @@ _SCRAPE_TTL_MINUTES = int(os.getenv("VIGIL_SCRAPE_TTL_MINUTES", os.getenv("CENTI
 
 _ROBOTS_CACHE: dict[str, tuple[urllib.robotparser.RobotFileParser | None, float]] = {}
 _ROBOTS_TTL_SECONDS = 3600.0
-_CENTINEL_UA = "Centinel-Engine/1.0"
+_CENTINEL_UA = "Vigil-Engine/1.0"
 
 
 def _check_robots_allowed(url: str) -> bool:

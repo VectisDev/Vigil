@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/utils/logging_config.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -20,7 +20,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/utils/logging_config.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -126,7 +126,7 @@ def setup_logging() -> None:
         config = load_config()
         log_config = config.get("logging", {})
         level_str = str(log_config.get("level", "INFO")).upper()
-        log_file = log_config.get("file", "centinel.log")
+        log_file = log_config.get("file", "vigil.log")
         log_level = getattr(logging, level_str, logging.INFO)
 
         file_handler = logging.handlers.RotatingFileHandler(

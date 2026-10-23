@@ -3,7 +3,7 @@
 ## Español
 
 ### Propósito
-Define prácticas de seguridad para C.E.N.T.I.N.E.L., incluyendo manejo de secretos, cifrado, logging seguro y backups. Complementa [README](../README.md) y [docs/SECRETS_BACKUP.md](SECRETS_BACKUP.md).
+Define prácticas de seguridad para VIGIL, incluyendo manejo de secretos, cifrado, logging seguro y backups. Complementa [README](../README.md) y [docs/SECRETS_BACKUP.md](SECRETS_BACKUP.md).
 
 ### Gestión de secretos
 - **Variables de entorno:** usar `.env`/`.env.local` con `python-dotenv` para separar secretos del código.
@@ -42,7 +42,7 @@ Define prácticas de seguridad para C.E.N.T.I.N.E.L., incluyendo manejo de secre
 ## English
 
 ### Purpose
-Defines security practices for C.E.N.T.I.N.E.L., including secrets handling, encryption, safe logging, and backups. It complements the [README](../README.md) and [docs/SECRETS_BACKUP.md](SECRETS_BACKUP.md).
+Defines security practices for VIGIL, including secrets handling, encryption, safe logging, and backups. It complements the [README](../README.md) and [docs/SECRETS_BACKUP.md](SECRETS_BACKUP.md).
 
 ### Secrets management
 - **Environment variables:** use `.env`/`.env.local` with `python-dotenv` to keep secrets out of code.

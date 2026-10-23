@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CENTINEL — Verificador Independiente</title>
+<title>VIGIL — Verificador Independiente</title>
 <style>
   :root{
     --bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;
@@ -102,10 +102,10 @@
 </head>
 <body>
 <nav id="breadcrumb">
-  <a href="../">CENTINEL</a><span class="sep">/</span><span>Verificador Independiente</span>
+  <a href="../">VIGIL</a><span class="sep">/</span><span>Verificador Independiente</span>
 </nav>
 <div id="statusbar">
-  <span id="site-title">Proyecto CENTINEL - HN</span>
+  <span id="site-title">Proyecto VIGIL - HN</span>
 </div>
 <header>
   <div class="hwrap">
@@ -120,7 +120,7 @@
 
   <div class="panel">
     <h2>1 · <span data-i18n="cfg">Configuración</span></h2>
-    <label data-i18n="lbl-url">URL base del testigo CENTINEL (ej. https://testigo.ejemplo.org)</label>
+    <label data-i18n="lbl-url">URL base del testigo VIGIL (ej. https://testigo.ejemplo.org)</label>
     <input id="baseUrl" type="text" placeholder="https://..." autocomplete="off">
     <label data-i18n="lbl-mir">Espejos independientes (opcional, uno por línea) — para detectar divergencia</label>
     <div class="mirrors" id="mirrors">
@@ -195,7 +195,7 @@
 
 </main>
 <footer>
-  CENTINEL · open-source · AGPL-3.0 — <span data-i18n="foot">verificable por cualquiera, en cualquier país, a costo cero.</span>
+  VIGIL · open-source · AGPL-3.0 — <span data-i18n="foot">verificable por cualquiera, en cualquier país, a costo cero.</span>
 </footer>
 
 <script>
@@ -292,7 +292,7 @@ async function demoChain(tamper){
     entries.push({index:i,previous_hash:prev||null,expected_hash:h,
       timestamp_utc:new Date(Date.UTC(2025,10,30,18,0)+i*9e5).toISOString(),
       source_url:'https://resultados.cne.demo/acta/'+i,
-      software_version:'centinela-demo'});
+      software_version:'vigil-demo'});
     prev=h;
   }
   const honestRoot=await merkleRoot(entries.map(e=>e.expected_hash));

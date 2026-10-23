@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-False positive rate validation for Centinel Engine statistical rules.
+False positive rate validation for VIGIL statistical rules.
 
-ES: Validación de tasa de falsos positivos para las reglas estadísticas de Centinel Engine.
+ES: Validación de tasa de falsos positivos para las reglas estadísticas de VIGIL.
 
 Genera datos electorales sintéticos limpios (sin fraude) y corre las reglas estadísticas
 para medir con qué frecuencia generan falsos positivos.
@@ -322,7 +322,7 @@ def compute_fp_rate(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Validate false positive rates for Centinel Engine statistical rules"
+        description="Validate false positive rates for VIGIL statistical rules"
     )
     parser.add_argument(
         "--iterations", type=int, default=200,
@@ -347,14 +347,14 @@ def main() -> None:
     args = parser.parse_args()
 
     if not RULES_AVAILABLE:
-        print("[ERROR] Centinel rules not importable. Run from repo root with venv active.")
+        print("[ERROR] Vigil rules not importable. Run from repo root with venv active.")
         sys.exit(1)
 
     rng = random.Random(args.seed)
     iterations = args.iterations
     min_actas = args.min_actas
 
-    print(f"Centinel Engine — False Positive Rate Validation")
+    print(f"VIGIL — False Positive Rate Validation")
     print(f"Iterations: {iterations} | Min actas: {min_actas} | Seed: {args.seed}")
     print(f"Rules loaded: {len(RULE_MAP)}")
     print("=" * 60)

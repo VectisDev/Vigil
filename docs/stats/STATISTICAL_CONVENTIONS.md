@@ -1,9 +1,9 @@
-# CENTINEL — Convenciones Estadísticas Unificadas
-# CENTINEL — Unified Statistical Conventions
+# VIGIL — Convenciones Estadísticas Unificadas
+# VIGIL — Unified Statistical Conventions
 
 **Versión / Version:** 1.0.0
 **Fecha / Date:** 2026-06-07
-**Autor / Author:** Equipo estadístico CENTINEL
+**Autor / Author:** Equipo estadístico VIGIL
 **Revisión / Review:** Pendiente validación Prof. Devis Alvarado (UPNFM)
 
 ---
@@ -11,12 +11,12 @@
 ## Propósito / Purpose
 
 Este documento establece las convenciones estadísticas **únicas y obligatorias** para
-todo el motor de reglas de CENTINEL. Resuelve las inconsistencias identificadas en
+todo el motor de reglas de VIGIL. Resuelve las inconsistencias identificadas en
 dev-v10 (tres variantes de Z-score, tres implementaciones de Benford, umbrales
 sin justificación).
 
 This document establishes the **single mandatory** statistical conventions for the
-entire CENTINEL rules engine. It resolves the inconsistencies identified in dev-v10
+entire VIGIL rules engine. It resolves the inconsistencies identified in dev-v10
 (three Z-score variants, three Benford implementations, unjustified thresholds).
 
 ---
@@ -35,7 +35,7 @@ dev-v10 usa tres Z-scores incompatibles:
 
 ### 1.2 Convención adoptada / Adopted convention
 
-**Regla general:** CENTINEL utiliza **dos familias de Z-score** claramente separadas,
+**Regla general:** VIGIL utiliza **dos familias de Z-score** claramente separadas,
 cada una con su justificación estadística:
 
 #### Familia A — Z-score para proporciones (binomial)
@@ -104,7 +104,7 @@ datos electorales (Deckert, Myagkov & Ordeshook, 2011; Mebane, 2011).
 
 ### 2.2 Convención adoptada / Adopted convention
 
-**CENTINEL adopta una única implementación Benford canónica** con las siguientes
+**VIGIL adopta una única implementación Benford canónica** con las siguientes
 decisiones:
 
 #### Implementación principal: Benford 2do dígito (2BL)

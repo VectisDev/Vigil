@@ -19,9 +19,9 @@
  */
 
 /**
- * Utilidades de hashing para Centinel Engine.
+ * Utilidades de hashing para VIGIL.
  *
- * Hashing utilities for Centinel Engine.
+ * Hashing utilities for VIGIL.
  */
 
 import crypto from "crypto";

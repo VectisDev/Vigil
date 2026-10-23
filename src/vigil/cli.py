@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/cli.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -19,7 +19,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/cli.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -59,7 +59,7 @@ import typer
 
 from vigil.core.argos_protocol import ArgosLayer, ALL_DEFENSES
 
-app = typer.Typer(help="Centinel Engine CLI")
+app = typer.Typer(help="VIGIL CLI")
 
 
 # Subcomandos
@@ -68,9 +68,9 @@ panel_app = typer.Typer(help="Panel operador — Operador panel status")
 
 @app.callback()
 def main() -> None:
-    """Interfaz de línea de comandos de Centinel.
+    """Interfaz de línea de comandos de Vigil.
 
-    English: Centinel command line interface.
+    English: Vigil command line interface.
     """
 
 
@@ -143,7 +143,7 @@ def status() -> None:
 
     English: Show overall system status.
     """
-    typer.echo("🔍 Centinel Engine Status")
+    typer.echo("🔍 VIGIL Status")
     typer.echo("=" * 50)
 
     # Placeholder: cargar estado desde archivos
@@ -167,7 +167,7 @@ def panel_show(
     """
     typer.echo("")
     typer.echo("╔════════════════════════════════════════════════════════════════╗")
-    typer.echo("║ CENTINEL — Estado Operacional / Operational Status             ║")
+    typer.echo("║ VIGIL — Estado Operacional / Operational Status             ║")
     typer.echo("╠════════════════════════════════════════════════════════════════╣")
     typer.echo("║                                                                ║")
 

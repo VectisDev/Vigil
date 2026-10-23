@@ -19,9 +19,9 @@ Audience: Operadores · Desarrolladores / Operators · Developers
 make wizard            # abre / opens http://127.0.0.1:7474
 ```
 
-`make wizard` ejecuta `scripts/launch.py`, que arranca la API local y abre el navegador: el asistente en la primera ejecución y el panel en las siguientes. El puerto se cambia con `CENTINEL_PORT`.
+`make wizard` ejecuta `scripts/launch.py`, que arranca la API local y abre el navegador: el asistente en la primera ejecución y el panel en las siguientes. El puerto se cambia con `VIGIL_PORT`.
 
-`make wizard` runs `scripts/launch.py`, which starts the local API and opens the browser: the wizard on first run, the panel afterwards. Change the port with `CENTINEL_PORT`.
+`make wizard` runs `scripts/launch.py`, which starts the local API and opens the browser: the wizard on first run, the panel afterwards. Change the port with `VIGIL_PORT`.
 
 ### Qué hace la configuración inicial / What initial setup does
 
@@ -29,7 +29,7 @@ make wizard            # abre / opens http://127.0.0.1:7474
 
 | Paso / Step | Resultado / Result |
 |---|---|
-| Valida el país / Validates the country | Debe existir en `src/centinel/countries.py` / Must exist in `src/centinel/countries.py` |
+| Valida el país / Validates the country | Debe existir en `src/vigil/countries.py` / Must exist in `src/vigil/countries.py` |
 | Genera 12 claves de acceso / Generates 12 access keys | Se entregan en un PDF que solo se descarga una vez / Delivered in a PDF downloaded only once |
 | Escribe `web/access.json` / Writes `web/access.json` | Solo hashes de las claves, nunca las claves / Key hashes only, never the keys |
 | Escribe `.centinel-setup.json` | Marca la instancia como configurada / Marks the instance as configured |
@@ -37,9 +37,9 @@ make wizard            # abre / opens http://127.0.0.1:7474
 
 ### Operaciones posteriores / Later operations
 
-Estas llamadas exigen una clave de operador válida (cabecera `X-Centinel-Key`, que el panel envía tras iniciar sesión).
+Estas llamadas exigen una clave de operador válida (cabecera `X-Vigil-Key`, que el panel envía tras iniciar sesión).
 
-These calls require a valid operator key (`X-Centinel-Key` header, sent by the panel after login).
+These calls require a valid operator key (`X-Vigil-Key` header, sent by the panel after login).
 
 | Endpoint | ES | EN |
 |---|---|---|
@@ -78,7 +78,7 @@ Todos son opcionales: si faltan, el paso correspondiente se omite. / All are opt
 | `IA_ACCESS_KEY`, `IA_SECRET_KEY` | `mirror.yml` | Copia en Internet Archive / Internet Archive copy |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_BUCKET_NAME` | `s3-mirror.yml` | Espejo en S3 / S3 mirror |
 | `ENDPOINTS_JSON` | `poller-B.yml` | Endpoints de captura sin publicarlos en el repo / Capture endpoints kept out of the repo |
-| `CENTINEL_NTFY_TOPIC` | `audit.yml` | Notificaciones por ntfy.sh / ntfy.sh notifications |
+| `VIGIL_NTFY_TOPIC` | `audit.yml` | Notificaciones por ntfy.sh / ntfy.sh notifications |
 
 ---
 

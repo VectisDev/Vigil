@@ -166,7 +166,7 @@ geographic_dispersion:
 ## 6. Reproducibilidad / Reproducibility
 
 ```bash
-git clone https://github.com/VectisDev/centinel.git
+git clone https://github.com/VectisDev/Vigil.git
 cd centinel && git checkout dev-v12
 PYTHONPATH=src python docs/stats/run_threshold_calibration.py
 ```
@@ -191,4 +191,4 @@ Dado que los datos históricos son permanentemente inaccesibles, R8 usa
 independientemente de la fuente de datos histórica.
 
 ---
-*CENTINEL — AGPL-3.0 — docs/stats/THRESHOLD_CALIBRATION_HN2025.md v1.0*
+*VIGIL — AGPL-3.0 — docs/stats/THRESHOLD_CALIBRATION_HN2025.md v1.0*

@@ -248,16 +248,17 @@ def setup_init(req: InitRequest) -> Response:
 @router.post("/change_country")
 def change_country(
     req: ChangeCountryRequest,
-    x_centinel_key: str | None = Header(default=None),
+    x_vigil_key: str | None = Header(default=None),
+    x_centinel_key: str | None = Header(default=None),  # pre-rename header
 ) -> dict:
     """Cambia el país monitorado sin regenerar seeds.
 
     Actualiza .centinel-setup.json y command_center/config.yaml con el
     nuevo country_code. Los seeds existentes no se tocan.
     Idempotente — se puede llamar múltiples veces.
-    Requiere la clave de operador en el header ``X-Centinel-Key``.
+    Requiere la clave de operador en el header ``X-Vigil-Key`` (también acepta ``X-Centinel-Key``).
     """
-    _require_operator(x_centinel_key)
+    _require_operator(x_vigil_key or x_centinel_key)
     code = req.country_code.upper().strip()
     if code not in LATAM_COUNTRIES:
         raise HTTPException(status_code=400, detail=f"País '{code}' no soportado.")
@@ -294,13 +295,14 @@ class DiscoverRequest(BaseModel):
 @router.post("/discover_endpoints")
 def discover_endpoints(
     req: DiscoverRequest,
-    x_centinel_key: str | None = Header(default=None),
+    x_vigil_key: str | None = Header(default=None),
+    x_centinel_key: str | None = Header(default=None),  # pre-rename header
 ) -> dict:
     """Guarda main_url en endpoints.yaml y ejecuta el healer para descubrir
     los endpoints por división política del ente electoral indicado.
-    Requiere la clave de operador en el header ``X-Centinel-Key``.
+    Requiere la clave de operador en el header ``X-Vigil-Key`` (también acepta ``X-Centinel-Key``).
     """
-    _require_operator(x_centinel_key)
+    _require_operator(x_vigil_key or x_centinel_key)
     import os
     import yaml
 

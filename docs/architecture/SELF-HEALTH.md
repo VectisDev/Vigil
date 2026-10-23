@@ -23,7 +23,7 @@ Si detecta un problema → **intenta restaurar automáticamente** desde mirrors.
 ### Ejecutar Auto-Audit Ahora
 
 ```bash
-centinel audit run
+vigil audit run
 ```
 
 Salida esperada:
@@ -45,7 +45,7 @@ Salida esperada:
 ### Ver Últimos Reportes
 
 ```bash
-centinel audit history --limit 20
+vigil audit history --limit 20
 ```
 
 Ejemplo:
@@ -61,7 +61,7 @@ AUTOSANITARIA — Last 20 Reports
 ### Ver Solo Health Score
 
 ```bash
-centinel audit health
+vigil audit health
 ```
 
 Salida:
@@ -98,11 +98,11 @@ Salida:
 ### 1. Binary Integrity (Integridad Binaria)
 
 **¿Qué verifica?** MD5/SHA256 de archivos core:
-- `src/centinel/core/custody.py`
-- `src/centinel/core/kill_switch.py`
-- `src/centinel/core/argos_protocol.py`
-- `src/centinel/core/anomaly_detector.py`
-- `src/centinel/core/endpoint_monitor.py`
+- `src/vigil/core/custody.py`
+- `src/vigil/core/kill_switch.py`
+- `src/vigil/core/argos_protocol.py`
+- `src/vigil/core/anomaly_detector.py`
+- `src/vigil/core/endpoint_monitor.py`
 
 **Falla si:** Algún archivo fue modificado.
 
@@ -114,10 +114,10 @@ Salida:
 **Acción:**
 ```bash
 # Verifica git status
-git status src/centinel/core
+git status src/vigil/core
 
 # Si hay cambios no auditados
-git diff src/centinel/core
+git diff src/vigil/core
 ```
 
 ---
@@ -173,10 +173,10 @@ centinel regeneration restore --source-mirror primary
 **Acción:**
 ```bash
 # Ver cuál defensa falló
-centinel audit run --verbose | jq .defense_health
+vigil audit run --verbose | jq .defense_health
 
 # Reiniciar componente específico
-centinel status --component cuervo
+vigil status --component cuervo
 ```
 
 ---
@@ -213,12 +213,12 @@ centinel regeneration sync --force
 ### Habilitar Auto-Audit Horario
 
 ```bash
-centinel audit run --enable-cron
+vigil audit run --enable-cron
 ```
 
 Esto agrega entrada a crontab:
 ```bash
-0 * * * * /path/to/poetry -C /path/to/centinel run centinel audit run
+0 * * * * /path/to/poetry -C /path/to/vigil run vigil audit run
 ```
 
 ### Configuración Avanzada
@@ -294,8 +294,8 @@ Health Score: 50.0% 🔴
 1. **ESCALA INMEDIATAMENTE** a autoridad electoral
 2. Proporciona:
    - `hashes/attack_log.jsonl` (últimas 1000 líneas)
-   - Reporte: `centinel audit history --limit 100 > audit_report.txt`
-   - Status: `centinel panel show --verbose > status.txt`
+   - Reporte: `vigil audit history --limit 100 > audit_report.txt`
+   - Status: `vigil panel show --verbose > status.txt`
 
 ---
 
@@ -326,13 +326,13 @@ Health Score: 0.0% 🔴
 
 1. Ejecuta con verbose:
    ```bash
-   centinel audit run --verbose
+   vigil audit run --verbose
    ```
 
 2. Identifica cuál check falla:
-   - **Binary Integrity falla:** `git status src/centinel/core`
+   - **Binary Integrity falla:** `git status src/vigil/core`
    - **State Consistency falla:** `tail -100 hashes/attack_log.jsonl | jq .timestamp`
-   - **Defense Health falla:** `centinel panel show` → cuál capa del Protocolo ARGOS está down
+   - **Defense Health falla:** `vigil panel show` → cuál capa del Protocolo ARGOS está down
    - **Mirror Coherence falla:** `ping backup-mirror`
 
 3. Según el fallo:
@@ -373,11 +373,11 @@ Si hermanos están offline:
 
 | Comando | Uso |
 |---------|-----|
-| `centinel audit run` | Ejecutar audit ahora |
-| `centinel audit run --verbose` | Audit con detalles completos |
-| `centinel audit history --limit 20` | Ver últimos 20 reportes |
-| `centinel audit health` | Ver solo health score |
-| `centinel audit run --enable-cron` | Habilitar audit horario |
+| `vigil audit run` | Ejecutar audit ahora |
+| `vigil audit run --verbose` | Audit con detalles completos |
+| `vigil audit history --limit 20` | Ver últimos 20 reportes |
+| `vigil audit health` | Ver solo health score |
+| `vigil audit run --enable-cron` | Habilitar audit horario |
 
 ---
 

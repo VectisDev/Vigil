@@ -2,9 +2,9 @@
 
 ## Objetivo / Objective
 
-**Español:** Esta suite valida la resiliencia operativa del motor Centinel para auditoría electoral pública (solo JSON nacional/departamental del CNE). Se enfoca en tolerancia a fallas, recuperación, trazabilidad y disciplina de reintentos, con credibilidad técnica para matemáticos, ingenieros y observadores internacionales (OEA, Carter Center).
+**Español:** Esta suite valida la resiliencia operativa del motor Vigil para auditoría electoral pública (solo JSON nacional/departamental del CNE). Se enfoca en tolerancia a fallas, recuperación, trazabilidad y disciplina de reintentos, con credibilidad técnica para matemáticos, ingenieros y observadores internacionales (OEA, Carter Center).
 
-**English:** This suite validates operational resilience for the Centinel engine in public election audits (CNE national/department JSON only). It focuses on fault tolerance, recovery, traceability, and retry discipline to build credibility with mathematicians, engineers, and international observers (OAS, Carter Center).
+**English:** This suite validates operational resilience for the Vigil engine in public election audits (CNE national/department JSON only). It focuses on fault tolerance, recovery, traceability, and retry discipline to build credibility with mathematicians, engineers, and international observers (OAS, Carter Center).
 
 ## Requisitos de entorno / Environment setup
 

@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `core/advanced_security.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -25,7 +25,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `core/advanced_security.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -304,7 +304,7 @@ class IdentityRotator:
         self._min_rotation = max(1, int(config.rotate_every_min_polls))
         self._max_rotation = max(self._min_rotation, int(config.rotate_every_max_polls))
         self._next_rotation = random.randint(self._min_rotation, self._max_rotation)
-        self._current_ua = "Mozilla/5.0 (compatible; Centinel-Engine/1.0)"
+        self._current_ua = "Mozilla/5.0 (compatible; Vigil-Engine/1.0)"
         self._current_proxy = ""
         # Proactive first-rotation so the first request is not static.
         # Rotacion proactiva inicial para evitar perfil estatico en el primer request.
@@ -460,7 +460,7 @@ class AlertManager:
         if not server or not sender or not recipient:
             return
         msg = EmailMessage()
-        msg["Subject"] = f"[Centinel] Security Alert L{payload['level']}"
+        msg["Subject"] = f"[Vigil] Security Alert L{payload['level']}"
         msg["From"] = sender
         msg["To"] = recipient
         msg.set_content(json.dumps(payload, ensure_ascii=False, indent=2))

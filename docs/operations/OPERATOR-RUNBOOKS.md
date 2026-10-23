@@ -35,7 +35,7 @@ El topic es como un canal. No lo compartas públicamente si no quieres que otros
 **Paso 3 — Añade el secret en tu repo:**
 
 Settings → Secrets → Actions → New repository secret:
-- **Name:** `CENTINEL_NTFY_TOPIC`
+- **Name:** `VIGIL_NTFY_TOPIC`
 - **Value:** tu topic (ej: `centinel-hn-2029-alertas`)
 
 **En el teléfono:** abre la app ntfy → "+" → escribe el mismo topic → Subscribe.
@@ -51,7 +51,7 @@ Settings → Secrets → Actions → New repository secret:
 ### Prueba manual
 
 ```bash
-curl -d "Prueba de alerta Centinel" ntfy.sh/TU_TOPIC
+curl -d "Prueba de alerta Vigil" ntfy.sh/TU_TOPIC
 ```
 
 ---
@@ -81,14 +81,14 @@ El sistema abre Issues de GitHub cuando necesita intervención humana. Cada Issu
 
 ```bash
 # 1. Clonar repo
-git clone https://github.com/userf8a2c4/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/VectisDev/Vigil.git
+cd vigil
 
 # 2. Instalar dependencias
 poetry install
 
 # 3. Verificar instalación
-poetry run centinel panel show
+poetry run vigil panel show
 # Esperado: 🟢 GREEN status
 
 # 4. Configurar almacenamiento externo (mirrors)
@@ -125,7 +125,7 @@ jq '.' hashes/attack_log.jsonl | wc -l
 #### Mañana
 ```bash
 # 1. Health check rápido
-poetry run centinel panel show
+poetry run vigil panel show
 
 # 2. Ver eventos últimas 24h
 jq '.[] | select(.timestamp > "2026-05-15T00:00:00Z")' \
@@ -154,7 +154,7 @@ pgrep -f 'centinel snapshot' || echo "ALERTA: Cron no activo"
 
 ```bash
 # 1. Ver panel
-centinel panel show --verbose
+vigil panel show --verbose
 
 # 2. Identificar qué está amarillo
 # Posibilidades:
@@ -247,7 +247,7 @@ jq '.[] | select(.event == "endpoint_monitor")' hashes/attack_log.jsonl | tail -
 # 1. Exporta evidence
 tail -100 hashes/attack_log.jsonl > logs_export_$(date +%s).jsonl
 
-# 2. Contacta a Centinel team
+# 2. Contacta a Vigil team
 ```
 
 ---
@@ -279,7 +279,7 @@ Sistema acción: Kill Switch (Tejón) se congela automáticamente
 #### T+1s: Freeze ejecutado
 ```
 Panel muestra: "Tejón: 🔴 FROZEN (Intento 1/5, próximo en 1.4-2.6s)"
-Archivo creado: /tmp/centinel.lock
+Archivo creado: /tmp/vigil.lock
 Efecto: Testigo DEJA DE CAPTURAR (preserva integridad)
 ```
 
@@ -307,7 +307,7 @@ Acción: ESCALA INMEDIATAMENTE
 #### Paso 1: Observación (primeros 5 segundos)
 ```bash
 # Ver panel en vivo
-watch -n 0.5 'poetry run centinel panel show'
+watch -n 0.5 'poetry run vigil panel show'
 
 # En otra terminal: ver logs
 tail -f hashes/attack_log.jsonl | grep -E 'freeze|recovery|threat'
@@ -351,8 +351,8 @@ jq '.[] | select(.event == "kill_switch_freeze" or .event == "kill_switch_recove
 # 1. DEJA DE CAPTURAR. No hagas nada.
 
 # 2. Documenta state exacto
-centinel panel show > red_state_$(date +%s).txt
-centinel panel show --verbose >> red_state_$(date +%s).txt
+vigil panel show > red_state_$(date +%s).txt
+vigil panel show --verbose >> red_state_$(date +%s).txt
 
 # 3. Exporta logs críticos
 tail -200 hashes/attack_log.jsonl > critical_logs_$(date +%s).jsonl
@@ -404,10 +404,10 @@ which poetry
 ```bash
 # Solución (CUIDADO):
 # 1. Revisar si está realmente congelado
-cat /tmp/centinel.lock
+cat /tmp/vigil.lock
 
 # 2. Si timestamps son >1 hora atrás: remover
-rm /tmp/centinel.lock
+rm /tmp/vigil.lock
 
 # 3. Intenta captura manual
 poetry run centinel snapshot
@@ -420,7 +420,7 @@ poetry run centinel snapshot
 ### Antes (6 AM)
 ```bash
 # 1. Health check
-centinel panel show
+vigil panel show
 # Esperado: 🟢 GREEN
 
 # 2. Verifica cron
@@ -432,9 +432,9 @@ tmux new-session -d -s centinel-live \
 
 # 4. Abre panel
 tmux new-window -t centinel-live \
-  'watch -n 2 "poetry run centinel panel show"'
+  'watch -n 2 "poetry run vigil panel show"'
 
-# 5. Notifica: "Centinel LIVE"
+# 5. Notifica: "Vigil LIVE"
 ```
 
 ### Durante (7 AM — 6 PM)
@@ -490,7 +490,7 @@ jq '.[] | .merkle_root' hashes/attack_log.jsonl | wc -l
 jq '.[] | select(.event == "benford_check")' hashes/attack_log.jsonl
 
 # 3. Reporte Final
-echo "Audit Report: Centinel $(date +%Y-%m-%d)" > AUDIT_REPORT.md
+echo "Audit Report: Vigil $(date +%Y-%m-%d)" > AUDIT_REPORT.md
 echo "Total events: $(jq '.' hashes/attack_log.jsonl | wc -l)" >> AUDIT_REPORT.md
 ```
 

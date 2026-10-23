@@ -2869,7 +2869,7 @@ async function downloadEvidenceBundle(){
     // audit_trail.json
     const auditTrail={
       schema:'centinel-log-v1',
-      institution:'C.E.N.T.I.N.E.L.',
+      institution:'VIGIL',
       generated_at_utc:now,
       election_id:electionId,
       source:'JSON oficial CNE / Official CNE JSON',
@@ -2951,7 +2951,7 @@ async function downloadEvidenceBundle(){
     if(snap.forensics?.ots_proof){
       zip.file('ots_proof.json',JSON.stringify(snap.forensics.ots_proof,null,2));
     }
-    zip.file('VERIFY.txt',`CENTINEL — Instrucciones de Verificación / Verification Instructions
+    zip.file('VERIFY.txt',`VIGIL — Instrucciones de Verificación / Verification Instructions
 ======================================================================
 
 ES: Este paquete contiene evidencia criptográficamente verificable de monitoreo

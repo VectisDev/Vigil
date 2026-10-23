@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-CENTINEL — Verificador independiente de cadena de hashes.
-CENTINEL — Independent hash chain verifier.
+VIGIL — Verificador independiente de cadena de hashes.
+VIGIL — Independent hash chain verifier.
 
-This script verifies the cryptographic integrity of CENTINEL's snapshot
-chain WITHOUT requiring the CENTINEL engine or any external dependency.
+This script verifies the cryptographic integrity of VIGIL's snapshot
+chain WITHOUT requiring the VIGIL engine or any external dependency.
 Any third party — OAS, EU, Carter Center, journalist, citizen — can
 download this single file and verify the entire chain offline.
 
 Este script verifica la integridad criptográfica de la cadena de snapshots
-de CENTINEL SIN requerir el motor CENTINEL ni dependencia externa alguna.
+de VIGIL SIN requerir el motor VIGIL ni dependencia externa alguna.
 Cualquier tercero — OEA, UE, Carter Center, periodista, ciudadano — puede
 descargar este único archivo y verificar toda la cadena offline.
 
@@ -31,7 +31,7 @@ How it works / Cómo funciona:
     A single altered byte in any file breaks the chain from that point forward.
     This is the same property that makes Bitcoin's blockchain tamper-evident.
 
-License: AGPL-3.0 (same as CENTINEL)
+License: AGPL-3.0 (same as VIGIL)
 Version: 1.0.0
 """
 
@@ -183,8 +183,8 @@ def format_report(results: dict, directory: str) -> str:
     """Generate a human-readable verification report."""
     lines = [
         "=" * 70,
-        "CENTINEL — Hash Chain Verification Report",
-        "CENTINEL — Reporte de Verificación de Cadena de Hashes",
+        "VIGIL — Hash Chain Verification Report",
+        "VIGIL — Reporte de Verificación de Cadena de Hashes",
         "=" * 70,
         "",
         f"Directory / Directorio:  {os.path.abspath(directory)}",
@@ -231,8 +231,8 @@ def format_report(results: dict, directory: str) -> str:
     lines.append("-" * 70)
     lines.append("Verification tool: verify_chain.py v1.0.0")
     lines.append("Algorithm: SHA-256 (NIST FIPS 180-4)")
-    lines.append("This report was generated independently of the CENTINEL engine.")
-    lines.append("Este reporte fue generado independientemente del motor CENTINEL.")
+    lines.append("This report was generated independently of the VIGIL engine.")
+    lines.append("Este reporte fue generado independientemente del motor VIGIL.")
     lines.append("-" * 70)
 
     return "\n".join(lines)
@@ -246,7 +246,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="CENTINEL — Independent hash chain verifier / Verificador independiente de cadena de hashes",
+        description="VIGIL — Independent hash chain verifier / Verificador independiente de cadena de hashes",
         epilog="No dependencies required. Works with Python 3.6+ standard library only."
     )
     parser.add_argument("directory", help="Directory containing .json snapshot files")

@@ -1,6 +1,6 @@
 """
-Módulo canónico unificado de Ley de Benford para CENTINEL.
-Canonical unified Benford's Law module for CENTINEL.
+Módulo canónico unificado de Ley de Benford para VIGIL.
+Canonical unified Benford's Law module for VIGIL.
 
 Resuelve la triplicación de Benford en dev-v10 (Reglas 1, 2, 10e) con tres
 implementaciones con umbrales inconsistentes y sin justificación de
@@ -317,8 +317,8 @@ def benford_canonical(
     entity: Optional[str] = None,
 ) -> Optional[BenfordResult]:
     """
-    Prueba canónica de Benford (2do dígito) — test principal de CENTINEL.
-    Canonical Benford test (2nd digit) — CENTINEL's primary Benford test.
+    Prueba canónica de Benford (2do dígito) — test principal de VIGIL.
+    Canonical Benford test (2nd digit) — VIGIL's primary Benford test.
 
     config_key: benford_canonical (replaces benford_first_digit, benford_law, R10e)
 
@@ -378,7 +378,7 @@ def benford_experimental_first_digit(
         because the generating process does not satisfy Benford's logarithmic
         distribution assumption. Mebane (2011) confirmed this in his response.
 
-        In CENTINEL calibration against 96 HN 2025 JSONs, 1st-digit Benford
+        In VIGIL calibration against 96 HN 2025 JSONs, 1st-digit Benford
         triggered false positives in ~8% of clean departmental vote totals,
         vs <2% for 2nd digit.
 

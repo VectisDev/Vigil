@@ -109,7 +109,7 @@ git log --all --format='%ae %an' | grep -v "centinel\|noreply\|bot" && exit 1
 exiftool -Author -Creator -Producer report.pdf | grep -v "^$" && exit 1
 
 # Check for absolute paths in logs
-grep -r "/home/\|/Users/\|C:\\\\" src/centinel/core/logging.py && exit 1
+grep -r "/home/\|/Users/\|C:\\\\" src/vigil/core/logging.py && exit 1
 
 # Check for IP addresses in outputs
 grep -rE "\b[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b" \

@@ -1,4 +1,4 @@
-# Theory of Change — Centinel Engine
+# Theory of Change — VIGIL
 ## Teoría del Cambio / Theory of Change
 
 **Version:** 1.1 | **Date:** 2026-05-18 | **Status:** Active
@@ -24,7 +24,7 @@ custodia criptográfica de los datos digitales** al momento de la alteración.
 
 ### La Intervención
 
-Centinel Engine resuelve esto con tres mecanismos complementarios:
+VIGIL resuelve esto con tres mecanismos complementarios:
 
 1. **Captura continua**: el sistema descarga los datos oficiales del CNE cada N minutos durante
    todo el período de cómputo.
@@ -63,7 +63,7 @@ Centinel Engine resuelve esto con tres mecanismos complementarios:
 > de que ocurra, y documenta la evidencia cuando ocurre.**
 
 - Reducción del incentivo para manipular datos electorales digitales en contextos donde
-  Centinel Engine esté desplegado
+  VIGIL esté desplegado
 - Aumento de la confianza ciudadana en resultados electorales verificables
 - Estándar replicable para otros países de la región (Honduras → Guatemala → El Salvador →
   República Dominicana)
@@ -75,7 +75,7 @@ Centinel Engine resuelve esto con tres mecanismos complementarios:
 si saben que existe una cadena de custodia criptográfica verificable externamente.
 
 **H2 — Hipótesis de evidencia:** Si la manipulación ocurre a pesar de la vigilancia,
-Centinel Engine generará evidencia técnica suficientemente sólida para su uso en
+VIGIL generará evidencia técnica suficientemente sólida para su uso en
 procesos judiciales o de revisión electoral.
 
 **H3 — Hipótesis de legitimidad:** La existencia de un sistema de monitoreo independiente
@@ -88,7 +88,7 @@ y verificable aumenta la legitimidad percibida del proceso, independientemente d
 | Tiempo de detección de anomalía | < 5 minutos | Arquitectura de pipeline horario con dispatch de emergencia en ~60s |
 | Coste por elección monitorizada | $0 en licencias | AGPL-3.0, sin dependencias propietarias |
 | Coste de despliegue (hardware) | Laptop estándar | No requiere servidor dedicado ni nube |
-| Detectores estadísticos activos | 24 | Registrados en `src/centinel/core/rules/` |
+| Detectores estadísticos activos | 24 | Registrados en `src/vigil/core/rules/` |
 | Datos HN-2025 procesados | 96 archivos JSON, 18 departamentos, ~2.5M votos | Dataset `hnd-electoral-audit-2025` |
 | Tasa de falsos positivos (13/24 reglas) | 0.0% en datos sintéticos | `docs/FALSE_POSITIVE_ANALYSIS.md` |
 | Tests automatizados | ~95 archivos, 403 passing (entorno mínimo) | CI GitHub Actions |
@@ -96,7 +96,7 @@ y verificable aumenta la legitimidad percibida del proceso, independientemente d
 | Países de Centroamérica con contexto similar | 5 (Guatemala, El Salvador, Nicaragua, Costa Rica, Panamá) | Replicabilidad regional |
 | Tiempo de onboarding operador nuevo | ~15-20 minutos | `make wizard` + `make start` |
 
-### Lo que Centinel Engine NO hace
+### Lo que VIGIL NO hace
 
 - No cambia los resultados electorales
 - No detecta fraude en el conteo físico de papeletas
@@ -124,7 +124,7 @@ chain of custody of the digital data** at the time of the alteration.
 
 ### The Intervention
 
-Centinel Engine addresses this with three complementary mechanisms:
+VIGIL addresses this with three complementary mechanisms:
 
 1. **Continuous capture**: the system downloads official CNE data every N minutes throughout
    the entire vote-counting period.
@@ -163,7 +163,7 @@ Centinel Engine addresses this with three complementary mechanisms:
 > occurs, and documents the evidence when it does.**
 
 - Reduced incentive to manipulate digital electoral data in contexts where
-  Centinel Engine is deployed
+  VIGIL is deployed
 - Increased citizen trust in verifiable electoral results
 - Replicable standard for other countries in the region (Honduras → Guatemala → El Salvador
   → Dominican Republic)
@@ -174,7 +174,7 @@ Centinel Engine addresses this with three complementary mechanisms:
 **H1 — Deterrence hypothesis:** Actors with the capability to manipulate data will refrain
 from doing so if they know an externally verifiable cryptographic chain of custody exists.
 
-**H2 — Evidence hypothesis:** If manipulation occurs despite surveillance, Centinel Engine
+**H2 — Evidence hypothesis:** If manipulation occurs despite surveillance, VIGIL
 will generate technical evidence solid enough for use in judicial or electoral review processes.
 
 **H3 — Legitimacy hypothesis:** The existence of an independent, verifiable monitoring system
@@ -187,7 +187,7 @@ increases the perceived legitimacy of the process, regardless of the outcome.
 | Anomaly detection latency | < 5 minutes | Hourly pipeline + emergency dispatch (~60s) |
 | Cost per monitored election | $0 in licenses | AGPL-3.0, no proprietary dependencies |
 | Deployment cost (hardware) | Standard laptop | No dedicated server or cloud required |
-| Active statistical detectors | 24 | Registered in `src/centinel/core/rules/` |
+| Active statistical detectors | 24 | Registered in `src/vigil/core/rules/` |
 | HN-2025 data processed | 96 JSON files, 18 departments, ~2.5M votes | Dataset `hnd-electoral-audit-2025` |
 | False positive rate (13/24 rules) | 0.0% on synthetic data | `docs/FALSE_POSITIVE_ANALYSIS.md` |
 | Automated tests | ~95 files, 403 passing (minimal env) | CI GitHub Actions |
@@ -195,7 +195,7 @@ increases the perceived legitimacy of the process, regardless of the outcome.
 | Central American countries with similar context | 5 (Guatemala, El Salvador, Nicaragua, Costa Rica, Panama) | Regional replicability |
 | New operator onboarding time | ~15-20 minutes | `make wizard` + `make start` |
 
-### What Centinel Engine does NOT do
+### What VIGIL does NOT do
 
 - Does not change electoral results
 - Does not detect fraud in the physical ballot count

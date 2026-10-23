@@ -68,7 +68,7 @@ integrity_paths:
   - "scripts/run_pipeline.py"
 
 user_agents_list:
-  - "Mozilla/5.0 (compatible; Centinel-Engine/1.0)"
+  - "Mozilla/5.0 (compatible; Vigil-Engine/1.0)"
   - "Centinel-AuditoriaHN/1.0 bot"
   - "Centinel-ElectorHN/1.0 (auditoria publica)"
   - "Centinel-HN/1.0 (monitoreo electoral)"
@@ -122,5 +122,5 @@ solidity_blocked_patterns:
 #     attacker publishes verifier on other domain, makes it query your witness).
 #     Solution: explicit whitelist.
 cors_allowed_origins:
-  - "https://userf8a2c4.github.io/centinel-engine"
+  - "https://userf8a2c4.github.io/vigil"
   - "http://localhost:3000"

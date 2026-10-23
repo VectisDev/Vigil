@@ -3,11 +3,11 @@
 ## [ES] Español
 
 ### Objetivo
-Esta guía explica cómo preparar una wallet, desplegar el contrato de anclaje de C.E.N.T.I.N.E.L. y configurar `config/config.yaml` para anclar hashes en Arbitrum One.
+Esta guía explica cómo preparar una wallet, desplegar el contrato de anclaje de VIGIL y configurar `config/config.yaml` para anclar hashes en Arbitrum One.
 
 ### Pasos
 1. **Crear una wallet dedicada en MetaMask.**
-   - Genera una nueva cuenta exclusiva para C.E.N.T.I.N.E.L.
+   - Genera una nueva cuenta exclusiva para VIGIL
    - Guarda la seed phrase en un gestor seguro.
 
 2. **Depositar ETH en Arbitrum One.**
@@ -45,11 +45,11 @@ Esta guía explica cómo preparar una wallet, desplegar el contrato de anclaje d
 ## [EN] English
 
 ### Goal
-This guide explains how to prepare a wallet, deploy the C.E.N.T.I.N.E.L. anchoring contract, and configure `config/config.yaml` to anchor hashes on Arbitrum One.
+This guide explains how to prepare a wallet, deploy the VIGIL anchoring contract, and configure `config/config.yaml` to anchor hashes on Arbitrum One.
 
 ### Steps
 1. **Create a dedicated wallet in MetaMask.**
-   - Generate a new account solely for C.E.N.T.I.N.E.L.
+   - Generate a new account solely for VIGIL
    - Store the seed phrase in a secure vault.
 
 2. **Deposit ETH on Arbitrum One.**

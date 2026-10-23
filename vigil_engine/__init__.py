@@ -1,1 +1,1 @@
-"""Centinel Engine Python package."""
+"""VIGIL Python package."""

@@ -52,7 +52,7 @@ class WatchdogConfig:
         "pipeline_checkpoint.json",
         "checkpoint.json",
     )
-    log_path: str = "logs/centinel.log"
+    log_path: str = "logs/vigil.log"
     max_log_size_mb: int = 200
     max_log_growth_mb_per_min: int = 30
     lock_files: tuple[str, ...] = (
@@ -65,7 +65,7 @@ class WatchdogConfig:
     pipeline_command: tuple[str, ...] = ("python", "scripts/run_pipeline.py")
     restart_timeout_seconds: int = 30
     docker_socket_path: str = "/var/run/docker.sock"
-    docker_container_name: str = "centinel-engine"
+    docker_container_name: str = "vigil"
     state_path: str = "data/watchdog_state.json"
 
 

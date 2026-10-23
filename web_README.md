@@ -2,9 +2,9 @@
 
 **ES: Herramientas de Verificación Web**
 
-This directory contains client-side web tools for verifying Centinel witness data.
+This directory contains client-side web tools for verifying Vigil witness data.
 
-**ES: Este directorio contiene herramientas web del lado del cliente para verificar datos de testigos Centinel.**
+**ES: Este directorio contiene herramientas web del lado del cliente para verificar datos de testigos Vigil.**
 
 ---
 
@@ -118,7 +118,7 @@ Tests cover:
 
 Open in browser:
 ```
-file:///path/to/centinel-engine/web/verifier/index.html
+file:///path/to/vigil/web/verifier/index.html
 ```
 
 Click "▶ Demo" to load synthetic 24-element chain. Merkle root computes locally.
@@ -233,6 +233,6 @@ Questions?
 
 ---
 
-**Deployed:** https://userf8a2c4.github.io/centinel-engine/  
+**Deployed:** https://userf8a2c4.github.io/vigil/  
 **Source:** This repo (`web/` directory)  
 **License:** AGPL-3.0

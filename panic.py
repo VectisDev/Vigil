@@ -7,7 +7,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `panic.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -34,7 +34,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `panic.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -112,7 +112,7 @@ CONFIG_PATHS = [
     Path("config.yaml"),
 ]
 
-logger = configure_logging("vigil.panic", log_file="logs/centinel.log")
+logger = configure_logging("vigil.panic", log_file="logs/vigil.log")
 
 
 def utc_now() -> datetime:
@@ -386,7 +386,7 @@ def main() -> int:
 
     English: Function main defined in panic.py.
     """
-    parser = argparse.ArgumentParser(description="Activa el modo pánico de Centinel Engine.")
+    parser = argparse.ArgumentParser(description="Activa el modo pánico de VIGIL.")
     parser.add_argument("--user", help="Usuario que activa el modo pánico.")
     args = parser.parse_args()
 

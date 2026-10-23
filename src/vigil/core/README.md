@@ -1,4 +1,4 @@
-# Núcleo técnico de Proyecto C.E.N.T.I.N.E.L. (centinel.core)
+# Núcleo técnico de Proyecto VIGIL (vigil.core)
 
 ## [ES] Español
 

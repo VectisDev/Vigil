@@ -142,10 +142,10 @@ class TestFreeze:
     @pytest.mark.asyncio
     async def test_freeze_creates_lock_file(self, kill_switch, tmp_path):
         """Freeze crea lock file visible."""
-        with patch("vigil.core.kill_switch.LOCK_FILE", tmp_path / "centinel.lock"):
+        with patch("vigil.core.kill_switch.LOCK_FILE", tmp_path / "vigil.lock"):
             success = await kill_switch.freeze(reason="Test freeze")
             assert success
-            assert (tmp_path / "centinel.lock").exists()
+            assert (tmp_path / "vigil.lock").exists()
 
     @pytest.mark.asyncio
     async def test_freeze_creates_checkpoint(self, kill_switch):

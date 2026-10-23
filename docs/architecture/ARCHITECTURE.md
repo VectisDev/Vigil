@@ -9,10 +9,10 @@
 
 ## Separación Código / Datos — Code / Data Separation
 
-Centinel separa el código (centinel-engine) de los datos (centinel-data) en repositorios distintos. Esta separación no es conveniencia operativa: es una decisión de diseño con implicaciones de auditoría.
+Vigil separa el código (vigil) de los datos (centinel-data) en repositorios distintos. Esta separación no es conveniencia operativa: es una decisión de diseño con implicaciones de auditoría.
 
 ```
-  centinel-engine (este repo)        centinel-data (auto-creado)
+  vigil (este repo)        centinel-data (auto-creado)
   ┌──────────────────────────┐       ┌──────────────────────────┐
   │ código fuente            │       │ snapshots/               │
   │ workflows CI/CD          │ push  │ hashes/                  │
@@ -26,11 +26,11 @@ Centinel separa el código (centinel-engine) de los datos (centinel-data) en rep
 **Propiedades que esto garantiza:**
 
 - **Historial de código separado del historial de datos.** Un auditor revisando cambios de código no ve ruido de actualizaciones de datos cada 15 minutos.
-- **Los datos sobreviven al código.** Si centinel-engine es eliminado, centinel-data permanece público e independiente.
-- **Verificación sin ejecutar el motor.** Cualquier organización puede clonar centinel-data y verificar la cadena de hashes sin instalar ni ejecutar Centinel.
+- **Los datos sobreviven al código.** Si vigil es eliminado, centinel-data permanece público e independiente.
+- **Verificación sin ejecutar el motor.** Cualquier organización puede clonar centinel-data y verificar la cadena de hashes sin instalar ni ejecutar Vigil.
 - **Fork simple.** Al hacer fork, el usuario obtiene el motor sin los datos de otra elección. Los datos se generan desde cero al activar el sistema.
 
-El mecanismo de publicación es silencioso: si `DATA_REPO_TOKEN` no está configurado, los datos permanecen en centinel-engine sin error. Ver [DATA-REPOS.md](DATA-REPOS.md) para detalles.
+El mecanismo de publicación es silencioso: si `DATA_REPO_TOKEN` no está configurado, los datos permanecen en vigil sin error. Ver [DATA-REPOS.md](DATA-REPOS.md) para detalles.
 
 ---
 
@@ -38,7 +38,7 @@ El mecanismo de publicación es silencioso: si `DATA_REPO_TOKEN` no está config
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    C.E.N.T.I.N.E.L. — Pipeline Flow                    │
+│                    VIGIL — Pipeline Flow                    │
 └─────────────────────────────────────────────────────────────────────────┘
 
   CNE API (electoral authority)
@@ -83,12 +83,12 @@ El mecanismo de publicación es silencioso: si `DATA_REPO_TOKEN` no está config
 | Component | File | Purpose |
 |-----------|------|---------|
 | Orchestrator | `scripts/run_pipeline.py` | Entry point, single run or cron loop |
-| Hash chain | `src/centinel/core/hashchain.py` | SHA-256 + Merkle root |
-| Normalizer | `src/centinel/core/normalize.py` | Pydantic V2 validation + aliasing |
-| Rules engine | `src/centinel/core/rules/` | 24 detectors, `@rule` decorator |
+| Hash chain | `src/vigil/core/hashchain.py` | SHA-256 + Merkle root |
+| Normalizer | `src/vigil/core/normalize.py` | Pydantic V2 validation + aliasing |
+| Rules engine | `src/vigil/core/rules/` | 24 detectors, `@rule` decorator |
 | Rule config | `command_center/rules.yaml` | Thresholds, no redeployment needed |
 | Anchoring | `src/anchor/` | OTS (Bitcoin) + Arbitrum EVM |
-| Public API | `src/centinel/api/main.py` | FastAPI, read-only, slowapi rate-limit |
+| Public API | `src/vigil/api/main.py` | FastAPI, read-only, slowapi rate-limit |
 | Web panel | `web/panel/index.html` | Static-first CDN, offline via SW |
 | Report gen | `scripts/generate_report.py` | Bilingual PDF via WeasyPrint |
 
@@ -163,7 +163,7 @@ Merkle root se ancla a Bitcoin blockchain vía OpenTimestamps. Costo: cero, veri
 **Protección:**
 - ✅ Prueba: "Merkle_Root existía en fecha X" (verificable públicamente)
 - ✅ Imposible retrodatar (Bitcoin es inmutable)
-- ✅ Independiente de Centinel (auditor externo confía en Bitcoin, no en nosotros)
+- ✅ Independiente de Vigil (auditor externo confía en Bitcoin, no en nosotros)
 
 **Limitación:**
 - ❌ Latencia: puede tardar 10+ min en ser incluido en bloque
@@ -174,7 +174,7 @@ Merkle root se ancla a Bitcoin blockchain vía OpenTimestamps. Costo: cero, veri
 ### T4: Federación de Testigos (Multi-Witness Federation)
 
 **Definición:**  
-Múltiples testigos independientes ejecutan Centinel en paralelo. Cada uno captura datos, computa Merkle, reporta. Sistema detecta si uno diverge.
+Múltiples testigos independientes ejecutan Vigil en paralelo. Cada uno captura datos, computa Merkle, reporta. Sistema detecta si uno diverge.
 
 **Flujo Típico (3 testigos):**
 ```
@@ -360,7 +360,7 @@ Reporte:
 ║  Puede:                                    ║
 ║  ✓ Modificar datos en tránsito (MITM)      ║
 ║  ✓ Intercambiar snapshot válido            ║
-║  ✓ Rootkit + modificar binario Centinel    ║
+║  ✓ Rootkit + modificar binario Vigil    ║
 ║                                            ║
 ║  No puede:                                 ║
 ║  ✗ Falsificar timestamp Bitcoin (T3)       ║
@@ -405,7 +405,7 @@ Escenarios:
 ```
 Timeline:
 T+0min: CNE publica datos falsos
-T+1min: Centinel captura → Merkle_A
+T+1min: Vigil captura → Merkle_A
         Testigo B captura → Merkle_B (igual)
         Testigo C captura → Merkle_C (igual)
         ⇒ Consensus OK, no hay ataque detectado YET
@@ -515,7 +515,7 @@ def evaluate_threat_score():
 
 ## Garantías de Seguridad
 
-### Lo Que Centinel PRUEBA
+### Lo Que Vigil PRUEBA
 
 | Garantía | Basado en | Nivel |
 |----------|-----------|-------|
@@ -525,13 +525,13 @@ def evaluate_threat_score():
 | Anomalía estadística presente | Benford + Z-score | Medio |
 | Endpoint schema cambió | D11 Monitor | Informativo |
 
-### Lo Que Centinel NO PRUEBA
+### Lo Que Vigil NO PRUEBA
 
 | Claim | Razón | Requiere |
 |-------|-------|----------|
 | Datos originales del CNE son correctos | No audita captura, solo custodia | Validación electoral independiente |
-| Fraude en acta original | Centinel es custodia, no validador | Auditoría en punto de origen |
-| Voto fue registrado correctamente | No es sistema de votación | Acta física + Centinel juntos |
+| Fraude en acta original | Vigil es custodia, no validador | Auditoría en punto de origen |
+| Voto fue registrado correctamente | No es sistema de votación | Acta física + Vigil juntos |
 
 ---
 
@@ -597,7 +597,7 @@ centinel:
 
 ## Verificación Offline (Auditor)
 
-Un auditor externo puede verificar completamente sin confiar en Centinel:
+Un auditor externo puede verificar completamente sin confiar en Vigil:
 
 ```bash
 # 1. Obtener: hashes/attack_log.jsonl + hashes/checkpoint.json
@@ -626,13 +626,13 @@ jq '.[] | select(.event == "threat_score") | .score' attack_log.jsonl
 
 ## Referencias Técnicas
 
-- **T1 Implementation:** `src/centinel/core/hasher.py`, `compute_merkle_root()`
-- **T2 Implementation:** `src/centinel/core/corvid_broadcast.py`, `FederationCoordinator`
-- **T3 Implementation:** `src/centinel/core/opentimestamps.py`, `ExternalAnchor`
-- **T4 Implementation:** `src/centinel/core/corvid_broadcast.py`, federation consensus
-- **Anomaly Detection:** `src/centinel/core/anomaly_detector.py`, `AnomalyDetector`
-- **Kill Switch:** `src/centinel/core/kill_switch.py`, `KillSwitch` class
-- **Endpoint Monitor:** `src/centinel/core/endpoint_monitor.py`, `EndpointMonitor`
+- **T1 Implementation:** `src/vigil/core/hasher.py`, `compute_merkle_root()`
+- **T2 Implementation:** `src/vigil/core/corvid_broadcast.py`, `FederationCoordinator`
+- **T3 Implementation:** `src/vigil/core/opentimestamps.py`, `ExternalAnchor`
+- **T4 Implementation:** `src/vigil/core/corvid_broadcast.py`, federation consensus
+- **Anomaly Detection:** `src/vigil/core/anomaly_detector.py`, `AnomalyDetector`
+- **Kill Switch:** `src/vigil/core/kill_switch.py`, `KillSwitch` class
+- **Endpoint Monitor:** `src/vigil/core/endpoint_monitor.py`, `EndpointMonitor`
 
 ---
 

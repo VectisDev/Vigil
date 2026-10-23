@@ -1,5 +1,5 @@
 """
-CENTINEL — Test suite for the key ceremony components
+VIGIL — Test suite for the key ceremony components
 ======================================================
 
 Comprehensive tests for:

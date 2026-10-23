@@ -1,6 +1,6 @@
 # VectisDev.md — Instrucciones Permanentes de Desarrollo
 
-**Proyecto VIGIL** *(anteriormente CENTINEL)* — Auditoría Electoral Criptográfica y Estadística
+**Proyecto VIGIL** *(anteriormente VIGIL)* — Auditoría Electoral Criptográfica y Estadística
 **Visión**: Estándar de referencia para auditoría electoral independiente en Honduras 2029
 y arquitectura escalable para toda Latinoamérica.
 **Estado**: Desarrollo confidencial de alto rigor técnico y forense.

@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VIGIL — Data Integrity Verification</title>
 <meta name="description" content="Open-source cryptographic verification of official public data. Real-time anomaly detection. Zero cost. Any country in Latin America.">
-<link rel="canonical" href="https://vectisdev.github.io/centinel/">
+<link rel="canonical" href="https://vectisdev.github.io/Vigil/">
 <meta name="robots" content="index, follow">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://vectisdev.github.io/centinel/">
+<meta property="og:url" content="https://vectisdev.github.io/Vigil/">
 <meta property="og:title" content="VIGIL — Data Integrity Verification">
 <meta property="og:description" content="Open-source cryptographic verification of official public data. Real-time anomaly detection. Zero cost. Any country in Latin America. / Verificación criptográfica de código abierto de datos públicos oficiales. Detección de anomalías en tiempo real. Costo cero. Cualquier país de América Latina.">
-<meta property="og:image" content="https://vectisdev.github.io/centinel/assets/logo.svg">
+<meta property="og:image" content="https://vectisdev.github.io/Vigil/assets/logo.svg">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="es_HN">
 
@@ -21,7 +21,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="VIGIL — Data Integrity Verification">
 <meta name="twitter:description" content="Open-source cryptographic verification of official public data. Real-time anomaly detection. Zero cost. Any country in Latin America.">
-<meta name="twitter:image" content="https://vectisdev.github.io/centinel/assets/logo.svg">
+<meta name="twitter:image" content="https://vectisdev.github.io/Vigil/assets/logo.svg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1137,7 +1137,7 @@ async function doOpsLogin() {
     sessionStorage.setItem('centinel_role', matchedRole);
     sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
     sessionStorage.setItem('centinel_fp', candidate.slice(-6));
-    sessionStorage.setItem('centinel_admin_key', pass);  // sent as X-Centinel-Key to the API
+    sessionStorage.setItem('centinel_admin_key', pass);  // sent as X-Vigil-Key to the API
     if (!matchedPat && ac.writer_pat && matchedSlot !== null) {
       matchedPat = await _decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
     }

@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/core/rules/common.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -33,7 +33,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `src/vigil/core/rules/common.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -262,12 +262,12 @@ def extract_actas_mesas_counts(data: dict) -> Dict[str, Optional[int]]:
 def extract_inconsistency_data(data: dict) -> Dict[str, Optional[int]]:
     """Extrae conteos de actas inconsistentes y divulgadas desde cualquier formato CNE.
 
-    Soporta el formato canónico de Centinel y el formato JSON crudo del CNE
+    Soporta el formato canónico de Vigil y el formato JSON crudo del CNE
     (estadisticas.estado_actas_divulgadas.*).
 
     Extract inconsistent and disclosed tally-sheet counts from any CNE format.
 
-    Supports both Centinel canonical format and raw CNE JSON format
+    Supports both Vigil canonical format and raw CNE JSON format
     (estadisticas.estado_actas_divulgadas.*).
     """
 

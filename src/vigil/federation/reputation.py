@@ -1,5 +1,5 @@
 """
-Persistent Bayesian Trust Model (PBTM) for Centinel Swarm nodes.
+Persistent Bayesian Trust Model (PBTM) for Vigil Swarm nodes.
 
 Each node's trustworthiness is modelled as a Beta distribution:
     Trust = (α + 1) / (α + β + 2)
@@ -75,7 +75,7 @@ class NodeReputation:
 
 
 class ReputationEngine:
-    """Thread-safe Bayesian reputation store for Centinel swarm nodes (max 12)."""
+    """Thread-safe Bayesian reputation store for Vigil swarm nodes (max 12)."""
 
     def __init__(
         self,

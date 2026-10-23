@@ -1,6 +1,6 @@
 # Alertas externas accionables
 
-Este documento describe el formato y ejemplos de alertas enviadas por Centinel Engine.
+Este documento describe el formato y ejemplos de alertas enviadas por VIGIL.
 
 ## Configuración
 
@@ -9,8 +9,8 @@ Variables de entorno relevantes:
 - `TELEGRAM_BOT_TOKEN`: token del bot de Telegram.
 - `TELEGRAM_CHAT_ID`: chat ID o canal de Telegram.
 - `ALERT_MIN_LEVEL`: nivel mínimo para enviar alertas (default `WARNING`).
-- `CENTINEL_DASHBOARD_URL`: URL del dashboard para incluir en el mensaje.
-- `CENTINEL_HASH_DIR`: ruta del directorio de hashes (default `hashes`).
+- `VIGIL_DASHBOARD_URL`: URL del dashboard para incluir en el mensaje.
+- `VIGIL_HASH_DIR`: ruta del directorio de hashes (default `hashes`).
 - `ALERT_RATE_LIMIT_SECONDS`: segundos mínimos entre alertas.
 - `ALERT_MAX_RETRIES`: número máximo de reintentos.
 - `ALERT_REQUEST_TIMEOUT`: timeout del envío en segundos.

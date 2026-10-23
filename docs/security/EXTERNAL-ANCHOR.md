@@ -57,7 +57,7 @@ Cada intento de anclaje queda registrado:
 ## Integration in Checkpoint Pipeline
 
 ```python
-from centinel.anchor.opentimestamps_client import MultichainAnchor
+from vigil.anchor.opentimestamps_client import MultichainAnchor
 
 # In snapshot.py or checkpoint.py:
 anchor = MultichainAnchor(testnet=False)  # mainnet by default
@@ -168,7 +168,7 @@ poetry run pytest tests/test_opentimestamps_client.py -v
 ```python
 # Optional: test against live OTS server
 import time
-from centinel.anchor.opentimestamps_client import OpenTimestampsClient
+from vigil.anchor.opentimestamps_client import OpenTimestampsClient
 
 client = OpenTimestampsClient(use_testnet=True)
 proof = client.stamp("test-checkpoint-" + str(int(time.time())))

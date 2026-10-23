@@ -621,7 +621,7 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
     elements.extend(_exec_summary_page(data.get("exec_en", {})))
     elements.append(PageBreak())
 
-    elements.append(Paragraph("🔒 C.E.N.T.I.N.E.L. · Informe Ejecutivo", styles["HeadingPrimary"]))
+    elements.append(Paragraph("🔒 VIGIL · Informe Ejecutivo", styles["HeadingPrimary"]))
     elements.append(Paragraph(data["subtitle"], styles["Body"]))
     elements.append(Paragraph(data["generated"], styles["Body"]))
     elements.append(Paragraph("Nivel: Presidencial", styles["Body"]))
@@ -767,7 +767,7 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
             canvas.setFont(bold_font, 11)
             canvas.setFillColor(colors.white)
             canvas.drawString(
-                1.5 * cm, page_size[1] - lh_h + 0.38 * cm, "Centinela Electoral Honduras — Motor de Auditoría Electoral"
+                1.5 * cm, page_size[1] - lh_h + 0.38 * cm, "VIGIL Honduras — Motor de Auditoría Electoral"
             )
         canvas.setFont(regular_font, 8)
         canvas.setFillColor(colors.grey)
@@ -792,10 +792,10 @@ def build_pdf_report(data: dict, chart_buffers: dict) -> bytes:
 
 _STRINGS: dict[str, dict[str, str]] = {
     "es": {
-        "exec_summary_title": "Resumen Ejecutivo — C.E.N.T.I.N.E.L.",
-        "exec_what_is": "¿Qué es Centinel Engine?",
+        "exec_summary_title": "Resumen Ejecutivo — VIGIL",
+        "exec_what_is": "¿Qué es VIGIL?",
         "exec_what_is_body": (
-            "Centinel Engine es un sistema de vigilancia electoral criptográfica de código abierto. "
+            "VIGIL es un sistema de vigilancia electoral criptográfica de código abierto. "
             "Descarga los datos oficiales del CNE cada pocos minutos durante todo el proceso de "
             "cómputo y los encadena con hashes SHA-256, anclandolos en el blockchain de Bitcoin. "
             "Cualquier modificación de los datos queda registrada en la cadena — y es imposible "
@@ -822,7 +822,7 @@ _STRINGS: dict[str, dict[str, str]] = {
             "NOTA: Este sistema es 100% agnóstico a candidatos y partidos. "
             "No tiene opinión sobre resultados — solo verifica la integridad de los datos."
         ),
-        "title": "Informe de Auditoría C.E.N.T.I.N.E.L.",
+        "title": "Informe de Auditoría VIGIL",
         "subtitle_tpl": "Estatus verificable · Alcance {dept}",
         "generated_tpl": "Fecha/hora: {ts} UTC",
         "global_status": "ESTATUS GLOBAL: VERIFICABLE · SIN ANOMALÍAS CRÍTICAS",
@@ -844,10 +844,10 @@ _STRINGS: dict[str, dict[str, str]] = {
         ),
     },
     "en": {
-        "exec_summary_title": "Executive Summary — C.E.N.T.I.N.E.L.",
-        "exec_what_is": "What is Centinel Engine?",
+        "exec_summary_title": "Executive Summary — VIGIL",
+        "exec_what_is": "What is VIGIL?",
         "exec_what_is_body": (
-            "Centinel Engine is an open-source cryptographic electoral surveillance system. "
+            "VIGIL is an open-source cryptographic electoral surveillance system. "
             "It downloads official CNE data every few minutes throughout the vote-counting "
             "process and chains each snapshot with SHA-256 hashes, anchoring them to the "
             "Bitcoin blockchain. Any modification of the data is recorded in the chain — "
@@ -874,7 +874,7 @@ _STRINGS: dict[str, dict[str, str]] = {
             "NOTE: This system is 100% agnostic to candidates and parties. "
             "It has no opinion on results — it only verifies data integrity."
         ),
-        "title": "C.E.N.T.I.N.E.L. Audit Report",
+        "title": "VIGIL Audit Report",
         "subtitle_tpl": "Verifiable status · Scope: {dept}",
         "generated_tpl": "Generated: {ts} UTC",
         "global_status": "GLOBAL STATUS: VERIFIABLE · NO CRITICAL ANOMALIES",
@@ -903,7 +903,7 @@ def main() -> None:
 
     English: Function main defined in scripts/generate_report.py.
     """
-    parser = argparse.ArgumentParser(description="Genera PDF premium C.E.N.T.I.N.E.L.")
+    parser = argparse.ArgumentParser(description="Genera PDF premium VIGIL")
     parser.add_argument("--source-dir", default="data", help="Directorio de snapshots.")
     parser.add_argument("--output", default="centinel_informe_nacional.pdf", help="Ruta PDF salida.")
     parser.add_argument("--department", default="Nacional", help="Departamento (Nacional/Cortés/etc).")

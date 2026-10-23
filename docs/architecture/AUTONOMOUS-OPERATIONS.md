@@ -11,13 +11,13 @@ Audience: Grant evaluators · OTF · NED · NDI · IRI · Mozilla Foundation · 
 
 ## The core claim / El argumento central
 
-**EN:** Centinel can monitor a national election from fork to final report with **a single human action at setup**: creating a GitHub Personal Access Token. Everything else — infrastructure provisioning, endpoint discovery, data capture, cryptographic chaining, anomaly detection, failure recovery, and public data publication — runs without operator intervention.
+**EN:** Vigil can monitor a national election from fork to final report with **a single human action at setup**: creating a GitHub Personal Access Token. Everything else — infrastructure provisioning, endpoint discovery, data capture, cryptographic chaining, anomaly detection, failure recovery, and public data publication — runs without operator intervention.
 
 This is verifiable. Every claim below maps to a specific file and workflow in this repository.
 
 ---
 
-**ES:** Centinel puede monitorear una elección nacional desde el fork hasta el reporte final con **una sola acción humana en el setup**: crear un Personal Access Token de GitHub. Todo lo demás — aprovisionamiento de infraestructura, descubrimiento de endpoints, captura de datos, encadenamiento criptográfico, detección de anomalías, recuperación de fallos y publicación pública de datos — corre sin intervención del operador.
+**ES:** Vigil puede monitorear una elección nacional desde el fork hasta el reporte final con **una sola acción humana en el setup**: crear un Personal Access Token de GitHub. Todo lo demás — aprovisionamiento de infraestructura, descubrimiento de endpoints, captura de datos, encadenamiento criptográfico, detección de anomalías, recuperación de fallos y publicación pública de datos — corre sin intervención del operador.
 
 Esto es verificable. Cada afirmación a continuación apunta a un archivo y workflow específico en este repositorio.
 
@@ -46,17 +46,17 @@ Esto es verificable. Cada afirmación a continuación apunta a un archivo y work
 
 ### What requires a human / Lo que requiere un humano
 
-**EN:** One action: creating a GitHub Personal Access Token. GitHub's security policy prohibits any external system from creating tokens on behalf of a user. This is not a limitation of Centinel — it is a GitHub platform constraint with no exception. The wizard opens an Issue with a direct link to the pre-scoped token creation page. The operator clicks, copies, pastes. That is the full extent of required human action for a standard deployment.
+**EN:** One action: creating a GitHub Personal Access Token. GitHub's security policy prohibits any external system from creating tokens on behalf of a user. This is not a limitation of Vigil — it is a GitHub platform constraint with no exception. The wizard opens an Issue with a direct link to the pre-scoped token creation page. The operator clicks, copies, pastes. That is the full extent of required human action for a standard deployment.
 
-**ES:** Una acción: crear un Personal Access Token de GitHub. La política de seguridad de GitHub prohíbe que cualquier sistema externo cree tokens en nombre del usuario. Esto no es una limitación de Centinel — es una restricción de la plataforma de GitHub sin excepción. El wizard abre un Issue con un link directo a la página de creación de token preconfigurado. El operador hace clic, copia, pega. Eso es todo lo que se requiere del humano en un despliegue estándar.
+**ES:** Una acción: crear un Personal Access Token de GitHub. La política de seguridad de GitHub prohíbe que cualquier sistema externo cree tokens en nombre del usuario. Esto no es una limitación de Vigil — es una restricción de la plataforma de GitHub sin excepción. El wizard abre un Issue con un link directo a la página de creación de token preconfigurado. El operador hace clic, copia, pega. Eso es todo lo que se requiere del humano en un despliegue estándar.
 
 ---
 
 ## Phase 2 — Endpoint discovery / Fase 2 — Descubrimiento de endpoints
 
-**EN:** Electoral authorities frequently use Angular or React SPAs that construct API URLs at runtime — invisible in source code. Centinel handles this in two layers:
+**EN:** Electoral authorities frequently use Angular or React SPAs that construct API URLs at runtime — invisible in source code. Vigil handles this in two layers:
 
-**ES:** Las autoridades electorales frecuentemente usan SPAs en Angular o React que construyen las URLs de sus APIs en tiempo de ejecución — invisibles en el código fuente. Centinel lo resuelve en dos capas:
+**ES:** Las autoridades electorales frecuentemente usan SPAs en Angular o React que construyen las URLs de sus APIs en tiempo de ejecución — invisibles en el código fuente. Vigil lo resuelve en dos capas:
 
 ### Layer 1 — Static analysis / Capa 1 — Análisis estático
 
@@ -86,7 +86,7 @@ This prevents a class of silent errors where the system captures a valid endpoin
 
 Esto previene una clase de errores silenciosos donde el sistema captura un endpoint válido de la unidad geográfica incorrecta.
 
-**Implementation / Implementación:** `centinel_engine/cne_endpoint_healer.py` — `DEPARTMENT_CODE_MAP`, `_discover_via_playwright()`, `_validate_candidates()`
+**Implementation / Implementación:** `vigil_engine/cne_endpoint_healer.py` — `DEPARTMENT_CODE_MAP`, `_discover_via_playwright()`, `_validate_candidates()`
 
 ---
 
@@ -186,7 +186,7 @@ Si los tres fallan: el workflow termina con código 0 (nunca queda en rojo), el 
 ### Token expiry / Token expirado (401/403)
 
 **EN:** Detected by the wizard on every hourly cycle. On detection:
-1. Sends push notification via ntfy.sh if `CENTINEL_NTFY_TOPIC` is configured
+1. Sends push notification via ntfy.sh if `VIGIL_NTFY_TOPIC` is configured
 2. Opens `centinel-token-error` Issue with direct link to Classic PAT creation page and direct link to Secrets settings
 3. Includes explicit warning about Fine-grained PAT incompatibility (silent failure mode)
 4. Closes the Issue automatically when the token is valid again
@@ -194,7 +194,7 @@ Si los tres fallan: el workflow termina con código 0 (nunca queda en rojo), el 
 Deduplication: the system checks for an existing open Issue with the same label before creating a new one. Running the wizard 10 times with an expired token produces exactly 1 open Issue.
 
 **ES:** Detectado por el wizard en cada ciclo horario. Al detectarlo:
-1. Envía notificación push vía ntfy.sh si `CENTINEL_NTFY_TOPIC` está configurado
+1. Envía notificación push vía ntfy.sh si `VIGIL_NTFY_TOPIC` está configurado
 2. Abre Issue `centinel-token-error` con link directo a creación de Classic PAT y link directo a Settings → Secrets
 3. Incluye advertencia explícita sobre incompatibilidad de Fine-grained PAT (falla silenciosa)
 4. Cierra el Issue automáticamente cuando el token vuelve a ser válido
@@ -207,7 +207,7 @@ Deduplicación: el sistema verifica si ya existe un Issue abierto con el mismo l
 
 ```bash
 # Option 1 — Docker Compose
-docker-compose up -d centinel-engine centinel-watchdog
+docker-compose up -d vigil centinel-watchdog
 
 # Option 2 — Python + system cron
 echo "*/15 * * * * cd /path && python -m scripts.download_and_hash" | crontab -
@@ -222,7 +222,7 @@ Data captured locally syncs to `centinel-data` automatically when Actions recove
 
 ```bash
 # Opción 1 — Docker Compose
-docker-compose up -d centinel-engine centinel-watchdog
+docker-compose up -d vigil centinel-watchdog
 
 # Opción 2 — Python + cron del sistema
 echo "*/15 * * * * cd /ruta && python -m scripts.download_and_hash" | crontab -
@@ -240,7 +240,7 @@ Los datos capturados localmente se sincronizan a `centinel-data` automáticament
 ### Automatic publication chain / Cadena de publicación automática
 
 ```
-capture / captura → centinel-engine/data/
+capture / captura → vigil/data/
                   → push to / push a centinel-data/snapshots/  (each cycle / cada ciclo)
                   → IPFS pin via Pinata                        (each push / cada push, if PINATA_JWT configured / si PINATA_JWT configurado)
                   → weekly GitHub Release archive              (every Sunday 3am UTC / cada domingo 3am UTC)
@@ -256,7 +256,7 @@ capture / captura → centinel-engine/data/
 - IPFS: resistente a censura, sobrevive una eliminación de GitHub
 - GitHub Releases: archivo versionado con manifiesto SHA-256
 
-### Verification without running Centinel / Verificación sin ejecutar Centinel
+### Verification without running Vigil / Verificación sin ejecutar Vigil
 
 **EN:** Any third party — NDI, Carter Center, a journalist, a citizen — can verify the data without installing anything:
 

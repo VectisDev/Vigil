@@ -19,9 +19,9 @@
  */
 
 /**
- * Utilidades de publicación en blockchain para Centinel Engine.
+ * Utilidades de publicación en blockchain para VIGIL.
  *
- * Blockchain publishing utilities for Centinel Engine.
+ * Blockchain publishing utilities for VIGIL.
  */
 
 import { ethers } from "ethers";

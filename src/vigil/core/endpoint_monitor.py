@@ -1,7 +1,7 @@
 """
-Endpoint Integrity Monitor for Centinel Engine.
+Endpoint Integrity Monitor for VIGIL.
 
-ES: Monitor de Integridad de Endpoints para Centinel Engine.
+ES: Monitor de Integridad de Endpoints para VIGIL.
 
 Detecta cambios en estructura de API (schema) y disponibilidad de endpoints.
 Si CNE cambia URLs o estructura JSON, quedará registrado como evidencia forense.

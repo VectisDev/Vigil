@@ -7,7 +7,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `scripts/security/encrypt_secrets.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -24,7 +24,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `scripts/security/encrypt_secrets.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -73,7 +73,7 @@ from dotenv import load_dotenv
 
 from scripts.logging_utils import configure_logging, log_event
 
-logger = configure_logging("vigil.security", log_file="logs/centinel.log")
+logger = configure_logging("vigil.security", log_file="logs/vigil.log")
 
 DEFAULT_ENV_PATHS = (
     Path(".env"),

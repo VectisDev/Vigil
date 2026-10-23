@@ -1,14 +1,14 @@
 # Borrador de correo para Prof. Devis Alvarado
 
 **Para:** [correo institucional Devis]  
-**Asunto:** CENTINEL — Paquete de revisión académica + propuesta de co-autoría
+**Asunto:** VIGIL — Paquete de revisión académica + propuesta de co-autoría
 
 ---
 
 Estimado Prof. Alvarado:
 
 Le escribo para compartirle el paquete completo de revisión académica
-del motor estadístico de CENTINEL, junto con una propuesta formal de
+del motor estadístico de VIGIL, junto con una propuesta formal de
 colaboración y co-autoría.
 
 **Lo que le adjunto en este correo:**
@@ -39,14 +39,14 @@ colaboración y co-autoría.
 - Revisar el borrador de MOU adjunto para formalizar la colaboración.
 
 Su validación académica fortalecería considerablemente la credibilidad
-de CENTINEL ante organismos como la OEA y el Carter Center, y la
+de VIGIL ante organismos como la OEA y el Carter Center, y la
 propuesta de financiamiento ante el Open Technology Fund (OTF) de
 Washington — aunque el proyecto avanza de forma independiente en
 todos sus frentes.
 
 Todo el código y datos son completamente reproducibles:
 
-    git clone https://github.com/VectisDev/centinel.git
+    git clone https://github.com/VectisDev/Vigil.git
     PYTHONPATH=src python docs/research/run_fp_analysis.py
 
 Quedo atento a sus comentarios y disponible para reunión en la

@@ -6,7 +6,7 @@ Los 4 archivos `.ots` originales (`rules_yaml.ots`, `rules_yaml_finney.ots`,
 `preregistration.ots`, `preregistration_finney.ots`), generados el
 2026-06-10, estaban **corruptos**: les faltaba el header mágico de
 OpenTimestamps (`\x00OpenTimestamps\x00\x00Proof\x00...`) debido a un bug en
-`anchor_snapshot_chain()` (`src/centinel/core/anchoring.py`) que serializaba
+`anchor_snapshot_chain()` (`src/vigil/core/anchoring.py`) que serializaba
 el objeto `Timestamp` directamente en lugar de envolverlo en un
 `DetachedTimestampFile`. `ots verify`/`ots info` los rechazaban con
 *"is not a timestamp file"* — nunca fueron pruebas válidas.

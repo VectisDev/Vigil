@@ -1,5 +1,5 @@
-# CENTINEL — Matriz de Cumplimiento con Estándares Internacionales
-# CENTINEL — International Standards Compliance Matrix
+# VIGIL — Matriz de Cumplimiento con Estándares Internacionales
+# VIGIL — International Standards Compliance Matrix
 
 **Versión / Version:** 1.0 · **Fecha / Date:** 2026-06-07
 **Estado / Status:** Borrador — pendiente revisión @international-standards-agent
@@ -22,7 +22,7 @@
 
 ## 1. OEA — Declaración de Principios para la Observación Electoral Internacional (2005)
 
-| # | Principio OEA | Componente CENTINEL | Estado | Evidencia |
+| # | Principio OEA | Componente VIGIL | Estado | Evidencia |
 |---|---------------|---------------------|--------|-----------|
 | 1 | Observación genuina y sin interferencia | Análisis de datos públicos únicamente; no interfiere con procesos | ✅ | DISCLAIMER.md; README §Neutrality |
 | 2 | Neutralidad política | Sin afiliación; DISCLAIMER bilingüe; AGPL-3.0 | ✅ | DISCLAIMER.md; LICENSE |
@@ -43,7 +43,7 @@
 
 ## 2. Carter Center — Electoral Observation Guidelines
 
-| Área | Descripción | Estado CENTINEL | Notas |
+| Área | Descripción | Estado VIGIL | Notas |
 |------|-------------|-----------------|-------|
 | Data integrity | Verificabilidad de datos electorales | ✅ | SHA-256 chain + verify_chain.py |
 | Transparency | Metodología abierta y reproducible | ✅ | AGPL-3.0; STATISTICAL_CONVENTIONS.md |
@@ -60,7 +60,7 @@
 
 ## 3. OSCE/ODIHR — Election Observation Handbook (8ª edición)
 
-| Compromiso | Descripción | Estado CENTINEL |
+| Compromiso | Descripción | Estado VIGIL |
 |------------|-------------|-----------------|
 | Código de conducta | Conducta neutral e imparcial | ✅ DISCLAIMER.md |
 | Metodología sistemática | Enfoque cuantitativo documentado | ✅ 23 reglas con referencias |
@@ -74,7 +74,7 @@
 
 ## 4. NDI/IFES — Principles for Digital Electoral Technologies
 
-| Principio | Descripción | Estado CENTINEL | Evidencia |
+| Principio | Descripción | Estado VIGIL | Evidencia |
 |-----------|-------------|-----------------|-----------|
 | Transparencia | Código abierto y auditable | ✅ | AGPL-3.0; código público |
 | Auditabilidad | Auditoría independiente posible | ✅ | verify_chain.py; reproducibilidad |
@@ -90,7 +90,7 @@
 
 ## 5. Council of Europe — Recommendation on Electronic Voting
 
-| Requisito | Estado CENTINEL | Notas |
+| Requisito | Estado VIGIL | Notas |
 |-----------|-----------------|-------|
 | Transparencia del sistema | ✅ | Código abierto AGPL-3.0 |
 | Verificabilidad individual | ✅ | verify_chain.py para cualquier tercero |
@@ -114,9 +114,9 @@
 
 ## 7. Fortalezas diferenciadoras / Differential Strengths
 
-Áreas donde CENTINEL **supera** los estándares de observación tradicional:
+Áreas donde VIGIL **supera** los estándares de observación tradicional:
 
-| Dimensión | Observación tradicional | CENTINEL |
+| Dimensión | Observación tradicional | VIGIL |
 |-----------|------------------------|----------|
 | Costo | $10k–$500k/elección | $0 (GitHub free tier) |
 | Verificabilidad | Informes cualitativos | Prueba criptográfica offline |
@@ -129,4 +129,4 @@
 
 *Documento mantenido por @international-standards-agent*
 *Actualizar con cada nueva funcionalidad o estándar relevante*
-*CENTINEL — AGPL-3.0 — github.com/VectisDev/centinel*
+*VIGIL — AGPL-3.0 — github.com/VectisDev/Vigil*

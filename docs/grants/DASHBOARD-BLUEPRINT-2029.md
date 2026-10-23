@@ -1,11 +1,11 @@
-# Centinel 2029 — World-Class Electoral Audit Dashboard Blueprint
+# Vigil 2029 — World-Class Electoral Audit Dashboard Blueprint
 
 ## 1) Objetivo y principio rector
 
 Diseñar una plataforma de auditoría electoral continua para Honduras 2029, neutral y agnóstica a partidos, basada exclusivamente en JSON públicos del CNE (sin actas/mesas), con ciclo operacional de actualización ≤5 minutos y trazabilidad verificable.
 
 **Nombre oficial:**
-- **Centinel – Centro de Vigilancia Electoral (C.E.N.T.I.N.E.L.)**
+- **Vigil – Centro de Vigilancia Electoral (VIGIL)**
 
 **Criterios institucionales:**
 - Neutralidad política estricta.
@@ -37,7 +37,7 @@ Diseñar una plataforma de auditoría electoral continua para Honduras 2029, neu
 ## 3) Arquitectura de información (layout completo)
 
 ## 3.1 Header fijo (sticky)
-- Logo C.E.N.T.I.N.E.L.
+- Logo VIGIL
 - Selector de idioma ES/EN.
 - Timestamp UTC de último snapshot.
 - Frecuencia polling (ejemplo: `Actualizado cada 4:52 min`).

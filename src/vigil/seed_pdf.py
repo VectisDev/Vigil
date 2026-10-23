@@ -19,6 +19,7 @@ import string
 from datetime import datetime, timezone
 from typing import Dict
 
+# Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
 SEED1_SALT = "centinel-admin-salt-v1"
 SEED1_ITERS = 600_000
 SEED1_LABELS = list("ABCDEFGHIJKL")
@@ -111,7 +112,7 @@ def _build_html(seeds: Dict[str, str], country_name: str, country_flag: str) -> 
 </head>
 <body>
   <div class="header">
-    <div class="logo">CENTINEL — Sistema de Auditoría Electoral</div>
+    <div class="logo">VIGIL — Sistema de Auditoría Electoral</div>
     <h1>🔑 Seeds de Acceso Administrativo</h1>
     <div class="country">{country_flag} {country_name}</div>
     <div class="meta">
@@ -157,7 +158,7 @@ def _build_html(seeds: Dict[str, str], country_name: str, country_flag: str) -> 
   </div>
 
   <div class="footer">
-    <span>CENTINEL · AGPL-3.0 · github.com/VectisDev/centinel</span>
+    <span>VIGIL · AGPL-3.0 · github.com/VectisDev/Vigil</span>
     <span>Generado: {generated_at}</span>
   </div>
 </body>

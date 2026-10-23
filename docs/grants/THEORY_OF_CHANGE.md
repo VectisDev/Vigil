@@ -1,4 +1,4 @@
-# CENTINEL — Theory of Change + Results Framework
+# VIGIL — Theory of Change + Results Framework
 # Teoría del Cambio + Marco de Resultados
 
 **Versión:** 1.0 · **Fecha:** 2026-06-07  
@@ -65,7 +65,7 @@ tier)                                     de severidad         saben que hay    
 | O1 | Snapshots capturados por elección | 64 (manual, HN 2025) | ≥ 2,000 (automatizado, ≤5 min) | Repositorio `centinel-data` |
 | O2 | Reglas forenses activas y validadas | 23 (dev-v12) | 25+ con calibración departamental | `command_center/rules.yaml` |
 | O3 | FP rate en datos limpios | 1.2% (Benford 2BL) | < 2% para todas las reglas CRITICAL | `docs/research/FALSE_POSITIVE_ANALYSIS.md` |
-| O4 | Países con configuración activa | 1 (HN producción) + 5 configurados | 2 países con prueba de campo | `src/centinel/countries.py` |
+| O4 | Países con configuración activa | 1 (HN producción) + 5 configurados | 2 países con prueba de campo | `src/vigil/countries.py` |
 | O5 | Documentación para observadores | 1 guía (v1.0) | Guías en ES/EN para 3 países | `docs/international_observers/` |
 | O6 | Validación académica | Working paper borrador | Working paper con firma UPNFM | `docs/research/FALSE_POSITIVE_ANALYSIS.md` |
 
@@ -73,8 +73,8 @@ tier)                                     de severidad         saben que hay    
 
 | # | Indicador | Línea base | Meta (12 meses) | Fuente |
 |---|-----------|-----------|-----------------|--------|
-| Oc1 | Periodistas/organizaciones que usan CENTINEL | 0 (no público) | ≥ 3 organizaciones de sociedad civil | Registros de uso, github forks |
-| Oc2 | Misiones internacionales que conocen CENTINEL | 0 | ≥ 1 misión OEA o Carter Center briefeada | Comunicaciones, informes |
+| Oc1 | Periodistas/organizaciones que usan VIGIL | 0 (no público) | ≥ 3 organizaciones de sociedad civil | Registros de uso, github forks |
+| Oc2 | Misiones internacionales que conocen VIGIL | 0 | ≥ 1 misión OEA o Carter Center briefeada | Comunicaciones, informes |
 | Oc3 | Hallazgos forenses citados en informes externos | 0 | ≥ 1 cita en informe oficial de observación | Informes de misiones |
 | Oc4 | Tiempo de detección de anomalías (vs. manual) | Semanas (post-electoral) | < 10 minutos (tiempo real) | Logs de alertas |
 | Oc5 | Instancias independientes del swarm | 0 (single operator) | ≥ 3 forks activos en elección real | GitHub forks activos |
@@ -96,10 +96,10 @@ tier)                                     de severidad         saben que hay    
 |-------------|-------|-----------|-----------------|
 | Misión observación OEA | USD 200,000–500,000 / elección | Parcial (muestral) | Cualitativa |
 | Misión EU EOM | USD 1,000,000–3,000,000 / elección | Parcial | Cualitativa |
-| **CENTINEL (operación)** | **USD 0** | **100% datos publicados** | **Criptográfica** |
-| CENTINEL (con grant validación) | USD 75,000 (una vez) | 100% + validación académica | Criptográfica + par |
+| **VIGIL (operación)** | **USD 0** | **100% datos publicados** | **Criptográfica** |
+| VIGIL (con grant validación) | USD 75,000 (una vez) | 100% + validación académica | Criptográfica + par |
 
-**Ratio de eficiencia:** CENTINEL entrega cobertura 100% + verificabilidad criptográfica
+**Ratio de eficiencia:** VIGIL entrega cobertura 100% + verificabilidad criptográfica
 a costo cero operativo. El grant solicitado es de validación y expansión, no de operación.
 
 ---
@@ -118,7 +118,7 @@ a costo cero operativo. El grant solicitado es de validación y expansión, no d
 
 ## 6. Alineación con criterios OTF / OTF Alignment
 
-| Criterio OTF | Cómo lo cumple CENTINEL |
+| Criterio OTF | Cómo lo cumple VIGIL |
 |--------------|------------------------|
 | Fortalece internet freedom | Protege el acceso a datos electorales públicos contra supresión |
 | Entornos autoritarios/represivos | Diseñado para Honduras; funciona donde el CNE podría bloquear acceso |
@@ -131,7 +131,7 @@ a costo cero operativo. El grant solicitado es de validación y expansión, no d
 
 ## 7. Indicadores de monitoreo interno / Internal Monitoring Indicators
 
-Estos indicadores son medidos automáticamente por CENTINEL:
+Estos indicadores son medidos automáticamente por VIGIL:
 
 ```yaml
 # Medibles automáticamente en cada elección
@@ -146,5 +146,5 @@ technical_kpis:
 
 ---
 
-*CENTINEL — AGPL-3.0 — docs/grants/THEORY_OF_CHANGE.md v1.0*  
+*VIGIL — AGPL-3.0 — docs/grants/THEORY_OF_CHANGE.md v1.0*  
 *Para uso en propuestas OTF, NDI, NED, Open Society y Carter Center*

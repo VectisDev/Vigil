@@ -25,9 +25,9 @@ Vigil es un sistema de observación electoral ciudadano de código abierto para 
 | Recurso | Control | Implementación |
 |---|---|---|
 | Panel `/ops/` | Autenticación PBKDF2 con sal aleatoria | `web/ops/index.html` AUTH IIFE |
-| Hash chain | Solo lectura pública; escritura solo por pipeline autorizado | `src/centinel/core/hashchain.py` |
+| Hash chain | Solo lectura pública; escritura solo por pipeline autorizado | `src/vigil/core/hashchain.py` |
 | Claves Ed25519 | Almacenamiento fuera de línea; nunca en el repositorio | `docs/operations/WITNESS-SETUP-DETAILED.md` |
-| Backups cifrados | AES-256-GCM; clave derivada de passphrase operador | `centinel_engine/secure_backup.py` |
+| Backups cifrados | AES-256-GCM; clave derivada de passphrase operador | `vigil_engine/secure_backup.py` |
 
 ## Gestión de incidentes
 

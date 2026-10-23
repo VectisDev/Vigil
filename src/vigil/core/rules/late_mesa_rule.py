@@ -101,7 +101,7 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
                 {"large_batch": large_batch},
             ),
             "justification": (
-                "Centinel audita el JSON publicado, no actas. Que el JSON "
+                "Vigil audita el JSON publicado, no actas. Que el JSON "
                 "introduzca un bloque de registros nuevos cuando el escrutinio "
                 "público está casi cerrado es el patrón histórico de "
                 "consolidación. Es una observación sobre la secuencia de "

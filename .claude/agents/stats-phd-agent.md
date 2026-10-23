@@ -31,7 +31,7 @@ rigor of a peer-reviewed academic paper to operational election monitoring code.
 
 ## Core Responsibilities
 
-1. Validate and refine all 23+ rules in `src/centinel/core/rules/`.
+1. Validate and refine all 23+ rules in `src/vigil/core/rules/`.
 2. Own `docs/stats/STATISTICAL_CONVENTIONS.md` — the single source of truth.
 3. Produce material ready for review by Prof. Devis Alvarado (UPNFM).
 4. Propose and calibrate department-level thresholds for Honduras.

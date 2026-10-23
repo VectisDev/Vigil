@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script de reproducibilidad — Análisis de Falsos Positivos CENTINEL dev-v12.
-Reproducibility script — CENTINEL dev-v12 False Positive Analysis.
+Script de reproducibilidad — Análisis de Falsos Positivos VIGIL dev-v12.
+Reproducibility script — VIGIL dev-v12 False Positive Analysis.
 
 Run from repo root: PYTHONPATH=src python docs/research/run_fp_analysis.py
 """
@@ -50,6 +50,6 @@ for _ in range(N):
     elif re and re.p_value < 0.01:
         results["zscore_emp_warning"] += 1
 
-print(f"\n=== CENTINEL FP Analysis — N={N}, seed=2025 ===")
+print(f"\n=== VIGIL FP Analysis — N={N}, seed=2025 ===")
 for k,v in results.items():
     print(f"  {k:<35} {v:>4}/{N} ({v/N*100:.1f}%)")

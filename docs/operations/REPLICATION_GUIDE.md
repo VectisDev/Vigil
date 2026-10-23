@@ -1,4 +1,4 @@
-# Replication Guide — Centinel Engine
+# Replication Guide — VIGIL
 ## Guía de Replicación para Otro País Electoral
 
 **Version:** 1.0 | **Date:** 2025-05-17 | **Status:** Active
@@ -10,7 +10,7 @@
 ### ¿Cuándo usar esta guía?
 
 Esta guía es para equipos de observación electoral o desarrolladores que quieran desplegar
-Centinel Engine para monitorear un proceso electoral en un país diferente a Honduras (o un
+VIGIL para monitorear un proceso electoral en un país diferente a Honduras (o un
 proceso diferente al presidencial hondureño).
 
 ---
@@ -97,17 +97,17 @@ El mapa en `web/panel/index.html` es específico de Honduras. Para otro país:
 
 ### Paso 3: Adaptar el parser de datos
 
-El componente central que lee los datos del CNE es `src/centinel/sync/`.
+El componente central que lee los datos del CNE es `src/vigil/sync/`.
 
 Si el nuevo organismo electoral publica datos en formato diferente:
 
-1. Crear un nuevo adapter en `src/centinel/sync/adapters/[pais]_adapter.py`:
+1. Crear un nuevo adapter en `src/vigil/sync/adapters/[pais]_adapter.py`:
 
 ```python
 def normalize_snapshot(raw_data: dict) -> dict:
     """
     Convierte el formato JSON del organismo electoral local
-    al formato estándar de Centinel Engine.
+    al formato estándar de VIGIL.
     
     Formato estándar esperado:
     {
@@ -126,7 +126,7 @@ def normalize_snapshot(raw_data: dict) -> dict:
 
 2. Registrar el adapter en `config/prod/config.yaml`:
 ```yaml
-data_adapter: "centinel.sync.adapters.guatemala_adapter"
+data_adapter: "vigil.sync.adapters.guatemala_adapter"
 ```
 
 ---
@@ -140,7 +140,7 @@ Para publicar snapshots y alertas en tiempo real a la web pública:
    - O un PAT con permiso `contents:write` si se ejecuta fuera de Actions
 2. Las variables de entorno relevantes:
    ```bash
-   GITHUB_REPOSITORY=VectisDev/centinel   # automático en Actions
+   GITHUB_REPOSITORY=VectisDev/Vigil   # automático en Actions
    GITHUB_PAGES_BRANCH=main               # rama donde vive web/data/
    ```
 
@@ -156,8 +156,8 @@ GITHUB_TOKEN=...                  # PAT o token de Actions
 GITHUB_PAGES_BRANCH=main         # rama de publicación (default: main)
 
 # Opcionales con defaults
-CENTINEL_POLL_INTERVAL=120        # segundos entre capturas (default: 120)
-CENTINEL_ENDPOINT_TIMEOUT=10.0    # timeout HTTP en segundos (default: 10)
+VIGIL_POLL_INTERVAL=120        # segundos entre capturas (default: 120)
+VIGIL_ENDPOINT_TIMEOUT=10.0    # timeout HTTP en segundos (default: 10)
 OTS_ENABLED=true                  # habilitar OpenTimestamps Bitcoin anchor
 LOG_LEVEL=INFO
 ```
@@ -186,7 +186,7 @@ En `web/panel/index.html`:
 1. Cambiar el título y descripción en el `<head>` y `<header>`
 2. Actualizar `web/config.js` con la URL de GitHub Pages del nuevo repositorio:
    ```javascript
-   const CENTINEL_PAGES_URL = 'https://[tu-org].github.io/[tu-repo]';
+   const VIGIL_PAGES_URL = 'https://[tu-org].github.io/[tu-repo]';
    ```
 3. Regenerar seeds de acceso con `make wizard` (genera nuevos hashes en `web/access.json`)
 
@@ -249,7 +249,7 @@ Revisar calendario electoral actualizado en: https://www.ifes.org/elections
 
 ### When to use this guide
 
-This guide is for electoral observation teams or developers who want to deploy Centinel
+This guide is for electoral observation teams or developers who want to deploy Vigil
 Engine to monitor an electoral process in a country different from Honduras (or a different
 process than the Honduran presidential election).
 
@@ -261,8 +261,8 @@ GITHUB_TOKEN=...                  # PAT or Actions token
 GITHUB_PAGES_BRANCH=main         # publication branch (default: main)
 
 # Optional with defaults
-CENTINEL_POLL_INTERVAL=120        # seconds between captures
-CENTINEL_ENDPOINT_TIMEOUT=10.0    # HTTP timeout in seconds
+VIGIL_POLL_INTERVAL=120        # seconds between captures
+VIGIL_ENDPOINT_TIMEOUT=10.0    # HTTP timeout in seconds
 OTS_ENABLED=true                  # enable Bitcoin OpenTimestamps anchor
 LOG_LEVEL=INFO
 ```

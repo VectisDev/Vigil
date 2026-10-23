@@ -5,8 +5,8 @@
 3. Notas de mantenimiento / Maintenance notes
 
 ======================== ESPAÑOL ========================
-Archivo: `tests/test_centinel_storage.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Archivo: `tests/test_vigil_storage.py`.
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -17,8 +17,8 @@ Notas:
 - Priorizar claridad operativa y trazabilidad del comportamiento.
 
 ======================== ENGLISH ========================
-File: `tests/test_centinel_storage.py`.
-This module is part of Centinel Engine and is documented to improve
+File: `tests/test_vigil_storage.py`.
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -33,9 +33,9 @@ from vigil.storage import save_snapshot
 
 
 def test_save_snapshot_creates_files(tmp_path):
-    """Español: Función test_save_snapshot_creates_files del módulo tests/test_centinel_storage.py.
+    """Español: Función test_save_snapshot_creates_files del módulo tests/test_vigil_storage.py.
 
-    English: Function test_save_snapshot_creates_files defined in tests/test_centinel_storage.py.
+    English: Function test_save_snapshot_creates_files defined in tests/test_vigil_storage.py.
     """
     content = b"payload"
     metadata = {"source": "test"}

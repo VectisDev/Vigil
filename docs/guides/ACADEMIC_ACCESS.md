@@ -1,4 +1,4 @@
-# Centinel Engine — Academic Research Access
+# VIGIL — Academic Research Access
 
 **For: Devis Alvarado, UPNFM Mathematics Department, and collaborating researchers**
 
@@ -8,7 +8,7 @@
 
 ### Bienvenida
 
-Centinel Engine es un **sistema de monitoreo electoral verificable criptográficamente**, 
+VIGIL es un **sistema de monitoreo electoral verificable criptográficamente**, 
 diseñado para funcionar bajo presión en ambientes hostiles. Está construido sobre principios
 matemáticos rigurosos, con integridad garantizada por SHA-256 y cadenas hash verificables.
 
@@ -119,7 +119,7 @@ Retorna:
       "previous_hash": null,
       "timestamp_utc": "2026-05-01T00:00:00.000001",
       "source_url": "https://resultados2029.cne.hn/...",
-      "software_version": "centinel-v2.14.0"
+      "software_version": "vigil-v0.1.0"
     },
     {
       "path": "data/snapshots/2026-05-01T00:15:30Z",
@@ -127,7 +127,7 @@ Retorna:
       "previous_hash": "a3f92c8d...",
       "timestamp_utc": "2026-05-01T00:15:30.000123",
       "source_url": "https://resultados2029.cne.hn/...",
-      "software_version": "centinel-v2.14.0"
+      "software_version": "vigil-v0.1.0"
     }
     // ... 3 more entries
   ]
@@ -157,7 +157,7 @@ Retorna:
       "previous_hash": "cafebabe...",
       "timestamp_utc": "2026-11-29T00:00:30.123456",
       "source_url": "https://resultados2029.cne.hn/...",
-      "software_version": "centinel-v2.14.0"
+      "software_version": "vigil-v0.1.0"
     }
     // ... 95 more
   ]
@@ -187,7 +187,7 @@ Retorna:
     "previous_hash": "cafebabe...",
     "timestamp_utc": "2026-11-29T09:45:23.654321",
     "source_url": "https://resultados2029.cne.hn/...",
-    "software_version": "centinel-v2.14.0"
+    "software_version": "vigil-v0.1.0"
   },
   "predecessor": {
     "path": "data/snapshots/2026-11-29T09:30:15Z",
@@ -195,7 +195,7 @@ Retorna:
     "previous_hash": "beefcafe...",
     "timestamp_utc": "2026-11-29T09:30:15.123456",
     "source_url": "https://resultados2029.cne.hn/...",
-    "software_version": "centinel-v2.14.0"
+    "software_version": "vigil-v0.1.0"
   },
   "metadata": {
     "fallback_recovered_at": null,
@@ -280,7 +280,7 @@ anormales en los cambios de votación entre capturas sucesivas?
 Para pruebas locales, ejecuta:
 
 ```bash
-cd centinel-engine
+cd vigil
 docker compose -f docker-compose.demo.yml up -d --build
 ./scripts/verify_deployment.sh
 open http://localhost:8000/docs
@@ -350,7 +350,7 @@ print("✓ Verification successful")
 Para papers y tesis, cita como:
 
 ```
-Centinel Election Monitoring System. Accessed [DATE].
+Vigil Election Monitoring System. Accessed [DATE].
 Hash chain verified at [HASH]. Snapshot timestamp [UTC].
 Reproduction: GET /audit/proof/{HASH}
 URL: https://centinel.upnfm.edu.hn
@@ -360,9 +360,9 @@ Ejemplo en BibTeX:
 
 ```bibtex
 @online{centinel2026,
-  author = {Centinel Contributors},
-  title = {Centinel Engine: Cryptographically Verifiable Election Monitoring},
-  url = {https://github.com/userf8a2c4/centinel-engine},
+  author = {Vigil Contributors},
+  title = {VIGIL: Cryptographically Verifiable Election Monitoring},
+  url = {https://github.com/VectisDev/Vigil},
   year = {2026},
   note = {Accessed 2026-05-15}
 }
@@ -374,7 +374,7 @@ Ejemplo en BibTeX:
 
 Para preguntas técnicas:
 
-- **GitHub Issues:** https://github.com/userf8a2c4/centinel-engine/issues
+- **GitHub Issues:** https://github.com/VectisDev/Vigil/issues
 - **Email:** [maintainer email]
 - **UPNFM Partnership:** [coordinator contact]
 
@@ -384,7 +384,7 @@ Para preguntas técnicas:
 
 ### Welcome
 
-Centinel Engine is a **cryptographically verifiable election monitoring system**
+VIGIL is a **cryptographically verifiable election monitoring system**
 designed to function under pressure in hostile environments. It is built on rigorous
 mathematical principles, with integrity guaranteed by SHA-256 and verifiable hash chains.
 
@@ -415,7 +415,7 @@ speaking researchers as well.
 #### Demo Environment
 
 ```bash
-cd centinel-engine
+cd vigil
 docker compose -f docker-compose.demo.yml up -d --build
 ./scripts/verify_deployment.sh
 open http://localhost:8000/docs
@@ -444,7 +444,7 @@ See the reproducibility instructions in the ESPAÑOL section (they are language-
 For academic work:
 
 ```
-Centinel Election Monitoring System. Accessed [DATE].
+Vigil Election Monitoring System. Accessed [DATE].
 Hash chain verified at [HASH]. Snapshot timestamp [UTC].
 Reproduction: GET /audit/proof/{HASH}
 URL: https://centinel.upnfm.edu.hn
@@ -456,7 +456,7 @@ URL: https://centinel.upnfm.edu.hn
 
 For technical questions:
 
-- **GitHub Issues:** https://github.com/userf8a2c4/centinel-engine/issues
+- **GitHub Issues:** https://github.com/VectisDev/Vigil/issues
 - **Email:** [maintainer email]
 - **UPNFM Partnership:** [coordinator contact]
 
@@ -466,18 +466,18 @@ For technical questions:
 
 ### Core Components
 
-- **Hasher Module** (`src/centinel/hasher.py`)
+- **Hasher Module** (`src/vigil/hasher.py`)
   - `compute_snapshot_hash()`: Chainable SHA-256 with previous_hash linkage
   - `verify_hashchain_from_snapshots()`: Full-chain verification with break-point reporting
 
-- **Download Module** (`src/centinel/download.py`)
+- **Download Module** (`src/vigil/download.py`)
   - `write_atomic()`: Ensures no partial writes on crash
 
 - **Circuit Breaker** (`scripts/circuit_breaker.py`)
   - State persistence to prevent restart-based DoS loops
   - Exponential backoff thresholds
 
-- **Audit Router** (`src/centinel/api/audit.py`)
+- **Audit Router** (`src/vigil/api/audit.py`)
   - Public endpoints for chain verification, timeline browsing, proof retrieval
 
 ### Threat Model
@@ -494,5 +494,5 @@ The system is hardened against:
 
 **Document Version:** 1.0  
 **Last Updated:** 2026-05-15  
-**System Version:** centinel-v2.14.0+  
+**System Version:** vigil-v0.1.0+  
 **Audience:** UPNFM Researchers, Academic Partners, Independent Auditors

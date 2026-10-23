@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify a running Centinel demo deployment in under 60 seconds.
+# Verify a running Vigil demo deployment in under 60 seconds.
 #
 # Probes the public audit surface — no authentication required — and confirms
 # the system is reachable, the hash chain is internally consistent, and the

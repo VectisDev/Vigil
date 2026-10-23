@@ -2,7 +2,7 @@
 
 ## 1. Crear wallet dedicada
 
-- Use una wallet nueva exclusivamente para Centinel Engine.
+- Use una wallet nueva exclusivamente para VIGIL.
 - Nunca reutilice una wallet personal.
 - Anote la clave privada y guárdela **offline**.
 

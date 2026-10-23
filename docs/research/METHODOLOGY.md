@@ -4,7 +4,7 @@
 
 > **Estado de implementación:** Este documento refleja el sistema **tal como está
 > implementado y corriendo en producción**, no un plan futuro. Cada regla descrita
-> existe en `src/centinel/core/rules/` o `src/auditor/inconsistent_acts.py` y se
+> existe en `src/vigil/core/rules/` o `src/auditor/inconsistent_acts.py` y se
 > ejecuta en cada ciclo del pipeline. Última sincronización código↔doc: ver `git log`.
 
 ---
@@ -13,7 +13,7 @@
 
 ### 1. Propósito
 
-Este documento describe la metodología técnica de C.E.N.T.I.N.E.L.: cómo captura
+Este documento describe la metodología técnica de VIGIL: cómo captura
 datos electorales públicos, cómo garantiza su integridad criptográficamente y qué
 detectores estadísticos aplica para identificar anomalías. Está dirigido a evaluadores
 técnicos, observadores electorales (OEA, Carter Center, UE), revisores académicos y
@@ -46,7 +46,7 @@ auditores ciudadanos independientes.
 ### 4. Catálogo de detectores implementados
 
 **Total: 24 reglas con decorador `@rule` + 7 detectores forenses = 31 análisis.**
-Registro en `src/centinel/core/rules/registry.py`.
+Registro en `src/vigil/core/rules/registry.py`.
 
 #### 4.1 Reglas estadísticas core (24)
 
@@ -152,7 +152,7 @@ defecto documentados arriba se derivan de:
 
 ### 1. Purpose
 
-This document describes C.E.N.T.I.N.E.L.'s technical methodology: how it captures
+This document describes VIGIL's technical methodology: how it captures
 public electoral data, how it cryptographically guarantees integrity, and which
 statistical detectors it applies. It targets technical evaluators, election
 observers (OAS, Carter Center, EU), academic reviewers, and independent citizen

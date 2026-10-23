@@ -1,7 +1,7 @@
-# Centinel Cost Elimination Roadmap
+# Vigil Cost Elimination Roadmap
 
 ## Objetivo Estratégico
-Transformar Centinel de "costo variable por validación" a "costo fijo por infraestructura" + "costo marginal ~0" por elección.
+Transformar Vigil de "costo variable por validación" a "costo fijo por infraestructura" + "costo marginal ~0" por elección.
 
 ---
 
@@ -63,7 +63,7 @@ Propuesta: Message Compression
 
 **Implementación:**
 ```python
-# src/centinel/swarm/compression.py
+# src/vigil/swarm/compression.py
 import lz4.frame
 import protobuf
 
@@ -108,7 +108,7 @@ Propuesta: Zero-Storage Forensic (Blockchain-style)
 
 **Implementación:**
 ```python
-# src/centinel/audit/forensic_chain.py
+# src/vigil/audit/forensic_chain.py
 class ForensicChain:
   def __init__(self):
     self.current_hash = b'genesis'
@@ -161,7 +161,7 @@ Propuesta: GPU Hashing
 
 **Implementación:**
 ```python
-# src/centinel/crypto/gpu_hash.py
+# src/vigil/crypto/gpu_hash.py
 import pycuda.driver as cuda
 import pycuda.autoinit
 
@@ -209,7 +209,7 @@ Propuesta: Bloom Filter Threshold
 
 **Implementación:**
 ```python
-# src/centinel/reputation/bloom.py
+# src/vigil/reputation/bloom.py
 class BloomTrust:
   def __init__(self):
     # Precomputed thresholds
@@ -357,7 +357,7 @@ Retorno (Network effects):
 
 ## Conclusión
 
-**Centinel puede pasar de costo variable ($0.28/elección) a costo fijo (~$415/mes) sin cambiar la funcionalidad core.**
+**Vigil puede pasar de costo variable ($0.28/elección) a costo fijo (~$415/mes) sin cambiar la funcionalidad core.**
 
 Esto es posible porque:
 1. La mayoría del costo es I/O, no cómputo genuino

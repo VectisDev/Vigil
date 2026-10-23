@@ -241,7 +241,7 @@ def format_report(report: DoctorReport) -> str:
     """Render a human-readable bilingual report block."""
     icon = {READY: "[ OK ]", WARNING: "[WARN]", BLOCKED: "[STOP]"}
     lines = [
-        "Centinel preflight / autoauditoría previa",
+        "Vigil preflight / autoauditoría previa",
         f"  mode: {report.profile.mode}",
         f"  overall: {report.overall} " f"(election_ready={report.election_ready})",
         "",

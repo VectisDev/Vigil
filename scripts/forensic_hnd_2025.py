@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Run Centinel's forensic engine against the 64 real Honduras 2025 snapshots.
+"""Run Vigil's forensic engine against the 64 real Honduras 2025 snapshots.
 
-Ejecuta el motor forense de Centinel contra los 64 snapshots reales de Honduras 2025.
+Ejecuta el motor forense de Vigil contra los 64 snapshots reales de Honduras 2025.
 """
 
 import json

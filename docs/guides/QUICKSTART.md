@@ -34,9 +34,9 @@ The wizard asks for the country and generates the panel access keys; download th
 | `make pipeline` | Ciclo completo una vez: captura, análisis y anclaje | One full cycle: capture, analysis, anchoring |
 | `make start` · `make stop` | Pipeline continuo en segundo plano | Continuous background pipeline |
 | `make status` · `make logs` | Estado y registros en vivo | Status and live logs |
-| `centinel doctor` | Comprueba la postura de seguridad del modo activo | Checks the active mode's security posture |
-| `centinel panel show [--verbose]` | Panel del operador en la terminal | Operator panel in the terminal |
-| `centinel audit run` | Autoauditoría de integridad | Integrity self-audit |
+| `vigil doctor` | Comprueba la postura de seguridad del modo activo | Checks the active mode's security posture |
+| `vigil panel show [--verbose]` | Panel del operador en la terminal | Operator panel in the terminal |
+| `vigil audit run` | Autoauditoría de integridad | Integrity self-audit |
 | `make reproduce-2025-audit` | Reproduce el piloto Honduras 2025 | Reproduces the Honduras 2025 pilot |
 
 ## 4. Registros / Logs

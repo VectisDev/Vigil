@@ -11,19 +11,19 @@ class TestGitHubGossipQueue:
 
     def test_init(self):
         """Test GitHubGossipQueue initialization."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
-        assert queue.repo == "vectisdev/centinel"
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
+        assert queue.repo == "VectisDev/Vigil"
         assert queue.election_id == "election-2026-06-01"
         assert queue.github_token is None
 
     def test_init_with_token(self):
         """Test initialization with GitHub token."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01", github_token="token123")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01", github_token="token123")
         assert queue.github_token == "token123"
 
     def test_publish_payload(self):
         """Test publishing node payload (logs, no real network)."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         payload = {"fingerprint_hash": "sha256:abc123", "timestamp": "2026-06-01T00:00:00Z"}
 
         success = queue._publish_payload("swarm-001", "node-001", payload)
@@ -32,7 +32,7 @@ class TestGitHubGossipQueue:
 
     def test_publish_payload_error_handling(self, caplog):
         """Test publish handles errors gracefully."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
 
         # Pass invalid payload that breaks JSON serialization
         class BadPayload:
@@ -46,7 +46,7 @@ class TestGitHubGossipQueue:
 
     def test_read_payloads(self):
         """Test reading payloads from election issue (stub)."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         payloads = queue._read_payloads()
 
         assert isinstance(payloads, list)
@@ -54,14 +54,14 @@ class TestGitHubGossipQueue:
 
     def test_compute_consensus_empty(self):
         """Test consensus with no payloads."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         consensus = queue.compute_consensus([])
 
         assert consensus is None
 
     def test_compute_consensus_single(self):
         """Test consensus with single payload."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         payloads = [
             {
                 "swarm_id": "swarm-001",
@@ -79,7 +79,7 @@ class TestGitHubGossipQueue:
 
     def test_compute_consensus_unanimous(self):
         """Test consensus with unanimous agreement."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         payloads = [
             {
                 "swarm_id": f"swarm-{i:03d}",
@@ -98,7 +98,7 @@ class TestGitHubGossipQueue:
 
     def test_compute_consensus_majority(self):
         """Test consensus with majority agreement (66% threshold)."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         payloads = [
             {"swarm_id": f"swarm-{i:03d}", "payload": {"fingerprint_hash": "sha256:abc123"}} for i in range(3)
         ] + [{"swarm_id": "swarm-004", "payload": {"fingerprint_hash": "sha256:def456"}}]
@@ -112,7 +112,7 @@ class TestGitHubGossipQueue:
 
     def test_compute_consensus_no_agreement(self):
         """Test consensus with no majority."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         payloads = [
             {"swarm_id": "swarm-001", "payload": {"fingerprint_hash": "sha256:abc123"}},
             {"swarm_id": "swarm-002", "payload": {"fingerprint_hash": "sha256:def456"}},
@@ -125,7 +125,7 @@ class TestGitHubGossipQueue:
 
     def test_compute_consensus_threshold_boundary(self):
         """Test consensus at exactly 66% threshold."""
-        queue = GitHubGossipQueue("vectisdev/centinel", "election-2026-06-01")
+        queue = GitHubGossipQueue("VectisDev/Vigil", "election-2026-06-01")
         # 2 out of 3 = 66.7%, should pass
         payloads = [
             {"swarm_id": "swarm-001", "payload": {"fingerprint_hash": "sha256:abc123"}},

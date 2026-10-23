@@ -2,9 +2,9 @@
 # CONFIGURACIÓN CENTRAL DEL USUARIO (ES) / USER CENTRAL CONFIG (EN)
 # ============================================================
 # ES: Este archivo es el punto único de edición recomendado para operar
-#     C.E.N.T.I.N.E.L. de forma segura.
+#     VIGIL de forma segura.
 # EN: This file is the recommended single editing point to operate
-#     C.E.N.T.I.N.E.L. safely.
+#     VIGIL safely.
 #
 # ES: Orden de lectura sugerido:
 #     1) Índice
@@ -117,7 +117,7 @@ ENABLE_BACKUP: true
 # EN: Global HTTP headers.
 headers:
   Accept: "application/json"
-  User-Agent: "C.E.N.T.I.N.E.L./1.0 (command-center-example)"
+  User-Agent: "VIGIL/1.0 (command-center-example)"
 
 # ES: Circuit breaker para proteger el pipeline ante caídas repetidas.
 # EN: Circuit breaker to protect the pipeline from repeated failures.
@@ -271,7 +271,7 @@ rules:
 # EN: Main engine logging.
 logging:
   level: "INFO"
-  file: "C.E.N.T.I.N.E.L.log"
+  file: "VIGILlog"
 
 # ES: Configuración de alertas críticas.
 # EN: Critical alert configuration.

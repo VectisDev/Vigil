@@ -4255,7 +4255,7 @@ function renderDeptGrid(snap,depts){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CENTINEL RULE ENGINE — evaluated on every tick
+// VIGIL RULE ENGINE — evaluated on every tick
 // ═══════════════════════════════════════════════════════════════════════════
 function evaluateCheapRules(snap,idx,isNewFrame){
   const d=snap._cd={};
@@ -5630,7 +5630,7 @@ function _makePNG(title, lines, filename){
   ctx.fillStyle='#0f1115';ctx.fillRect(0,0,W,H);
   ctx.fillStyle='#b08cf0';ctx.font='bold 13px system-ui';ctx.fillText(title,PAD,PAD+12);
   ctx.fillStyle='#8b929c';ctx.font='10px system-ui';
-  ctx.fillText(`CENTINEL · ${new Date().toLocaleString('es-HN')}`,PAD,PAD+26);
+  ctx.fillText(`VIGIL · ${new Date().toLocaleString('es-HN')}`,PAD,PAD+26);
   const colW=Math.floor((W-PAD*2)/COLS);
   lines.forEach((ln,i)=>{
     const col=Math.floor(i/colLines),row=i%colLines;
@@ -6019,8 +6019,8 @@ function _buildAPASession(sid){
   const dateStr=now.toLocaleDateString(en?'en-US':'es-HN',{year:'numeric',month:'long',day:'numeric'});
   const snap=SIM.idx+1;const total=SIM.snapshots.length;
   return en
-    ? `VIGIL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Electoral forensic analysis: ${ds} — Snapshot ${snap}/${total} [Sandbox session, session ID: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`
-    : `VIGIL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/centinel/lab/`;
+    ? `VIGIL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Electoral forensic analysis: ${ds} — Snapshot ${snap}/${total} [Sandbox session, session ID: ${sid}]. VectisDev. https://vectisdev.github.io/Vigil/lab/`
+    : `VIGIL Forensic Lab. (${now.getFullYear()}, ${dateStr}). Análisis forense electoral: ${ds} — Snapshot ${snap}/${total} [Sesión de sandbox, ID de sesión: ${sid}]. VectisDev. https://vectisdev.github.io/Vigil/lab/`;
 }
 function _buildAPAData(){
   const en=currentLabLang()==='en';
@@ -6056,7 +6056,7 @@ function _buildBibSession(sid){
   year      = {${now.getFullYear()}},
   month     = {${now.getMonth()+1}},
   note      = {Dataset: ${ds}; Snapshot: ${snap}/${total}; ${en?'Session ID':'ID de sesión'}: ${sid}; ${en?'Alerts':'Alertas'}: ${simAlerts.length}},
-  url       = {https://vectisdev.github.io/centinel/lab/},
+  url       = {https://vectisdev.github.io/Vigil/lab/},
   urldate   = {${now.toISOString().slice(0,10)}}
 }`;
 }
@@ -6106,8 +6106,8 @@ function _buildISOSession(sid){
   const ds=_getDatasetLabel();
   const snap=SIM.idx+1;
   return en
-    ? `VIGIL FORENSIC LAB. Forensic analysis: ${ds}, snapshot ${snap} [online session]. ${new Date().toISOString().slice(0,10)}. Session ID: ${sid}. Available at: <https://vectisdev.github.io/centinel/lab/>`
-    : `VIGIL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/centinel/lab/>`;
+    ? `VIGIL FORENSIC LAB. Forensic analysis: ${ds}, snapshot ${snap} [online session]. ${new Date().toISOString().slice(0,10)}. Session ID: ${sid}. Available at: <https://vectisdev.github.io/Vigil/lab/>`
+    : `VIGIL FORENSIC LAB. Análisis forense: ${ds}, snapshot ${snap} [sesión en línea]. ${new Date().toISOString().slice(0,10)}. ID de sesión: ${sid}. Disponible en: <https://vectisdev.github.io/Vigil/lab/>`;
 }
 
 let _lastCiteSid=null;
@@ -6169,7 +6169,7 @@ async function downloadBib(){
     '% VIGIL Forensic Lab — BibTeX citation package',
     `% Session ID : ${sid}`,
     `% Generated  : ${new Date().toISOString()}`,
-    '% URL        : https://vectisdev.github.io/centinel/lab/',
+    '% URL        : https://vectisdev.github.io/Vigil/lab/',
     '',
     _buildBibSoftware(),'',
     _buildBibSession(sid),'',
@@ -6192,7 +6192,7 @@ async function downloadCSV(){
   rows.push(['# VIGIL Forensic Lab — Exportación de estadísticas']);
   rows.push(['# Session ID',sid]);rows.push(['# Dataset',ds]);
   rows.push(['# Snapshot',`${snap}/${SIM.snapshots.length}`]);rows.push(['# Generado',ts]);
-  rows.push(['# URL','https://vectisdev.github.io/centinel/lab/']);rows.push([]);
+  rows.push(['# URL','https://vectisdev.github.io/Vigil/lab/']);rows.push([]);
   // Indicators
   rows.push(['## INDICADORES (SNAPSHOT ACTUAL)']);
   rows.push(['indicador','valor']);
@@ -6240,7 +6240,7 @@ async function downloadReproZip(){
     '='.repeat(54),'',
     `Session ID : ${sid}`,`Dataset    : ${ds}`,
     `Snapshot   : ${snap}/${SIM.snapshots.length}`,`Generado   : ${ts}`,
-    `URL        : https://vectisdev.github.io/centinel/lab/`,'',
+    `URL        : https://vectisdev.github.io/Vigil/lab/`,'',
     'CONTENIDO DEL PAQUETE','-'.repeat(40),
     'session.json   — Metadatos completos (dataset, snapshot, umbrales, alertas)',
     'thresholds.csv — 24 umbrales de sensibilidad con valores y estado',
@@ -6248,7 +6248,7 @@ async function downloadReproZip(){
     'injections.json— Eventos inyectados (activos y programados)',
     'citation.bib   — Referencias BibTeX listas para LaTeX / Overleaf / Zotero','',
     'PARA REPRODUCIR ESTE ANÁLISIS','-'.repeat(40),
-    '1. Abre https://vectisdev.github.io/centinel/lab/',
+    '1. Abre https://vectisdev.github.io/Vigil/lab/',
     `2. Selecciona el mismo dataset: ${ds}`,
     '3. Carga los umbrales desde thresholds.csv en el panel de sensibilidad',
     '4. Si había hipótesis pre-registrada, ingrésala ANTES de ajustar umbrales',
@@ -6257,7 +6257,7 @@ async function downloadReproZip(){
     'CITAR ESTE SOFTWARE (APA 7ª ed.)','-'.repeat(40),
     _buildAPASoftware(),'',
     'LICENCIA','-'.repeat(40),
-    'CENTINEL — AGPL-3.0 · https://github.com/vectisdev/vigil',
+    'VIGIL — AGPL-3.0 · https://github.com/vectisdev/vigil',
     'Datos electorales: propiedad del TSE de Honduras (uso académico).',
   ].join('\n'));
   // session.json
@@ -6267,14 +6267,14 @@ async function downloadReproZip(){
     schema:'centinel-session/1.0',session_id:sid,generated_at:ts,
     dataset:ds,dataset_url:document.getElementById('dataset-select')?.value||'',
     snapshot_index:SIM.idx,snapshot_total:SIM.snapshots.length,playback_speed:SIM.speed,
-    lab_url:'https://vectisdev.github.io/centinel/lab/',
+    lab_url:'https://vectisdev.github.io/Vigil/lab/',
     hypothesis_preregistered:threshLocked?hyp:null,
     hypothesis_locked_at:preregObj?.ts||null,
     thresholds:Object.fromEntries(RULES_DEFS.map(r=>[r.id,{value:TV[r.id]??r.def,enabled:TE[r.id]!==false}])),
     active_injections:activeInjections.map(i=>({id:i.id,label:i.label,mode:i.mode,snapshot:i.atIdx+1})),
     scheduled_injections:scheduledInjections.map(s=>({id:s.id,snapshot:s.atIdx+1,param:s.paramVal})),
     alert_summary:{total:simAlerts.length,critical:simAlerts.filter(a=>a.sev==='CRITICAL').length,high:simAlerts.filter(a=>a.sev==='HIGH').length},
-    software:{name:'CENTINEL',version:'0.4.0',license:'AGPL-3.0',url:'https://github.com/vectisdev/vigil'},
+    software:{name:'VIGIL',version:'0.4.0',license:'AGPL-3.0',url:'https://github.com/vectisdev/vigil'},
   },null,2));
   // thresholds.csv
   const thHdr='rule_id,grupo,etiqueta,valor,unidad,habilitado,min,max,default';
@@ -6318,7 +6318,7 @@ function _addWatermark(ctx,W,y0){
   ctx.fillStyle='#8b929c';ctx.font='9px system-ui';
   const sid=_sessionId||'—';const ds=_getDatasetLabel().slice(0,35);
   const snap=SIM.idx+1;
-  const wt=`VIGIL Forensic Lab · Session ${sid} · ${ds} · Snap ${snap} · vectisdev.github.io/centinel/lab/`;
+  const wt=`VIGIL Forensic Lab · Session ${sid} · ${ds} · Snap ${snap} · vectisdev.github.io/Vigil/lab/`;
   ctx.fillText(wt.slice(0,120),10,y0+14);
 }
 

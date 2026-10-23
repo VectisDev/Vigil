@@ -1,6 +1,6 @@
-"""Unified retry infrastructure for Centinel Engine.
+"""Unified retry infrastructure for VIGIL.
 
-Infraestructura unificada de reintentos para Centinel Engine.
+Infraestructura unificada de reintentos para VIGIL.
 
 Provides a single ``retry_backoff`` decorator built on tenacity that
 replaces four manual while-loop patterns in the pipeline. All retry

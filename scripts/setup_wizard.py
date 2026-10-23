@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Asistente de configuración interactivo para Centinel Engine.
-Interactive configuration wizard for Centinel Engine.
+"""Asistente de configuración interactivo para VIGIL.
+Interactive configuration wizard for VIGIL.
 
 Uso / Usage:
     python scripts/setup_wizard.py
@@ -24,6 +24,7 @@ ENV_FILE = REPO_ROOT / ".env"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
 ACCESS_JSON = REPO_ROOT / "web" / "access.json"
 
+# Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
 SEED1_SALT = "centinel-admin-salt-v1"
 SEED1_ITERS = 600_000
 SEED1_LABELS = list("ABCDEFGHIJKL")
@@ -249,7 +250,7 @@ def main() -> None:
     print()
     print(_c(CYAN, "╔" + "═" * inner + "╗"))
     _banner_line()
-    _banner_line("CENTINEL")
+    _banner_line("VIGIL")
     _banner_line("Trustless Electoral Integrity Verification")
     _banner_line("Latin America")
     _banner_line()
@@ -426,7 +427,7 @@ def main() -> None:
         gh_token = _ask("GITHUB_TOKEN", default=env.get("GITHUB_TOKEN", ""))
         gh_repo = _ask(
             "GITHUB_REPOSITORY",
-            default=env.get("GITHUB_REPOSITORY", "userf8a2c4/centinel-engine"),
+            default=env.get("GITHUB_REPOSITORY", "userf8a2c4/vigil"),
         )
         if gh_token:
             env["GITHUB_TOKEN"] = gh_token
@@ -551,7 +552,7 @@ def main() -> None:
     print(f"  {_c(CYAN, 'centinel doctor')} → Verificar que todo está listo")
     print("                    Verify everything is ready (GO/NO-GO)")
     print()
-    print(_c(GREEN, "  CENTINEL está listo. Tu instancia es completamente independiente"))
+    print(_c(GREEN, "  VIGIL está listo. Tu instancia es completamente independiente"))
     print(_c(GREEN, "  de cualquier autoridad electoral o institución."))
     print()
     print(_c(GREEN, "  Configuración completada / Configuration complete."))

@@ -39,8 +39,8 @@ complete operational visibility through structured logs and metrics.
 
 ## Core Responsibilities
 
-1. Maintain and harden `src/centinel/core/poller.py`.
-2. Watchdog multi-layer + self-healing in `src/centinel/core/watchdog.py`.
+1. Maintain and harden `src/vigil/core/poller.py`.
+2. Watchdog multi-layer + self-healing in `src/vigil/core/watchdog.py`.
 3. Proxy rotation and Tor fallback strategy.
 4. Structured observability: metrics, alerts, dashboards.
 5. Operational runbooks for all failure scenarios.

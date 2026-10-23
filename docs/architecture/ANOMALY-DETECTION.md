@@ -1,12 +1,12 @@
-# Anomaly Detection in Centinel Engine
+# Anomaly Detection in VIGIL
 
-**ES: Detección de Anomalías en Centinel Engine**
+**ES: Detección de Anomalías en VIGIL**
 
 ## Overview
 
-Centinel Engine includes real-time anomaly detection to flag suspicious patterns in election snapshots. This enables operators and auditors to identify potentially tampered data early, matching standards used by electoral authorities in Brazil (TSE) and Mexico (INE).
+VIGIL includes real-time anomaly detection to flag suspicious patterns in election snapshots. This enables operators and auditors to identify potentially tampered data early, matching standards used by electoral authorities in Brazil (TSE) and Mexico (INE).
 
-**ES: Centinel Engine incluye detección de anomalías en tiempo real para señalar patrones sospechosos en snapshots electorales. Esto permite a operadores y auditores identificar datos potencialmente manipulados temprano, igualando estándares usados por autoridades electorales en Brasil (TSE) y México (INE).**
+**ES: VIGIL incluye detección de anomalías en tiempo real para señalar patrones sospechosos en snapshots electorales. Esto permite a operadores y auditores identificar datos potencialmente manipulados temprano, igualando estándares usados por autoridades electorales en Brasil (TSE) y México (INE).**
 
 ### Non-Fatal Design
 
@@ -97,7 +97,7 @@ Rules only apply when `>= min_snapshots` observations exist (default: 100). This
 ### Basic Usage
 
 ```python
-from centinel.core.anomaly_detector import AnomalyDetector
+from vigil.core.anomaly_detector import AnomalyDetector
 
 # Create detector with defaults
 detector = AnomalyDetector(
@@ -184,7 +184,7 @@ Response:
 
 ## Comparison to Regional Standards
 
-| Aspect | Brazil (TSE) | Mexico (INE) | Centinel |
+| Aspect | Brazil (TSE) | Mexico (INE) | Vigil |
 |--------|-------------|-------------|---------|
 | First-digit check | ✓ Benford's Law | (Not documented) | ✓ χ² test |
 | Vote delta outliers | (Not documented) | ✓ Threshold-based | ✓ Z-score |
@@ -204,7 +204,7 @@ Anomalies **can** occur in legitimate scenarios:
 - **Z-score**: Legitimate vote batches can be large
 - **Timestamp**: Operator clock corrections during pilot
 
-**Solution:** Threshold tuning + auditor review. Centinel never auto-rejects; humans decide.
+**Solution:** Threshold tuning + auditor review. Vigil never auto-rejects; humans decide.
 
 ### Tuning for Your Election
 
@@ -216,7 +216,7 @@ Before election night, test with:
 Example calibration:
 ```python
 # Test on 2020 municipal election data
-from centinel.core.anomaly_detector import detect_anomalies
+from vigil.core.anomaly_detector import detect_anomalies
 
 historical = load_2020_snapshots()  # ~500 snapshots
 report = detect_anomalies(historical, min_snapshots=100)

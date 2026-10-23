@@ -1,6 +1,6 @@
 """
-Presets de países de América Latina para Centinel.
-Latin America country presets for Centinel.
+Presets de países de América Latina para Vigil.
+Latin America country presets for Vigil.
 
 Fuente de verdad para datos geográficos electorales.
 Single source of truth for electoral geographic data.

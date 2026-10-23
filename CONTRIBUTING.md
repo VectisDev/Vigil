@@ -1,6 +1,6 @@
 # Contributing to VIGIL
 
-**ES: Contribuyendo a Centinel Engine**
+**ES: Contribuyendo a VIGIL**
 
 ## Development Setup
 
@@ -89,8 +89,8 @@ def verify_benford(values: list[int]) -> dict[str, Any]:
 
 ### Add a New Anomaly Detection Rule
 
-1. Create `src/centinel/core/rules/<name>_rule.py` with an `apply(current_data, previous_data, config)` function decorated with `@rule(name=..., severity=..., description=..., config_key=...)`
-2. Add the module name to `_RULE_MODULES` in `src/centinel/core/rules_engine.py` so it registers at startup
+1. Create `src/vigil/core/rules/<name>_rule.py` with an `apply(current_data, previous_data, config)` function decorated with `@rule(name=..., severity=..., description=..., config_key=...)`
+2. Add the module name to `_RULE_MODULES` in `src/vigil/core/rules_engine.py` so it registers at startup
 3. Add its thresholds to `config/prod/rules.yaml` under the same `config_key`
 4. Add tests under `tests/` and run them: `poetry run pytest tests/<your_test>.py -v`
 5. Document the technique and its limitations in `docs/research/METHODOLOGY.md`

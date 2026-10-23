@@ -535,7 +535,7 @@ async function saveElectoralUrl() {
   try {
     const r = await fetch((window.VIGIL_API_BASE || '') + '/api/setup/discover_endpoints', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Centinel-Key': sessionStorage.getItem('centinel_admin_key') || '' },
+      headers: { 'Content-Type': 'application/json', 'X-Vigil-Key': sessionStorage.getItem('centinel_admin_key') || '' },
       body: JSON.stringify({ main_url: url, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
     });
 
@@ -593,7 +593,7 @@ async function saveElectoralUrl() {
       res.style.background = 'rgba(212,176,102,.08)';
       res.style.border = '1px solid rgba(212,176,102,.25)';
       res.style.color = 'var(--warn)';
-      res.textContent = 'Servidor no disponible. URL guardada localmente — el descubrimiento se ejecutará al iniciar Centinel.';
+      res.textContent = 'Servidor no disponible. URL guardada localmente — el descubrimiento se ejecutará al iniciar Vigil.';
     }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Guardar y descubrir'; }
@@ -669,7 +669,7 @@ async function doChangeCountry() {
   try {
     const r = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/change_country', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-Centinel-Key': sessionStorage.getItem('centinel_admin_key') || ''},
+      headers: {'Content-Type': 'application/json', 'X-Vigil-Key': sessionStorage.getItem('centinel_admin_key') || ''},
       body: JSON.stringify({country_code: code}),
     });
     if (r.ok) {

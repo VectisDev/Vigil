@@ -1,4 +1,4 @@
-# CENTINEL Lab — i18n (ES/EN) — Estado
+# VIGIL Lab — i18n (ES/EN) — Estado
 
 Última actualización: commit `aa114d237d8a`. **Estado: COMPLETO.**
 

@@ -23,7 +23,7 @@ de ser detectada.
 ## Cambio 1: Z-score unificado
 
 ### Archivo nuevo
-`src/centinel/core/rules/zscore_unified.py`
+`src/vigil/core/rules/zscore_unified.py`
 
 ### Funciones a usar
 
@@ -59,7 +59,7 @@ if abs(z) > 3.0:
     alert("CRITICAL")
 
 # DESPUÉS (v11)
-from centinel.core.rules.zscore_unified import zscore_empirical
+from vigil.core.rules.zscore_unified import zscore_empirical
 result = zscore_empirical(x=x, sample=deltas)
 if result and result.severity == Severity.CRITICAL:
     alert("CRITICAL")
@@ -70,7 +70,7 @@ if result and result.severity == Severity.CRITICAL:
 ## Cambio 2: Benford consolidado
 
 ### Archivo nuevo
-`src/centinel/core/rules/benford_unified.py`
+`src/vigil/core/rules/benford_unified.py`
 
 ### Mapa de migración
 
@@ -117,11 +117,11 @@ benford_first_digit_experimental:
 
 ```python
 # ANTES (dev-v10, Rule 1)
-from centinel.core.rules.rule_benford_first_digit import check_benford_first_digit
+from vigil.core.rules.rule_benford_first_digit import check_benford_first_digit
 result = check_benford_first_digit(votes, config)
 
 # DESPUÉS (v11)
-from centinel.core.rules.benford_unified import benford_canonical
+from vigil.core.rules.benford_unified import benford_canonical
 result = benford_canonical(votes)
 
 # ANTES (dev-v10, Rule 2 — per candidate)
@@ -129,7 +129,7 @@ for candidate in candidates:
     check_benford_per_candidate(candidate_votes[candidate])
 
 # DESPUÉS (v11)
-from centinel.core.rules.benford_unified import benford_batch
+from vigil.core.rules.benford_unified import benford_batch
 results = benford_batch(candidate_votes, test_type="canonical")
 ```
 
@@ -137,8 +137,8 @@ results = benford_batch(candidate_votes, test_type="canonical")
 
 ## Checklist de migración / Migration checklist
 
-- [ ] Copiar `zscore_unified.py` a `src/centinel/core/rules/`
-- [ ] Copiar `benford_unified.py` a `src/centinel/core/rules/`
+- [ ] Copiar `zscore_unified.py` a `src/vigil/core/rules/`
+- [ ] Copiar `benford_unified.py` a `src/vigil/core/rules/`
 - [ ] Copiar `STATISTICAL_CONVENTIONS.md` a `docs/stats/`
 - [ ] Actualizar `rules.yaml` con los parámetros unificados
 - [ ] Refactorizar Regla 7 para usar `zscore_proportion()`

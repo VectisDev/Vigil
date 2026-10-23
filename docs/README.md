@@ -1,4 +1,4 @@
-# CENTINEL — Documentation Index
+# VIGIL — Documentation Index
 
 **Version:** 2.0 | **Status:** Active | **License:** AGPL-3.0
 

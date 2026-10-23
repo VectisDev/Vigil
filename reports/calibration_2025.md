@@ -1,4 +1,4 @@
-# Reporte de Calibración Centinel — Honduras 2025
+# Reporte de Calibración Vigil — Honduras 2025
 
 **Fecha de análisis:** 2026-05-18 13:28 UTC
 **Snapshots analizados:** 64

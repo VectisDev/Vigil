@@ -1,5 +1,5 @@
 """
-Toggle Centinel swarm mode without editing .env or restarting.
+Toggle Vigil swarm mode without editing .env or restarting.
 
 ES: Conecta o desconecta el nodo del enjambre con un solo comando.
     Llama a los endpoints existentes del API y persiste CENTINEL_AUTOCONNECT
@@ -109,7 +109,7 @@ def status(api_url: str = _DEFAULT_API) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Toggle Centinel swarm mode (join/leave/status)",
+        description="Toggle Vigil swarm mode (join/leave/status)",
     )
     parser.add_argument("action", choices=["join", "leave", "status"])
     parser.add_argument(

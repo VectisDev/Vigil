@@ -2,7 +2,7 @@
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/core/rules/mesa_reconciliation_rule.py`.
 
-Centinel audita el JSON publicado por el CNE, no actas. Esta regla
+Vigil audita el JSON publicado por el CNE, no actas. Esta regla
 compara el JSON anterior contra el actual, registro por registro
 (usando el identificador que el propio JSON trae, p. ej. `codigo_mesa`).
 Si un registro que el CNE ya había publicado cambia su huella
@@ -15,7 +15,7 @@ Degrada con gracia: sin publicación previa, o si el JSON solo trae
 agregados (sin registros identificables), no emite alertas.
 
 ======================== ENGLISH ========================
-Centinel audits the CNE-published JSON, not tally sheets. This rule
+Vigil audits the CNE-published JSON, not tally sheets. This rule
 diffs the previous vs current JSON record-by-record (using the JSON's
 own identifier). A record the CNE already published whose fingerprint
 changes in a later publication is flagged CRITICAL with per-candidate
@@ -110,7 +110,7 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
                 {"mesas_modificadas": 0},
             ),
             "justification": (
-                "Centinel audita el JSON publicado por el CNE, no actas. Un "
+                "Vigil audita el JSON publicado por el CNE, no actas. Un "
                 "registro que el CNE ya había publicado no debe cambiar de valor "
                 "en una publicación posterior. El cambio de huella criptográfica "
                 "del sub-objeto es un hecho verificable sobre el JSON —no un "

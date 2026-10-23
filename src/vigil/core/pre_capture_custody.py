@@ -1,5 +1,5 @@
 """
-CENTINEL — Pre-Capture Evidentiary Custody
+VIGIL — Pre-Capture Evidentiary Custody
 ============================================
 
 Module: src/vigil/core/pre_capture_custody.py
@@ -10,7 +10,7 @@ Hallazgo de auditoría: Punto 1 — Brecha de custodia pre-captura.
 Purpose / Propósito
 -------------------
 
-The cryptographic hash chain that CENTINEL constructs over captured CNE
+The cryptographic hash chain that VIGIL constructs over captured CNE
 JSON files begins **inside** the system. By itself, it does not preserve
 any information about where the JSON came from. A hostile actor (e.g.,
 a state prosecutor) can argue: "How do you prove that JSON came from the
@@ -35,7 +35,7 @@ envelope is detectable.
 
 ----
 
-El hash chain criptográfico que construye CENTINEL sobre los JSON
+El hash chain criptográfico que construye VIGIL sobre los JSON
 capturados comienza **dentro** del sistema. Por sí solo, no preserva
 ninguna información sobre dónde vino el JSON. Un actor hostil (p.ej., un
 fiscal del Estado) puede argumentar: "¿Cómo prueba usted que ese JSON vino
@@ -64,7 +64,7 @@ Threat model
 This module addresses the following attacker capabilities:
 
 1. **"Fabrication" allegation** — A state prosecutor alleges that the
-   CENTINEL operator fabricated the JSON files locally. The envelope's
+   VIGIL operator fabricated the JSON files locally. The envelope's
    TLS fingerprint + server timestamps + IP are independently verifiable
    against passive DNS and Certificate Transparency logs at the time of
    capture.
@@ -82,7 +82,7 @@ This module addresses the following attacker capabilities:
    may have updated by then). Federation of capture nodes (a separate
    audit item) eliminates this gap entirely.
 
-License: AGPL-3.0 (matching the parent CENTINEL project)
+License: AGPL-3.0 (matching the parent VIGIL project)
 """
 
 from __future__ import annotations
@@ -97,7 +97,7 @@ from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
 # Optional dependency: cryptography (for Ed25519 signing).
-# It is already a CENTINEL dependency.
+# It is already a VIGIL dependency.
 try:
     from cryptography.hazmat.primitives.asymmetric.ed25519 import (
         Ed25519PrivateKey,
@@ -205,9 +205,9 @@ class CustodyEnvelope:
     operator_public_key_ed25519_hex: str = ""
 
     # The previous chain link, if any. This is what hooks the envelope
-    # into CENTINEL's hash chain.
+    # into VIGIL's hash chain.
     # El eslabón previo de la cadena, si hay. Esto engancha el sobre a
-    # la cadena de hashes de CENTINEL.
+    # la cadena de hashes de VIGIL.
     previous_chain_link_sha256: str = ""
 
     def to_dict(self) -> dict[str, Any]:

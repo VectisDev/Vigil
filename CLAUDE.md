@@ -1,4 +1,4 @@
-# CLAUDE.md — Centinel Project Context
+# CLAUDE.md — Vigil Project Context
 
 ## What this is
 
@@ -15,7 +15,7 @@ version: before adding code, check in order — does it need to exist? does it a
 in this codebase? does stdlib/a native feature/an installed dependency already do it? can it
 be one line? — and only then write the minimum. Delete over add. No abstractions or
 dependencies that weren't asked for. The one carve-out: cryptographic/forensic-integrity code
-(`src/centinel/core`, `federation`, `defense`, `api`, `command_center/`,
+(`src/vigil/core`, `federation`, `defense`, `api`, `command_center/`,
 `verify/verify_chain.py`) sometimes duplicates hash/verification logic *on purpose* so a
 generator and an independent verifier don't share a bug — don't "deduplicate" that without
 reading `docs/audits/audit-20260703-CoreDeadCodeFindings.md` first.

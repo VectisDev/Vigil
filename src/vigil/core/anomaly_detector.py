@@ -1,7 +1,7 @@
 """
-Anomaly Detection Module for Centinel Engine.
+Anomaly Detection Module for VIGIL.
 
-ES: Módulo de Detección de Anomalías para Centinel Engine.
+ES: Módulo de Detección de Anomalías para VIGIL.
    Detecta patrones sospechosos en snapshots mediante:
    - Ley de Benford (distribución de primeros dígitos)
    - Z-score (outliers en métricas electorales)

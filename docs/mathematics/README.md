@@ -1,11 +1,11 @@
-# Documentacion Matematica de Centinel / Centinel Mathematical Documentation
+# Documentacion Matematica de Vigil / Vigil Mathematical Documentation
 
 Referencia tecnica de los metodos estadisticos, formulas y umbrales utilizados
-por las reglas de deteccion de Centinel Engine y el modulo forense de actas
+por las reglas de deteccion de VIGIL y el modulo forense de actas
 inconsistentes.
 
 Technical reference for the statistical methods, formulas, and thresholds used
-by Centinel Engine detection rules and the inconsistent-acts forensic module.
+by VIGIL detection rules and the inconsistent-acts forensic module.
 
 ---
 

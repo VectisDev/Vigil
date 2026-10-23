@@ -1,4 +1,4 @@
-# Proyecto C.E.N.T.I.N.E.L. (paquete principal)
+# Proyecto VIGIL (paquete principal)
 
 ## [ES] Español
 

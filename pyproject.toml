@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "centinel-engine"
+name = "vigil"
 version = "0.1.0"
-description = "CENTINEL: trustless electoral integrity verification infrastructure for Latin America"
+description = "VIGIL: trustless electoral integrity verification infrastructure for Latin America"
 authors = ["userf8a2c4 <contact@centinel.app>"]
 license = "AGPL-3.0-only"
 readme = "README.md"
-homepage = "https://github.com/userf8a2c4/centinel-engine"
-repository = "https://github.com/userf8a2c4/centinel-engine"
-documentation = "https://github.com/userf8a2c4/centinel-engine#readme"
+homepage = "https://github.com/VectisDev/Vigil"
+repository = "https://github.com/VectisDev/Vigil"
+documentation = "https://github.com/VectisDev/Vigil#readme"
 keywords = [
   "electoral-integrity", "election-audit", "civic-tech", "transparency",
   "hashchain", "open-data", "latin-america", "democracy", "forensics",

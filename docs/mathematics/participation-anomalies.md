@@ -7,10 +7,10 @@ Mathematical documentation for rules detecting anomalous voter turnout,
 impossible turnout, and elevated null/blank votes.
 
 **Archivos fuente / Source files:**
-- `src/centinel/core/rules/participation_anomaly_rule.py`
-- `src/centinel/core/rules/participation_anomaly_advanced_rule.py`
-- `src/centinel/core/rules/turnout_impossible_rule.py`
-- `src/centinel/core/rules/null_blank_rule.py`
+- `src/vigil/core/rules/participation_anomaly_rule.py`
+- `src/vigil/core/rules/participation_anomaly_advanced_rule.py`
+- `src/vigil/core/rules/turnout_impossible_rule.py`
+- `src/vigil/core/rules/null_blank_rule.py`
 
 ---
 

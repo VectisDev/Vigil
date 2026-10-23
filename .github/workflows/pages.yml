@@ -2,7 +2,7 @@ name: Deploy web verifier to GitHub Pages
 
 # El setup-wizard activa Pages automáticamente al hacer fork.
 # Si falla, abre un Issue con un link directo a Settings → Pages.
-# URL: https://vectisdev.github.io/centinel/
+# URL: https://vectisdev.github.io/Vigil/
 on:
   push:
     branches: [main]

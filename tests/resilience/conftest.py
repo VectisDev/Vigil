@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `tests/resilience/conftest.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
+Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
@@ -24,7 +24,7 @@ Notas:
 
 ======================== ENGLISH ========================
 File: `tests/resilience/conftest.py`.
-This module is part of Centinel Engine and is documented to improve
+This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
@@ -262,7 +262,7 @@ def watchdog_config_path(tmp_path: Path) -> Path:
         "data_dir": str(tmp_path / "data"),
         "heartbeat_path": str(tmp_path / "data" / "heartbeat.json"),
         "state_path": str(tmp_path / "data" / "watchdog_state.json"),
-        "log_path": str(tmp_path / "logs" / "centinel.log"),
+        "log_path": str(tmp_path / "logs" / "vigil.log"),
         "lock_files": [str(tmp_path / "data" / "temp" / "pipeline.lock")],
     }
     config_path = tmp_path / "watchdog.yaml"

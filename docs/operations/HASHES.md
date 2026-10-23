@@ -2,7 +2,7 @@
 
 ## Resumen (Summary)
 
-El motor Centinel usa SHA-256 y hashing encadenado para garantizar inmutabilidad y trazabilidad de snapshots electorales. (The Centinel engine uses SHA-256 and chained hashing to guarantee immutability and traceability of electoral snapshots.)
+El motor Vigil usa SHA-256 y hashing encadenado para garantizar inmutabilidad y trazabilidad de snapshots electorales. (The Vigil engine uses SHA-256 and chained hashing to guarantee immutability and traceability of electoral snapshots.)
 
 Cada snapshot incorpora metadatos antes de hashear: timestamp ISO en UTC, URL fuente y versión de software. (Each snapshot includes metadata before hashing: ISO timestamp in UTC, source URL, and software version.)
 

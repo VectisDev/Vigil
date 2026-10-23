@@ -1,6 +1,6 @@
-"""ES: Generador institucional de reportes para C.E.N.T.I.N.E.L.
+"""ES: Generador institucional de reportes para VIGIL
 
-EN: Institutional report generator for C.E.N.T.I.N.E.L.
+EN: Institutional report generator for VIGIL
 
 Este módulo concentra la lógica de exportación para que la UI de Streamlit
 mantenga responsabilidades claras. Incluye:
@@ -92,7 +92,7 @@ def build_audit_trail_payload(
     generated_iso = context.generated_at_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
     signature = build_report_signature(context.snapshot_hash, context.root_hash, generated_iso)
     return {
-        "institution": "C.E.N.T.I.N.E.L.",
+        "institution": "VIGIL",
         "generated_at_utc": generated_iso,
         "source": context.source_label,
         "generated_by": context.generated_by,
@@ -128,13 +128,13 @@ def _build_story(
     EN: Build the PDF story (pages/elements).
     """
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle("CentinelTitle", parent=styles["Heading1"], fontSize=19, textColor=colors.HexColor("#0B1F3B"))
-    section_style = ParagraphStyle("CentinelSection", parent=styles["Heading2"], fontSize=13, textColor=colors.HexColor("#163A63"))
+    title_style = ParagraphStyle("VigilTitle", parent=styles["Heading1"], fontSize=19, textColor=colors.HexColor("#0B1F3B"))
+    section_style = ParagraphStyle("VigilSection", parent=styles["Heading2"], fontSize=13, textColor=colors.HexColor("#163A63"))
     body_style = styles["BodyText"]
 
     generated_label = context.generated_at_utc.strftime("%Y-%m-%d %H:%M UTC")
     story: list[Any] = []
-    story.append(Paragraph("C.E.N.T.I.N.E.L. / OEA · EU EOM · Carter Center", title_style))
+    story.append(Paragraph("VIGIL / OEA · EU EOM · Carter Center", title_style))
     story.append(Spacer(1, 0.3 * cm))
     story.append(Paragraph("Informe Institucional de Auditoría Electoral / Institutional Electoral Audit Report", body_style))
     story.append(Spacer(1, 0.5 * cm))
@@ -241,7 +241,7 @@ def generate_institutional_pdf_report(
         canvas_obj.saveState()
         canvas_obj.setFont("Helvetica", 8)
         canvas_obj.setFillColor(colors.HexColor("#334155"))
-        canvas_obj.drawString(1.8 * cm, 1.0 * cm, "C.E.N.T.I.N.E.L. – Auditoría Técnica Independiente")
+        canvas_obj.drawString(1.8 * cm, 1.0 * cm, "VIGIL – Auditoría Técnica Independiente")
         canvas_obj.drawRightString(A4[0] - 1.8 * cm, 1.0 * cm, f"Página {canvas_obj.getPageNumber()}")
         canvas_obj.restoreState()
 
@@ -251,7 +251,7 @@ def generate_institutional_pdf_report(
 
 
 _VERIFY_TXT = """\
-CENTINEL — Instrucciones de Verificación / Verification Instructions
+VIGIL — Instrucciones de Verificación / Verification Instructions
 ======================================================================
 
 ES: Este paquete contiene evidencia criptográficamente verificable de monitoreo
@@ -283,7 +283,7 @@ evidence. To verify integrity:
    https://opentimestamps.org  (load the decoded "raw_proof_b64" field)
 
 Schema: centinel-log-v1
-Reference: https://github.com/vectisdev/centinel
+Reference: https://github.com/VectisDev/Vigil
 """
 
 
@@ -331,6 +331,7 @@ def build_evidence_bundle(
     secret = (context.root_hash or "CENTINEL-INSTITUTIONAL-DEFAULT").encode("utf-8")
     bundle_signature = hmac.new(secret, manifest_index.encode("utf-8"), hashlib.sha256).hexdigest()
     manifest = {
+        # Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
         "schema": "centinel-log-v1",
         "generated_at_utc": generated_iso,
         "election_id": audit_trail.get("scope", "unknown"),

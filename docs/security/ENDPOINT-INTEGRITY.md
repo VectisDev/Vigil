@@ -62,7 +62,7 @@ En lugar de almacenar respuestas (datos), guardamos **estructura** (schema):
 ### Registro de Baseline
 
 ```python
-from centinel.core.endpoint_monitor import EndpointMonitor, EndpointSchema
+from vigil.core.endpoint_monitor import EndpointMonitor, EndpointSchema
 
 monitor = EndpointMonitor()
 
@@ -185,8 +185,8 @@ checkpoint-2026-05-16.json
 ## Configuration
 
 No requiere config especial. Monitor se integra en:
-- `src/centinel/core/snapshot.py` (capture pipeline)
-- `src/centinel/api/routes/audit.py` (forensic endpoint)
+- `src/vigil/core/snapshot.py` (capture pipeline)
+- `src/vigil/api/routes/audit.py` (forensic endpoint)
 
 Default:
 - Timeout: 10 segundos

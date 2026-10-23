@@ -5,7 +5,7 @@ conteos electorales.
 
 Mathematical documentation for vote-count irreversibility detection.
 
-**Archivo fuente / Source file:** `src/centinel/core/rules/irreversibility_rule.py`
+**Archivo fuente / Source file:** `src/vigil/core/rules/irreversibility_rule.py`
 **config_key:** `irreversibility`
 **Severidad / Severity:** High
 

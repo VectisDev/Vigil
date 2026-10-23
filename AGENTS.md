@@ -36,7 +36,7 @@ Not lazy about: understanding the problem (read it fully and trace the real flow
 Adopted verbatim from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)
 (the plugin marketplace form of this can't be installed inside a remote Claude Code agent
 session, so this file is the equivalent: a standing instruction any agent working on this
-repo reads). VIGIL-specific exception: `src/centinel/core`, `federation`, `defense`, `api`,
+repo reads). VIGIL-specific exception: `src/vigil/core`, `federation`, `defense`, `api`,
 `command_center/`, and `verify/verify_chain.py` are cryptographic/forensic-integrity code —
 rung 2 ("already exists, reuse it") does NOT apply across the generator/verifier boundary
 there. `evidence_bundle.py`'s hash/merkle helpers are deliberately re-implemented in

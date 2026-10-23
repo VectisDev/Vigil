@@ -2,7 +2,7 @@
 ======================== ESPAÑOL ========================
 Archivo: `src/vigil/core/rules/mesa_impossibility_rule.py`.
 
-Centinel audita el JSON publicado por el CNE, no actas. Esta regla
+Vigil audita el JSON publicado por el CNE, no actas. Esta regla
 aplica chequeos de coherencia interna a cada registro del JSON por
 separado:
 
@@ -117,7 +117,7 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
                 {"mesas_imposibles": 0},
             ),
             "justification": (
-                "Centinel audita el JSON publicado, no actas. Un registro del "
+                "Vigil audita el JSON publicado, no actas. Un registro del "
                 "JSON cuyos números se contradicen aritméticamente a sí mismos "
                 "es una incoherencia interna del dato publicado —hecho "
                 "verificable, no juicio electoral—. El escrutinio agregado "

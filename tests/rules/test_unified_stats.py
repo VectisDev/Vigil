@@ -1,6 +1,6 @@
 """
-Tests para los módulos estadísticos unificados de CENTINEL.
-Tests for CENTINEL's unified statistical modules.
+Tests para los módulos estadísticos unificados de VIGIL.
+Tests for VIGIL's unified statistical modules.
 
 Covers:
     - zscore_unified: Family A (proportions) and Family B (empirical)
@@ -18,7 +18,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'centinel', 'core', 'rules'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'vigil', 'core', 'rules'))
 
 from vigil.core.rules.severity import Severity
 from vigil.core.rules.zscore_unified import (

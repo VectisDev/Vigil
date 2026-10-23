@@ -515,7 +515,7 @@ async function pushFile(path, content, message) {
 async function pushCollectWorkflow() {
   const country = STATE.country;
   const year = STATE.year;
-  const wf = `name: Centinel Collect
+  const wf = `name: Vigil Collect
 on:
   schedule:
     - cron: '*/15 * * * *'
@@ -533,7 +533,7 @@ jobs:
         with:
           token: \${{ secrets.GITHUB_TOKEN }}
 
-      - name: Checkout Centinel Engine
+      - name: Checkout VIGIL
         uses: actions/checkout@v4
         with:
           repository: VectisDev/vigil
@@ -567,13 +567,13 @@ jobs:
       - name: Commit data
         run: |
           git config user.email "centinel-bot@users.noreply.github.com"
-          git config user.name "Centinel Bot"
+          git config user.name "Vigil Bot"
           git add data/ hashes/ web/data/ 2>/dev/null || true
           git diff --staged --quiet || git commit -m "data: \$(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
           git push
 `;
   await pushFile('.github/workflows/collect.yml', wf,
-    'ci: add Centinel collect workflow');
+    'ci: add Vigil collect workflow');
 }
 
 async function pushPagesWorkflow() {

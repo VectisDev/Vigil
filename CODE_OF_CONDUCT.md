@@ -1,4 +1,4 @@
-# Code of Conduct — Centinel Engine
+# Code of Conduct — VIGIL
 
 ## Our Pledge
 

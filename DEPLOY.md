@@ -1,8 +1,8 @@
-# Centinel Engine — 5-Minute Demo Deployment
+# VIGIL — 5-Minute Demo Deployment
 
 Bilingual: ES / EN.
 
-This guide brings up a local Centinel Engine instance with **only the public
+This guide brings up a local VIGIL instance with **only the public
 audit endpoints exposed**, then verifies it end-to-end. No secrets, no cloud
 storage, no proxy chain required — designed so any auditor (academic,
 international, citizen) can independently reproduce a working deployment.
@@ -18,8 +18,8 @@ international, citizen) can independently reproduce a working deployment.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<owner>/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/<owner>/vigil.git
+cd vigil
 
 # 2. Launch the demo stack (build + start)
 docker compose -f docker-compose.demo.yml up -d --build
@@ -54,7 +54,7 @@ Expected output from step 3:
 Checks passed: 4
 Checks failed: 0
 
-Centinel deployment healthy. Ready for audit verification.
+Vigil deployment healthy. Ready for audit verification.
 ```
 
 ## Verifying a remote deployment
@@ -99,8 +99,8 @@ Requisitos: Docker, Docker Compose v2, curl, python3, puerto 8000 libre,
 ~1.5 GB de espacio para la imagen.
 
 ```bash
-git clone https://github.com/<owner>/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/<owner>/vigil.git
+cd vigil
 docker compose -f docker-compose.demo.yml up -d --build
 ./scripts/verify_deployment.sh
 ```

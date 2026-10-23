@@ -1,8 +1,8 @@
 # CI/CD (Bilingüe / Bilingual)
 
 ## Objetivo / Objective
-Este documento describe el CI para C.E.N.T.I.N.E.L., con foco en reproducibilidad, trazabilidad y confiabilidad frente a auditorías externas (matemáticos, ingenieros, OEA, Carter Center). Cada workflow separa responsabilidades y reporta resultados claros. 
-This document describes the CI for C.E.N.T.I.N.E.L., focused on reproducibility, traceability, and reliability for external audits (mathematicians, engineers, OEA, Carter Center). Each workflow separates responsibilities and reports clear results.
+Este documento describe el CI para VIGIL, con foco en reproducibilidad, trazabilidad y confiabilidad frente a auditorías externas (matemáticos, ingenieros, OEA, Carter Center). Cada workflow separa responsabilidades y reporta resultados claros. 
+This document describes the CI for VIGIL, focused on reproducibility, traceability, and reliability for external audits (mathematicians, engineers, OEA, Carter Center). Each workflow separates responsibilities and reports clear results.
 
 ## Resumen de workflows / Workflow summary
 - **Lint (push)**: `flake8` de errores críticos (`E9,F63,F7,F82`) para feedback rápido y determinista.

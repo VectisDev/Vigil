@@ -1,4 +1,4 @@
-"""Reusable institutional theme primitives for C.E.N.T.I.N.E.L.
+"""Reusable institutional theme primitives for VIGIL
 
 ES: Variables y estilos reutilizables para el diseño institucional premium.
 EN: Reusable variables and style builders for premium institutional design.
@@ -23,7 +23,7 @@ SPACING_PANEL = "24px 32px"
 # ES: Configuración oficial de página para Streamlit.
 # EN: Official page configuration for Streamlit.
 PAGE_CONFIG = {
-    "page_title": "C.E.N.T.I.N.E.L. – Centro de Vigilancia Electoral",
+    "page_title": "VIGIL – Centro de Vigilancia Electoral",
     "page_icon": "🛰️",
     "layout": "wide",
     "initial_sidebar_state": "expanded",
