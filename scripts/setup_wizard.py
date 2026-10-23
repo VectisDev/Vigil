@@ -453,7 +453,7 @@ def main() -> None:
         f"{_c(GREEN, '✓')} Descentralizado"
     )
     print()
-    if _ask_yn("¿Activar anclaje Bitcoin/OpenTimestamps?", default=True):
+    if _ask_yn("¿Activar anclaje Bitcoin/OpenTimestamps?", default=ots_on):
         env["OTS_ENABLED"] = "true"
         ots_mode = _ask_choice(
             "¿Red? / Network?",

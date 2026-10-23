@@ -45,7 +45,6 @@ from __future__ import annotations
 
 import pytest
 
-from centinel.core.rules import inconsistency_rate_rule  # noqa: F401 — auto-registro
 from centinel.core.rules.inconsistency_rate_rule import apply
 from centinel.core.rules.registry import list_rules
 

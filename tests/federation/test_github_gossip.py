@@ -1,9 +1,7 @@
 """Tests for GitHub-native gossip protocol (zero-cost swarm coordination)."""
 
-import json
-from datetime import datetime, timezone
+from datetime import datetime
 
-import pytest
 
 from centinel.federation.github_gossip import GitHubGossipQueue, gossip_via_github
 
@@ -42,7 +40,7 @@ class TestGitHubGossipQueue:
                 raise ValueError("Bad payload")
 
         # Even with error, should be caught and logged
-        success = queue._publish_payload("swarm-001", "node-001", BadPayload())
+        queue._publish_payload("swarm-001", "node-001", BadPayload())
         # This might succeed or fail depending on implementation
         # Just verify it doesn't crash
 

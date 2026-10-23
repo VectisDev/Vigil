@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from centinel.core.rules.benford_unified import benford_canonical, benford_batch
+from centinel.core.rules.benford_unified import benford_batch
 from centinel.core.rules.common import extract_department, extract_candidate_votes
 from centinel.core.rules.registry import rule
 

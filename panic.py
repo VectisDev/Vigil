@@ -398,7 +398,7 @@ def main() -> int:
     stamp = utc_stamp()
 
     try:
-        panic_flag = set_panic_flag(user, timestamp)
+        set_panic_flag(user, timestamp)
         updated = update_master_switch("OFF")
         logger.info("panic_master_switch_off paths=%s", [p.as_posix() for p in updated])
     except Exception as exc:  # noqa: BLE001

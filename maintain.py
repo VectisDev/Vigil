@@ -438,8 +438,6 @@ def command_status(runtime: RuntimeConfig, logger: logging.Logger) -> None:
 
     console = build_console()
 
-    health_status = ("unknown", "strict_health_unavailable")
-    diagnostics: list[dict[str, Any]] = []
     ok, diagnostics = asyncio.run(is_healthy_strict())
     detail = "strict_health_ok" if ok else "; ".join(diagnostics.get("failures", [])) or "strict_health_failed"
     health_status = ("ok" if ok else "fail", detail)

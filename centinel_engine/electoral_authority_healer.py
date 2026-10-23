@@ -460,7 +460,7 @@ class ElectoralAuthorityHealer:
                     captured.append(response.url)
                     self.logger.info("🎭 Playwright intercepted electoral JSON: %s", response.url)
             except Exception:
-                pass
+                self.logger.debug("Playwright response is not electoral JSON: %s", response.url)
 
         try:
             with sync_playwright() as pw:

@@ -1,3 +1,4 @@
+/* global snapshotData */ // declared with `let` in web/ops/index.html
 // ══════════════════════════════════════════════════════════
 // CONFIG LOAD
 // ══════════════════════════════════════════════════════════
@@ -602,7 +603,6 @@ function updateDeptGrid(){
 function updateMapNarrative(svg, configured){
   const panel = document.getElementById('map-narrative');
   if(!panel) return;
-  const eps = snapshotData?.endpoints_status || {};
   let pick = null; // {dept, status, severity}
   const sevRank = {bad:2, warn:1, ok:0, neutral:-1};
 
@@ -789,7 +789,7 @@ async function testEndpoint(){
   if(!url){document.getElementById('mp-status').textContent='Sin URL configurada.';return;}
   document.getElementById('mp-status').textContent='Probando…';
   try{
-    const r = await fetch(url,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(8000)});
+    await fetch(url,{method:'HEAD',mode:'no-cors',signal:AbortSignal.timeout(8000)});
     document.getElementById('mp-status').textContent='Respuesta recibida (puede ser ok).';
   }catch(e){
     document.getElementById('mp-status').textContent='No responde o CORS bloqueado: '+e.message;

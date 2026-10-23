@@ -558,6 +558,7 @@ def _perform_request(
             try:
                 retry_after_seconds = float(retry_after_raw)
             except (ValueError, TypeError):
+                # Retry-After is an HTTP date or garbage: fall back to the retry policy.
                 pass
         try:
             from centinel_engine.rate_limiter import get_rate_limiter
@@ -679,6 +680,8 @@ def _request_with_retry(
         )
         _write_failed_request(retry_config, failed_payload)
         raise
+    # Retrying(reraise=True) either returns inside the loop or raises; this is a safety net.
+    raise RuntimeError(f"retry loop for {url} ended without a response")
 
 
 def request_json_with_retry(

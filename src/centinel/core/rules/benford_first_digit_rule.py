@@ -185,7 +185,7 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     # For CRITICAL alerts use benford_canonical (2nd digit) from benford_unified.py.
     if mad > mad_critical or chi_result.pvalue < chi_pvalue_critical:
         severity = "INFO"  # was CRITICAL — demoted dev-v12
-    elif mad_warning <= mad <= mad_critical:
+    elif mad >= mad_warning:
         severity = "INFO"  # was WARNING — demoted dev-v12
     else:
         return alerts

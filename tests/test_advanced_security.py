@@ -112,7 +112,7 @@ def test_adaptive_cpu_ignores_brief_spike(monkeypatch: pytest.MonkeyPatch) -> No
     manager = AdvancedSecurityManager(cfg)
     monkeypatch.setattr("centinel.defense.advanced_security.psutil.cpu_percent", lambda interval=0.1: 95.0)
     monkeypatch.setattr(
-        "centinel.defense.advanced_security.psutil.virtual_memory", lambda: type("vm", (), {"percent": 10.0})()
+        "centinel.defense.advanced_security.psutil.virtual_memory", type("vm", (), {"percent": 10.0})
     )
     monkeypatch.setattr(manager.runtime_security, "detect_hostile_conditions", lambda: [])
 

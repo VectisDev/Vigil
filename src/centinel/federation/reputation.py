@@ -31,7 +31,6 @@ _BETA_BETRAYAL = 5.0  # heavy penalty for divergent fingerprints
 _HALFLIFE_ALPHA_DAYS = 14.0  # positive evidence half-life
 _HALFLIFE_BETA_DAYS = 30.0  # negative evidence half-life (betrayal remembered longer)
 
-_DB_FILENAME = "federation_reputation.db"
 _DECAY_INTERVAL_SECONDS = 86400.0  # run decay once per 24 hours
 
 logger = logging.getLogger("centinel.federation.reputation")
@@ -464,4 +463,3 @@ class ReputationEngine:
         except Exception as exc:
             logger.warning("reputation_export_events_json_error error=%s", exc)
             return {"exported_at": datetime.now(timezone.utc).isoformat(), "events": [], "error": str(exc)}
-            return []

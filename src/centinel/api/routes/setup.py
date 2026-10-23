@@ -322,8 +322,7 @@ def discover_endpoints(
 
     # Run healer with the correct country context
     try:
-        env = {**os.environ, "CENTINEL_COUNTRY": country_code}
-        import importlib, sys
+        import sys
         # Reload healer module so EXPECTED_DEPARTMENTS picks up the new country
         healer_mod = "centinel_engine.electoral_authority_healer"
         old_env = os.environ.get("CENTINEL_COUNTRY")

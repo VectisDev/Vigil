@@ -5,7 +5,7 @@ Reproducibility script — CENTINEL dev-v12 False Positive Analysis.
 
 Run from repo root: PYTHONPATH=src python docs/research/run_fp_analysis.py
 """
-import json, sys
+import sys
 import numpy as np
 sys.path.insert(0, 'src')
 

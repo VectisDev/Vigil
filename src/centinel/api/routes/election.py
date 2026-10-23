@@ -8,11 +8,8 @@ GET  /api/election/status    — current election state
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-import os
 import re
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,7 +27,7 @@ _CLOSED_MARKER = _BASE / "ELECTION_CLOSED"
 _SCRIPTS_DIR = _BASE / "scripts"
 
 _finalize_lock = asyncio.Lock()
-_finalize_running = False
+_finalize_running = asyncio.Event()
 
 
 def _update_env(key: str, value: str) -> None:
@@ -85,8 +82,6 @@ async def finalize_election(request: Request) -> dict:
 
     Idempotent: safe to call more than once (returns current state if already closed).
     """
-    global _finalize_running
-
     if _CLOSED_MARKER.exists():
         merkle_root, chain_length = _current_merkle_root()
         closed_at = _CLOSED_MARKER.read_text(encoding="utf-8").strip()
@@ -98,9 +93,9 @@ async def finalize_election(request: Request) -> dict:
         }
 
     async with _finalize_lock:
-        if _finalize_running:
+        if _finalize_running.is_set():
             raise HTTPException(status_code=409, detail="Finalization already in progress.")
-        _finalize_running = True
+        _finalize_running.set()
 
     now_iso = datetime.now(timezone.utc).isoformat()
     logger.info("election_finalize_requested at=%s", now_iso)
@@ -144,7 +139,7 @@ async def finalize_election(request: Request) -> dict:
         raise HTTPException(status_code=504, detail="Forced scrape timed out after 10 minutes.")
     finally:
         async with _finalize_lock:
-            _finalize_running = False
+            _finalize_running.clear()
 
 
 @router.get("/api/election/status")

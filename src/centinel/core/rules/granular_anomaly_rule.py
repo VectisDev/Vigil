@@ -77,12 +77,7 @@ from centinel.core.rules.common import (
     parse_timestamp,
 )
 from centinel.core.rules.registry import rule
-from centinel.core.rules.zscore_unified import (  # noqa: E402 — unified Z-score conventions
-    zscore_empirical,
-    Z_THRESHOLD_WARNING,
-    Z_THRESHOLD_CRITICAL,
-    Severity as SeverityZScore,
-)
+from centinel.core.rules.zscore_unified import Z_THRESHOLD_WARNING, Z_THRESHOLD_CRITICAL  # noqa: E402 — unified Z-score conventions
 
 
 def _extract_level(data: dict) -> Optional[str]:

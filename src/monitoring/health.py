@@ -72,7 +72,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 logger = logging.getLogger(__name__)
 
-_scheduler: Optional[BackgroundScheduler] = None
+_schedulers: dict[str, BackgroundScheduler] = {}
 _health_state: Optional["HealthcheckState"] = None
 _default_interval_minutes = 5
 
@@ -193,8 +193,7 @@ def _build_health_router():
 
 def start_healthchecks_scheduler() -> None:
     """Inicia el scheduler para pings periódicos de Healthchecks."""
-    global _scheduler
-    if _scheduler is not None:
+    if "healthchecks" in _schedulers:
         return
 
     state = get_health_state()
@@ -217,7 +216,7 @@ def start_healthchecks_scheduler() -> None:
     scheduler = BackgroundScheduler(timezone="UTC")
     scheduler.add_job(state._client.ping, "interval", minutes=interval_minutes, id="healthchecks")
     scheduler.start()
-    _scheduler = scheduler
+    _schedulers["healthchecks"] = scheduler
     logger.info("healthchecks_scheduler_started interval=%sm", interval_minutes)
 
 

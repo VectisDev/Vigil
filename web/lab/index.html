@@ -1288,7 +1288,6 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 
 <script>
 function currentLabLang(){ return document.documentElement.getAttribute("lang")==="en" ? "en":"es"; }
-"use strict";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Acceso académico abierto — sin autenticación requerida
@@ -3556,7 +3555,7 @@ function startAuditSimulation(){
     }else{
       auditState.isRunning=false;
       auditState.validatedCount=auditState.totalNodes;
-      auditState.checksums=dataSet||dataSet;
+      auditState.checksums=dataSet;
       renderAuditTimeline();
       renderAuditValidationStatus();
       renderAuditChecksums();
@@ -3748,9 +3747,6 @@ function runByzantineSimulation(){
   logSE('INFO',`Byzantine simulation: N=${n}, M=${m}, Threshold=${threshold}, Result=${ByzantineState.consensus?'CONSENSUS':'FAILED'}`);
 }
 function renderByzantineUI(){
-  const n=ByzantineState.totalNodes;
-  const m=ByzantineState.byzantineNodes;
-  const threshold=Math.floor((n-1)/3);
   const statusEl=document.getElementById('byz-status');
   if(ByzantineState.consensus===null){
     statusEl.textContent='Pending';
@@ -4949,7 +4945,6 @@ function renderForensics(snap,benf,lastd,last10,ext){
   const ok='<span class="badge b-ok">OK</span>';
   const warn=`<span class="badge b-warn">${_trMsg('ALERTA')}</span>`;
   const crit=`<span class="badge b-bad">${_trMsg('CRÍTICO')}</span>`;
-  const na='<span class="badge b-na">N/A</span>';
   function badge(level){return level==='CRITICAL'?crit:level==='WARN'?warn:ok;}
   function card(label,status,detail){
     return`<div class="forensic-card"><div class="forensic-hdr" role="button" tabindex="0" onclick="this.nextElementSibling.classList.toggle('open')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.nextElementSibling.classList.toggle('open')}"><span class="forensic-title">${_trMsg(label)}</span>${status}</div><div class="forensic-body">${_trMsg(detail)}</div></div>`;
@@ -4989,7 +4984,6 @@ function renderForensics(snap,benf,lastd,last10,ext){
     `Actual 15 min: ${(cd._speed15||0).toLocaleString()} actas | límite ${TV.speed_max}`));
 
   // 6. Nulos y Blancos
-  const ncCD=cd.null_crit||cd.null_warn;
   verdicts.push(card('Nulos y Blancos',badge(cd.null_crit?'CRITICAL':cd.null_warn?'WARN':'OK'),
     `Tasa nulos: ${(cd._nullPct||0).toFixed(1)}% | warn>${TV.null_warn}% | crit>${TV.null_crit}%`));
 
@@ -6633,7 +6627,7 @@ function loadLabSession(input){
       loadDataset('__custom__:inline',session.dataset);
       if(session.thresholds) _importThresholds(session.thresholds);
       if(session.hypothesis&&typeof _restoreHypothesis==='function')
-        _restoreHypothesis(session.hypothesis,session.hypothesis_hash);
+        _restoreHypothesis(session.hypothesis);
       logE('OK',_trMsg(`Sesión cargada: ${session.label??file.name}`));
     }catch(err){logE('CRITICAL',_trMsg('Error cargando sesión: ')+err.message);}
   };

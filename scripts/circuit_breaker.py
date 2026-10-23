@@ -40,6 +40,7 @@ def _resolve_state_hmac_key(state_path: Path) -> bytes:
         if existing:
             return existing.encode("utf-8")
     except OSError:
+        # No readable secret yet: fall through and generate one.
         pass
     generated = hashlib.sha256(os.urandom(32)).hexdigest()
     try:
@@ -47,6 +48,7 @@ def _resolve_state_hmac_key(state_path: Path) -> bytes:
         secret_path.write_text(generated, encoding="utf-8")
         os.chmod(secret_path, 0o600)
     except OSError:
+        # Read-only state dir: the in-memory secret still protects this run.
         pass
     return generated.encode("utf-8")
 
@@ -300,6 +302,7 @@ class CircuitBreaker:
             try:
                 os.unlink(tmp_name)
             except OSError:
+                # Temp file already gone; the original error is re-raised below.
                 pass
             raise
 

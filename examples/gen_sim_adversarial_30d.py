@@ -23,7 +23,6 @@ Usage: python3 scripts/gen_sim_adversarial_30d.py
 """
 
 import json
-import math
 import random
 import copy
 from datetime import datetime, timezone, timedelta

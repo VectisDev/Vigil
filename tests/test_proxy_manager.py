@@ -47,14 +47,13 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from centinel_engine.proxy_manager import (  # noqa: E402
-    DEFAULT_ROTATION_EVERY_N,
     ROTATION_TRIGGER_CODES,
     USER_AGENT_POOL,
     ProxyAndUAManager,

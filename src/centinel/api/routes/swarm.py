@@ -236,6 +236,7 @@ async def swarm_connect(request: Request) -> dict:
     try:
         body = await request.json()
     except Exception:
+        # Empty or non-JSON body is allowed: start with default options.
         pass
 
     my_url: Optional[str] = body.get("my_url") or os.getenv("CENTINEL_MY_URL")
@@ -271,6 +272,7 @@ async def swarm_connect(request: Request) -> dict:
     try:
         await asyncio.wait_for(asyncio.shield(_engine_task), timeout=0.1)
     except (asyncio.TimeoutError, asyncio.CancelledError):
+        # Bootstrap still running in the background; the endpoint returns immediately.
         pass
 
     # Authorize sala peer URL before announcing, so their first attestation is trusted
@@ -564,7 +566,7 @@ async def get_reputation_report() -> dict:
             privkey = load_pem_private_key(priv_path.read_bytes(), password=None)
             signature = privkey.sign(payload_bytes).hex()
     except Exception:
-        pass
+        logger.debug("swarm_payload_signing_skipped", exc_info=True)
 
     return {
         "generated_at": generated_at,

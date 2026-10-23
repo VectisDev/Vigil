@@ -7,7 +7,6 @@ Tests for self-audit module.
 
 import json
 import asyncio
-import hashlib
 import tempfile
 from pathlib import Path
 from datetime import datetime
@@ -23,7 +22,7 @@ class TestAutoAuditBasics:
     def test_init_creates_storage_path(self):
         """Init crea directorio storage si no existe."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            audit = AutoAudit(storage_path=tmpdir)
+            AutoAudit(storage_path=tmpdir)
             assert Path(tmpdir).exists()
 
     def test_binary_baseline_computed(self):
@@ -61,21 +60,19 @@ class TestBinaryIntegrity:
             core_dir.mkdir()
 
             # Crea archivo test
-            test_file = core_dir / "test_module.py"
+            test_file = core_dir / "custody.py"  # one of the monitored core files
             test_file.write_text("original content")
 
             # Calcula baseline
             audit = AutoAudit(storage_path=tmpdir, core_path=str(core_dir))
-            baseline = audit.binary_baseline
+            assert "custody.py" in audit.binary_baseline
 
             # Modifica archivo
             test_file.write_text("modified content")
 
             # Scan debería detectar cambio
             result = await audit.scan_binary_integrity()
-            # Si test_module.py estaba en baseline, ahora debería ser False
-            if "test_module.py" in result:
-                assert result["test_module.py"] is False
+            assert result["custody.py"] is False
 
 
 class TestStateConsistency:
@@ -248,6 +245,7 @@ class TestAuditReportPersistence:
         with tempfile.TemporaryDirectory() as tmpdir:
             audit = AutoAudit(storage_path=tmpdir)
             report = await audit.run_full_audit()
+            assert 0.0 <= report.health_score <= 1.0
 
             # Verifica que audit_log fue creado
             audit_log = Path(tmpdir) / "audit_log.jsonl"

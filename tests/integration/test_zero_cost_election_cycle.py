@@ -6,10 +6,6 @@ Validates:
 - Cross-swarm validation works without external services
 """
 
-import json
-from datetime import datetime
-
-import pytest
 
 from centinel.federation.github_gossip import gossip_via_github, GitHubGossipQueue
 

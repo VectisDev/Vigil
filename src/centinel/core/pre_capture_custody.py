@@ -91,12 +91,10 @@ import hashlib
 import json
 import socket
 import ssl
-import time
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
-from urllib.parse import urlparse
 
 # Optional dependency: cryptography (for Ed25519 signing).
 # It is already a CENTINEL dependency.

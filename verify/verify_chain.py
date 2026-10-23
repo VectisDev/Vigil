@@ -125,7 +125,6 @@ def verify_chain(directory: str, verbose: bool = False) -> dict:
         file_hash = sha256_file(str(filepath))
 
         if verbose:
-            status = "FIRST" if i == 0 else "..."
             print(f"  [{i+1:4d}/{len(json_files)}] {filepath.name}")
             print(f"         SHA-256: {file_hash}")
 

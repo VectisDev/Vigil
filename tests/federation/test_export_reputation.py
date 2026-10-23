@@ -4,7 +4,6 @@ import json
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from centinel.federation.export_reputation import export_events_json, export_forensic_trail
 

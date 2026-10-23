@@ -87,7 +87,7 @@ def build_departments():
             idx = preset.divisions.index(div_name)
             iso = isos[idx] if idx < len(isos) else None
         except ValueError:
-            pass
+            iso = None  # division not in preset: leave the ISO code unset
 
         url = pattern.replace("{cne_code}", cne_code) if pattern else ""
         depts.append({

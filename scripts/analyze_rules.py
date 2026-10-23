@@ -285,6 +285,7 @@ def _broadcast_findings_urgent(result: object, snapshot_id: str) -> None:
         try:
             _requests.post(endpoint, json=payload, timeout=1.5)
         except Exception:
+            # Best-effort notification; rule analysis must not depend on the endpoint.
             pass
 
 

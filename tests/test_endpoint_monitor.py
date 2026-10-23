@@ -7,13 +7,8 @@ Validates that endpoint schema changes are detected and logged.
 import time
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from centinel.core.endpoint_monitor import (
-    EndpointMonitor,
-    EndpointSchema,
-    SchemaChange,
-)
+from centinel.core.endpoint_monitor import EndpointMonitor, EndpointSchema
 
 
 class TestEndpointSchema:

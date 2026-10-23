@@ -7,7 +7,6 @@ Validates OTS integration, retry logic, and multi-chain fallback.
 import time
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from centinel.anchor.opentimestamps_client import (
     MultichainAnchor,

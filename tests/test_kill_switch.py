@@ -3,15 +3,13 @@ Tests para Kill Switch (Defensa de Tejón)
 Tests for Kill Switch (Badger Defense)
 """
 
-import asyncio
 import json
 import pytest
 import random
-import time
 from pathlib import Path
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 
-from centinel.core.kill_switch import KillSwitch, RecoveryState
+from centinel.core.kill_switch import KillSwitch
 from centinel.core.argos_protocol import ArgosLayer
 
 

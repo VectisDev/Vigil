@@ -262,7 +262,7 @@ def write_registry(paths: List[Path], output_dir: Path) -> Path:
 
     Generate a registry with SHA-256 hashes of outputs.
     """
-    entries = [{"path": str(path), "sha256": _sha256_file(path)} for path in sorted(paths, key=lambda p: str(p))]
+    entries = [{"path": str(path), "sha256": _sha256_file(path)} for path in sorted(paths, key=str)]
     registry_path = output_dir / "registry.json"
     registry_path.write_text(
         json.dumps(entries, indent=2, sort_keys=True) + "\n",

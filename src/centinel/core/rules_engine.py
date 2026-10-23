@@ -53,6 +53,7 @@ Notes:
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
 import logging
 from dataclasses import dataclass, field
@@ -60,36 +61,39 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-# ── Importar TODAS las reglas para que se auto-registren ────────────────
-# Import ALL rules so they self-register via @rule decorator.
-from centinel.core.rules import (  # noqa: F401
-    basic_diff_rule,
-    benford_first_digit_rule,
-    benford_law_rule,
-    correlation_participation_vote_rule,
-    geographic_dispersion_rule,
-    granular_anomaly_rule,
-    inconsistency_rate_rule,
-    irreversibility_rule,
-    large_numbers_rule,
-    last_digit_uniformity_rule,
-    late_mesa_rule,
-    mesa_impossibility_rule,
-    mesa_reconciliation_rule,
-    mesas_diff_rule,
-    ml_outliers_rule,
-    null_blank_rule,
-    participation_anomaly_advanced_rule,
-    participation_anomaly_rule,
-    processing_speed_rule,
-    runs_test_rule,
-    snapshot_jump_rule,
-    table_consistency_rule,
-    trend_shift_rule,
-    turnout_impossible_rule,
-)
 from centinel.core.hashchain import compute_hash
 from centinel.core.rules.registry import RuleDefinition, list_rules
+
+# ── Importar TODAS las reglas para que se auto-registren ────────────────
+# Import ALL rules so they self-register via @rule decorator.
+_RULE_MODULES = (
+    "basic_diff_rule",
+    "benford_first_digit_rule",
+    "benford_law_rule",
+    "correlation_participation_vote_rule",
+    "geographic_dispersion_rule",
+    "granular_anomaly_rule",
+    "inconsistency_rate_rule",
+    "irreversibility_rule",
+    "large_numbers_rule",
+    "last_digit_uniformity_rule",
+    "late_mesa_rule",
+    "mesa_impossibility_rule",
+    "mesa_reconciliation_rule",
+    "mesas_diff_rule",
+    "ml_outliers_rule",
+    "null_blank_rule",
+    "participation_anomaly_advanced_rule",
+    "participation_anomaly_rule",
+    "processing_speed_rule",
+    "runs_test_rule",
+    "snapshot_jump_rule",
+    "table_consistency_rule",
+    "trend_shift_rule",
+    "turnout_impossible_rule",
+)
+for _rule_module in _RULE_MODULES:
+    importlib.import_module(f"centinel.core.rules.{_rule_module}")
 
 logger = logging.getLogger(__name__)
 

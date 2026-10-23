@@ -720,19 +720,22 @@ def run_startup_verification(
     """Ejecuta verificación completa al arranque del pipeline.
 
     1. Verifica la cadena completa de hashes.
-    2. Verifica anclajes OTS/Bitcoin si están disponibles.
-    3. Verifica firmas Ed25519 en los registros de hash.
+    2. Verifica firmas Ed25519 en los registros de hash.
+
+    Los anclajes OTS/Bitcoin se verifican en centinel.core.anchoring; ``anchor_log_dir``,
+    ``verify_anchors`` y ``max_anchor_checks`` se aceptan por compatibilidad.
 
     English:
         Runs full verification at pipeline startup.
 
         1. Verifies the complete hash chain.
-        2. Verifies OTS/Bitcoin anchors if available.
-        3. Verifies Ed25519 signatures on hash records.
+        2. Verifies Ed25519 signatures on hash records.
+
+        OTS/Bitcoin anchors are verified by centinel.core.anchoring; ``anchor_log_dir``,
+        ``verify_anchors`` and ``max_anchor_checks`` are accepted for compatibility.
     """
     start_time = time.monotonic()
     hash_dir = hash_dir or Path("hashes")
-    anchor_log_dir = anchor_log_dir or Path("logs") / "anchors"
 
     report = StartupVerificationReport(
         verified_at=datetime.now(timezone.utc).isoformat(),

@@ -141,6 +141,7 @@ def _install_stub_modules() -> None:
             __import__(_mod_name)
             continue
         except ImportError:
+            # Not installed: fall through and register the stub module below.
             pass
         import logging as _ll
         _m = types.ModuleType(_mod_name)

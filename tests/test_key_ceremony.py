@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -29,11 +28,8 @@ try:
     from centinel.core.crypto.centinel_shamir import (
         GF256, ShamirError, combine_byte, combine_shares, split_byte, split_secret,
     )
-    from centinel.core.crypto.centinel_share_format import (
-        Share, ShareFormatError, parse_share, serialize_share,
-    )
+    from centinel.core.crypto.centinel_share_format import ShareFormatError, parse_share, serialize_share
     # Scripts are in repo root scripts/, add to path for ceremony/reconstruct imports.
-    import subprocess, shutil
     _SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
     if str(_SCRIPTS_DIR) not in sys.path:
         sys.path.insert(0, str(_SCRIPTS_DIR))
@@ -44,9 +40,7 @@ except ModuleNotFoundError:
     from centinel_shamir import (  # type: ignore[no-redef]
         GF256, ShamirError, combine_byte, combine_shares, split_byte, split_secret,
     )
-    from centinel_share_format import (  # type: ignore[no-redef]
-        Share, ShareFormatError, parse_share, serialize_share,
-    )
+    from centinel_share_format import ShareFormatError, parse_share, serialize_share  # type: ignore[no-redef]
 
 
 # ---------------------------------------------------------------------------
@@ -180,8 +174,6 @@ class TestSplitByte:
         undefined in that case but still computes a value) should be
         statistically independent of the secret.
         """
-        from collections import Counter
-
         # For secret S, with k=3 and only 2 shares, what does combine return?
         # The mathematical guarantee: it's a pseudo-random value, NOT the secret.
         wrong_reconstructions = 0
@@ -415,11 +407,6 @@ aGVsbG8=
             secret_hash=self.SAMPLE_SECRET_HASH,
         )
         # Corrupt the share hash.
-        corrupted = text.replace(
-            "Share-Hash-SHA256: ",
-            "Share-Hash-SHA256: 0000000000000000000000000000000000000000000000000000000000000000\nXXX: ",
-        ).replace("XXX: ", "")
-        # The above only works if the line is unique. Build differently.
         lines = text.splitlines()
         for i, line in enumerate(lines):
             if line.startswith("Share-Hash-SHA256: "):

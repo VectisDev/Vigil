@@ -306,6 +306,7 @@ def restart_pipeline(cfg: DaemonConfig) -> bool:
                     proc.kill()
                     logger.warning("pipeline_force_killed pid=%s", proc.pid)
                 except psutil.Error:
+                    # Process already exited or is not ours to kill: nothing left to do.
                     pass
 
     # Remove locks before restart (Remover locks antes de reiniciar)

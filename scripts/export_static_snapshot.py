@@ -52,6 +52,7 @@ def _build_cne_status(state: dict, endpoint: str) -> dict:
             now_dt = datetime.now(timezone.utc)
             blackout_minutes = max(0, int((now_dt - since_dt).total_seconds() / 60))
         except Exception:
+            # Malformed timestamp: keep blackout_minutes at 0.
             pass
         blackout_hash_val = _blackout_hash(endpoint, first_unreachable, state.get("cne_last_error_type"))
 
@@ -149,8 +150,7 @@ def _latest_snapshot(data_dir: Path) -> dict:
 def _build_endpoint_health(root: Path) -> dict:
     empty = {"available": False, "total": 0, "online": 0, "degraded": 0, "offline": 0, "endpoints": []}
     try:
-        import sys as _sys
-        _sys.path.insert(0, str(root / "src"))
+        sys.path.insert(0, str(root / "src"))
         from centinel.sync.forensics_publisher import build_endpoint_health_block
         return build_endpoint_health_block(root / "config" / "prod" / "endpoints.yaml")
     except Exception:
@@ -174,6 +174,7 @@ def export_snapshot(root: Path = Path(".")) -> Path:
         ep_cfg = _read_json(root / "config" / "prod" / "endpoints.yaml")
         endpoint = ep_cfg.get("cne", {}).get("main_url", endpoint)
     except Exception:
+        # Missing or unreadable endpoints config: keep the default endpoint.
         pass
 
     forensics_path = analysis_dir / "forensics_latest.json"
@@ -209,4 +210,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

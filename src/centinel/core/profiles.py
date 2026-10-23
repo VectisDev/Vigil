@@ -41,8 +41,6 @@ _MODE_ENV = "CENTINEL_MODE"
 _DEFAULT_MODE = "maintenance"
 _VALID_MODES = ("maintenance", "monitoring", "election")
 
-_TRUTHY = ("1", "true", "yes", "on")
-
 
 @dataclass(frozen=True)
 class SecurityProfile:

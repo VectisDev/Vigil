@@ -142,7 +142,7 @@ class TestWebVerifierCrypto:
         # Verify Merkle root is computed
         assert root is not None
         assert len(root) == 64
-        assert root == root  # Deterministic (same input = same output)
+        assert _compute_merkle_root(list(hashes)) == root  # Deterministic (same input = same output)
 
         # Verify chain properties
         assert demo_chain[0]["index"] == 0

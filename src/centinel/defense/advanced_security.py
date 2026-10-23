@@ -77,13 +77,9 @@ import shutil
 import signal
 import smtplib
 import subprocess
-import sys
-import ssl
 import tempfile
 import threading
 import time
-import urllib.error
-import urllib.request
 from urllib.parse import urlparse
 from collections import deque
 from dataclasses import dataclass, field
@@ -155,7 +151,9 @@ from centinel.defense.security_utils import (
 try:
     from cryptography.fernet import Fernet
     _HAS_CRYPTOGRAPHY = True
-except BaseException:  # noqa: BLE001 – PanicException (pyo3) is not an Exception subclass
+except BaseException as exc:  # noqa: BLE001 – PanicException (pyo3) is not an Exception subclass
+    if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+        raise
     Fernet = None  # type: ignore[assignment]
     _HAS_CRYPTOGRAPHY = False
 
@@ -184,6 +182,7 @@ def _atomic_write_bytes(path: Path, data: bytes) -> None:
         try:
             os.unlink(tmp_name)
         except OSError:
+            # Temp file already gone; the original error is re-raised below.
             pass
         raise
 

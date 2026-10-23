@@ -64,7 +64,6 @@ License: AGPL-3.0 (matching the parent CENTINEL project)
 from __future__ import annotations
 
 import secrets as _secrets
-from dataclasses import dataclass
 from typing import Iterable, List, Sequence, Tuple
 
 __all__ = [

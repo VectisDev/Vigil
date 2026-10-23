@@ -346,7 +346,6 @@ class TestBenfordBatch:
 
     def test_batch_experimental(self):
         """Batch with experimental type should cap at INFO."""
-        rng = np.random.default_rng(42)
         data = {
             "X": list(range(1000, 1100)) * 5,  # non-Benford
         }

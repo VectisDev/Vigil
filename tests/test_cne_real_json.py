@@ -35,10 +35,8 @@ Notes:
 
 import json
 
-import pytest
 
 from centinel.core.normalize import (
-    PresidentialActa,
     _safe_int,
     _sanitize_raw_payload,
     normalize_snapshot,

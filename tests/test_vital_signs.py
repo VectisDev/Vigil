@@ -50,7 +50,6 @@ import sys
 from pathlib import Path
 from typing import Any, Dict
 
-import pytest
 
 # Ensure the centinel_engine package is importable /
 # Asegurar que el paquete centinel_engine sea importable.

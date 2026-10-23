@@ -6,13 +6,26 @@ Endpoint `/operator/panel` que retorna estado del sistema en formato JSON.
 """
 
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from fastapi import APIRouter, Query
 
 from centinel.core.argos_protocol import ArgosLayer
 
 router = APIRouter(prefix="/operator", tags=["operator"])
+
+
+# Placeholder until the panel reads the live threat state.
+_PLACEHOLDER_THREAT_SCORE = 22
+
+
+def _threat_status(threat_score: int) -> str:
+    """Map a threat score to its traffic-light status (GREEN <31, YELLOW <75, RED otherwise)."""
+    if threat_score < 31:
+        return "🟢 GREEN"
+    if threat_score < 75:
+        return "🟡 YELLOW"
+    return "🔴 RED"
 
 
 @router.get("/panel")
@@ -36,15 +49,8 @@ async def get_panel(
     - ⚔️ Kill Switch: Congelación + recuperación
 
     """
-    threat_score = 22  # Placeholder: cargar desde estado real
-
-    # Determinar color/status
-    if threat_score < 31:
-        status = "🟢 GREEN"
-    elif threat_score < 75:
-        status = "🟡 YELLOW"
-    else:
-        status = "🔴 RED"
+    threat_score = _PLACEHOLDER_THREAT_SCORE
+    status = _threat_status(threat_score)
 
     # Construir respuesta
     response = {
@@ -165,15 +171,8 @@ async def get_threat_score() -> Dict[str, Any]:
     Retorna threat score actual.
     (Return current threat score.)
     """
-    threat_score = 22  # Placeholder
-
-    # Coloreado
-    if threat_score < 31:
-        status = "🟢 GREEN"
-    elif threat_score < 75:
-        status = "🟡 YELLOW"
-    else:
-        status = "🔴 RED"
+    threat_score = _PLACEHOLDER_THREAT_SCORE
+    status = _threat_status(threat_score)
 
     return {
         "threat_score": threat_score,

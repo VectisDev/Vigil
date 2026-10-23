@@ -457,7 +457,7 @@ async function renderMirrors(base,main){
     last:main.chain.last_valid_hash,n:main.entries.length}];
   for(const u of urls){
     try{
-      const t=await jget(u,'/audit/transparency');
+      await jget(u,'/audit/transparency');  // reachability check: throws if the node is down
       const ents=await fetchAllTimeline(u);
       const lr=await merkleRoot(ents.map(e=>e.expected_hash));
       const cv=await jget(u,'/audit/chain/verify');

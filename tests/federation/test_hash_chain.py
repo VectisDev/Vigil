@@ -1,17 +1,12 @@
 """Tests for hash chain export via Git commits (zero-cost immutable storage)."""
 
 import json
-import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from centinel.federation.hash_chain import (
-    commit_to_hash_chain,
-    serialize_chain_snapshot,
-)
+from centinel.federation.hash_chain import serialize_chain_snapshot
 
 
 class MockReputationEngine:
@@ -93,21 +88,17 @@ class TestCommitToHashChain:
         # Mock subprocess.run to avoid actual git operations
         mock_run.return_value = MagicMock(returncode=0, stderr=None)
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir)
-            db_path = repo_root / "federation_reputation.db"
+        # Import happens inside function, so we can't mock at module level
+        # Instead, test that snapshot serialization works
+        engine = MockReputationEngine(
+            {"node-001": {"trust": 0.85}},
+            {"0": 1},
+        )
+        snapshot = serialize_chain_snapshot(engine)
 
-            # Import happens inside function, so we can't mock at module level
-            # Instead, test that snapshot serialization works
-            engine = MockReputationEngine(
-                {"node-001": {"trust": 0.85}},
-                {"0": 1},
-            )
-            snapshot = serialize_chain_snapshot(engine)
-
-            assert snapshot is not None
-            assert len(snapshot["nodes"]) == 1
-            assert snapshot["ring_counts"]["0"] == 1
+        assert snapshot is not None
+        assert len(snapshot["nodes"]) == 1
+        assert snapshot["ring_counts"]["0"] == 1
 
     def test_commit_creates_snapshot_file(self):
         """Test that commit creates snapshot file in correct directory."""

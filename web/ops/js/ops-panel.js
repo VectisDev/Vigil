@@ -530,7 +530,6 @@ function buildNewRateLimiterYaml(){
   const base = deepClone(currentConfig['config/prod/rate_limiter.yaml']||{});
   const rph = parseInt(document.getElementById('sl-rph')?.value||240);
   const capacity = parseInt(document.getElementById('sl-capacity')?.value||5);
-  const interval = parseInt(document.getElementById('sl-interval')?.value||10);
 
   // Determine active mode from preset
   const preset = [...FACTORY_PRESETS, ...customPresets].find(p=>p.id===activePresetId);

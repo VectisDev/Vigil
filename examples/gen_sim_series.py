@@ -13,7 +13,6 @@ Usage: python3 scripts/gen_sim_series.py
 import json
 import math
 import random
-import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 

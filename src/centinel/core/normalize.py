@@ -216,6 +216,7 @@ class PresidentialActa(BaseModel):
     meta: Dict[str, Any] | None = None
 
     @field_validator("departamento", mode="before")
+    @classmethod
     def _strip_departamento(cls, value: str | None) -> str | None:
         """/** Normaliza departamento y valida no vacío si está presente.
         / Normalize department and validate non-empty when present. **/"""
@@ -227,6 +228,7 @@ class PresidentialActa(BaseModel):
         return cleaned
 
     @model_validator(mode="before")
+    @classmethod
     def _alias_votes(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """/** Normaliza votos desde claves alternativas. / Normalize votes from alternative keys. **/"""
         if "votos" not in values and "total_votes" in values:
@@ -234,6 +236,7 @@ class PresidentialActa(BaseModel):
         return values
 
     @model_validator(mode="before")
+    @classmethod
     def _require_minimal_structure(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """/** Valida que el payload tenga al menos una estructura reconocible.
 

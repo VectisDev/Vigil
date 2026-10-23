@@ -152,6 +152,7 @@ class AnomalyDetector:
                 try:
                     timestamps.append(float(ts))
                 except ValueError:
+                    # Non-numeric timestamp string: skip this record.
                     pass
 
         # Check 1: Benford's Law on vote counts

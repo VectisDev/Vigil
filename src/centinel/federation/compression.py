@@ -9,7 +9,7 @@ from __future__ import annotations
 import gzip
 import json
 import logging
-from typing import Any, TypeVar
+from typing import TypeVar
 
 logger = logging.getLogger("centinel.federation.compression")
 

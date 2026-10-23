@@ -8,7 +8,6 @@ engine, but produces a clean, readable academic-style PDF.
 """
 
 import re
-import sys
 from pathlib import Path
 
 from reportlab.lib.pagesizes import A4
@@ -19,9 +18,7 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.fonts import addMapping
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, HRFlowable,
-)
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 
 PROJECT_ROOT = Path(__file__).parent.parent
 DOCS = PROJECT_ROOT / "docs" / "whitepaper"

@@ -233,7 +233,7 @@ class FederationAnomalyLog:
                 entry["_received_utc"] = row[2]
                 result.append(entry)
             except Exception:
-                pass
+                logger.debug("findings_log_row_skipped source=%s", row[1], exc_info=True)
         return result
 
     def stats(self) -> dict:

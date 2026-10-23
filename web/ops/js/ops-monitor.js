@@ -312,7 +312,6 @@ function _tickUptime() {
 
 async function doIniciar() {
   const btn = document.getElementById('btn-iniciar');
-  const bar = document.getElementById('pipeline-status-bar');
 
   // If already running, stop instead
   if (btn?.classList.contains('running')) {
@@ -1296,7 +1295,6 @@ function _addActivity(type, msg, time) {
   const list = document.getElementById('swarm-activity-list');
   if (!sec || !list) return;
   sec.style.display = '';
-  const dotColor = type === 'ok' ? 'var(--ok)' : type === 'bad' ? 'var(--bad)' : 'var(--warn)';
   list.innerHTML = _activityFeed.map(a => `
     <div class="activity-item">
       <div class="activity-dot" style="background:${a.type === 'ok' ? 'var(--ok)' : a.type === 'bad' ? 'var(--bad)' : 'var(--warn)'}"></div>

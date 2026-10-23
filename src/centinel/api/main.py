@@ -655,6 +655,7 @@ def dashboard_data(request: Request) -> dict:
                         except (json.JSONDecodeError, TypeError):
                             candidates = []
                 except (ValueError, sqlite3.OperationalError):
+                    # Snapshot DB missing or not yet migrated: serve the defaults above.
                     pass
 
             hash_valid = ds["status"] != "hash_broken"
@@ -745,33 +746,28 @@ def dashboard_data(request: Request) -> dict:
 
 _SETUP_MARKER_PATH = BASE_DIR / ".centinel-setup.json"
 
-_cached_country_code: str | None = None
-_cached_dept_to_iso: dict[str, str] | None = None
-_cached_iso_to_name: dict[str, str] | None = None
-_cached_departments: list[str] | None = None
+# Single-entry cache: country code -> (dept_to_iso, iso_to_name, department slugs)
+_country_maps_cache: dict[str, tuple[dict[str, str], dict[str, str], list[str]]] = {}
 
 
 def _load_country_maps() -> tuple[dict[str, str], dict[str, str], list[str]]:
     """Load dept maps from the configured country, defaulting to HN."""
-    global _cached_country_code, _cached_dept_to_iso, _cached_iso_to_name, _cached_departments
-
     try:
         setup = json.loads(_SETUP_MARKER_PATH.read_text()) if _SETUP_MARKER_PATH.exists() else {}
         code = setup.get("country_code", "HN").upper()
     except Exception:
         code = "HN"
 
-    if code == _cached_country_code and _cached_dept_to_iso is not None:
-        return _cached_dept_to_iso, _cached_iso_to_name, _cached_departments
+    cached = _country_maps_cache.get(code)
+    if cached is not None:
+        return cached
 
     from centinel.countries import LATAM_COUNTRIES
     preset = LATAM_COUNTRIES.get(code, LATAM_COUNTRIES["HN"])
     d2i, i2n, slugs = preset.build_dept_maps()
 
-    _cached_country_code = code
-    _cached_dept_to_iso = d2i
-    _cached_iso_to_name = i2n
-    _cached_departments = slugs
+    _country_maps_cache.clear()
+    _country_maps_cache[code] = (d2i, i2n, slugs)
     return d2i, i2n, slugs
 
 
@@ -800,7 +796,6 @@ def _parse_hn_int(value: str | int | None) -> int:
 
 def _find_latest_national_json() -> Path | None:
     """Find the most recently timestamped national JSON file."""
-    import re
     pattern = re.compile(r"HN\.PRESIDENTE\.00-TODOS\.000-TODOS .+\.json$")
     candidates: list[tuple[str, Path]] = []
 
@@ -860,7 +855,6 @@ def _load_national_snapshot() -> dict | None:
         })
 
     # Extract timestamp from filename  e.g. "2025-12-09 15_01_45"
-    import re
     ts_match = re.search(r"(\d{4}-\d{2}-\d{2} \d{2}_\d{2}_\d{2})", path.name)
     file_ts = ts_match.group(1).replace("_", ":").replace(" ", "T") + "Z" if ts_match else None
 
@@ -972,6 +966,7 @@ def _department_status(connection: sqlite3.Connection) -> list[dict]:
                     if computed != row["hash"]:
                         hash_ok = False
             except (ValueError, sqlite3.OperationalError):
+                # Snapshot DB missing or not yet migrated: no mismatch found, hash_ok stays True.
                 pass
 
         severities = alert_depts.get(dept, set())

@@ -99,7 +99,7 @@ def _load_rules_config() -> dict:
         return {}
 
 
-def _get_rule_param(config: dict, *keys: str, default):
+def _get_rule_param(config: dict, keys: tuple[str, ...], default):
     """Obtiene un parámetro de reglas con múltiples llaves. (Fetch a rules parameter using multiple keys.)"""
     for key in keys:
         if key in config:
@@ -127,14 +127,14 @@ def apply_benford_law(votes_list: list[int]) -> dict:
     p_threshold = float(
         _get_rule_param(
             config,
-            "benford_p_threshold",
+            ("benford_p_threshold",),
             default=benford_config.get("p_threshold", _DEFAULT_RULES_CONFIG["benford_law"]["p_threshold"]),
         )
     )
     min_samples = int(
         _get_rule_param(
             config,
-            "benford_min_samples",
+            ("benford_min_samples",),
             default=benford_config.get("min_samples", _DEFAULT_RULES_CONFIG["benford_law"]["min_samples"]),
         )
     )
@@ -216,7 +216,7 @@ def check_distribution_chi2(df_normalized: pd.DataFrame) -> dict:
     p_threshold = float(
         _get_rule_param(
             config,
-            "chi2_p_critical",
+            ("chi2_p_critical",),
             default=dist_config.get("p_threshold", _DEFAULT_RULES_CONFIG["distribution_chi2"]["p_threshold"]),
         )
     )

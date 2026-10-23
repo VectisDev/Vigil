@@ -10,7 +10,6 @@ El testigo se audita a sí mismo cada hora:
 5. Reporte y auto-restauración si detecta corrupción
 """
 
-import asyncio
 import hashlib
 import json
 import logging

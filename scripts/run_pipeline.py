@@ -29,6 +29,8 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from centinel.anchor.opentimestamps_client import MultichainAnchor
 from centinel.core.anchoring_payload import build_diff_summary, compute_anchor_root
@@ -37,7 +39,7 @@ from centinel.core.transparency import compute_merkle_root
 from centinel.defense import logger as core_logger
 from centinel.defense.advanced_security import load_manager
 from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig, HoneypotServer
-from centinel.defense.security import DefensiveSecurityManager, SecurityConfig
+from centinel.defense.security import DefensiveSecurityManager, DefensiveShutdown, SecurityConfig
 from centinel.paths import iter_all_hashes, iter_all_snapshots
 from centinel.utils.config_loader import load_config as load_pipeline_config
 from centinel_engine import proxy_manager, secure_backup, vital_signs
@@ -1321,13 +1323,6 @@ def run_pipeline(config: dict[str, Any]) -> None:
             ),
         )
 
-        scrape_status = vital_signs.update_status_after_scrape(
-            scrape_status,
-            success=True,
-            latency=0.0,
-            status_code=200,
-            config=runtime_vital_config,
-        )
         update_daily_summary(state, now, len(anomalies))
         state["last_run_at"] = now.isoformat()
         save_state(state)
@@ -1388,94 +1383,94 @@ def safe_run_pipeline(config: dict[str, Any], security_manager: DefensiveSecurit
     deferred until test_failure_injection.py monkeypatches the merged function.
     """
     # Prevent concurrent runs (e.g. GitHub Actions schedule + workflow_dispatch overlap)
-    _lock_fd = open("/tmp/vigil_pipeline.lock", "w")  # noqa: SIM115  # nosec B108
-    try:
-        fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        log_event(logger, logging.WARNING, "pipeline_already_running_skipping")
-        return False
-
-    resilience_settings = load_resilience_settings(config)
-    auto_resume = build_auto_resume_settings(resilience_settings)
-    attempt = 0
-    while True:
+    with open("/tmp/vigil_pipeline.lock", "w") as _lock_fd:  # nosec B108
         try:
-            run_pipeline(config)
-            return True
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout,
-            TimeoutError,
-            ConnectionError,
-        ) as exc:
-            checkpoint = load_pipeline_checkpoint()
-            run_id = checkpoint.get("run_id", utcnow().strftime("%Y%m%d%H%M%S"))
-            stage = checkpoint.get("stage")
-            log_event(
-                logger,
-                logging.ERROR,
-                "pipeline_network_failure",
-                run_id=run_id,
-                stage=stage or "unknown",
-                error=str(exc),
-            )
-            if security_manager:
-                security_manager.record_http_error(timeout=True)
-                security_manager.record_log_error()
-            save_resilience_checkpoint(run_id, stage, error=str(exc))
-            retry_on = auto_resume["retry_on"]
-            retryable = retry_on in {"any", "network"}
-            attempt += 1
-            if not auto_resume["enabled"] or not retryable or attempt >= auto_resume["max_attempts"]:
-                return False
-            delay = compute_backoff_delay(
-                attempt,
-                auto_resume["backoff_base_seconds"],
-                auto_resume["backoff_max_seconds"],
-            )
-            log_event(
-                logger,
-                logging.WARNING,
-                "pipeline_auto_resume_wait",
-                run_id=run_id,
-                attempt=attempt,
-                delay_seconds=delay,
-            )
-            time.sleep(delay)
-        except Exception as exc:  # noqa: BLE001
-            checkpoint = load_pipeline_checkpoint()
-            run_id = checkpoint.get("run_id", utcnow().strftime("%Y%m%d%H%M%S"))
-            stage = checkpoint.get("stage")
-            log_event(
-                logger,
-                logging.ERROR,
-                "pipeline_failure",
-                run_id=run_id,
-                stage=stage or "unknown",
-                error=str(exc),
-            )
-            if security_manager:
-                security_manager.record_log_error()
-            save_resilience_checkpoint(run_id, stage, error=str(exc))
-            attempt += 1
-            if not auto_resume["enabled"] or auto_resume["retry_on"] != "any":
-                return False
-            if attempt >= auto_resume["max_attempts"]:
-                return False
-            delay = compute_backoff_delay(
-                attempt,
-                auto_resume["backoff_base_seconds"],
-                auto_resume["backoff_max_seconds"],
-            )
-            log_event(
-                logger,
-                logging.WARNING,
-                "pipeline_auto_resume_wait",
-                run_id=run_id,
-                attempt=attempt,
-                delay_seconds=delay,
-            )
-            time.sleep(delay)
+            fcntl.flock(_lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            log_event(logger, logging.WARNING, "pipeline_already_running_skipping")
+            return False
+
+        resilience_settings = load_resilience_settings(config)
+        auto_resume = build_auto_resume_settings(resilience_settings)
+        attempt = 0
+        while True:
+            try:
+                run_pipeline(config)
+                return True
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+                TimeoutError,
+                ConnectionError,
+            ) as exc:
+                checkpoint = load_pipeline_checkpoint()
+                run_id = checkpoint.get("run_id", utcnow().strftime("%Y%m%d%H%M%S"))
+                stage = checkpoint.get("stage")
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    "pipeline_network_failure",
+                    run_id=run_id,
+                    stage=stage or "unknown",
+                    error=str(exc),
+                )
+                if security_manager:
+                    security_manager.record_http_error(timeout=True)
+                    security_manager.record_log_error()
+                save_resilience_checkpoint(run_id, stage, error=str(exc))
+                retry_on = auto_resume["retry_on"]
+                retryable = retry_on in {"any", "network"}
+                attempt += 1
+                if not auto_resume["enabled"] or not retryable or attempt >= auto_resume["max_attempts"]:
+                    return False
+                delay = compute_backoff_delay(
+                    attempt,
+                    auto_resume["backoff_base_seconds"],
+                    auto_resume["backoff_max_seconds"],
+                )
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "pipeline_auto_resume_wait",
+                    run_id=run_id,
+                    attempt=attempt,
+                    delay_seconds=delay,
+                )
+                time.sleep(delay)
+            except Exception as exc:  # noqa: BLE001
+                checkpoint = load_pipeline_checkpoint()
+                run_id = checkpoint.get("run_id", utcnow().strftime("%Y%m%d%H%M%S"))
+                stage = checkpoint.get("stage")
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    "pipeline_failure",
+                    run_id=run_id,
+                    stage=stage or "unknown",
+                    error=str(exc),
+                )
+                if security_manager:
+                    security_manager.record_log_error()
+                save_resilience_checkpoint(run_id, stage, error=str(exc))
+                attempt += 1
+                if not auto_resume["enabled"] or auto_resume["retry_on"] != "any":
+                    return False
+                if attempt >= auto_resume["max_attempts"]:
+                    return False
+                delay = compute_backoff_delay(
+                    attempt,
+                    auto_resume["backoff_base_seconds"],
+                    auto_resume["backoff_max_seconds"],
+                )
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "pipeline_auto_resume_wait",
+                    run_id=run_id,
+                    attempt=attempt,
+                    delay_seconds=delay,
+                )
+                time.sleep(delay)
 
 
 def _make_swarm_attack_hook():

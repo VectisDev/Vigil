@@ -29,7 +29,6 @@ Notes:
 - Prioritize operational clarity and behavior traceability.
 """
 
-import logging
 
 from centinel.proxy_handler import ProxyInfo, ProxyRotator
 

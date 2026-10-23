@@ -42,7 +42,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 

@@ -42,14 +42,8 @@ import sqlite3
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 
-from centinel.api.main import (
-    fetch_latest_snapshot,
-    fetch_snapshot_by_hash,
-    load_alerts_payload,
-    ALERTS_JSON,
-)
+from centinel.api.main import fetch_latest_snapshot, fetch_snapshot_by_hash, load_alerts_payload
 
 # ---------------------------------------------------------------------------
 # Helpers

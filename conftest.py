@@ -111,12 +111,14 @@ def _reset_global_singletons():
 
             _ph._ROTATOR = None
         except Exception:
+            # Module not importable in this test session: nothing to reset.
             pass
         try:
             from monitoring.health import reset_health_state
 
             reset_health_state()
         except Exception:
+            # Module not importable in this test session: nothing to reset.
             pass
 
     _reset()

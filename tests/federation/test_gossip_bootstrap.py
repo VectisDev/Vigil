@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import socket
 
-import pytest
 
 from centinel.federation import gossip
 
@@ -52,6 +51,7 @@ def test_bootstrap_from_mdns_binds_to_configured_iface(monkeypatch):
             try:
                 self._real.setsockopt(*a, **kw)
             except OSError:
+                # Some socket options are unsupported on this platform; the test does not need them.
                 pass
 
         def bind(self, addr):

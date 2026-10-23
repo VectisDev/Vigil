@@ -20,7 +20,6 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency
 import httpx
 import yaml
 
-from centinel_engine.vital_signs import ResilienceMode  # noqa: F401 — re-exported for callers
 from scripts.logging_utils import configure_logging, log_event
 
 
@@ -313,6 +312,7 @@ def _should_act(state: dict[str, Any], config: WatchdogConfig) -> tuple[bool, li
             if now - last_dt < timedelta(minutes=config.action_cooldown_minutes):
                 return False, reasons
         except ValueError:
+            # Corrupt last-action timestamp: ignore the cooldown and allow the action.
             pass
     return True, reasons
 

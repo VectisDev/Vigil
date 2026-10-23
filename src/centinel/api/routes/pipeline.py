@@ -12,7 +12,6 @@ import os
 import signal
 import sys
 from pathlib import Path
-from typing import Any
 
 import yaml
 from fastapi import APIRouter, HTTPException
@@ -85,7 +84,7 @@ def apply_config(req: ApplyConfigRequest) -> dict:
             if cc in LATAM_COUNTRIES:
                 os.environ["CENTINEL_COUNTRY"] = cc
         except Exception:
-            pass
+            logger.debug("pipeline_country_override_skipped country=%s", req.country_code, exc_info=True)
 
     safe_country = (req.country_code or "").replace("\n", " ").replace("\r", " ") if req.country_code else None
     safe_url = (req.main_url or "").replace("\n", " ").replace("\r", " ") if req.main_url else None

@@ -1,6 +1,5 @@
 """Unit tests for the deterministic task partitioner."""
 
-import pytest
 
 from centinel.federation.task_partitioner import TaskPartitioner, HN_SOURCES
 
@@ -108,6 +107,7 @@ def test_survivor_covers_all_when_node_drops():
     tp = TaskPartitioner()
 
     full = tp.assign(make_nodes(3))
+    assert set(s for sl in full for s in sl.sources) == set(HN_SOURCES)
     # Simulate node_01 dropping — reassign with 2 survivors
     survivors = [n for n in make_nodes(3) if n[0] != "node_01"]
     reduced = tp.assign(survivors)

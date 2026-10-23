@@ -110,7 +110,6 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     warning_threshold = float(config.get("warning_pct", 8)) / 100
     critical_threshold = float(config.get("critical_pct", 12)) / 100
 
-    severity = "INFO"
     if ratio > critical_threshold:
         severity = "CRITICAL"
     elif ratio > warning_threshold:

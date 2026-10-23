@@ -13,9 +13,8 @@ This test is published in the repository as academic evidence of Sybil resistanc
 It corresponds to the analysis in docs/research/REPUTATION-MODEL.md §4.
 """
 
-import pytest
 
-from centinel.federation.reputation import ReputationEngine, _RING1_SCORE
+from centinel.federation.reputation import ReputationEngine
 
 
 SYBIL_COUNT = 50

@@ -7,7 +7,6 @@ Validates consensus checking, divergence detection, and publication.
 import time
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from centinel.federation.multi_witness import (
     ConsensusReport,
@@ -284,7 +283,6 @@ class TestFederationCoordinator:
                 "timestamp": time.time(),
             },
             {
-                "witness_id": "Witness-3",
                 "witness_id": "Witness-3",
                 "merkle_root": "c" * 64,  # Different
                 "checkpoint_hash": "d" * 64,

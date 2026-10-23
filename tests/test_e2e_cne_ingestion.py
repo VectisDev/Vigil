@@ -41,7 +41,6 @@ import json
 
 import pytest
 
-from centinel.core.hashchain import compute_hash
 from centinel.core.normalize import normalize_snapshot, snapshot_to_canonical_json
 from centinel.core.storage import LocalSnapshotStore
 from centinel.api.main import fetch_latest_snapshot, fetch_snapshot_by_hash, verify_hashchain

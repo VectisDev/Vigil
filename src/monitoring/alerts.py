@@ -178,7 +178,7 @@ class AlertManager:
         payload = self._build_payload(normalized, message, context or {})
         await self._rate_limit()
 
-        logger.info("alert_sent level=%s", normalized)
+        logger.info("alert_sent level=%s payload=%s", normalized, payload)
         return True
 
     async def _rate_limit(self) -> None:

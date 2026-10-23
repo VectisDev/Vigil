@@ -32,6 +32,7 @@ if access_path.exists() and os.environ.get("FORCE_REGENERATE") != "true":
             )
             sys.exit(0)
     except Exception:
+        # Unreadable or missing seed state just means a first run: generate seeds below.
         pass
 
 def generate_base64_seed(entropy_bytes=18):

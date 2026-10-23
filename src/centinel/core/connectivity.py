@@ -181,6 +181,7 @@ def _probe_tcp_tls(host: str, port: int, use_tls: bool, timeout: float) -> Dict[
             if sock is not None:
                 sock.close()
         except OSError:
+            # Socket already closed or reset: the probe result is already recorded.
             pass
     return out
 
@@ -353,6 +354,8 @@ def _maybe_sign(event: Dict[str, Any]) -> Dict[str, Any]:
     except FileNotFoundError:
         event["operator_signature"] = None
     except BaseException as exc:  # noqa: BLE001 - see rationale above
+        if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+            raise
         _LOGGER.warning(
             "degradation_event_sign_failed type=%s error=%s",
             type(exc).__name__,
@@ -455,6 +458,8 @@ def diagnose_and_record(
             verdict, source_id=source_id, reason=reason, log_dir=log_dir
         )
     except BaseException as exc:  # noqa: BLE001
+        if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+            raise
         # Absolute guarantee: this helper can NEVER break the capture
         # loop that must run for a month, even if a sabotaged native
         # dependency raises a non-Exception panic.

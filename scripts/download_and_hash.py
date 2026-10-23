@@ -1020,7 +1020,7 @@ def _use_fallback_snapshot(
 _FALLBACK_SEQUENCE_COUNTERS: dict[str, int] = {}
 _FALLBACK_SEQUENCE_LOCK = __import__("threading").Lock()
 _FALLBACK_SEQUENCE_STATE_PATH = TEMP_DIR / "fallback_sequence_state.json"
-_FALLBACK_SEQUENCE_LOADED = False
+_FALLBACK_SEQUENCE_LOADED = __import__("threading").Event()
 
 
 def _load_fallback_sequence_state() -> None:
@@ -1035,10 +1035,9 @@ def _load_fallback_sequence_state() -> None:
     restarts. Missing/corrupt state degrades to empty (== legacy
     behavior): improvement only, never a regression.
     """
-    global _FALLBACK_SEQUENCE_LOADED
-    if _FALLBACK_SEQUENCE_LOADED:
+    if _FALLBACK_SEQUENCE_LOADED.is_set():
         return
-    _FALLBACK_SEQUENCE_LOADED = True
+    _FALLBACK_SEQUENCE_LOADED.set()
     try:
         raw = _FALLBACK_SEQUENCE_STATE_PATH.read_text(encoding="utf-8")
         persisted = json.loads(raw)

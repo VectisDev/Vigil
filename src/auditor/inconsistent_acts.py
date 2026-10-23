@@ -708,7 +708,7 @@ class InconsistentActsTracker:
             bt = binomtest(k=special_votes, n=special_total, p=p0)
             normal_candidate_votes = self.normal_votes.get(candidate, 0)
             p1 = special_votes / special_total
-            p2 = normal_candidate_votes / normal_total if normal_total > 0 else 0.0
+            p2 = normal_candidate_votes / normal_total  # normal_total > 0 guaranteed above
             p_pool = (special_votes + normal_candidate_votes) / (special_total + normal_total)
             denom = sqrt(
                 max(

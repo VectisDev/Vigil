@@ -73,7 +73,7 @@ def test_is_healthy_strict_failure_logs_reason(
     English: Function test_is_healthy_strict_failure_logs_reason defined in tests/monitoring/test_strict_health.py.
     """
     monkeypatch.setattr(strict_health, "_get_checkpoint_manager", lambda: (object(), None))
-    monkeypatch.setattr(strict_health, "_build_s3_client", lambda: object())
+    monkeypatch.setattr(strict_health, "_build_s3_client", object)
     monkeypatch.setattr(
         strict_health,
         "_check_bucket_latency",
@@ -122,7 +122,7 @@ def test_is_healthy_strict_success(monkeypatch: pytest.MonkeyPatch) -> None:
     English: Function test_is_healthy_strict_success defined in tests/monitoring/test_strict_health.py.
     """
     monkeypatch.setattr(strict_health, "_get_checkpoint_manager", lambda: (object(), None))
-    monkeypatch.setattr(strict_health, "_build_s3_client", lambda: object())
+    monkeypatch.setattr(strict_health, "_build_s3_client", object)
     monkeypatch.setattr(
         strict_health,
         "_check_bucket_latency",

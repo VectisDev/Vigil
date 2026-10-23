@@ -1,6 +1,5 @@
 """Unit tests for FederationAnomalyLog and FederationAttackLog."""
 
-import pytest
 
 from centinel.federation.findings_log import FederationAnomalyLog
 from centinel.federation.attack_log import FederationAttackLog

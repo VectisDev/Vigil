@@ -25,7 +25,6 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
-from dataclasses import replace
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -218,7 +217,6 @@ class TestCanonicalization:
         parsed = json.loads(canonical)
         # Verify keys are in sorted order in the actual bytes.
         # Verificar que las claves están ordenadas alfabéticamente.
-        canonical_str = canonical.decode("utf-8")
         keys_in_order = [k for k in parsed.keys()]
         # JSON dicts preserve insertion order in Python 3.7+, and sort_keys
         # produces a sorted insertion. So keys_in_order == sorted(keys_in_order).

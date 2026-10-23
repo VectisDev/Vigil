@@ -534,6 +534,7 @@ class GossipEngine:
             try:
                 await self._task
             except asyncio.CancelledError:
+                # Expected: we just cancelled the task ourselves.
                 pass
         logger.info("gossip_stop node_id=%s peers=%d", self._node_id, len(self._peers))
 
@@ -995,6 +996,7 @@ class GossipEngine:
                 return r.status_code == 200
         except Exception as exc:
             logger.debug("gossip_push_failed url=%s error=%s", base_url, exc)
+            return False
 
     async def announce_to(self, peer_url: str) -> bool:
         """Directly announce this node to a specific peer URL.

@@ -24,7 +24,6 @@ License: AGPL-3.0
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import sys
@@ -33,7 +32,7 @@ import unicodedata
 import urllib.request
 import urllib.error
 from pathlib import Path
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 
 # ── Configuración desde entorno / Config from environment ─────────────────────
 ELECTION_URL = os.environ.get("ELECTION_URL", "").strip()

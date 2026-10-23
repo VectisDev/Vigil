@@ -66,8 +66,6 @@ import random
 import socket
 import threading
 import time
-import urllib.error
-import urllib.request
 from collections import OrderedDict, defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -260,6 +258,7 @@ class AttackForensicsLogbook:
             try:
                 self._events.put_nowait(None)
             except queue.Full:
+                # Queue full: the writer thread sees _writer_stop and exits anyway.
                 pass
             self._writer_thread.join(timeout=3)
         if self._handler:
@@ -366,6 +365,7 @@ class AttackForensicsLogbook:
                     self._handler.flush()
                     self._handler.close()
                 except Exception:
+                    # Handler already closed during shutdown: nothing left to flush.
                     pass
                 self._handler = None
 
@@ -559,7 +559,7 @@ class AttackForensicsLogbook:
             try:
                 self.config.finding_broadcast_hook(event)
             except Exception:
-                pass
+                LOGGER.debug("attack_finding_broadcast_failed", exc_info=True)
         return event
 
     def log_connection_snapshot(self) -> None:
@@ -647,6 +647,7 @@ class AttackForensicsLogbook:
             if existing:
                 return existing
         except OSError:
+            # No readable salt yet: fall through and generate one.
             pass
 
         generated = hashlib.sha256(os.urandom(32)).hexdigest()
