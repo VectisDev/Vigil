@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 
-from centinel.federation.hash_chain import serialize_chain_snapshot
+from vigil.federation.hash_chain import serialize_chain_snapshot
 
 
 class MockReputationEngine:

@@ -14,7 +14,7 @@ It corresponds to the analysis in docs/research/REPUTATION-MODEL.md §4.
 """
 
 
-from centinel.federation.reputation import ReputationEngine
+from vigil.federation.reputation import ReputationEngine
 
 
 SYBIL_COUNT = 50

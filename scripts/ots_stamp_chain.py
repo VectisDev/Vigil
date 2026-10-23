@@ -20,7 +20,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from centinel.anchor.opentimestamps_client import MultichainAnchor  # noqa: E402
+from vigil.anchor.opentimestamps_client import MultichainAnchor  # noqa: E402
 
 
 def _chain_head_hash() -> tuple[str, int]:

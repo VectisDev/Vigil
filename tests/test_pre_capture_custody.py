@@ -33,7 +33,7 @@ import pytest
 # Package import with fallback for isolated test execution.
 # Importación de paquete con fallback para ejecución aislada de tests.
 try:
-    from centinel.core.pre_capture_custody import (
+    from vigil.core.pre_capture_custody import (
         CustodyEnvelope, CustodyError, build_envelope,
         envelope_canonical_bytes, envelope_sha256,
         sign_envelope, verify_envelope,

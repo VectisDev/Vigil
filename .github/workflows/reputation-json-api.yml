@@ -34,7 +34,7 @@ jobs:
         run: |
           python -c "
           from pathlib import Path
-          from centinel.federation.reputation import ReputationEngine
+          from vigil.federation.reputation import ReputationEngine
           import json
 
           db_path = Path('var/federation_reputation.db')

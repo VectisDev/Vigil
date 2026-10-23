@@ -4,7 +4,7 @@ Run: python scripts/generate_lab_thresholds.py
 Output: web/lab-thresholds.json
 
 This script is read-only with respect to all operational configs.
-It never writes to command_center/, config/prod/, or centinel_engine/.
+It never writes to command_center/, config/prod/, or vigil_engine/.
 """
 
 from __future__ import annotations

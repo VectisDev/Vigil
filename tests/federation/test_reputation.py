@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from centinel.federation.reputation import ReputationEngine, _RING1_SCORE
+from vigil.federation.reputation import ReputationEngine, _RING1_SCORE
 
 
 def make_engine(**kw) -> ReputationEngine:

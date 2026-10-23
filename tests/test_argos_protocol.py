@@ -4,7 +4,7 @@ Tests for ARGOS Protocol — Five Defense Layers
 """
 
 import pytest
-from centinel.core.argos_protocol import ArgosLayer, DefenseStatus, ALL_DEFENSES
+from vigil.core.argos_protocol import ArgosLayer, DefenseStatus, ALL_DEFENSES
 
 
 class TestArgosLayerEnum:

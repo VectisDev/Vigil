@@ -29,7 +29,7 @@ Notes:
 - Prioritize operational clarity and behavior traceability.
 """
 
-from centinel.storage import save_snapshot
+from vigil.storage import save_snapshot
 
 
 def test_save_snapshot_creates_files(tmp_path):

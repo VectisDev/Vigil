@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 
 
-from centinel.federation.export_reputation import export_events_json, export_forensic_trail
+from vigil.federation.export_reputation import export_events_json, export_forensic_trail
 
 
 class MockReputationEngine:

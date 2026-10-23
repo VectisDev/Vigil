@@ -87,7 +87,7 @@ def _load_config(path: Path) -> WatchdogConfig:
     try:
         raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError) as exc:
-        logger = logging.getLogger("centinel.watchdog")
+        logger = logging.getLogger("vigil.watchdog")
         logger.warning("watchdog_config_invalid path=%s error=%s", path, exc)
         return WatchdogConfig()
     if not isinstance(raw, dict):
@@ -123,7 +123,7 @@ def _load_state(path: Path) -> dict[str, Any]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        logging.getLogger("centinel.watchdog").warning("watchdog_state_invalid path=%s error=%s", path, exc)
+        logging.getLogger("vigil.watchdog").warning("watchdog_state_invalid path=%s error=%s", path, exc)
         return {"failures": {}, "last_action": None, "log_state": {}}
     if not isinstance(payload, dict):
         return {"failures": {}, "last_action": None, "log_state": {}}
@@ -488,7 +488,7 @@ def main() -> None:
     English: Function main defined in scripts/watchdog.py.
     """
     config_path = Path(os.getenv("WATCHDOG_CONFIG", "config/prod/watchdog.yaml"))
-    logger = configure_logging("centinel.watchdog", log_file="logs/watchdog.log")
+    logger = configure_logging("vigil.watchdog", log_file="logs/watchdog.log")
     logger.info("watchdog_start config=%s", config_path)
     config = _load_config(config_path)
     run_watchdog(config, logger)

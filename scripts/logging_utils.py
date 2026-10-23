@@ -11,9 +11,9 @@ from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Iterable
-from centinel_engine.config_loader import load_config
+from vigil_engine.config_loader import load_config
 
-from centinel.defense import logger as core_logger
+from vigil.defense import logger as core_logger
 
 SENSITIVE_FIELDS = {
     "votos",

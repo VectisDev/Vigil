@@ -1,51 +1,42 @@
-"""
-======================== ÍNDICE / INDEX ========================
-1. Descripción general / Overview
-2. Componentes principales / Main components
-3. Notas de mantenimiento / Maintenance notes
+"""Deprecated alias for :mod:`vigil` (the package was renamed with the project).
 
-======================== ESPAÑOL ========================
-Archivo: `src/centinel/__init__.py`.
-Este módulo forma parte de Centinel Engine y está documentado para facilitar
-la navegación, mantenimiento y auditoría técnica.
-
-Componentes detectados:
-  - (sin componentes de nivel de módulo / no top-level components)
-
-Notas:
-- Mantener esta cabecera sincronizada con cambios estructurales del archivo.
-- Priorizar claridad operativa y trazabilidad del comportamiento.
-
-======================== ENGLISH ========================
-File: `src/centinel/__init__.py`.
-This module is part of Centinel Engine and is documented to improve
-navigation, maintenance, and technical auditability.
-
-Detected components:
-  - (sin componentes de nivel de módulo / no top-level components)
-
-Notes:
-- Keep this header in sync with structural changes in the file.
-- Prioritize operational clarity and behavior traceability.
+``import centinel`` and ``from centinel.core import ...`` keep working: every
+``centinel.*`` module resolves to the same module object as ``vigil.*``, so
+state, monkeypatching and ``isinstance`` checks are shared. Update imports to
+``vigil``; this alias will be removed in a future major release.
 """
 
-#   Init   Module
-# AUTO-DOC-INDEX
-#
-# ES: Índice rápido
-#   1) Propósito del módulo
-#   2) Componentes principales
-#   3) Puntos de extensión
-#
-# EN: Quick index
-#   1) Module purpose
-#   2) Main components
-#   3) Extension points
-#
-# Secciones / Sections:
-#   - Configuración / Configuration
-#   - Lógica principal / Core logic
-#   - Integraciones / Integrations
+from __future__ import annotations
+
+import importlib
+import importlib.abc
+import importlib.util
+import sys
+import warnings
+
+_OLD, _NEW = "centinel", "vigil"
 
 
-__version__ = "0.4.0"
+class _AliasFinder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+    """Resolve ``centinel.x.y`` to the already-importable ``vigil.x.y``."""
+
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.startswith(_OLD + "."):
+            return importlib.util.spec_from_loader(fullname, self)
+        return None
+
+    def create_module(self, spec):
+        return importlib.import_module(_NEW + spec.name[len(_OLD):])
+
+    def exec_module(self, module):
+        """The target module is already executed by its own import."""
+
+
+warnings.warn(
+    "The 'centinel' package was renamed to 'vigil'; please update your imports.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+if not any(isinstance(f, _AliasFinder) for f in sys.meta_path):
+    sys.meta_path.insert(0, _AliasFinder())
+sys.modules[__name__] = importlib.import_module(_NEW)

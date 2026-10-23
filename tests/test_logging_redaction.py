@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from centinel.utils.logging_config import SensitiveLogFilter, redact_sensitive_text
+from vigil.utils.logging_config import SensitiveLogFilter, redact_sensitive_text
 
 
 def test_redact_sensitive_text_masks_bearer_and_keys() -> None:
@@ -15,7 +15,7 @@ def test_redact_sensitive_text_masks_bearer_and_keys() -> None:
 
 def test_sensitive_log_filter_redacts_tuple_args() -> None:
     record = logging.LogRecord(
-        name="centinel.test",
+        name="vigil.test",
         level=logging.INFO,
         pathname=__file__,
         lineno=1,

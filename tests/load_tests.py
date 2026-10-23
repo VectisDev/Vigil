@@ -44,7 +44,7 @@ import time
 
 import pytest
 
-from centinel.core.rules.common import (
+from vigil.core.rules.common import (
     extract_mesa_code,
     extract_mesa_vote_breakdown,
     extract_mesas,

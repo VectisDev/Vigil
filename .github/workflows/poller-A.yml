@@ -103,7 +103,7 @@ jobs:
           DATA_BRANCH:        "snapshots"
           GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python src/centinel/core/poller_async.py \
+          python src/vigil/core/poller_async.py \
             --interval    $POLL_INTERVAL \
             --max-runtime $MAX_RUNTIME \
             --data-branch $DATA_BRANCH \

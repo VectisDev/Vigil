@@ -13,7 +13,7 @@ from datetime import datetime
 
 import pytest
 
-from centinel.core.auto_audit import AutoAudit, AuditReport, HealthCheckResult
+from vigil.core.auto_audit import AutoAudit, AuditReport, HealthCheckResult
 
 
 class TestAutoAuditBasics:
@@ -28,7 +28,7 @@ class TestAutoAuditBasics:
     def test_binary_baseline_computed(self):
         """Calcula baseline MD5 de archivos core."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            audit = AutoAudit(storage_path=tmpdir, core_path="src/centinel/core")
+            audit = AutoAudit(storage_path=tmpdir, core_path="src/vigil/core")
             baseline = audit.binary_baseline
 
             # Verifica que al menos algunos archivos fueron encontrados
@@ -43,7 +43,7 @@ class TestBinaryIntegrity:
     async def test_scan_binary_integrity_all_ok(self):
         """Scan retorna True para todos los archivos sin modificar."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            audit = AutoAudit(storage_path=tmpdir, core_path="src/centinel/core")
+            audit = AutoAudit(storage_path=tmpdir, core_path="src/vigil/core")
             result = await audit.scan_binary_integrity()
 
             # Verifica que es un dict

@@ -7,7 +7,7 @@
 ======================== ESPAÑOL ========================
 Archivo: `tests/test_schema_adapter_formats.py`.
 Tests del registry de parsers por formato (parse_payload) y de los
-adaptadores universales JSON/CSV de centinel.schema_adapter: auto-mapeo
+adaptadores universales JSON/CSV de vigil.schema_adapter: auto-mapeo
 de columnas del continente, field_map explícito, agregación por
 mesa/casilla, errores explícitos (nunca datos inventados) y regresión
 del adaptador HN existente.
@@ -21,7 +21,7 @@ Componentes detectados:
 ======================== ENGLISH ========================
 File: `tests/test_schema_adapter_formats.py`.
 Tests for the per-format parser registry (parse_payload) and the
-universal JSON/CSV adapters in centinel.schema_adapter: continent-wide
+universal JSON/CSV adapters in vigil.schema_adapter: continent-wide
 column auto-mapping, explicit field_map, per-polling-station aggregation,
 explicit errors (never invented data) and regression of the existing HN
 adapter.
@@ -38,7 +38,7 @@ from pathlib import Path
 
 import pytest
 
-from centinel.schema_adapter import (
+from vigil.schema_adapter import (
     FORMAT_PARSERS,
     UnsupportedFormatError,
     adapt_hn_json,

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from centinel_engine.electoral_authority_healer import CNEEndpointHealer
+from vigil_engine.electoral_authority_healer import CNEEndpointHealer
 
 
 def _build_healer(tmp_path: Path) -> CNEEndpointHealer:

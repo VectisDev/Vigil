@@ -8,7 +8,7 @@ import time
 from unittest.mock import MagicMock, patch
 
 
-from centinel.core.endpoint_monitor import EndpointMonitor, EndpointSchema
+from vigil.core.endpoint_monitor import EndpointMonitor, EndpointSchema
 
 
 class TestEndpointSchema:

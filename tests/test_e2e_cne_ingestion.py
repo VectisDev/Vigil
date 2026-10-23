@@ -41,9 +41,9 @@ import json
 
 import pytest
 
-from centinel.core.normalize import normalize_snapshot, snapshot_to_canonical_json
-from centinel.core.storage import LocalSnapshotStore
-from centinel.api.main import fetch_latest_snapshot, fetch_snapshot_by_hash, verify_hashchain
+from vigil.core.normalize import normalize_snapshot, snapshot_to_canonical_json
+from vigil.core.storage import LocalSnapshotStore
+from vigil.api.main import fetch_latest_snapshot, fetch_snapshot_by_hash, verify_hashchain
 
 # ---------------------------------------------------------------------------
 # CNE-format snapshots (structure mirrors CNE JSON; names are neutral placeholders)

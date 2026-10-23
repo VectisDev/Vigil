@@ -46,7 +46,7 @@ sys.path.insert(0, str(repo_root / "src"))
 
 preset = None
 try:
-    from centinel.countries import LATAM_COUNTRIES
+    from vigil.countries import LATAM_COUNTRIES
     preset = LATAM_COUNTRIES.get(COUNTRY)
     if preset:
         print(f"✓ Preset cargado: {preset.name} ({len(preset.divisions)} divisiones)")

@@ -109,7 +109,7 @@ def _install_apscheduler_stubs() -> None:
 
 _install_apscheduler_stubs()
 
-from centinel.defense import analyze_rules  # noqa: E402
+from vigil.defense import analyze_rules  # noqa: E402
 from scripts import download_and_hash  # noqa: E402
 from scripts import run_pipeline  # noqa: E402
 

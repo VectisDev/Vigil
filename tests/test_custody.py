@@ -46,7 +46,7 @@ import json
 
 import pytest
 
-from centinel.core.custody import (
+from vigil.core.custody import (
     _compute_expected_hash,
     generate_operator_keypair,
     run_startup_verification,
@@ -361,12 +361,12 @@ class TestVerifyAnchor:
     Arbitrum/web3 anchoring was permanently removed (Zero Cost principle).
     verify_anchor() is now a deliberate stub that always returns
     valid=False with error="use_anchoring_module", directing callers to
-    centinel.core.anchoring.verify_ots_proof(). These tests lock in that
+    vigil.core.anchoring.verify_ots_proof(). These tests lock in that
     contract so a future change can't silently re-enable a paid path.
     """
 
     def test_returns_stub_result(self):
-        from centinel.core.custody import verify_anchor
+        from vigil.core.custody import verify_anchor
 
         result = verify_anchor("0xtx123", "0x" + "ab" * 32)
 
@@ -378,7 +378,7 @@ class TestVerifyAnchor:
         assert result.bitcoin_block_height is None
 
     def test_handles_missing_expected_root(self):
-        from centinel.core.custody import verify_anchor
+        from vigil.core.custody import verify_anchor
 
         result = verify_anchor("0xtx123")
 
@@ -393,7 +393,7 @@ class TestVerifyAnchor:
         Retained only so any not-yet-migrated caller doesn't raise
         TypeError; both are scheduled for removal in v13.
         """
-        from centinel.core.custody import verify_anchor
+        from vigil.core.custody import verify_anchor
 
         result = verify_anchor(
             "0xtx123",
@@ -410,7 +410,7 @@ class TestVerifyAnchorFromLog:
     """Pruebas de verify_anchor_from_log."""
 
     def test_missing_log_file(self, tmp_path):
-        from centinel.core.custody import verify_anchor_from_log
+        from vigil.core.custody import verify_anchor_from_log
 
         result = verify_anchor_from_log(tmp_path / "does_not_exist.json")
 
@@ -419,7 +419,7 @@ class TestVerifyAnchorFromLog:
         assert result.error.startswith("log_read_error")
 
     def test_invalid_json(self, tmp_path):
-        from centinel.core.custody import verify_anchor_from_log
+        from vigil.core.custody import verify_anchor_from_log
 
         log_file = tmp_path / "anchor.json"
         log_file.write_text("{not valid json", encoding="utf-8")
@@ -431,7 +431,7 @@ class TestVerifyAnchorFromLog:
         assert result.error.startswith("log_read_error")
 
     def test_missing_tx_hash(self, tmp_path):
-        from centinel.core.custody import verify_anchor_from_log
+        from vigil.core.custody import verify_anchor_from_log
 
         log_file = tmp_path / "anchor.json"
         log_file.write_text(json.dumps({"root": "0x" + "ab" * 32}), encoding="utf-8")
@@ -443,7 +443,7 @@ class TestVerifyAnchorFromLog:
         assert result.expected_root == "0x" + "ab" * 32
 
     def test_delegates_to_verify_anchor(self, tmp_path):
-        from centinel.core.custody import verify_anchor_from_log
+        from vigil.core.custody import verify_anchor_from_log
 
         log_file = tmp_path / "anchor.json"
         log_file.write_text(

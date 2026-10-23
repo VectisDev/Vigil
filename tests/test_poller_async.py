@@ -7,7 +7,7 @@
 ======================== ESPAÑOL ========================
 Archivo: `tests/test_poller_async.py`.
 Tests de los límites de capacidad honesta del poller asíncrono
-(centinel.core.poller_async): cap de 100 endpoints, piso ético de 3 min,
+(vigil.core.poller_async): cap de 100 endpoints, piso ético de 3 min,
 estiramiento del intervalo por presupuesto req/h por host, reintentos con
 backoff y Retry-After (429), y batching de push.
 
@@ -21,7 +21,7 @@ Componentes detectados:
 ======================== ENGLISH ========================
 File: `tests/test_poller_async.py`.
 Tests for the async poller's honest capacity limits
-(centinel.core.poller_async): 100-endpoint cap, 3-min ethical floor,
+(vigil.core.poller_async): 100-endpoint cap, 3-min ethical floor,
 per-host req/h budget interval stretching, retries with backoff and
 Retry-After (429), and push batching.
 
@@ -35,7 +35,7 @@ Detected components:
 
 import asyncio
 
-from centinel.core.poller_async import (
+from vigil.core.poller_async import (
     ETHICAL_FLOOR_SECONDS,
     FETCH_MAX_ATTEMPTS,
     MAX_ENDPOINTS,
@@ -192,7 +192,7 @@ class TestFetchOneRetries:
         assert session.calls == 1  # 4xx no transitorio: sin reintentos
 
     def test_persistent_500_exhausts_attempts(self, monkeypatch):
-        import centinel.core.poller_async as pa
+        import vigil.core.poller_async as pa
 
         monkeypatch.setattr(pa, "FETCH_BACKOFF_BASE_SECONDS", 0.01)
         session = _FakeSession([_FakeResponse(500)])

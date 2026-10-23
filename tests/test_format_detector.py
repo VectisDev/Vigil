@@ -6,7 +6,7 @@
 
 ======================== ESPAÑOL ========================
 Archivo: `tests/test_format_detector.py`.
-Tests del detector universal de formato (centinel.format_detector):
+Tests del detector universal de formato (vigil.format_detector):
 identifica JSON/CSV/XML/HTML/PDF por contenido, con Content-Type y
 extensión de URL como desempate. Cubre las formas reales publicadas por
 organismos electorales del continente (CNE-HN TREP JSON, INE-MX PREP CSV,
@@ -19,7 +19,7 @@ Componentes detectados:
 
 ======================== ENGLISH ========================
 File: `tests/test_format_detector.py`.
-Tests for the universal format detector (centinel.format_detector):
+Tests for the universal format detector (vigil.format_detector):
 identifies JSON/CSV/XML/HTML/PDF from content, with Content-Type and URL
 extension as tiebreakers. Covers real shapes published by electoral
 authorities across the continent (CNE-HN TREP JSON, INE-MX PREP CSV,
@@ -35,7 +35,7 @@ import csv
 
 import pytest
 
-from centinel.format_detector import (
+from vigil.format_detector import (
     DETECTED_ONLY_FORMATS,
     PARSEABLE_FORMATS,
     csv_dialect_for,

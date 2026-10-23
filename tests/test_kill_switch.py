@@ -9,8 +9,8 @@ import random
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-from centinel.core.kill_switch import KillSwitch
-from centinel.core.argos_protocol import ArgosLayer
+from vigil.core.kill_switch import KillSwitch
+from vigil.core.argos_protocol import ArgosLayer
 
 
 @pytest.fixture
@@ -142,7 +142,7 @@ class TestFreeze:
     @pytest.mark.asyncio
     async def test_freeze_creates_lock_file(self, kill_switch, tmp_path):
         """Freeze crea lock file visible."""
-        with patch("centinel.core.kill_switch.LOCK_FILE", tmp_path / "centinel.lock"):
+        with patch("vigil.core.kill_switch.LOCK_FILE", tmp_path / "centinel.lock"):
             success = await kill_switch.freeze(reason="Test freeze")
             assert success
             assert (tmp_path / "centinel.lock").exists()

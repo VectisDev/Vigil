@@ -31,7 +31,7 @@ Notes:
 - Prioritize operational clarity and behavior traceability.
 """
 
-from centinel.core.normalize import normalize_snapshot, snapshot_to_canonical_json
+from vigil.core.normalize import normalize_snapshot, snapshot_to_canonical_json
 
 
 def test_normalization_is_deterministic():

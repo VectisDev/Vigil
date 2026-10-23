@@ -37,7 +37,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from centinel.defense.advanced_security import AdvancedSecurityConfig, AdvancedSecurityManager
+from vigil.defense.advanced_security import AdvancedSecurityConfig, AdvancedSecurityManager
 
 
 def test_chaos_simulated_ddos_generates_single_air_gap(monkeypatch) -> None:

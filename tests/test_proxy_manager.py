@@ -53,7 +53,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from centinel_engine.proxy_manager import (  # noqa: E402
+from vigil_engine.proxy_manager import (  # noqa: E402
     ROTATION_TRIGGER_CODES,
     USER_AGENT_POOL,
     ProxyAndUAManager,

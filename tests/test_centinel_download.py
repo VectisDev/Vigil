@@ -38,7 +38,7 @@ import asyncio
 import httpx
 import pytest
 
-from centinel.download import download_and_hash, fetch_content
+from vigil.download import download_and_hash, fetch_content
 
 pytest.importorskip("pytest_httpx")
 

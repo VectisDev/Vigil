@@ -48,7 +48,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from centinel_engine.secure_backup import (  # noqa: E402
+from vigil_engine.secure_backup import (  # noqa: E402
     _compute_sha256,
     _build_backup_manifest,
     _collect_hash_chain_files,

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from centinel_engine.config_loader import load_config
+from vigil_engine.config_loader import load_config
 
 
 def test_load_config_rejects_path_traversal_env(

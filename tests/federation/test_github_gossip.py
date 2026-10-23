@@ -3,7 +3,7 @@
 from datetime import datetime
 
 
-from centinel.federation.github_gossip import GitHubGossipQueue, gossip_via_github
+from vigil.federation.github_gossip import GitHubGossipQueue, gossip_via_github
 
 
 class TestGitHubGossipQueue:

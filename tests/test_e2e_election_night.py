@@ -18,9 +18,9 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from centinel.core.anomaly_detector import AnomalyDetector
-from centinel.core.kill_switch import KillSwitch, LOCK_FILE
-from centinel.federation.multi_witness import FederationCoordinator
+from vigil.core.anomaly_detector import AnomalyDetector
+from vigil.core.kill_switch import KillSwitch, LOCK_FILE
+from vigil.federation.multi_witness import FederationCoordinator
 
 
 def _benford_compliant_votes(n: int) -> list[dict]:
@@ -157,7 +157,7 @@ class TestE2EElectionNightAnomaly:
                 async def _instant_sleep(_):
                     return None
 
-                with patch("centinel.core.kill_switch.asyncio.sleep", _instant_sleep):
+                with patch("vigil.core.kill_switch.asyncio.sleep", _instant_sleep):
                     recovered = await ks.auto_recover()
 
             assert recovered is True

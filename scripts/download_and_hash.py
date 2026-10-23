@@ -14,11 +14,11 @@ from typing import Any, Iterator, Optional
 from urllib.parse import urlparse
 
 import httpx
-import requests  # ponytail: session used by centinel.downloader.request_with_retry; migrate to httpx when centinel.downloader is refactored
+import requests  # ponytail: session used by vigil.downloader.request_with_retry; migrate to httpx when vigil.downloader is refactored
 import yaml
-from centinel_engine.hash_chain import chain_hash, compute_hash  # noqa: F401 — re-exported for callers
+from vigil_engine.hash_chain import chain_hash, compute_hash  # noqa: F401 — re-exported for callers
 from dateutil import parser as date_parser
-from centinel.downloader import (
+from vigil.downloader import (
     StructuredLogger,
     build_alert_hook,
     load_retry_config,
@@ -26,22 +26,22 @@ from centinel.downloader import (
     request_with_retry,
     should_skip_snapshot,
 )
-from centinel.download import write_atomic
-from centinel.paths import (
+from vigil.download import write_atomic
+from vigil.paths import (
     ensure_source_dirs,
     hash_filename,
     resolve_source_id,
     snapshot_filename,
 )
 from scripts.circuit_breaker import CircuitBreaker
-from centinel.defense.fetcher import build_rotating_request_profile
-from centinel.defense.hasher import trigger_post_hash_backup
+from vigil.defense.fetcher import build_rotating_request_profile
+from vigil.defense.hasher import trigger_post_hash_backup
 
 from monitoring.health import get_health_state
 from scripts.logging_utils import configure_logging, log_event
-from centinel.core.custody import sign_hash_record
+from vigil.core.custody import sign_hash_record
 
-logger = configure_logging("centinel.download", log_file="logs/centinel.log")
+logger = configure_logging("vigil.download", log_file="logs/centinel.log")
 
 DEFAULT_CONFIG_PATH = "config.yaml"
 COMMAND_CENTER_PATH = Path("command_center") / "config.yaml"
@@ -260,10 +260,10 @@ def load_config(config_path_override: str | None = None) -> dict[str, Any]:
         raise
 
 
-# compute_hash and chain_hash are now canonical in centinel_engine.hash_chain.
+# compute_hash and chain_hash are now canonical in vigil_engine.hash_chain.
 # They are re-imported above so all callers in this module remain unchanged.
 # ponytail: Phase 6a — extraction of _persist_snapshot_payload (Ed25519 + file I/O)
-# into centinel_engine/hash_chain.py deferred until test boundary is established.
+# into vigil_engine/hash_chain.py deferred until test boundary is established.
 
 
 def download_with_retries(
@@ -275,7 +275,7 @@ def download_with_retries(
     """/** Descarga con reintentos configurables (tenacity). / Download with configurable retries (tenacity). **"""
     retry_config = load_retry_config(DEFAULT_RETRY_CONFIG_PATH)
     session = requests.Session()
-    structured_logger = StructuredLogger("centinel.download")
+    structured_logger = StructuredLogger("vigil.download")
     alert_hook = build_alert_hook(structured_logger)
     try:
         return request_with_retry(
@@ -305,7 +305,7 @@ def fetch_with_retry(
 
     try:
         retry_config = load_retry_config(DEFAULT_RETRY_CONFIG_PATH)
-        structured_logger = StructuredLogger("centinel.download")
+        structured_logger = StructuredLogger("vigil.download")
         alert_hook = build_alert_hook(structured_logger)
         return request_with_retry(
             session,
@@ -462,7 +462,7 @@ def _is_cne_endpoint(endpoint: str, config: dict[str, Any]) -> bool:
     y, opcionalmente, validacion de resolucion a IP publica (mitigando DNS
     rebinding y spoofing por substring).
     """
-    from centinel.defense.security_utils import is_safe_outbound_url
+    from vigil.defense.security_utils import is_safe_outbound_url
 
     domains = config.get("cne_domains") or ["cne.hn"]
     enforce_public_ip = bool(config.get("enforce_public_ip_resolution", True))
@@ -536,8 +536,8 @@ def _adapt_non_json_payload(
         inventa datos. / format without parser or unrecognizable columns —
         caller treats it as source failure, never invents data.
     """
-    from centinel.format_detector import detect_format
-    from centinel.schema_adapter import parse_payload
+    from vigil.format_detector import detect_format
+    from vigil.schema_adapter import parse_payload
 
     raw = response.content
     content_type = response.headers.get("Content-Type", "")
@@ -592,7 +592,7 @@ def process_sources(
     _force_full = os.getenv("CENTINEL_FORCE_FULL_CYCLE", "0") == "1"
     retry_payload = resolve_retry_policy(config)
     retry_config = retry_payload["retry_config"]
-    structured_logger = StructuredLogger("centinel.download")
+    structured_logger = StructuredLogger("vigil.download")
     alert_hook = build_alert_hook(structured_logger)
     breaker_settings = config.get("download_circuit_breaker", {}) or {}
     breaker = CircuitBreaker.load_state(BREAKER_STATE_PATH) or CircuitBreaker(
@@ -722,7 +722,7 @@ def process_sources(
                 # bounded — it must never raise into or stall the capture
                 # loop that has to run for a month.
                 try:
-                    from centinel.core.connectivity import diagnose_and_record
+                    from vigil.core.connectivity import diagnose_and_record
 
                     diagnose_and_record(
                         endpoint,
@@ -789,7 +789,7 @@ def process_sources(
                 # EN: The raw CNE schema only applies to the JSON path; adapted
                 #     payloads (CSV, etc.) left the parser already normalized.
                 if source_format == "json":
-                    from centinel.core.normalize import validate_cne_response as _validate_cne
+                    from vigil.core.normalize import validate_cne_response as _validate_cne
 
                     _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
                     if isinstance(_raw_for_validation, dict):

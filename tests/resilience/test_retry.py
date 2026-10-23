@@ -50,7 +50,7 @@ from typing import Any
 import pytest
 import requests
 
-from centinel.downloader import (
+from vigil.downloader import (
     RetryConfig,
     RetryPolicy,
     RetryableExceptionError,
@@ -68,7 +68,7 @@ def test_retry_policy_computes_exponential_backoff_with_jitter(
 
     English: Validate exponential backoff with deterministic jitter.
     """
-    import centinel.downloader as _dl
+    import vigil.downloader as _dl
 
     policy = RetryPolicy(
         max_attempts=3,

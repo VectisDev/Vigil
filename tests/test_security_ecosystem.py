@@ -40,8 +40,8 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from centinel.defense.advanced_security import AdvancedSecurityConfig, AdvancedSecurityManager
-from centinel.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig
+from vigil.defense.advanced_security import AdvancedSecurityConfig, AdvancedSecurityManager
+from vigil.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig
 
 
 def test_attack_logbook_flood_sampling_and_callback(tmp_path: Path) -> None:
@@ -130,7 +130,7 @@ def test_integrated_flow_detection_to_backup(tmp_path: Path, monkeypatch) -> Non
         manager.runtime_security, "start_honeypot", lambda: calls.append("runtime_start")
     )
     monkeypatch.setattr(manager, "detect_internal_anomalies", lambda: ["memory_high:95.0"])
-    monkeypatch.setattr("centinel.defense.advanced_security.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("vigil.defense.advanced_security.time.sleep", lambda _seconds: None)
 
     manager.on_poll_cycle()
 

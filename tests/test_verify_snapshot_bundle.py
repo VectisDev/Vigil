@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from centinel.core.custody import generate_operator_keypair, sign_hash_record
+from vigil.core.custody import generate_operator_keypair, sign_hash_record
 
 
 def test_verify_snapshot_bundle_pass_with_signature_and_anchor(tmp_path: Path) -> None:

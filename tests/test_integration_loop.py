@@ -44,10 +44,10 @@ from __future__ import annotations
 import time
 from typing import Any, Callable
 
-from centinel_engine import proxy_manager
-from centinel_engine.proxy_manager import ProxyAndUAManager
-from centinel_engine.rate_limiter import TokenBucketRateLimiter
-from centinel_engine.vital_signs import check_vital_signs
+from vigil_engine import proxy_manager
+from vigil_engine.proxy_manager import ProxyAndUAManager
+from vigil_engine.rate_limiter import TokenBucketRateLimiter
+from vigil_engine.vital_signs import check_vital_signs
 
 
 class _DummyProxyRotator:

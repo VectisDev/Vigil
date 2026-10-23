@@ -8,7 +8,7 @@ import time
 from unittest.mock import MagicMock, patch
 
 
-from centinel.federation.multi_witness import (
+from vigil.federation.multi_witness import (
     ConsensusReport,
     FederationCoordinator,
     MerkleComparison,

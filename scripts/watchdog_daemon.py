@@ -38,7 +38,7 @@ logging.basicConfig(
         logging.FileHandler(LOG_DIR / "watchdog_daemon.log", encoding="utf-8"),
     ],
 )
-logger = logging.getLogger("centinel.watchdog_daemon")
+logger = logging.getLogger("vigil.watchdog_daemon")
 
 
 # ---------------------------------------------------------------------------

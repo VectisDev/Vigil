@@ -25,10 +25,10 @@ import pytest
 # Package import with fallback for isolated test runs.
 # Importación de paquete con fallback para ejecuciones aisladas.
 try:
-    from centinel.core.crypto.centinel_shamir import (
+    from vigil.core.crypto.centinel_shamir import (
         GF256, ShamirError, combine_byte, combine_shares, split_byte, split_secret,
     )
-    from centinel.core.crypto.centinel_share_format import ShareFormatError, parse_share, serialize_share
+    from vigil.core.crypto.centinel_share_format import ShareFormatError, parse_share, serialize_share
     # Scripts are in repo root scripts/, add to path for ceremony/reconstruct imports.
     _SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
     if str(_SCRIPTS_DIR) not in sys.path:

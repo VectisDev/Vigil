@@ -37,7 +37,7 @@ Notes:
 
 import pytest
 
-from centinel.utils import config_loader
+from vigil.utils import config_loader
 
 yaml = pytest.importorskip("yaml")
 

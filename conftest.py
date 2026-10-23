@@ -107,7 +107,7 @@ def _reset_global_singletons():
 
     def _reset() -> None:
         try:
-            import centinel.proxy_handler as _ph
+            import vigil.proxy_handler as _ph
 
             _ph._ROTATOR = None
         except Exception:

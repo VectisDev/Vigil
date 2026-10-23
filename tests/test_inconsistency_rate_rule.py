@@ -45,8 +45,8 @@ from __future__ import annotations
 
 import pytest
 
-from centinel.core.rules.inconsistency_rate_rule import apply
-from centinel.core.rules.registry import list_rules
+from vigil.core.rules.inconsistency_rate_rule import apply
+from vigil.core.rules.registry import list_rules
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────

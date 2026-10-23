@@ -23,7 +23,7 @@ from scripts.logging_utils import configure_logging, log_event
 # does not support backoff_factor or status_forcelist — add tenacity retry in Phase 2a
 # when retry_backoff() is extracted.
 
-logger = configure_logging("centinel.healthcheck", log_file="logs/centinel.log")
+logger = configure_logging("vigil.healthcheck", log_file="logs/centinel.log")
 
 
 def _build_client(retries: int, backoff_factor: float, timeout: float) -> httpx.Client:

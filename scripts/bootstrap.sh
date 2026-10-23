@@ -99,7 +99,7 @@ export PYTHONPATH="${REPO_ROOT}/src:${PYTHONPATH:-}"
 print_step "Preflight / Autoauditoría (centinel doctor)"
 printf '  mode: %s\n' "$CENTINEL_MODE"
 set +e
-"${RUN_PREFIX[@]}" python3 -m centinel.cli doctor --mode "$CENTINEL_MODE"
+"${RUN_PREFIX[@]}" python3 -m vigil.cli doctor --mode "$CENTINEL_MODE"
 DOCTOR_RC=$?
 set -e 2>/dev/null || true
 
@@ -123,5 +123,5 @@ fi
 
 print_step "Serving / Sirviendo"
 printf '  http://%s:%s  (Ctrl-C to stop / para detener)\n' "$HOST" "$PORT"
-exec "${RUN_PREFIX[@]}" python3 -m uvicorn centinel.api.main:app \
+exec "${RUN_PREFIX[@]}" python3 -m uvicorn vigil.api.main:app \
   --host "$HOST" --port "$PORT"

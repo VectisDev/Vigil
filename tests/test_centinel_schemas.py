@@ -37,7 +37,7 @@ Notes:
 
 import pytest
 
-from centinel.schemas import validate_and_normalize
+from vigil.schemas import validate_and_normalize
 
 
 def test_validate_actas_normalizes():

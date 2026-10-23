@@ -3,11 +3,11 @@ Toggle Centinel swarm mode without editing .env or restarting.
 
 ES: Conecta o desconecta el nodo del enjambre con un solo comando.
     Llama a los endpoints existentes del API y persiste CENTINEL_AUTOCONNECT
-    en centinel_engine/.env para que el ajuste sobreviva reinicios.
+    en vigil_engine/.env para que el ajuste sobreviva reinicios.
 
 EN: Connect or disconnect the node from the swarm with a single command.
     Calls the existing API endpoints and persists CENTINEL_AUTOCONNECT in
-    centinel_engine/.env so the setting survives restarts.
+    vigil_engine/.env so the setting survives restarts.
 
 Usage:
     python scripts/swarm_toggle.py join                     # joins local swarm
@@ -27,12 +27,14 @@ from pathlib import Path
 import requests
 
 _DEFAULT_API = "http://localhost:8080"
-_ENV_PATH = Path("centinel_engine") / ".env"
+_ENV_PATH = Path("vigil_engine") / ".env"
+if not _ENV_PATH.exists() and (Path("centinel_engine") / ".env").exists():
+    _ENV_PATH = Path("centinel_engine") / ".env"  # installs from before the VIGIL rename
 
 
 def _update_env(key: str, value: str) -> None:
-    """ES: Actualiza o añade KEY=VALUE en centinel_engine/.env preservando el resto.
-    EN: Updates or appends KEY=VALUE in centinel_engine/.env preserving other entries."""
+    """ES: Actualiza o añade KEY=VALUE en vigil_engine/.env preservando el resto.
+    EN: Updates or appends KEY=VALUE in vigil_engine/.env preserving other entries."""
     if not _ENV_PATH.exists():
         _ENV_PATH.parent.mkdir(parents=True, exist_ok=True)
         _ENV_PATH.write_text(f"{key}={value}\n", encoding="utf-8")

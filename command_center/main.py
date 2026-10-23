@@ -63,7 +63,7 @@ import sys
 from typing import List
 
 from scripts import run_pipeline
-from centinel.utils.config_loader import load_config
+from vigil.utils.config_loader import load_config
 
 
 def _build_pipeline_args(parsed_args: argparse.Namespace) -> List[str]:

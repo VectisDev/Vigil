@@ -47,7 +47,7 @@ import sys
 import types
 
 # Install stub modules at collection time so optional packages
-# (centinel_engine, structlog) do not cause ImportError.
+# (vigil_engine, structlog) do not cause ImportError.
 # ES: Instala stubs en tiempo de colección para evitar ImportError.
 def _install_stub_modules() -> None:
     """Install stub modules for optional dependencies that fail to import.
@@ -83,15 +83,15 @@ def _install_stub_modules() -> None:
         sys.modules["scripts.download_and_hash"] = _dah
 
     try:
-        from centinel_engine.config_loader import load_config  # noqa: F401
+        from vigil_engine.config_loader import load_config  # noqa: F401
     except ImportError:
-        ce = types.ModuleType("centinel_engine")
-        ce_cfg = types.ModuleType("centinel_engine.config_loader")
+        ce = types.ModuleType("vigil_engine")
+        ce_cfg = types.ModuleType("vigil_engine.config_loader")
         def _load_config(file_name: str = "", env: str = "prod") -> dict:
             return {}
         ce_cfg.load_config = _load_config  # type: ignore[attr-defined]
-        sys.modules["centinel_engine"] = ce
-        sys.modules["centinel_engine.config_loader"] = ce_cfg
+        sys.modules["vigil_engine"] = ce
+        sys.modules["vigil_engine.config_loader"] = ce_cfg
 
     try:
         import structlog  # noqa: F401
@@ -103,37 +103,37 @@ def _install_stub_modules() -> None:
         sl.get_logger = lambda *a, **kw: _logging.getLogger("centinel")  # type: ignore[attr-defined]
         sys.modules["structlog"] = sl
 
-    # centinel.download stub (write_atomic)
+    # vigil.download stub (write_atomic)
     try:
-        import centinel.download  # noqa: F401
+        import vigil.download  # noqa: F401
     except ImportError:
         import importlib.machinery as _imm
-        import centinel as _c
-        cd = types.ModuleType("centinel.download")
-        cd.__spec__ = _imm.ModuleSpec("centinel.download", None)  # type: ignore[attr-defined]
+        import vigil as _c
+        cd = types.ModuleType("vigil.download")
+        cd.__spec__ = _imm.ModuleSpec("vigil.download", None)  # type: ignore[attr-defined]
         def _write_atomic(path: object, data: object, **kw: object) -> None:
             import pathlib, json as _json
             p = pathlib.Path(str(path))
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(_json.dumps(data) if not isinstance(data, str) else data)
         cd.write_atomic = _write_atomic  # type: ignore[attr-defined]
-        sys.modules["centinel.download"] = cd
+        sys.modules["vigil.download"] = cd
         setattr(_c, "download", cd)
 
-    # centinel.defense / centinel.core stubs -- only for modules that
+    # vigil.defense / vigil.core stubs -- only for modules that
     # fail to import for real (e.g. partial forks missing these files).
     import importlib.machinery as _imm
     for _mod_name in (
-        "centinel.defense",
-        "centinel.defense.logger",
-        "centinel.defense.security",
-        "centinel.defense.attack_logger",
-        "centinel.defense.fetcher",
-        "centinel.defense.hasher",
-        "centinel.defense.security_utils",
-        "centinel.core.custody",
-        "centinel.core.connectivity",
-        "centinel.core.normalize",
+        "vigil.defense",
+        "vigil.defense.logger",
+        "vigil.defense.security",
+        "vigil.defense.attack_logger",
+        "vigil.defense.fetcher",
+        "vigil.defense.hasher",
+        "vigil.defense.security_utils",
+        "vigil.core.custody",
+        "vigil.core.connectivity",
+        "vigil.core.normalize",
     ):
         if _mod_name in sys.modules:
             continue
@@ -159,7 +159,7 @@ def _install_stub_modules() -> None:
             setattr(_m, _attr, lambda *a, **kw: None)  # type: ignore[misc]
         sys.modules[_mod_name] = _m
 
-    # centinel.paths: provided by real src/centinel/paths.py on PYTHONPATH
+    # vigil.paths: provided by real src/vigil/paths.py on PYTHONPATH
 
 _install_stub_modules()
 
@@ -170,7 +170,7 @@ import pytest
 import responses
 import yaml
 
-from centinel.downloader import load_retry_config
+from vigil.downloader import load_retry_config
 
 
 @pytest.fixture()
@@ -331,7 +331,7 @@ def kwargs_logger() -> logging.Logger:
     prev_class = logging.getLoggerClass()
     logging.setLoggerClass(_KwargsLogger)
     try:
-        logger = logging.getLogger("centinel.test.proxy")
+        logger = logging.getLogger("vigil.test.proxy")
         logger.setLevel(logging.DEBUG)
         yield logger
     finally:

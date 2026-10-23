@@ -49,7 +49,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from centinel_engine.rate_limiter import (  # noqa: E402
+from vigil_engine.rate_limiter import (  # noqa: E402
     TokenBucketRateLimiter,
     get_rate_limiter,
     reset_rate_limiter,
@@ -152,7 +152,7 @@ class TestTokenConsumption:
         Bilingual: Se neutraliza el jitter de seguridad para verificar
         solo la lógica del token-bucket (bucket inicia lleno).
         """
-        monkeypatch.setattr("centinel_engine.rate_limiter.random.uniform", lambda *_a: 0.0)
+        monkeypatch.setattr("vigil_engine.rate_limiter.random.uniform", lambda *_a: 0.0)
         rl = TokenBucketRateLimiter(rate_interval=1.0, burst=3, min_interval=0.0, max_interval=5.0)
         waited = rl.wait()
         assert waited < 0.5  # should be nearly instant / deberia ser casi instantaneo
@@ -168,7 +168,7 @@ class TestTokenConsumption:
         ~2s of mandatory spacing per call and breaking this timing
         assertion. Disabled here to test burst behavior in isolation.
         """
-        monkeypatch.setattr("centinel_engine.rate_limiter.random.uniform", lambda *_a: 0.0)
+        monkeypatch.setattr("vigil_engine.rate_limiter.random.uniform", lambda *_a: 0.0)
         rl = TokenBucketRateLimiter(
             rate_interval=1.0, burst=3, min_interval=0.0, max_interval=5.0, enforce_ceiling=False
         )

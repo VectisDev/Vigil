@@ -31,7 +31,7 @@ Notes:
 - Prioritize operational clarity and behavior traceability.
 """
 
-from centinel.core.hashchain import compute_hash
+from vigil.core.hashchain import compute_hash
 
 
 def test_hash_is_stable():

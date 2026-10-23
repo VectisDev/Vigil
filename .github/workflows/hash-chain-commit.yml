@@ -28,7 +28,7 @@ jobs:
           pip install -e .
 
       - name: Export reputation events
-        run: python src/centinel/federation/export_reputation.py
+        run: python src/vigil/federation/export_reputation.py
 
       - name: Create release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
@@ -67,7 +67,7 @@ jobs:
           pip install -e .
 
       - name: Commit to hash chain
-        run: python src/centinel/federation/hash_chain.py
+        run: python src/vigil/federation/hash_chain.py
 
       - name: Push hash chain branch
         run: |

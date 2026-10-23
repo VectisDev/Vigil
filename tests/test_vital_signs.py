@@ -51,11 +51,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 
-# Ensure the centinel_engine package is importable /
-# Asegurar que el paquete centinel_engine sea importable.
+# Ensure the vigil_engine package is importable /
+# Asegurar que el paquete vigil_engine sea importable.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from centinel_engine.vital_signs import (  # noqa: E402
+from vigil_engine.vital_signs import (  # noqa: E402
     DEFAULT_HEALTH_STATE,
     DEFAULT_THRESHOLDS,
     _compute_avg_latency,

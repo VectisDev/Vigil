@@ -42,13 +42,13 @@ from __future__ import annotations
 import time
 from typing import Any, Dict, List
 
-from centinel_engine.proxy_manager import (
+from vigil_engine.proxy_manager import (
     get_proxy_and_ua,
     get_proxy_ua_manager,
     reset_proxy_ua_manager,
 )
-from centinel_engine.rate_limiter import TokenBucketRateLimiter
-from centinel_engine.vital_signs import check_vital_signs
+from vigil_engine.rate_limiter import TokenBucketRateLimiter
+from vigil_engine.vital_signs import check_vital_signs
 from src.centinel.proxy_handler import ProxyRotator
 
 

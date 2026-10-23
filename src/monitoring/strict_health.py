@@ -114,7 +114,7 @@ else:
     ClientError = Exception
 from dateutil import parser as date_parser
 
-from centinel.checkpointing import CheckpointConfig, CheckpointManager
+from vigil.checkpointing import CheckpointConfig, CheckpointManager
 
 logger = logging.getLogger(__name__)
 

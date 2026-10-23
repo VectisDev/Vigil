@@ -36,7 +36,7 @@ Notes:
 import json
 
 
-from centinel.core.normalize import (
+from vigil.core.normalize import (
     _safe_int,
     _sanitize_raw_payload,
     normalize_snapshot,

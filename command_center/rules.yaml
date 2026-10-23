@@ -2,10 +2,10 @@
 # REGLAS GENERALES DEL COMMAND CENTER (ES) / GENERAL RULES (EN)
 # ============================================================
 # ES: Fuente de verdad para umbrales y configuración de las 23 reglas analíticas.
-#     Todos los parámetros aquí coinciden con los config.get() en src/centinel/core/rules/*.py.
+#     Todos los parámetros aquí coinciden con los config.get() en src/vigil/core/rules/*.py.
 #     Modificar este archivo es suficiente para recalibrar el sistema sin redeployment.
 # EN: Single source of truth for thresholds and configuration of all 23 analytical rules.
-#     All parameters here match the config.get() calls in src/centinel/core/rules/*.py.
+#     All parameters here match the config.get() calls in src/vigil/core/rules/*.py.
 #     Editing this file is sufficient to recalibrate the system without redeployment.
 #
 # ES: Índice:

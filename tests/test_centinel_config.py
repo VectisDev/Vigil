@@ -38,7 +38,7 @@ from pathlib import Path
 
 import pytest
 
-from centinel.config import load_config
+from vigil.config import load_config
 
 
 def test_load_config_validates_and_loads(monkeypatch, tmp_path):

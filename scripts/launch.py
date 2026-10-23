@@ -115,7 +115,7 @@ def _start_server(python: Path) -> subprocess.Popen:
 
     cmd = [
         str(python), "-m", "uvicorn",
-        "centinel.api.main:app",
+        "vigil.api.main:app",
         "--host", HOST,
         "--port", str(PORT),
         "--log-level", "warning",
