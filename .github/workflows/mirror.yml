@@ -109,11 +109,19 @@ jobs:
           # Push de todas las ramas y tags. --force es aceptable porque
           # GitHub es la única fuente de verdad; los mirrors siguen.
           echo "::group::Pushing branches"
-          git push codeberg --all --force
+          for i in 1 2 3 4; do
+            git -c http.postBuffer=524288000 push codeberg --all --force && break
+            [ "$i" = 4 ] && exit 1
+            echo "Codeberg push failed (attempt $i), retrying..."; sleep $((i * 30))
+          done
           echo "::endgroup::"
 
           echo "::group::Pushing tags"
-          git push codeberg --tags --force
+          for i in 1 2 3 4; do
+            git -c http.postBuffer=524288000 push codeberg --tags --force && break
+            [ "$i" = 4 ] && exit 1
+            echo "Codeberg push failed (attempt $i), retrying..."; sleep $((i * 30))
+          done
           echo "::endgroup::"
 
       - name: Verify Codeberg head matches GitHub head
@@ -328,4 +336,8 @@ jobs:
           fi
 
           git commit -m "chore(mirror): append mirror event $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push origin main
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin HEAD:main && break
+            [ "$i" = 5 ] && exit 1
+            echo "push rejected (attempt $i), retrying..."; sleep $((i * 5))
+          done
