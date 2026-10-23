@@ -239,7 +239,7 @@ async def swarm_connect(request: Request) -> dict:
         # Empty or non-JSON body is allowed: start with default options.
         pass
 
-    my_url: Optional[str] = body.get("my_url") or os.getenv("CENTINEL_MY_URL")
+    my_url: Optional[str] = body.get("my_url") or os.getenv("VIGIL_MY_URL", os.getenv("CENTINEL_MY_URL"))
     peer_url: Optional[str] = (body.get("peer_url") or "").strip() or None
     room_code: Optional[str] = (body.get("room_code") or "").strip().lower() or None
     broadcast_interval = float(body.get("broadcast_interval", 60.0))
@@ -633,7 +633,7 @@ async def auto_start(country_code: Optional[str] = None) -> None:
     if _engine is not None:
         return
     country = country_code or _get_country()
-    my_url = os.getenv("CENTINEL_MY_URL")
+    my_url = os.getenv("VIGIL_MY_URL", os.getenv("CENTINEL_MY_URL"))
     _engine = GossipEngine(
         country_code=country,
         my_url=my_url,

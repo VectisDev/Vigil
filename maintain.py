@@ -307,14 +307,14 @@ def is_rate_limited(state_path: Path, cooldown_seconds: int, logger: logging.Log
 def parse_runtime_config() -> RuntimeConfig:
     """Build runtime configuration from environment variables."""
 
-    pipeline_version = os.getenv("CENTINEL_PIPELINE_VERSION", "").strip()
-    run_id = os.getenv("CENTINEL_RUN_ID", "").strip()
-    checkpoint_state_path = Path(os.getenv("CENTINEL_CHECKPOINT_STATE_PATH", "data/temp/checkpoint_state.json"))
-    panic_flag_path = Path(os.getenv("CENTINEL_PANIC_FLAG", "data/panic.flag"))
-    backup_secret = os.getenv("CENTINEL_BACKUP_SECRET")
-    backup_salt = os.getenv("CENTINEL_BACKUP_SALT")
-    log_path = Path(os.getenv("CENTINEL_MAINTENANCE_LOG", str(DEFAULT_LOG_PATH)))
-    assume_yes = os.getenv("CENTINEL_ASSUME_YES", "").lower() in {"1", "true", "yes"}
+    pipeline_version = os.getenv("VIGIL_PIPELINE_VERSION", os.getenv("CENTINEL_PIPELINE_VERSION", "")).strip()
+    run_id = os.getenv("VIGIL_RUN_ID", os.getenv("CENTINEL_RUN_ID", "")).strip()
+    checkpoint_state_path = Path(os.getenv("VIGIL_CHECKPOINT_STATE_PATH", os.getenv("CENTINEL_CHECKPOINT_STATE_PATH", "data/temp/checkpoint_state.json")))
+    panic_flag_path = Path(os.getenv("VIGIL_PANIC_FLAG", os.getenv("CENTINEL_PANIC_FLAG", "data/panic.flag")))
+    backup_secret = os.getenv("VIGIL_BACKUP_SECRET", os.getenv("CENTINEL_BACKUP_SECRET"))
+    backup_salt = os.getenv("VIGIL_BACKUP_SALT", os.getenv("CENTINEL_BACKUP_SALT"))
+    log_path = Path(os.getenv("VIGIL_MAINTENANCE_LOG", os.getenv("CENTINEL_MAINTENANCE_LOG", str(DEFAULT_LOG_PATH))))
+    assume_yes = os.getenv("VIGIL_ASSUME_YES", os.getenv("CENTINEL_ASSUME_YES", "")).lower() in {"1", "true", "yes"}
 
     if not pipeline_version or not run_id:
         raise RuntimeError("CENTINEL_PIPELINE_VERSION y CENTINEL_RUN_ID son obligatorios para las tareas.")
@@ -375,7 +375,7 @@ def retry_operation(
 def build_checkpoint_manager(runtime: RuntimeConfig, logger: logging.Logger) -> CheckpointManager:
     """Create a checkpoint manager using local filesystem."""
 
-    checkpoint_dir = os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/")
+    checkpoint_dir = os.getenv("VIGIL_CHECKPOINT_DIR", os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/"))
     checkpoint_config = CheckpointConfig(
         pipeline_version=runtime.pipeline_version,
         run_id=runtime.run_id,
@@ -406,7 +406,7 @@ def command_checkpoint_now(runtime: RuntimeConfig, logger: logging.Logger) -> No
 def fetch_latest_checkpoint_metadata(runtime: RuntimeConfig, logger: logging.Logger) -> dict[str, Any]:
     """Fetch latest checkpoint metadata from the local filesystem."""
 
-    checkpoint_dir = Path(os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/"))
+    checkpoint_dir = Path(os.getenv("VIGIL_CHECKPOINT_DIR", os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/")))
     latest_path = checkpoint_dir / "latest.json"
     if not latest_path.exists():
         return {"status": "checkpoint_not_found"}
@@ -508,7 +508,7 @@ def _update_env_file(path: Path, updates: dict[str, str]) -> None:
 def _build_env_secrets_fernet() -> Fernet:
     """Build Fernet instance for encrypting sensitive values persisted to .env."""
 
-    master_key = os.getenv("CENTINEL_MASTER_KEY")
+    master_key = os.getenv("VIGIL_MASTER_KEY", os.getenv("CENTINEL_MASTER_KEY"))
     if not master_key:
         raise RuntimeError("CENTINEL_MASTER_KEY no está configurada; no se pueden cifrar secretos de .env.")
     try:
@@ -531,7 +531,7 @@ def command_rotate_keys(runtime: RuntimeConfig, logger: logging.Logger) -> None:
         "Esta acción rotará las claves de encriptación y actualizará .env.",
         runtime.assume_yes,
     )
-    env_path = Path(os.getenv("CENTINEL_ENV_PATH", ".env"))
+    env_path = Path(os.getenv("VIGIL_ENV_PATH", os.getenv("CENTINEL_ENV_PATH", ".env")))
     backup_path = env_path.with_suffix(f".bak-{datetime.now().strftime('%Y%m%d%H%M%S')}")
     if env_path.exists():
         backup_path.write_text(env_path.read_text(encoding="utf-8"), encoding="utf-8")
@@ -542,8 +542,8 @@ def command_rotate_keys(runtime: RuntimeConfig, logger: logging.Logger) -> None:
     _update_env_file(
         env_path,
         {
-            "CENTINEL_CHECKPOINT_SECRET": _encrypt_env_secret(new_secret),
-            "CENTINEL_CHECKPOINT_SALT": _encrypt_env_secret(new_salt),
+            "VIGIL_CHECKPOINT_SECRET": _encrypt_env_secret(new_secret),
+            "VIGIL_CHECKPOINT_SALT": _encrypt_env_secret(new_salt),
         },
     )
 
@@ -557,7 +557,7 @@ def command_clean_old_checkpoints(runtime: RuntimeConfig, logger: logging.Logger
         f"Se eliminarán checkpoints con más de {days} días.",
         runtime.assume_yes,
     )
-    checkpoint_dir = Path(os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/"))
+    checkpoint_dir = Path(os.getenv("VIGIL_CHECKPOINT_DIR", os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/")))
     if not checkpoint_dir.exists():
         logger.info("No hay directorio de checkpoints en %s.", checkpoint_dir)
         return
@@ -583,10 +583,10 @@ def _build_backup_fernet(runtime: RuntimeConfig) -> Fernet:
 
     English: Function _build_backup_fernet defined in maintain.py.
     """
-    secret = runtime.backup_secret or os.getenv("CENTINEL_CHECKPOINT_SECRET")
+    secret = runtime.backup_secret or os.getenv("VIGIL_CHECKPOINT_SECRET", os.getenv("CENTINEL_CHECKPOINT_SECRET"))
     if not secret:
         raise RuntimeError("CENTINEL_BACKUP_SECRET no configurado para backup.")
-    salt = runtime.backup_salt or os.getenv("CENTINEL_CHECKPOINT_SALT", "")
+    salt = runtime.backup_salt or os.getenv("VIGIL_CHECKPOINT_SALT", os.getenv("CENTINEL_CHECKPOINT_SALT", ""))
     digest = hashlib.sha256(f"{secret}{salt}".encode("utf-8")).digest()
     key = base64.urlsafe_b64encode(digest)
     return Fernet(key)
@@ -596,7 +596,7 @@ def command_backup_config(runtime: RuntimeConfig, logger: logging.Logger) -> Non
     """Backup sensitive configuration files to a local encrypted directory."""
 
     fernet = _build_backup_fernet(runtime)
-    extra_files = [path.strip() for path in os.getenv("CENTINEL_BACKUP_EXTRA_FILES", "").split(",") if path.strip()]
+    extra_files = [path.strip() for path in os.getenv("VIGIL_BACKUP_EXTRA_FILES", os.getenv("CENTINEL_BACKUP_EXTRA_FILES", "")).split(",") if path.strip()]
     candidate_files = [".env", "config.yaml", "config.example.yaml"] + extra_files
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup_dir = Path("backups") / "config" / timestamp
@@ -659,7 +659,7 @@ def command_panic(runtime: RuntimeConfig, logger: logging.Logger) -> None:
         encoding="utf-8",
     )
 
-    panic_webhook = os.getenv("CENTINEL_PANIC_WEBHOOK")
+    panic_webhook = os.getenv("VIGIL_PANIC_WEBHOOK", os.getenv("CENTINEL_PANIC_WEBHOOK"))
     if panic_webhook:
         import httpx
 

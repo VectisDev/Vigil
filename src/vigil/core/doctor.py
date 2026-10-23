@@ -87,7 +87,7 @@ def _check_mode(profile: SecurityProfile) -> CheckResult:
 
 
 def _check_signing(profile: SecurityProfile) -> CheckResult:
-    env_path = os.getenv("CENTINEL_OPERATOR_KEY_PATH")
+    env_path = os.getenv("VIGIL_OPERATOR_KEY_PATH", os.getenv("CENTINEL_OPERATOR_KEY_PATH"))
     key_path = Path(env_path) if env_path else Path("keys") / "operator_private.pem"
     exists = key_path.exists()
 
@@ -123,7 +123,7 @@ def _check_signing(profile: SecurityProfile) -> CheckResult:
 
 
 def _check_cne_pinning(profile: SecurityProfile) -> CheckResult:
-    raw = os.getenv("CENTINEL_CNE_CERT_SHA256", "").strip()
+    raw = os.getenv("VIGIL_CNE_CERT_SHA256", os.getenv("CENTINEL_CNE_CERT_SHA256", "")).strip()
     if raw and _looks_like_sha256(raw):
         return CheckResult(
             name="cne_cert_pinning",
@@ -196,7 +196,7 @@ def _probe_writable_durable(target: Path, label: str) -> CheckResult:
 
 
 def _check_breaker_secret() -> CheckResult:
-    env_key = os.getenv("CENTINEL_STATE_HMAC_KEY", "").strip()
+    env_key = os.getenv("VIGIL_STATE_HMAC_KEY", os.getenv("CENTINEL_STATE_HMAC_KEY", "")).strip()
     if len(env_key) >= 16:
         return CheckResult(
             name="breaker_state_integrity",

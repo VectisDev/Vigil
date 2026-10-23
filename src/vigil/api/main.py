@@ -115,7 +115,7 @@ async def _lifespan(application: FastAPI):  # noqa: ARG001
         globals().get("_build_stamp", "dev"),
         datetime.now(timezone.utc).isoformat(),
     )
-    if os.getenv("CENTINEL_AUTOCONNECT", "").strip() == "1":
+    if os.getenv("VIGIL_AUTOCONNECT", os.getenv("CENTINEL_AUTOCONNECT", "")).strip() == "1":
         from .routes.swarm import auto_start as _swarm_auto_start
         await _swarm_auto_start()
     yield

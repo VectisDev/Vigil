@@ -20,8 +20,8 @@ try:
 except ImportError:
     _use_yaml = False
 
-COUNTRY = os.environ.get("CENTINEL_COUNTRY", "HN")
-YEAR    = os.environ.get("CENTINEL_YEAR", "2025")
+COUNTRY = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN"))
+YEAR    = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025"))
 
 # ── Load country preset ────────────────────────────────────────────────────
 repo_root = Path(__file__).resolve().parent.parent.parent

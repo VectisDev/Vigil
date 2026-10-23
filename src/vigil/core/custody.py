@@ -423,9 +423,13 @@ def verify_anchor_from_log(anchor_log_path: Path) -> AnchorVerificationResult:
 # 3. Firma Ed25519 del operador en cada snapshot
 # ---------------------------------------------------------------------------
 
-_OPERATOR_KEY_PATH_ENV = "CENTINEL_OPERATOR_KEY_PATH"
-_OPERATOR_ID_ENV = "CENTINEL_OPERATOR_ID"
-_KEY_PASSPHRASE_ENV = "CENTINEL_KEY_PASSPHRASE"
+_OPERATOR_KEY_PATH_ENV = "VIGIL_OPERATOR_KEY_PATH"
+_OPERATOR_ID_ENV = "VIGIL_OPERATOR_ID"
+_KEY_PASSPHRASE_ENV = "VIGIL_KEY_PASSPHRASE"
+
+def _env(name: str, default: str | None = None) -> str | None:
+    """Read ``VIGIL_<x>``, falling back to the pre-rename ``CENTINEL_<x>``."""
+    return os.getenv(name, os.getenv(name.replace("VIGIL_", "CENTINEL_", 1), default))
 _DEFAULT_KEY_DIR = Path("keys")
 
 
@@ -435,7 +439,7 @@ def _get_key_passphrase() -> Optional[bytes]:
     Set CENTINEL_KEY_PASSPHRASE in the environment (or .env file) to enable
     at-rest encryption of the operator private key with AES-256-CBC.
     """
-    raw = os.getenv(_KEY_PASSPHRASE_ENV, "").strip()
+    raw = _env(_KEY_PASSPHRASE_ENV, "").strip()
     return raw.encode() if raw else None
 
 
@@ -473,7 +477,7 @@ def generate_operator_keypair(
     # Restringir permisos de la clave privada
     private_path.chmod(0o600)
 
-    resolved_id = operator_id or os.getenv(_OPERATOR_ID_ENV, "default-operator")
+    resolved_id = operator_id or _env(_OPERATOR_ID_ENV, "default-operator")
 
     logger.info(
         "operator_keypair_generated operator_id=%s key_dir=%s",
@@ -495,7 +499,7 @@ def _load_operator_private_key(key_path: Optional[Path] = None) -> Ed25519Privat
     English: Load the operator's Ed25519 private key.
     """
     if key_path is None:
-        env_path = os.getenv(_OPERATOR_KEY_PATH_ENV)
+        env_path = _env(_OPERATOR_KEY_PATH_ENV)
         key_path = Path(env_path) if env_path else _DEFAULT_KEY_DIR / "operator_private.pem"
 
     if not key_path.exists():
@@ -523,7 +527,7 @@ def _load_operator_public_key(key_path: Optional[Path] = None) -> Ed25519PublicK
     English: Load the operator's Ed25519 public key.
     """
     if key_path is None:
-        env_path = os.getenv(_OPERATOR_KEY_PATH_ENV)
+        env_path = _env(_OPERATOR_KEY_PATH_ENV)
         if env_path:
             # Derivar ruta pública desde privada
             priv = Path(env_path)
@@ -567,7 +571,7 @@ def sign_snapshot(
 
     signature = private_key.sign(payload_bytes)
 
-    resolved_id = operator_id or os.getenv(_OPERATOR_ID_ENV, "default-operator")
+    resolved_id = operator_id or _env(_OPERATOR_ID_ENV, "default-operator")
 
     return SignatureResult(
         signature_hex=signature.hex(),

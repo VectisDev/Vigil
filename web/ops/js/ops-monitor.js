@@ -223,7 +223,7 @@ async function loadCountrySelector() {
   // Current country from API status (best-effort), fall back to localStorage
   let currentCode = ACTIVE_COUNTRY_CODE || 'HN';
   try {
-    const s = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
+    const s = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/status');
     if (s.ok) { const d = await s.json(); currentCode = d.country_code || currentCode; }
   } catch(_) {}
 
@@ -317,7 +317,7 @@ async function doIniciar() {
   if (btn?.classList.contains('running')) {
     if (!confirm('¿Detener el monitoreo en curso?')) return;
     try {
-      await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
+      await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
     } catch (_) {}
     auditLog('monitoreo detenido', '', {msgid:'MONITORING_STOP', severity:'WARNING'});
     _setPipelineUI(false);
@@ -352,7 +352,7 @@ async function doIniciar() {
 
   // 1. Apply config silently to server
   try {
-    await fetch((window.CENTINEL_API_BASE || '') + '/api/config/apply', {
+    await fetch((window.VIGIL_API_BASE || '') + '/api/config/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -365,7 +365,7 @@ async function doIniciar() {
 
   // 2. Start the pipeline
   try {
-    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/start', {
+    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ main_url: mainUrl, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
@@ -431,7 +431,7 @@ function _startPipelinePoll() {
   if (_pipelinePollTimer) return;
   _pipelinePollTimer = setInterval(async () => {
     try {
-      const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/status');
+      const r = await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/status');
       if (r.ok) {
         const d = await r.json();
         if (!d.running) {
@@ -533,7 +533,7 @@ async function saveElectoralUrl() {
   if (res) { res.style.display = ''; res.style.background = 'rgba(212,176,102,.08)'; res.style.border = '1px solid rgba(212,176,102,.25)'; res.style.color = 'var(--warn)'; res.textContent = 'Analizando el sitio del ente electoral…'; }
 
   try {
-    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/setup/discover_endpoints', {
+    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/setup/discover_endpoints', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Centinel-Key': sessionStorage.getItem('centinel_admin_key') || '' },
       body: JSON.stringify({ main_url: url, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
@@ -667,7 +667,7 @@ async function doChangeCountry() {
   // Best-effort API sync (silent on failure — works offline / GitHub Pages)
   let apiSynced = false;
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/change_country', {
+    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/change_country', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-Centinel-Key': sessionStorage.getItem('centinel_admin_key') || ''},
       body: JSON.stringify({country_code: code}),
@@ -679,7 +679,7 @@ async function doChangeCountry() {
         loadSeedStatus();
         if (swWarn) {
           try {
-            const sw = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status');
+            const sw = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
             const sd = sw.ok ? await sw.json() : {running: false};
             swWarn.style.display = (sd.running || sd.connected_peers > 0) ? '' : 'none';
           } catch(_) { swWarn.style.display = 'none'; }
@@ -703,12 +703,12 @@ async function doChangeCountry() {
 
   // If swarm was running, reconnect with new country so isolation takes effect immediately
   try {
-    const sw = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status');
+    const sw = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
     if (sw.ok) {
       const sd = await sw.json();
       if (sd.running) {
-        await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
-        await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/connect', {
+        await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
+        await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/connect', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({}),
@@ -723,7 +723,7 @@ async function loadSeedStatus() {
   const el = document.getElementById('seed-status');
   if (!el) return;
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/status');
+    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/status');
     const s = await r.json();
     if (s.configured) {
       const since = s.configured_at ? new Date(s.configured_at).toLocaleString() : '—';
@@ -749,7 +749,7 @@ async function doRegenerate() {
   const errEl = document.getElementById('regen-err');
   errEl.textContent = '';
 
-  if (window.CENTINEL_API_BASE) {
+  if (window.VIGIL_API_BASE) {
     const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
     if (!seedValue) {
       errEl.textContent = t('seed.ingresa_clave');
@@ -760,10 +760,10 @@ async function doRegenerate() {
     document.getElementById('regen-confirm').style.display = 'none';
 
     try {
-      const statusR = await fetch(window.CENTINEL_API_BASE + '/api/setup/status');
+      const statusR = await fetch(window.VIGIL_API_BASE + '/api/setup/status');
       const status = await statusR.json();
 
-      const r = await fetch(window.CENTINEL_API_BASE + '/api/setup/regenerate', {
+      const r = await fetch(window.VIGIL_API_BASE + '/api/setup/regenerate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -863,7 +863,7 @@ let _swarmPollTimer = null;
 
 async function loadSwarmStatus() {
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status');
+    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
     if (!r.ok) return;
     const s = await r.json();
     _renderSwarmStatus(s);
@@ -965,7 +965,7 @@ function _renderSwarmStatus(s) {
 
 async function loadSwarmConsensus() {
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/consensus_findings?min_nodes=1&limit=20');
+    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/consensus_findings?min_nodes=1&limit=20');
     if (!r.ok) return;
     const d = await r.json();
     const items = d.consensus || [];
@@ -1003,7 +1003,7 @@ async function doSwarmConnect() {
 
   const myUrl = (document.getElementById('swarm-my-url')||{}).value || undefined;
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/connect', {
+    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/connect', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ my_url: myUrl || null }),
@@ -1028,7 +1028,7 @@ async function doSwarmDisconnect() {
   if (btn) { btn.disabled = true; btn.textContent = t('swarm.desconectando'); }
   _stopSwarmPoll();
   try {
-    await fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
+    await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
     await loadSwarmStatus();
   } catch(_) {}
   if (btn) { btn.disabled = false; btn.textContent = t('swarm.desconectar'); }
@@ -1065,7 +1065,7 @@ async function createSala() {
   // Make sure the engine is running first
   let nodeId = '—', myUrl = '';
   try {
-    const sr = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/status');
+    const sr = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/status');
     if (sr.ok) { const s = await sr.json(); nodeId = s.node_id || '—'; myUrl = s.my_url || ''; }
   } catch(_) {}
 
@@ -1073,7 +1073,7 @@ async function createSala() {
   let roomRegistered = false;
   if (myUrl) {
     try {
-      const rr = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/room', {
+      const rr = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/room', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ room_code: _salaId })
       });
@@ -1153,7 +1153,7 @@ async function joinSala() {
     if (myUrl)    body.my_url    = myUrl;
     if (roomCode) body.room_code = roomCode;
 
-    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/connect', {
+    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/connect', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
@@ -1174,7 +1174,7 @@ async function joinSala() {
 async function kickPeer(nodeId) {
   if (!confirm(`¿Expulsar nodo ${nodeId} del enjambre?\n\nEsto lo bloquea hasta que el engine reinicie.`)) return;
   try {
-    const r = await fetch((window.CENTINEL_API_BASE || '') + `/api/swarm/peer/${nodeId}`, { method: 'DELETE' });
+    const r = await fetch((window.VIGIL_API_BASE || '') + `/api/swarm/peer/${nodeId}`, { method: 'DELETE' });
     if (!r.ok) { const e = await r.json().catch(() => ({})); alert('Error: ' + (e.detail || r.status)); return; }
     _addActivity('bad', `Nodo expulsado: ${nodeId}`, 'ahora');
     await loadSwarmStatus();
@@ -1187,7 +1187,7 @@ let _repPollTimer = null;
 
 async function loadReputationPanel() {
   try {
-    const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/swarm/reputation');
+    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/reputation');
     if (!r.ok) return;
     const d = await r.json();
     _renderReputationPanel(d);
@@ -1259,7 +1259,7 @@ async function openSwarmHist(nodeId) {
   document.getElementById('hist-modal-body').innerHTML =
     '<div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div>';
   try {
-    const r = await fetch((window.CENTINEL_API_BASE || '') + `/api/swarm/reputation/${nodeId}/history?limit=50`);
+    const r = await fetch((window.VIGIL_API_BASE || '') + `/api/swarm/reputation/${nodeId}/history?limit=50`);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     const evts = d.events || [];
@@ -1320,7 +1320,7 @@ function _renderSwarmStatus(s) {
 
 async function loadElectionStatus() {
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/election/status');
+    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/election/status');
     if (!r.ok) return;
     const d = await r.json();
     const banner = document.getElementById('election-closed-banner');
@@ -1391,7 +1391,7 @@ async function doFinalizeElection() {
   }, 2000);
 
   try {
-    const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/election/finalize', {
+    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/election/finalize', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({}),
@@ -1433,8 +1433,8 @@ async function doFinalizeElection() {
 async function refreshSwarmPanel() {
   try {
     const [statusRes, repRes] = await Promise.allSettled([
-      fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/status'),
-      fetch((window.CENTINEL_API_BASE||'') + '/api/swarm/reputation'),
+      fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status'),
+      fetch((window.VIGIL_API_BASE||'') + '/api/swarm/reputation'),
     ]);
     const status = statusRes.status === 'fulfilled' && statusRes.value.ok ? await statusRes.value.json() : null;
     const rep = repRes.status === 'fulfilled' && repRes.value.ok ? await repRes.value.json() : null;

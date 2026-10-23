@@ -13,7 +13,7 @@ import hashlib, secrets, json, os, sys, base64
 from datetime import datetime, timezone
 from pathlib import Path
 
-COUNTRY = os.environ.get("CENTINEL_COUNTRY", "HN")
+COUNTRY = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN"))
 OWNER   = os.environ.get("REPO_OWNER", "")
 REPO    = os.environ.get("REPO_NAME", "")
 RUN_ID  = os.environ.get("GITHUB_RUN_ID", "")

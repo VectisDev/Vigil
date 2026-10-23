@@ -58,7 +58,7 @@ def _build_country_departments() -> tuple[list[str], dict[str, str]]:
         from vigil.countries import get_country_preset
         import unicodedata
 
-        country_code = os.environ.get("CENTINEL_COUNTRY", "HN")
+        country_code = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN"))
         preset = get_country_preset(country_code)
 
         def _norm(name: str) -> str:
@@ -189,7 +189,7 @@ class ElectoralAuthorityHealer:
         # peer-cert SHA-256 to harden against state-level MITM. Unset =
         # standard TLS (demo/dev); the inactive state is logged so an
         # operator preparing for an election cannot miss it.
-        cert_pin = os.getenv("CENTINEL_CNE_CERT_SHA256", "").strip()
+        cert_pin = os.getenv("VIGIL_CNE_CERT_SHA256", os.getenv("CENTINEL_CNE_CERT_SHA256", "")).strip()
         if cert_pin:
             adapter = _CertPinningAdapter(cert_pin)
             self.session.mount("https://", adapter)

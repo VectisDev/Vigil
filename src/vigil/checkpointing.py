@@ -449,7 +449,7 @@ if __name__ == "__main__":
         logging.debug("CHECKPOINT_KEY_VALUE=%s", key)
 
     manager = CheckpointManager(
-        checkpoint_dir=os.environ.get("CENTINEL_CHECKPOINT_DIR", "checkpoints/"),
+        checkpoint_dir=os.environ.get("VIGIL_CHECKPOINT_DIR", os.environ.get("CENTINEL_CHECKPOINT_DIR", "checkpoints/")),
         version="v1.0.0",
         run_id="run-2024-11-05-001",
     )

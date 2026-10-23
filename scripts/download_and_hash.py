@@ -56,7 +56,7 @@ DEFAULT_RETRY_CONFIG_PATH = "config/prod/retry_config.yaml"
 # EN: Per-source throttle directory. Files here block scraping of that source
 #     until the timestamp expires, protecting the CNE endpoint.
 _THROTTLE_DIR = Path("data") / ".throttle"
-_THROTTLE_MINUTES = int(os.getenv("CENTINEL_THROTTLE_MINUTES", "30"))
+_THROTTLE_MINUTES = int(os.getenv("VIGIL_THROTTLE_MINUTES", os.getenv("CENTINEL_THROTTLE_MINUTES", "30")))
 
 # ES: URL de la API local del nodo para coordinación cooperativa.
 #     CENTINEL_SCRAPE_TTL_MINUTES: si otro nodo del enjambre raspó esta fuente
@@ -64,8 +64,8 @@ _THROTTLE_MINUTES = int(os.getenv("CENTINEL_THROTTLE_MINUTES", "30"))
 # EN: Local node API URL for cooperative coordination.
 #     CENTINEL_SCRAPE_TTL_MINUTES: if another swarm node scraped this source
 #     less than TTL minutes ago, this node skips it (protects CNE endpoint).
-_CENTINEL_API_URL = os.getenv("CENTINEL_API_URL", "http://localhost:8080").rstrip("/")
-_SCRAPE_TTL_MINUTES = int(os.getenv("CENTINEL_SCRAPE_TTL_MINUTES", "55"))
+_CENTINEL_API_URL = os.getenv("VIGIL_API_URL", os.getenv("CENTINEL_API_URL", "http://localhost:8080")).rstrip("/")
+_SCRAPE_TTL_MINUTES = int(os.getenv("VIGIL_SCRAPE_TTL_MINUTES", os.getenv("CENTINEL_SCRAPE_TTL_MINUTES", "55")))
 
 _ROBOTS_CACHE: dict[str, tuple[urllib.robotparser.RobotFileParser | None, float]] = {}
 _ROBOTS_TTL_SECONDS = 3600.0
@@ -589,7 +589,7 @@ def process_sources(
     hash_root.mkdir(exist_ok=True)
 
     health_state = get_health_state()
-    _force_full = os.getenv("CENTINEL_FORCE_FULL_CYCLE", "0") == "1"
+    _force_full = os.getenv("VIGIL_FORCE_FULL_CYCLE", os.getenv("CENTINEL_FORCE_FULL_CYCLE", "0")) == "1"
     retry_payload = resolve_retry_policy(config)
     retry_config = retry_payload["retry_config"]
     structured_logger = StructuredLogger("vigil.download")
@@ -794,7 +794,7 @@ def process_sources(
                     _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
                     if isinstance(_raw_for_validation, dict):
                         _cne_errors = _validate_cne(_raw_for_validation, source_id)
-                        if _cne_errors and os.getenv("CENTINEL_STRICT_VALIDATION", "0") == "1":
+                        if _cne_errors and os.getenv("VIGIL_STRICT_VALIDATION", os.getenv("CENTINEL_STRICT_VALIDATION", "0")) == "1":
                             logger.error("suspect_response_rejected source=%s errors=%s", source_id, _cne_errors)
                             had_errors = True
                             continue
@@ -893,7 +893,7 @@ def _persist_snapshot_payload(
     # en lugar de persistir evidencia sin custodio criptográfico. Sin este
     # control, un atacante que comprometa el disco antes de configurar la
     # clave produce una cadena entera sin firma y nadie lo detecta.
-    require_signature = os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false").strip().lower() in (
+    require_signature = os.getenv("VIGIL_REQUIRE_SIGNATURE", os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false")).strip().lower() in (
         "1",
         "true",
         "yes",
@@ -1212,7 +1212,7 @@ def main() -> None:
         # EN: Election close — forced full cycle. Clears checkpoint to start fresh,
         #     and tells process_sources to bypass throttle and cooperative skip.
         _clear_checkpoint()
-        os.environ["CENTINEL_FORCE_FULL_CYCLE"] = "1"
+        os.environ["VIGIL_FORCE_FULL_CYCLE"] = "1"
         logger.info("force_full_cycle_start: checkpoint cleared, throttle+cooperative skip disabled")
         log_event(logger, logging.INFO, "election_finalize_start")
 
@@ -1225,7 +1225,7 @@ def main() -> None:
 
     # ES: Jitter de inicio de ciclo — omitido en cierre electoral (necesitamos velocidad).
     # EN: Cycle jitter — skipped during forced full cycle (we need speed).
-    _cycle_jitter = float(os.getenv("CENTINEL_SCRAPE_JITTER_SECONDS", "30"))
+    _cycle_jitter = float(os.getenv("VIGIL_SCRAPE_JITTER_SECONDS", os.getenv("CENTINEL_SCRAPE_JITTER_SECONDS", "30")))
     if _cycle_jitter > 0 and not args.force_full_cycle:
         _jitter_delay = random.uniform(0.0, _cycle_jitter)
         logger.info("scrape_cycle_jitter delay_s=%.1f max_s=%.1f", _jitter_delay, _cycle_jitter)
@@ -1235,7 +1235,7 @@ def main() -> None:
     #     los IDs pedidos son inválidos, raspa todo y emite WARNING.
     # EN: Active sources filter — validates against config source_ids. Fail-safe: if all
     #     requested IDs are invalid, scrapes everything and emits WARNING.
-    _active_env = os.getenv("CENTINEL_ACTIVE_SOURCES", "").strip()
+    _active_env = os.getenv("VIGIL_ACTIVE_SOURCES", os.getenv("CENTINEL_ACTIVE_SOURCES", "")).strip()
     if _active_env:
         _known_ids = {resolve_source_id(s) for s in sources}
         _requested = {sid.strip() for sid in _active_env.split(",") if sid.strip()}

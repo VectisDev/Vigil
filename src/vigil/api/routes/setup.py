@@ -325,8 +325,8 @@ def discover_endpoints(
         import sys
         # Reload healer module so EXPECTED_DEPARTMENTS picks up the new country
         healer_mod = "vigil_engine.electoral_authority_healer"
-        old_env = os.environ.get("CENTINEL_COUNTRY")
-        os.environ["CENTINEL_COUNTRY"] = country_code
+        old_env = os.environ.get("VIGIL_COUNTRY")  # restored verbatim below
+        os.environ["VIGIL_COUNTRY"] = country_code
         try:
             if healer_mod in sys.modules:
                 del sys.modules[healer_mod]
@@ -335,9 +335,9 @@ def discover_endpoints(
             result = healer.run()
         finally:
             if old_env is None:
-                os.environ.pop("CENTINEL_COUNTRY", None)
+                os.environ.pop("VIGIL_COUNTRY", None)
             else:
-                os.environ["CENTINEL_COUNTRY"] = old_env
+                os.environ["VIGIL_COUNTRY"] = old_env
             # Restore original module if it was present
             if healer_mod in sys.modules:
                 del sys.modules[healer_mod]

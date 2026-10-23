@@ -61,7 +61,7 @@ const minutesToMs = (minutes) => minutes * 60 * 1000;
 const hoursToMs = (hours) => hours * 60 * 60 * 1000;
 const daysToMs = (days) => days * 24 * 60 * 60 * 1000;
 
-const mode = process.env.CENTINEL_MODE || "maintenance";
+const mode = process.env.VIGIL_MODE || process.env.CENTINEL_MODE || "maintenance";
 const cadenceByMode = {
   maintenance: {
     cycleIntervalMs: daysToMs(30),

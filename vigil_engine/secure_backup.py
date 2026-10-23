@@ -86,9 +86,13 @@ DEFAULT_HASH_CHAIN_DIR = Path("data/hashes")
 DEFAULT_BACKUP_DIR = Path("backups")
 DEFAULT_BACKUP_INTERVAL_SECONDS = 1800
 
-ENV_BACKUP_KEY = "CENTINEL_BACKUP_KEY"
-ENV_DROPBOX_TOKEN = "CENTINEL_DROPBOX_TOKEN"
-ENV_DROPBOX_FOLDER = "CENTINEL_DROPBOX_FOLDER"
+ENV_BACKUP_KEY = "VIGIL_BACKUP_KEY"
+ENV_DROPBOX_TOKEN = "VIGIL_DROPBOX_TOKEN"
+ENV_DROPBOX_FOLDER = "VIGIL_DROPBOX_FOLDER"
+
+def _env(name: str, default: str | None = None) -> str | None:
+    """Read ``VIGIL_<x>``, falling back to the pre-rename ``CENTINEL_<x>``."""
+    return os.getenv(name, os.getenv(name.replace("VIGIL_", "CENTINEL_", 1), default))
 
 
 def _generate_backup_key() -> bytes:
@@ -131,7 +135,7 @@ def _get_fernet() -> Optional[Any]:
     """
     if not _HAS_CRYPTOGRAPHY:
         return None
-    key = os.getenv(ENV_BACKUP_KEY)
+    key = _env(ENV_BACKUP_KEY)
     if key:
         try:
             return Fernet(key.encode("utf-8"))
@@ -282,11 +286,11 @@ def _backup_to_dropbox(payload: bytes, remote_path: str) -> bool:
     """
     if not _HAS_DROPBOX:
         return False
-    token = os.getenv(ENV_DROPBOX_TOKEN)
+    token = _env(ENV_DROPBOX_TOKEN)
     if not token:
         return False
     try:
-        folder = os.getenv(ENV_DROPBOX_FOLDER, "/centinel-backups")
+        folder = _env(ENV_DROPBOX_FOLDER, "/centinel-backups")
         client = dropbox.Dropbox(token)
         client.files_upload(payload, f"{folder}/{remote_path}", mode=dropbox.files.WriteMode.overwrite)
         return True

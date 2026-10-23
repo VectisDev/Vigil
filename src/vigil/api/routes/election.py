@@ -125,7 +125,7 @@ async def finalize_election(request: Request) -> dict:
 
         # Write closed marker and switch mode
         _CLOSED_MARKER.write_text(now_iso, encoding="utf-8")
-        _update_env("CENTINEL_MODE", "maintenance")
+        _update_env("VIGIL_MODE", "maintenance")
         logger.info("election_finalize_complete mode=maintenance marker_written=%s", now_iso)
 
         merkle_root, chain_length = _current_merkle_root()
@@ -156,7 +156,7 @@ async def election_status() -> dict:
             closed_at = None
 
     merkle_root, chain_length = _current_merkle_root()
-    mode = _read_env("CENTINEL_MODE", "maintenance")
+    mode = _read_env("VIGIL_MODE", _read_env("CENTINEL_MODE", "maintenance"))
 
     return {
         "election_closed": closed,

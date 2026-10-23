@@ -37,7 +37,8 @@ from typing import Dict, Optional
 
 _LOGGER = logging.getLogger("vigil.profiles")
 
-_MODE_ENV = "CENTINEL_MODE"
+_MODE_ENV = "VIGIL_MODE"
+_LEGACY_MODE_ENV = "CENTINEL_MODE"  # pre-rename name, still honored
 _DEFAULT_MODE = "maintenance"
 _VALID_MODES = ("maintenance", "monitoring", "election")
 
@@ -108,7 +109,7 @@ def resolve_mode(explicit: Optional[str] = None) -> str:
     An unknown value degrades to the safest-cadence mode rather than
     raising: a misconfigured dial must not crash election-night capture.
     """
-    raw = explicit if explicit is not None else os.getenv(_MODE_ENV, _DEFAULT_MODE)
+    raw = explicit if explicit is not None else os.getenv(_MODE_ENV, os.getenv(_LEGACY_MODE_ENV, _DEFAULT_MODE))
     mode = raw.strip().lower()
     if mode not in _VALID_MODES:
         _LOGGER.warning("centinel_mode_unknown value=%r falling_back=%s", raw, _DEFAULT_MODE)
@@ -122,11 +123,13 @@ def resolve_profile(explicit_mode: Optional[str] = None) -> SecurityProfile:
 
 
 def _set_default(name: str, value: str) -> bool:
-    """Set env `name` to `value` only if unset/blank. Returns True if set."""
-    current = os.environ.get(name)
-    if current is not None and current.strip() != "":
-        return False
-    os.environ[name] = value
+    """Set ``VIGIL_<name>`` to `value` only if neither ``VIGIL_<name>`` nor the
+    legacy ``CENTINEL_<name>`` is set to a non-blank value. Returns True if set."""
+    for key in (f"VIGIL_{name}", f"CENTINEL_{name}"):
+        current = os.environ.get(key)
+        if current is not None and current.strip() != "":
+            return False
+    os.environ[f"VIGIL_{name}"] = value
     return True
 
 
@@ -143,15 +146,15 @@ def apply_profile_defaults(explicit_mode: Optional[str] = None) -> Dict[str, obj
     applied: Dict[str, str] = {}
 
     if profile.signature_required:
-        if _set_default("CENTINEL_REQUIRE_SIGNATURE", "true"):
-            applied["CENTINEL_REQUIRE_SIGNATURE"] = "true"
+        if _set_default("REQUIRE_SIGNATURE", "true"):
+            applied["VIGIL_REQUIRE_SIGNATURE"] = "true"
 
     if profile.external_anchor_enabled:
         # Only express the default as the *absence* of the opt-out, so an
         # operator who explicitly disabled OTS keeps that choice.
-        if os.environ.get("CENTINEL_DISABLE_OPENTIMESTAMPS") is None:
-            os.environ["CENTINEL_DISABLE_OPENTIMESTAMPS"] = "false"
-            applied["CENTINEL_DISABLE_OPENTIMESTAMPS"] = "false"
+        if os.environ.get("VIGIL_DISABLE_OPENTIMESTAMPS", os.environ.get("CENTINEL_DISABLE_OPENTIMESTAMPS")) is None:
+            os.environ["VIGIL_DISABLE_OPENTIMESTAMPS"] = "false"
+            applied["VIGIL_DISABLE_OPENTIMESTAMPS"] = "false"
 
     _LOGGER.info(
         "security_profile_applied mode=%s defaults_applied=%s",

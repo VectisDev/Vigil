@@ -36,9 +36,9 @@ lines = [
     "# NO commitear este archivo. Agregarlo a .gitignore.",
     "",
     "# ── Claves de firma Ed25519 ────────────────────────────────",
-    f'CENTINEL_SIGNING_KEY="{priv_pem}"',
+    f'VIGIL_SIGNING_KEY="{priv_pem}"',
     "",
-    f'CENTINEL_PUBLIC_KEY="{pub_pem}"',
+    f'VIGIL_PUBLIC_KEY="{pub_pem}"',
     "",
     "# ── Autenticación interna ──────────────────────────────────",
     f"JWT_SECRET={jwt_secret}",
@@ -59,8 +59,8 @@ print("✓ .env generado.")
 print("")
 print("IMPORTANTE:")
 print("")
-print("  2. Comparte CENTINEL_PUBLIC_KEY con cada testigo que quieras agregar.")
-print("     La clave PRIVADA (CENTINEL_SIGNING_KEY) NUNCA se comparte.")
+print("  2. Comparte VIGIL_PUBLIC_KEY con cada testigo que quieras agregar.")
+print("     La clave PRIVADA (VIGIL_SIGNING_KEY) NUNCA se comparte.")
 print("")
 print("  3. Agrega .env a .gitignore para no commitearla accidentalmente.")
 PYEOF

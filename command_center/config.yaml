@@ -197,7 +197,7 @@ security:
     blocked_headers: []
   log_hashing: true
   log_encryption: false
-  log_encryption_key_env: CENTINEL_LOG_KEY
+  log_encryption_key_env: VIGIL_LOG_KEY
 resilience:
   auto_resume:
     enabled: true

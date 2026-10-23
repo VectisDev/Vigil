@@ -67,7 +67,7 @@ def join(api_url: str = _DEFAULT_API, my_url: str | None = None) -> None:
         print(f"ERROR: {exc}")
         sys.exit(1)
 
-    _update_env("CENTINEL_AUTOCONNECT", "1")
+    _update_env("VIGIL_AUTOCONNECT", "1")
     print(f"Joined swarm: node_id={data.get('node_id')} country={data.get('country_code')} status={data.get('status')}")
     print(f"Persisted CENTINEL_AUTOCONNECT=1 in {_ENV_PATH}")
 
@@ -86,7 +86,7 @@ def leave(api_url: str = _DEFAULT_API) -> None:
         print(f"ERROR: {exc}")
         sys.exit(1)
 
-    _update_env("CENTINEL_AUTOCONNECT", "0")
+    _update_env("VIGIL_AUTOCONNECT", "0")
     print(f"Left swarm: node_id={data.get('node_id')} status={data.get('status')}")
     print(f"Persisted CENTINEL_AUTOCONNECT=0 in {_ENV_PATH}")
 

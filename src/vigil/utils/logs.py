@@ -247,7 +247,7 @@ class HashChainLogger:
 # ---------------------------------------------------------------------------
 
 
-def _get_fernet_key(env_var: str = "CENTINEL_LOG_KEY") -> bytes | None:
+def _get_fernet_key(env_var: str = "VIGIL_LOG_KEY") -> bytes | None:
     """Load a Fernet key from the environment.
     (Carga una clave Fernet del entorno.)
 
@@ -258,14 +258,15 @@ def _get_fernet_key(env_var: str = "CENTINEL_LOG_KEY") -> bytes | None:
         export CENTINEL_LOG_KEY="<the-key>"
     ─────────────────────────────────────────────────────────
     """
-    raw = os.getenv(env_var, "").strip()
+    # Pre-rename deployments set CENTINEL_LOG_KEY; honor it when VIGIL_LOG_KEY is unset.
+    raw = os.getenv(env_var, os.getenv(env_var.replace("VIGIL_", "CENTINEL_", 1), "")).strip()
     return raw.encode("utf-8") if raw else None
 
 
 def encrypt_log_file(
     source: str | Path,
     dest: str | Path | None = None,
-    env_var: str = "CENTINEL_LOG_KEY",
+    env_var: str = "VIGIL_LOG_KEY",
 ) -> Path | None:
     """Encrypt a plaintext log file using Fernet (AES-128-CBC + HMAC).
     (Encripta un archivo de log en texto plano usando Fernet — AES-128-CBC + HMAC.)
@@ -303,7 +304,7 @@ def encrypt_log_file(
 def decrypt_log_file(
     source: str | Path,
     dest: str | Path | None = None,
-    env_var: str = "CENTINEL_LOG_KEY",
+    env_var: str = "VIGIL_LOG_KEY",
 ) -> Path | None:
     """Decrypt a Fernet-encrypted log file back to plaintext.
     (Desencripta un archivo de log encriptado con Fernet a texto plano.)

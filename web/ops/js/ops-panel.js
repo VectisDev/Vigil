@@ -870,7 +870,7 @@ async function dispatchOtsAnchor(){
 // Download latest .ots receipt from the local API
 async function downloadOtsReceipt(){
   const stat = document.getElementById('ots-anchor-stat');
-  const apiBase = (window.CENTINEL_API_BASE || '').replace(/\/$/, '');
+  const apiBase = (window.VIGIL_API_BASE || '').replace(/\/$/, '');
   if(!apiBase){ if(stat){ stat.textContent = 'API no disponible (panel sin backend).'; stat.style.color='var(--warn)'; } return; }
   try {
     // Check metadata first to show the filename in the status

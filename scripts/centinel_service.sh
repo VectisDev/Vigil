@@ -54,7 +54,7 @@ if [ -f ".env" ]; then
 fi
 
 export PYTHONPATH="${REPO_ROOT}/src:${PYTHONPATH:-}"
-export CENTINEL_MODE="${CENTINEL_MODE:-monitoring}"
+export VIGIL_MODE="${VIGIL_MODE:-${CENTINEL_MODE:-monitoring}}"
 
 # ── is_running helper ─────────────────────────────────────────────────────────
 is_running() {
@@ -66,7 +66,7 @@ is_running() {
 
 cmd_start() {
   printf "\n${BOLD}Iniciando / Starting Centinel Engine${RESET}\n"
-  printf "  CENTINEL_MODE=%s\n\n" "$CENTINEL_MODE"
+  printf "  VIGIL_MODE=%s\n\n" "$VIGIL_MODE"
 
   if is_running "$PID_FILE"; then
     warn "Pipeline ya está corriendo (PID: $(cat "$PID_FILE"))."

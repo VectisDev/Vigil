@@ -151,7 +151,7 @@ def prompt_emergency_token() -> None:
 
     English: Function prompt_emergency_token defined in panic.py.
     """
-    token_required = os.getenv("CENTINEL_PANIC_TOKEN") or os.getenv("PANIC_TOKEN")
+    token_required = os.getenv("VIGIL_PANIC_TOKEN", os.getenv("CENTINEL_PANIC_TOKEN")) or os.getenv("PANIC_TOKEN")
     if not token_required:
         logger.critical(
             "SECURITY: CENTINEL_PANIC_TOKEN is not set — panic mode is UNAUTHENTICATED. "
@@ -359,7 +359,7 @@ def shutdown_worker() -> None:
 
     English: Function shutdown_worker defined in panic.py.
     """
-    pid_env = os.getenv("CENTINEL_WORKER_PID")
+    pid_env = os.getenv("VIGIL_WORKER_PID", os.getenv("CENTINEL_WORKER_PID"))
     pid_path = DATA_DIR / "worker.pid"
     pid: int | None = None
     if pid_env and pid_env.isdigit():

@@ -730,7 +730,7 @@ class HoneypotServer:
             return False
 
     def _is_dns_blackholed(self, ip: str) -> bool:
-        deny_list = os.getenv("CENTINEL_HONEYPOT_DENYLIST", "")
+        deny_list = os.getenv("VIGIL_HONEYPOT_DENYLIST", os.getenv("CENTINEL_HONEYPOT_DENYLIST", ""))
         denied = {entry.strip() for entry in deny_list.split(",") if entry.strip()}
         return ip in denied
 

@@ -90,7 +90,7 @@ class EndpointMonitor:
             schema_hash_tolerance: Allow N hash mismatches before flagging
                                   (0 = strict, any change flagged)
         """
-        env_timeout = os.environ.get("CENTINEL_ENDPOINT_TIMEOUT")
+        env_timeout = os.environ.get("VIGIL_ENDPOINT_TIMEOUT", os.environ.get("CENTINEL_ENDPOINT_TIMEOUT"))
         if env_timeout:
             try:
                 timeout = float(env_timeout)

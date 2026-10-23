@@ -72,8 +72,8 @@ def _add_schema_version(logger: Any, method: str, event_dict: dict) -> dict:
 
 def _add_election_context(logger: Any, method: str, event_dict: dict) -> dict:
     """Inject election_id and centinel_version from environment variables."""
-    event_dict.setdefault("election_id", os.environ.get("CENTINEL_ELECTION_ID", "unknown"))
-    event_dict.setdefault("centinel_version", os.environ.get("CENTINEL_VERSION", "unknown"))
+    event_dict.setdefault("election_id", os.environ.get("VIGIL_ELECTION_ID", os.environ.get("CENTINEL_ELECTION_ID", "unknown")))
+    event_dict.setdefault("centinel_version", os.environ.get("VIGIL_VERSION", os.environ.get("CENTINEL_VERSION", "unknown")))
     return event_dict
 
 

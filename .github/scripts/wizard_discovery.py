@@ -36,8 +36,8 @@ from urllib.parse import urlparse
 
 # ── Configuración desde entorno / Config from environment ─────────────────────
 ELECTION_URL = os.environ.get("ELECTION_URL", "").strip()
-COUNTRY      = os.environ.get("CENTINEL_COUNTRY", "HN").strip().upper()
-YEAR         = os.environ.get("CENTINEL_YEAR", "2025").strip()
+COUNTRY      = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN")).strip().upper()
+YEAR         = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025")).strip()
 TIMEOUT      = int(os.environ.get("DISCOVERY_TIMEOUT", "15"))
 
 # ── Cargar preset del país / Load country preset ───────────────────────────────

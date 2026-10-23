@@ -143,7 +143,7 @@ def resolve_safe_interval(
     effective = requested_seconds
 
     if effective < ETHICAL_FLOOR_SECONDS:
-        if os.environ.get("CENTINEL_CEILING_UNLOCKED") == "1":
+        if os.environ.get("VIGIL_CEILING_UNLOCKED", os.environ.get("CENTINEL_CEILING_UNLOCKED")) == "1":
             log.warning(
                 "ethical_floor_bypassed interval=%ds — CENTINEL_CEILING_UNLOCKED=1 "
                 "(preset Apagón/Crítico). Reactivar límites al cesar la emergencia.",
@@ -782,7 +782,7 @@ class ContinuousPoller:
         # Push por lotes: 1 push cada N ciclos (commits locales cada ciclo)
         # Batched push: 1 push every N cycles (local commits every cycle)
         try:
-            self.push_every = max(1, int(os.environ.get("CENTINEL_PUSH_EVERY_N", "5")))
+            self.push_every = max(1, int(os.environ.get("VIGIL_PUSH_EVERY_N", os.environ.get("CENTINEL_PUSH_EVERY_N", "5"))))
         except ValueError:
             self.push_every = 5
         self._pending_push = False

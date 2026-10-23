@@ -202,10 +202,10 @@ def parse_args() -> argparse.Namespace:
     Parsea argumentos CLI para generación de hash snapshot.
     """
     parser = argparse.ArgumentParser(description="Generate chained hash snapshot records")
-    parser.add_argument("--pipeline-version", default=os.getenv("CENTINEL_PIPELINE_VERSION"))
+    parser.add_argument("--pipeline-version", default=os.getenv("VIGIL_PIPELINE_VERSION", os.getenv("CENTINEL_PIPELINE_VERSION")))
     parser.add_argument("--sign-records", action="store_true", help="Sign hash records with Ed25519")
-    parser.add_argument("--key-path", default=os.getenv("CENTINEL_OPERATOR_KEY_PATH"))
-    parser.add_argument("--operator-id", default=os.getenv("CENTINEL_OPERATOR_ID"))
+    parser.add_argument("--key-path", default=os.getenv("VIGIL_OPERATOR_KEY_PATH", os.getenv("CENTINEL_OPERATOR_KEY_PATH")))
+    parser.add_argument("--operator-id", default=os.getenv("VIGIL_OPERATOR_ID", os.getenv("CENTINEL_OPERATOR_ID")))
     parser.add_argument("--no-strict-json", action="store_true", help="Disable strict JSON validation before hashing")
     return parser.parse_args()
 

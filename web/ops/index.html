@@ -1881,9 +1881,9 @@ async function doAdminLogin(prefillKey) {
   try {
     const fallbackUrl = new URL('../access.json', location.href).href;
     let ac;
-    if (window.CENTINEL_API_BASE) {
+    if (window.VIGIL_API_BASE) {
       try {
-        const r = await fetch(window.CENTINEL_API_BASE + '/api/setup/access.json?t=' + Date.now());
+        const r = await fetch(window.VIGIL_API_BASE + '/api/setup/access.json?t=' + Date.now());
         if (r.ok) ac = await r.json();
       } catch(_) {}
     }
@@ -2082,7 +2082,7 @@ async function initAll(){
   loadReputationPanel();
   loadElectionStatus();
   // Restore pipeline button state if already running
-  fetch((window.CENTINEL_API_BASE || '') + '/api/pipeline/status')
+  fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/status')
     .then(r => r.ok ? r.json() : null)
     .then(d => { if (d?.running) { _setPipelineUI(true, d.pid); _startPipelinePoll(); } })
     .catch(() => {});

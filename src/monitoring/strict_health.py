@@ -204,7 +204,7 @@ def _get_pipeline_version() -> str:
 
     English: Function _get_pipeline_version defined in src/monitoring/strict_health.py.
     """
-    return (os.getenv("CENTINEL_PIPELINE_VERSION") or "").strip()
+    return (os.getenv("VIGIL_PIPELINE_VERSION", os.getenv("CENTINEL_PIPELINE_VERSION")) or "").strip()
 
 
 def _get_run_id() -> str:
@@ -212,7 +212,7 @@ def _get_run_id() -> str:
 
     English: Function _get_run_id defined in src/monitoring/strict_health.py.
     """
-    return (os.getenv("CENTINEL_RUN_ID") or "").strip()
+    return (os.getenv("VIGIL_RUN_ID", os.getenv("CENTINEL_RUN_ID")) or "").strip()
 
 
 def _get_checkpoint_manager() -> Tuple[CheckpointManager | None, str | None]:
@@ -225,7 +225,7 @@ def _get_checkpoint_manager() -> Tuple[CheckpointManager | None, str | None]:
     if not pipeline_version or not run_id:
         return None, "checkpoint_config_missing"
 
-    checkpoint_dir = os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/")
+    checkpoint_dir = os.getenv("VIGIL_CHECKPOINT_DIR", os.getenv("CENTINEL_CHECKPOINT_DIR", "checkpoints/"))
     config = CheckpointConfig(
         pipeline_version=pipeline_version,
         run_id=run_id,
@@ -635,12 +635,12 @@ def _check_paused_flag() -> dict[str, Any]:
 
     English: Function _check_paused_flag defined in src/monitoring/strict_health.py.
     """
-    env_paused = os.getenv("CENTINEL_PAUSED") or os.getenv("PAUSED")
+    env_paused = os.getenv("VIGIL_PAUSED", os.getenv("CENTINEL_PAUSED")) or os.getenv("PAUSED")
     if env_paused and env_paused.strip().lower() in {"1", "true", "yes", "on"}:
         return {"ok": False, "message": "paused_flag_active", "source": "env"}
 
     paths = [
-        Path(os.getenv("CENTINEL_PANIC_FLAG", "data/panic.flag")),
+        Path(os.getenv("VIGIL_PANIC_FLAG", os.getenv("CENTINEL_PANIC_FLAG", "data/panic.flag"))),
         Path("data/panic_mode.json"),
     ]
     for path in paths:

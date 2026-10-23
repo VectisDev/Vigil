@@ -124,7 +124,7 @@ def _maybe_opentimestamps(checkpoint: Dict[str, Any]) -> Dict[str, Any]:
     network egress is permitted. Pure graceful degradation: absence of
     the library or network simply omits the proof — the log still works.
     """
-    if os.getenv("CENTINEL_DISABLE_OPENTIMESTAMPS", "").strip().lower() in ("1", "true", "yes"):
+    if os.getenv("VIGIL_DISABLE_OPENTIMESTAMPS", os.getenv("CENTINEL_DISABLE_OPENTIMESTAMPS", "")).strip().lower() in ("1", "true", "yes"):
         checkpoint["opentimestamps"] = {"status": "disabled_by_env"}
         return checkpoint
     try:

@@ -23,8 +23,8 @@ from pathlib import Path
 
 TOKEN   = os.environ["DATA_REPO_TOKEN"]
 OWNER   = os.environ["REPO_OWNER"]
-COUNTRY = os.environ.get("CENTINEL_COUNTRY", "HN")
-YEAR    = os.environ.get("CENTINEL_YEAR", "2025")
+COUNTRY = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN"))
+YEAR    = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025"))
 REPO    = "centinel-data"
 API     = "https://api.github.com"
 

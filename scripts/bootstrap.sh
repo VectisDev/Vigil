@@ -9,7 +9,7 @@
 # Usage:
 #   ./scripts/bootstrap.sh                 # install + preflight only
 #   ./scripts/bootstrap.sh --serve         # also start the public API
-#   CENTINEL_MODE=election ./scripts/bootstrap.sh --serve
+#   VIGIL_MODE=election ./scripts/bootstrap.sh --serve
 #
 # Exit codes: 0 ready (or serving), 1 preflight BLOCKED, 2 setup failure.
 # Non-destructive: never deletes, never overwrites config, never forces.
@@ -38,10 +38,11 @@ for arg in "$@"; do
   esac
 done
 
-CENTINEL_MODE="${CENTINEL_MODE:-maintenance}"
-export CENTINEL_MODE
-HOST="${CENTINEL_HOST:-0.0.0.0}"
-PORT="${CENTINEL_PORT:-8000}"
+# VIGIL_* wins; the pre-rename CENTINEL_* names are still honored.
+VIGIL_MODE="${VIGIL_MODE:-${CENTINEL_MODE:-maintenance}}"
+export VIGIL_MODE
+HOST="${VIGIL_HOST:-${CENTINEL_HOST:-0.0.0.0}}"
+PORT="${VIGIL_PORT:-${CENTINEL_PORT:-8000}}"
 
 print_step() { printf '\n=== %s ===\n' "$1"; }
 print_ok()   { printf '  [OK]    %s\n' "$1"; }
@@ -97,9 +98,9 @@ export PYTHONPATH="${REPO_ROOT}/src:${PYTHONPATH:-}"
 
 # --- 3. Preflight self-audit (the GO / NO-GO gate) ----------------------
 print_step "Preflight / Autoauditoría (centinel doctor)"
-printf '  mode: %s\n' "$CENTINEL_MODE"
+printf '  mode: %s\n' "$VIGIL_MODE"
 set +e
-"${RUN_PREFIX[@]}" python3 -m vigil.cli doctor --mode "$CENTINEL_MODE"
+"${RUN_PREFIX[@]}" python3 -m vigil.cli doctor --mode "$VIGIL_MODE"
 DOCTOR_RC=$?
 set -e 2>/dev/null || true
 

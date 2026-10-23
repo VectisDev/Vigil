@@ -9,8 +9,8 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-_COUNTRY = os.environ.get("CENTINEL_COUNTRY", "HN").lower()
-_YEAR = os.environ.get("CENTINEL_YEAR", "2025")
+_COUNTRY = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN")).lower()
+_YEAR = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025"))
 _SLUG = f"{_COUNTRY}_{_YEAR}"
 
 FIXTURE_DIR = Path(f"tests/fixtures/{_SLUG}")

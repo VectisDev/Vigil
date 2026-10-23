@@ -82,7 +82,7 @@ def apply_config(req: ApplyConfigRequest) -> dict:
             from vigil.countries import LATAM_COUNTRIES
             cc = req.country_code.upper()
             if cc in LATAM_COUNTRIES:
-                os.environ["CENTINEL_COUNTRY"] = cc
+                os.environ["VIGIL_COUNTRY"] = cc
         except Exception:
             logger.debug("pipeline_country_override_skipped", exc_info=True)
 

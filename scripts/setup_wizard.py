@@ -284,11 +284,11 @@ def main() -> None:
     print()
 
     for code, label in _COUNTRY_LABELS.items():
-        marker = _c(GREEN, "◉") if code == env.get("CENTINEL_COUNTRY", "HN") else "○"
+        marker = _c(GREEN, "◉") if code == env.get("VIGIL_COUNTRY", env.get("CENTINEL_COUNTRY", "HN")) else "○"
         print(f"    {marker}  {code}  {label}")
     print()
 
-    current_country = env.get("CENTINEL_COUNTRY", "HN")
+    current_country = env.get("VIGIL_COUNTRY", env.get("CENTINEL_COUNTRY", "HN"))
     new_country = _ask(
         "Código de país / Country code (HN/GT/SV/NI/MX/CO)",
         default=current_country,
@@ -297,14 +297,14 @@ def main() -> None:
     if new_country not in _COUNTRY_LABELS:
         _note(f"País desconocido '{new_country}' — usando HN como fallback.")
         new_country = "HN"
-    env["CENTINEL_COUNTRY"] = new_country
+    env["VIGIL_COUNTRY"] = new_country
     _ok(f"CENTINEL_COUNTRY={new_country}  ({_COUNTRY_LABELS[new_country].strip()})")
 
     # Auto-set election year if not set
-    if not env.get("CENTINEL_YEAR"):
+    if not env.get("VIGIL_YEAR", env.get("CENTINEL_YEAR")):
         import datetime
 
-        env["CENTINEL_YEAR"] = str(datetime.date.today().year)
+        env["VIGIL_YEAR"] = str(datetime.date.today().year)
         _note(f"CENTINEL_YEAR={env['CENTINEL_YEAR']} (auto-set)")
 
     # ── PASO 1: Endpoints ─────────────────────────────────────────────────────
@@ -331,13 +331,13 @@ def main() -> None:
     print("  election    → elecciones en vivo / live election (máxima seguridad)")
     print()
 
-    current_mode = env.get("CENTINEL_MODE", "monitoring")
+    current_mode = env.get("VIGIL_MODE", env.get("CENTINEL_MODE", "monitoring"))
     new_mode = _ask_choice(
         "Modo / Mode:",
         choices=["maintenance", "monitoring", "election"],
         default=current_mode,
     )
-    env["CENTINEL_MODE"] = new_mode
+    env["VIGIL_MODE"] = new_mode
     _ok(f"CENTINEL_MODE={new_mode}")
 
     # ── PASO 3: Intervalo de captura ──────────────────────────────────────────
@@ -358,7 +358,7 @@ def main() -> None:
         "monitoring": "900",
         "maintenance": "1800",
     }
-    current_interval = env.get("CENTINEL_POLL_INTERVAL") or _MODE_DEFAULTS.get(new_mode, "900")
+    current_interval = env.get("VIGIL_POLL_INTERVAL", env.get("CENTINEL_POLL_INTERVAL")) or _MODE_DEFAULTS.get(new_mode, "900")
 
     print(
         f"  Elecciones ({new_country}):  {_election_min}s = {_election_min // 60} min  <- minimo validado / validated minimum"
@@ -382,7 +382,7 @@ def main() -> None:
             if not _ask_yn("Continuar de todas formas?", default=False):
                 new_interval = _MODE_DEFAULTS.get(new_mode, "900")
                 _note(f"Usando {new_interval}s.")
-        env["CENTINEL_POLL_INTERVAL"] = new_interval
+        env["VIGIL_POLL_INTERVAL"] = new_interval
         _ok(f"CENTINEL_POLL_INTERVAL={new_interval}s")
     else:
         _note("Valor no numerico ignorado / Non-numeric value ignored.")
@@ -474,7 +474,7 @@ def main() -> None:
     print("  Cifra tus snapshots para recuperación ante desastres.")
     print("  Si no la configuras ahora, puedes añadirla luego en .env.")
     print()
-    backup_key = env.get("CENTINEL_BACKUP_KEY", "")
+    backup_key = env.get("VIGIL_BACKUP_KEY", env.get("CENTINEL_BACKUP_KEY", ""))
     if not backup_key:
         if _ask_yn("¿Generar clave de backup automáticamente?", default=True):
             backup_key = secrets.token_urlsafe(32)
@@ -482,7 +482,7 @@ def main() -> None:
             print(_c(BOLD, "  ⚠  COPIA ESTO EN UN LUGAR SEGURO (no se guarda en el repo):"))
             print(f"  CENTINEL_BACKUP_KEY={_c(CYAN, backup_key)}")
             print()
-            env["CENTINEL_BACKUP_KEY"] = backup_key
+            env["VIGIL_BACKUP_KEY"] = backup_key
             _ok("CENTINEL_BACKUP_KEY generada y guardada en .env")
         else:
             _note("Backup key omitida — configura CENTINEL_BACKUP_KEY en .env antes de producción.")
@@ -512,7 +512,7 @@ def main() -> None:
 
     # ── Resumen y próximos pasos ──────────────────────────────────────────────
     country_label = _COUNTRY_LABELS.get(new_country, new_country)
-    has_backup = bool(env.get("CENTINEL_BACKUP_KEY", ""))
+    has_backup = bool(env.get("VIGIL_BACKUP_KEY", env.get("CENTINEL_BACKUP_KEY", "")))
     seeds_status = "✓ generadas" if ACCESS_JSON.exists() else "— omitidas"
 
     print()

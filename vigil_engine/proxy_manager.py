@@ -279,8 +279,8 @@ def _build_env_proxy_list() -> List[str]:
     Bilingual: Construye lista de proxies desde variables de entorno.
     Prioridad: CENTINEL_TOR_ENABLED > PROXY_LIST. Retorna lista vacía en modo directo.
     """
-    if os.getenv("CENTINEL_TOR_ENABLED", "").strip().lower() in ("1", "true", "yes"):
-        port = os.getenv("CENTINEL_TOR_PORT", "9050").strip()
+    if os.getenv("VIGIL_TOR_ENABLED", os.getenv("CENTINEL_TOR_ENABLED", "")).strip().lower() in ("1", "true", "yes"):
+        port = os.getenv("VIGIL_TOR_PORT", os.getenv("CENTINEL_TOR_PORT", "9050")).strip()
         # socks5h:// forces DNS resolution through Tor — prevents DNS leaks.
         tor_url = f"socks5h://127.0.0.1:{port}"
         logger.info("privacy_mode_tor_enabled port=%s proxy=%s", port, tor_url)

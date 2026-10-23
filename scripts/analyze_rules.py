@@ -236,11 +236,11 @@ def _broadcast_findings_urgent(result: object, snapshot_id: str) -> None:
     import os
     import requests as _requests
 
-    port = os.getenv("CENTINEL_PORT", "8000")
+    port = os.getenv("VIGIL_PORT", os.getenv("CENTINEL_PORT", "8000"))
     endpoint = f"http://127.0.0.1:{port}/api/swarm/broadcast"
 
     alerts = getattr(result, "alerts", [])
-    specialization = os.getenv("CENTINEL_SPECIALIZATION", "")
+    specialization = os.getenv("VIGIL_SPECIALIZATION", os.getenv("CENTINEL_SPECIALIZATION", ""))
 
     # Mapping of specialization → priority rule keys (soft — all rules still run)
     _SPEC_RULES: dict[str, set[str]] = {

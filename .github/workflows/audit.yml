@@ -92,14 +92,14 @@ jobs:
       - name: Notificar fallo de git push (ntfy + Issue)
         if: steps.git_push.outputs.pushed == 'failed'
         env:
-          CENTINEL_NTFY_TOPIC: ${{ secrets.CENTINEL_NTFY_TOPIC }}
+          VIGIL_NTFY_TOPIC: ${{ secrets.VIGIL_NTFY_TOPIC || secrets.CENTINEL_NTFY_TOPIC }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
         with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             // ntfy
-            const topic = process.env.CENTINEL_NTFY_TOPIC;
+            const topic = process.env.VIGIL_NTFY_TOPIC;
             if (topic) {
               await fetch(`https://ntfy.sh/${topic}`, {
                 method: 'POST',

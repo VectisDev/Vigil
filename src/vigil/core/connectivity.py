@@ -82,7 +82,7 @@ def _sha256_hex(data: bytes) -> str:
 
 
 def _resolve_probe_timeout() -> float:
-    raw = os.getenv("CENTINEL_CONNECTIVITY_PROBE_TIMEOUT", "").strip()
+    raw = os.getenv("VIGIL_CONNECTIVITY_PROBE_TIMEOUT", os.getenv("CENTINEL_CONNECTIVITY_PROBE_TIMEOUT", "")).strip()
     if not raw:
         return _DEFAULT_PROBE_TIMEOUT
     try:
@@ -101,7 +101,12 @@ def _expected_cert_sha256() -> Optional[str]:
     A new country sets the country-agnostic CENTINEL_PINNED_CERT_SHA256.
     Both work; the explicit generic one wins if both are present.
     """
-    for var in ("CENTINEL_PINNED_CERT_SHA256", "CENTINEL_CNE_CERT_SHA256"):
+    for var in (
+        "VIGIL_PINNED_CERT_SHA256",
+        "CENTINEL_PINNED_CERT_SHA256",
+        "VIGIL_CNE_CERT_SHA256",
+        "CENTINEL_CNE_CERT_SHA256",
+    ):
         val = os.getenv(var, "").strip().lower().replace(":", "")
         if val:
             return val
@@ -109,7 +114,7 @@ def _expected_cert_sha256() -> Optional[str]:
 
 
 def _expected_ips() -> List[str]:
-    raw = os.getenv("CENTINEL_EXPECTED_RESOLVED_IPS", "").strip()
+    raw = os.getenv("VIGIL_EXPECTED_RESOLVED_IPS", os.getenv("CENTINEL_EXPECTED_RESOLVED_IPS", "")).strip()
     if not raw:
         return []
     return [ip.strip() for ip in raw.split(",") if ip.strip()]

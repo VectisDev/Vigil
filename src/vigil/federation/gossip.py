@@ -345,7 +345,7 @@ def _bootstrap_from_mdns() -> list[str]:
         # Bind to loopback by default for safer local discovery. Operators on
         # multi-homed hosts can pin to a dedicated interface via
         # CENTINEL_MDNS_IFACE.
-        _mdns_iface = os.environ.get("CENTINEL_MDNS_IFACE", "127.0.0.1")
+        _mdns_iface = os.environ.get("VIGIL_MDNS_IFACE", os.environ.get("CENTINEL_MDNS_IFACE", "127.0.0.1"))
         sock.bind((_mdns_iface, _MDNS_PORT))
 
         # Send a simple discovery probe: the service name as UTF-8
@@ -430,7 +430,7 @@ class GossipEngine:
         # Privacy mode: suppress my_url so this node's address is never broadcast
         # in gossip attestations. The node remains a full gossip participant
         # (receives/forwards payloads) but is not discoverable by URL via peers.
-        if my_url and os.getenv("CENTINEL_PRIVACY_MODE", "").strip().lower() in ("1", "true", "yes"):
+        if my_url and os.getenv("VIGIL_PRIVACY_MODE", os.getenv("CENTINEL_PRIVACY_MODE", "")).strip().lower() in ("1", "true", "yes"):
             logger.info("gossip_privacy_mode_active my_url_suppressed")
             self.my_url = None
         self.broadcast_interval = broadcast_interval

@@ -95,7 +95,7 @@ def _is_production_environment() -> bool:
     """
     return any(
         os.getenv(name, "").strip().lower() in {"prod", "production"}
-        for name in ("CENTINEL_ENV", "ENV", "ENVIRONMENT", "APP_ENV")
+        for name in ("VIGIL_ENV", "CENTINEL_ENV", "ENV", "ENVIRONMENT", "APP_ENV")
     )
 
 

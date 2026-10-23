@@ -21,7 +21,7 @@ import webbrowser
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PORT = int(os.getenv("CENTINEL_PORT", "7474"))
+PORT = int(os.getenv("VIGIL_PORT", os.getenv("CENTINEL_PORT", "7474")))
 HOST = "127.0.0.1"
 SETUP_MARKER = REPO_ROOT / ".centinel-setup.json"
 VENV_DIR = REPO_ROOT / ".venv"
@@ -110,7 +110,7 @@ def _ensure_deps() -> Path:
 
 def _start_server(python: Path) -> subprocess.Popen:
     env = os.environ.copy()
-    env.setdefault("CENTINEL_PORT", str(PORT))
+    env.setdefault("VIGIL_PORT", str(PORT))
     env["PYTHONPATH"] = str(REPO_ROOT / "src")
 
     cmd = [
@@ -148,7 +148,7 @@ def main() -> None:
     # If we need to re-exec with venv Python, do it now
     if Path(sys.executable).resolve() != python.resolve():
         env = os.environ.copy()
-        env.setdefault("CENTINEL_PORT", str(PORT))
+        env.setdefault("VIGIL_PORT", str(PORT))
         env["PYTHONPATH"] = str(REPO_ROOT / "src")
         os.execve(str(python), [str(python), str(Path(__file__).resolve())], env)
         # os.execve replaces the current process — nothing below runs

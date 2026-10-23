@@ -115,11 +115,11 @@ class AlertConfig:
         """
         return cls(
             min_level=os.getenv("ALERT_MIN_LEVEL", DEFAULT_MIN_LEVEL).strip().upper(),
-            dashboard_url=os.getenv("CENTINEL_DASHBOARD_URL", "").strip(),
+            dashboard_url=os.getenv("VIGIL_DASHBOARD_URL", os.getenv("CENTINEL_DASHBOARD_URL", "")).strip(),
             rate_limit_seconds=_env_float("ALERT_RATE_LIMIT_SECONDS", DEFAULT_RATE_LIMIT_SECONDS),
             max_retries=_env_int("ALERT_MAX_RETRIES", DEFAULT_MAX_RETRIES),
             request_timeout=_env_float("ALERT_REQUEST_TIMEOUT", DEFAULT_REQUEST_TIMEOUT),
-            hash_dir=os.getenv("CENTINEL_HASH_DIR", "hashes").strip() or "hashes",
+            hash_dir=os.getenv("VIGIL_HASH_DIR", os.getenv("CENTINEL_HASH_DIR", "hashes")).strip() or "hashes",
         )
 
 

@@ -31,7 +31,7 @@ def _resolve_state_hmac_key(state_path: Path) -> bytes:
     DoS window. Tampering invalidates the MAC, so a forged state is
     rejected instead of trusted.
     """
-    env_key = os.getenv("CENTINEL_STATE_HMAC_KEY", "").strip()
+    env_key = os.getenv("VIGIL_STATE_HMAC_KEY", os.getenv("CENTINEL_STATE_HMAC_KEY", "")).strip()
     if len(env_key) >= 16:
         return env_key.encode("utf-8")
     secret_path = state_path.parent / _STATE_SECRET_FILENAME
