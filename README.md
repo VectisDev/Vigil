@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="web/assets/logo.svg" alt="VIGIL — Trustless Electoral Integrity" width="700">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="web/assets/logo-dark.svg">
+    <img src="web/assets/logo.svg" alt="VIGIL — Trustless Electoral Integrity" width="560">
+  </picture>
 </p>
 
 <h1 align="center">VIGIL</h1>
