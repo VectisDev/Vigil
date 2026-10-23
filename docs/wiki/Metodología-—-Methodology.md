@@ -1,5 +1,3 @@
-# Metodología — Methodology
-
 [Español](#español) · [English](#english)
 
 ---

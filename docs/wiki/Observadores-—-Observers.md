@@ -1,5 +1,3 @@
-# Observadores — Observers
-
 [Español](#español) · [English](#english)
 
 ---

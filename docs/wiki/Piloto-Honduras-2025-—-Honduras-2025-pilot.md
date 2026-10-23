@@ -1,5 +1,3 @@
-# Piloto Honduras 2025 — Honduras 2025 pilot
-
 [Español](#español) · [English](#english)
 
 ---

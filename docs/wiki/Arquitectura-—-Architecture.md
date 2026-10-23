@@ -1,5 +1,3 @@
-# Arquitectura — Architecture
-
 [Español](#español) · [English](#english)
 
 ---

@@ -1,5 +1,3 @@
-# Seguridad — Security
-
 [Español](#español) · [English](#english)
 
 ---

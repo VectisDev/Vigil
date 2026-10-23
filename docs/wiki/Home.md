@@ -1,6 +1,7 @@
 # VIGIL
 
 **Verificación confiable de integridad electoral — América Latina**
+
 **Trustless electoral integrity verification — Latin America**
 
 [Español](#español) · [English](#english)

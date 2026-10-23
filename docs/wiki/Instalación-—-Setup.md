@@ -1,5 +1,3 @@
-# Instalación — Setup
-
 [Español](#español) · [English](#english)
 
 ---

@@ -1,5 +1,3 @@
-# Preguntas frecuentes — FAQ
-
 [Español](#español) · [English](#english)
 
 ---
