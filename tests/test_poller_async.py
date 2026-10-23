@@ -192,9 +192,7 @@ class TestFetchOneRetries:
         assert session.calls == 1  # 4xx no transitorio: sin reintentos
 
     def test_persistent_500_exhausts_attempts(self, monkeypatch):
-        import vigil.core.poller_async as pa
-
-        monkeypatch.setattr(pa, "FETCH_BACKOFF_BASE_SECONDS", 0.01)
+        monkeypatch.setattr("vigil.core.poller_async.FETCH_BACKOFF_BASE_SECONDS", 0.01)
         session = _FakeSession([_FakeResponse(500)])
         result = self._fetch(session)
         assert result.success is False

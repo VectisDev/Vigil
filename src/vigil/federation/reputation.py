@@ -36,6 +36,11 @@ _DECAY_INTERVAL_SECONDS = 86400.0  # run decay once per 24 hours
 logger = logging.getLogger("vigil.federation.reputation")
 
 
+def _sl(value: object) -> str:
+    """Neutralize line breaks in peer-supplied values before logging (log injection)."""
+    return str(value).replace("\r", "\\r").replace("\n", "\\n")
+
+
 @dataclass
 class NodeReputation:
     node_id: str
@@ -431,7 +436,7 @@ class ReputationEngine:
                 for r in rows
             ]
         except Exception as exc:
-            logger.warning("reputation_get_history_error node_id=%s error=%s", node_id, exc)
+            logger.warning("reputation_get_history_error node_id=%s error=%s", _sl(node_id), exc)
             return []
 
     def export_events_json(self) -> dict:

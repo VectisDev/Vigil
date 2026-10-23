@@ -68,8 +68,6 @@ def test_retry_policy_computes_exponential_backoff_with_jitter(
 
     English: Validate exponential backoff with deterministic jitter.
     """
-    import vigil.downloader as _dl
-
     policy = RetryPolicy(
         max_attempts=3,
         backoff_base=1.0,
@@ -86,7 +84,7 @@ def test_retry_policy_computes_exponential_backoff_with_jitter(
     def fake_uniform(*_: Any) -> float:
         return next(values)
 
-    monkeypatch.setattr(_dl._secure_random, "uniform", fake_uniform)
+    monkeypatch.setattr("vigil.downloader._secure_random.uniform", fake_uniform)
     delay = policy.compute_delay(2)
 
     assert delay == pytest.approx(2.0 * 1.05)

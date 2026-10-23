@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import ipaddress
 import json
 import logging
 import os
@@ -24,6 +25,7 @@ import socket
 import struct
 import threading
 import time
+from urllib.parse import urlparse
 from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -35,6 +37,37 @@ import httpx
 from vigil.federation.compression import compress_payload
 
 logger = logging.getLogger("vigil.federation.gossip")
+
+
+def _sl(value: object) -> str:
+    """Neutralize line breaks in peer-supplied values before logging (log injection)."""
+    return str(value).replace("\r", "\\r").replace("\n", "\\n")
+
+
+async def _peer_url_allowed(url: str) -> bool:
+    """Reject peer URLs that could turn gossip into SSRF.
+
+    Peers are plain http(s) endpoints. Private and loopback addresses stay allowed
+    (LAN swarms, several nodes on one machine), but link-local / cloud-metadata,
+    unspecified, multicast and reserved addresses are refused, as are URLs with
+    embedded credentials.
+    """
+    try:
+        parsed = urlparse(url)
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    except ValueError:
+        return False
+    if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username or parsed.password:
+        return False
+    try:
+        infos = await asyncio.get_running_loop().getaddrinfo(parsed.hostname, port, type=socket.SOCK_STREAM)
+    except (OSError, UnicodeError):
+        return False
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0].split("%", 1)[0])
+        if ip.is_link_local or ip.is_unspecified or ip.is_multicast or ip.is_reserved:
+            return False
+    return bool(infos)
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _KEYS_DIR = _REPO_ROOT / "keys"
@@ -558,7 +591,7 @@ class GossipEngine:
             self._blocklist: set[str] = set()
         self._blocklist.add(node_id)
         if removed:
-            logger.info("gossip_peer_kicked node_id=%s", node_id)
+            logger.info("gossip_peer_kicked node_id=%s", _sl(node_id))
         return removed
 
     async def receive_attestation(self, payload_dict: dict) -> bool:
@@ -570,15 +603,15 @@ class GossipEngine:
             return False
 
         if not _verify_payload_sig(payload):
-            logger.debug("gossip_recv_invalid_sig node_id=%s", payload_dict.get("node_id"))
+            logger.debug("gossip_recv_invalid_sig node_id=%s", _sl(payload_dict.get("node_id")))
             return False
 
         # Hard country isolation: reject payloads from foreign election contexts.
         if payload.country_code != self.country_code:
             logger.debug(
                 "gossip_recv_country_mismatch node_id=%s payload_country=%s engine_country=%s",
-                payload_dict.get("node_id"),
-                payload.country_code,
+                _sl(payload_dict.get("node_id")),
+                _sl(payload.country_code),
                 self.country_code,
             )
             return False
@@ -906,7 +939,7 @@ class GossipEngine:
         for url in targets[: _FAN_OUT * 2]:
             asyncio.create_task(self._push_scrape_result(url, result))
 
-        logger.info("scrape_result_broadcast source=%s peers=%d", source_id, min(len(targets), _FAN_OUT * 2))
+        logger.info("scrape_result_broadcast source=%s peers=%d", _sl(source_id), min(len(targets), _FAN_OUT * 2))
 
     async def receive_scrape_result(self, payload_dict: dict) -> bool:
         """Accept a ScrapeResultPayload from a peer, verify signature, and fan out."""
@@ -985,6 +1018,9 @@ class GossipEngine:
         return acks
 
     async def _push_payload(self, base_url: str, payload: NodePayload) -> bool:
+        if not await _peer_url_allowed(base_url):
+            logger.warning("gossip_peer_url_rejected url=%s", _sl(base_url))
+            return False
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
                 compressed = compress_payload(payload.to_dict())
@@ -995,7 +1031,7 @@ class GossipEngine:
                 )
                 return r.status_code == 200
         except Exception as exc:
-            logger.debug("gossip_push_failed url=%s error=%s", base_url, exc)
+            logger.debug("gossip_push_failed url=%s error=%s", _sl(base_url), exc)
             return False
 
     async def announce_to(self, peer_url: str) -> bool:
@@ -1012,7 +1048,7 @@ class GossipEngine:
             return False
         ok = await self._push_payload(peer_url.rstrip("/"), payload)
         if ok:
-            logger.info("gossip_announce_to peer_url=%s", peer_url)
+            logger.info("gossip_announce_to peer_url=%s", _sl(peer_url))
         return ok if ok is not None else False
 
     def trust_node(self, node_id: str) -> None:
@@ -1023,7 +1059,7 @@ class GossipEngine:
         here are accepted regardless of how they connect.
         """
         self._trusted_node_ids.add(node_id)
-        logger.info("gossip_trust_added node_id=%s total_trusted=%d", node_id, len(self._trusted_node_ids))
+        logger.info("gossip_trust_added node_id=%s total_trusted=%d", _sl(node_id), len(self._trusted_node_ids))
 
     def authorize_sala_url(self, peer_url: str) -> None:
         """Authorize a peer URL via sala room code.
@@ -1034,13 +1070,16 @@ class GossipEngine:
         """
         normalized = peer_url.rstrip("/")
         self._sala_authorized_urls.add(normalized)
-        logger.info("gossip_sala_url_authorized url=%s", normalized)
+        logger.info("gossip_sala_url_authorized url=%s", _sl(normalized))
 
     def get_trusted_nodes(self) -> list[str]:
         """Return list of currently trusted node_ids."""
         return list(self._trusted_node_ids)
 
     async def _push_finding(self, base_url: str, finding: FindingPayload) -> bool:
+        if not await _peer_url_allowed(base_url):
+            logger.warning("gossip_peer_url_rejected url=%s", _sl(base_url))
+            return False
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
                 compressed = compress_payload(finding.to_dict())
@@ -1051,10 +1090,13 @@ class GossipEngine:
                 )
                 return r.status_code == 200
         except Exception as exc:
-            logger.debug("finding_push_failed url=%s error=%s", base_url, exc)
+            logger.debug("finding_push_failed url=%s error=%s", _sl(base_url), exc)
             return False
 
     async def _push_scrape_result(self, base_url: str, result: ScrapeResultPayload) -> bool:
+        if not await _peer_url_allowed(base_url):
+            logger.warning("gossip_peer_url_rejected url=%s", _sl(base_url))
+            return False
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 compressed = compress_payload(result.to_dict())
