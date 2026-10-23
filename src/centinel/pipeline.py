@@ -59,7 +59,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .config import load_config
-from .logging import setup_logging
+from .structured_logging import setup_logging
 from .recovery import RecoveryDecisionType, RecoveryManager
 
 

@@ -5,7 +5,7 @@
 3. Notas de mantenimiento / Maintenance notes
 
 ======================== ESPAÑOL ========================
-Archivo: `src/centinel/logging.py`.
+Archivo: `src/centinel/structured_logging.py`.
 Este módulo forma parte de Centinel Engine y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
@@ -18,7 +18,7 @@ Notas:
 - Priorizar claridad operativa y trazabilidad del comportamiento.
 
 ======================== ENGLISH ========================
-File: `src/centinel/logging.py`.
+File: `src/centinel/structured_logging.py`.
 This module is part of Centinel Engine and is documented to improve
 navigation, maintenance, and technical auditability.
 

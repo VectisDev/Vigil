@@ -114,7 +114,7 @@ Total de módulos Python documentados: **175**.
 - `src/centinel/download.py`
 - `src/centinel/downloader.py`
 - `src/centinel/hasher.py`
-- `src/centinel/logging.py`
+- `src/centinel/structured_logging.py`
 - `src/centinel/paths.py`
 - `src/centinel/pipeline.py`
 - `src/centinel/proxy_handler.py`
