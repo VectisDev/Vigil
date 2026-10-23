@@ -52,8 +52,8 @@ jobs:
 
       - name: Commit JSON API
         run: |
-          git config user.name centinel-bot
-          git config user.email bot@centinel.local
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
           git checkout -B data/api
           git add -f data/reputation/nodes.json
           git commit -m "Reputation API snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true

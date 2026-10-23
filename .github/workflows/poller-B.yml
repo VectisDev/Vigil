@@ -66,8 +66,8 @@ jobs:
 
       - name: Configure git identity
         run: |
-          git config user.name  "centinel-poller-bot"
-          git config user.email "centinel-poller-bot@noreply.github.com"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
 
       - name: Check election closed
         run: |

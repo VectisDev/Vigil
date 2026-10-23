@@ -47,8 +47,8 @@ jobs:
       - name: Commit y push con resiliencia (3 intentos)
         id: git_push
         run: |
-          git config user.name "AuditHN Bot"
-          git config user.email "bot@audithn.org"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
 
           git add data/ hashes/ diffs/ reports/
 
@@ -178,8 +178,8 @@ jobs:
           [ -d diffs ]   && cp -r diffs/.   /tmp/centinel-data/diffs/    || true
           [ -d reports ] && cp -r reports/. /tmp/centinel-data/reports/  || true
           cd /tmp/centinel-data
-          git config user.name "centinel-bot"
-          git config user.email "bot@centinel.app"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
           git add .
           git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main

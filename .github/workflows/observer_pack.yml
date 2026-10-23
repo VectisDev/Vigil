@@ -103,8 +103,8 @@ jobs:
           if [ -f observer_pack/dist/centinel_observer_pack.zip ]; then
             cp observer_pack/dist/centinel_observer_pack.zip web/downloads/
             cp observer_pack/dist/centinel_observer_pack.zip.sha256 web/downloads/ 2>/dev/null || true
-            git config user.name "centinel-bot"
-            git config user.email "centinel-bot@users.noreply.github.com"
+            git config user.name "userf8a2c4"
+            git config user.email "250608616+userf8a2c4@users.noreply.github.com"
             git add web/downloads/ || true
             if git diff --cached --quiet; then
               echo "No changes to observer pack."
@@ -134,8 +134,8 @@ jobs:
             cp observer_pack/dist/centinel_observer_pack.zip.sha256 /tmp/centinel-data/observer-packs/ 2>/dev/null || true
           fi
           cd /tmp/centinel-data
-          git config user.name "centinel-bot"
-          git config user.email "bot@centinel.app"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
           git add .
           git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main

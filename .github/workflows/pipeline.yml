@@ -100,8 +100,8 @@ jobs:
         run: python scripts/export_static_snapshot.py
       - name: Commit and push snapshot.json
         run: |
-          git config user.name  "centinel-bot"
-          git config user.email "bot@centinel.hn"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
           git add web/data/snapshot.json
           git diff --cached --quiet || \
             git commit -m "data: snapshot $(date -u +%Y%m%dT%H%MZ) [skip ci]"
@@ -121,8 +121,8 @@ jobs:
           mkdir -p /tmp/centinel-data/snapshots/latest
           [ -f web/data/snapshot.json ] && cp web/data/snapshot.json /tmp/centinel-data/snapshots/latest/ || true
           cd /tmp/centinel-data
-          git config user.name "centinel-bot"
-          git config user.email "bot@centinel.app"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
           git add .
           git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main

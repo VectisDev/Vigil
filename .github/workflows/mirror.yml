@@ -87,8 +87,8 @@ jobs:
 
       - name: Configure git identity
         run: |
-          git config user.name  "centinel-mirror-bot"
-          git config user.email "mirror@centinel.local"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
 
       - name: Push to Codeberg
         env:
@@ -318,8 +318,8 @@ jobs:
       - name: Commit and push log update
         run: |
           set -euo pipefail
-          git config user.name  "centinel-mirror-bot"
-          git config user.email "mirror@centinel.local"
+          git config user.name "userf8a2c4"
+          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
           git add docs/transparency/MIRROR-LOG.md
 
           if git diff --staged --quiet; then
