@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - name: Checkout del repositorio
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Configurar Python
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -93,7 +93,7 @@ jobs:
         if: steps.git_push.outputs.pushed == 'failed'
         env:
           CENTINEL_NTFY_TOPIC: ${{ secrets.CENTINEL_NTFY_TOPIC }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
         with:
           script: |
             const owner = context.repo.owner;
@@ -143,7 +143,7 @@ jobs:
 
       - name: Cerrar issue de git si push fue exitoso
         if: steps.git_push.outputs.pushed == 'true'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
         with:
           script: |
             const issues = await github.rest.issues.listForRepo({

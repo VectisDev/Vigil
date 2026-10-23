@@ -24,10 +24,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.11"
           cache: pip
@@ -74,10 +74,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -100,10 +100,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.11"
           cache: pip
@@ -138,7 +138,7 @@ jobs:
             ${SKIP_LOCK_FLAG}
 
       - name: Upload release governance artifacts
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: release-governance-${{ env.RELEASE_VERSION }}
           path: |
@@ -198,10 +198,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.11"
           cache: pip
@@ -223,7 +223,7 @@ jobs:
             --release-version "${GITHUB_REF_NAME:-local}"
 
       - name: Upload resilience artifacts
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: resilience-report
           path: |
