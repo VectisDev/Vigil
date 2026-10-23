@@ -1,222 +1,52 @@
-# Centinel — Guía Rápida (5 minutos)
+# VIGIL — Guía rápida / Quickstart
 
-## ¿Qué es Centinel?
-
-**Testigo criptográfico de elecciones.** Captura datos de una autoridad electoral, verifica que no fueron modificados, y reporta si detecta manipulación. Sin confiar en nadie.
-
-**No es votación electrónica.** Es auditoría continua del sistema de conteo oficial.
+> **ES:** Del clon a la primera captura en pocos minutos. Para verificar evidencia sin instalar nada, ve a la [guía de observadores](https://github.com/VectisDev/Vigil/wiki/Observadores-—-Observers).
+>
+> **EN:** From clone to first capture in a few minutes. To verify evidence without installing anything, see the [observer guide](https://github.com/VectisDev/Vigil/wiki/Observadores-—-Observers).
 
 ---
 
-## Instalación (1 minuto)
+## 1. Instalar / Install
+
+Requiere / Requires: **Python 3.11+**, **Git**.
 
 ```bash
-# Clonar
-git clone https://github.com/userf8a2c4/centinel-engine.git
-cd centinel-engine
-
-# Instalar
-poetry install
-
-# Configuración guiada interactiva (recomendado para nuevos operadores)
-# Interactive guided setup (recommended for new operators)
-make wizard
-
-# Verificar instalación
-poetry run centinel panel show
+git clone https://github.com/VectisDev/Vigil.git
+cd Vigil
+make quickstart        # instala dependencias y abre el asistente / installs dependencies and opens the wizard
 ```
 
-Salida esperada:
-```
-╔════════════════════════════════════════════════════════════════╗
-║ CENTINEL — Estado Operacional / Operational Status             ║
-...
-║  AMENAZA GENERAL / Threat Score:   22/100 🟢 VERDE             ║
-...
-```
-
----
-
-## Operación Básica (2 minutos)
-
-### 1. Ver Estado
-```bash
-centinel panel show
-```
-
-**¿Qué significa cada color?**
-- 🟢 **GREEN** (0–30): Operación normal, sin alertas
-- 🟡 **YELLOW** (31–74): Anomalía detectada, revisar logs
-- 🔴 **RED** (≥75): Amenaza activa, **posible ataque**
-
-### 2. Ejecutar Captura Manual
-```bash
-centinel snapshot
-```
-
-Guarda un snapshot de datos en `hashes/latest_snapshot.json`.
-
-### 3. Configurar Captura Automática (Cron)
-```bash
-# Capturar cada 30 segundos
-centinel cron --interval 30s
-
-# O manualmente en systemd/crontab
-*/1 * * * * /usr/bin/poetry -C /path/to/centinel run centinel snapshot
-```
-
-### 4. Ver Logs de Auditoría
-```bash
-# Últimos eventos de ataque
-tail -f hashes/attack_log.jsonl
-
-# Buscar eventos específicos
-jq '.[] | select(.event == "threat_score")' hashes/attack_log.jsonl | tail -20
-```
-
----
-
-## Protocolo ARGOS — 5 Capas de Defensa (1 minuto)
-
-Centinel implementa el Protocolo ARGOS: 5 capas independientes:
-
-| Capa | Nombre | Protege Contra |
-|------|--------|---|
-| 🐦 Cuervo | Memoria distribuida | Testigo único vulnerable |
-| 🦑 Pulpo | Cifrado tránsito | MITM en red |
-| 🦌 Venado | Timing impredecible | Predicción de capturas |
-| 🦎 Lagartija | Auto-regeneración | Rootkit local |
-| ⚔️ Tejón | Freeze + backoff | Ataque activo en tiempo real |
-
-**Estado actual:** Todas activas ✓
-
-→ [Explicación completa](ARGOS-PROTOCOL-ES.md)
-
----
-
-## Próximos Pasos (1 minuto)
-
-### Si estás en Verde (🟢)
-✅ Sistema operativo. Continúa:
-1. Configura cron para captura automática
-2. Conecta almacenamiento externo (mirrors)
-3. Agrega testigos hermanos (federación)
-
-→ [Guía detallada](OPERATOR-RUNBOOKS.md)
-
-### Si estás en Amarillo (🟡)
-⚠️ Anomalía detectada. Pasos:
-1. Revisa `centinel panel show --verbose`
-2. Lee últimos logs: `tail -50 hashes/attack_log.jsonl`
-3. Si es cambio de endpoint CNE: OK, D11 logged
-4. Si es estadístico: espera 1h, score debería bajar
-
-→ [Troubleshooting](OPERATOR-RUNBOOKS.md#si-amarillo)
-
-### Si estás en Rojo (🔴)
-🚨 Amenaza activa. Pasos:
-1. **NO TOQUES NADA.** Sistema se congela automáticamente (Tejón)
-2. Espera ~2-39 segundos (intenta recuperarse)
-3. Si vuelve a verde: Éxito, revisar logs para auditoría
-4. Si permanece rojo >5 min: Escala a autoridad electoral
-
-→ [Procedimiento completo](OPERATOR-RUNBOOKS.md#si-rojo)
-
----
-
-## Archivos Clave
-
-```
-centinel-engine/
-├── hashes/
-│   ├── latest_snapshot.json      ← Último snapshot capturado
-│   ├── attack_log.jsonl          ← Log append-only de ataques
-│   ├── checkpoint_frozen.json    ← Estado si fue congelado
-│   └── recovery_state.json       ← Estado de recuperación
-├── src/centinel/core/
-│   ├── kill_switch.py            ← Tejón (freeze + recovery)
-│   ├── argos_protocol.py         ← Protocolo ARGOS — enum de 5 capas
-│   └── ...
-└── docs/
-    ├── QUICKSTART.md             ← Este archivo
-    ├── ARGOS-PROTOCOL-ES.md      ← Protocolo ARGOS — explicación detallada
-    ├── OPERATOR-PANEL.md         ← Cómo leer el panel
-    ├── OPERATOR-RUNBOOKS.md      ← Qué hacer en cada caso
-    ├── ARCHITECTURE.md           ← Deep-dive técnico
-    └── SECURITY-REVIEW.md        ← Auditoría de seguridad
-```
-
----
-
-## Comandos Útiles
+## 2. Configurar / Configure
 
 ```bash
-# Panel interactivo
-centinel panel show
-centinel panel show --verbose
-
-# Panel en JSON (para máquinas)
-centinel panel json
-
-# Snapshot manual
-centinel snapshot
-
-# Ver logs en vivo
-tail -f hashes/attack_log.jsonl
-
-# Buscar eventos específicos
-jq '.[] | select(.event == "kill_switch_freeze")' hashes/attack_log.jsonl
-
-# Health check
-centinel audit  # (v0.2+)
+make wizard            # asistente en el navegador / browser wizard → http://127.0.0.1:7474
 ```
 
----
+El asistente pide el país y genera las claves de acceso del panel; descarga y guarda el PDF de claves en un lugar seguro. Después, indica la URL oficial de resultados desde el panel.
 
-## Preguntas Frecuentes
+The wizard asks for the country and generates the panel access keys; download the key PDF and store it safely. Then set the official results URL from the panel.
 
-### ¿Centinel detecta fraude?
-No. Centinel **detecta modificación de datos en custodia**. Si los datos originales del CNE son fraudulentos, Centinel no lo sabrá. Requiere validación electoral independiente.
+## 3. Operar / Operate
 
-### ¿Qué pasa si el testigo es hackeado?
-Lagartija (auto-regeneración) sincroniza noche a noche con copias externas. Si datos locales fueron modificados, se restauran automáticamente.
+| Comando / Command | ES | EN |
+|---|---|---|
+| `make snapshot` | Captura y hashea una instantánea | Capture and hash one snapshot |
+| `make pipeline` | Ciclo completo una vez: captura, análisis y anclaje | One full cycle: capture, analysis, anchoring |
+| `make start` · `make stop` | Pipeline continuo en segundo plano | Continuous background pipeline |
+| `make status` · `make logs` | Estado y registros en vivo | Status and live logs |
+| `centinel doctor` | Comprueba la postura de seguridad del modo activo | Checks the active mode's security posture |
+| `centinel panel show [--verbose]` | Panel del operador en la terminal | Operator panel in the terminal |
+| `centinel audit run` | Autoauditoría de integridad | Integrity self-audit |
+| `make reproduce-2025-audit` | Reproduce el piloto Honduras 2025 | Reproduces the Honduras 2025 pilot |
 
-### ¿Cuánto cuesta?
-**Cero.** Puro código open source + almacenamiento gratuito (S3 free tier, Google Drive, etc.).
+## 4. Registros / Logs
 
-### ¿Necesito múltiples testigos?
-**Recomendado.** Con 1 testigo, tienes garantía local. Con ≥2, tienes consenso distribuido (consenso Cuervo: 2/3 deben estar de acuerdo).
+- `logs/attack_log.jsonl` — eventos de defensa, solo anexado / append-only defense events
+- `hashes/` — capturas encadenadas y metadatos de custodia / chained snapshots and custody metadata
 
-### ¿Puedo confiar en esto?
-Centinel es **matemáticamente auditable**. Todo se puede verificar offline:
-- Merkle chain: reproducible
-- Benford detection: estadístico replicable
-- Bitcoin timestamps: verificables públicamente
+## Siguiente paso / Next step
 
-Audita el código, no confíes solo en Centinel.
-
----
-
-## Recursos
-
-| Recurso | Para Quién |
-|---------|-----------|
-| **QUICKSTART.md** (este) | Primeros 5 min, operadores |
-| **ARGOS-PROTOCOL-ES.md** | Protocolo ARGOS — entender cada capa |
-| **OPERATOR-PANEL.md** | Leer panel + colores |
-| **OPERATOR-RUNBOOKS.md** | Qué hacer en cada escenario |
-| **ARCHITECTURE.md** | Deep-dive: teoremas T1–T4 |
-| **SECURITY-REVIEW.md** | Auditoría de seguridad |
-| **KILL-SWITCH-CONFIG.md** | Detalles del Tejón |
-
----
-
-## Siguiente Paso
-
-👉 [Lee OPERATOR-RUNBOOKS.md](OPERATOR-RUNBOOKS.md) para configuración completa y procedimientos operacionales.
-
----
-
-**Última actualización:** 2026-05-16  
-**Versión:** 0.1 — Pre-piloto  
-**Status:** Listo para auditoría y validación
+- [Runbooks del operador / Operator runbooks](../operations/OPERATOR-RUNBOOKS.md)
+- [Cómo leer el panel / Reading the panel](../operations/OPERATOR-PANEL.md)
+- [Protocolo ARGOS / ARGOS protocol](../architecture/ARGOS-PROTOCOL-ES.md)
+- [Configuración en detalle / Setup reference](../operations/SETUP-GUIDE.md)

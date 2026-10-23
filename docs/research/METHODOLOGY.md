@@ -39,21 +39,21 @@ auditores ciudadanos independientes.
 3. **Normalización** — Conversión a esquema consistente; parseo de enteros con
    comas (`"1,027,090"` → `1027090`); alineación de claves.
 4. **Diffs** — Comparación entre snapshots consecutivos; registro de mutaciones.
-5. **Reglas** — 23 reglas estadísticas + 7 detectores forenses (sección 4).
+5. **Reglas** — 24 reglas estadísticas + 7 detectores forenses (sección 4).
 6. **Anclaje externo** — Merkle root anclado a Bitcoin vía OpenTimestamps.
 7. **Publicación** — Bloque forense + cobertura al panel público.
 
 ### 4. Catálogo de detectores implementados
 
-**Total: 23 reglas con decorador `@rule` + 7 detectores forenses = 30 análisis.**
+**Total: 24 reglas con decorador `@rule` + 7 detectores forenses = 31 análisis.**
 Registro en `src/centinel/core/rules/registry.py`.
 
-#### 4.1 Reglas estadísticas core (23)
+#### 4.1 Reglas estadísticas core (24)
 
 | # | Regla | `config_key` | Técnica | Umbral por defecto | Severidad |
 |---|---|---|---|---|---|
 | 1 | Consistencia Aritmética Básica | `basic_diff` | Igualdad aritmética + cambio relativo | cambio voto >15% | HIGH/MEDIUM |
-| 2 | Ley de Benford (Primer Dígito) | `benford_first_digit` | MAD + χ² sobre `P(d)=log₁₀(1+1/d)` | MAD>0.015, p<0.01 | CRITICAL |
+| 2 | Ley de Benford (Primer Dígito) | `benford_first_digit` | MAD + χ² sobre `P(d)=log₁₀(1+1/d)` | MAD>0.015, p<0.01 | INFO (experimental desde dev-v12) |
 | 3 | Ley de Benford (alternativa) | `benford_law` | χ² + desviación % máxima | desv>15%, p<0.05 | MEDIUM |
 | 4 | Correlación Participación-Voto | `participation_vote_correlation` | Pearson r(turnout, share líder) | r>0.85, n≥30 | CRITICAL |
 | 5 | Dispersión Geográfica | `geographic_dispersion` | Coef. variación entre deptos | CV>0.45, ≥5 deptos | CRITICAL |
@@ -75,6 +75,7 @@ Registro en `src/centinel/core/rules/registry.py`.
 | 21 | Consistencia por Mesa | `table_consistency` | Aritmética por mesa (tol. ±1) | suma≠total | CRITICAL |
 | 22 | Desviación de Tendencia | `trend_shift` | Δ% nuevo vs histórico acumulado | dif>10% | HIGH |
 | 23 | Turnout Imposible | `turnout_impossible` | turnout = votos/padrón | <0% o >100% | CRITICAL |
+| 24 | Tasa de Actas Inconsistentes | `inconsistency_rate` | Actas inconsistentes / actas divulgadas + escalada entre snapshots | ≥10% del total o subida ≥1 pp | CRITICAL |
 
 #### 4.2 Detectores forenses de actas inconsistentes (7)
 
@@ -99,7 +100,7 @@ Implementados en `src/auditor/inconsistent_acts.py`, clase `InconsistentActsTrac
 - **Coeficiente de variación:** regla 5
 - **Isolation Forest (ML no supervisado):** regla 14
 - **Test z de proporciones:** beneficio asimétrico forense
-- **Validación aritmética determinista:** reglas 1, 11, 21, 23
+- **Validación aritmética determinista:** reglas 1, 11, 21, 23, 24
 
 ### 5. Calibración de parámetros
 
@@ -130,15 +131,16 @@ defecto documentados arriba se derivan de:
   basadas en ventanas (snapshot_jump, trend_shift) pueden disparar al inicio del
   conteo con baja cobertura; se mitiga con `min_samples` y cobertura mínima.
 - **Benford no aplica universalmente:** distribuciones acotadas (ej. mesas con
-  rango de votos estrecho) pueden desviarse de Benford sin fraude. Por eso Benford
-  es MEDIUM/CRITICAL según el detector y nunca actúa solo.
+  rango de votos estrecho) pueden desviarse de Benford sin fraude. Por eso la regla
+  de primer dígito queda en severidad INFO, la alternativa en MEDIUM, y Benford nunca
+  actúa solo.
 
 ### 7. Estado de validación
 
 | Componente | Estado |
 |---|---|
 | Núcleo criptográfico (hash chain, Merkle, OTS) | Implementado, cubierto por tests deterministas |
-| 23 reglas estadísticas | Implementadas, cubiertas por tests unitarios |
+| 24 reglas estadísticas | Implementadas, cubiertas por tests unitarios |
 | 7 detectores forenses | Implementados, cubiertos por `tests/test_inconsistent_acts.py` |
 | Tasa de falsos positivos | Medida sobre datos sintéticos — ver `FALSE_POSITIVE_ANALYSIS.md` |
 | Revisión académica externa | En curso con UPNFM (Depto. Matemáticas) — pendiente informe firmado |
@@ -168,12 +170,12 @@ auditors.
 
 ### 3. Technical pipeline
 
-Capture → SHA-256 hashing & chaining → normalization → diffs → 23 rules + 7 forensic
+Capture → SHA-256 hashing & chaining → normalization → diffs → 24 rules + 7 forensic
 detectors → Bitcoin anchoring (OpenTimestamps) → publication (public panel).
 
 ### 4. Implemented detector catalog
 
-**Total: 23 `@rule`-decorated rules + 7 forensic detectors = 30 analyses.** See the
+**Total: 24 `@rule`-decorated rules + 7 forensic detectors = 31 analyses.** See the
 Spanish section §4.1–4.3 for the full table (rule, config key, technique, default
 threshold, severity). The tables are language-neutral (formulas and parameters).
 
@@ -195,7 +197,7 @@ Benford MAD bounds. Recalibration for another country: see `REPLICATION_GUIDE.md
 
 ### 7. Validation status
 
-Cryptographic core, 23 rules and 7 detectors are implemented and unit-tested.
+Cryptographic core, 24 rules and 7 detectors are implemented and unit-tested.
 False-positive rate measured on synthetic data (`FALSE_POSITIVE_ANALYSIS.md`).
 External academic review with UPNFM in progress. Real-election validation pending
 pilot (`PILOT_PLAN.md`).

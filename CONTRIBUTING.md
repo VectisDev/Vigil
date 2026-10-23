@@ -1,4 +1,4 @@
-# Contributing to Centinel Engine
+# Contributing to VIGIL
 
 **ES: Contribuyendo a Centinel Engine**
 
@@ -6,15 +6,15 @@
 
 ### Prerequisites
 
-- Python **3.10+**
+- Python **3.11+**
 - **Poetry** (`pip install poetry`)
 - Git
 
 ### Initial Setup
 
 ```bash
-git clone https://github.com/userf8a2c4/centinel-engine.git
-cd centinel-engine
+git clone https://github.com/VectisDev/Vigil.git
+cd Vigil
 poetry install
 ```
 
@@ -89,10 +89,11 @@ def verify_benford(values: list[int]) -> dict[str, Any]:
 
 ### Add a New Anomaly Detection Rule
 
-1. Add method to `AnomalyDetector` class in `src/centinel/core/anomaly_detector.py`
-2. Create test in `tests/test_anomaly_detector.py`
-3. Run: `poetry run pytest tests/test_anomaly_detector.py::TestNewRule -v`
-4. Commit with clear message
+1. Create `src/centinel/core/rules/<name>_rule.py` with an `apply(current_data, previous_data, config)` function decorated with `@rule(name=..., severity=..., description=..., config_key=...)`
+2. Add the module name to `_RULE_MODULES` in `src/centinel/core/rules_engine.py` so it registers at startup
+3. Add its thresholds to `config/prod/rules.yaml` under the same `config_key`
+4. Add tests under `tests/` and run them: `poetry run pytest tests/<your_test>.py -v`
+5. Document the technique and its limitations in `docs/research/METHODOLOGY.md`
 
 ### Fix a Test
 
@@ -155,7 +156,7 @@ Before submitting a PR:
 
 ## Reporting Issues
 
-**Security Issues:** Email maintainer instead of public issue (see SECURITY_AUDIT.md)
+**Security Issues:** Never open a public issue. Report privately via **Security → Report a vulnerability** (see [SECURITY.md](SECURITY.md))
 
 **Bug Reports:** Include:
 - Reproduction steps
