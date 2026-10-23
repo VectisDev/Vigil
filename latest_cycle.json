@@ -1,7 +1,7 @@
 {
-  "cycle": 12,
-  "cycle_hash": "4d0df0b3ed46ea84a94f9a3c8853a8c36964ece8965754ed35252ca20550c9c1",
-  "timestamp": "2026-10-23T11:07:46.285296+00:00",
+  "cycle": 13,
+  "cycle_hash": "2a9b27606e3dca14b81f305e37da84e43d694d8ba5735f01d6889961c7f64b8c",
+  "timestamp": "2026-10-23T11:10:57.871558+00:00",
   "effective_interval_seconds": 180,
   "results": [
     {
@@ -9,7 +9,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 14262.4,
+      "latency_ms": 1996.4,
       "error": "http_404"
     },
     {
@@ -17,7 +17,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 4299.9,
+      "latency_ms": 25848.7,
       "error": "http_404"
     },
     {
@@ -25,7 +25,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 4283.6,
+      "latency_ms": 3151.4,
       "error": "http_404"
     },
     {
@@ -33,7 +33,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 3187.8,
+      "latency_ms": 5822.9,
       "error": "http_404"
     },
     {
@@ -41,7 +41,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 4365.3,
+      "latency_ms": 4257.5,
       "error": "http_404"
     },
     {
@@ -49,7 +49,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 13460.0,
+      "latency_ms": 10392.7,
       "error": "http_404"
     },
     {
@@ -57,7 +57,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 4821.7,
+      "latency_ms": 12428.5,
       "error": "http_404"
     },
     {
@@ -65,7 +65,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 8681.9,
+      "latency_ms": 5068.5,
       "error": "http_404"
     },
     {
@@ -73,7 +73,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 4633.1,
+      "latency_ms": 7315.8,
       "error": "http_404"
     },
     {
@@ -81,7 +81,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 4904.0,
+      "latency_ms": 6429.1,
       "error": "http_404"
     },
     {
@@ -89,7 +89,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 5428.6,
+      "latency_ms": 10523.9,
       "error": "http_404"
     },
     {
@@ -97,7 +97,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 5449.6,
+      "latency_ms": 7915.9,
       "error": "http_404"
     },
     {
@@ -105,7 +105,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 5699.6,
+      "latency_ms": 8189.4,
       "error": "http_404"
     },
     {
@@ -113,7 +113,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 9834.3,
+      "latency_ms": 8466.8,
       "error": "http_404"
     },
     {
@@ -121,7 +121,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 5966.0,
+      "latency_ms": 8733.6,
       "error": "http_404"
     },
     {
@@ -129,7 +129,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 6509.3,
+      "latency_ms": 9265.9,
       "error": "http_404"
     },
     {
@@ -137,7 +137,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 7066.8,
+      "latency_ms": 9807.3,
       "error": "http_404"
     },
     {
@@ -145,7 +145,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 7333.9,
+      "latency_ms": 10082.7,
       "error": "http_404"
     },
     {
@@ -153,7 +153,7 @@
       "success": false,
       "status": 404,
       "hash": null,
-      "latency_ms": 7875.8,
+      "latency_ms": 11475.3,
       "error": "http_404"
     }
   ]
