@@ -95,6 +95,10 @@ jobs:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
         run: |
           set -euo pipefail
+          if [ -z "${CODEBERG_TOKEN}" ]; then
+            echo "CODEBERG_TOKEN not configured — skipping Codeberg mirror."
+            exit 0
+          fi
 
           # Configure Codeberg remote. We use the token in the URL so that
           # it never gets logged in plaintext (the URL is masked by GHA).
@@ -129,6 +133,10 @@ jobs:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
         run: |
           set -euo pipefail
+          if [ -z "${CODEBERG_TOKEN}" ]; then
+            echo "CODEBERG_TOKEN not configured — skipping Codeberg mirror."
+            exit 0
+          fi
           GITHUB_HEAD="$(git rev-parse HEAD)"
 
           # Query Codeberg API for the same branch HEAD.
