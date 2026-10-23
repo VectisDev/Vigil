@@ -20,7 +20,7 @@ Found a bug or security issue? Open an issue on GitHub with:
 - Expected vs. actual behavior
 - Platform/environment info
 
-**Security issues:** Email instead of public issue (see [SECURITY_AUDIT.md](SECURITY_AUDIT.md))
+**Security issues:** Email instead of public issue (see [SECURITY_AUDIT.md](../audits/SECURITY_AUDIT.md))
 
 ### 2. Submit Code
 

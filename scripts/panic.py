@@ -6,7 +6,7 @@
 3. Notas de mantenimiento / Maintenance notes
 
 ======================== ESPAÑOL ========================
-Archivo: `panic.py`.
+Archivo: `scripts/panic.py`.
 Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
@@ -33,7 +33,7 @@ Notas:
 - Priorizar claridad operativa y trazabilidad del comportamiento.
 
 ======================== ENGLISH ========================
-File: `panic.py`.
+File: `scripts/panic.py`.
 This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
@@ -94,11 +94,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import yaml
+# Run from anywhere (python scripts/panic.py): make the repo root and src/ importable.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+for _path in (_REPO_ROOT, _REPO_ROOT / "src"):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
-from vigil.paths import iter_all_hashes
-from monitoring.alerts import dispatch_alert
-from scripts.logging_utils import configure_logging
+import yaml  # noqa: E402
+
+from vigil.paths import iter_all_hashes  # noqa: E402
+from monitoring.alerts import dispatch_alert  # noqa: E402
+from scripts.logging_utils import configure_logging  # noqa: E402
 
 DATA_DIR = Path("data")
 TEMP_DIR = DATA_DIR / "temp"
@@ -116,25 +122,25 @@ logger = configure_logging("vigil.panic", log_file="logs/vigil.log")
 
 
 def utc_now() -> datetime:
-    """Español: Función utc_now del módulo panic.py.
+    """Español: Función utc_now del módulo scripts/panic.py.
 
-    English: Function utc_now defined in panic.py.
+    English: Function utc_now defined in scripts/panic.py.
     """
     return datetime.now(timezone.utc)
 
 
 def utc_stamp() -> str:
-    """Español: Función utc_stamp del módulo panic.py.
+    """Español: Función utc_stamp del módulo scripts/panic.py.
 
-    English: Function utc_stamp defined in panic.py.
+    English: Function utc_stamp defined in scripts/panic.py.
     """
     return utc_now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 def prompt_confirmation() -> None:
-    """Español: Función prompt_confirmation del módulo panic.py.
+    """Español: Función prompt_confirmation del módulo scripts/panic.py.
 
-    English: Function prompt_confirmation defined in panic.py.
+    English: Function prompt_confirmation defined in scripts/panic.py.
     """
     first = input("¿Estás seguro? (si/no): ").strip().lower()
     if first not in {"si", "sí", "yes", "y"}:
@@ -147,9 +153,9 @@ def prompt_confirmation() -> None:
 
 
 def prompt_emergency_token() -> None:
-    """Español: Función prompt_emergency_token del módulo panic.py.
+    """Español: Función prompt_emergency_token del módulo scripts/panic.py.
 
-    English: Function prompt_emergency_token defined in panic.py.
+    English: Function prompt_emergency_token defined in scripts/panic.py.
     """
     token_required = os.getenv("VIGIL_PANIC_TOKEN", os.getenv("CENTINEL_PANIC_TOKEN")) or os.getenv("PANIC_TOKEN")
     if not token_required:
@@ -165,9 +171,9 @@ def prompt_emergency_token() -> None:
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
-    """Español: Función load_yaml del módulo panic.py.
+    """Español: Función load_yaml del módulo scripts/panic.py.
 
-    English: Function load_yaml defined in panic.py.
+    English: Function load_yaml defined in scripts/panic.py.
     """
     try:
         return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -179,9 +185,9 @@ def load_yaml(path: Path) -> dict[str, Any]:
 
 
 def update_master_switch(status: str) -> list[Path]:
-    """Español: Función update_master_switch del módulo panic.py.
+    """Español: Función update_master_switch del módulo scripts/panic.py.
 
-    English: Function update_master_switch defined in panic.py.
+    English: Function update_master_switch defined in scripts/panic.py.
     """
     updated: list[Path] = []
     for path in CONFIG_PATHS:
@@ -201,9 +207,9 @@ def update_master_switch(status: str) -> list[Path]:
 
 
 def set_panic_flag(user: str, timestamp: str) -> dict[str, Any]:
-    """Español: Función set_panic_flag del módulo panic.py.
+    """Español: Función set_panic_flag del módulo scripts/panic.py.
 
-    English: Function set_panic_flag defined in panic.py.
+    English: Function set_panic_flag defined in scripts/panic.py.
     """
     payload = {
         "active": True,
@@ -217,9 +223,9 @@ def set_panic_flag(user: str, timestamp: str) -> dict[str, Any]:
 
 
 def load_checkpoint_candidate() -> dict[str, Any]:
-    """Español: Función load_checkpoint_candidate del módulo panic.py.
+    """Español: Función load_checkpoint_candidate del módulo scripts/panic.py.
 
-    English: Function load_checkpoint_candidate defined in panic.py.
+    English: Function load_checkpoint_candidate defined in scripts/panic.py.
     """
     for path in (TEMP_DIR / "checkpoint.json", TEMP_DIR / "pipeline_checkpoint.json"):
         if path.exists():
@@ -233,9 +239,9 @@ def load_checkpoint_candidate() -> dict[str, Any]:
 
 
 def resolve_alert_paths() -> tuple[Path, Path]:
-    """Español: Función resolve_alert_paths del módulo panic.py.
+    """Español: Función resolve_alert_paths del módulo scripts/panic.py.
 
-    English: Function resolve_alert_paths defined in panic.py.
+    English: Function resolve_alert_paths defined in scripts/panic.py.
     """
     alerts_log_path = Path("alerts.log")
     alerts_output_path = Path("data/alerts.json")
@@ -254,9 +260,9 @@ def resolve_alert_paths() -> tuple[Path, Path]:
 
 
 def load_last_alerts(limit: int = 10) -> list[dict[str, Any]]:
-    """Español: Función load_last_alerts del módulo panic.py.
+    """Español: Función load_last_alerts del módulo scripts/panic.py.
 
-    English: Function load_last_alerts defined in panic.py.
+    English: Function load_last_alerts defined in scripts/panic.py.
     """
     alerts_log_path, alerts_output_path = resolve_alert_paths()
     alerts: list[dict[str, Any]] = []
@@ -283,9 +289,9 @@ def load_last_alerts(limit: int = 10) -> list[dict[str, Any]]:
 
 
 def latest_hash() -> str | None:
-    """Español: Función latest_hash del módulo panic.py.
+    """Español: Función latest_hash del módulo scripts/panic.py.
 
-    English: Function latest_hash defined in panic.py.
+    English: Function latest_hash defined in scripts/panic.py.
     """
     hash_files = list(reversed(iter_all_hashes(hash_root=HASH_DIR)))
     if not hash_files:
@@ -303,9 +309,9 @@ def latest_hash() -> str | None:
 
 
 def get_health_status() -> dict[str, Any]:
-    """Español: Función get_health_status del módulo panic.py.
+    """Español: Función get_health_status del módulo scripts/panic.py.
 
-    English: Function get_health_status defined in panic.py.
+    English: Function get_health_status defined in scripts/panic.py.
     """
     try:
         from monitoring.strict_health import is_healthy_strict
@@ -317,9 +323,9 @@ def get_health_status() -> dict[str, Any]:
 
 
 def build_report(user: str, timestamp: str, checkpoint: dict[str, Any]) -> dict[str, Any]:
-    """Español: Función build_report del módulo panic.py.
+    """Español: Función build_report del módulo scripts/panic.py.
 
-    English: Function build_report defined in panic.py.
+    English: Function build_report defined in scripts/panic.py.
     """
     report = {
         "panic_activated_at": timestamp,
@@ -337,9 +343,9 @@ def build_report(user: str, timestamp: str, checkpoint: dict[str, Any]) -> dict[
 
 
 def send_alert_message(report_url: str | None, final_hash: str | None, timestamp: str) -> None:
-    """Español: Función send_alert_message del módulo panic.py.
+    """Español: Función send_alert_message del módulo scripts/panic.py.
 
-    English: Function send_alert_message defined in panic.py.
+    English: Function send_alert_message defined in scripts/panic.py.
     """
     message = "MODO PÁNICO ACTIVADO"
     if report_url:
@@ -355,9 +361,9 @@ def send_alert_message(report_url: str | None, final_hash: str | None, timestamp
 
 
 def shutdown_worker() -> None:
-    """Español: Función shutdown_worker del módulo panic.py.
+    """Español: Función shutdown_worker del módulo scripts/panic.py.
 
-    English: Function shutdown_worker defined in panic.py.
+    English: Function shutdown_worker defined in scripts/panic.py.
     """
     pid_env = os.getenv("VIGIL_WORKER_PID", os.getenv("CENTINEL_WORKER_PID"))
     pid_path = DATA_DIR / "worker.pid"
@@ -382,9 +388,9 @@ def shutdown_worker() -> None:
 
 
 def main() -> int:
-    """Español: Función main del módulo panic.py.
+    """Español: Función main del módulo scripts/panic.py.
 
-    English: Function main defined in panic.py.
+    English: Function main defined in scripts/panic.py.
     """
     parser = argparse.ArgumentParser(description="Activa el modo pánico de VIGIL.")
     parser.add_argument("--user", help="Usuario que activa el modo pánico.")

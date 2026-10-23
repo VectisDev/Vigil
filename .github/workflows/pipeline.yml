@@ -152,9 +152,9 @@ jobs:
         run: |
           set -x
           if [[ "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
-            bandit -r . -c bandit.yaml --severity-level medium || true
+            bandit -r . -c .github/bandit.yaml --severity-level medium || true
           else
-            bandit -r . -c bandit.yaml --severity-level medium
+            bandit -r . -c .github/bandit.yaml --severity-level medium
           fi
       - name: Run security suites
         run: |

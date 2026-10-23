@@ -23,12 +23,12 @@ This document describes the CI for VIGIL, focused on reproducibility, traceabili
   `pytest` uses `--import-mode=importlib` and `PYTHONPATH=src` to avoid discovery failures.
 
 ## Configuración clave / Key configuration
-- **Coverage**: `.coveragerc` excluye `tests/` y `chaos_test.py`. 
-  **Coverage**: `.coveragerc` excludes `tests/` and `chaos_test.py`.
+- **Coverage**: `.coveragerc` excluye `tests/` y `scripts/chaos_test.py`. 
+  **Coverage**: `.coveragerc` excludes `tests/` and `scripts/chaos_test.py`.
 - **Pytest**: `pyproject.toml` define `testpaths`, `pythonpath` y `--import-mode=importlib`. 
   **Pytest**: `pyproject.toml` defines `testpaths`, `pythonpath`, and `--import-mode=importlib`.
-- **Bandit**: `pyproject.toml` excluye `tests/` y `chaos_test.py`, y evita falsos positivos comunes (`B101`). 
-  **Bandit**: `pyproject.toml` excludes `tests/` and `chaos_test.py`, and avoids common false positives (`B101`).
+- **Bandit**: `pyproject.toml` excluye `tests/` y `scripts/chaos_test.py`, y evita falsos positivos comunes (`B101`). 
+  **Bandit**: `pyproject.toml` excludes `tests/` and `scripts/chaos_test.py`, and avoids common false positives (`B101`).
 
 ## Cómo ejecutar localmente / How to run locally
 Requiere Python 3.10+ y Poetry. 

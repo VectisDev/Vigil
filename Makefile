@@ -102,7 +102,7 @@ lint: ## Linter (flake8 + black) / Lint check
 
 security: ## Escaneo de seguridad + tests / Security scan and tests
 	mkdir -p logs
-	$(PYTHON_COMMAND) -m bandit -r . -c bandit.yaml --severity-level medium 2>&1 | tee logs/security-bandit.log
+	$(PYTHON_COMMAND) -m bandit -r . -c .github/bandit.yaml --severity-level medium 2>&1 | tee logs/security-bandit.log
 	$(PYTHON_COMMAND) -m pytest tests/test_security.py tests/test_attack_logger.py tests/test_advanced_security.py 2>&1 | tee logs/security-tests.log
 
 security-scan: ## Bandit + safety check

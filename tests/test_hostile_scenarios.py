@@ -49,7 +49,7 @@ from vigil_engine.proxy_manager import (
 )
 from vigil_engine.rate_limiter import TokenBucketRateLimiter
 from vigil_engine.vital_signs import check_vital_signs
-from src.centinel.proxy_handler import ProxyRotator
+from vigil.proxy_handler import ProxyRotator
 
 
 def _base_vitals_status() -> Dict[str, Any]:

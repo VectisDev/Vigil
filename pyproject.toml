@@ -96,7 +96,7 @@ line-length = 120
 [tool.bandit]
 exclude_dirs = ["tests"]
 skips = ["B101", "B110"]
-exclude = ["chaos_test.py", "scripts/chaos_test.py"]
+exclude = ["tests/chaos/test_chaos_scenarios.py", "scripts/chaos_test.py"]
 
 [tool.poetry.scripts]
 vigil = "vigil.cli:main"

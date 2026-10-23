@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Vigil — doble clic en Finder para abrir / double-click in Finder to open
-# macOS: chmod +x Vigil.command  (ya hecho / already done)
+# Vigil — doble clic en el gestor de archivos / double-click in file manager
+# Linux: chmod +x launchers/Vigil.sh  (ya hecho / already done)
 
-cd "$(dirname "$0")"
+cd "$(dirname "$(readlink -f "$0")")/.."
 
 # ── Find Python 3.11+ ─────────────────────────────────────────────────────────
 PY=""
@@ -17,8 +17,18 @@ for candidate in python3.14 python3.13 python3.12 python3.11 python3 python; do
 done
 
 if [ -z "$PY" ]; then
-    osascript -e 'display dialog "Python 3.11 o superior no encontrado.\n\nDescárgalo desde:\nhttps://www.python.org/downloads/\n\nPython 3.11 or higher not found.\n\nDownload it from:\nhttps://www.python.org/downloads/" buttons {"Abrir python.org"} default button 1' >/dev/null 2>&1
-    open "https://www.python.org/downloads/"
+    # Try to show a GUI dialog if available
+    MSG="Python 3.11 o superior no encontrado.\n\nInstálalo con:\n  sudo apt install python3  (Ubuntu/Debian)\n  sudo dnf install python3  (Fedora)\n\nPython 3.11 or higher not found.\nInstall it with the command above."
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --error --text="$MSG" 2>/dev/null
+    elif command -v kdialog >/dev/null 2>&1; then
+        kdialog --error "$MSG" 2>/dev/null
+    else
+        echo -e "$MSG"
+        echo ""
+        echo "Presiona Enter para cerrar. / Press Enter to close."
+        read -r
+    fi
     exit 1
 fi
 

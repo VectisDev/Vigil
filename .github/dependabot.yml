@@ -12,9 +12,9 @@ updates:
       - "security"
     open-pull-requests-limit: 5
 
-  # Dashboard pip dependencies / Dependencias pip del dashboard
+  # Split requirement files / Archivos de requisitos por entorno (requirements/)
   - package-ecosystem: "pip"
-    directory: "/dashboard"
+    directory: "/requirements"
     schedule:
       interval: "weekly"
     allow:

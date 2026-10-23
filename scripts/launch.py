@@ -92,7 +92,7 @@ def _ensure_deps() -> Path:
     _run(str(vpy), "-m", "pip", "install", "--quiet", "--upgrade", "pip")
 
     # Install production requirements
-    req_file = REPO_ROOT / "requirements-prod.txt"
+    req_file = REPO_ROOT / "requirements/prod.txt"
     if not req_file.exists():
         req_file = REPO_ROOT / "requirements.txt"
 

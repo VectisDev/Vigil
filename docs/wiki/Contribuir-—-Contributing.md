@@ -32,13 +32,13 @@ make lint               # flake8 + black
 
 ### Reglas de convivencia
 
-Este proyecto sigue un [código de conducta](https://github.com/VectisDev/Vigil/blob/main/CODE_OF_CONDUCT.md). Los fallos de seguridad se reportan en privado, nunca en un *issue* público (ver [Seguridad](Seguridad-—-Security)).
+Este proyecto sigue un [código de conducta](https://github.com/VectisDev/Vigil/blob/main/.github/CODE_OF_CONDUCT.md). Los fallos de seguridad se reportan en privado, nunca en un *issue* público (ver [Seguridad](Seguridad-—-Security)).
 
 ### Mejorar esta wiki
 
 La wiki se publica automáticamente desde [`docs/wiki/`](https://github.com/VectisDev/Vigil/tree/main/docs/wiki). Propón los cambios con un pull request sobre esos archivos; las ediciones directas en la wiki están restringidas.
 
-Guía completa: [CONTRIBUTING.md](https://github.com/VectisDev/Vigil/blob/main/CONTRIBUTING.md)
+Guía completa: [CONTRIBUTING.md](https://github.com/VectisDev/Vigil/blob/main/.github/CONTRIBUTING.md)
 
 ---
 
@@ -72,10 +72,10 @@ make lint               # flake8 + black
 
 ### Community rules
 
-This project follows a [code of conduct](https://github.com/VectisDev/Vigil/blob/main/CODE_OF_CONDUCT.md). Security bugs are reported privately, never in a public issue (see [Security](Seguridad-—-Security)).
+This project follows a [code of conduct](https://github.com/VectisDev/Vigil/blob/main/.github/CODE_OF_CONDUCT.md). Security bugs are reported privately, never in a public issue (see [Security](Seguridad-—-Security)).
 
 ### Improving this wiki
 
 The wiki is published automatically from [`docs/wiki/`](https://github.com/VectisDev/Vigil/tree/main/docs/wiki). Propose changes through a pull request on those files; direct wiki edits are restricted.
 
-Full guide: [CONTRIBUTING.md](https://github.com/VectisDev/Vigil/blob/main/CONTRIBUTING.md)
+Full guide: [CONTRIBUTING.md](https://github.com/VectisDev/Vigil/blob/main/.github/CONTRIBUTING.md)

@@ -29,7 +29,7 @@ El núcleo criptográfico es estable y las pruebas automatizadas se ejecutan en 
 Es el nombre anterior del proyecto. Se conserva a propósito en las constantes criptográficas (cambiarlas invalidaría la evidencia ya anclada), en algunos nombres externos y en documentos históricos; los nombres antiguos de paquetes, comandos y variables siguen funcionando como alias. Lista completa: [nombres heredados](https://github.com/VectisDev/Vigil/blob/main/docs/architecture/LEGACY-NAMES.md).
 
 **¿Cómo contribuyo?**
-Lee la [guía de contribución](https://github.com/VectisDev/Vigil/blob/main/CONTRIBUTING.md). Para fallos de seguridad, usa el [reporte privado](Seguridad-—-Security).
+Lee la [guía de contribución](https://github.com/VectisDev/Vigil/blob/main/.github/CONTRIBUTING.md). Para fallos de seguridad, usa el [reporte privado](Seguridad-—-Security).
 
 ---
 
@@ -60,4 +60,4 @@ The cryptographic core is stable and the automated tests run on every change. Th
 It is the project's former name. It is kept on purpose in cryptographic constants (changing them would invalidate evidence already anchored), in some external names and in historical documents; the old package, command and variable names still work as aliases. Full list: [legacy names](https://github.com/VectisDev/Vigil/blob/main/docs/architecture/LEGACY-NAMES.md).
 
 **How do I contribute?**
-Read the [contributing guide](https://github.com/VectisDev/Vigil/blob/main/CONTRIBUTING.md). For security bugs, use [private reporting](Seguridad-—-Security).
+Read the [contributing guide](https://github.com/VectisDev/Vigil/blob/main/.github/CONTRIBUTING.md). For security bugs, use [private reporting](Seguridad-—-Security).

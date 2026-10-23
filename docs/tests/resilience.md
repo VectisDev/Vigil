@@ -9,11 +9,11 @@
 ## Requisitos de entorno / Environment setup
 
 **Español:**
-- Python 3.10+ y dependencias de desarrollo instaladas (`poetry install --with dev` o `pip install -r requirements-dev.txt`).
+- Python 3.10+ y dependencias de desarrollo instaladas (`poetry install --with dev` o `pip install -r requirements/dev.txt`).
 - No se requiere red real: todas las llamadas HTTP están simuladas.
 
 **English:**
-- Python 3.10+ and development dependencies installed (`poetry install --with dev` or `pip install -r requirements-dev.txt`).
+- Python 3.10+ and development dependencies installed (`poetry install --with dev` or `pip install -r requirements/dev.txt`).
 - No real network is required: all HTTP calls are mocked.
 
 ## Comandos / Commands

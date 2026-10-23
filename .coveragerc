@@ -5,7 +5,7 @@ source = src
 [report]
 omit =
     tests/*
-    chaos_test.py
+    tests/chaos/test_chaos_scenarios.py
     scripts/chaos_test.py
 
 exclude_lines =

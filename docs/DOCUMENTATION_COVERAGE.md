@@ -14,7 +14,7 @@ Total de módulos Python documentados: **175**.
 - `vigil_engine/secure_backup.py`
 - `vigil_engine/telegram_hook.py`
 - `vigil_engine/vital_signs.py`
-- `chaos_test.py`
+- `tests/chaos/test_chaos_scenarios.py`
 - `command_center/__init__.py`
 - `command_center/endpoints.py`
 - `command_center/main.py`
@@ -31,13 +31,12 @@ Total de módulos Python documentados: **175**.
 - `core/http_compat.py`
 - `core/logger.py`
 - `core/security.py`
-- `dashboard.py`
 - `dashboard/centinel_pdf_report.py`
 - `dashboard/panel_chaos.py`
 - `dashboard/panel_replay.py`
 - `dashboard/streamlit_app.py`
-- `maintain.py`
-- `panic.py`
+- `scripts/maintain.py`
+- `scripts/panic.py`
 - `scripts/__init__.py`
 - `scripts/analyze_rules.py`
 - `scripts/auto_anchor.py`

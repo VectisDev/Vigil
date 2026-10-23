@@ -10,22 +10,20 @@
 docs/
 *.md
 LICENSE
-DOCUMENTATION_COVERAGE.md
 SECURITY_AUDIT.md
 
 # Testing
 tests/
-chaos_test.py
 conftest.py
-requirements-chaos.txt
-requirements-dev.txt
+requirements/chaos.txt
+requirements/dev.txt
 .coverage
 *.junit.xml
 artifacts/
 
 # Development tools
 .flake8
-bandit.yaml
+.github/bandit.yaml
 .coveragerc
 Makefile
 

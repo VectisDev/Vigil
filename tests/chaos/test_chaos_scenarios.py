@@ -5,7 +5,7 @@
 3. Notas de mantenimiento / Maintenance notes
 
 ======================== ESPAÑOL ========================
-Archivo: `chaos_test.py`.
+Archivo: `test_chaos_scenarios.py`.
 Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
@@ -32,7 +32,7 @@ Notas:
 - Priorizar claridad operativa y trazabilidad del comportamiento.
 
 ======================== ENGLISH ========================
-File: `chaos_test.py`.
+File: `test_chaos_scenarios.py`.
 This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
@@ -111,9 +111,9 @@ class SimulatedBucketError(RuntimeError):
 
 @dataclass
 class PipelineState:
-    """Español: Clase PipelineState del módulo chaos_test.py.
+    """Español: Clase PipelineState del módulo test_chaos_scenarios.py.
 
-    English: PipelineState class defined in chaos_test.py.
+    English: PipelineState class defined in test_chaos_scenarios.py.
     """
 
     processed: int = 0
@@ -123,18 +123,18 @@ class PipelineState:
 
 @dataclass
 class FakeBucket:
-    """Español: Clase FakeBucket del módulo chaos_test.py.
+    """Español: Clase FakeBucket del módulo test_chaos_scenarios.py.
 
-    English: FakeBucket class defined in chaos_test.py.
+    English: FakeBucket class defined in test_chaos_scenarios.py.
     """
 
     base_dir: Path
     force_write_error: bool = False
 
     def write_checkpoint(self, payload: Dict[str, int]) -> None:
-        """Español: Función write_checkpoint del módulo chaos_test.py.
+        """Español: Función write_checkpoint del módulo test_chaos_scenarios.py.
 
-        English: Function write_checkpoint defined in chaos_test.py.
+        English: Function write_checkpoint defined in test_chaos_scenarios.py.
         """
         if self.force_write_error:
             raise SimulatedBucketError("simulated_bucket_write_failure")
@@ -142,9 +142,9 @@ class FakeBucket:
         (self.base_dir / "checkpoint.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     def corrupt_checkpoint(self) -> None:
-        """Español: Función corrupt_checkpoint del módulo chaos_test.py.
+        """Español: Función corrupt_checkpoint del módulo test_chaos_scenarios.py.
 
-        English: Function corrupt_checkpoint defined in chaos_test.py.
+        English: Function corrupt_checkpoint defined in test_chaos_scenarios.py.
         """
         target = self.base_dir / "checkpoint.json"
         target.write_text("{invalid-json", encoding="utf-8")
@@ -152,9 +152,9 @@ class FakeBucket:
 
 @dataclass
 class FakePipelineRunner:
-    """Español: Clase FakePipelineRunner del módulo chaos_test.py.
+    """Español: Clase FakePipelineRunner del módulo test_chaos_scenarios.py.
 
-    English: FakePipelineRunner class defined in chaos_test.py.
+    English: FakePipelineRunner class defined in test_chaos_scenarios.py.
     """
 
     temp_dir: Path
@@ -167,9 +167,9 @@ class FakePipelineRunner:
     state: PipelineState = field(default_factory=PipelineState)
 
     def __post_init__(self) -> None:
-        """Español: Función __post_init__ del módulo chaos_test.py.
+        """Español: Función __post_init__ del módulo test_chaos_scenarios.py.
 
-        English: Function __post_init__ defined in chaos_test.py.
+        English: Function __post_init__ defined in test_chaos_scenarios.py.
         """
         self.log_path = self.temp_dir / "recovery.log"
         self.checkpoint_path = self.temp_dir / "pipeline_checkpoint.json"
@@ -182,25 +182,25 @@ class FakePipelineRunner:
         self.logger.addHandler(handler)
 
     def start_test_pipeline(self) -> None:
-        """Español: Función start_test_pipeline del módulo chaos_test.py.
+        """Español: Función start_test_pipeline del módulo test_chaos_scenarios.py.
 
-        English: Function start_test_pipeline defined in chaos_test.py.
+        English: Function start_test_pipeline defined in test_chaos_scenarios.py.
         """
         self.logger.info("pipeline_start mode=test")
 
     def process_until(self, target: int) -> None:
-        """Español: Función process_until del módulo chaos_test.py.
+        """Español: Función process_until del módulo test_chaos_scenarios.py.
 
-        English: Function process_until defined in chaos_test.py.
+        English: Function process_until defined in test_chaos_scenarios.py.
         """
         while self.state.processed < target:
             self._assert_operational()
             self._process_one()
 
     def _process_one(self) -> None:
-        """Español: Función _process_one del módulo chaos_test.py.
+        """Español: Función _process_one del módulo test_chaos_scenarios.py.
 
-        English: Function _process_one defined in chaos_test.py.
+        English: Function _process_one defined in test_chaos_scenarios.py.
         """
         self.state.processed += 1
         payload = f"acta-{self.state.processed}".encode("utf-8")
@@ -209,18 +209,18 @@ class FakePipelineRunner:
             self._save_checkpoint()
 
     def _assert_operational(self) -> None:
-        """Español: Función _assert_operational del módulo chaos_test.py.
+        """Español: Función _assert_operational del módulo test_chaos_scenarios.py.
 
-        English: Function _assert_operational defined in chaos_test.py.
+        English: Function _assert_operational defined in test_chaos_scenarios.py.
         """
         if not self.network_available:
             self._alert("critical_network_unavailable")
             raise SimulatedNetworkError("network_blocked_ports_80_443")
 
     def _save_checkpoint(self) -> None:
-        """Español: Función _save_checkpoint del módulo chaos_test.py.
+        """Español: Función _save_checkpoint del módulo test_chaos_scenarios.py.
 
-        English: Function _save_checkpoint defined in chaos_test.py.
+        English: Function _save_checkpoint defined in test_chaos_scenarios.py.
         """
         if self.disk_full:
             self._alert("critical_disk_full")
@@ -235,41 +235,41 @@ class FakePipelineRunner:
             self.logger.info("bucket_write_error error=%s", exc)
 
     def simulate_kill(self) -> None:
-        """Español: Función simulate_kill del módulo chaos_test.py.
+        """Español: Función simulate_kill del módulo test_chaos_scenarios.py.
 
-        English: Function simulate_kill defined in chaos_test.py.
+        English: Function simulate_kill defined in test_chaos_scenarios.py.
         """
         self.logger.info("failure kill -9")
         self._alert("critical_process_killed")
 
     def simulate_docker_kill(self) -> None:
-        """Español: Función simulate_docker_kill del módulo chaos_test.py.
+        """Español: Función simulate_docker_kill del módulo test_chaos_scenarios.py.
 
-        English: Function simulate_docker_kill defined in chaos_test.py.
+        English: Function simulate_docker_kill defined in test_chaos_scenarios.py.
         """
         self.logger.info("failure docker_kill")
         self._alert("critical_container_killed")
 
     def simulate_docker_stop(self) -> None:
-        """Español: Función simulate_docker_stop del módulo chaos_test.py.
+        """Español: Función simulate_docker_stop del módulo test_chaos_scenarios.py.
 
-        English: Function simulate_docker_stop defined in chaos_test.py.
+        English: Function simulate_docker_stop defined in test_chaos_scenarios.py.
         """
         self.logger.info("failure docker_stop")
         self._save_checkpoint()
 
     def simulate_network_cut(self) -> None:
-        """Español: Función simulate_network_cut del módulo chaos_test.py.
+        """Español: Función simulate_network_cut del módulo test_chaos_scenarios.py.
 
-        English: Function simulate_network_cut defined in chaos_test.py.
+        English: Function simulate_network_cut defined in test_chaos_scenarios.py.
         """
         self.logger.info("failure network_cut")
         self.network_available = False
 
     def simulate_disk_fill(self) -> None:
-        """Español: Función simulate_disk_fill del módulo chaos_test.py.
+        """Español: Función simulate_disk_fill del módulo test_chaos_scenarios.py.
 
-        English: Function simulate_disk_fill defined in chaos_test.py.
+        English: Function simulate_disk_fill defined in test_chaos_scenarios.py.
         """
         self.logger.info("failure disk_full")
         self.disk_full = True
@@ -277,26 +277,26 @@ class FakePipelineRunner:
         filler.write_bytes(b"0" * 1024)
 
     def simulate_bucket_write_failure(self) -> None:
-        """Español: Función simulate_bucket_write_failure del módulo chaos_test.py.
+        """Español: Función simulate_bucket_write_failure del módulo test_chaos_scenarios.py.
 
-        English: Function simulate_bucket_write_failure defined in chaos_test.py.
+        English: Function simulate_bucket_write_failure defined in test_chaos_scenarios.py.
         """
         self.logger.info("failure bucket_write")
         self.bucket.force_write_error = True
 
     def simulate_checkpoint_corruption(self) -> None:
-        """Español: Función simulate_checkpoint_corruption del módulo chaos_test.py.
+        """Español: Función simulate_checkpoint_corruption del módulo test_chaos_scenarios.py.
 
-        English: Function simulate_checkpoint_corruption defined in chaos_test.py.
+        English: Function simulate_checkpoint_corruption defined in test_chaos_scenarios.py.
         """
         self.logger.info("failure checkpoint_corruption")
         self.bucket.corrupt_checkpoint()
         self.checkpoint_path.write_text("{corrupt}", encoding="utf-8")
 
     def restart_within(self, timeout_seconds: int = 120) -> None:
-        """Español: Función restart_within del módulo chaos_test.py.
+        """Español: Función restart_within del módulo test_chaos_scenarios.py.
 
-        English: Function restart_within defined in chaos_test.py.
+        English: Function restart_within defined in test_chaos_scenarios.py.
         """
         start = time.monotonic()
         while time.monotonic() - start < timeout_seconds:
@@ -311,9 +311,9 @@ class FakePipelineRunner:
         raise TimeoutError("recovery_timeout")
 
     def _recover_from_checkpoint(self) -> None:
-        """Español: Función _recover_from_checkpoint del módulo chaos_test.py.
+        """Español: Función _recover_from_checkpoint del módulo test_chaos_scenarios.py.
 
-        English: Function _recover_from_checkpoint defined in chaos_test.py.
+        English: Function _recover_from_checkpoint defined in test_chaos_scenarios.py.
         """
         checkpoint = self._load_checkpoint(self.checkpoint_path)
         if not checkpoint:
@@ -328,9 +328,9 @@ class FakePipelineRunner:
         self.recovery_log.append("recovery_resume")
 
     def _load_checkpoint(self, path: Path) -> Dict[str, int]:
-        """Español: Función _load_checkpoint del módulo chaos_test.py.
+        """Español: Función _load_checkpoint del módulo test_chaos_scenarios.py.
 
-        English: Function _load_checkpoint defined in chaos_test.py.
+        English: Function _load_checkpoint defined in test_chaos_scenarios.py.
         """
         if not path.exists():
             return {}
@@ -342,9 +342,9 @@ class FakePipelineRunner:
             return {}
 
     def _alert(self, code: str) -> None:
-        """Español: Función _alert del módulo chaos_test.py.
+        """Español: Función _alert del módulo test_chaos_scenarios.py.
 
-        English: Function _alert defined in chaos_test.py.
+        English: Function _alert defined in test_chaos_scenarios.py.
         """
         self.alert_log.append(code)
         self.logger.info("alert code=%s", code)
@@ -352,9 +352,9 @@ class FakePipelineRunner:
 
 @dataclass
 class ChaosScenario:
-    """Español: Clase ChaosScenario del módulo chaos_test.py.
+    """Español: Clase ChaosScenario del módulo test_chaos_scenarios.py.
 
-    English: ChaosScenario class defined in chaos_test.py.
+    English: ChaosScenario class defined in test_chaos_scenarios.py.
     """
 
     name: str
@@ -363,33 +363,33 @@ class ChaosScenario:
 
 
 def _scenario_kill(runner: FakePipelineRunner) -> None:
-    """Español: Función _scenario_kill del módulo chaos_test.py.
+    """Español: Función _scenario_kill del módulo test_chaos_scenarios.py.
 
-    English: Function _scenario_kill defined in chaos_test.py.
+    English: Function _scenario_kill defined in test_chaos_scenarios.py.
     """
     runner.simulate_kill()
 
 
 def _scenario_docker_kill(runner: FakePipelineRunner) -> None:
-    """Español: Función _scenario_docker_kill del módulo chaos_test.py.
+    """Español: Función _scenario_docker_kill del módulo test_chaos_scenarios.py.
 
-    English: Function _scenario_docker_kill defined in chaos_test.py.
+    English: Function _scenario_docker_kill defined in test_chaos_scenarios.py.
     """
     runner.simulate_docker_kill()
 
 
 def _scenario_docker_stop(runner: FakePipelineRunner) -> None:
-    """Español: Función _scenario_docker_stop del módulo chaos_test.py.
+    """Español: Función _scenario_docker_stop del módulo test_chaos_scenarios.py.
 
-    English: Function _scenario_docker_stop defined in chaos_test.py.
+    English: Function _scenario_docker_stop defined in test_chaos_scenarios.py.
     """
     runner.simulate_docker_stop()
 
 
 def _scenario_network_cut(runner: FakePipelineRunner) -> None:
-    """Español: Función _scenario_network_cut del módulo chaos_test.py.
+    """Español: Función _scenario_network_cut del módulo test_chaos_scenarios.py.
 
-    English: Function _scenario_network_cut defined in chaos_test.py.
+    English: Function _scenario_network_cut defined in test_chaos_scenarios.py.
     """
     runner.simulate_network_cut()
     with pytest.raises(SimulatedNetworkError):
@@ -397,9 +397,9 @@ def _scenario_network_cut(runner: FakePipelineRunner) -> None:
 
 
 def _scenario_disk_fill(runner: FakePipelineRunner) -> None:
-    """Español: Función _scenario_disk_fill del módulo chaos_test.py.
+    """Español: Función _scenario_disk_fill del módulo test_chaos_scenarios.py.
 
-    English: Function _scenario_disk_fill defined in chaos_test.py.
+    English: Function _scenario_disk_fill defined in test_chaos_scenarios.py.
     """
     runner.simulate_disk_fill()
     with pytest.raises(SimulatedDiskFullError):
@@ -407,18 +407,18 @@ def _scenario_disk_fill(runner: FakePipelineRunner) -> None:
 
 
 def _scenario_bucket_write(runner: FakePipelineRunner) -> None:
-    """Español: Función _scenario_bucket_write del módulo chaos_test.py.
+    """Español: Función _scenario_bucket_write del módulo test_chaos_scenarios.py.
 
-    English: Function _scenario_bucket_write defined in chaos_test.py.
+    English: Function _scenario_bucket_write defined in test_chaos_scenarios.py.
     """
     runner.simulate_bucket_write_failure()
     runner.process_until(runner.state.processed + runner.checkpoint_interval)
 
 
 def _scenario_checkpoint_corruption(runner: FakePipelineRunner) -> None:
-    """Español: Función _scenario_checkpoint_corruption del módulo chaos_test.py.
+    """Español: Función _scenario_checkpoint_corruption del módulo test_chaos_scenarios.py.
 
-    English: Function _scenario_checkpoint_corruption defined in chaos_test.py.
+    English: Function _scenario_checkpoint_corruption defined in test_chaos_scenarios.py.
     """
     runner.simulate_checkpoint_corruption()
 
@@ -436,9 +436,9 @@ SCENARIOS = [
 
 @pytest.fixture()
 def pipeline_runner(tmp_path: Path) -> FakePipelineRunner:
-    """Español: Función pipeline_runner del módulo chaos_test.py.
+    """Español: Función pipeline_runner del módulo test_chaos_scenarios.py.
 
-    English: Function pipeline_runner defined in chaos_test.py.
+    English: Function pipeline_runner defined in test_chaos_scenarios.py.
     """
     runner = FakePipelineRunner(temp_dir=tmp_path)
     runner.start_test_pipeline()
@@ -447,9 +447,9 @@ def pipeline_runner(tmp_path: Path) -> FakePipelineRunner:
 
 @pytest.fixture()
 def report_context(request):
-    """Español: Función report_context del módulo chaos_test.py.
+    """Español: Función report_context del módulo test_chaos_scenarios.py.
 
-    English: Function report_context defined in chaos_test.py.
+    English: Function report_context defined in test_chaos_scenarios.py.
     """
     details: Dict[str, str] = {}
     REPORT_DETAILS[request.node.nodeid] = details
@@ -458,9 +458,9 @@ def report_context(request):
 
 @pytest.mark.parametrize("scenario", SCENARIOS, ids=[s.name for s in SCENARIOS])
 def test_chaos_auto_resume(scenario: ChaosScenario, pipeline_runner: FakePipelineRunner, report_context) -> None:
-    """Español: Función test_chaos_auto_resume del módulo chaos_test.py.
+    """Español: Función test_chaos_auto_resume del módulo test_chaos_scenarios.py.
 
-    English: Function test_chaos_auto_resume defined in chaos_test.py.
+    English: Function test_chaos_auto_resume defined in test_chaos_scenarios.py.
     """
     runner = pipeline_runner
     runner.process_until(100)
@@ -485,9 +485,9 @@ def test_chaos_auto_resume(scenario: ChaosScenario, pipeline_runner: FakePipelin
 
 
 def pytest_runtest_logreport(report):
-    """Español: Función pytest_runtest_logreport del módulo chaos_test.py.
+    """Español: Función pytest_runtest_logreport del módulo test_chaos_scenarios.py.
 
-    English: Function pytest_runtest_logreport defined in chaos_test.py.
+    English: Function pytest_runtest_logreport defined in test_chaos_scenarios.py.
     """
     if report.when != "call":
         return
@@ -499,9 +499,9 @@ def pytest_runtest_logreport(report):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """Español: Función pytest_sessionfinish del módulo chaos_test.py.
+    """Español: Función pytest_sessionfinish del módulo test_chaos_scenarios.py.
 
-    English: Function pytest_sessionfinish defined in chaos_test.py.
+    English: Function pytest_sessionfinish defined in test_chaos_scenarios.py.
     """
     lines = ["# Chaos Test Report", "", f"Exit status: {exitstatus}", ""]
     for nodeid, result in REPORT_DATA.items():

@@ -1,6 +1,6 @@
 @echo off
 title Vigil — Auditoría Electoral
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 REM ── Check Python ──────────────────────────────────────────────────────────
 python --version >nul 2>&1

@@ -33,8 +33,8 @@ VIGIL es **infraestructura de preservación de evidencia electoral pública**: n
 ### Documentación completa
 
 - [Marco legal y límites operativos](https://github.com/VectisDev/Vigil/blob/main/docs/legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
-- [Descargo de responsabilidad](https://github.com/VectisDev/Vigil/blob/main/DISCLAIMER.md)
-- [Compromiso de licencia](https://github.com/VectisDev/Vigil/blob/main/LICENSE_COMMITMENT.md)
+- [Descargo de responsabilidad](https://github.com/VectisDev/Vigil/blob/main/docs/legal/DISCLAIMER.md)
+- [Compromiso de licencia](https://github.com/VectisDev/Vigil/blob/main/docs/legal/LICENSE_COMMITMENT.md)
 
 ---
 
@@ -69,5 +69,5 @@ VIGIL is **public electoral evidence preservation infrastructure**: it is not an
 ### Full documentation
 
 - [Legal framework and operational boundaries](https://github.com/VectisDev/Vigil/blob/main/docs/legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
-- [Disclaimer](https://github.com/VectisDev/Vigil/blob/main/DISCLAIMER.md)
-- [License commitment](https://github.com/VectisDev/Vigil/blob/main/LICENSE_COMMITMENT.md)
+- [Disclaimer](https://github.com/VectisDev/Vigil/blob/main/docs/legal/DISCLAIMER.md)
+- [License commitment](https://github.com/VectisDev/Vigil/blob/main/docs/legal/LICENSE_COMMITMENT.md)

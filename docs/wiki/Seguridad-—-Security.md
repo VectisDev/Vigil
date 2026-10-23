@@ -24,7 +24,7 @@ Repórtala **en privado** desde la pestaña [Security → Report a vulnerability
 
 ### Documentación completa
 
-- [Política de seguridad](https://github.com/VectisDev/Vigil/blob/main/SECURITY.md)
+- [Política de seguridad](https://github.com/VectisDev/Vigil/blob/main/.github/SECURITY.md)
 - [Revisión de seguridad y modelo de amenazas](https://github.com/VectisDev/Vigil/blob/main/docs/security/SECURITY-REVIEW.md)
 - [Modelos de amenaza en la arquitectura](https://github.com/VectisDev/Vigil/blob/main/docs/architecture/ARCHITECTURE.md)
 
@@ -52,6 +52,6 @@ Report it **privately** from the [Security → Report a vulnerability](https://g
 
 ### Full documentation
 
-- [Security policy](https://github.com/VectisDev/Vigil/blob/main/SECURITY.md)
+- [Security policy](https://github.com/VectisDev/Vigil/blob/main/.github/SECURITY.md)
 - [Security review and threat model](https://github.com/VectisDev/Vigil/blob/main/docs/security/SECURITY-REVIEW.md)
 - [Threat models in the architecture](https://github.com/VectisDev/Vigil/blob/main/docs/architecture/ARCHITECTURE.md)

@@ -18,7 +18,7 @@ Los financiadores institucionales (NDI, Carter Center, #StartSmall) evaluan "tie
 
 ### 2) Decisiones de implementacion
 - **Aditivo, no destructivo:** nunca borra, nunca sobrescribe config, nunca fuerza. Codigos de salida: 0 listo, 1 preflight BLOCKED, 2 fallo de setup.
-- **Poetry preferido, pip como respaldo:** si hay Poetry, `install --only main`; si no, venv local desde `requirements-prod.txt`. Funciona en maquina minima.
+- **Poetry preferido, pip como respaldo:** si hay Poetry, `install --only main`; si no, venv local desde `requirements/prod.txt`. Funciona en maquina minima.
 - **El preflight es la compuerta:** si `doctor` devuelve BLOCKED, el servidor NO arranca. No se sirve evidencia sobre una postura insegura.
 - **Servir es explicito:** por defecto solo instala + verifica. `--serve` levanta la API. Arrancar un proceso largo es una accion mayor; requiere intencion explicita.
 - **Bilingue y legible en frio:** salida pensada para alguien que llega sin contexto.
@@ -38,7 +38,7 @@ Institutional funders (NDI, Carter Center, #StartSmall) score "time-to-deploy by
 
 ### 2) Implementation choices
 - **Additive, non-destructive:** never deletes, overwrites config, or forces. Exit codes: 0 ready, 1 preflight BLOCKED, 2 setup failure.
-- **Poetry preferred, pip fallback:** `install --only main` if Poetry, else local venv from `requirements-prod.txt`.
+- **Poetry preferred, pip fallback:** `install --only main` if Poetry, else local venv from `requirements/prod.txt`.
 - **Preflight is the gate:** on BLOCKED the server does NOT start -- no evidence served on an unsafe posture.
 - **Serving is explicit:** default is install + verify only; `--serve` launches the API. A long-running process is a bigger action requiring explicit intent.
 - **Bilingual, cold-readable** output.

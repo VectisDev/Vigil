@@ -80,7 +80,7 @@ else
   fi
   # shellcheck disable=SC1091
   . .venv/bin/activate
-  REQ="requirements-prod.txt"
+  REQ="requirements/prod.txt"
   [ -f "$REQ" ] || REQ="requirements.txt"
   if ! python3 -m pip install --quiet --upgrade pip; then
     print_fail "pip self-upgrade failed"; exit 2

@@ -54,7 +54,7 @@ Kept because they already exist outside the code: in installations, repositories
 | Cabecera / header `X-Centinel-Key` | `X-Vigil-Key` | La API acepta ambas / The API accepts both |
 | `window.CENTINEL_API_BASE` | `window.VIGIL_API_BASE` | `web/config.js` copia el valor antiguo si falta el nuevo / `web/config.js` copies the old value when the new one is missing |
 | `CentinelSettings` | `VigilSettings` | Alias de la misma clase / Alias of the same class |
-| `Centinel.sh`, `.command`, `.bat`, `scripts/centinel_service.sh` | `Vigil.*`, `scripts/vigil_service.sh` | Envoltorios que llaman al nuevo / Wrappers calling the new one |
+| `launchers/Centinel.sh`, `.command`, `.bat`, `scripts/centinel_service.sh` | `Vigil.*`, `scripts/vigil_service.sh` | Envoltorios que llaman al nuevo / Wrappers calling the new one |
 | `centinel_engine/.env` | `vigil_engine/.env` | Se sigue usando el antiguo si ya existe / The old file is still used if it exists |
 
 Los alias se retirarán en una versión mayor futura, anunciándolo en el CHANGELOG. Las constantes del protocolo no se retiran: cambiar una exigiría una versión nueva del protocolo (`-v2`) que conviva con la anterior.

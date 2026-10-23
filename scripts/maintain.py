@@ -5,7 +5,7 @@
 3. Notas de mantenimiento / Maintenance notes
 
 ======================== ESPAÑOL ========================
-Archivo: `maintain.py`.
+Archivo: `scripts/maintain.py`.
 Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
@@ -32,7 +32,7 @@ Notas:
 - Priorizar claridad operativa y trazabilidad del comportamiento.
 
 ======================== ENGLISH ========================
-File: `maintain.py`.
+File: `scripts/maintain.py`.
 This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
@@ -98,18 +98,24 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional
 
-import psutil
-import yaml
-from cryptography.fernet import Fernet
-from dotenv import load_dotenv
+# Run from anywhere (python scripts/maintain.py): make the repo root and src/ importable.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+for _path in (_REPO_ROOT, _REPO_ROOT / "src"):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
-from src.centinel.checkpointing import CheckpointConfig, CheckpointManager
-from src.monitoring.strict_health import (
+import psutil  # noqa: E402
+import yaml  # noqa: E402
+from cryptography.fernet import Fernet  # noqa: E402
+from dotenv import load_dotenv  # noqa: E402
+
+from vigil.checkpointing import CheckpointConfig, CheckpointManager  # noqa: E402
+from src.monitoring.strict_health import (  # noqa: E402
     get_recent_health_diagnostics,
     is_healthy_strict,
 )
 
-from vigil_engine.electoral_authority_healer import CNEEndpointHealer, run_endpoint_healer
+from vigil_engine.electoral_authority_healer import CNEEndpointHealer, run_endpoint_healer  # noqa: E402
 
 if importlib.util.find_spec("rich"):
     from rich.console import Console
@@ -579,9 +585,9 @@ def command_clean_old_checkpoints(runtime: RuntimeConfig, logger: logging.Logger
 
 
 def _build_backup_fernet(runtime: RuntimeConfig) -> Fernet:
-    """Español: Función _build_backup_fernet del módulo maintain.py.
+    """Español: Función _build_backup_fernet del módulo scripts/maintain.py.
 
-    English: Function _build_backup_fernet defined in maintain.py.
+    English: Function _build_backup_fernet defined in scripts/maintain.py.
     """
     secret = runtime.backup_secret or os.getenv("VIGIL_CHECKPOINT_SECRET", os.getenv("CENTINEL_CHECKPOINT_SECRET"))
     if not secret:
@@ -802,10 +808,10 @@ if __name__ == "__main__":
 
 
 # Ejemplos de uso:
-#   python maintain.py status
-#   python maintain.py checkpoint-now
-#   python maintain.py rotate-keys
-#   python maintain.py clean-old-checkpoints --days 45
-#   python maintain.py backup-config
-#   python maintain.py test-recovery
-#   python maintain.py panic
+#   python scripts/maintain.py status
+#   python scripts/maintain.py checkpoint-now
+#   python scripts/maintain.py rotate-keys
+#   python scripts/maintain.py clean-old-checkpoints --days 45
+#   python scripts/maintain.py backup-config
+#   python scripts/maintain.py test-recovery
+#   python scripts/maintain.py panic

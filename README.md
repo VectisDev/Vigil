@@ -94,11 +94,11 @@ Findings, caveats and data: [pilot page](https://github.com/VectisDev/Vigil/wiki
 
 ## Security
 
-Please report vulnerabilities privately through [Security → Report a vulnerability](https://github.com/VectisDev/Vigil/security/advisories/new). See [SECURITY.md](SECURITY.md).
+Please report vulnerabilities privately through [Security → Report a vulnerability](https://github.com/VectisDev/Vigil/security/advisories/new). See [SECURITY.md](.github/SECURITY.md).
 
 ## Contributing
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome. Read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and the [code of conduct](.github/CODE_OF_CONDUCT.md).
 
 ## License
 
