@@ -250,7 +250,7 @@ class FederationAttackLog:
                 entry["_received_utc"] = row[2]
                 result.append(entry)
             except Exception:
-                logger.debug("attack_log_row_skipped source=%s", row[1], exc_info=True)
+                logger.debug("attack_log_row_skipped source=%r", row[1], exc_info=True)
         return result
 
     def stats(self) -> dict:
