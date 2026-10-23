@@ -6,12 +6,13 @@ Initial setup and seed regeneration endpoints.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
@@ -63,18 +64,43 @@ def _write_access(hashes: dict[str, str]) -> None:
     _ACCESS_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def _verify_seed(seed_label: str, seed_value: str) -> bool:
-    """Verify a plaintext seed against the stored PBKDF2 hash."""
-    access = _read_access()
-    stored_hashes = access.get("seeds", {})
-    expected = stored_hashes.get(seed_label)
-    if not expected:
+def _verify_seed(seed_value: str, seed_label: str | None = None) -> bool:
+    """Verify a plaintext seed against access.json.
+
+    Supports v3 (list of SHA-256 hashes, or objects with ``hash``) and the
+    legacy v1/v2 format (dict label -> PBKDF2 hash).
+    """
+    if not seed_value:
         return False
-    actual = hashlib.pbkdf2_hmac(
-        "sha256", seed_value.encode(), SEED1_SALT.encode(), SEED1_ITERS
-    ).hex()
-    # Constant-time comparison
-    return hashlib.compare_digest(actual, expected)
+    access = _read_access()
+    seeds = access.get("seeds") or {}
+    if (access.get("version") or 0) >= 3 or access.get("method") == "SHA-256":
+        actual = hashlib.sha256(seed_value.encode()).hexdigest()
+    else:
+        actual = hashlib.pbkdf2_hmac(
+            "sha256",
+            seed_value.encode(),
+            str(access.get("salt") or SEED1_SALT).encode(),
+            int(access.get("iterations") or SEED1_ITERS),
+        ).hex()
+
+    if isinstance(seeds, dict):
+        candidates = [seeds.get(seed_label)] if seed_label else list(seeds.values())
+    else:
+        candidates = [s.get("hash") if isinstance(s, dict) else s for s in seeds]
+
+    # Constant-time comparison against every candidate (no early exit)
+    matched = False
+    for expected in candidates:
+        if isinstance(expected, str) and hmac.compare_digest(actual, expected):
+            matched = True
+    return matched
+
+
+def _require_operator(key: str | None) -> None:
+    """Reject requests that do not carry a valid operator access key."""
+    if not _verify_seed((key or "").strip()):
+        raise HTTPException(status_code=401, detail="Clave de operador requerida o inválida.")
 
 
 def _pdf_response(seeds: dict, country_name: str, country_flag: str, code: str) -> Response:
@@ -133,8 +159,8 @@ class ChangeCountryRequest(BaseModel):
 
 class RegenerateRequest(BaseModel):
     country_code: str | None = None
-    seed_label: str          # e.g. "S1-A"
-    seed_value: str          # plaintext seed to authenticate
+    seed_label: str | None = None  # optional legacy label, e.g. "S1-A"
+    seed_value: str                # plaintext seed to authenticate
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -220,13 +246,18 @@ def setup_init(req: InitRequest) -> Response:
 
 
 @router.post("/change_country")
-def change_country(req: ChangeCountryRequest) -> dict:
+def change_country(
+    req: ChangeCountryRequest,
+    x_centinel_key: str | None = Header(default=None),
+) -> dict:
     """Cambia el país monitorado sin regenerar seeds.
 
     Actualiza .centinel-setup.json y command_center/config.yaml con el
     nuevo country_code. Los seeds existentes no se tocan.
     Idempotente — se puede llamar múltiples veces.
+    Requiere la clave de operador en el header ``X-Centinel-Key``.
     """
+    _require_operator(x_centinel_key)
     code = req.country_code.upper().strip()
     if code not in LATAM_COUNTRIES:
         raise HTTPException(status_code=400, detail=f"País '{code}' no soportado.")
@@ -261,10 +292,15 @@ class DiscoverRequest(BaseModel):
 
 
 @router.post("/discover_endpoints")
-def discover_endpoints(req: DiscoverRequest) -> dict:
+def discover_endpoints(
+    req: DiscoverRequest,
+    x_centinel_key: str | None = Header(default=None),
+) -> dict:
     """Guarda main_url en endpoints.yaml y ejecuta el healer para descubrir
     los endpoints por división política del ente electoral indicado.
+    Requiere la clave de operador en el header ``X-Centinel-Key``.
     """
+    _require_operator(x_centinel_key)
     import os
     import yaml
 
@@ -364,7 +400,7 @@ def regenerate_seeds(req: RegenerateRequest) -> Response:
     if not setup:
         raise HTTPException(status_code=400, detail="Sistema no configurado aún.")
 
-    if not _verify_seed(req.seed_label, req.seed_value):
+    if not _verify_seed(req.seed_value, req.seed_label):
         logger.warning("regenerate_auth_failed label=%s", _sl(req.seed_label))
         raise HTTPException(status_code=401, detail="Seed de autenticación inválido.")
 

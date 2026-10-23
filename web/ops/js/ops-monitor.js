@@ -536,7 +536,7 @@ async function saveElectoralUrl() {
   try {
     const r = await fetch((window.CENTINEL_API_BASE || '') + '/api/setup/discover_endpoints', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Centinel-Key': sessionStorage.getItem('centinel_admin_key') || '' },
       body: JSON.stringify({ main_url: url, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
     });
 
@@ -670,7 +670,7 @@ async function doChangeCountry() {
   try {
     const r = await fetch((window.CENTINEL_API_BASE||'') + '/api/setup/change_country', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'X-Centinel-Key': sessionStorage.getItem('centinel_admin_key') || ''},
       body: JSON.stringify({country_code: code}),
     });
     if (r.ok) {

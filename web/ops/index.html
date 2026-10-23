@@ -1936,6 +1936,7 @@ async function doAdminLogin(prefillKey) {
     sessionStorage.setItem('centinel_role', matchedRole);
     sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
     sessionStorage.setItem('centinel_fp', candidate.slice(-6));
+    sessionStorage.setItem('centinel_admin_key', pass);  // sent as X-Centinel-Key to the API
     // Try encrypted PAT first (writer_pat block), then fall back to plain h.pat
     if(!matchedPat && ac.writer_pat && matchedSlot !== null){
       matchedPat = await decryptWriterPat(candidate, matchedSlot, ac.writer_pat);

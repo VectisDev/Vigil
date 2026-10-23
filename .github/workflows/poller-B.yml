@@ -31,7 +31,7 @@ on:
       max_runtime_seconds:
         description: 'Tiempo máximo en segundos / Max runtime in seconds'
         required: false
-        default: '19800'
+        default: '19200'
 
 # CRÍTICO: Singleton separado del Poller A
 # CRITICAL: Separate singleton from Poller A
@@ -90,7 +90,7 @@ jobs:
       - name: Run continuous poller B
         env:
           POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
-          MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19800' }}
+          MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19200' }}
           DATA_BRANCH:        "snapshots"
           ENDPOINTS_JSON:     ${{ secrets.ENDPOINTS_JSON }}
           GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}

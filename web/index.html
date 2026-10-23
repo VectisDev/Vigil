@@ -1137,6 +1137,7 @@ async function doOpsLogin() {
     sessionStorage.setItem('centinel_role', matchedRole);
     sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
     sessionStorage.setItem('centinel_fp', candidate.slice(-6));
+    sessionStorage.setItem('centinel_admin_key', pass);  // sent as X-Centinel-Key to the API
     if (!matchedPat && ac.writer_pat && matchedSlot !== null) {
       matchedPat = await _decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
     }

@@ -37,7 +37,7 @@ on:
       max_runtime_seconds:
         description: 'Tiempo máximo en segundos / Max runtime in seconds'
         required: false
-        default: '19800'
+        default: '19200'
 
 # CRÍTICO: Singleton — evitar dos instancias de A simultáneas
 # CRITICAL: Singleton — prevent two simultaneous A instances
@@ -99,7 +99,7 @@ jobs:
       - name: Run continuous poller A
         env:
           POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
-          MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19800' }}
+          MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19200' }}
           DATA_BRANCH:        "snapshots"
           GH_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
         run: |
