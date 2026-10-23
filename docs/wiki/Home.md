@@ -23,6 +23,8 @@ Las autoridades electorales publican resultados que la ciudadanía debe aceptar 
 | Revisor técnico o de seguridad | [Arquitectura — Architecture](Arquitectura-—-Architecture) · [Seguridad — Security](Seguridad-—-Security) |
 | Estadístico o académico | [Metodología — Methodology](Metodología-—-Methodology) |
 | Quien quiere ver resultados reales | [Piloto Honduras 2025 — Honduras 2025 pilot](Piloto-Honduras-2025-—-Honduras-2025-pilot) |
+| Financiador o evaluador de becas | [Para financiadores — For funders](Para-financiadores-—-For-funders) · [Estado del proyecto — Project status](Estado-del-proyecto-—-Project-status) |
+| Quien quiere contribuir | [Contribuir — Contributing](Contribuir-—-Contributing) |
 
 ### En una frase por pieza
 
@@ -55,6 +57,8 @@ Electoral authorities publish results that citizens must accept on trust. **VIGI
 | A technical or security reviewer | [Arquitectura — Architecture](Arquitectura-—-Architecture) · [Seguridad — Security](Seguridad-—-Security) |
 | A statistician or academic | [Metodología — Methodology](Metodología-—-Methodology) |
 | Looking for real results | [Piloto Honduras 2025 — Honduras 2025 pilot](Piloto-Honduras-2025-—-Honduras-2025-pilot) |
+| A funder or grant reviewer | [Para financiadores — For funders](Para-financiadores-—-For-funders) · [Estado del proyecto — Project status](Estado-del-proyecto-—-Project-status) |
+| Looking to contribute | [Contribuir — Contributing](Contribuir-—-Contributing) |
 
 ### One line per piece
 

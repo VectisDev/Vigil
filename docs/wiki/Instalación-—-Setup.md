@@ -46,7 +46,7 @@ Si haces un *fork* del repositorio, los workflows de GitHub Actions pueden captu
 
 ### Países
 
-Honduras (`HN`) está validado de extremo a extremo. Otros 17 países de América Latina tienen la configuración lista y solo requieren la URL oficial de resultados; el formato (JSON o CSV) se detecta solo. La lista completa está en el [README](https://github.com/VectisDev/Vigil#supported-countries).
+Honduras (`HN`) está validado de extremo a extremo. Otros 17 países de América Latina tienen la configuración lista y solo requieren la URL oficial de resultados; el formato (JSON o CSV) se detecta solo. Lista completa y cómo agregar países: [Países — Countries](Países-—-Countries).
 
 ### Más detalle
 
@@ -100,7 +100,7 @@ If you fork the repository, its GitHub Actions workflows can capture and publish
 
 ### Countries
 
-Honduras (`HN`) is validated end to end. Seventeen other Latin American countries have presets ready and only need the official results URL; the format (JSON or CSV) is detected automatically. The full list is in the [README](https://github.com/VectisDev/Vigil#supported-countries).
+Honduras (`HN`) is validated end to end. Seventeen other Latin American countries have presets ready and only need the official results URL; the format (JSON or CSV) is detected automatically. Full list and how to add countries: [Países — Countries](Países-—-Countries).
 
 ### More detail
 
