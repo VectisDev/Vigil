@@ -1186,14 +1186,6 @@ def run_pipeline(config: dict[str, Any]) -> None:
                     mode=vital_state.get("mode"),
                     recommended_delay=vital_state.get("recommended_delay_seconds"),
                 )
-            else:
-                scrape_status = vital_signs.update_status_after_scrape(
-                    scrape_status,
-                    success=True,
-                    latency=latency,
-                    status_code=status_code,
-                    config=runtime_vital_config,
-                )
 
             download_cmd = [sys.executable, "scripts/download_and_hash.py"]
             if not health_ok:
