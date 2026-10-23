@@ -38,9 +38,11 @@ jobs:
     timeout-minutes: 10
     # Solo PRs del mismo repo: no se puede (ni se debe) empujar a forks.
     # Same-repo PRs only: cannot (and must not) push to forks.
+    # Ni ramas de datos (los bots escriben ahí) / Never data branches (bots write there).
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.head_ref != 'snapshots' && !startsWith(github.head_ref, 'data/'))
 
     steps:
       - name: Checkout PR branch
@@ -72,7 +74,7 @@ jobs:
             echo "No base SHA (manual run) — healing all tracked .py files."
             mapfile -t changed_py < <(git ls-files '*.py')
           else
-            mapfile -t changed_py < <(git diff --name-only "${BASE_SHA}" "HEAD" -- '*.py' | { grep -v -E '^tests/fixtures/' || true; })
+            mapfile -t changed_py < <(git diff --name-only --diff-filter=d "${BASE_SHA}" "HEAD" -- '*.py' | { grep -v -E '^tests/fixtures/' || true; })
           fi
 
           if (( ${#changed_py[@]} == 0 )); then

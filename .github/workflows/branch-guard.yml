@@ -1,0 +1,32 @@
+name: Branch Guard
+
+# ES: Los bots publican datos en `snapshots` y `data/*`; esas ramas nunca deben
+#     fusionarse en `main`. Este check falla de forma visible si alguien abre
+#     esa PR (por ejemplo desde el banner "Compare & pull request").
+# EN: Bots publish data to `snapshots` and `data/*`; those branches must never be
+#     merged into `main`. This check fails visibly if such a PR is opened.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Data branches stay out of main
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Reject data branches as PR source
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          case "$HEAD_REF" in
+            snapshots|data/*)
+              echo "::error::'$HEAD_REF' is a data branch written by bots; do not merge it into main. Close this PR."
+              exit 1
+              ;;
+          esac
+          echo "Source branch '$HEAD_REF' is allowed."
