@@ -42,6 +42,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import requests
+import urllib3
 
 from scripts import collector
 
@@ -86,6 +87,29 @@ def test_fetch_json_with_retry_recovers_after_one_failure(monkeypatch):
 
     assert payload == {"ok": True}
     assert state["calls"] == 2
+
+
+def test_fetch_json_with_retry_survives_raw_urllib3_errors(monkeypatch) -> None:
+    """Connection resets from the pinned urllib3 fetch must be retried, not raised."""
+    errors = [
+        urllib3.exceptions.ProtocolError("Connection aborted.", ConnectionResetError(104, "reset")),
+        ConnectionResetError(104, "Connection reset by peer"),
+    ]
+
+    def _fake_fetch(*_args, **_kwargs):
+        raise errors.pop(0)
+
+    monkeypatch.setattr(collector, "_fetch_json_over_pinned_https", _fake_fetch)
+
+    payload = collector.fetch_json_with_retry(
+        "https://cne.hn/api",
+        timeout_seconds=1,
+        max_attempts=2,
+        backoff_base=0,
+    )
+
+    assert payload is None
+    assert errors == []
 
 
 def test_fetch_json_with_retry_uses_pinned_https_fetch(monkeypatch) -> None:

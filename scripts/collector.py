@@ -172,7 +172,8 @@ def fetch_json_with_retry(
                     timeout_seconds=timeout_seconds,
                     request_headers=request_headers,
                 )
-        except (requests.RequestException, json.JSONDecodeError, ValueError) as exc:
+        # English/Spanish: pinned fetch uses raw urllib3 (resets/TLS/timeouts) / errores crudos de urllib3.
+        except (requests.RequestException, urllib3.exceptions.HTTPError, OSError, ValueError) as exc:
             LOGGER.warning("collector_fetch_failed attempt=%s/%s url=%s error=%s", attempt, max_attempts, url, exc)
             if attempt == max_attempts:
                 return None
