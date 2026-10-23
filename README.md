@@ -36,7 +36,7 @@ A single operator can audit a national election from a laptop, at zero cost.
 
 ## Key properties
 
-| | |
+| Property | What it means |
 |---|---|
 | **Verifiable** | A SHA-256 hash chain and Merkle roots that anyone can check offline with one dependency-free script |
 | **Tamper-evident in time** | Merkle roots anchored to Bitcoin through OpenTimestamps |
