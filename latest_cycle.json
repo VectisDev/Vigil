@@ -1,160 +1,160 @@
 {
-  "cycle": 21,
-  "cycle_hash": "df0dbb9cea27ea8bc12cb5cf99b8309e1782b1fb613780d1f5ed315aa5977775",
-  "timestamp": "2026-10-25T22:53:15.444339+00:00",
+  "cycle": 22,
+  "cycle_hash": "85cd5c6da3f1c58dc427a5d8c5fe5355951c374e3177fa4be7a787c4cc24de6b",
+  "timestamp": "2026-10-25T22:56:16.329124+00:00",
   "effective_interval_seconds": 180,
   "results": [
     {
       "endpoint": "HN-nacional-nacional",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 952.2,
-      "error": "http_404"
+      "latency_ms": 1831.4,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-01-dept_01",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 950.1,
-      "error": "http_404"
+      "latency_ms": 1831.0,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-02-dept_02",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 951.4,
-      "error": "http_404"
+      "latency_ms": 1844.9,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-03-dept_03",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 967.7,
-      "error": "http_404"
+      "latency_ms": 1832.7,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-04-dept_04",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 969.9,
-      "error": "http_404"
+      "latency_ms": 1845.4,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-05-dept_05",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1161.9,
-      "error": "http_404"
+      "latency_ms": 2044.4,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-06-dept_06",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1162.3,
-      "error": "http_404"
+      "latency_ms": 2043.7,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-07-dept_07",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1162.3,
-      "error": "http_404"
+      "latency_ms": 2046.2,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-08-dept_08",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1179.1,
-      "error": "http_404"
+      "latency_ms": 2059.3,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-09-dept_09",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1179.3,
-      "error": "http_404"
+      "latency_ms": 2056.2,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-10-dept_10",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1380.8,
-      "error": "http_404"
+      "latency_ms": 2257.1,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-11-dept_11",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1377.7,
-      "error": "http_404"
+      "latency_ms": 2279.3,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-12-dept_12",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1380.5,
-      "error": "http_404"
+      "latency_ms": 2259.4,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-13-dept_13",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1390.8,
-      "error": "http_404"
+      "latency_ms": 2275.1,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-14-dept_14",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1394.6,
-      "error": "http_404"
+      "latency_ms": 2269.4,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-15-dept_15",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1588.6,
-      "error": "http_404"
+      "latency_ms": 2471.0,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-16-dept_16",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1591.1,
-      "error": "http_404"
+      "latency_ms": 2471.4,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-17-dept_17",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1602.6,
-      "error": "http_404"
+      "latency_ms": 2487.2,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-18-dept_18",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1602.3,
-      "error": "http_404"
+      "latency_ms": 2485.8,
+      "error": "http_403"
     }
   ]
 }
