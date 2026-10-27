@@ -1,7 +1,7 @@
 {
-  "cycle": 86,
-  "cycle_hash": "ad690189e89ac40c26b74a5e94c74b87ac4813501a6f8c06de4751c41795f557",
-  "timestamp": "2026-10-27T22:10:03.553603+00:00",
+  "cycle": 87,
+  "cycle_hash": "f6690e21930282b0ca2e31839b771a35f13d4b2732ec0ea62bb89436d50695ae",
+  "timestamp": "2026-10-27T22:13:03.535032+00:00",
   "effective_interval_seconds": 180,
   "results": [
     {
@@ -9,7 +9,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1108.0,
+      "latency_ms": 1073.2,
       "error": "http_403"
     },
     {
@@ -17,23 +17,23 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1102.4,
+      "latency_ms": 1076.0,
       "error": "http_403"
     },
     {
       "endpoint": "HN-02-dept_02",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1036.7,
-      "error": "http_404"
+      "latency_ms": 1096.9,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-03-dept_03",
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1111.0,
+      "latency_ms": 1076.8,
       "error": "http_403"
     },
     {
@@ -41,7 +41,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1115.7,
+      "latency_ms": 1075.0,
       "error": "http_403"
     },
     {
@@ -49,7 +49,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1274.8,
+      "latency_ms": 1293.7,
       "error": "http_403"
     },
     {
@@ -57,7 +57,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1325.2,
+      "latency_ms": 1295.2,
       "error": "http_403"
     },
     {
@@ -65,7 +65,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1329.6,
+      "latency_ms": 1297.4,
       "error": "http_403"
     },
     {
@@ -73,7 +73,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1331.3,
+      "latency_ms": 1296.6,
       "error": "http_403"
     },
     {
@@ -81,7 +81,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1338.2,
+      "latency_ms": 1316.8,
       "error": "http_403"
     },
     {
@@ -89,7 +89,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1496.3,
+      "latency_ms": 1515.9,
       "error": "http_403"
     },
     {
@@ -97,7 +97,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1545.6,
+      "latency_ms": 1516.6,
       "error": "http_403"
     },
     {
@@ -105,7 +105,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1550.3,
+      "latency_ms": 1517.3,
       "error": "http_403"
     },
     {
@@ -113,7 +113,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1552.6,
+      "latency_ms": 1587.2,
       "error": "http_403"
     },
     {
@@ -121,7 +121,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1556.3,
+      "latency_ms": 1536.5,
       "error": "http_403"
     },
     {
@@ -129,7 +129,7 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1719.7,
+      "latency_ms": 1738.1,
       "error": "http_403"
     },
     {
@@ -137,23 +137,23 @@
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1768.7,
+      "latency_ms": 1738.0,
       "error": "http_403"
     },
     {
       "endpoint": "HN-17-dept_17",
       "success": false,
-      "status": 404,
+      "status": 403,
       "hash": null,
-      "latency_ms": 1769.6,
-      "error": "http_404"
+      "latency_ms": 1738.8,
+      "error": "http_403"
     },
     {
       "endpoint": "HN-18-dept_18",
       "success": false,
       "status": 403,
       "hash": null,
-      "latency_ms": 1775.7,
+      "latency_ms": 1757.0,
       "error": "http_403"
     }
   ]
