@@ -1,160 +1,160 @@
 {
-  "cycle": 19,
-  "cycle_hash": "5969b8a913daf875eb639c86cce6b80167252c0ff301c8d96ddc239faecbf138",
-  "timestamp": "2026-10-30T20:41:49.616164+00:00",
+  "cycle": 20,
+  "cycle_hash": "4eee3ad1d58b5d51747576ab543a5e25b2c0515de8b171486ab78cca8c6c352c",
+  "timestamp": "2026-10-30T20:44:42.489439+00:00",
   "effective_interval_seconds": 180,
   "results": [
     {
       "endpoint": "HN-nacional-nacional",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8221.6,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1010.6,
+      "error": null
     },
     {
       "endpoint": "HN-01-dept_01",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 7788.6,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1009.5,
+      "error": null
     },
     {
       "endpoint": "HN-02-dept_02",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8290.8,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1009.9,
+      "error": null
     },
     {
       "endpoint": "HN-03-dept_03",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8035.0,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1009.0,
+      "error": null
     },
     {
       "endpoint": "HN-04-dept_04",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 7889.9,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1008.2,
+      "error": null
     },
     {
       "endpoint": "HN-05-dept_05",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8376.3,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1236.4,
+      "error": null
     },
     {
       "endpoint": "HN-06-dept_06",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8381.5,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1240.1,
+      "error": null
     },
     {
       "endpoint": "HN-07-dept_07",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 7910.5,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1239.0,
+      "error": null
     },
     {
       "endpoint": "HN-08-dept_08",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8596.8,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1239.5,
+      "error": null
     },
     {
       "endpoint": "HN-09-dept_09",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8238.0,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1241.2,
+      "error": null
     },
     {
       "endpoint": "HN-10-dept_10",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8441.7,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1466.5,
+      "error": null
     },
     {
       "endpoint": "HN-11-dept_11",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 7939.9,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1468.3,
+      "error": null
     },
     {
       "endpoint": "HN-12-dept_12",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8508.9,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1473.5,
+      "error": null
     },
     {
       "endpoint": "HN-13-dept_13",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8160.1,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1469.7,
+      "error": null
     },
     {
       "endpoint": "HN-14-dept_14",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8459.2,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1472.4,
+      "error": null
     },
     {
       "endpoint": "HN-15-dept_15",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8601.4,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1694.9,
+      "error": null
     },
     {
       "endpoint": "HN-16-dept_16",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8735.4,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1704.3,
+      "error": null
     },
     {
       "endpoint": "HN-17-dept_17",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8708.2,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1695.4,
+      "error": null
     },
     {
       "endpoint": "HN-18-dept_18",
-      "success": false,
-      "status": 503,
-      "hash": null,
-      "latency_ms": 8832.1,
-      "error": "http_503"
+      "success": true,
+      "status": 200,
+      "hash": "362b5eee29f0e12a701cbe46cf65585a9424efb4980c912136d48a3614904d48",
+      "latency_ms": 1703.5,
+      "error": null
     }
   ]
 }
