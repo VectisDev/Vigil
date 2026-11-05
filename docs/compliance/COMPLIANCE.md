@@ -58,7 +58,7 @@ ISO 27037 define principios para que la evidencia digital sea admisible, relevan
 | 6.1 — Análisis de datos | Proceso sistemático documentado | Rules engine modular (23+ reglas, categorías A–E) | `src/vigil/core/anomaly_detector.py` | ✅ Alineado |
 | 6.2 — Interpretación | Distinguir correlación de causalidad | CRS es "indicador operacional" explícitamente, no afirma causalidad | `docs/methodology/crs.md §What this is` | ✅ Alineado |
 | 7 — Informe | Formato de reporte; comunicación de hallazgos | PDF forense (ReportLab); `/replay/` snapshot-por-snapshot | `web/replay/index.html`, PDF generation | ⚠️ Parcial — informe PDF no está en producción estable |
-| 8 — Competencia analítica | El analista debe poder justificar el método | Colaboración con Prof. Devis Alvarado (UPNFM) en proceso | `docs/legal/EMAIL_DEVIS_DRAFT.md`, `docs/legal/MOU_UPNFM_DRAFT.md` | ⚠️ Pendiente de firma MOU |
+| 8 — Competencia analítica | El analista debe poder justificar el método | Metodología y umbrales versionados y reproducibles; revisión académica independiente buscada | `docs/research/METHODOLOGY.md`, `docs/research/THRESHOLD_PREREGISTRATION.md` | ⚠️ Sin revisión firmada |
 
 **Brechas conocidas:**
 - Informe forense PDF está en desarrollo; no está en producción para observación en tiempo real.
@@ -148,7 +148,6 @@ El criterio más crítico para los gráficos es 1.4.1: "Color alone is not used 
 |---|---|---|---|
 | Timestamps de snapshots | `YYYY-MM-DDTHH:MM:SSZ` | `2025-11-27T14:30:00Z` | `src/vigil/core/models.py` |
 | Render timestamps en UI | `YYYY-MM-DD HH:MM UTC` | `2026-06-23 14:30 UTC` | `web/lab/index.html` (`_updateAcadPanel()`) |
-| Nombres de archivos de diary | `YYYYMMDD` | `dev-diary-20260623-...` | `docs/dev-diary/` |
 | Logs de operaciones | ISO 8601 extended | `2026-06-23T14:30:00.000Z` | `vigil_engine/vital_signs.py` |
 
 ---
@@ -188,7 +187,6 @@ NIST 800-53 es el catálogo de referencia de controles de seguridad para sistema
 | RA — Evaluación de riesgos | RA-3 Evaluación de riesgos | No existe registro formal de riesgos | — | ❌ Brecha |
 | PL — Planificación | PL-1 Políticas y procedimientos | Principios operativos documentados | `docs/legal/OPERATING-PRINCIPLES.md` | ⚠️ Parcial |
 | SA — Adquisición de sistemas | SA-11 Pruebas de seguridad del desarrollador | 526 tests pytest; CI automático | `tests/`, `.github/workflows/` | ✅ |
-| AC — Control de acceso | AC-2 Gestión de cuentas | Auth PBKDF2 + Zero Trust para operadores | `web/ops/index.html` (AUTH IIFE), `docs/dev-diary/dev-diary-20260520-PBKDF2ZeroTrustNoSupabase-01.md` | ✅ |
 
 **Brechas principales:**
 - RA-3: Sin risk register formal documentado.
@@ -218,7 +216,7 @@ NIST 800-53 es el catálogo de referencia de controles de seguridad para sistema
 | Brecha | Norma afectada | Prioridad | Acción recomendada |
 |---|---|---|---|
 | No existe risk register formal | ISO 27005, NIST 800-53 RA-3 | Alta | Crear `docs/compliance/RISK_REGISTER.md` antes de presentación a OEA |
-| Calibración CRS pendiente (HND 2017/2021) | ISO 27042 §7 (informe defensible) | Alta | Priorizar con Prof. Alvarado; ver `docs/legal/EMAIL_DEVIS_DRAFT.md` |
+| Calibración CRS pendiente (HND 2017/2021) | ISO 27042 §7 (informe defensible) | Alta | Priorizar calibración histórica; revisión académica independiente buscada | `docs/stats/THRESHOLD_CALIBRATION_HN2025.md` |
 | Informe PDF forense no en producción estable | ISO 27042 §7 | Media | Estabilizar generación PDF antes de misión de observación |
 | Auditoría formal WCAG (axe-core/Lighthouse) no ejecutada | WCAG 2.2 AA §1.4.3, §1.4.11 | Media | Ejecutar `npx axe-cli` sobre `/lab/` y `/replay/` |
 | Texto alternativo en gráficos Chart.js | WCAG 2.2 AA §1.1.1 | Media | Agregar `aria-label` descriptivos a elementos `<canvas>` |
@@ -240,4 +238,4 @@ El propósito es demostrar que Vigil fue diseñado con conciencia de estos está
 ---
 
 *Última actualización: 2026-06-23. Mantenido por el equipo técnico de Vigil / VectisDev.*
-*Revisión académica pendiente: Prof. Devis Alvarado, UPNFM — ver `docs/legal/MOU_UPNFM_DRAFT.md`.*
+*Revisión académica independiente buscada; ninguna firmada a la fecha.*

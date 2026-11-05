@@ -6,6 +6,27 @@
 <meta name="robots" content="noindex,nofollow">
 <title>VIGIL — Ops</title>
 <link rel="icon" type="image/svg+xml" href="../assets/mark.svg">
+<script>
+// ── Token de escritura: SOLO en memoria ─────────────────────────────────────
+// Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
+// pestaña y es legible por cualquier XSS en este origen público. Se mantiene en
+// una variable de módulo: vive lo que vive la página y nunca toca el disco.
+// A write-scoped PAT in localStorage outlives the tab and is readable by any
+// XSS on this public origin. Keep it in a module variable: it lives as long as
+// the page and never touches disk.
+window.VigilToken = window.VigilToken || (function () {
+  let token = null;
+  return {
+    get: function () { return token; },
+    set: function (v) { token = v || null; },
+    clear: function () { token = null; },
+    has: function () { return !!token; }
+  };
+})();
+// Limpieza de valores heredados / purge any legacy persisted value.
+try { localStorage.removeItem('gh-pat'); } catch (e) {}
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script src="../config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1942,7 +1963,7 @@ async function doAdminLogin(prefillKey) {
     if(!matchedPat && ac.writer_pat && matchedSlot !== null){
       matchedPat = await decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
     }
-    if(matchedPat) localStorage.setItem('gh-pat', matchedPat);
+    if(matchedPat) window.VigilToken.set(matchedPat);
     currentUser = {seed: matchedId || 'S??', role: matchedRole};
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     showAdminShell();
@@ -2264,7 +2285,7 @@ function openPurgeModal() {
   document.getElementById('purge-progress').style.display = 'none';
   document.getElementById('purge-progress-bar').style.width = '0%';
   // Pre-fill PAT if already in session
-  const pat = localStorage.getItem('gh-pat');
+  const pat = window.VigilToken.get();
   if (pat) document.getElementById('purge-pat-input').value = pat;
 }
 

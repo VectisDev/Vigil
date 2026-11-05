@@ -28,7 +28,7 @@ We present VIGIL (formerly CENTINEL), an open-source system for cryptographic an
 
 **Comments (campo opcional):**
 ```
-11 pages, 5 tables. Code: https://github.com/VectisDev/Vigil (AGPL-3.0). Data: https://doi.org/10.5281/zenodo.20598892. Academic validation in progress (UPNFM, Honduras).
+11 pages, 5 tables. Code: https://github.com/VectisDev/Vigil (AGPL-3.0). Data: https://doi.org/10.5281/zenodo.20598892. Independent academic review sought; none signed to date.
 ```
 
 ---
@@ -47,7 +47,7 @@ We present VIGIL (formerly CENTINEL), an open-source system for cryptographic an
 
 arXiv permite subir sin revisión por pares. El paper queda disponible públicamente 
 en 24 horas. La autoría actual ("VIGIL Project; VectisDev") es correcta para
-enviar ahora — no se requiere ninguna firma externa. Si el Prof. Devis Alvarado
+enviar ahora — no se requiere ninguna firma externa. Si el independent academic reviewer (pending)
 confirma su rol de validación académica más adelante, se puede publicar una v2
 del preprint agregándolo como co-autor (arXiv permite revisiones de versión sin
 penalización).

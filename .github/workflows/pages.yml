@@ -1,6 +1,7 @@
 name: Deploy web verifier to GitHub Pages
 
-# El setup-wizard activa Pages automáticamente al hacer fork.
+# Pages debe activarse manualmente: Settings -> Pages -> Source: GitHub Actions.
+# Pages must be enabled manually: Settings -> Pages -> Source: GitHub Actions.
 # Si falla, abre un Issue con un link directo a Settings → Pages.
 # URL: https://vectisdev.github.io/Vigil/
 on:

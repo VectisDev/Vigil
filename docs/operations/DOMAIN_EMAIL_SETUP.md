@@ -24,7 +24,7 @@
 
 1. Ir a https://proton.me/mail
 2. Crear cuenta con el dominio registrado
-3. Email resultado: `contact@centinelelectoral.org`
+3. Email resultado: `security@vectis.dev`
 
 O usar **Proton for Organizations** (gratis para 1 usuario con dominio propio):
 https://proton.me/business/plans
@@ -39,8 +39,6 @@ https://proton.me/support/custom-domain
 
 Una vez tengas el email, actualizar:
 - `docs/grants/OTF_ConceptNote_IFF2026.md` — campo de contacto
-- `docs/legal/MOU_UPNFM_DRAFT.md` — correo Parte A
-- `docs/legal/EMAIL_DEVIS_DRAFT.md` — remitente
 - README.md — email de contacto del proyecto
 
 ---

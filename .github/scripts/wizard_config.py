@@ -3,7 +3,9 @@
 Wizard step: write country config, generate endpoints/sources, and
 produce web/data/departments.json for the UI panels.
 
-Called by setup-wizard.yml with CENTINEL_COUNTRY env var set.
+Helper for fork self-configuration. NOTE: no workflow currently invokes this;
+setup-wizard.yml is not present in the repository. Run manually with
+CENTINEL_COUNTRY set.
 Reads src/vigil/countries.py as the single source of truth.
 """
 import json

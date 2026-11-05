@@ -331,7 +331,7 @@ class TestShareFormat:
     def test_parse_roundtrip(self):
         original_text = serialize_share(
             share_bytes=self.SAMPLE_SHARE_BYTES,
-            custodian="Carlos Zelaya",
+            custodian="VectisDev",
             threshold=3,
             total=5,
             secret_hash=self.SAMPLE_SECRET_HASH,
@@ -340,7 +340,7 @@ class TestShareFormat:
         )
         parsed = parse_share(original_text)
         assert parsed.version == 1
-        assert parsed.custodian == "Carlos Zelaya"
+        assert parsed.custodian == "VectisDev"
         assert parsed.share_id == 1
         assert parsed.threshold == 3
         assert parsed.total == 5
@@ -444,9 +444,9 @@ class TestKeyCeremony:
         from centinel_key_ceremony import run_ceremony  # noqa: E402
 
         custodians = [
-            "Carlos Zelaya",
-            "Devis Alvarado",
-            "Mario Roberto Zelaya",
+            "VectisDev",
+            "independent academic reviewer (pending)",
+            "Custodian-3",
             "Custodian-4",
             "Custodian-5",
         ]

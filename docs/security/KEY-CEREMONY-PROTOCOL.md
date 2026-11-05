@@ -82,17 +82,23 @@ El listado de custodios DEBE satisfacer:
 
 | # | Custodian | Role | Jurisdiction |
 |---|-----------|------|--------------|
-| 1 | Carlos Zelaya | Primary operator | Honduras |
-| 2 | Prof. Devis Alvarado | Academic validator (UPNFM) | Honduras |
-| 3 | Ing. Mario Roberto Zelaya Guzmán | Fiscal custodian (IGETEL) | Honduras |
-| 4 | TBD | Independent custodian | Mexico / Costa Rica / Spain |
-| 5 | TBD | Independent custodian | Different jurisdiction from #4 |
+| 1 | Operator-1 | Primary operator | Undisclosed |
+| 2 | Validator-2 | Academic validator (TBD) | Undisclosed |
+| 3 | Custodian-3 | Fiscal custodian (TBD) | Undisclosed |
+| 4 | Custodian-4 | Independent custodian | Distinct jurisdiction |
+| 5 | Custodian-5 | Independent custodian | Distinct from #4 |
 
-> **Note on conflict of interest:** Custodians #1 and #3 have a familial
-> relationship. This is disclosed publicly. Because reconstruction
-> requires `k=3` of `n=5` shares, no two custodians (related or otherwise)
-> can reconstruct alone — at least one independent custodian (#2, #4, or
-> #5) must participate in any reconstruction.
+> Custodian identities and jurisdictions are deliberately undisclosed. The
+> security property below depends only on `k` of `n`, not on who holds a share.
+>
+> Las identidades y jurisdicciones de los custodios se mantienen sin divulgar
+> deliberadamente. La propiedad de seguridad depende solo de `k` de `n`, no de
+> quién posee cada share.
+
+> **Note on custodian independence:** because reconstruction requires `k=3`
+> of `n=5` shares, no two custodians can reconstruct alone — at least one
+> additional custodian must participate in any reconstruction. Custodians
+> should be chosen so that no two share an affiliation or jurisdiction.
 
 > **Nota sobre conflicto de interés:** Los custodios #1 y #3 tienen una
 > relación familiar. Esto se divulga públicamente. Como la reconstrucción

@@ -84,6 +84,16 @@ def rule(*, name: str, severity: str, description: str, config_key: str) -> Call
     """
 
     def decorator(func: RuleFunc) -> RuleFunc:
+        # Two rules sharing a config_key silently collide: they read the same
+        # config section and are gated together. Fail loudly at import time.
+        # Dos reglas con el mismo config_key colisionan en silencio: leen la
+        # misma sección de config y se gatean juntas. Fallar al importar.
+        existing = next((r for r in _RULE_REGISTRY if r.config_key == config_key), None)
+        if existing is not None:
+            raise ValueError(
+                f"duplicate rule config_key {config_key!r}: "
+                f"already registered by {existing.name!r}, now {name!r}"
+            )
         """Registra la función con sus metadatos y devuelve la original.
 
         English:

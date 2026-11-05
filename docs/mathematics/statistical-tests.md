@@ -211,4 +211,4 @@ $$\text{alerta} \iff \Delta r \geq \Delta r_{\text{threshold}}$$
 
 La regla fue calibrada con el hallazgo forense de Honduras 2025: 2,773 actas
 (14.3%) marcadas como inconsistentes desde el primer snapshot, representando
-aproximadamente 450,000 votos inauditables.
+un volumen de votos cuya extrapolación es heurística y no forma parte de ninguna alerta del motor.

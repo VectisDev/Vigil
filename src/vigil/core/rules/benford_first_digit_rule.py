@@ -17,7 +17,7 @@ Componentes detectados:
 
 Notas:
 - Módulo canónico de Benford. Contiene ambas variantes para evitar duplicación.
-  benford_law_rule.py es un stub vacío mantenido por compatibilidad de importación.
+  benford_law_rule.py contiene la variante canónica de 2do dígito (2BL).
 - Mantener esta cabecera sincronizada con cambios estructurales del archivo.
 
 ======================== ENGLISH ========================
@@ -29,11 +29,11 @@ Detected components:
   - _first_digit
   - _collect_votes_by_candidate
   - apply               (config_key: benford_first_digit — MAD + chi-square aggregate)
-  - apply_per_candidate  (config_key: benford_law — chi-square per candidate)
+  - apply_per_candidate  (config_key: benford_first_digit_per_candidate — chi-square per candidate)
 
 Notes:
 - Canonical Benford module. Both variants live here to avoid duplication.
-  benford_law_rule.py is an empty stub kept for import compatibility.
+  benford_law_rule.py holds the canonical second-digit (2BL) variant.
 - Keep this header in sync with structural changes in the file.
 """
 
@@ -230,10 +230,15 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
 
 
 @rule(
-    name="Ley de Benford (por Candidato)",
-    severity="Medium",
-    description="Chi-cuadrado del primer dígito por candidato individual (regla de investigación).",
-    config_key="benford_law",
+    name="Ley de Benford primer dígito (por Candidato)",
+    severity="INFO",
+    description=(
+        "Chi-cuadrado del PRIMER dígito por candidato (regla de investigación). "
+        "Primer dígito presenta alta tasa de falsos positivos sobre agregados "
+        "electorales, por lo que esta variante queda capada a INFO igual que "
+        "apply(). La variante canónica es el 2do dígito en benford_law_rule.py."
+    ),
+    config_key="benford_first_digit_per_candidate",
 )
 def apply_per_candidate(current_data: dict, previous_data: Optional[dict], config: dict) -> List[dict]:
     """Evalúa Benford por candidato usando chi-cuadrado sobre series individuales de mesas.
@@ -284,8 +289,10 @@ def apply_per_candidate(current_data: dict, previous_data: Optional[dict], confi
 
         alerts.append(
             {
-                "type": "Desviación Ley de Benford",
-                "severity": "Medium",
+                "type": "Desviación Ley de Benford (primer dígito, informativo)",
+                # Primer dígito: capado a INFO por alta tasa de FP. No escalar.
+                # First digit: capped at INFO due to high FP rate. Do not escalate.
+                "severity": "INFO",
                 "department": department,
                 "justification": (
                     f"Benford por candidato: candidato={candidate}, muestras={total}, "

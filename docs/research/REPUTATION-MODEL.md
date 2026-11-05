@@ -2,7 +2,7 @@
 
 **Documento técnico para revisión académica**
 
-**Autores:** Carlos Zelaya (Proyecto Vigil) · PhD Devis Alvarado (UPNFM) *(co-revisión)*
+**Autores:** `VectisDev` (Proyecto VIGIL) · revisión académica independiente *(por confirmar)*
 
 **Fecha:** 31 de mayo de 2026 · Versión 1.0
 
@@ -385,10 +385,10 @@ class ReputationEngine:
 Este documento es parte del proyecto Vigil (AGPL-3.0). Para citar en publicaciones académicas:
 
 ```bibtex
-@techreport{zelaya2026centinel,
+@techreport{vectisdev2026vigil,
   title  = {Vigil Swarm: Persistent Bayesian Trust Model
              for Distributed Electoral Integrity Auditing},
-  author = {Zelaya, Carlos and Alvarado, Devis},
+  author = {{VectisDev}},
   year   = {2026},
   month  = {5},
   institution = {Proyecto Vigil / UPNFM},

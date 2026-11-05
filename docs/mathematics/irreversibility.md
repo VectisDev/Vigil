@@ -17,7 +17,8 @@ Un resultado electoral es "estadisticamente irreversible" cuando la brecha
 entre el lider y el segundo lugar supera el maximo de votos que aun pueden
 emitirse, dado un nivel de participacion proyectado. Si un resultado
 previamente declarado irreversible se revierte en un snapshot posterior,
-esto constituye evidencia de manipulacion del universo de actas.
+esto constituye una anomalia verificable en el universo de actas publicado,
+y requiere evaluacion humana independiente.
 
 An electoral result is "statistically irreversible" when the gap between
 the leader and the runner-up exceeds the maximum votes still available,
@@ -44,15 +45,15 @@ $$\text{irreversible} \iff (\text{gap} + 1) > V_{\text{remaining}}$$
 
 El "+1" es porque el segundo necesitaria alcanzar y superar al lider.
 
-### 2.3 Deteccion de fraude por reversion / Fraud detection by reversal
+### 2.3 Deteccion de reversion / Reversal detection
 
 Si en un snapshot anterior el estado era irreversible (almacenado en SQLite)
 y en el snapshot actual:
 - El resultado deja de ser irreversible, O
 - El lider cambio de identidad
 
-Entonces se genera alerta de **Fraude Confirmado por Manipulacion de Universo
-de Actas**.
+Entonces se genera alerta de **Reversion de Irreversibilidad Estadistica**.
+La alerta describe el cambio observado; no determina causa ni intencion.
 
 ---
 

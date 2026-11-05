@@ -31,14 +31,25 @@ Esto es verificable. Cada afirmación a continuación apunta a un archivo y work
 
 | Action / Acción | Implementation / Implementación | Trigger / Disparador |
 |--------|---------------|---------|
-| Detects new fork environment / Detecta que es un fork nuevo | `setup-wizard.yml` state check | First push to `main` / Primer push a `main` |
-| Opens GitHub Issue with exact setup instructions / Abre Issue con instrucciones exactas | `setup-wizard.yml` → `github-script` | Token missing / Token ausente |
+
+> **Estado: NO IMPLEMENTADO.** Las filas de esta tabla describen el diseño de un
+> workflow de autoconfiguración (`setup-wizard.yml`) que **no está presente en el
+> repositorio**. Los helpers `.github/scripts/wizard_*.py` existen pero ningún
+> workflow los invoca. La vía de arranque que sí funciona hoy es `make quickstart`.
+>
+> **Status: NOT IMPLEMENTED.** The rows below describe the design of a
+> self-configuration workflow (`setup-wizard.yml`) that is **not present in this
+> repository**. The `.github/scripts/wizard_*.py` helpers exist but no workflow
+> calls them. The bootstrap path that does work today is `make quickstart`.
+
+| Detects new fork environment / Detecta que es un fork nuevo | `setup-wizard.yml` (no implementado / not implemented) | First push to `main` / Primer push a `main` |
+| Opens GitHub Issue with exact setup instructions / Abre Issue con instrucciones exactas | `setup-wizard.yml` (no implementado / not implemented) | Token missing / Token ausente |
 | Provides direct link to pre-scoped token creation page / Link directo a creación de token preconfigurado | Issue body with `?scopes=repo` URL | Token missing / Token ausente |
 | Retries hourly if operator added token but forgot to re-run wizard / Reintenta cada hora si el operador añadió el token pero olvidó re-ejecutar el wizard | `schedule: '0 * * * *'` | Always / Siempre |
-| Creates `centinel-data` public repo via GitHub API / Crea `centinel-data` via API | `setup-wizard.yml` → curl POST | Token present, repo absent / Token presente, repo ausente |
+| Creates `centinel-data` public repo via GitHub API / Crea `centinel-data` via API | `setup-wizard.yml` (no implementado / not implemented) | Token present, repo absent / Token presente, repo ausente |
 | Initializes directory structure in `centinel-data` / Inicializa estructura de directorios | `push_file()` in wizard | Repo just created / Repo recién creado |
 | Deploys IPFS-pin and weekly-backup workflows / Despliega workflows de pin IPFS y backup semanal | `push_file()` in wizard | Repo just created / Repo recién creado |
-| Enables GitHub Pages via API / Activa GitHub Pages vía API | `setup-wizard.yml` → curl POST | Setup complete / Setup completo |
+| Enables GitHub Pages via API / Activa GitHub Pages vía API | `setup-wizard.yml` (no implementado / not implemented) | Setup complete / Setup completo |
 | Opens fallback Issue if Pages auto-enable fails / Abre Issue si Pages no se activa solo | `github-script` with deduplication | Pages API returns non-2xx |
 | Updates README with real links / Actualiza README con links reales | `sed` + `git commit` in wizard | Setup complete / Setup completo |
 | Transforms fork README from "deploy guide" to "live instance" / Transforma el README de guía a estado operativo | Python regex replace in wizard | Setup complete / Setup completo |
@@ -291,7 +302,7 @@ cat centinel-data/hashes/TIMESTAMP.sha256
 | Election night cadence / Cadencia de noche electoral | Cron cannot change itself dynamically / El cron no puede cambiarse solo | `election_mode` input in `workflow_dispatch`, or edit cron and push / Input `election_mode` en `workflow_dispatch`, o editar cron y hacer push |
 | P2P federation peer discovery / Descubrimiento de peers P2P | No automatic peer registry exists / No existe registro automático de peers | Operators register peers manually / Operadores registran peers manualmente |
 | Public escalation / Escalada pública | Editorial and political judgment required / Requiere juicio editorial y político | Operator decides when and how to communicate findings / Operador decide cuándo y cómo comunicar hallazgos |
-| Academic validation / Validación académica | Requires institutional engagement / Requiere compromiso institucional | UPNFM partnership in progress / Alianza con UPNFM en curso (ver `docs/ACADEMIC_ACCESS.md`) |
+| Academic validation / Validación académica | Requires institutional engagement / Requiere compromiso institucional | Independent review sought; none signed / Revisión independiente buscada; ninguna firmada (ver `docs/guides/ACADEMIC_ACCESS.md`) |
 
 ---
 
@@ -329,14 +340,14 @@ Esto no es una afirmación sobre el impacto político de la herramienta. Es una 
 - **v0.1 pre-pilot.** Core cryptographic engine is stable and tested (499 passing tests). Field validation with real electoral data is pending (2–3 municipalities, Honduras, target Q3 2026).
 - **Authenticated endpoints** are not yet handled automatically. Planned for v0.2 with Playwright credential injection.
 - **Fine-grained PAT incompatibility** with GitHub API v3 is a current footgun. The wizard warns explicitly; Classic PAT requirement is documented.
-- **Academic validation** is in progress at UPNFM (Honduras). No independent peer review published yet.
+- **Academic validation** is sought; none signed to date. No independent peer review published yet.
 - **Federation** is architecturally designed but not field-tested with multiple independent operators.
 
 **ES:**
-- **v0.1 pre-piloto.** El núcleo criptográfico es estable y está probado (499 tests pasando). La validación de campo con datos electorales reales está pendiente (2–3 municipios, Honduras, objetivo Q3 2026).
+- **v0.1 pre-piloto.** El núcleo criptográfico es estable y está probado (88 archivos de prueba; subconjunto de humo en CI pasando). La validación de campo con datos electorales reales está pendiente (2–3 municipios, Honduras, objetivo Q3 2026).
 - **Endpoints con autenticación** no están manejados automáticamente aún. Planificado para v0.2 con inyección de credenciales en Playwright.
 - **Incompatibilidad de Fine-grained PAT** con la API v3 de GitHub es un problema conocido. El wizard advierte explícitamente; el requisito de Classic PAT está documentado.
-- **Validación académica** está en curso en UPNFM (Honduras). No hay revisión por pares publicada aún.
+- **Validación académica** está buscada; ninguna firmada a la fecha. No hay revisión por pares publicada aún.
 - **Federación** está diseñada arquitectónicamente pero no probada en campo con múltiples operadores independientes.
 
 ---

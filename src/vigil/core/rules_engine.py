@@ -112,7 +112,13 @@ RULE_CONFIG_ALIASES: dict[str, str] = {
 
 RESEARCH_RULE_KEYS: set[str] = {
     "basic_diff",
-    "benford_law",
+    # "benford_law" (canonical 2BL) was previously listed here, which disabled the
+    # canonical detector by default because the first-digit research rule shared
+    # its config_key. The keys are now distinct; only the research variant is gated.
+    # "benford_law" (2BL canónica) estaba aquí, lo que desactivaba por defecto el
+    # detector canónico porque la regla de investigación compartía su config_key.
+    # Las claves ya son distintas; solo la variante de investigación queda gateada.
+    "benford_first_digit_per_candidate",
     "irreversibility",
     "ml_outliers",
     "participation_anomaly",
@@ -203,7 +209,7 @@ class RulesEngine:
         English:
             Verify snapshot hash-chain integrity.
         """
-        # Punto de extensión futura para reglas avanzadas validadas por UPNFM
+        # Punto de extensión futura para reglas avanzadas con validación académica externa
         # Actualmente usa solo rules.yaml básicas
         # Mantener compatibilidad total
         alerts: list[dict] = []
@@ -331,7 +337,7 @@ class RulesEngine:
             Accumulates alerts, highlights critical severities, and can signal
             snapshot pause when critical alerts exist.
         """
-        # Punto de extensión futura para reglas avanzadas validadas por UPNFM
+        # Punto de extensión futura para reglas avanzadas con validación académica externa
         # Actualmente usa solo rules.yaml básicas
         # Mantener compatibilidad total
         alerts: list[dict] = []

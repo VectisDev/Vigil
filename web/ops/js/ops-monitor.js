@@ -489,7 +489,7 @@ function executeEmergency() {
 }
 
 async function _dispatchEmergencyPublish(){
-  const pat = localStorage.getItem('gh-pat');
+  const pat = window.VigilToken.get();
   if(!pat){
     auditLog('emergency-publish dispatch skipped', 'no PAT', {msgid:'EMERGENCY_DISPATCH_SKIP', severity:'WARNING'});
     return;

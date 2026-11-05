@@ -327,7 +327,15 @@ def compile_public():
 
 
 def compile_internal():
-    md = (DOCS / "INTERNAL-whitepaper-es.md").read_text(encoding="utf-8")
+    # The internal whitepaper is deliberately kept out of version control
+    # (see .gitignore). Skip cleanly when it is not present locally.
+    # El whitepaper interno se mantiene fuera del control de versiones a
+    # propósito. Omitir limpiamente si no está presente localmente.
+    src = DOCS / "INTERNAL-whitepaper-es.md"
+    if not src.exists():
+        print("SKIP internal -> INTERNAL-whitepaper-es.md not present (local-only by design)")
+        return
+    md = src.read_text(encoding="utf-8")
     styles = build_styles()
     out = DOCS / "INTERNAL-whitepaper-es.pdf"
     doc = SimpleDocTemplate(str(out), pagesize=A4, topMargin=22 * mm,

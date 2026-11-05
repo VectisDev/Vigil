@@ -3,7 +3,8 @@
 Wizard step: generate seeds, write web/access.json, write plaintext seeds
 to /tmp/centinel-seeds.txt for the GitHub Actions artifact.
 
-Called by setup-wizard.yml. Environment variables:
+Helper for fork self-configuration. NOTE: no workflow currently invokes this;
+setup-wizard.yml is not present in the repository. Environment variables:
   CENTINEL_COUNTRY  — country code (HN, GT, ...)
   REPO_OWNER        — GitHub username
   REPO_NAME         — repository name

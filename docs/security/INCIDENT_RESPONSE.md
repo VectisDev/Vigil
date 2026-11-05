@@ -19,7 +19,7 @@ notificación, la preservación de evidencia digital y la plantilla de reporte d
 
 | Nivel | Código | Condición | Ejemplo |
 |-------|--------|-----------|---------|
-| CRÍTICO | `CRITICAL` | Manipulación activa posible | Hash chain rota, rollback detectado |
+| CRÍTICO | `CRITICAL` | Ruptura de integridad verificable | Hash chain rota, rollback detectado |
 | ALTO | `HIGH` | Anomalía estadística fuerte | Benford MAD > 0.015, Z-score > 5σ |
 | MEDIO | `MEDIUM` | Anomalía estadística moderada | Velocidad de resolución anómala |
 | BAJO | `LOW` | Irregularidad menor | Endpoint degradado, datos tardíos |
@@ -40,7 +40,7 @@ notificación, la preservación de evidencia digital y la plantilla de reporte d
 
 2. NOTIFICAR (en este orden)
    └─ Coordinador técnico del equipo observador
-   └─ Entidad legal (UPNFM o equivalente)
+   └─ Entidad legal (revisor académico independiente)
    └─ Misión de observación presente (OEA/UE/NDI si aplica)
 
 3. DOCUMENTAR
@@ -96,7 +96,7 @@ OPERADOR DE TURNO
         │                                                   │
         ▼                                                   ▼
 COORDINADOR TÉCNICO                                 ENTIDAD LEGAL
-(responsable de confirmar                           (UPNFM o equivalente)
+(responsable de confirmar                           (revisor académico independiente)
 la anomalía técnicamente)                                   │
         │                                                   │
         └─────────────────────────┬─────────────────────────┘

@@ -1,7 +1,7 @@
 # Guía de subida a Zenodo — Dataset HN 2025
 # Zenodo Upload Guide — HN 2025 Dataset
 
-**Acción requerida por:** Carlos Zelaya  
+**Acción requerida por:** VectisDev  
 **Tiempo estimado:** 15 minutos  
 **Resultado:** DOI citable para los 64 JSON del CNE
 
@@ -11,7 +11,7 @@
 
 Zenodo (CERN) asigna DOIs permanentes a datasets de investigación, gratuito,
 institucional, y aceptado por OTF, NDI y revistas académicas como fuente de datos.
-Una vez subido, el DOI aparece en la propuesta OTF y en el working paper de Devis.
+Una vez subido, el DOI aparece en la propuesta OTF y en el futuro working paper académico.
 
 ---
 
@@ -66,4 +66,4 @@ Si prefieres Harvard Dataverse (más prestigio académico):
 → https://dataverse.harvard.edu → "Add Data" → mismo proceso
 
 ---
-*Estimado: 15 minutos · Costo: $0 · Impacto: DOI citable en OTF + paper Devis*
+*Estimado: 15 minutos · Costo: $0 · Impacto: DOI citable en OTF + futuro paper académico*

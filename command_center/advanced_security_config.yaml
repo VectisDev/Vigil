@@ -122,5 +122,5 @@ solidity_blocked_patterns:
 #     attacker publishes verifier on other domain, makes it query your witness).
 #     Solution: explicit whitelist.
 cors_allowed_origins:
-  - "https://userf8a2c4.github.io/vigil"
+  - "https://vectisdev.github.io/vigil"
   - "http://localhost:3000"

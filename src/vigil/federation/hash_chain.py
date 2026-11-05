@@ -62,13 +62,13 @@ def commit_to_hash_chain(repo_root: Path, db_path: Path, branch: str = "data/rep
 
         # Commit to git
         subprocess.run(
-            ["git", "config", "user.name", "userf8a2c4"],
+            ["git", "config", "user.name", "VectisDev"],
             cwd=repo_root,
             check=True,
             capture_output=True,
         )
         subprocess.run(
-            ["git", "config", "user.email", "250608616+userf8a2c4@users.noreply.github.com"],
+            ["git", "config", "user.email", "VectisDev@users.noreply.github.com"],
             cwd=repo_root,
             check=True,
             capture_output=True,

@@ -52,7 +52,7 @@ VIGIL resuelve esto con tres mecanismos complementarios:
 
 | Outcome | Mecanismo causal |
 |---------|-----------------|
-| Los actores maliciosos **saben que cualquier manipulación queda registrada** | La cadena Bitcoin es pública e irrefutable |
+| Una alteración posterior a la publicación queda registrada de forma detectable | La cadena Bitcoin es pública y verificable de forma independiente |
 | Los observadores tienen evidencia técnica presentable ante tribunales | PDF con hash chain + ancla Bitcoin = evidencia legalmente usable |
 | Los ciudadanos pueden verificar sin depender del CNE ni del gobierno | Verificador offline descargable antes de la elección |
 | Las irregularidades detectadas en tiempo real permiten intervención oportuna | Log forense + alertas durante el conteo, no después |
@@ -89,9 +89,9 @@ y verificable aumenta la legitimidad percibida del proceso, independientemente d
 | Coste por elección monitorizada | $0 en licencias | AGPL-3.0, sin dependencias propietarias |
 | Coste de despliegue (hardware) | Laptop estándar | No requiere servidor dedicado ni nube |
 | Detectores estadísticos activos | 24 | Registrados en `src/vigil/core/rules/` |
-| Datos HN-2025 procesados | 96 archivos JSON, 18 departamentos, ~2.5M votos | Dataset `hnd-electoral-audit-2025` |
+| Datos HN-2025 procesados | 96 archivos JSON, 18 departamentos, ~2.5M votos | Dataset DOI 10.5281/zenodo.20598892 |
 | Tasa de falsos positivos (13/24 reglas) | 0.0% en datos sintéticos | `docs/FALSE_POSITIVE_ANALYSIS.md` |
-| Tests automatizados | ~95 archivos, 403 passing (entorno mínimo) | CI GitHub Actions |
+| Tests automatizados | 88 archivos; subconjunto de humo en CI | CI GitHub Actions |
 | Cobertura de seguridad | 15/15 issues de red-team cerrados (9.9/10) | `SECURITY_AUDIT.md` RT-01..RT-15 |
 | Países de Centroamérica con contexto similar | 5 (Guatemala, El Salvador, Nicaragua, Costa Rica, Panamá) | Replicabilidad regional |
 | Tiempo de onboarding operador nuevo | ~15-20 minutos | `make wizard` + `make start` |
@@ -152,7 +152,7 @@ VIGIL addresses this with three complementary mechanisms:
 
 | Outcome | Causal mechanism |
 |---------|-----------------|
-| Bad actors **know any manipulation is recorded** | The Bitcoin chain is public and irrefutable |
+| Any post-publication alteration is detectably recorded | The Bitcoin chain is public and independently verifiable |
 | Observers have technical evidence presentable in court | PDF with hash chain + Bitcoin anchor = legally usable evidence |
 | Citizens can verify without depending on CNE or government | Downloadable offline verifier before election day |
 | Real-time detected irregularities allow timely intervention | Forensic log + alerts during the count, not after |
@@ -188,7 +188,7 @@ increases the perceived legitimacy of the process, regardless of the outcome.
 | Cost per monitored election | $0 in licenses | AGPL-3.0, no proprietary dependencies |
 | Deployment cost (hardware) | Standard laptop | No dedicated server or cloud required |
 | Active statistical detectors | 24 | Registered in `src/vigil/core/rules/` |
-| HN-2025 data processed | 96 JSON files, 18 departments, ~2.5M votes | Dataset `hnd-electoral-audit-2025` |
+| HN-2025 data processed | 96 JSON files, 18 departments, ~2.5M votes | Dataset DOI 10.5281/zenodo.20598892 |
 | False positive rate (13/24 rules) | 0.0% on synthetic data | `docs/FALSE_POSITIVE_ANALYSIS.md` |
 | Automated tests | ~95 files, 403 passing (minimal env) | CI GitHub Actions |
 | Security coverage | 15/15 red-team issues closed (9.9/10) | `SECURITY_AUDIT.md` RT-01..RT-15 |

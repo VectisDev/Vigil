@@ -2,7 +2,7 @@
 name = "vigil"
 version = "0.1.0"
 description = "VIGIL: trustless electoral integrity verification infrastructure for Latin America"
-authors = ["userf8a2c4 <contact@centinel.app>"]
+authors = ["VectisDev <security@vectis.dev>"]
 license = "AGPL-3.0-only"
 readme = "README.md"
 homepage = "https://github.com/VectisDev/Vigil"
@@ -28,6 +28,16 @@ classifiers = [
 packages = [
   { include = "vigil", from = "src" },
   { include = "centinel", from = "src" },  # deprecated alias of vigil
+  # auditor/ and monitoring/ are imported BY the packaged vigil code
+  # (vigil.sync.forensics_publisher, vigil.api.main, vigil.checkpointing),
+  # so an installed wheel without them cannot import vigil.api.main.
+  { include = "auditor", from = "src" },
+  { include = "monitoring", from = "src" },
+  { include = "anchor", from = "src" },
+  # Required by the declared console scripts below.
+  { include = "vigil_engine" },
+  { include = "command_center" },
+  { include = "scripts" },
 ]
 
 [tool.poetry.dependencies]

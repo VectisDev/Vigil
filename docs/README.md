@@ -19,7 +19,6 @@
 | [api/](api/) | REST API reference, operator manual |
 | [guides/](guides/) | Quick start, contributing, academic access |
 | [grants/](grants/) | Grant applications, roadmap, institutional readiness |
-| [dev-diary/](dev-diary/) | Development history |
 | [whitepaper/](whitepaper/) | Academic whitepaper (LaTeX + PDF) |
 
 ---

@@ -1,11 +1,3 @@
-# Claude Code session data (user-specific, not project files)
-.claude/settings.json
-.claude/settings.local.json
-.claude/*.jsonl
-.claude/todos/
-.claude/memory/
-.claude/worktrees/
-
 # Entornos virtuales
 .venv/
 
@@ -52,7 +44,10 @@ secrets.yaml
 # Vigil runtime state (never commit)
 .centinel-setup.json
 keys/
-web/access.json
+# web/access.json IS intentionally published: it holds only PBKDF2/SHA-256
+# hashes of high-entropy seeds and the static panel fetches it at runtime.
+# web/access.json SÍ se publica a propósito: solo contiene hashes de semillas
+# de alta entropía y el panel estático lo descarga en tiempo de ejecución.
 
 # Config secrets / Secretos de configuracion
 config/secrets/*

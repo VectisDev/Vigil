@@ -85,7 +85,7 @@ def _probe(url: str, timeout: int = TIMEOUT) -> bool:
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "CENTINEL-Electoral-Auditor/1.0 (audit@centinel.app)",
+                "User-Agent": "CENTINEL-Electoral-Auditor/1.0 (security@vectis.dev)",
                 "Accept":     "application/json",
             },
         )

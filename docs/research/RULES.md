@@ -68,8 +68,8 @@ benford_first_digit:
 ---
 
 ### D-02 Benford by Candidate — `benford_law` — Medium
-**ES:** Variante de Benford aplicada por candidato individualmente. Más sensible a fraude focalizado en un partido.  
-**EN:** Benford variant applied per candidate. More sensitive to fraud targeting a single party.
+**ES:** Variante de Benford aplicada por candidato individualmente. Más sensible a anomalías concentradas en un partido.  
+**EN:** Benford variant applied per candidate. More sensitive to anomalies concentrated in a single party.
 
 ---
 
@@ -146,8 +146,8 @@ benford_first_digit:
 ---
 
 ### D-15 Participation-Vote Correlation — `participation_vote_correlation` — CRITICAL
-**ES:** En elecciones limpias, la participación y los votos válidos deben estar altamente correlacionados entre departamentos (r > 0.85). Desviaciones indican manipulación selectiva.  
-**EN:** In clean elections, participation and valid votes must be highly correlated across departments (r > 0.85). Deviations indicate selective manipulation.
+**ES:** En elecciones limpias, la participación y los votos válidos deben estar altamente correlacionados entre departamentos (r > 0.85). Desviaciones son una señal estadística a investigar; no establecen causa.  
+**EN:** In clean elections, participation and valid votes must be highly correlated across departments (r > 0.85). Deviations are a statistical signal to investigate; they do not establish cause.
 
 ---
 

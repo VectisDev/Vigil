@@ -36,7 +36,7 @@
 | R-02 | Aceptado | Rotación de clave requiere re-firma de toda la cadena — diseño futuro |
 | R-05 | Aceptado | Zero-cost mandate — sin CDN propio pagado |
 | R-07 | Aceptado | Control operativo, no técnico |
-| R-09 | Aceptado hasta calibración | Calibración con Prof. Alvarado en proceso |
+| R-09 | Aceptado hasta calibración | Calibración con the independent reviewer en proceso |
 | R-10 | Aceptado | Fuera del alcance técnico del sistema |
 
 ---

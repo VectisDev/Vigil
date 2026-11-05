@@ -233,6 +233,6 @@ Questions?
 
 ---
 
-**Deployed:** https://userf8a2c4.github.io/vigil/  
+**Deployed:** https://vectisdev.github.io/vigil/  
 **Source:** This repo (`web/` directory)  
 **License:** AGPL-3.0

@@ -2,7 +2,7 @@
 // CRS: Score de Riesgo Compuesto (Composite Risk Score)
 // Test de Probabilidad Combinada de Fisher (1925)
 // χ² = -2×Σln(pᵢ) ~ χ²(2k)  — pesos proporcionales a -ln(p)
-// CRS 5-19: p<0.05 (atención) | 20-39: p<0.01 (alerta, 1/10k) | 40+: p<0.0001 (imposible por azar)
+// CRS 5-19: p<0.05 (atención) | 20-39: p<0.01 (alerta, 1/10k) | 40+: p<0.0001 (extremadamente improbable bajo el modelo nulo actual)
 // ══════════════════════════════════════════════════════════
 function computeCRS(alerts){
   const W={INFO:1,WARNING:5,CRITICAL:20,PANIC:30};
@@ -113,7 +113,7 @@ async function autoApply(){
   const changes = buildDiff(newEp, newWd, newRl, newCfg);
   if(!changes.length){ isDirty=false; updateDirtyState(); return; }
   // PAT silencioso: si tenemos PAT y autosave está ON, guardamos directo
-  const pat = localStorage.getItem('gh-pat');
+  const pat = window.VigilToken.get();
   if(pat && _autoApplyEnabled){
     _writeInProgress = true;
     try {
@@ -206,7 +206,7 @@ async function _confirmPatOnboarding(){
   if(!input) return;
   const pat = input.value.trim();
   if(!pat){ input.focus(); return; }
-  localStorage.setItem('gh-pat', pat);
+  window.VigilToken.set(pat);
   input.value = '';
   const banner = document.getElementById('pat-onboarding');
   if(banner){
@@ -403,7 +403,7 @@ async function executeUnlock(){
 
   // Try Git commit as bonus if PAT is already available — non-blocking
   let sha7 = null;
-  const pat = localStorage.getItem('gh-pat');
+  const pat = window.VigilToken.get();
   if(pat){
     try{
       const safeTs = now.replace(/[:.]/g,'-');
@@ -581,7 +581,7 @@ function showDiffModal(changes, newYamls){
   // Show PAT field only if not already in session
   const patRow = document.getElementById('diff-pat-row');
   const patInput = document.getElementById('diff-pat-input');
-  const hasPat = !!localStorage.getItem('gh-pat');
+  const hasPat = !!window.VigilToken.get();
   if(patRow) patRow.style.display = hasPat ? 'none' : 'block';
   if(patInput) patInput.value = '';
   document.getElementById('diff-modal').classList.add('open');
@@ -611,7 +611,7 @@ function closeDiffModal(){ document.getElementById('diff-modal').classList.remov
 async function confirmApply(){
   if(_writeInProgress) return;
   // Resolve PAT — prefer session, then inline field in diff modal
-  let pat = localStorage.getItem('gh-pat');
+  let pat = window.VigilToken.get();
   if(!pat){
     const inline = document.getElementById('diff-pat-input')?.value.trim();
     if(!inline){
@@ -620,7 +620,7 @@ async function confirmApply(){
       document.getElementById('diff-pat-input')?.focus();
       return;
     }
-    localStorage.setItem('gh-pat', inline);
+    window.VigilToken.set(inline);
     pat = inline;
     document.getElementById('diff-pat-input').value = '';
   }
@@ -643,7 +643,7 @@ function confirmPat(){
   const pat = input.value.trim();
   input.value = ''; // clear immediately
   if(!pat){document.getElementById('pat-err').textContent='Ingresa el PAT.';return;}
-  localStorage.setItem('gh-pat', pat);
+  window.VigilToken.set(pat);
   document.getElementById('pat-modal').classList.remove('open');
   const resolve = document.getElementById('pat-modal')._resolve;
   if(resolve) resolve(true);
@@ -839,7 +839,7 @@ function onOtsToggle(){
 async function dispatchOtsAnchor(){
   const stat = document.getElementById('ots-anchor-stat');
   const btn  = document.getElementById('btn-ots-anchor-now');
-  const pat  = localStorage.getItem('gh-pat');
+  const pat  = window.VigilToken.get();
   if(!pat){
     if(stat){ stat.textContent = 'PAT requerido para disparar el workflow.'; stat.style.color = 'var(--warn)'; }
     return;
@@ -1166,7 +1166,7 @@ function renderAuditTrail(){
 async function fetchAuditTrail(){
   const wrap = document.getElementById('log-audit');
   const tbody = wrap?.querySelector('tbody');
-  const pat = localStorage.getItem('gh-pat');
+  const pat = window.VigilToken.get();
   if(!pat){
     if(tbody) tbody.innerHTML=_emptyRow(4,t('log.historial_cambios'),t('log.modifica_control'));
     return;

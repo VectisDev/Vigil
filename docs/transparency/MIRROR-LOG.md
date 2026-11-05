@@ -6,6 +6,41 @@ Each entry below records a mirror operation executed by the
 Cada entrada registra una operación de espejo ejecutada por el
 workflow `Resilience Mirror`. Las entradas son append-only.
 
+## Correction notice / Nota de corrección — 2026-11-05
+
+Entries dated before this notice report `[✓]` in the **Internet Archive** column
+unconditionally. They are **not** evidence that an upload occurred: the workflow
+step that writes this log had no visibility into the archive job's result, and
+that job is skipped on `schedule` runs. Of the 840 entries above,
+538 were `schedule`-triggered and therefore did **not** attempt an
+Internet Archive upload.
+
+The Codeberg column is unaffected and reflects real pushes.
+
+The workflow has been corrected: the log step now depends on the archive job and
+records its actual result (`[✓]`, `— (not attempted)` or `✗ (failed)`). Historical
+entries are left in place rather than rewritten, because this log is append-only
+and silently correcting it would be the very failure mode this project exists to
+detect. Treat the Internet Archive column as unverified for all entries above.
+
+---
+
+Las entradas anteriores a esta nota reportan `[✓]` en la columna **Internet
+Archive** de forma incondicional. **No** son evidencia de que la subida ocurriera:
+el paso que escribe este registro no tenía visibilidad del resultado del job de
+archivado, y ese job se salta en ejecuciones `schedule`. De las 840 entradas
+anteriores, 538 fueron disparadas por `schedule` y por tanto **no**
+intentaron subida al Internet Archive.
+
+La columna de Codeberg no está afectada y refleja envíos reales.
+
+El workflow fue corregido: el paso del registro ahora depende del job de archivado
+y anota su resultado real. Las entradas históricas se conservan en vez de
+reescribirse, porque este registro es append-only y corregirlo en silencio sería
+exactamente el fallo que este proyecto existe para detectar. Considera la columna
+de Internet Archive como no verificada en todas las entradas anteriores.
+
+
 | UTC Timestamp | Trigger | Git HEAD | Codeberg | Internet Archive |
 |---------------|---------|----------|----------|------------------|
 | 2026-06-11T04:58:00Z | schedule | `4157a9a5579a` | [✓](https://codeberg.org/VectisDev/centinel/commit/4157a9a5579adabe1a92da8082167e6dae919072) | [✓](https://archive.org/details/centinel-mirror-2026-06) |

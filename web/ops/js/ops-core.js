@@ -1,3 +1,22 @@
+// ── Token de escritura: SOLO en memoria ─────────────────────────────────────
+// Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
+// pestaña y es legible por cualquier XSS en este origen público. Se mantiene en
+// una variable de módulo: vive lo que vive la página y nunca toca el disco.
+// A write-scoped PAT in localStorage outlives the tab and is readable by any
+// XSS on this public origin. Keep it in a module variable: it lives as long as
+// the page and never touches disk.
+window.VigilToken = window.VigilToken || (function () {
+  let token = null;
+  return {
+    get: function () { return token; },
+    set: function (v) { token = v || null; },
+    clear: function () { token = null; },
+    has: function () { return !!token; }
+  };
+})();
+// Limpieza de valores heredados / purge any legacy persisted value.
+try { localStorage.removeItem('gh-pat'); } catch (e) {}
+
 /* global snapshotData */ // declared with `let` in web/ops/index.html
 // ══════════════════════════════════════════════════════════
 // CONFIG LOAD
@@ -23,7 +42,7 @@ async function fetchConfigFile(path){
 }
 
 async function fetchSha(path){
-  const pat = localStorage.getItem('gh-pat');
+  const pat = window.VigilToken.get();
   const headers = pat ? {Authorization:`Bearer ${pat}`} : {};
   try{
     const r = await fetch(`${API_BASE}/contents/${path}`,{headers});

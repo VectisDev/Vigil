@@ -25,6 +25,8 @@ from typing import Any
 
 from scipy.stats import binomtest, chi2, chisquare, norm
 
+from vigil.core.stats.multiple_testing import benjamini_hochberg
+
 
 @dataclass
 class SnapshotRecord:
@@ -423,9 +425,9 @@ class InconsistentActsTracker:
         """Detect hold-and-release patterns: stagnation followed by bulk resolution.
 
         Detecta patrones retener-y-soltar: estancamiento seguido de resolución masiva.
-        Este patrón es indicativo de manipulación coordinada: se detiene el procesamiento
+        Este patrón es compatible con una secuencia de retención y liberación; no establece causa ni intención: se detiene el procesamiento
         de actas inconsistentes (hold) y luego se liberan muchas a la vez (release),
-        típicamente en horarios de baja vigilancia o durante apagones comunicacionales.
+        observado en este caso alrededor de brechas de publicación.
         """
         patterns: list[dict[str, Any]] = []
         if len(self.events) < 2:
@@ -473,7 +475,7 @@ class InconsistentActsTracker:
 
         Aplica la Ley de Benford a conteos de votos de resoluciones de escrutinio especial.
         Los datos electorales reales siguen la distribución de Benford para el primer
-        dígito. Datos fabricados o manipulados tienden a desviarse significativamente.
+        dígito. Las series alteradas tienden a desviarse significativamente.
         """
         resolution_vote_deltas: list[int] = []
         for event in self.events:
@@ -733,9 +735,27 @@ class InconsistentActsTracker:
                 "power_estimate": power,
             }
 
+        # Corrección por comparaciones múltiples sobre la familia de candidatos.
+        # BH (FDR) gobierna la decisión; Bonferroni se reporta como referencia
+        # conservadora para que un revisor pueda comparar ambos criterios.
+        # Multiple-comparisons correction over the candidate family. BH (FDR)
+        # drives the decision; Bonferroni is reported as a conservative
+        # reference so a reviewer can compare both criteria.
         m = max(len(raw_pvalues), 1)
-        for candidate, test in per_candidate_tests.items():
+        candidates_ordered = list(per_candidate_tests.keys())
+        ordered_pvalues = [per_candidate_tests[c]["binomial_exact_pvalue"] for c in candidates_ordered]
+        _, bh_qvalues = benjamini_hochberg(ordered_pvalues, alpha=self.run_test_pvalue_threshold)
+        for candidate, qvalue in zip(candidates_ordered, bh_qvalues):
+            test = per_candidate_tests[candidate]
             test["bonferroni_adjusted_pvalue"] = min(test["binomial_exact_pvalue"] * m, 1.0)
+            test["bh_qvalue"] = qvalue
+            test["multiple_testing"] = {
+                "method": "bh",
+                "alpha": self.run_test_pvalue_threshold,
+                "family_size": m,
+                "bonferroni_adjusted_pvalue": test["bonferroni_adjusted_pvalue"],
+                "bh_qvalue": qvalue,
+            }
 
         trend = self._special_time_series_trend()
         return {
@@ -828,16 +848,22 @@ class InconsistentActsTracker:
         stats = self.run_statistical_tests()
         if stats.get("status") == "ok":
             for candidate, payload in stats.get("per_candidate", {}).items():
-                if payload.get("bonferroni_adjusted_pvalue", 1.0) < 0.01:
+                # Decisión por q-value BH; cae a Bonferroni si no está presente.
+                # BH q-value drives the decision; falls back to Bonferroni.
+                decision_pvalue = payload.get(
+                    "bh_qvalue", payload.get("bonferroni_adjusted_pvalue", 1.0)
+                )
+                if decision_pvalue < 0.01:
                     anomalies.append(
                         Anomaly(
                             kind="statistical_bias",
                             severity="critical",
-                            message=f"Statistically significant bias detected for {candidate} (p<0.01).",
+                            message=f"Statistically significant differential detected for series {candidate} (p<0.01).",
                             timestamp=(self.snapshots[-1].timestamp if self.snapshots else datetime.now(timezone.utc)),
                             metadata={
                                 "candidate": candidate,
-                                "adjusted_pvalue": payload["bonferroni_adjusted_pvalue"],
+                                "adjusted_pvalue": decision_pvalue,
+                                "multiple_testing": payload.get("multiple_testing", {}),
                                 "z_score": payload["z_score_diff_proportions"],
                             },
                         )

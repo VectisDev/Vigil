@@ -143,7 +143,7 @@ defecto documentados arriba se derivan de:
 | 24 reglas estadísticas | Implementadas, cubiertas por tests unitarios |
 | 7 detectores forenses | Implementados, cubiertos por `tests/test_inconsistent_acts.py` |
 | Tasa de falsos positivos | Medida sobre datos sintéticos — ver `FALSE_POSITIVE_ANALYSIS.md` |
-| Revisión académica externa | En curso con UPNFM (Depto. Matemáticas) — pendiente informe firmado |
+| Revisión académica externa | Buscada; sin informe firmado a la fecha |
 | Validación contra elección real | Pendiente piloto — ver `PILOT_PLAN.md` |
 
 ---
@@ -199,7 +199,7 @@ Benford MAD bounds. Recalibration for another country: see `REPLICATION_GUIDE.md
 
 Cryptographic core, 24 rules and 7 detectors are implemented and unit-tested.
 False-positive rate measured on synthetic data (`FALSE_POSITIVE_ANALYSIS.md`).
-External academic review with UPNFM in progress. Real-election validation pending
+External academic review sought; none signed to date. Real-election validation pending
 pilot (`PILOT_PLAN.md`).
 
 ---

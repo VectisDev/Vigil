@@ -4,7 +4,7 @@
 **Versión / Version:** 1.0.0
 **Fecha / Date:** 2026-06-07
 **Autor / Author:** Equipo estadístico VIGIL
-**Revisión / Review:** Pendiente validación Prof. Devis Alvarado (UPNFM)
+**Revisión / Review:** Pendiente validación an independent academic reviewer
 
 ---
 

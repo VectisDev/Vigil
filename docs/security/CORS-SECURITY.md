@@ -41,7 +41,7 @@ Vigil reads CORS origins in this priority order:
 2. **Config file** (`command_center/advanced_security_config.yaml`)
    ```yaml
    cors_allowed_origins:
-     - "https://userf8a2c4.github.io/vigil"
+     - "https://vectisdev.github.io/vigil"
      - "http://localhost:3000"
    ```
 3. **Default: Empty list** (CORS disabled — no cross-origin requests allowed)
@@ -52,7 +52,7 @@ For the public GitHub Pages verifier + local development:
 
 ```yaml
 cors_allowed_origins:
-  - "https://userf8a2c4.github.io/vigil"
+  - "https://vectisdev.github.io/vigil"
   - "http://localhost:3000"
 ```
 
@@ -83,12 +83,12 @@ cors_allowed_origins:
 
 ```yaml
 cors_allowed_origins:
-  - "https://userf8a2c4.github.io/vigil"
+  - "https://vectisdev.github.io/vigil"
   - "https://auditor-org.org/verifier"
 ```
 
 Browser behavior:
-- ✓ Request from `https://userf8a2c4.github.io/...` → **allowed**
+- ✓ Request from `https://vectisdev.github.io/...` → **allowed**
 - ✓ Request from `https://auditor-org.org/...` → **allowed**
 - ✗ Request from `https://evil.com/verifier` → **blocked**
 
@@ -114,7 +114,7 @@ If you do not set `CORS_ORIGINS` or config, CORS is **disabled** (empty list).
 **When setting up a witness:**
 
 1. Decide which verifier implementations should be able to query your witness
-   - Public GitHub Pages verifier (required): `https://userf8a2c4.github.io/vigil`
+   - Public GitHub Pages verifier (required): `https://vectisdev.github.io/vigil`
    - Academic auditors: `https://university-auditor.org/verify`
    - Your own auditor tools: `http://localhost:3000` (dev only)
 

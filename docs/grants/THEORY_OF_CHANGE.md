@@ -67,7 +67,7 @@ tier)                                     de severidad         saben que hay    
 | O3 | FP rate en datos limpios | 1.2% (Benford 2BL) | < 2% para todas las reglas CRITICAL | `docs/research/FALSE_POSITIVE_ANALYSIS.md` |
 | O4 | Países con configuración activa | 1 (HN producción) + 5 configurados | 2 países con prueba de campo | `src/vigil/countries.py` |
 | O5 | Documentación para observadores | 1 guía (v1.0) | Guías en ES/EN para 3 países | `docs/international_observers/` |
-| O6 | Validación académica | Working paper borrador | Working paper con firma UPNFM | `docs/research/FALSE_POSITIVE_ANALYSIS.md` |
+| O6 | Validación académica | Working paper borrador | Working paper con revisión independiente firmada | `docs/research/FALSE_POSITIVE_ANALYSIS.md` |
 
 ### Nivel 2 — Outcomes (Efectos inmediatos)
 

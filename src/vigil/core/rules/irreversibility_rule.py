@@ -182,7 +182,8 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
     La regla proyecta los votos faltantes usando un nivel de participación histórica.
     Si la brecha entre líder y segundo supera los votos faltantes, se declara
     irreversibilidad estadística. Si en un snapshot posterior se revierte una
-    irreversibilidad previa, se genera una alerta de fraude confirmado.
+    irreversibilidad previa, se registra una alerta de reversión. La regla
+    describe el cambio observado; no determina causa ni intención.
 
     Args:
         current_data: Snapshot JSON actual del CNE.
@@ -197,8 +198,9 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
 
         The rule projects remaining votes using a historical participation rate. If the
         leader's gap exceeds remaining votes, the outcome is statistically irreversible.
-        If a later snapshot reverses a prior irreversibility, a high-severity fraud
-        confirmation alert is generated.
+        If a later snapshot reverses a prior irreversibility, a high-severity
+        reversal alert is recorded. The rule describes the observed change; it
+        does not determine cause or intent.
 
     Args:
         current_data: Current CNE JSON snapshot.
@@ -246,11 +248,13 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
         ):
             alerts.append(
                 {
-                    "type": "Fraude Confirmado por Manipulación de Universo de Actas",
+                    "type": "Reversión de Irreversibilidad Estadística",
                     "severity": "High",
                     "department": scope,
                     "justification": (
-                        "Se revirtió una irreversibilidad estadística previa. "
+                        "Se revirtió una irreversibilidad estadística previa declarada sobre los "
+                        "datos publicados. Hecho verificable; requiere evaluación humana "
+                        "independiente y no constituye una determinación de fraude. "
                         f"lider_previo={previous_leader}, lider_actual={leader_id}, "
                         f"irreversible_actual={irreversible}."
                     ),

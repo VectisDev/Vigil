@@ -54,23 +54,29 @@ cooperación — que los datos no fueron alterados después de su publicación.
 
 ## 3. Who built it / Quién lo construyó
 
-| Role | Person | Institution |
-|------|--------|-------------|
-| Lead developer | Carlos Zelaya (`VectisDev`) | Independent |
-| Academic validator (pending) | Prof. Devis Alvarado | UPNFM — Mathematics Dept. |
-| Fiscal custodian | Ing. Mario Roberto Zelaya Guzmán | IGETEL S.A. |
+| Role | Party | Affiliation |
+|------|-------|-------------|
+| Lead developer | `VectisDev` | Independent |
+| Academic validation | Independent review (sought; none signed) | — |
+| Fiscal custodian | Fiscal host organization (TBD) | — |
 
-**Conflict of interest disclosure:** Carlos Zelaya and Mario Roberto
-Zelaya Guzmán are uncle and nephew. IGETEL's role is limited to fiscal
-custodianship for grant receipt. IGETEL has no influence over methodology,
-thresholds, findings, or publication decisions. This relationship has
-been disclosed publicly since June 2026.
+**Pseudonymity:** public authorship is released under the pseudonym
+`VectisDev` for operator safety. Legal identity can be disclosed to funders
+under confidentiality where a grant process requires it.
 
-**Declaración de conflicto de interés:** Carlos Zelaya e Ing. Mario
-Roberto Zelaya Guzmán son tío y sobrino. El rol de IGETEL se limita
-a la custodia fiscal para recepción de grants. IGETEL no tiene influencia
-sobre la metodología, umbrales, hallazgos ni decisiones de publicación.
-Esta relación ha sido divulgada públicamente desde junio de 2026.
+**Conflict of interest:** any fiscal sponsorship arrangement for grant
+receipt will be declared directly to the funder. Methodology, thresholds and
+publication decisions are governed by this public repository, not by
+sponsors.
+
+**Seudonimidad:** la autoría pública se publica bajo el seudónimo
+`VectisDev` por seguridad del operador. La identidad legal puede divulgarse
+a financiadores bajo confidencialidad cuando un proceso lo requiera.
+
+**Conflicto de interés:** cualquier acuerdo de patrocinio fiscal para la
+recepción de fondos se declarará directamente al financiador. La metodología,
+los umbrales y las decisiones de publicación se rigen por este repositorio
+público, no por patrocinadores.
 
 ---
 

@@ -12,16 +12,16 @@ de Shamir para distribución entre los custodios de CENTINEL.
 Usage / Uso
 -----------
     python centinel_key_ceremony.py \\
-        --custodians "Carlos Zelaya,Devis Alvarado,Mario Roberto Zelaya,Custodian-4,Custodian-5" \\
+        --custodians "Operator-1,Validator-2,Custodian-3,Custodian-4,Custodian-5" \\
         --threshold 3 \\
         --output-dir ./ceremony-output/ \\
         --key-name witness_2026
 
 This will produce:
     ./ceremony-output/witness_2026.public_key     (safe to publish)
-    ./ceremony-output/witness_2026.share_01.txt   (give to Carlos Zelaya)
-    ./ceremony-output/witness_2026.share_02.txt   (give to Devis Alvarado)
-    ./ceremony-output/witness_2026.share_03.txt   (give to Mario Roberto Zelaya)
+    ./ceremony-output/witness_2026.share_01.txt   (give to Operator-1)
+    ./ceremony-output/witness_2026.share_02.txt   (give to Validator-2)
+    ./ceremony-output/witness_2026.share_03.txt   (give to Custodian-3)
     ./ceremony-output/witness_2026.share_04.txt   (give to Custodian-4)
     ./ceremony-output/witness_2026.share_05.txt   (give to Custodian-5)
     ./ceremony-output/witness_2026.ceremony_record.json   (public audit record)

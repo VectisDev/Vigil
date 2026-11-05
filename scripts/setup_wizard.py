@@ -427,7 +427,7 @@ def main() -> None:
         gh_token = _ask("GITHUB_TOKEN", default=env.get("GITHUB_TOKEN", ""))
         gh_repo = _ask(
             "GITHUB_REPOSITORY",
-            default=env.get("GITHUB_REPOSITORY", "userf8a2c4/vigil"),
+            default=env.get("GITHUB_REPOSITORY", "VectisDev/vigil"),
         )
         if gh_token:
             env["GITHUB_TOKEN"] = gh_token
