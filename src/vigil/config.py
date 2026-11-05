@@ -141,6 +141,7 @@ class VigilSettings(BaseSettings):
     STORAGE_PATH: Path
     LOG_LEVEL: str = "INFO"
     BOT_TOKEN_DISCORD: Optional[str] = None
+
     def validate_paths(self) -> None:
         """/** Valida que las rutas críticas existan. / Validate that critical paths exist. **/"""
         if not self.STORAGE_PATH.exists():
@@ -151,6 +152,7 @@ class VigilSettings(BaseSettings):
 
 # Deprecated alias kept for code written before the VIGIL rename.
 CentinelSettings = VigilSettings
+
 
 def load_config() -> VigilSettings:
     """/** Carga y valida configuración, fallando con detalle. / Load and validate configuration, failing with details. **/"""

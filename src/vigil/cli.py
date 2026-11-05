@@ -81,9 +81,7 @@ def doctor(
         "--mode",
         help="Override CENTINEL_MODE for this check (maintenance|monitoring|election).",
     ),
-    as_json: bool = typer.Option(
-        False, "--json", help="Emit machine-readable JSON instead of text."
-    ),
+    as_json: bool = typer.Option(False, "--json", help="Emit machine-readable JSON instead of text."),
 ) -> None:
     """Preflight self-audit. Exits non-zero if the active mode is BLOCKED.
 
@@ -122,9 +120,7 @@ def doctor(
 
 @app.command()
 def profile(
-    mode: Optional[str] = typer.Option(
-        None, "--mode", help="Override CENTINEL_MODE for this resolution."
-    ),
+    mode: Optional[str] = typer.Option(None, "--mode", help="Override CENTINEL_MODE for this resolution."),
 ) -> None:
     """Show the security posture derived from the active CENTINEL_MODE.
 
@@ -190,9 +186,7 @@ def status() -> None:
 
 @panel_app.command(name="show")
 def panel_show(
-    verbose: bool = typer.Option(
-        False, "--verbose", help="Mostrar detalles completos / Show full details"
-    )
+    verbose: bool = typer.Option(False, "--verbose", help="Mostrar detalles completos / Show full details")
 ) -> None:
     """Mostrar panel de estado operacional.
 
@@ -206,9 +200,7 @@ def panel_show(
 
     # Threat score (placeholder)
     threat_score = 22
-    status_color = (
-        "🟢 VERDE" if threat_score < 31 else "🟡 AMARILLO" if threat_score < 75 else "🔴 ROJO"
-    )
+    status_color = "🟢 VERDE" if threat_score < 31 else "🟡 AMARILLO" if threat_score < 75 else "🔴 ROJO"
     typer.echo(f"║  AMENAZA GENERAL / Threat Score:  {threat_score:3d}/100 {status_color:<17} ║")
     typer.echo("║                                                                ║")
 
@@ -313,9 +305,7 @@ audit_app = typer.Typer(help="Auto-auditoría — Self-auditing system")
 
 
 @audit_app.command(name="run")
-def audit_run(
-    verbose: bool = typer.Option(False, "--verbose", help="Mostrar detalles / Show details")
-) -> None:
+def audit_run(verbose: bool = typer.Option(False, "--verbose", help="Mostrar detalles / Show details")) -> None:
     """Ejecutar auto-auditoría ahora.
 
     English: Run self-audit immediately.
@@ -351,9 +341,7 @@ def audit_run(
 
     typer.echo(f"║  {integrity_icon} Binary Integrity                                        ║")
     typer.echo(f"║  {state_icon} State Consistency                                        ║")
-    typer.echo(
-        f"║  {defenses_icon} Defense Health ({defenses_ok}/5)                                 ║"
-    )
+    typer.echo(f"║  {defenses_icon} Defense Health ({defenses_ok}/5)                                 ║")
     typer.echo(f"║  {mirrors_icon} Mirror Coherence                                        ║")
 
     if report.issues:
@@ -374,9 +362,7 @@ def audit_run(
 
 
 @audit_app.command(name="history")
-def audit_history(
-    limit: int = typer.Option(10, "--limit", help="Número de reportes / Number of reports")
-) -> None:
+def audit_history(limit: int = typer.Option(10, "--limit", help="Número de reportes / Number of reports")) -> None:
     """Ver últimos reportes de auto-auditoría.
 
     English: View latest auto-audit reports.

@@ -93,6 +93,7 @@ DEFAULT_RATE_LIMIT_SECONDS = 1.0
 DEFAULT_MAX_RETRIES = 4
 DEFAULT_REQUEST_TIMEOUT = 10.0
 
+
 @dataclass(frozen=True)
 class AlertConfig:
     """Español: Clase AlertConfig del módulo src/monitoring/alerts.py.
@@ -179,9 +180,7 @@ class AlertManager:
             logger.warning("alert_level_invalid level=%s", level)
             return False
         if not self.is_configured():
-            logger.warning(
-                "alert_dropped_no_transport level=%s hint=set ALERT_WEBHOOK_URL", normalized
-            )
+            logger.warning("alert_dropped_no_transport level=%s hint=set ALERT_WEBHOOK_URL", normalized)
             return False
         if not self.should_send(normalized):
             logger.debug("alert_skipped level=%s min=%s", normalized, self._config.min_level)
@@ -245,13 +244,8 @@ class AlertManager:
         """
         timestamp = datetime.now(timezone.utc).isoformat()
         dashboard = context.get("dashboard_url") or self._config.dashboard_url
-        checkpoint_hash = context.get("checkpoint_hash") or resolve_latest_checkpoint_hash(
-            self._config.hash_dir
-        )
-        base = (
-            f"[{level}] {timestamp} - {message}\n"
-            f"Contexto: {json.dumps(context, indent=2, ensure_ascii=False)}"
-        )
+        checkpoint_hash = context.get("checkpoint_hash") or resolve_latest_checkpoint_hash(self._config.hash_dir)
+        base = f"[{level}] {timestamp} - {message}\n" f"Contexto: {json.dumps(context, indent=2, ensure_ascii=False)}"
         if dashboard:
             base += f"\nDashboard: {dashboard}"
         if checkpoint_hash:

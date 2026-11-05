@@ -182,6 +182,7 @@ def _build_endpoint_health(root: Path) -> dict:
     try:
         sys.path.insert(0, str(root / "src"))
         from vigil.sync.forensics_publisher import build_endpoint_health_block
+
         return build_endpoint_health_block(root / "config" / "prod" / "endpoints.yaml")
     except Exception:
         return empty
@@ -222,9 +223,7 @@ def export_snapshot(root: Path = Path(".")) -> Path:
     has_any_evidence = bool(state) or chain["chain_length"] > 0 or bool(snapshot)
     if not has_any_evidence:
         status = "NO_DATA"
-        status_reason = (
-            f"pipeline_state.json {state_status}; chain empty; no snapshot in {data_dir}"
-        )
+        status_reason = f"pipeline_state.json {state_status}; chain empty; no snapshot in {data_dir}"
     elif cne_status["reachable"] is False:
         status = "DEGRADED"
         status_reason = f"source unreachable ({cne_status['consecutive_failures']} consecutive failures)"
