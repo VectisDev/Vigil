@@ -4,7 +4,7 @@
 **Working Paper WP-CENTINEL-2026-01**  
 **Fecha / Date:** 2026-06-07  
 **Versión / Version:** 1.0 — Borrador para revisión académica  
-**Estado / Status:** Pendiente revisión y firma — Prof. Devis Alvarado (UPNFM)
+**Estado / Status:** Pendiente revisión y firma — an independent academic reviewer
 
 ---
 
@@ -140,7 +140,50 @@ obligatoria (NIST Engineering Statistics Handbook, §1.3.5).
 
 ---
 
+### 3.4 Reglas que NO cumplen el criterio / Rules that FAIL the criterion
+
+El run completo registrado en `fp_results_500.json` (semilla 42, 1.500 snapshots,
+15 reglas cargadas) reporta `"all_acceptable": false`. Dos reglas superan
+ampliamente el umbral de 5% sobre datos sintéticos limpios:
+
+| Regla | Marcados | Tasa FP | IC 95% | Veredicto |
+|-------|----------|---------|--------|-----------|
+| `granular_anomaly` | 500/1500 | **33.33%** | 30.99–35.76% | ❌ no aceptable |
+| `participation_anomaly` | 1000/1500 | **66.67%** | 64.24–69.01% | ❌ no aceptable |
+
+**Acción tomada:** ambas quedan degradadas a informativas hasta recalibrarse. No
+deben emitir severidad ≥ WARNING en producción.
+
+**Causa probable:** el generador de datos limpios modela conteos a escala de
+MESA (`Lognormal(μ=5.5, σ=1.8)`, valores típicos 50–2.000 votos), mientras que
+VIGIL observa agregados DEPARTAMENTALES, con totales de decenas o cientos de
+miles de votos. El modelo nulo está calibrado dos o tres órdenes de magnitud por
+debajo de la población que el sistema realmente observa, lo que infla el rechazo
+de las reglas sensibles a la escala. Recalibrar el modelo nulo a escala
+departamental, por máxima verosimilitud sobre datos reales, es trabajo pendiente.
+
+**Nota sobre discrepancias entre artefactos:** `fp_results_500.json` (semilla 42,
+denominador 1.500 snapshots, generado por
+`scripts/validate_false_positive_rate.py`) y la tabla de §3 de este documento
+(semilla 2025, denominador 500 ensayos, generada por
+`docs/research/run_fp_analysis.py`) son **dos experimentos distintos** y no son
+comparables entre sí. El segundo no ejercita `granular_anomaly` ni
+`participation_anomaly`, por lo que no puede reproducir el JSON. Ambos se
+publican sin armonizar para no reescribir resultados ya depositados.
+
+---
+
 ## 4. Limitaciones / Limitations
+
+**Unidades agregadas.** VIGIL observa 19 unidades por captura (nacional + 18
+departamentos), un alcance limitado deliberadamente para no constituir una carga
+abusiva sobre la infraestructura de la autoridad. Las pruebas de dígitos
+(Benford, uniformidad de último dígito) y los tests de dispersión geográfica
+requieren del orden de 10²–10³ observaciones para tener potencia estadística;
+sobre 19 unidades agregadas no son aplicables y no deben emitir alertas. La
+potencia del sistema proviene de la cadencia temporal (series por departamento a
+intervalos de minutos), no del número de unidades.
+
 
 1. **Datos sintéticos** — validación con los 96 JSONs reales del CNE pendiente.
 2. **Sin correlación espacial** — no modela dependencia entre departamentos.
@@ -153,9 +196,14 @@ obligatoria (NIST Engineering Statistics Handbook, §1.3.5).
 
 ```bash
 git clone https://github.com/VectisDev/Vigil.git
-cd centinel && git checkout dev-v12
+cd Vigil
 pip install numpy scipy pandas pytest
+
+# Experimento de §3 (semilla 2025, 500 ensayos) — imprime a stdout:
 PYTHONPATH=src python docs/research/run_fp_analysis.py
+
+# Experimento completo de §3.4 (semilla 42, 1.500 snapshots) — escribe el JSON:
+PYTHONPATH=src python scripts/validate_false_positive_rate.py
 # Resultados esperados:
 # benford_2bl_critical:           6/500  (1.2%)
 # benford_1st_would_be_critical: 500/500 (100.0%)
@@ -200,7 +248,7 @@ PYTHONPATH=src python docs/research/run_fp_analysis.py
 
 Pendiente revisión técnica y firma:
 
-**Prof. Devis Alvarado**  
+**independent academic reviewer (pending)**  
 Departamento de Matemáticas y Estadística  
 Universidad Pedagógica Nacional Francisco Morazán (UPNFM)  
 Tegucigalpa, Honduras

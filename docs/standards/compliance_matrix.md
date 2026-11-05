@@ -97,7 +97,7 @@
 | Seguridad criptográfica | ✅ | SHA-256, Ed25519, HKDF |
 | Protección de datos | 🟡 | user-privacy-agent en implementación |
 | Auditabilidad técnica | ✅ | STATISTICAL_CONVENTIONS.md; tests |
-| Certificación/validación | ❌ | Validación académica UPNFM pendiente firma |
+| Certificación/validación | ❌ | Validación académica independiente pendiente |
 
 ---
 
@@ -106,7 +106,7 @@
 | Brecha | Estándar afectado | Esfuerzo estimado | Responsable |
 |--------|-------------------|-------------------|-------------|
 | Guía técnica para observadores | OEA, Carter Center, OSCE | 2-3 días | @international-standards-agent |
-| Validación académica firmada | Carter Center, NDI | 0 días código (Devis) | Prof. Devis Alvarado |
+| Validación académica firmada | Carter Center, NDI | 0 días código (revisor externo) | independent academic reviewer (pending) |
 | Guía no-técnica bilingüe | OSCE, NDI | 1-2 días | @dashboard-visual-agent |
 | Protocolo formal con misiones | OEA, OSCE | 2-4 semanas | @legal-strategy-agent |
 

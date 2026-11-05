@@ -6,7 +6,7 @@ CRS is an **operational indicator** used in the Vigil lab and replay views to vi
 
 **CRS is NOT a formal hypothesis test.** It does not produce p-values, does not test a single null hypothesis, and the thresholds that map category counts to color bands are conservative heuristics — they will be empirically calibrated against historical Honduran electoral data (HND 2017, HND 2021) before publication or institutional use.
 
-This document exists so that any reviewer — Prof. Devis Alvarado (UPNFM), OEA, Carter Center, NDI, OTF, CNA, ASJ — can understand exactly what CRS does and does not claim.
+This document exists so that any reviewer — an independent academic reviewer, OEA, Carter Center, NDI, OTF, CNA, ASJ — can understand exactly what CRS does and does not claim.
 
 ---
 
@@ -58,7 +58,7 @@ CRS is one layer of a defense-in-depth methodology. Its purpose is **early opera
 ## Calibration roadmap
 
 1. **Phase 0 (current)**: Conservative literature-based and operationally reasonable thresholds. Color map heuristic.
-2. **Phase 1 (pending Devis Alvarado review)**: Per-rule thresholds calibrated to empirical distributions from HND 2017 and HND 2021 official electoral data streams.
+2. **Phase 1 (pending independent academic reviewer (pending) review)**: Per-rule thresholds calibrated to empirical distributions from HND 2017 and HND 2021 official electoral data streams.
 3. **Phase 2 (post-calibration)**: Quantify false-positive rate of the category-count thresholds against historical "normal" elections.
 4. **Phase 3 (research)**: Per-category quasi-independence verified empirically; consider migration to a formal mixture model.
 

@@ -48,12 +48,12 @@ querer investigar:
 
 **1. Who funds us / Quién nos financia:**
 No external funding as of June 9, 2026. Development is unfunded volunteer work.
-The fiscal custodian for grant receipt is IGETEL S.A. (Honduras). A full
-conflict-of-interest declaration is published at https://github.com/VectisDev/Vigil/blob/main/docs. We invite scrutiny.
+No fiscal host organization is engaged at this time. Any such arrangement
+will be declared directly to the funder. We invite scrutiny.
 
 **2. Who built it / Quién lo construyó:**
-Carlos Zelaya (handle: VectisDev), a software engineer in Honduras, with
-academic validation from Prof. Devis Alvarado (Mathematics Department,
+`VectisDev`, an independent software engineer, with
+academic validation from independent academic reviewer (pending) (Mathematics Department,
 UPNFM). No political affiliation. Source code is public and auditable.
 
 **3. What it can prove / Qué puede probar:**
@@ -92,10 +92,9 @@ seriously and will publish corrections prominently.
 *Response:*
 VIGIL has received zero funding as of June 9, 2026. Every line of code was
 written on a volunteer basis. Our fiscal sponsor for future grant
-applications is IGETEL S.A., a Honduran private company. All potential
-donors and institutional relationships are disclosed at https://github.com/VectisDev/Vigil/blob/main/docs. The
-allegation is false; if evidence exists, we invite its public presentation
-so we can address it.
+applications is not yet engaged; any such arrangement will be declared
+directly to the funder. The allegation is false; if evidence exists, we
+invite its public presentation so we can address it.
 
 ---
 
@@ -113,19 +112,16 @@ cannot be assessed from the code because the code has none.
 
 ---
 
-**A3. "IGETEL connection = family conflict of interest / Carlos Zelaya's uncle"**
-**"Conexión con IGETEL = conflicto de interés familiar / tío de Carlos Zelaya"**
+**A3. "A fiscal sponsor creates a conflict of interest"**
+**"Un patrocinador fiscal genera un conflicto de interés"**
 
 *Response:*
-Ing. Mario Roberto Zelaya Guzmán is the General Manager of IGETEL S.A.
-and is Carlos Zelaya's uncle. This relationship is disclosed publicly and
-has been since June 9, 2026. IGETEL's role is limited to fiscal custodianship
-for grant receipt — they handle banking and administrative infrastructure
-for grants under an agreed commission. IGETEL has no influence over the
-methodology, statistical thresholds, findings, or publication decisions.
-The conflict-of-interest declaration at https://github.com/VectisDev/Vigil/blob/main/docs details the governance
-separation. We disclosed this proactively precisely because we anticipated
-this question.
+Any fiscal sponsorship engaged for grant receipt would handle banking and
+administrative infrastructure only, and would be declared directly to the
+funder. Methodology, statistical thresholds, findings and publication
+decisions are governed by this public repository: the rules and thresholds
+are versioned in the open and any third party can verify that a sponsor did
+not alter them. No sponsor holds any such influence.
 
 ---
 
@@ -299,11 +295,11 @@ matters, and it is publicly auditable.
 
 ---
 
-**D1. "Carlos Zelaya is an activist / partisan operative"**
-**"Carlos Zelaya es un activista / operativo partidista"**
+**D1. "The developer is an activist / partisan operative"**
+**"El desarrollador es un activista / operativo partidista"**
 
 *Response:*
-Carlos Zelaya is a software engineer. His political opinions, if any, are
+The developer is a software engineer. Their political opinions, if any, are
 irrelevant to whether SHA-256 is correctly computed or whether a chi-squared
 test is correctly applied. The code is public. Critique the code. If the
 methodology is wrong, demonstrate it with mathematics, not with character
@@ -316,7 +312,7 @@ attacks.
 
 *Response:*
 The methodology has been submitted for academic review to the Mathematics
-Department of UPNFM (Prof. Devis Alvarado). Peer review is ongoing. We
+Department of UPNFM (independent academic reviewer (pending)). Peer review is ongoing. We
 invite any qualified mathematician or statistician to review the work at
 https://github.com/VectisDev/Vigil/blob/main/docs/ and publish their critique. The code does not become more or less
 correct based on the credentials of its author — only on whether the
@@ -514,7 +510,7 @@ parte que desee verificar nuestros hallazgos durante el evento.
 
 - **Review cadence:** 6 months, and after every attack or near-attack
   incident. Cadencia de revisión: 6 meses, y tras todo incidente.
-- **Owner:** Carlos Zelaya, with ratification by Prof. Devis Alvarado
+- **Owner:** `VectisDev`
   when content changes affect academic framing.
 - **Versioning:** This document is versioned and tracked in git. Any
   addition of a new attack category should come with: (a) a documented

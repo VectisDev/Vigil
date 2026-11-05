@@ -14,7 +14,8 @@ herramienta de verificación futura sin importar dependencias HTTP.
 ABSOLUTE RESTRICTION: The hash computation logic in this module is audited.
 Do NOT change the algorithm, byte encoding, or concatenation order —
 any modification breaks the chain for all existing evidence files.
-See CLAUDE.md: SHA-256 hash chaining and Merkle root are protected.
+SHA-256 hash chaining and Merkle root are integrity-critical: do not
+deduplicate across the generator/verifier boundary.
 
 RESTRICCIÓN ABSOLUTA: La lógica de hash en este módulo es auditada.
 NO cambiar algoritmo, encoding de bytes, ni orden de concatenación —

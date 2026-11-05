@@ -98,7 +98,7 @@ El CNE no publicó actualizaciones durante la noche del 3 al 4 de diciembre.
 Al reanudarse la publicación, se detectó un cambio estadísticamente significativo
 en la tendencia de share del candidato líder.
 
-### 3.2 Tasa de resolución físicamente imposible [CRÍTICO]
+### 3.2 Tasa de resolución sobre el umbral pre-registrado [CRÍTICO]
 
 | Campo | Valor |
 |-------|-------|

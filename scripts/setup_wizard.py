@@ -359,7 +359,9 @@ def main() -> None:
         "monitoring": "900",
         "maintenance": "1800",
     }
-    current_interval = env.get("VIGIL_POLL_INTERVAL", env.get("CENTINEL_POLL_INTERVAL")) or _MODE_DEFAULTS.get(new_mode, "900")
+    current_interval = env.get("VIGIL_POLL_INTERVAL", env.get("CENTINEL_POLL_INTERVAL")) or _MODE_DEFAULTS.get(
+        new_mode, "900"
+    )
 
     print(
         f"  Elecciones ({new_country}):  {_election_min}s = {_election_min // 60} min  <- minimo validado / validated minimum"
@@ -427,7 +429,7 @@ def main() -> None:
         gh_token = _ask("GITHUB_TOKEN", default=env.get("GITHUB_TOKEN", ""))
         gh_repo = _ask(
             "GITHUB_REPOSITORY",
-            default=env.get("GITHUB_REPOSITORY", "userf8a2c4/vigil"),
+            default=env.get("GITHUB_REPOSITORY", "VectisDev/vigil"),
         )
         if gh_token:
             env["GITHUB_TOKEN"] = gh_token

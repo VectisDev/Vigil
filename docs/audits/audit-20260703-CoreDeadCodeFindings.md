@@ -1,7 +1,7 @@
 # Auditoría — código muerto / duplicado (pasada "ponytail" dev-v14)
 
 Fecha: 2026-07-03
-Rama: `claude/dev-v14-ponytail-qakwa5`
+Rama: `dev-v14-refactor`
 Metodología: aplicación manual de la filosofía del plugin
 [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) (no instalable en esta
 sesión de agente remoto) — escalera de decisión "¿hace falta? → ¿ya existe? → ¿stdlib? →

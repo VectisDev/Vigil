@@ -31,7 +31,7 @@ Materials for grant applications, bounty programs, and institutional partnership
 
 - **Zero cost, permanent:** Runs entirely on GitHub Actions free tier — no server budget ever
 - **Field-tested:** Piloted on Honduras 2025 general election data
-- **Academic foundation:** Independent validation in progress (UPNFM, Honduras)
+- **Academic foundation:** Independent academic review sought; none signed to date
 - **Cryptographic guarantees:** Formal theorems T1–T4 verifiable in source code
 - **Anti-capture:** AGPL-3.0 prevents any actor (public or private) from closing or privatizing the tool
 - **Reproducible:** Every step verifiable by any third party with no cooperation from the operator

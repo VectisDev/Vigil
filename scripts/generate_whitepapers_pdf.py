@@ -36,25 +36,75 @@ FONT, FONT_B, FONT_M = "Body", "Body-Bold", "Mono"
 
 # --- LaTeX accent / escape handling -------------------------------------
 ACCENTS = {
-    r"\'a": "á", r"\'e": "é", r"\'i": "í", r"\'o": "ó", r"\'u": "ú",
-    r"\'A": "Á", r"\'E": "É", r"\'I": "Í", r"\'O": "Ó", r"\'U": "Ú",
-    r"\'\i": "í", r'\"a': "ä", r'\"o': "ö", r'\"u': "ü", r'\"e': "ë",
-    r"\~n": "ñ", r"\~N": "Ñ", r"\~a": "ã", r"\~o": "õ",
-    r"\^a": "â", r"\^e": "ê", r"\^o": "ô", r"\`a": "à", r"\`e": "è",
+    r"\'a": "á",
+    r"\'e": "é",
+    r"\'i": "í",
+    r"\'o": "ó",
+    r"\'u": "ú",
+    r"\'A": "Á",
+    r"\'E": "É",
+    r"\'I": "Í",
+    r"\'O": "Ó",
+    r"\'U": "Ú",
+    r"\'\i": "í",
+    r"\"a": "ä",
+    r"\"o": "ö",
+    r"\"u": "ü",
+    r"\"e": "ë",
+    r"\~n": "ñ",
+    r"\~N": "Ñ",
+    r"\~a": "ã",
+    r"\~o": "õ",
+    r"\^a": "â",
+    r"\^e": "ê",
+    r"\^o": "ô",
+    r"\`a": "à",
+    r"\`e": "è",
 }
 
 MATH = {
-    r"\,\Vert\,": " ∥ ", r"\Vert": " ∥ ", r"\concat": " ∥ ",
-    r"\Hash": "H", r"\Sign": "Sig", r"\Verify": "Vrf",
-    r"\negl": "negl", r"\lambda": "λ", r"\tau": "τ", r"\sigma": "σ",
-    r"\mu": "μ", r"\le": "≤", r"\ge": "≥", r"\neq": "≠", r"\wedge": "∧",
-    r"\Rightarrow": "⇒", r"\rightarrow": "→", r"\to": "→",
-    r"\leftarrow": "←", r"\in": "∈", r"\bot": "⊥", r"\dots": "…",
-    r"\ldots": "…", r"\cdot": "·", r"\setminus": "∖", r"\Pr": "Pr",
-    r"\times": "×", r"\ge ": "≥ ", r"\langle": "⟨", r"\rangle": "⟩",
-    r"\{0,1\}": "{0,1}", r"\{": "{", r"\}": "}", r"\quad": "   ",
-    r"\,": " ", r"\;": " ", r"\:": " ", r"\!": "",
-    r"\big": "", r"\Big": "", r"\left": "", r"\right": "",
+    r"\,\Vert\,": " ∥ ",
+    r"\Vert": " ∥ ",
+    r"\concat": " ∥ ",
+    r"\Hash": "H",
+    r"\Sign": "Sig",
+    r"\Verify": "Vrf",
+    r"\negl": "negl",
+    r"\lambda": "λ",
+    r"\tau": "τ",
+    r"\sigma": "σ",
+    r"\mu": "μ",
+    r"\le": "≤",
+    r"\ge": "≥",
+    r"\neq": "≠",
+    r"\wedge": "∧",
+    r"\Rightarrow": "⇒",
+    r"\rightarrow": "→",
+    r"\to": "→",
+    r"\leftarrow": "←",
+    r"\in": "∈",
+    r"\bot": "⊥",
+    r"\dots": "…",
+    r"\ldots": "…",
+    r"\cdot": "·",
+    r"\setminus": "∖",
+    r"\Pr": "Pr",
+    r"\times": "×",
+    r"\ge ": "≥ ",
+    r"\langle": "⟨",
+    r"\rangle": "⟩",
+    r"\{0,1\}": "{0,1}",
+    r"\{": "{",
+    r"\}": "}",
+    r"\quad": "   ",
+    r"\,": " ",
+    r"\;": " ",
+    r"\:": " ",
+    r"\!": "",
+    r"\big": "",
+    r"\Big": "",
+    r"\left": "",
+    r"\right": "",
 }
 GREEK = {"alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ"}
 
@@ -63,12 +113,10 @@ def render_math(expr: str) -> str:
     """LaTeX math -> reportlab mini-HTML with <sub>/<super> tags."""
     expr = expr.strip().replace(r"\,\Vert\,", " ∥ ")
     # \mathcal/\mathsf/\mathtt/\mathrm/\mathbf{X} -> X (keep arg)
-    expr = re.sub(r"\\math(?:cal|sf|tt|rm|bf|bb|it)\{([^{}]*)\}",
-                  r"\1", expr)
+    expr = re.sub(r"\\math(?:cal|sf|tt|rm|bf|bb|it)\{([^{}]*)\}", r"\1", expr)
     for k, v in sorted(MATH.items(), key=lambda x: -len(x[0])):
         expr = expr.replace(k, v)
-    expr = re.sub(r"\\(alpha|beta|gamma|delta)",
-                  lambda m: GREEK[m.group(1)], expr)
+    expr = re.sub(r"\\(alpha|beta|gamma|delta)", lambda m: GREEK[m.group(1)], expr)
     # subscripts / superscripts -> tags (font-independent)
     expr = re.sub(r"_\{([^{}]*)\}", r"<sub>\1</sub>", expr)
     expr = re.sub(r"_([A-Za-z0-9])", r"<sub>\1</sub>", expr)
@@ -95,12 +143,15 @@ def inline(text: str) -> str:
     text = re.sub(r"\$([^$]+)\$", lambda m: "<i>" + render_math(m.group(1)) + "</i>", text)
     # nested-brace-safe single-arg commands
     for cmd, (op, cl) in {
-        "textbf": ("<b>", "</b>"), "emph": ("<i>", "</i>"),
-        "textit": ("<i>", "</i>"), "texttt": ('<font face="Mono">', "</font>"),
+        "textbf": ("<b>", "</b>"),
+        "emph": ("<i>", "</i>"),
+        "textit": ("<i>", "</i>"),
+        "texttt": ('<font face="Mono">', "</font>"),
         "code": ('<font face="Mono">', "</font>"),
     }.items():
-        text = re.sub(r"\\" + cmd + r"\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}",
-                       lambda m, o=op, c=cl: o + m.group(1) + c, text)
+        text = re.sub(
+            r"\\" + cmd + r"\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}", lambda m, o=op, c=cl: o + m.group(1) + c, text
+        )
     text = re.sub(r"\\url\{([^}]*)\}", r'<font color="blue">\1</font>', text)
     text = re.sub(r"\\cite\{[^}]*\}", "[ref]", text)
     text = re.sub(r"\\ref\{[^}]*\}", "§", text)
@@ -120,39 +171,88 @@ def build_styles():
     ss = getSampleStyleSheet()
     base = dict(fontName=FONT)
     styles = {
-        "title": ParagraphStyle("title", parent=ss["Title"], fontName=FONT_B,
-                                 fontSize=19, leading=23, alignment=TA_CENTER,
-                                 spaceAfter=4),
-        "subtitle": ParagraphStyle("subtitle", parent=ss["Normal"], fontName=FONT,
-                                    fontSize=11.5, leading=15, alignment=TA_CENTER,
-                                    spaceAfter=2,
-                                    textColor=colors.HexColor("#333333")),
-        "author": ParagraphStyle("author", parent=ss["Normal"], fontName=FONT,
-                                  fontSize=9.5, alignment=TA_CENTER, spaceAfter=14,
-                                  textColor=colors.HexColor("#555555")),
-        "h1": ParagraphStyle("h1", parent=ss["Heading1"], fontName=FONT_B,
-                              fontSize=13.5, leading=17, spaceBefore=15, spaceAfter=6,
-                              textColor=colors.HexColor("#1a1a2e")),
-        "h2": ParagraphStyle("h2", parent=ss["Heading2"], fontName=FONT_B,
-                              fontSize=11.5, leading=15, spaceBefore=9, spaceAfter=4,
-                              textColor=colors.HexColor("#16213e")),
-        "para": ParagraphStyle("para", parent=ss["BodyText"], fontSize=9.5,
-                                leading=13.5, alignment=TA_JUSTIFY, spaceAfter=6,
-                                **base),
-        "thm": ParagraphStyle("thm", parent=ss["BodyText"], fontSize=9.5,
-                               leading=13.5, alignment=TA_JUSTIFY, spaceAfter=6,
-                               leftIndent=8, backColor=colors.HexColor("#f4f4f8"),
-                               borderPadding=6, **base),
-        "proof": ParagraphStyle("proof", parent=ss["BodyText"], fontSize=9,
-                                 leading=12.5, alignment=TA_JUSTIFY, spaceAfter=6,
-                                 leftIndent=8, textColor=colors.HexColor("#333333"),
-                                 **base),
-        "abstract": ParagraphStyle("abstract", parent=ss["BodyText"], fontSize=9,
-                                    leading=12.5, alignment=TA_JUSTIFY, spaceAfter=6,
-                                    leftIndent=14, rightIndent=14, **base),
-        "runt": ParagraphStyle("runt", parent=ss["BodyText"], fontSize=9.5,
-                                leading=13.5, alignment=TA_JUSTIFY, spaceAfter=6,
-                                **base),
+        "title": ParagraphStyle(
+            "title", parent=ss["Title"], fontName=FONT_B, fontSize=19, leading=23, alignment=TA_CENTER, spaceAfter=4
+        ),
+        "subtitle": ParagraphStyle(
+            "subtitle",
+            parent=ss["Normal"],
+            fontName=FONT,
+            fontSize=11.5,
+            leading=15,
+            alignment=TA_CENTER,
+            spaceAfter=2,
+            textColor=colors.HexColor("#333333"),
+        ),
+        "author": ParagraphStyle(
+            "author",
+            parent=ss["Normal"],
+            fontName=FONT,
+            fontSize=9.5,
+            alignment=TA_CENTER,
+            spaceAfter=14,
+            textColor=colors.HexColor("#555555"),
+        ),
+        "h1": ParagraphStyle(
+            "h1",
+            parent=ss["Heading1"],
+            fontName=FONT_B,
+            fontSize=13.5,
+            leading=17,
+            spaceBefore=15,
+            spaceAfter=6,
+            textColor=colors.HexColor("#1a1a2e"),
+        ),
+        "h2": ParagraphStyle(
+            "h2",
+            parent=ss["Heading2"],
+            fontName=FONT_B,
+            fontSize=11.5,
+            leading=15,
+            spaceBefore=9,
+            spaceAfter=4,
+            textColor=colors.HexColor("#16213e"),
+        ),
+        "para": ParagraphStyle(
+            "para", parent=ss["BodyText"], fontSize=9.5, leading=13.5, alignment=TA_JUSTIFY, spaceAfter=6, **base
+        ),
+        "thm": ParagraphStyle(
+            "thm",
+            parent=ss["BodyText"],
+            fontSize=9.5,
+            leading=13.5,
+            alignment=TA_JUSTIFY,
+            spaceAfter=6,
+            leftIndent=8,
+            backColor=colors.HexColor("#f4f4f8"),
+            borderPadding=6,
+            **base,
+        ),
+        "proof": ParagraphStyle(
+            "proof",
+            parent=ss["BodyText"],
+            fontSize=9,
+            leading=12.5,
+            alignment=TA_JUSTIFY,
+            spaceAfter=6,
+            leftIndent=8,
+            textColor=colors.HexColor("#333333"),
+            **base,
+        ),
+        "abstract": ParagraphStyle(
+            "abstract",
+            parent=ss["BodyText"],
+            fontSize=9,
+            leading=12.5,
+            alignment=TA_JUSTIFY,
+            spaceAfter=6,
+            leftIndent=14,
+            rightIndent=14,
+            **base,
+        ),
+        "runt": ParagraphStyle(
+            "runt", parent=ss["BodyText"], fontSize=9.5, leading=13.5, alignment=TA_JUSTIFY, spaceAfter=6, **base
+        ),
     }
     return styles
 
@@ -170,7 +270,7 @@ def parse_latex(src: str):
     pos = 0
     for m in env_pat.finditer(body):
         if m.start() > pos:
-            yield from parse_plain(body[pos:m.start()])
+            yield from parse_plain(body[pos : m.start()])
         yield ("env", (m.group(1), m.group(3)))
         pos = m.end()
     if pos < len(body):
@@ -196,13 +296,11 @@ def parse_plain(chunk: str):
                     yield ("para", p)
 
     for m in token.finditer(chunk):
-        buf.append(chunk[pos:m.start()])
+        buf.append(chunk[pos : m.start()])
         yield from flush()
         if m.group(1):
             kind = m.group(1).rstrip("*")
-            yield (("h1" if kind == "section" else
-                    "h2" if kind == "subsection" else "run"),
-                   inline(m.group(2)))
+            yield (("h1" if kind == "section" else "h2" if kind == "subsection" else "run"), inline(m.group(2)))
         elif m.group(3) == "title":
             yield ("title", m.group(4))
         elif m.group(3) == "author":
@@ -215,9 +313,13 @@ def parse_plain(chunk: str):
 def env_to_flow(name, content, styles):
     flow = []
     label = {
-        "theorem": "Theorem", "lemma": "Lemma", "corollary": "Corollary",
-        "definition": "Definition", "assumption": "Assumption",
-        "remark": "Remark", "proof": "Proof",
+        "theorem": "Theorem",
+        "lemma": "Lemma",
+        "corollary": "Corollary",
+        "definition": "Definition",
+        "assumption": "Assumption",
+        "remark": "Remark",
+        "proof": "Proof",
     }.get(name)
     if name == "abstract":
         for para in re.split(r"\\bigskip|\n\s*\n", content):
@@ -243,8 +345,7 @@ def env_to_flow(name, content, styles):
     if name == "tabular":
         return flow  # handled inside 'table'
     if name == "table":
-        tm = re.search(r"\\begin\{tabular\}(\{[^}]*\})?(.*?)\\end\{tabular\}",
-                        content, re.S)
+        tm = re.search(r"\\begin\{tabular\}(\{[^}]*\})?(.*?)\\end\{tabular\}", content, re.S)
         cap = re.search(r"\\caption\{((?:[^{}]|\{[^{}]*\})*)\}", content, re.S)
         if tm:
             rows = []
@@ -259,27 +360,30 @@ def env_to_flow(name, content, styles):
                 ncol = max(len(r) for r in rows)
                 rows = [r + [Paragraph("", styles["para"])] * (ncol - len(r)) for r in rows]
                 tbl = Table(rows, hAlign="CENTER")
-                tbl.setStyle(TableStyle([
-                    ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bbbbbb")),
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8e8f0")),
-                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                    ("TOPPADDING", (0, 0), (-1, -1), 3),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                ]))
+                tbl.setStyle(
+                    TableStyle(
+                        [
+                            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bbbbbb")),
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8e8f0")),
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                            ("TOPPADDING", (0, 0), (-1, -1), 3),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                        ]
+                    )
+                )
                 flow.append(tbl)
         if cap:
             flow.append(Spacer(1, 3))
-            flow.append(Paragraph("<i>Table.</i> " + inline(cap.group(1)),
-                                   styles["proof"]))
+            flow.append(Paragraph("<i>Table.</i> " + inline(cap.group(1)), styles["proof"]))
         return flow
     if label:
         title_m = re.match(r"\s*\[((?:[^\[\]]|\[[^\]]*\])*)\]", content)
         head = label
         if title_m:
             head += f" ({inline(title_m.group(1))})"
-            content = content[title_m.end():]
+            content = content[title_m.end() :]
         content = re.sub(r"\\label\{[^}]*\}", "", content)
         style = styles["proof"] if name == "proof" else styles["thm"]
         body = inline(content)
@@ -293,9 +397,15 @@ def compile_public():
     src = (DOCS / "centinel-engine-whitepaper-v1.tex").read_text(encoding="utf-8")
     styles = build_styles()
     out = DOCS / "centinel-engine-whitepaper-v1.pdf"
-    doc = SimpleDocTemplate(str(out), pagesize=A4, topMargin=22 * mm,
-                            bottomMargin=20 * mm, leftMargin=22 * mm,
-                            rightMargin=22 * mm, title="VIGIL Whitepaper v1.0")
+    doc = SimpleDocTemplate(
+        str(out),
+        pagesize=A4,
+        topMargin=22 * mm,
+        bottomMargin=20 * mm,
+        leftMargin=22 * mm,
+        rightMargin=22 * mm,
+        title="VIGIL Whitepaper v1.0",
+    )
     story = []
     title_done = False
     for kind, payload in parse_latex(src):
@@ -309,8 +419,7 @@ def compile_public():
             title_done = True
         elif kind == "author":
             story.append(Paragraph(inline(payload), styles["author"]))
-            story.append(HRFlowable(width="100%", thickness=0.5,
-                                     color=colors.HexColor("#999999")))
+            story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#999999")))
             story.append(Spacer(1, 8))
         elif kind == "h1":
             story.append(Paragraph(payload, styles["h1"]))
@@ -327,12 +436,26 @@ def compile_public():
 
 
 def compile_internal():
-    md = (DOCS / "INTERNAL-whitepaper-es.md").read_text(encoding="utf-8")
+    # The internal whitepaper is deliberately kept out of version control
+    # (see .gitignore). Skip cleanly when it is not present locally.
+    # El whitepaper interno se mantiene fuera del control de versiones a
+    # propósito. Omitir limpiamente si no está presente localmente.
+    src = DOCS / "INTERNAL-whitepaper-es.md"
+    if not src.exists():
+        print("SKIP internal -> INTERNAL-whitepaper-es.md not present (local-only by design)")
+        return
+    md = src.read_text(encoding="utf-8")
     styles = build_styles()
     out = DOCS / "INTERNAL-whitepaper-es.pdf"
-    doc = SimpleDocTemplate(str(out), pagesize=A4, topMargin=22 * mm,
-                            bottomMargin=20 * mm, leftMargin=22 * mm,
-                            rightMargin=22 * mm, title="VIGIL Whitepaper Interno")
+    doc = SimpleDocTemplate(
+        str(out),
+        pagesize=A4,
+        topMargin=22 * mm,
+        bottomMargin=20 * mm,
+        leftMargin=22 * mm,
+        rightMargin=22 * mm,
+        title="VIGIL Whitepaper Interno",
+    )
     story = []
 
     def md_inline(s):
@@ -352,17 +475,20 @@ def compile_internal():
             ncol = max(len(r) for r in rows)
             rows = [r + [Paragraph("", styles["para"])] * (ncol - len(r)) for r in rows]
             t = Table(rows, hAlign="LEFT")
-            t.setStyle(TableStyle([
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bbbbbb")),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8e8f0")),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ]))
+            t.setStyle(
+                TableStyle(
+                    [
+                        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bbbbbb")),
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8e8f0")),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ]
+                )
+            )
             story.append(t)
             story.append(Spacer(1, 6))
             in_table = []
         if "---" in line and set(line.strip()) <= {"-"}:
-            story.append(HRFlowable(width="100%", thickness=0.5,
-                                     color=colors.HexColor("#cccccc")))
+            story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#cccccc")))
         elif line.startswith("# "):
             story.append(Paragraph(md_inline(line[2:]), styles["title"]))
         elif line.startswith("## "):
@@ -370,13 +496,9 @@ def compile_internal():
         elif line.startswith("### "):
             story.append(Paragraph(md_inline(line[4:]), styles["h2"]))
         elif line.startswith("> "):
-            story.append(Paragraph(
-                '<font color="#a00000"><b>' + md_inline(line[2:]) + "</b></font>",
-                styles["para"]))
+            story.append(Paragraph('<font color="#a00000"><b>' + md_inline(line[2:]) + "</b></font>", styles["para"]))
         elif re.match(r"^\s*[-*]\s+", line):
-            story.append(Paragraph("•&nbsp;&nbsp;" +
-                                    md_inline(re.sub(r"^\s*[-*]\s+", "", line)),
-                                    styles["para"]))
+            story.append(Paragraph("•&nbsp;&nbsp;" + md_inline(re.sub(r"^\s*[-*]\s+", "", line)), styles["para"]))
         elif re.match(r"^\s*\d+\.\s+", line):
             story.append(Paragraph(md_inline(line.strip()), styles["para"]))
         elif line.strip():

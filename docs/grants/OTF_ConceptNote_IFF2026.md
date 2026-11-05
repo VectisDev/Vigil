@@ -5,7 +5,7 @@
 **Convocatoria:** Open Technology Fund — Internet Freedom Fund  
 **Referencia:** IFF-2026-06  
 **Fecha de preparación:** 2026-06-07  
-**Solicitante:** Carlos Zelaya — Desarrollador Principal VIGIL  
+**Solicitante:** VectisDev — Lead developer, VIGIL Project  
 **Estado:** Borrador — listo para completar formulario online en otf.opentech.fund
 
 ---
@@ -22,17 +22,17 @@
 
 ## CAMPO 2 — Describe tu proyecto en 1-3 oraciones
 
-En Honduras y Centroamérica, los datos electorales oficiales pueden ser publicados, alterados o suprimidos sin que periodistas, activistas ni ciudadanos tengan forma de detectarlo. **VIGIL** es un sistema de software libre que captura, encadena criptográficamente y somete a 23 pruebas estadísticas y forenses cada publicación del organismo electoral — de forma continua o retroactiva, a costo cero, sin depender de ninguna autoridad. En el análisis forense retroactivo sobre archivos JSON originales del CNE de las elecciones hondureñas de 2025, detectó automáticamente un apagón de 13 horas de datos y una tasa de resolución matemáticamente imposible de 39 actas por minuto.
+En Honduras y Centroamérica, los datos electorales oficiales pueden ser publicados, alterados o suprimidos sin que periodistas, activistas ni ciudadanos tengan forma de detectarlo. **VIGIL** es un sistema de software libre que captura, encadena criptográficamente y somete a 23 pruebas estadísticas y forenses cada publicación del organismo electoral — de forma continua o retroactiva, a costo cero, sin depender de ninguna autoridad. En el análisis forense retroactivo sobre archivos JSON originales del CNE de las elecciones hondureñas de 2025, detectó automáticamente un apagón de 13 horas de datos y una tasa de resolución de 39,15 actas por minuto, aproximadamente 3,9× el umbral operativo pre-registrado.
 
 ---
 
 ## CAMPO 3 — ¿Qué problema abordará? ¿Cómo fortalece la libertad en Internet?
 
-En elecciones de entornos con instituciones débiles, los organismos electorales controlan el flujo de información con asimetría total: publican datos cuando quieren, en el formato que quieren, y pueden alterar o suprimir publicaciones sin dejar rastro verificable. Periodistas que cubren elecciones en Honduras, Guatemala o Nicaragua no tienen herramientas para demostrar, con evidencia matemáticamente irrefutable, que un dato cambió después de ser publicado, que hubo un apagón de información deliberado, o que la velocidad de procesamiento de actas es físicamente imposible.
+En elecciones de entornos con instituciones débiles, los organismos electorales controlan el flujo de información con asimetría total: publican datos cuando quieren, en el formato que quieren, y pueden alterar o suprimir publicaciones sin dejar rastro verificable. Periodistas que cubren elecciones en Honduras, Guatemala o Nicaragua no tienen herramientas para demostrar, con evidencia criptográfica verificable por terceros, que un dato cambió después de ser publicado, que hubo una brecha prolongada de publicación/captura, o que la velocidad observada de procesamiento de actas supera el umbral operativo documentado (sujeto a calibración).
 
-Esta asimetría de información protege a actores que manipulan el proceso y silencia a quienes intentan reportarlo: sin evidencia técnica, las denuncias son tratadas como opiniones políticas. VIGIL elimina esta asimetría. Usando exclusivamente datos que el propio Estado publica, genera prueba criptográfica de integridad que cualquier periodista, defensor de derechos u observador puede verificar de forma independiente, offline y sin acreditación institucional alguna.
+Esta asimetría de información reduce la verificabilidad del proceso y silencia a quienes intentan reportarlo: sin evidencia técnica, las denuncias son tratadas como opiniones políticas. VIGIL elimina esta asimetría. Usando exclusivamente datos que el propio Estado publica, genera prueba criptográfica de integridad que cualquier periodista, defensor de derechos u observador puede verificar de forma independiente, offline y sin acreditación institucional alguna.
 
-En el análisis forense retroactivo sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30 de noviembre de 2025, el motor de VIGIL detectó automáticamente: 41 brechas de comunicación, incluyendo 6 apagones nocturnos de más de 10 horas; y una tasa de resolución de 39.15 actas por minuto — 4 veces el límite físico plausible. Cualquier periodista puede reproducir estos hallazgos con un solo comando, usando los mismos archivos originales del CNE. VIGIL no requiere infraestructura propia, no genera costos operativos y puede ser desplegado en cualquier país de la región.
+En el análisis forense retroactivo sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30 de noviembre de 2025, el motor de VIGIL detectó automáticamente: 41 brechas de comunicación, incluyendo 6 apagones nocturnos de más de 10 horas; y una tasa de resolución de 39.15 actas por minuto — aproximadamente 3,9× el umbral operativo pre-registrado (no es un límite físico medido en campo; calibración empírica pendiente). Cualquier periodista puede reproducir estos hallazgos con un solo comando, usando los mismos archivos originales del CNE. VIGIL no requiere infraestructura propia, no genera costos operativos y puede ser desplegado en cualquier país de la región.
 
 ---
 
@@ -46,7 +46,7 @@ El financiamiento se destinaría a: (1) validación académica independiente con
 
 ## CAMPO 5 — Descripción general de actividades
 
-**Actividad 1 — Validación académica (meses 1-4):** Publicar working paper con metodología de las 23 reglas estadísticas en colaboración con Prof. Devis Alvarado (UPNFM). Someter a revisión por pares en *Electoral Studies* o *PLOS One*.
+**Actividad 1 — Validación académica (meses 1-4):** Publicar working paper con metodología de las 23 reglas estadísticas en colaboración con an independent academic reviewer. Someter a revisión por pares en *Electoral Studies* o *PLOS One*.
 
 **Actividad 2 — Calibración con datos hondureños reales (meses 2-5):** Ajustar los 23 umbrales estadísticos usando series históricas del CNE 2013-2025. Eliminar umbrales arbitrarios e implementar calibración departamental.
 
@@ -101,7 +101,7 @@ Existen herramientas de observación electoral de NDI (DemTools), IFES y organis
 
 **Usuarios técnicos:** Observadores de misiones internacionales (OEA, Carter Center, UE) que necesitan herramientas independientes de verificación. Académicos de estadística electoral y ciencias políticas.
 
-**Beneficiarios indirectos:** Cualquier ciudadano de los países cubiertos cuyo derecho al voto puede ser mejor protegido cuando la manipulación de datos es técnicamente detectable y demostrable. La sola existencia de un sistema de auditoría continuo y verificable genera disuasión.
+**Beneficiarios indirectos:** Cualquier ciudadano de los países cubiertos cuyo derecho al voto puede ser mejor protegido cuando una alteración de datos posterior a la publicación es técnicamente detectable y verificable. La sola existencia de un sistema de auditoría continuo y verificable genera disuasión.
 
 ---
 
@@ -123,7 +123,7 @@ El equipo ha demostrado capacidad técnica real, no solo teórica: el motor fore
 
 **Capacidad técnica:** El motor de 23 reglas estadísticas y forenses está implementado, documentado y cuenta con 526 tests automatizados. La arquitectura criptográfica (SHA-256 encadenado, Ed25519, PBKDF2) ha sido revisada internamente. El código es completamente abierto bajo licencia AGPL-3.0.
 
-**Respaldo académico:** Colaboración iniciada con el Prof. Devis Alvarado, investigador de la Universidad Pedagógica Nacional Francisco Morazán (UPNFM), para validación estadística independiente de la metodología.
+**Respaldo académico:** Se busca revisión académica independiente de la metodología para validación estadística. No existe coautoría ni acuerdo institucional firmado a la fecha de esta solicitud.
 
 **Contexto local irreemplazable:** El equipo opera desde Honduras, con conocimiento directo del contexto electoral centroamericano, los patrones históricos del CNE y las necesidades reales de los periodistas y observadores locales.
 

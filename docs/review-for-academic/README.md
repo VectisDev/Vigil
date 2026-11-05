@@ -1,4 +1,5 @@
-# Review Package for Devis / Paquete de Revision para Devis
+# Review Package for Independent Academic Reviewers
+# Paquete de Revision para Revisores Academicos Independientes
 
 **Date:** 2026-06-01  
 **Purpose:** Academic review preparation --- statistical and methodological validation

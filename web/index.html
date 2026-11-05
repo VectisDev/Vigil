@@ -761,7 +761,7 @@ footer {
   <p class="hero-eyebrow" data-lang="es">Verificación de integridad de datos · Código abierto · América Latina</p>
 
   <h1 class="hero-headline" data-lang="en">
-    Data can be <em>falsified.</em>
+    Data can be <em>altered.</em>
   </h1>
   <h2 class="hero-headline-2" data-lang="en">
     Now it can be verified.
@@ -819,24 +819,24 @@ footer {
       </div>
       <div class="stat">
         <div class="stat-number">2,346</div>
-        <div class="stat-label" data-lang="en">Tally sheets processed at impossible speed</div>
-        <div class="stat-label" data-lang="es">Actas resueltas a velocidad imposible</div>
+        <div class="stat-label" data-lang="en">Tally sheets processed above the pre-registered threshold</div>
+        <div class="stat-label" data-lang="es">Actas resueltas por encima del umbral pre-registrado</div>
         <div class="stat-sub" data-lang="en">39 acts/min — threshold is 10/min</div>
         <div class="stat-sub" data-lang="es">39 actas/min — umbral es 10/min</div>
       </div>
       <div class="stat">
         <div class="stat-number">+69.6%</div>
-        <div class="stat-label" data-lang="en">The gap during during the blackout</div>
-        <div class="stat-label" data-lang="es">Brecha aumentó durante el apagón</div>
+        <div class="stat-label" data-lang="en">The gap across the publication window</div>
+        <div class="stat-label" data-lang="es">Brecha observada entre capturas</div>
         <div class="stat-sub" data-lang="en">While data was invisible to the public</div>
-        <div class="stat-sub" data-lang="es">Mientras los datos eran invisibles al público</div>
+        <div class="stat-sub" data-lang="es">Entre la captura previa y la posterior</div>
       </div>
     </div>
 
     <div class="chain-proof">
       <span class="chain-proof-label" data-lang="en">SHA-256 chain root · 64 snapshots · cryptographically sealed</span>
       <span class="chain-proof-label" data-lang="es">Raíz de cadena SHA-256 · 64 snapshots · sellado criptográficamente</span>
-      <span class="chain-proof-hash">3f2a1c9d7e4b8f2a1c9d7e4b8f2a1c9d7e4b8f2a1c9d7e4b8f2a1c9d7e4b8f2a</span>
+      <span class="chain-proof-hash">f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780</span>
       <span class="chain-proof-anchor" data-lang="en">Anchored to Bitcoin via OpenTimestamps · reproducible by anyone, offline</span>
       <span class="chain-proof-anchor" data-lang="es">Anclado a Bitcoin vía OpenTimestamps · reproducible por cualquiera, sin conexión</span>
     </div>
@@ -872,8 +872,8 @@ footer {
 
       <a href="https://github.com/VectisDev/vigil/actions/workflows/ci.yml" class="verified-item" target="_blank" rel="noopener">
         <img src="https://img.shields.io/badge/tests-526%20passing-2f855a.svg" alt="526 tests passing" loading="lazy">
-        <span class="verified-text" data-lang="en"><strong>Test suite</strong><span>526/526 passing · CI on every commit</span></span>
-        <span class="verified-text" data-lang="es"><strong>Suite de pruebas</strong><span>526/526 exitosas · CI en cada commit</span></span>
+        <span class="verified-text" data-lang="en"><strong>Test suite</strong><span>88 test files · smoke subset in CI on every commit</span></span>
+        <span class="verified-text" data-lang="es"><strong>Suite de pruebas</strong><span>88 archivos de prueba · subconjunto de humo en CI en cada commit</span></span>
       </a>
 
       <span class="verified-item pending">
@@ -1010,6 +1010,27 @@ footer {
 </footer>
 
 <script>
+// ── Token de escritura: SOLO en memoria ─────────────────────────────────────
+// Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
+// pestaña y es legible por cualquier XSS en este origen público. Se mantiene en
+// una variable de módulo: vive lo que vive la página y nunca toca el disco.
+// A write-scoped PAT in localStorage outlives the tab and is readable by any
+// XSS on this public origin. Keep it in a module variable: it lives as long as
+// the page and never touches disk.
+window.VigilToken = window.VigilToken || (function () {
+  let token = null;
+  return {
+    get: function () { return token; },
+    set: function (v) { token = v || null; },
+    clear: function () { token = null; },
+    has: function () { return !!token; }
+  };
+})();
+// Limpieza de valores heredados / purge any legacy persisted value.
+try { localStorage.removeItem('gh-pat'); } catch (e) {}
+
+</script>
+<script>
 function setLang(lang) {
   document.getElementById('page').className = 'lang-' + lang;
   // Button shows the language you'd switch TO
@@ -1142,7 +1163,7 @@ async function doOpsLogin() {
     if (!matchedPat && ac.writer_pat && matchedSlot !== null) {
       matchedPat = await _decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
     }
-    if (matchedPat) localStorage.setItem('gh-pat', matchedPat);
+    if (matchedPat) window.VigilToken.set(matchedPat);
     location.href = 'ops/';
   } catch (e) {
     err.textContent = (lang === 'en' ? 'Error: ' : 'Error: ') + e.message;

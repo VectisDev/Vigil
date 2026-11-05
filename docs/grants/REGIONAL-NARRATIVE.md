@@ -56,34 +56,38 @@ International observers from the EU noted "serious concerns about the integrity
 of the tabulation process," including unexplained delays in acta processing.
 
 **Honduras 2025.** The Consejo Nacional Electoral conducted general elections
-on November 30, 2025. VIGIL monitored the results transmission system
-continuously. The system detected a 13-hour communication blackout during a
-critical phase of the count, followed by a trend shift. Bulk resolution of 39
-actas per minute was detected during post-blackout catch-up periods. Prolonged
+on November 30, 2025. VIGIL's forensic engine was applied retroactively to 64 JSON
+snapshots captured from the public results endpoint — a post-mortem analysis,
+not a live audit. The engine flagged a prolonged publication gap followed by a
+trend shift, and an acta resolution rate of 39.15 per minute, approximately
+3.9x the pre-registered operational threshold. Prolonged
 stagnation windows were documented with cryptographic timestamps. This was the
 first Central American election with an independent, cryptographic digital audit.
 
 ### The Common Pattern / El Patron Comun
 
-Across these cases, the manipulation vector is consistent:
+Across these cases, independent observers and electoral missions have
+reported a recurring pattern. The items below describe what was *reported*; VIGIL
+makes no determination about cause or intent in any of them:
 
 1. **Overnight count stoppages.** Results transmission halts during a period
    when the leading candidate's margin is narrowing or the trailing candidate
-   needs a trend reversal. The halt is attributed to "technical difficulties"
-   or "server maintenance."
+   needs a trend reversal. Authorities attributed such halts to technical
+   difficulties or server maintenance.
 
 2. **Communication blackouts.** The public-facing API or results page goes
    offline for hours. When it returns, the data has changed in ways that
    cannot be independently reconstructed from incremental updates.
 
-3. **Inconsistent acta manipulation.** Individual polling station results
-   (actas) are modified between their initial digital capture and their final
-   publication. Without a cryptographic chain of custody, the modification
-   is undetectable after the fact.
+3. **Unreconcilable acta changes.** Individual polling station results
+   (actas) differ between their initial digital capture and their final
+   publication. Without a cryptographic chain of custody, such a change cannot
+   be distinguished after the fact from a legitimate correction.
 
-4. **ISP-level complicity.** In some cases (Honduras 2017, Nicaragua 2021),
-   internet service providers have been directed to throttle or block access
-   to results pages during critical windows, preventing independent monitoring.
+4. **Network-level access degradation.** In some cases (Honduras 2017,
+   Nicaragua 2021), observers reported that results pages became slow or
+   unreachable during critical windows. VIGIL does not attribute a cause; its
+   architecture is designed to keep capturing under degraded connectivity.
 
 ### The Gap / La Brecha
 
@@ -145,16 +149,16 @@ in real time during the count.
 
 Honduras was selected as the proof-of-concept deployment for three reasons:
 
-1. **Adversarial authority.** The CNE has a documented history of results
-   manipulation (2017) and institutional resistance to independent oversight.
-   A system that works under these conditions validates under less hostile ones.
+1. **Contested recent count.** The 2017 Honduran election drew documented
+   international concern, including an OAS statement citing irregularities and a
+   call for a new election. A system designed to produce verifiable evidence
+   under contested conditions validates under less contested ones.
 
-2. **ISP complicity.** Honduran telecommunications infrastructure is
-   concentrated among a small number of providers with documented relationships
-   to political actors. Rate limiting and selective throttling during election
-   night are expected, not exceptional. Vigil's architecture — designed for
-   intermittent connectivity and peer-to-peer snapshot sharing — was stress-tested
-   against real network hostility.
+2. **Concentrated network infrastructure.** Honduran telecommunications
+   capacity is concentrated among a small number of providers, and degraded
+   access on election night has been reported in past cycles. VIGIL's
+   architecture — designed for intermittent connectivity and peer-to-peer
+   snapshot sharing — targets that operating environment regardless of cause.
 
 3. **Physical risk.** Electoral observation in Honduras carries personal risk.
    Between 2017 and 2025, multiple electoral observers and political activists
@@ -177,7 +181,7 @@ processed **64 real snapshots** of the CNE's results transmission system
 - Hashed with SHA-256 and chained to the previous snapshot
 - Anchored to the Bitcoin blockchain via OpenTimestamps
 - Analyzed by 24 statistical detectors in real time
-- Stored in the public dataset `hnd-electoral-audit-2025`
+- Stored in `tests/fixtures/hnd_2025/` and deposited at DOI 10.5281/zenodo.20598892
 
 ### Key Findings / Hallazgos Clave
 
@@ -211,7 +215,7 @@ cryptographic timestamps.
 - Approximately 2.5 million votes covered
 - 24 statistical detectors applied
 - 0.0% false positive rate on 13 of 24 rules (synthetic data validation)
-- Independent academic validation in progress (UPNFM, Honduras)
+- Independent academic review sought; none signed to date
 - All data publicly available for third-party verification
 
 ---

@@ -13,11 +13,11 @@ This directory is the single entry point to understand and evaluate VIGIL.
 VIGIL es una herramienta de auditoría electoral de código abierto (AGPL-3.0) diseñada
 específicamente para Honduras. Descarga los datos oficiales del CNE cada pocos minutos durante
 el escrutinio, los encadena criptográficamente con SHA-256, y aplica 24 detectores estadísticos
-para detectar manipulación en tiempo real.
+para señalar anomalías estadísticas y rupturas de integridad en tiempo real.
 
 VIGIL is an open-source electoral audit tool (AGPL-3.0) designed specifically for Honduras.
 It downloads official CNE data every few minutes during the vote count, chains it cryptographically
-with SHA-256, and applies 24 statistical detectors to detect manipulation in real time.
+with SHA-256, and applies statistical detectors to flag anomalies and integrity breaks in real time.
 
 ---
 
@@ -25,7 +25,7 @@ with SHA-256, and applies 24 statistical detectors to detect manipulation in rea
 
 | # | Documento / Document | Ruta / Path | Descripción |
 |---|---|---|---|
-| 1 | **Theory of Change** | [`docs/THEORY_OF_CHANGE.md`](../docs/THEORY_OF_CHANGE.md) | Por qué este sistema reduce el riesgo de fraude / Why this system reduces fraud risk |
+| 1 | **Theory of Change** | [`docs/THEORY_OF_CHANGE.md`](../docs/THEORY_OF_CHANGE.md) | Por qué reduce la asimetría de información / Why it reduces information asymmetry risk |
 | 2 | **Methodology** | [`docs/METHODOLOGY.md`](../docs/METHODOLOGY.md) | Descripción técnica de los 24 detectores estadísticos / Technical description of the 24 detectors |
 | 3 | **Governance** | [`docs/GOVERNANCE.md`](../docs/GOVERNANCE.md) | Estructura de decisión, licencia AGPL y sostenibilidad / Decision structure, AGPL license, sustainability |
 | 4 | **Security Audit** | [`SECURITY_AUDIT.md`](../docs/audits/SECURITY_AUDIT.md) | Red-team interno RT-01..RT-15, score 9.9/10, todos cerrados / Internal red-team, all 15 issues closed |
@@ -37,10 +37,10 @@ with SHA-256, and applies 24 statistical detectors to detect manipulation in rea
 ## Demo Pública / Public Demo
 
 **Panel en vivo / Live panel:**
-`https://userf8a2c4.github.io/vigil/panel/`
+`https://vectisdev.github.io/vigil/panel/`
 
 **Reporte PDF más reciente / Latest PDF report:**
-`https://userf8a2c4.github.io/vigil/reports/latest.pdf`
+`https://vectisdev.github.io/vigil/reports/latest.pdf`
 
 ---
 
@@ -49,10 +49,10 @@ with SHA-256, and applies 24 statistical detectors to detect manipulation in rea
 | Indicador / Indicator | Valor / Value |
 |---|---|
 | Detectores estadísticos activos / Active detectors | 24 |
-| Tests automatizados / Automated tests | ~95 archivos, ~499 passing |
+| Tests automatizados / Automated tests | 88 archivos; CI ejecuta un subconjunto de humo |
 | Cobertura de seguridad / Security coverage | RT-01..RT-15 cerrados / closed |
-| Score auditoría de seguridad / Security audit score | 9.9/10 |
-| Licencia / License | AGPL-3.0 (anti-fork clause) |
+| Revisión de seguridad / Security review | Interna; sin auditoría externa independiente |
+| Licencia / License | AGPL-3.0 (copyleft de red: los derivados permanecen abiertos) |
 | Lenguaje / Language | Python 3.10+ |
 | Dependencias externas / External dependencies | Ninguna propietaria / None proprietary |
 | Tiempo de detección / Detection latency | < 5 minutos en elecciones en vivo / < 5 min live |

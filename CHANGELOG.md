@@ -53,7 +53,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Resilience: auto-resume with exponential backoff, chaos injection for testing
 - Full CI/CD: GitHub Actions + CodeQL + Dependabot
 - Security audit RT-01..RT-15 — all 15 issues closed, score 9.9/10
-- 95 test files, 520 tests passing
+- 88 test files; CI runs a smoke subset on every commit
 
 ### Architecture
 - Python 3.10+, FastAPI, APScheduler, Poetry
@@ -66,6 +66,6 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for planned features.
 
-- v0.3.0: Calibration with real HN-2025 data + UPNFM academic validation
+- v0.3.0: Calibration with real HN-2025 data + independent academic review
 - v0.4.0: Field pilot (1+ municipalities in live electoral event)
 - v1.0.0: OTF grant milestone — validated in production electoral environment

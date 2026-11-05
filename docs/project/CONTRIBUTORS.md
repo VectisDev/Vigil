@@ -144,6 +144,6 @@ Thank you for supporting electoral integrity through open technical auditing!
 
 ---
 
-**Maintained by:** userf8a2c4  
+**Maintained by:** VectisDev  
 **License:** GNU AGPL-3.0  
 **Last Updated:** May 2026

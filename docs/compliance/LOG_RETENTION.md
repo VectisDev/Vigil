@@ -24,7 +24,7 @@
 
 Solo logs operativos (no evidencia) pueden eliminarse, mediante:
 1. Verificar que el período de observación electoral ha concluido y no hay litigios activos.
-2. Documentar la eliminación en el dev-diary con fecha y tipo de log eliminado.
+2. Documentar la eliminación en el registro de cambios con fecha y tipo de log eliminado.
 3. Nunca eliminar snapshots ni hash chain — estos son permanentes por diseño.
 
 ---

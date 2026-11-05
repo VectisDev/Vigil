@@ -27,12 +27,12 @@ no software licenses. Requested funds do not finance operations; they finance
 
 | Ítem | Costo | Justificación |
 |------|-------|---------------|
-| Tiempo investigador co-PI (Prof. Devis Alvarado, UPNFM) | USD 12,000 | 300 hrs × $40/hr: revisión metodológica, calibración con datos históricos 2013-2021, co-autoría working paper |
+| Tiempo investigador co-PI (independent reviewer, TBD) | USD 12,000 | 300 hrs × $40/hr: revisión metodológica, calibración con datos históricos 2013-2021, co-autoría working paper |
 | Análisis estadístico independiente | USD 4,000 | Revisión externa por estadístico PhD (no afiliado al proyecto) |
 | Publicación open-access (arXiv + journal submission) | USD 2,000 | APCs si se acepta en revista Q1; arXiv es gratuito |
 
 *Justificación:* La validación académica independiente es el único gap técnico
-que VIGIL no puede resolver internamente. El Prof. Alvarado de la UPNFM ya
+que VIGIL no puede resolver internamente. El the independent reviewer de la UPNFM ya
 conoce el proyecto; los fondos permiten formalizar la colaboración.
 
 ---

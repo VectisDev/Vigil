@@ -1,215 +1,177 @@
-# Lo que los datos dijeron — y nadie quería escuchar
-## Análisis forense independiente: Elección Presidencial Honduras, diciembre 2025
+# Honduras 2025 — Análisis forense retroactivo
 
-**Prepared by:** VIGIL — Citizen Electoral Audit Infrastructure  
-**Data source:** Public JSON API, Consejo Nacional Electoral (CNE) Honduras  
-**Period covered:** December 3–10, 2025 (64 hourly snapshots)  
-**Status:** Reproducible — all raw files and analysis code are open source
+## Presidential election of 30 November 2025 · Retroactive forensic analysis
 
----
-
-## Para quien lee esto primero
-
-Este documento no requiere conocimientos técnicos. Está escrito para organizaciones que financian herramientas de transparencia electoral, observadores internacionales, y periodistas de investigación.
-
-Describe qué encontró un sistema automatizado de auditoría — llamado **Vigil** — al analizar los datos oficiales publicados por el CNE de Honduras durante el conteo de la elección presidencial de 2025.
-
-Todo lo descrito aquí proviene de los propios datos del CNE. No es una opinión. Es lo que el sistema publicó, medido con matemática básica.
+**Proyecto:** VIGIL · **Autor:** `VectisDev` · **Licencia:** AGPL-3.0
+**Período cubierto:** 3–10 de diciembre de 2025 (64 capturas)
+**Dataset:** `tests/fixtures/hnd_2025/` · DOI [10.5281/zenodo.20598892](https://doi.org/10.5281/zenodo.20598892)
+**Raíz Merkle anclada a Bitcoin:** `f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780`
 
 ---
 
-## El problema que Vigil resuelve
+## Alcance y limitaciones — léase primero
 
-Las autoridades electorales modernas publican resultados a través de APIs de internet — archivos de datos que cualquiera puede descargar. En teoría, esto garantiza transparencia. En la práctica, nadie tiene el tiempo ni las herramientas para monitorear esos datos hora a hora durante una semana, comparar cada versión con la anterior, y detectar si algo cambia de forma imposible.
+Este documento describe un **análisis retroactivo post-mortem**, no una auditoría en vivo.
+Las 64 capturas JSON del CNE fueron descargadas manualmente tras concluir el evento
+electoral, y la cadena criptográfica se construyó **ex post** sobre los archivos ya
+capturados. En consecuencia:
 
-Vigil hace exactamente eso, de forma automática, continua, y verificable.
+- La cadena y el anclaje OpenTimestamps prueban que **estos 64 archivos existían en esta
+  forma en la fecha del anclaje**. No prueban custodia continua hora a hora durante el
+  conteo, ni en qué momento el CNE publicó cada archivo.
+- Las marcas de tiempo provienen del **nombre de archivo de la captura**, es decir del
+  momento de descarga, no de un campo de publicación del CNE: el payload del CNE no
+  incluye marca de tiempo propia. Los huecos entre capturas reflejan, al menos en parte,
+  la ausencia del operador humano y no necesariamente interrupciones de la fuente.
+- La captura continua en vivo es un objetivo operacional, no algo que este análisis
+  demuestre.
 
-En Honduras 2025, un ciudadano lo hizo **a mano**. Hora a hora. Durante una semana. Lo que encontró fue ignorado hasta que fue demasiado tarde para actuar. Vigil nació de esa experiencia.
-
----
-
-## Qué encontró el sistema
-
-El análisis procesó **64 capturas hourarias** del API oficial del CNE entre el 3 y el 10 de diciembre de 2025. Se detectaron **83 alertas**, de las cuales 82 fueron clasificadas como críticas.
-
-A continuación, los hallazgos en orden de gravedad.
-
----
-
-### Hallazgo 1: El universo electoral cambió — algo que no puede pasar
-
-**Detectado:** 8 de diciembre, 11:00 AM  
-**Tipo de anomalía:** Mutación del universo electoral
-
-**En lenguaje simple:**
-Imagine que un banco anuncia que administra 1,000 cuentas. En medio de las operaciones, sin explicación, el sistema dice que ahora administra 1,015 cuentas. Eso no puede pasar en un sistema íntegro — el número de cuentas es una constante.
-
-En una elección, el número total de actas (las boletas por mesa de votación) es una constante establecida antes de que empiece el conteo. No puede cambiar durante el proceso.
-
-**Lo que pasó:**
-El campo `actas_totales` — el universo completo de actas a contar — cambió de **19,152 a 19,167** (+15 actas) el 8 de diciembre a las 11:00 AM, siete días después de que comenzara el conteo.
-
-En una base de datos electoral correctamente construida, ese campo es un `const`, no una variable. Su cambio implica que alguien modificó el universo de referencia durante el conteo activo.
-
-**Impacto:** 15 actas adicionales pueden representar entre 750 y 2,000 votos dependiendo del tamaño de las mesas afectadas.
+**VIGIL no afirma fraude.** Registra observaciones verificables sobre datos publicados
+públicamente y las entrega para evaluación humana independiente. La interpretación
+corresponde a observadores calificados, tribunales y la opinión pública.
 
 ---
 
-### Hallazgo 2: Los resultados desaparecieron mientras el conteo continuaba — 7 veces
+## Qué se observó
 
-**Detectado:** múltiples ocasiones entre el 4 y el 8 de diciembre  
-**Tipo de anomalía:** Blackout de datos (opacidad táctica)
+El análisis procesó 64 capturas del endpoint público del CNE entre el 3 y el 10 de
+diciembre de 2025. Las observaciones siguientes son descriptivas: cada una es un hecho
+comprobable contra el dataset, y ninguna establece causa ni intención.
 
-**En lenguaje simple:**
-Imagine un marcador de fútbol en tiempo real que, en mitad del partido, borra los goles anotados y muestra "0-0" — pero el cronómetro sigue corriendo y los árbitros siguen pitando. Cuando el marcador vuelve a mostrar goles, el resultado es diferente al que había antes del apagón.
+### O1 · Cambio en el universo de actas
 
-**Lo que pasó:**
-En 7 ocasiones distintas, el API del CNE devolvió una lista vacía de resultados (`[]`) mientras el contador de actas procesadas **seguía aumentando**. El sistema ocultó los votos al público mientras los contaba en la sombra.
+El campo `actas_totales` —el universo completo de actas a contabilizar— pasó de **19.152 a
+19.167** (+15) entre capturas consecutivas el 8 de diciembre.
 
-El evento más grave ocurrió el **8 de diciembre entre las 15:00 y las 17:00** (2 horas):
-- Antes del blackout (14:00): el candidato líder tenía una ventaja de **11,258 votos**
-- Durante el blackout: se procesaron **1,086 actas** sin que nadie pudiera verlo
-- Después del blackout (17:00): la ventaja había saltado a **42,155 votos** — un aumento del **+275%** en 2 horas de opacidad
+Un universo de referencia que cambia durante el conteo impide reconciliar totales entre
+capturas anteriores y posteriores al cambio, y requiere explicación operativa de la fuente.
+No se dispone de una; su ausencia no es por sí misma evidencia de irregularidad.
 
-La probabilidad matemática de que la tendencia electoral se invierta tan drásticamente de forma orgánica, y exclusivamente durante el periodo en que nadie puede ver los datos, es estadísticamente despreciable.
+### O2 · Brechas de publicación
 
-**Los 7 periodos de blackout detectados:**
+Se observaron intervalos en los que no se publicaron resultados actualizados mientras el
+contador de actas divulgadas continuaba avanzando.
 
-| Fecha | Hora inicio | Hora fin | Duración | Actas en sombra |
-|---|---|---|---|---|
+| Fecha | Último dato | Siguiente dato | Brecha | Δ actas |
+|-------|-------------|----------------|--------|---------|
 | 4 dic | 13:00 | 13:01 | 1 min | 0 |
 | 4 dic | 14:00 | 14:01 | 1 min | 0 |
 | 5 dic | 15:00 | 16:00 | 60 min | +8 |
 | 6 dic | 17:00 | 18:00 | 60 min | 0 |
 | 7 dic | 11:00 | 13:00 | 120 min | 0 |
 | 7 dic | 18:00 | 19:00 | 60 min | 0 |
-| **8 dic** | **15:00** | **17:00** | **120 min** | **+1,086** |
+
+Alrededor de la brecha más extensa, la diferencia de votos entre el primer y el segundo
+lugar pasó de **11.258 a 42.155** entre las capturas previa y posterior. Esto describe dos
+observaciones y su diferencia; **no es una prueba causal** y no establece qué ocurrió
+durante el intervalo.
+
+Advertencia metodológica importante: parte de estas brechas corresponde a intervalos en que
+el operador humano no estaba capturando. Separar silencio de la fuente de ausencia del
+observador exige un registro de intentos de descarga, que este dataset retroactivo no
+tiene. Es una capacidad del motor de captura continua, no de este análisis.
+
+### O3 · Tasa de actas marcadas como inconsistentes
+
+Desde la primera captura publicada el 3 de diciembre, **14,3% de las actas divulgadas**
+aparecían marcadas como inconsistentes en el propio campo `actas_inconsistentes` del CNE.
+La proporción se mantuvo en ese orden a lo largo del período observado.
+
+Es un valor publicado por la fuente, no una inferencia de VIGIL. Cualquier extrapolación a
+"votos afectados" es heurística, no forma parte de ninguna alerta automática del motor, y
+requiere análisis humano.
+
+### O4 · Velocidad de resolución sobre el umbral pre-registrado
+
+Se observó una tasa de resolución de actas inconsistentes de **39,15 actas/minuto**, frente
+a un umbral operativo pre-registrado de **10 actas/minuto** — aproximadamente **3,9×** el
+umbral.
+
+El umbral es una heurística operativa documentada en
+[`docs/research/THRESHOLD_PREREGISTRATION.md`](../docs/research/THRESHOLD_PREREGISTRATION.md),
+no una medición de campo de la capacidad real del CNE. Su calibración empírica contra datos
+históricos está pendiente. La observación indica que la tasa supera el umbral declarado; no
+constituye una medición de imposibilidad física.
 
 ---
 
-### Hallazgo 3: 1 de cada 7 actas fue retenida como "inconsistente" desde el primer minuto
+## Relevancia para otras elecciones
 
-**Detectado:** desde el 3 de diciembre, primer snapshot (16:25)  
-**Tipo de anomalía:** Inconsistencia estructural persistente
+El análisis se realizó sobre datos publicados por la propia autoridad electoral. No
+requirió acceso especial, filtraciones ni fuentes confidenciales: solo descargar los
+archivos que el CNE publicó y aplicar pruebas estadísticas documentadas.
 
-**En lenguaje simple:**
-Imagine que abre un restaurante y desde el primer cliente, el sistema de caja marca el 14% de todas las órdenes como "error — no procesar". No una orden específica. No un lote de un día específico. El **14% de todo**, desde el principio, sin resolverse nunca.
-
-**Lo que pasó:**
-Desde el primer dato publicado el 3 de diciembre, el **14.3% de las actas divulgadas** estaban marcadas como "inconsistentes" — es decir, el sistema las contabilizaba en el total pero no mostraba sus votos. Ese porcentaje se mantuvo matemáticamente estable durante 7 días.
-
-Al finalizar el conteo al 99.4%, había **2,773 actas "inconsistentes"** retenidas — aproximadamente **450,000 votos** que nunca fueron auditados públicamente.
-
-El proceso se detuvo en 99.4% y no llegó al 100%. Esas 2,773 actas representan el 14.6% final del total — suficientes para cambiar cualquier resultado cerrado.
-
-**Dato adicional:** la variabilidad de esta tasa fue de solo ±0.10% durante toda la semana — lo que indica que no fue un error aleatorio sino un estado controlado y estable.
+Eso hace el método aplicable a cualquier país que publique resultados en formato legible por
+máquina. La guía de replicación está en
+[`docs/operations/REPLICATION_GUIDE.md`](../docs/operations/REPLICATION_GUIDE.md).
 
 ---
 
-### Hallazgo 4: Una velocidad de procesamiento de 8 veces el máximo normal
-
-**Detectado:** 4 de diciembre, 17:00  
-**Tipo de anomalía:** Velocidad de procesamiento anómala (HIGH)
-
-**En lenguaje simple:**
-Si una fábrica normalmente ensambla 500 piezas por hora, y de repente reporta haber ensamblado 4,142 piezas en 15 minutos, la primera pregunta no es "¡qué productivos!", sino "¿qué pasó realmente?"
-
-**Lo que pasó:**
-A las 17:00 del 4 de diciembre, el sistema procesó **16,568 actas en 60 minutos** — equivalente a **4,142 actas por cada 15 minutos**. El umbral normal establecido es 500 actas/15 minutos. Esta velocidad es 8.3 veces el máximo esperado.
-
-Este evento coincide con el reinicio del sistema después del reset del universo electoral del día anterior.
-
----
-
-## La línea de tiempo en una imagen
-
-```
-DIC 3       DIC 4           DIC 5-7         DIC 8           DIC 9-10
-16:25       11:06  13:00    [congelado]      11:00  15:00-17:00  99.4%
-  |           |      |           |              |        |          |
-INICIO    Remontada PRIMER   SISTEMA        UNIVERSO GRAN        SISTEMA
-CONTEO    Nasralla  BLACKOUT DETENIDO       CAMBIA  BLACKOUT    PARALIZADO
-14.3%     reduce    brecha   88.02%         +15     brecha:     2,773
-incons.   brecha    salta    escrutinio     actas   11k→42k     actas
-          a 10,096  +69.6%   (sin mover)    (+15)   en 2 hrs    retenidas
-```
-
----
-
-## Por qué esto importa para el futuro
-
-### Lo que Vigil habría permitido en tiempo real
-
-Si Vigil hubiera estado operando durante la elección de 2025 con los detectores actuales, cada uno de estos eventos habría generado una alerta automática en segundos:
-
-- **Blackout iniciado** → alerta CRITICAL en ≤5 minutos → notificación a observadores
-- **Mutación del universo** → alerta CRITICAL → evidencia inmutable con hash SHA-256
-- **Velocidad anómala** → alerta HIGH → timestamp verificable por terceros
-
-Eso significa que en lugar de que un ciudadano documentara esto manualmente hora a hora durante una semana, y luego fuera ignorado y silenciado en redes sociales, **habría un sistema verificable, neutral, y resistente a la censura haciendo ese trabajo automáticamente**.
-
-### Por qué "resistente a la censura" no es un detalle menor
-
-El ciudadano que documentó estos hallazgos manualmente en diciembre de 2025 recibió ataques coordinados en redes sociales y fue sometido a restricciones de alcance (shadowban) en plataformas tras publicar los resultados. Los registros de esos ataques también están documentados en el repositorio de evidencia.
-
-Vigil está diseñado específicamente para sobrevivir ese escenario:
-- Los datos se anclan en Bitcoin (OpenTimestamps) — nadie puede modificar un hash ya anclado
-- El sistema opera en múltiples nodos independientes — no hay un punto único de silencio
-- El código es AGPL-3.0 — cualquier persona en cualquier país puede desplegarlo
-
-### Relevancia para otras elecciones
-
-El análisis aquí presentado se realizó sobre datos **del propio gobierno**. No requirió acceso especial, filtraciones ni fuentes confidenciales. Solo requirió descargar los archivos que el CNE publicó en internet y aplicar matemática básica.
-
-Eso significa que Vigil puede adaptarse a cualquier país que publique datos electorales en formato digital. La guía de replicación está documentada en `docs/REPLICATION_GUIDE.md`.
-
----
-
-## Estado actual del sistema (mayo 2026)
+## Estado actual del sistema
 
 | Componente | Estado |
 |---|---|
-| Detectores estadísticos | 24 reglas activas, calibradas con datos HN 2025 |
-| Pipeline de captura automática | Operacional — captura cada ≤5 minutos |
+| Detectores estadísticos | 25 reglas registradas; 2 degradadas a informativas por tasa de falsos positivos |
+| Pipeline de captura continua | Implementado (bucle interno de 3 min); piloto en vivo pendiente |
 | Panel de visualización público | En línea (GitHub Pages) |
-| Verificación offline | Bundle descargable con hash SHA-256 |
-| Anclaje Bitcoin (OpenTimestamps) | Integrado |
-| Suite de pruebas automatizadas | 499+ pruebas, CI/CD activo |
-| Documentación técnica | 41 documentos, bilingüe ES/EN |
+| Verificación offline | `verify/verify_chain.py`, solo biblioteca estándar |
+| Anclaje Bitcoin (OpenTimestamps) | Integrado y confirmado para el dataset HN 2025 |
+| Suite de pruebas | 88 archivos de prueba; CI ejecuta un subconjunto de humo |
 | Licencia | GNU AGPL-3.0 |
 
-**Lo que falta para la siguiente elección:**
-1. Piloto controlado con observadores en 2-3 municipios
-2. Revisión académica formal (en curso, UNAH-UPNFM)
-3. Traducción de interfaz de operador a Creole y francés (para expansión Caribe)
+**Lo que falta:**
+1. Piloto operacional en vivo sobre un evento electoral real.
+2. Revisión académica independiente (buscada; ninguna firmada a la fecha).
+3. Cobertura de pruebas por regla: 23 de 25 reglas carecen de prueba de comportamiento
+   dedicada.
+4. Recalibración del modelo nulo de falsos positivos a escala departamental.
 
 ---
 
 ## Sobre la neutralidad de este análisis
 
-Vigil no determina quién ganó ni quién debería haber ganado. Reporta hechos verificables sobre los datos oficiales.
+VIGIL no determina quién ganó ni quién debería haber ganado. Reporta observaciones
+verificables sobre datos oficiales publicados.
 
-Los hallazgos de este documento son reproducibles: cualquier persona puede descargar los 64 archivos JSON del repositorio público, ejecutar el script de análisis, y obtener exactamente los mismos resultados. El código está disponible en GitHub bajo licencia AGPL-3.0.
+Los hallazgos son reproducibles: cualquier persona puede descargar los 64 archivos JSON del
+repositorio, ejecutar los scripts de análisis y obtener los mismos resultados. El código
+está bajo AGPL-3.0.
 
-La neutralidad no es una declaración de principios — es una propiedad técnica del sistema. Los detectores no saben qué partido apoya a quién. Solo saben matemática.
+La neutralidad es una propiedad técnica verificable, no una declaración de intenciones: los
+detectores operan sobre series numéricas y no tienen representación de partidos ni
+candidatos. Los umbrales están pre-registrados y versionados en abierto, de modo que un
+tercero puede comprobar que no fueron ajustados después de ver los datos.
 
 ---
 
-## Contacto y reproducibilidad
+## Reproducibilidad
 
-- **Repositorio:** `github.com/VectisDev/Vigil`
-- **Datos Honduras 2025:** `github.com/userf8a2c4/hnd-electoral-audit-2025`
-- **Script de análisis:** `scripts/calibrate_2025.py`
-- **Datos brutos:** `hnd-electoral-audit-2025/data/` (64 archivos JSON, SHA-256 verificables)
-
-Para reproducir este análisis:
 ```bash
-git clone https://github.com/VectisDev/Vigil
-git clone https://github.com/userf8a2c4/hnd-electoral-audit-2025
-cd vigil
-python scripts/calibrate_2025.py --data ../hnd-electoral-audit-2025/data
+# Reproducir el análisis completo sobre el dataset incluido
+make reproduce-2025-audit
+
+# O directamente
+python scripts/forensic_hnd_2025.py
+python scripts/calibrate_2025.py --data tests/fixtures/hnd_2025
+
+# Verificar la cadena de hashes de forma independiente (solo stdlib)
+python verify/verify_chain.py tests/fixtures/hnd_2025/
 ```
 
+- **Datos brutos:** `tests/fixtures/hnd_2025/` — 64 archivos JSON, hashes SHA-256
+  verificables, más `MERKLE_ROOT_HN2025.ots` (prueba OpenTimestamps).
+- **Motor de detección:** `src/auditor/inconsistent_acts.py`
+- **Metodología y umbrales:** [`docs/research/METHODOLOGY.md`](../docs/research/METHODOLOGY.md) ·
+  [`docs/research/THRESHOLD_PREREGISTRATION.md`](../docs/research/THRESHOLD_PREREGISTRATION.md)
+- **Falsos positivos:** [`docs/research/FALSE_POSITIVE_ANALYSIS.md`](../docs/research/FALSE_POSITIVE_ANALYSIS.md)
+  y `docs/research/fp_results_500.json`. Dos reglas presentan tasas inaceptables sobre datos
+  sintéticos limpios y están degradadas a informativas; el documento las identifica.
+
 ---
 
-*Este documento fue generado automáticamente a partir del análisis de VIGIL v0.1 y revisado editorialmente para audiencia no-técnica. La versión técnica completa está disponible en `reports/calibration_2025.md`.*
+## Contacto
+
+Divulgación de seguridad: GitHub Security Advisories en
+[`VectisDev/Vigil`](https://github.com/VectisDev/Vigil), o `security@vectis.dev`.
+
+La autoría pública se publica bajo el seudónimo `VectisDev` por seguridad del operador.

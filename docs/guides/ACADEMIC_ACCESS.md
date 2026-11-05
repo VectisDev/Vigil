@@ -1,6 +1,6 @@
 # VIGIL — Academic Research Access
 
-**For: Devis Alvarado, UPNFM Mathematics Department, and collaborating researchers**
+**For: independent academic reviewer (pending), UPNFM Mathematics Department, and collaborating researchers**
 
 ---
 
@@ -12,7 +12,7 @@ VIGIL es un **sistema de monitoreo electoral verificable criptográficamente**,
 diseñado para funcionar bajo presión en ambientes hostiles. Está construido sobre principios
 matemáticos rigurosos, con integridad garantizada por SHA-256 y cadenas hash verificables.
 
-Ustedes (Devis, colegas matemáticos, estudiantes) tienen acceso **privilegiado pero
+Ustedes (revisores académicos, colegas matemáticos, estudiantes) tienen acceso **privilegiado pero
 de solo lectura** a toda la superficie de auditoría pública, lo que les permite:
 
 - Reproducir verificaciones de integridad del 100% del chain
@@ -388,7 +388,7 @@ VIGIL is a **cryptographically verifiable election monitoring system**
 designed to function under pressure in hostile environments. It is built on rigorous
 mathematical principles, with integrity guaranteed by SHA-256 and verifiable hash chains.
 
-You (Devis, mathematics colleagues, students) have **privileged read-only access**
+You (academic reviewers, mathematics colleagues, students) have **privileged read-only access**
 to the entire public audit surface, allowing you to:
 
 - Reproduce 100% of chain integrity verifications

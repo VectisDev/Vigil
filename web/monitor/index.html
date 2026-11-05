@@ -781,7 +781,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
     <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">
       <strong>Score de Riesgo Compuesto (CRS)</strong> — Test de Probabilidad Combinada de Fisher (1925).<br>
       Fórmula: χ² = −2 × Σ ln(pᵢ) ~ χ²(2k). Pesos: INFO=1 (p≈0.3), WARNING=5 (p≤0.05), CRITICAL=20 (p≤0.01).<br>
-      CRS 1–4: p≈0.3 (ruido normal) · CRS 5–19: p&lt;0.05 (atención) · CRS 20–39: p&lt;0.01 (alerta, 1 en 10,000) · CRS 40+: p&lt;0.0001 (imposible por azar).<br>
+      CRS 1–4: p≈0.3 (ruido normal) · CRS 5–19: p&lt;0.05 (atención) · CRS 20–39: p&lt;0.01 (alerta, 1 en 10,000) · CRS 40+: p&lt;0.0001 (extremadamente improbable bajo el modelo nulo actual (calibración pendiente)).<br>
       <em>No determina resultados electorales. Es una herramienta estadística para observadores calificados.</em>
     </div>
   </details>
@@ -921,7 +921,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 
 <!-- ── KLIMEK FINGERPRINT (PNAS 2012) ── -->
 <div class="card" data-section="klimek" data-expert>
-  <h2>Fingerprint de Klimek — Detección de fraude electoral</h2>
+  <h2>Fingerprint de Klimek — señal forense exploratoria (no veredicto)</h2>
   <div id="klimek-wrap">
     <canvas id="chart-klimek" height="280" role="img" aria-label="Gráfico de Klimek — detección de roundoff en datos electorales"></canvas>
   </div>
@@ -1045,7 +1045,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
   <h2>Retención y liberación masiva (Hold &amp; Release)</h2>
   <canvas id="chart-hold-release" height="160" role="img" aria-label="Patrón de retención y liberación de actas"></canvas>
   <div id="hold-release-detail" style="margin-top:10px"></div>
-  <div style="font-size:11px;color:var(--muted);margin-top:6px">Detecta estancamientos prolongados seguidos de liberación abrupta de actas. Patrón típico de control centralizado del flujo de resultados.</div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Detecta estancamientos prolongados seguidos de liberación abrupta de actas. Patrón compatible con un flujo de publicación centralizado de resultados.</div>
 </div>
 
 <!-- ── BENEFICIO ASIMÉTRICO (expert) ── -->
@@ -1055,7 +1055,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
     <canvas id="chart-asymmetric-bar" height="180" role="img" aria-label="Asimetría de barras — comparación de distribuciones por candidato"></canvas>
     <canvas id="chart-asymmetric-radar" height="180" role="img" aria-label="Radar de asimetría — perfil multidimensional de anomalías"></canvas>
   </div>
-  <div id="asymmetric-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Compara proporción de votos en escrutinio normal vs. especial. Un beneficio asimétrico sugiere manipulación selectiva del recuento.</div>
+  <div id="asymmetric-stats" style="margin-top:10px;font-size:12px;color:var(--muted)">Compara proporción de votos en escrutinio normal vs. especial. Una diferencia de proporciones entre ambos conjuntos es una señal estadística que requiere evaluación humana; no prueba manipulación.</div>
 </div>
 
 <!-- ── VENTANAS DE OSCURECIMIENTO (expert) ── -->
@@ -1063,7 +1063,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
   <h2>Ventanas de oscurecimiento (Blackout)</h2>
   <canvas id="chart-blackout" height="160"></canvas>
   <div id="blackout-detail" style="margin-top:10px"></div>
-  <div style="font-size:11px;color:var(--muted);margin-top:6px">Identifica periodos sin publicación de datos (gaps) y analiza si los datos post-gap muestran cambios de tendencia sospechosos.</div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Identifica periodos sin publicación de datos (gaps) y analiza si los datos post-gap muestran cambios de tendencia a documentar.</div>
 </div>
 
 <!-- ── DIAGNÓSTICOS DE SERIES TEMPORALES (expert) ── -->
@@ -2269,7 +2269,7 @@ function renderAlerts(alerts){
 
 // ── DETECTORES FORENSES ──
 const FORENSIC_DEFS=[
-  {id:'progressive_injection',title:'Inyección progresiva',note:'Se espera que las actas inconsistentes bajen al resolverse. Si en cambio acumulan votos, puede indicar manipulación deliberada.',
+  {id:'progressive_injection',title:'Inyección progresiva',note:'Se espera que las actas inconsistentes bajen al resolverse. Si en cambio acumulan votos, es una anomalía respecto al comportamiento esperado de resolución; investigar antes de interpretar.',
    check:f=>f.progressive_injection?.detected,
    render:f=>{const fi=f.progressive_injection||{};return`<div style="font-size:12px;color:var(--muted)">Ciclos: ${fi.num_injections||0} &nbsp;|&nbsp; Votos acumulados: ${fmt(fi.total_injected||0)} &nbsp;|&nbsp; p-valor: ${(fi.p_value||1).toFixed(3)}</div>`;}},
   {id:'velocity_anomaly',title:'Anomalía de velocidad',note:'Una mesa electoral no puede procesar más de ~10 actas por minuto manualmente. Tasas superiores merecen verificación.',
@@ -2278,7 +2278,7 @@ const FORENSIC_DEFS=[
   {id:'asymmetric_benefit',title:'Beneficio asimétrico',note:'En una resolución justa, las proporciones entre candidatos deben mantenerse similares al resultado previo.',
    check:f=>f.asymmetric_benefit?.detected,
    render:f=>{const fa=f.asymmetric_benefit||{};return fa.detected?`<div style="font-size:12px;color:var(--warn)">Beneficiado: ${fa.benefiting_candidate||'—'} &nbsp;|&nbsp; Esperado: ${(fa.expected_pct||0).toFixed(1)}% &nbsp;|&nbsp; Observado: ${(fa.observed_pct||0).toFixed(1)}%</div>`:`<div style="font-size:12px;color:var(--muted)">Proporciones dentro del rango esperado</div>`;}},
-  {id:'hold_and_release',title:'Retención–liberación',note:'Un estancamiento prolongado de actas seguido de una liberación masiva puede indicar manipulación del flujo de datos.',
+  {id:'hold_and_release',title:'Retención–liberación',note:'Un estancamiento prolongado de actas seguido de una liberación masiva es una anomalía temporal en el flujo publicado; documentar y contrastar con otras fuentes.',
    check:f=>f.hold_and_release?.detected,
    render:f=>{const fh=f.hold_and_release||{};return fh.detected?`<div style="font-size:12px;color:var(--warn)">Estancamiento: ${fh.stagnation_duration_minutes||0} min &nbsp;|&nbsp; Actas liberadas: ${fh.release_actas||0}</div>`:`<div style="font-size:12px;color:var(--muted)">Sin patrones de retención detectados</div>`;}},
   {id:'benford',title:'Ley de Benford',note:'La distribución de primeros dígitos en datos electorales genuinos sigue la Ley de Benford. Una desviación significativa es estadísticamente sospechosa.',
@@ -2287,7 +2287,7 @@ const FORENSIC_DEFS=[
   {id:'zscore',title:'Outliers Z-score',note:'Un cambio de votos que supere 3 desviaciones estándar del ritmo normal merece investigación independiente.',
    check:f=>f.zscore?.detected,
    render:f=>{const fz=f.zscore||{};return`<div style="font-size:12px;color:var(--muted)">Outliers detectados: ${(fz.outliers||[]).length}</div>`;}},
-  {id:'blackout',title:'Ventanas de oscurecimiento',note:'Un corte en la captura de datos de más de 30 minutos durante un conteo activo puede indicar manipulación del canal o interferencia deliberada.',
+  {id:'blackout',title:'Ventanas de oscurecimiento',note:'Un corte en la captura de datos de más de 30 minutos durante un conteo activo indica una brecha de captura o de publicación superior al umbral; registrar y verificar.',
    check:f=>f.blackout?.detected,
    render:f=>{const fbl=f.blackout||{};return`<div style="font-size:12px;color:var(--muted)">Gaps detectados: ${(fbl.gaps||[]).length} &nbsp;|&nbsp; Señales de interferencia: ${(fbl.gaps||[]).filter(g=>g.interference_signal).length}</div>`;}},
 ];
@@ -2432,7 +2432,7 @@ function renderInconsistentActs(forensics, national){
   if(count===0){
     note.textContent='Aguardando el primer ciclo de captura. Cualquier crecimiento sostenido es señal de alerta.';
   } else if(trend==='rising'){
-    note.textContent=`ALERTA: los registros inconsistentes crecieron ${delta>0?'+':''}${fmt(delta)} desde el inicio del monitoreo (${pct.toFixed(1)}% del total divulgado). Un crecimiento sostenido indica manipulación activa del conteo oficial.`;
+    note.textContent=`ALERTA: los registros inconsistentes crecieron ${delta>0?'+':''}${fmt(delta)} desde el inicio del monitoreo (${pct.toFixed(1)}% del total divulgado). Un crecimiento sostenido del contador publicado requiere explicación operativa de la fuente.`;
   } else if(trend==='falling'){
     note.textContent=`Los registros inconsistentes están siendo resueltos (${pct.toFixed(1)}% del total divulgado). Se continúa vigilando.`;
   } else {
@@ -3189,22 +3189,22 @@ const H2_TIPS={
   'Registros divulgados (JSON CNE)':'Cuántos registros JSON ha publicado el CNE vs. el total esperado. Un porcentaje bajo puede indicar conteo incompleto o retención de datos. Si sube de golpe, revisa si hubo un apagón previo.',
   'Total votos':'Suma de votos válidos contabilizados según el JSON del CNE. El motor verifica que no suba más rápido de lo que permite la velocidad física de procesamiento de actas.',
   'Participación':'Porcentaje del padrón electoral que votó. Valores inusualmente altos (>85%) o saltos bruscos entre capturas pueden indicar anomalía.',
-  'Integridad':'Porcentaje de snapshots con cadena de hashes SHA-256 íntegra. 100% = ningún dato fue alterado. Cualquier valor menor es una señal crítica de manipulación.',
-  'Registros inconsistentes — bajo vigilancia permanente':'Registros que el propio CNE etiqueta como "inconsistentes". Su crecimiento sostenido indica re-asignación activa de votos. Son el indicador más directo de manipulación del conteo oficial.',
+  'Integridad':'Porcentaje de snapshots con cadena de hashes SHA-256 íntegra. 100% = ningún dato fue alterado. Cualquier valor menor es una señal crítica que requiere explicación.',
+  'Registros inconsistentes — bajo vigilancia permanente':'Registros que el propio CNE etiqueta como "inconsistentes". Su crecimiento sostenido es una anomalía respecto al comportamiento esperado de resolución y requiere explicación operativa.',
   'Distribución de candidatos':'Porcentaje de votos por candidato según el JSON del CNE en tiempo real. El motor verifica que los porcentajes no salten de forma abrupta entre capturas consecutivas.',
   'Estado por departamento':'Estado criptográfico de cada departamento. Verde = íntegro, amarillo = anomalía estadística detectada, rojo = ruptura de cadena. El punto pequeño en la esquina de cada celda indica si el endpoint CNE de ese departamento está activo.',
-  'Progreso de registros en el tiempo':'Serie temporal de snapshots capturados. Los gaps en la línea son períodos sin datos — toda interrupción mayor a la cadencia objetivo se marca como sospechosa por defecto.',
-  'Vigilancia forense':'Detectores estadísticos avanzados que buscan patrones de fraude: inyección progresiva de votos, velocidad anómala de resolución de actas, beneficio asimétrico a un candidato, retención y liberación masiva, y análisis de Benford.',
-  'Benford — distribución primer dígito':'La Ley de Benford predice la frecuencia natural del primer dígito en datos electorales grandes. Desviaciones significativas (chi² alto, p<0.05) sugieren que los datos fueron fabricados o alterados artificialmente.',
-  'Alertas registradas':'Eventos de anomalía generados por el motor. CRÍTICO = ruptura de integridad o patrón de fraude confirmado. ALTO = brecha de cobertura o patrón estadístico sospechoso. MEDIO/BAJO = señales tempranas a vigilar.',
+  'Progreso de registros en el tiempo':'Serie temporal de snapshots capturados. Los gaps en la línea son períodos sin datos — toda interrupción mayor a la cadencia objetivo se marca para revisión por defecto. Un hueco puede reflejar silencio de la fuente o ausencia del observador; el registro de intentos los distingue.',
+  'Vigilancia forense':'Detectores estadísticos avanzados que buscan patrones estadísticos anómalos: inyección progresiva de votos, velocidad anómala de resolución de actas, diferencia de proporciones entre conjuntos de escrutinio, retención y liberación masiva, y análisis de Benford.',
+  'Benford — distribución primer dígito':'La Ley de Benford predice la frecuencia natural del primer dígito en datos electorales grandes. Desviaciones significativas (chi² alto, p&lt;0.05) son una señal exploratoria. El primer dígito presenta alta tasa de falsos positivos sobre agregados electorales y aquí es solo informativo: usar la variante de segundo dígito con doble confirmación chi²+MAD.',
+  'Alertas registradas':'Eventos de anomalía generados por el motor. CRÍTICO = ruptura de integridad criptográfica o cruce de umbral crítico pre-registrado. ALTO = brecha de cobertura o patrón estadístico sospechoso. MEDIO/BAJO = señales tempranas a vigilar.',
   'Cadena de custodia criptográfica':'Cada snapshot está enlazado al anterior con un hash SHA-256, formando una cadena inmutable. Si cualquier dato histórico es alterado, el hash no coincide y el motor lo detecta de inmediato.',
   'Distribución del último dígito':'El último dígito de los totales de votos debe distribuirse uniformemente (≈10% cada dígito 0–9) en datos auténticos. Preferencia por dígitos pares o redondos sugiere estimación o fabricación.',
   'Z-score por departamento':'Desviación estándar de los votos de cada departamento respecto a la media nacional. Z > 2σ (amarillo) o Z > 3σ (rojo) indica un departamento estadísticamente inusual.',
-  'Participación por departamento (%)':'Porcentaje de actas divulgadas por departamento. Brechas grandes entre departamentos pueden indicar retención selectiva de datos.',
-  'Nulos y blancos por departamento':'Votos nulos y en blanco por departamento. Concentraciones inusualmente altas pueden indicar manipulación o problemas en la jornada.',
+  'Participación por departamento (%)':'Porcentaje de actas divulgadas por departamento. Brechas grandes entre departamentos pueden reflejar una demora diferencial en la publicación.',
+  'Nulos y blancos por departamento':'Votos nulos y en blanco por departamento. Concentraciones inusualmente altas pueden reflejar anomalías o incidencias operativas de la jornada.',
   'Inyección progresiva de votos':'Detecta adiciones incrementales de votos que alteran progresivamente el resultado. Usa z-score acumulado por ciclo, autocorrelación lag-1 (Durbin-Watson) y Runs test (Wald-Wolfowitz, 1940).',
-  'Retención y liberación masiva (Hold & Release)':'Identifica estancamientos prolongados seguidos de liberación abrupta de actas. Patrón consistente con control centralizado del flujo de resultados.',
-  'Beneficio asimétrico por candidato':'Compara proporción de votos en escrutinio normal vs. especial por candidato. Una desviación significativa (z-score > 1.96) sugiere manipulación selectiva.',
+  'Retención y liberación masiva (Hold & Release)':'Identifica estancamientos prolongados seguidos de liberación abrupta de actas. Patrón compatible con un flujo de publicación centralizado de resultados.',
+  'Beneficio asimétrico por candidato':'Compara proporción de votos en escrutinio normal vs. especial por candidato. Una desviación significativa (z-score &gt; 1.96) es una señal estadística que requiere evaluación humana; no prueba manipulación.',
   'Ventanas de oscurecimiento (Blackout)':'Periodos sin publicación de datos. Analiza correlación entre la duración del gap y cambios post-gap en tendencia (gap-to-trend). Interferencia = cambio de tendencia estadísticamente significativo.',
   'Diagnósticos de series temporales':'Métricas de independencia: autocorrelación lag-1, Runs test (Wald-Wolfowitz 1940), Durbin-Watson (1951). Datos manufacturados muestran dependencia serial anómala.',
   'Radar forense integral':'Vista unificada de todos los detectores. Cada eje mide intensidad de anomalía normalizada (0=limpio, 1=máximo). Polígono grande y rojo = múltiples anomalías simultáneas.',

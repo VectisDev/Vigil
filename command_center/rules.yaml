@@ -51,24 +51,35 @@ max_json_presidenciales: 19
 rules:
 
   # ── BENFORD — Primer dígito (MAD + chi²) ─────────────────
-  # Módulo: benford_first_digit_rule.py | Severity: INFO (demoted dev-v12 — high FP rate)
-  # Deckert et al. (2011): 1st-digit Benford has ~100% FP on electoral count data.
-  # Use benford_canonical (2nd digit) for alerts. This is EXPERIMENTAL/logging only.
+  # Módulo: benford_first_digit_rule.py :: apply | Severity: INFO
+  # Deckert et al. (2011): el primer dígito presenta ~100% de FP sobre conteos
+  # electorales. Capada a INFO en código; solo informativa/registro.
+  # First-digit Benford has ~100% FP on electoral counts. Capped at INFO in code.
   benford_first_digit:
     enabled: true
-    severity: "CRITICAL"
+    severity: "INFO"
     min_samples: 15
     mad_warning: 0.008
     mad_critical: 0.015
     chi_pvalue_critical: 0.01
 
-  # ── BENFORD — Alternativa por candidato (chi²) ───────────
-  # Módulo: benford_law_rule.py | Severity: CRITICAL (rewritten dev-v12 — canonical 2BL)
-  # Now uses benford_batch(test_type='canonical') — Mebane (2006) 2nd-digit Benford.
-  # FP rate < 5%% on HN 2025 data (vs 100%% for 1st digit). See STATISTICAL_CONVENTIONS.md.
+  # ── BENFORD CANÓNICA — 2do dígito (2BL) ──────────────────
+  # Módulo: benford_law_rule.py :: apply | Severity: CRITICAL
+  # benford_batch(test_type='canonical') — Mebane (2006) 2do dígito, doble
+  # confirmación chi²+MAD. Esta es la variante canónica y SÍ corre por defecto.
+  # Canonical variant; runs by default (no longer gated as a research rule).
   benford_law:
     enabled: true
-    severity: "Medium"
+    severity: "CRITICAL"
+    min_samples: 30
+
+  # ── BENFORD primer dígito por candidato (investigación) ──
+  # Módulo: benford_first_digit_rule.py :: apply_per_candidate | Severity: INFO
+  # Regla de investigación: gateada por rules.enable_research_rules.
+  # Research rule: gated behind rules.enable_research_rules.
+  benford_first_digit_per_candidate:
+    enabled: true
+    severity: "INFO"
     min_samples: 10
     deviation_pct: 15
     chi_square_threshold: 0.05
@@ -170,7 +181,7 @@ rules:
   #
   # Calibrado con datos reales Honduras 2025 (54 snapshots válidos):
   #   baseline observado: mean=14.31%, stdev=0.10%, rango=[14.19%, 14.55%]
-  #   Las 2,773 actas inconsistentes finales representaron ~450,000 votos inauditables.
+  #   La fuente reportó 2,773 actas etiquetadas como inconsistentes al cierre del período observado. Cualquier extrapolación a votos afectados es heurística y NO forma parte de una alerta automática del motor.
   #
   # El umbral critical_pct=10% detecta el estado anómalo desde el primer snapshot
   # (útil cuando el nivel "normal" debe ser <5%). En Honduras 2025, el 14.3%
@@ -180,7 +191,7 @@ rules:
   #
   # Calibrated with real Honduras 2025 data (54 valid snapshots):
   #   observed baseline: mean=14.31%, stdev=0.10%, range=[14.19%, 14.55%]
-  #   Final 2,773 inconsistent sheets represented ~450,000 un-auditable votes.
+  #   The source reported 2,773 sheets labelled inconsistent at the close of the observed period. Any extrapolation to affected votes is heuristic and is NOT part of any automated engine alert.
   #
   # critical_pct=10% flags the anomalous state from snapshot #1 (useful when
   # normal should be <5%). In HN 2025, 14.3% was constant from the start.

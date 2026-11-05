@@ -151,4 +151,4 @@ results = benford_batch(candidate_votes, test_type="canonical")
 - [ ] Ejecutar regresión completa contra 96 JSONs históricos
 - [ ] Documentar tasas de FP antes/después en CHANGELOG.md
 - [ ] Actualizar CentinelReglasMatematicas.pdf (nueva sección)
-- [ ] Notificar al Prof. Devis Alvarado para revisión
+- [ ] Notificar al independent academic reviewer (pending) para revisión

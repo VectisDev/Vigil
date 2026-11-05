@@ -2,7 +2,7 @@
 Calibración de reglas Vigil contra datos reales CNE Honduras 2025.
 
 Ejecutar:
-    python scripts/calibrate_2025.py --data /path/to/hnd-electoral-audit-2025/data
+    python scripts/calibrate_2025.py --data tests/fixtures/hnd_2025
 
 Produce:
     reports/calibration_2025.json  — anomalías detectadas por regla
@@ -535,7 +535,7 @@ def main() -> None:
     parser.add_argument(
         "--data",
         type=Path,
-        default=Path("/home/user/hnd-electoral-audit-2025/data"),
+        default=Path("tests/fixtures/hnd_2025"),
         help="Directorio con los JSON del CNE",
     )
     parser.add_argument(

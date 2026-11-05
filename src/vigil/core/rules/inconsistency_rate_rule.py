@@ -75,8 +75,10 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
 
     Diseñado a partir del hallazgo forense Honduras 2025: 14.3% de actas marcadas
     como inconsistentes desde el primer snapshot, con escalada final a 14.6% en
-    los últimos días. Las 2,773 actas retenidas al 99.4% representaron ~450,000
-    votos inauditables.
+    los últimos días. Al cierre del período observado la fuente reportaba 2,773 actas
+    etiquetadas como inconsistentes. Cualquier extrapolación a votos afectados
+    es heurística, no forma parte de ninguna alerta del motor y requiere
+    análisis humano.
 
     Args:
         current_data: Snapshot JSON actual del CNE.
@@ -95,8 +97,9 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
 
         Designed from the Honduras 2025 forensic finding: 14.3% of tally sheets
         marked as inconsistent from the first snapshot, escalating to 14.6% by
-        final days. The 2,773 retained sheets at 99.4% represented ~450,000
-        un-auditable votes.
+        final days. At the close of the observed period the source reported 2,773
+        sheets labelled inconsistent. Any extrapolation to affected votes is
+        heuristic, is not part of any engine alert, and requires human analysis.
 
     Args:
         current_data: Current CNE JSON snapshot.

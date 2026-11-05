@@ -45,10 +45,12 @@ on:
       - dev-v12
     tags:
       - 'v*'
-  schedule:
-    # Every 6 hours at minute 17 (offset to avoid the rush hour cron load).
-    # Cada 6 horas en el minuto 17 (desfasado para evitar la hora pico de cron).
-    - cron: '17 */6 * * *'
+  # Scheduled mirroring is disabled. Re-enable only once the mirrored history
+  # is known to contain no operator-identifying metadata.
+  # El espejo programado está desactivado. Reactivar solo cuando se verifique
+  # que el historial replicado no contiene metadatos que identifiquen al operador.
+  # schedule:
+  #   - cron: '17 */6 * * *'
   workflow_dispatch:
     inputs:
       full_resync:
@@ -87,8 +89,8 @@ jobs:
 
       - name: Configure git identity
         run: |
-          git config user.name "userf8a2c4"
-          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
+          git config user.name "VectisDev"
+          git config user.email "VectisDev@users.noreply.github.com"
 
       - name: Push to Codeberg
         env:
@@ -287,8 +289,9 @@ jobs:
   log-transparency:
     name: Append to transparency log
     runs-on: ubuntu-latest
-    needs: [mirror-codeberg]
-    # Run even if archive-bundle was skipped (cron case).
+    needs: [mirror-codeberg, archive-bundle]
+    # Run even if archive-bundle was skipped (cron case). The log records the
+    # ACTUAL result of each job; it never asserts an archive that did not run.
     if: always() && (needs.mirror-codeberg.result == 'success')
 
     permissions:
@@ -329,13 +332,21 @@ jobs:
           IA_LINK="https://archive.org/details/centinel-mirror-${MONTH}"
           CODEBERG_LINK="https://codeberg.org/VectisDev/centinel/commit/${HEAD_SHA}"
 
-          echo "| ${TIMESTAMP} | ${TRIGGER} | \`${HEAD_SHORT}\` | [✓](${CODEBERG_LINK}) | [✓](${IA_LINK}) |" >> "${LOG}"
+          # The Internet Archive cell reports what actually happened. A skipped
+          # or failed upload is never recorded as an archive.
+          case "${{ needs.archive-bundle.result }}" in
+            success) IA_CELL="[✓](${IA_LINK})" ;;
+            skipped) IA_CELL="— (not attempted)" ;;
+            *)       IA_CELL="✗ (failed)" ;;
+          esac
+
+          echo "| ${TIMESTAMP} | ${TRIGGER} | \`${HEAD_SHORT}\` | [✓](${CODEBERG_LINK}) | ${IA_CELL} |" >> "${LOG}"
 
       - name: Commit and push log update
         run: |
           set -euo pipefail
-          git config user.name "userf8a2c4"
-          git config user.email "250608616+userf8a2c4@users.noreply.github.com"
+          git config user.name "VectisDev"
+          git config user.email "VectisDev@users.noreply.github.com"
           git add docs/transparency/MIRROR-LOG.md
 
           if git diff --staged --quiet; then

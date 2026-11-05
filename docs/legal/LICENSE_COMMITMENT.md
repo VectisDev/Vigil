@@ -2,7 +2,7 @@
 
 ## Open Source License
 
-VIGIL is released under the **MIT License** (see `LICENSE`).
+VIGIL is released under the **GNU AGPL-3.0-only** license (see `LICENSE`).
 
 The source code — including all monitoring logic, cryptographic integrity
 chains, and web interfaces — is and will remain publicly auditable.
