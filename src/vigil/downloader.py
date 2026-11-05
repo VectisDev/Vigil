@@ -93,6 +93,7 @@ from typing import Any, Callable, Mapping
 
 import requests
 import yaml
+from tenacity import nap
 from tenacity import Retrying, retry_if_exception_type
 
 structlog = None
@@ -582,6 +583,19 @@ def _perform_request(
     return response
 
 
+def _retry_sleep(seconds: float) -> None:
+    """Pausa entre reintentos. Indireccion sustituible en pruebas.
+
+    English:
+        Backoff pause between retries. tenacity binds its default sleep
+        strategy at import time, so patching tenacity.nap afterwards does not
+        affect it; passing this module-level function to Retrying() gives tests
+        a seam. Without one, a test that simulates a failing endpoint sleeps the
+        full production backoff and blocks the run.
+    """
+    nap.sleep(seconds)
+
+
 def _request_with_retry(
     session: requests.Session,
     url: str,
@@ -600,6 +614,7 @@ def _request_with_retry(
         wait=PolicyWait(),
         stop=PolicyStop(),
         before_sleep=lambda state: _log_before_sleep(logger, state),
+        sleep=_retry_sleep,
         reraise=True,
     )
 

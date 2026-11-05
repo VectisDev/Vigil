@@ -170,6 +170,16 @@ _install_crypto_stub()
 
 def _install_dotenv_stub() -> None:
     """/** Instala stub de dotenv para tests. / Install dotenv stub for tests. **"""
+    import importlib.util
+
+    if importlib.util.find_spec("dotenv") is not None:
+        # El paquete real esta disponible: instalar el stub dejaria
+        # sys.modules["dotenv"].__spec__ en None para toda la sesion, y
+        # cualquier find_spec("dotenv") posterior lanzaria ValueError.
+        # Real package is available — installing the stub would leave
+        # sys.modules["dotenv"].__spec__ as None for the whole session, making
+        # any later find_spec("dotenv") raise ValueError.
+        return
     dotenv_module = types.ModuleType("dotenv")
 
     def _load_dotenv(*_args, **_kwargs):

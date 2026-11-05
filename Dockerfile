@@ -12,21 +12,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # --- Frontend builder stage: build React app with Node.js ---
-FROM node:20-slim AS frontend-builder
+# NOTA: la etapa frontend-builder se elimino: copiaba de dashboard/frontend/,
+# que no existe en este repositorio, por lo que la imagen no podia construirse.
+# NOTE: the frontend-builder stage was removed: it copied from
+# dashboard/frontend/, which does not exist in this repository, so the
+# image could not build at all.
 
-# EN: Cache-bust ARG — changes every deploy so npm build always re-runs.
-# ES: ARG para romper cache — cambia cada deploy para que npm build siempre re-ejecute.
-ARG CACHE_BUST=0
-
-WORKDIR /frontend
-COPY dashboard/frontend/package.json dashboard/frontend/package-lock.json* ./
-RUN npm ci --ignore-scripts
-COPY dashboard/frontend/ ./
-
-# EN: Inject build version at build time for traceability.
-# ES: Inyectar versión de build en tiempo de construcción para trazabilidad.
-ENV VITE_BUILD_VERSION=${CACHE_BUST}
-RUN npm run build
 
 # --- Python builder stage: install Python deps in isolation ---
 FROM base AS builder
@@ -58,8 +49,6 @@ COPY . /app
 # ES: Escribir marcador de build para verificación en runtime vía /live o SSH.
 RUN echo "build=${CACHE_BUST}" > /app/BUILD_INFO
 
-# Copy React build output into static directory served by FastAPI.
-COPY --from=frontend-builder /frontend/dist /app/static/dashboard
 
 # Writable directories for runtime data.
 RUN mkdir -p /app/logs /app/data /app/hashes && \
@@ -72,7 +61,7 @@ USER vigil
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=5 \
     CMD curl -f http://localhost:8080/live || exit 1
 
-CMD ["gunicorn", "api.main:app", \
+CMD ["gunicorn", "vigil.api.main:app", \
      "--worker-class", "uvicorn.workers.UvicornWorker", \
      "--bind", "0.0.0.0:8080", \
      "--workers", "4", \

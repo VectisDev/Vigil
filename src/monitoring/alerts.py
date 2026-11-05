@@ -101,6 +101,7 @@ class AlertConfig:
     """
 
     min_level: str = DEFAULT_MIN_LEVEL
+    webhook_url: str = ""
     dashboard_url: str = ""
     rate_limit_seconds: float = DEFAULT_RATE_LIMIT_SECONDS
     max_retries: int = DEFAULT_MAX_RETRIES
@@ -115,6 +116,7 @@ class AlertConfig:
         """
         return cls(
             min_level=os.getenv("ALERT_MIN_LEVEL", DEFAULT_MIN_LEVEL).strip().upper(),
+            webhook_url=os.getenv("ALERT_WEBHOOK_URL", os.getenv("WEBHOOK_URL", "")).strip(),
             dashboard_url=os.getenv("VIGIL_DASHBOARD_URL", os.getenv("CENTINEL_DASHBOARD_URL", "")).strip(),
             rate_limit_seconds=_env_float("ALERT_RATE_LIMIT_SECONDS", DEFAULT_RATE_LIMIT_SECONDS),
             max_retries=_env_int("ALERT_MAX_RETRIES", DEFAULT_MAX_RETRIES),
@@ -148,7 +150,15 @@ class AlertManager:
 
         English: Function is_configured defined in src/monitoring/alerts.py.
         """
-        return bool(self._config.dashboard_url)
+        # Configurado = hay un destino al que enviar. Antes esto comprobaba
+        # dashboard_url, que es un enlace que va DENTRO del mensaje, no un
+        # transporte: con el panel configurado y sin webhook, send() reportaba
+        # exito sin enviar nada.
+        # Configured = there is somewhere to send to. This used to check
+        # dashboard_url, which is a link embedded IN the message, not a
+        # transport: with the panel set and no webhook, send() reported success
+        # without sending anything.
+        return bool(self._config.webhook_url)
 
     def should_send(self, level: str) -> bool:
         """Español: Función should_send del módulo src/monitoring/alerts.py.
@@ -169,7 +179,9 @@ class AlertManager:
             logger.warning("alert_level_invalid level=%s", level)
             return False
         if not self.is_configured():
-            logger.info("alert_not_configured level=%s", normalized)
+            logger.warning(
+                "alert_dropped_no_transport level=%s hint=set ALERT_WEBHOOK_URL", normalized
+            )
             return False
         if not self.should_send(normalized):
             logger.debug("alert_skipped level=%s min=%s", normalized, self._config.min_level)
@@ -177,9 +189,41 @@ class AlertManager:
 
         payload = self._build_payload(normalized, message, context or {})
         await self._rate_limit()
+        return await self._post_with_retries(normalized, payload)
 
-        logger.info("alert_sent level=%s payload=%s", normalized, payload)
-        return True
+    async def _post_with_retries(self, level: str, payload: str) -> bool:
+        """Entrega el payload al webhook. Devuelve True solo si se envio.
+
+        English: Deliver the payload to the webhook. Returns True only when the
+        alert was actually accepted by the destination. Honours request_timeout,
+        max_retries and a Retry-After hint from the response body.
+        """
+        url = self._config.webhook_url
+        attempts = max(1, self._config.max_retries)
+        last_error: str = "unknown"
+
+        async with httpx.AsyncClient(timeout=self._config.request_timeout) as client:
+            for attempt in range(1, attempts + 1):
+                try:
+                    response = await client.post(url, json={"level": level, "text": payload})
+                except httpx.HTTPError as exc:
+                    last_error = type(exc).__name__
+                else:
+                    if response.status_code < 400:
+                        logger.info("alert_sent level=%s attempt=%d", level, attempt)
+                        return True
+                    last_error = f"http_{response.status_code}"
+                    if response.status_code == 429:
+                        await asyncio.sleep(_parse_retry_after(response))
+                        continue
+                    if response.status_code < 500:
+                        # 4xx no transitorio: reintentar no cambia nada.
+                        break
+                if attempt < attempts:
+                    await asyncio.sleep(min(2.0 ** (attempt - 1), 30.0))
+
+        logger.error("alert_delivery_failed level=%s error=%s attempts=%d", level, last_error, attempts)
+        return False
 
     async def _rate_limit(self) -> None:
         """Español: Función asíncrona _rate_limit del módulo src/monitoring/alerts.py.
@@ -237,8 +281,7 @@ def dispatch_alert(level: str, message: str, context: dict | None = None) -> boo
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        asyncio.run(manager.send(level, message, context=context))
-        return True
+        return asyncio.run(manager.send(level, message, context=context))
     else:
         loop.create_task(manager.send(level, message, context=context))
         return True

@@ -54,17 +54,23 @@ Notes:
 
 from __future__ import annotations
 
-from importlib.util import find_spec
 import json
 import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-if find_spec("dotenv"):
+# No usar find_spec() aqui: lanza ValueError si "dotenv" ya esta en sys.modules
+# con __spec__ None (lo que ocurre si algo instalo un modulo sustituto). Un
+# try/except sobre el import real es mas corto y no depende del orden de carga.
+# Do not use find_spec() here: it raises ValueError when "dotenv" is already in
+# sys.modules with __spec__ None (which happens if something installed a stand-in
+# module). A try/except around the real import is shorter and order-independent.
+try:
     from dotenv import load_dotenv
-else:
+except ImportError:  # pragma: no cover - entorno sin python-dotenv
 
     def load_dotenv(*_args, **_kwargs) -> bool:
+        """Sustituto inerte cuando python-dotenv no esta instalado."""
         return False
 
 
@@ -77,11 +83,15 @@ from pydantic import (
     field_validator,
 )
 
-if find_spec("pydantic_settings"):
+# Mismo motivo que arriba: find_spec() lanzaria ValueError si algo dejo
+# "pydantic_settings" en sys.modules sin __spec__.
+# Same reason as above: find_spec() would raise ValueError if something left
+# "pydantic_settings" in sys.modules without a __spec__.
+try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
 
     _HAS_PYDANTIC_SETTINGS = True
-else:
+except ImportError:  # pragma: no cover - entorno sin pydantic-settings
     BaseSettings = BaseModel
 
     class SettingsConfigDict(dict):

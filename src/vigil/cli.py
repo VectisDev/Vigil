@@ -143,16 +143,49 @@ def status() -> None:
 
     English: Show overall system status.
     """
+    import json
+    from pathlib import Path as _Path
+
     typer.echo("🔍 VIGIL Status")
     typer.echo("=" * 50)
 
-    # Placeholder: cargar estado desde archivos
-    typer.echo("✅ Core: OPERATIONAL")
-    typer.echo("🐦 Cuervo: ACTIVE")
-    typer.echo("🦑 Pulpo: ACTIVE")
-    typer.echo("🦌 Venado: ACTIVE")
-    typer.echo("🦎 Lagartija: ACTIVE")
-    typer.echo("⚔️ Tejón: READY")
+    # Este comando reporta lo que puede leer del disco. Antes imprimia
+    # "OPERATIONAL" de forma fija, lo que lo hacia inutil justo cuando
+    # importaba: un sistema roto se veia identico a uno sano.
+    # This command reports what it can actually read from disk. It used to print
+    # "OPERATIONAL" unconditionally, which made it useless exactly when it
+    # mattered: a broken system looked identical to a healthy one.
+    snapshot_path = _Path("web/data/snapshot.json")
+    state_path = _Path("data/pipeline_state.json")
+
+    if snapshot_path.exists():
+        try:
+            doc = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            typer.echo(f"❓ Snapshot ilegible / unreadable: {exc}")
+        else:
+            status = doc.get("status", "UNKNOWN")
+            reason = doc.get("status_reason") or ""
+            icon = {"MONITORING": "✅", "DEGRADED": "⚠️", "NO_DATA": "❌"}.get(status, "❓")
+            typer.echo(f"{icon} Estado / status: {status}" + (f" — {reason}" if reason else ""))
+            typer.echo(f"   Generado / generated: {doc.get('generated_at', '—')}")
+
+            cne = doc.get("cne_status", {})
+            reachable = cne.get("reachable")
+            label = {True: "alcanzable / reachable", False: "inalcanzable / unreachable"}.get(
+                reachable, "desconocido / unknown (sin intento registrado)"
+            )
+            typer.echo(f"   Fuente / source: {label}")
+            typer.echo(f"   Ultimo intento / last attempt: {cne.get('last_attempt') or '—'}")
+
+            chain = doc.get("chain", {})
+            typer.echo(f"   Cadena / chain: {chain.get('chain_length', 0)} eslabones")
+            typer.echo(f"   Alertas / alerts: {len(doc.get('alerts', []))}")
+    else:
+        typer.echo("❌ Sin snapshot publicado / no published snapshot (web/data/snapshot.json)")
+
+    if not state_path.exists():
+        typer.echo("❌ Sin estado de pipeline / no pipeline state (data/pipeline_state.json)")
 
 
 @panel_app.command(name="show")

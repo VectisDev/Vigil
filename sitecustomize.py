@@ -59,7 +59,11 @@ SRC_ROOT = REPO_ROOT / "src"
 PARENT_ROOT = REPO_ROOT.parent
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
-if str(REPO_ROOT) in sys.path:
-    sys.path.remove(str(REPO_ROOT))
+# No se elimina REPO_ROOT: pyproject.toml ya declara vigil_engine, scripts y
+# command_center como paquetes, asi que quitarlo solo rompia los entrypoints de
+# produccion mientras conftest.py lo reinsertaba para las pruebas.
+# REPO_ROOT is no longer removed: pyproject.toml now declares vigil_engine,
+# scripts and command_center as packages, so removing it only broke the
+# production entrypoints while conftest.py re-inserted it for tests.
 if str(PARENT_ROOT) in sys.path:
     sys.path.remove(str(PARENT_ROOT))
