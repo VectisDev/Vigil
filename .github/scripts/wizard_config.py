@@ -18,12 +18,13 @@ from pathlib import Path
 
 try:
     import yaml
+
     _use_yaml = True
 except ImportError:
     _use_yaml = False
 
 COUNTRY = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN"))
-YEAR    = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025"))
+YEAR = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025"))
 
 # ── Load country preset ────────────────────────────────────────────────────
 repo_root = Path(__file__).resolve().parent.parent.parent
@@ -32,6 +33,7 @@ sys.path.insert(0, str(repo_root / "src"))
 preset = None
 try:
     from vigil.countries import LATAM_COUNTRIES
+
     preset = LATAM_COUNTRIES.get(COUNTRY)
     if preset:
         print(f"✓ Loaded preset for {COUNTRY}: {preset.name} ({len(preset.divisions)} divisions)")
@@ -64,21 +66,23 @@ def build_departments():
     if not preset:
         return [{"code": "00", "name": "TODOS", "abbr": "NAC", "iso": None, "url": None}]
 
-    cne_map = preset.build_cne_map()   # {"00": "TODOS", "01": "Atlántida", ...}
-    isos    = preset.division_iso_codes or []
+    cne_map = preset.build_cne_map()  # {"00": "TODOS", "01": "Atlántida", ...}
+    isos = preset.division_iso_codes or []
     pattern = preset.url_pattern or ""
     nat_url = preset.national_url or ""
 
     depts = []
     # National first
-    depts.append({
-        "code":  preset.national_cne_code,
-        "name":  "TODOS",
-        "abbr":  "NAC",
-        "iso":   None,
-        "url":   nat_url,
-        "label": preset.divisions_label,
-    })
+    depts.append(
+        {
+            "code": preset.national_cne_code,
+            "name": "TODOS",
+            "abbr": "NAC",
+            "iso": None,
+            "url": nat_url,
+            "label": preset.divisions_label,
+        }
+    )
     # Divisions
     for i, (div_name, cne_code) in enumerate(
         sorted((name, code) for code, name in cne_map.items() if code != preset.national_cne_code)
@@ -92,27 +96,29 @@ def build_departments():
             iso = None  # division not in preset: leave the ISO code unset
 
         url = pattern.replace("{cne_code}", cne_code) if pattern else ""
-        depts.append({
-            "code": cne_code,
-            "name": div_name,
-            "abbr": _abbr(div_name, iso),
-            "iso":  iso,
-            "url":  url,
-        })
+        depts.append(
+            {
+                "code": cne_code,
+                "name": div_name,
+                "abbr": _abbr(div_name, iso),
+                "iso": iso,
+                "url": url,
+            }
+        )
     return depts
 
 
 # ── 1. Write web/data/departments.json ────────────────────────────────────
 depts = build_departments()
 dept_json = {
-    "country":        COUNTRY,
-    "country_name":   preset.name        if preset else COUNTRY,
-    "flag":           preset.flag        if preset else "",
-    "authority":      preset.authority   if preset else "",
+    "country": COUNTRY,
+    "country_name": preset.name if preset else COUNTRY,
+    "flag": preset.flag if preset else "",
+    "authority": preset.authority if preset else "",
     "divisions_label": preset.divisions_label if preset else "Divisiones",
-    "year":           YEAR,
-    "generated_at":   datetime.now(timezone.utc).isoformat(),
-    "departments":    depts,
+    "year": YEAR,
+    "generated_at": datetime.now(timezone.utc).isoformat(),
+    "departments": depts,
 }
 
 dept_path = Path("web/data/departments.json")
@@ -131,9 +137,9 @@ else:
 
 # centinel metadata
 cfg.setdefault("centinel", {})
-cfg["centinel"]["country"]      = COUNTRY
-cfg["centinel"]["year"]         = YEAR
-cfg["centinel"]["setup_at"]     = datetime.now(timezone.utc).isoformat()
+cfg["centinel"]["country"] = COUNTRY
+cfg["centinel"]["year"] = YEAR
+cfg["centinel"]["setup_at"] = datetime.now(timezone.utc).isoformat()
 cfg["centinel"]["setup_source"] = "github-actions-wizard"
 
 if preset:
@@ -156,19 +162,20 @@ if preset:
     cfg["endpoints"] = endpoints
 
     # sources block
-    sources = [{"name": "Nacional", "source_id": "NACIONAL",
-                "level": "PRES", "scope": "NATIONAL"}]
+    sources = [{"name": "Nacional", "source_id": "NACIONAL", "level": "PRES", "scope": "NATIONAL"}]
     for d in depts:
         if d["code"] == preset.national_cne_code:
             continue
         slug = _slugify(d["name"])
-        sources.append({
-            "name":            d["name"],
-            "source_id":       f"{d['code']}_{slug}",
-            "department_code": d["code"],
-            "level":           "PRES",
-            "scope":           "DEPARTMENT",
-        })
+        sources.append(
+            {
+                "name": d["name"],
+                "source_id": f"{d['code']}_{slug}",
+                "department_code": d["code"],
+                "level": "PRES",
+                "scope": "DEPARTMENT",
+            }
+        )
     cfg["sources"] = sources
     print(f"✓ config.yaml — {len(endpoints)} endpoints, {len(sources)} sources")
 

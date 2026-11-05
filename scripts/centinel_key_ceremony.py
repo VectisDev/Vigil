@@ -75,29 +75,20 @@ from cryptography.hazmat.primitives import serialization
 
 
 def _now_utc_iso() -> str:
-    return (
-        datetime.now(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="centinel-key-ceremony",
         description=(
-            "Generate Ed25519 keypair and Shamir-split the private key "
-            "among CENTINEL custodians. MUST RUN OFFLINE."
+            "Generate Ed25519 keypair and Shamir-split the private key " "among CENTINEL custodians. MUST RUN OFFLINE."
         ),
     )
     parser.add_argument(
         "--custodians",
         required=True,
-        help=(
-            "Comma-separated list of custodian names. Number of names "
-            "determines the total share count (n)."
-        ),
+        help=("Comma-separated list of custodian names. Number of names " "determines the total share count (n)."),
     )
     parser.add_argument(
         "--threshold",
@@ -119,18 +110,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--allow-online",
         action="store_true",
-        help=(
-            "BYPASS the offline-check. Only for automated testing. NEVER "
-            "use in a real ceremony."
-        ),
+        help=("BYPASS the offline-check. Only for automated testing. NEVER " "use in a real ceremony."),
     )
     parser.add_argument(
         "--no-confirm",
         action="store_true",
-        help=(
-            "Skip interactive confirmation. Only for automated testing. "
-            "NEVER use in a real ceremony."
-        ),
+        help=("Skip interactive confirmation. Only for automated testing. " "NEVER use in a real ceremony."),
     )
     return parser.parse_args()
 
@@ -231,10 +216,7 @@ def run_ceremony(
         print(f"  Public key (hex): {public_hex}")
         print(f"  Public key SHA-256: {public_hash}")
         print()
-        if not _confirm(
-            "Proceed and write share files to "
-            f"{output_dir.resolve()}?"
-        ):
+        if not _confirm("Proceed and write share files to " f"{output_dir.resolve()}?"):
             raise RuntimeError("Ceremony aborted by operator.")
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -257,9 +239,7 @@ def run_ceremony(
     # 6. Write each share to its own file.
     share_files: List[str] = []
     created_at = _now_utc_iso()
-    for i, (custodian, share_bytes) in enumerate(
-        zip(custodians, shares_bytes), start=1
-    ):
+    for i, (custodian, share_bytes) in enumerate(zip(custodians, shares_bytes), start=1):
         share_text = serialize_share(
             share_bytes=share_bytes,
             custodian=custodian,
@@ -315,22 +295,10 @@ def run_ceremony(
         print(f"  {output_dir.resolve()}")
         print()
         print("NEXT STEPS / SIGUIENTES PASOS:")
-        print(
-            "  1. Distribute share files to their respective custodians "
-            "via paper or encrypted physical media."
-        )
-        print(
-            "  2. Publish the .public_key and .ceremony_record.json to "
-            "the CENTINEL repository."
-        )
-        print(
-            "  3. Securely wipe this working directory: "
-            f"shred -u -n 7 {output_dir.resolve()}/*"
-        )
-        print(
-            "  4. Anchor the ceremony record hash to OpenTimestamps for "
-            "tamper-evident temporal proof."
-        )
+        print("  1. Distribute share files to their respective custodians " "via paper or encrypted physical media.")
+        print("  2. Publish the .public_key and .ceremony_record.json to " "the CENTINEL repository.")
+        print("  3. Securely wipe this working directory: " f"shred -u -n 7 {output_dir.resolve()}/*")
+        print("  4. Anchor the ceremony record hash to OpenTimestamps for " "tamper-evident temporal proof.")
         print()
 
     return record

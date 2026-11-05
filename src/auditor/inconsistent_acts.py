@@ -850,9 +850,7 @@ class InconsistentActsTracker:
             for candidate, payload in stats.get("per_candidate", {}).items():
                 # Decisión por q-value BH; cae a Bonferroni si no está presente.
                 # BH q-value drives the decision; falls back to Bonferroni.
-                decision_pvalue = payload.get(
-                    "bh_qvalue", payload.get("bonferroni_adjusted_pvalue", 1.0)
-                )
+                decision_pvalue = payload.get("bh_qvalue", payload.get("bonferroni_adjusted_pvalue", 1.0))
                 if decision_pvalue < 0.01:
                     anomalies.append(
                         Anomaly(

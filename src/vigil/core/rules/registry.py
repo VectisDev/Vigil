@@ -91,8 +91,7 @@ def rule(*, name: str, severity: str, description: str, config_key: str) -> Call
         existing = next((r for r in _RULE_REGISTRY if r.config_key == config_key), None)
         if existing is not None:
             raise ValueError(
-                f"duplicate rule config_key {config_key!r}: "
-                f"already registered by {existing.name!r}, now {name!r}"
+                f"duplicate rule config_key {config_key!r}: " f"already registered by {existing.name!r}, now {name!r}"
             )
         """Registra la función con sus metadatos y devuelve la original.
 

@@ -81,14 +81,16 @@ def _ensure_db(path: str) -> None:
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with sqlite3.connect(path) as connection:
         cursor = connection.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS irreversibility_state (
                 scope TEXT PRIMARY KEY,
                 leader TEXT,
                 irreversible INTEGER,
                 timestamp TEXT
             )
-            """)
+            """
+        )
         connection.commit()
 
 
@@ -157,9 +159,7 @@ def _top_two_candidates(
     """
     if not votes:
         return None
-    sorted_votes = sorted(
-        votes.items(), key=lambda item: int(item[1].get("votes") or 0), reverse=True
-    )
+    sorted_votes = sorted(votes.items(), key=lambda item: int(item[1].get("votes") or 0), reverse=True)
     if len(sorted_votes) < 2:
         return None
     leader_id, leader_data = sorted_votes[0]
@@ -243,9 +243,7 @@ def apply(current_data: dict, previous_data: Optional[dict], config: dict) -> Li
 
     if previous_state:
         previous_leader, previous_irreversible, _ = previous_state
-        if previous_irreversible and (
-            not irreversible or (previous_leader and previous_leader != leader_id)
-        ):
+        if previous_irreversible and (not irreversible or (previous_leader and previous_leader != leader_id)):
             alerts.append(
                 {
                     "type": "Reversión de Irreversibilidad Estadística",

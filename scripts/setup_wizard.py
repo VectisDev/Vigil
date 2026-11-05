@@ -359,7 +359,9 @@ def main() -> None:
         "monitoring": "900",
         "maintenance": "1800",
     }
-    current_interval = env.get("VIGIL_POLL_INTERVAL", env.get("CENTINEL_POLL_INTERVAL")) or _MODE_DEFAULTS.get(new_mode, "900")
+    current_interval = env.get("VIGIL_POLL_INTERVAL", env.get("CENTINEL_POLL_INTERVAL")) or _MODE_DEFAULTS.get(
+        new_mode, "900"
+    )
 
     print(
         f"  Elecciones ({new_country}):  {_election_min}s = {_election_min // 60} min  <- minimo validado / validated minimum"

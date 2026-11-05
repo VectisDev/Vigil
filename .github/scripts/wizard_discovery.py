@@ -36,9 +36,9 @@ from urllib.parse import urlparse
 
 # ── Configuración desde entorno / Config from environment ─────────────────────
 ELECTION_URL = os.environ.get("ELECTION_URL", "").strip()
-COUNTRY      = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN")).strip().upper()
-YEAR         = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025")).strip()
-TIMEOUT      = int(os.environ.get("DISCOVERY_TIMEOUT", "15"))
+COUNTRY = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN")).strip().upper()
+YEAR = os.environ.get("VIGIL_YEAR", os.environ.get("CENTINEL_YEAR", "2025")).strip()
+TIMEOUT = int(os.environ.get("DISCOVERY_TIMEOUT", "15"))
 
 # ── Cargar preset del país / Load country preset ───────────────────────────────
 repo_root = Path(__file__).resolve().parent.parent.parent
@@ -47,6 +47,7 @@ sys.path.insert(0, str(repo_root / "src"))
 preset = None
 try:
     from vigil.countries import LATAM_COUNTRIES
+
     preset = LATAM_COUNTRIES.get(COUNTRY)
     if preset:
         print(f"✓ Preset cargado: {preset.name} ({len(preset.divisions)} divisiones)")
@@ -86,7 +87,7 @@ def _probe(url: str, timeout: int = TIMEOUT) -> bool:
             url,
             headers={
                 "User-Agent": "CENTINEL-Electoral-Auditor/1.0 (security@vectis.dev)",
-                "Accept":     "application/json",
+                "Accept": "application/json",
             },
         )
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -119,8 +120,8 @@ def _build_candidate_patterns(base: str) -> list[dict]:
     # ── Patrones desde countries.py (fuente primaria) ─────────────────────
     if preset and preset.url_pattern:
         # Reemplazar el host hardcodeado con el del usuario
-        old_parsed  = urlparse(preset.url_pattern)
-        old_base    = f"{old_parsed.scheme}://{old_parsed.netloc}"
+        old_parsed = urlparse(preset.url_pattern)
+        old_base = f"{old_parsed.scheme}://{old_parsed.netloc}"
         new_pattern = preset.url_pattern.replace(old_base, base)
 
         nat_url = None
@@ -129,13 +130,15 @@ def _build_candidate_patterns(base: str) -> list[dict]:
             old_nat_base = f"{old_nat.scheme}://{old_nat.netloc}"
             nat_url = preset.national_url.replace(old_nat_base, base)
 
-        candidates.append({
-            "name":             "preset_pattern",
-            "national_url":     nat_url,
-            "dept_pattern":     new_pattern,     # contiene {cne_code}
-            "uses_cne_code":    True,
-            "priority":         0,
-        })
+        candidates.append(
+            {
+                "name": "preset_pattern",
+                "national_url": nat_url,
+                "dept_pattern": new_pattern,  # contiene {cne_code}
+                "uses_cne_code": True,
+                "priority": 0,
+            }
+        )
 
     # ── Patrones genéricos comunes en LATAM ───────────────────────────────
     # Basados en análisis de CNE-HN, TSE-GT, TSE-SV, INE-MX, Registraduría-CO
@@ -143,51 +146,51 @@ def _build_candidate_patterns(base: str) -> list[dict]:
     generic_patterns = [
         # Estilo CNE Honduras
         {
-            "name":          "api_presidencial_nacional",
-            "national_url":  f"{base}/api/presidencial/nacional",
-            "dept_pattern":  f"{base}/api/presidencial/departamento/{{cne_code}}",
+            "name": "api_presidencial_nacional",
+            "national_url": f"{base}/api/presidencial/nacional",
+            "dept_pattern": f"{base}/api/presidencial/departamento/{{cne_code}}",
             "uses_cne_code": True,
-            "priority":      1,
+            "priority": 1,
         },
         # Estilo con año en path
         {
-            "name":          "api_year_presidencial",
-            "national_url":  f"{base}/api/{YEAR}/presidencial/nacional",
-            "dept_pattern":  f"{base}/api/{YEAR}/presidencial/departamento/{{cne_code}}",
+            "name": "api_year_presidencial",
+            "national_url": f"{base}/api/{YEAR}/presidencial/nacional",
+            "dept_pattern": f"{base}/api/{YEAR}/presidencial/departamento/{{cne_code}}",
             "uses_cne_code": True,
-            "priority":      2,
+            "priority": 2,
         },
         # Estilo resultados directo
         {
-            "name":          "resultados_presidencial",
-            "national_url":  f"{base}/resultados/presidencial",
-            "dept_pattern":  f"{base}/resultados/presidencial/{{cne_code}}",
+            "name": "resultados_presidencial",
+            "national_url": f"{base}/resultados/presidencial",
+            "dept_pattern": f"{base}/resultados/presidencial/{{cne_code}}",
             "uses_cne_code": True,
-            "priority":      3,
+            "priority": 3,
         },
         # Estilo actas
         {
-            "name":          "api_actas",
-            "national_url":  f"{base}/api/actas/nacional",
-            "dept_pattern":  f"{base}/api/actas/{{cne_code}}",
+            "name": "api_actas",
+            "national_url": f"{base}/api/actas/nacional",
+            "dept_pattern": f"{base}/api/actas/{{cne_code}}",
             "uses_cne_code": True,
-            "priority":      4,
+            "priority": 4,
         },
         # Estilo con nombre de departamento en slug
         {
-            "name":          "api_presidencial_slug",
-            "national_url":  f"{base}/api/presidencial/nacional",
-            "dept_pattern":  f"{base}/api/presidencial/{{slug}}",
+            "name": "api_presidencial_slug",
+            "national_url": f"{base}/api/presidencial/nacional",
+            "dept_pattern": f"{base}/api/presidencial/{{slug}}",
             "uses_cne_code": False,  # usa slug en vez de código
-            "priority":      5,
+            "priority": 5,
         },
         # Estilo PREP México
         {
-            "name":          "prep_entidad",
-            "national_url":  f"{base}/api/nacional",
-            "dept_pattern":  f"{base}/api/entidad/{{cne_code}}",
+            "name": "prep_entidad",
+            "national_url": f"{base}/api/nacional",
+            "dept_pattern": f"{base}/api/entidad/{{cne_code}}",
             "uses_cne_code": True,
-            "priority":      6,
+            "priority": 6,
         },
     ]
     candidates.extend(generic_patterns)
@@ -222,10 +225,10 @@ def discover_endpoints(base_url: str) -> dict | None:
     print(f"   Usando primer departamento: código={first_dept} slug={first_slug}\n")
 
     for candidate in candidates:
-        name        = candidate["name"]
-        nat_url     = candidate["national_url"]
-        dept_pat    = candidate["dept_pattern"]
-        uses_code   = candidate["uses_cne_code"]
+        name = candidate["name"]
+        nat_url = candidate["national_url"]
+        dept_pat = candidate["dept_pattern"]
+        uses_code = candidate["uses_cne_code"]
 
         # Construir URL de prueba para el primer departamento
         if uses_code:
@@ -261,7 +264,7 @@ def discover_endpoints(base_url: str) -> dict | None:
             slugs = [_slugify(d) for d in preset.divisions]
 
             print(f"\n  Confirmando {len(codes_to_probe)} departamentos...")
-            ok_count  = 0
+            ok_count = 0
             fail_count = 0
 
             for i, code in enumerate(codes_to_probe):
@@ -277,18 +280,20 @@ def discover_endpoints(base_url: str) -> dict | None:
                     time.sleep(0.3)  # rate limiting / respeto al servidor
                 else:
                     fail_count += 1
-                    print(f"    ⚠ dept/{code} ({preset.divisions[i] if i < len(preset.divisions) else code}) no responde")
+                    print(
+                        f"    ⚠ dept/{code} ({preset.divisions[i] if i < len(preset.divisions) else code}) no responde"
+                    )
 
             print(f"\n  Confirmados: {ok_count} / {len(codes_to_probe)} departamentos")
 
             return {
-                "pattern_name":  name,
-                "national_url":  nat_url,
-                "dept_pattern":  dept_pat,
+                "pattern_name": name,
+                "national_url": nat_url,
+                "dept_pattern": dept_pat,
                 "uses_cne_code": uses_code,
-                "confirmed":     confirmed,  # {code: url}
-                "ok_count":      ok_count,
-                "fail_count":    fail_count,
+                "confirmed": confirmed,  # {code: url}
+                "ok_count": ok_count,
+                "fail_count": fail_count,
             }
 
         time.sleep(0.5)  # pausa entre candidatos
@@ -307,6 +312,7 @@ def write_config(discovery: dict, base_url: str) -> None:
     """
     try:
         import yaml
+
         _use_yaml = True
     except ImportError:
         _use_yaml = False
@@ -319,10 +325,10 @@ def write_config(discovery: dict, base_url: str) -> None:
 
     # Actualizar metadata
     cfg.setdefault("centinel", {})
-    cfg["centinel"]["country"]             = COUNTRY
-    cfg["centinel"]["year"]                = YEAR
-    cfg["centinel"]["election_url"]        = base_url
-    cfg["centinel"]["discovery_pattern"]   = discovery["pattern_name"]
+    cfg["centinel"]["country"] = COUNTRY
+    cfg["centinel"]["year"] = YEAR
+    cfg["centinel"]["election_url"] = base_url
+    cfg["centinel"]["discovery_pattern"] = discovery["pattern_name"]
     cfg["centinel"]["endpoints_confirmed"] = discovery["ok_count"]
 
     # Escribir endpoints confirmados
@@ -336,8 +342,8 @@ def write_config(discovery: dict, base_url: str) -> None:
     for code in sorted(k for k in confirmed if k != "00"):
         endpoints[code] = confirmed[code]
 
-    cfg["endpoints"]  = endpoints
-    cfg["base_url"]   = discovery.get("national_url", "")
+    cfg["endpoints"] = endpoints
+    cfg["base_url"] = discovery.get("national_url", "")
     cfg["cne_domains"] = [urlparse(base_url).netloc]
 
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
@@ -346,9 +352,7 @@ def write_config(discovery: dict, base_url: str) -> None:
     else:
         # Fallback sin yaml: JSON-in-comment no es ideal pero funciona
         cfg_path.write_text(
-            f"# VIGIL config — generated by wizard_discovery.py\n"
-            f"# country: {COUNTRY}\n"
-            f"# base_url: {base_url}\n"
+            f"# VIGIL config — generated by wizard_discovery.py\n" f"# country: {COUNTRY}\n" f"# base_url: {base_url}\n"
         )
 
     print(f"\n✓ command_center/config.yaml actualizado — {len(endpoints)} endpoints")
@@ -382,6 +386,7 @@ def fallback_from_preset(base_url: str) -> None:
 
     try:
         import yaml
+
         _use_yaml = True
     except ImportError:
         _use_yaml = False
@@ -414,12 +419,12 @@ def fallback_from_preset(base_url: str) -> None:
         cfg = {}
 
     cfg.setdefault("centinel", {})
-    cfg["centinel"]["country"]      = COUNTRY
-    cfg["centinel"]["year"]         = YEAR
+    cfg["centinel"]["country"] = COUNTRY
+    cfg["centinel"]["year"] = YEAR
     cfg["centinel"]["election_url"] = base_url
-    cfg["centinel"]["discovery"]    = "fallback_preset_pattern"
-    cfg["endpoints"]  = endpoints
-    cfg["base_url"]   = endpoints.get("00", "")
+    cfg["centinel"]["discovery"] = "fallback_preset_pattern"
+    cfg["endpoints"] = endpoints
+    cfg["base_url"] = endpoints.get("00", "")
     cfg["cne_domains"] = [urlparse(base_url).netloc]
 
     cfg_path.parent.mkdir(parents=True, exist_ok=True)

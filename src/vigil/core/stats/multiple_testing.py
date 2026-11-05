@@ -75,9 +75,7 @@ def _validated(pvalues: Sequence[float]) -> List[float]:
     return out
 
 
-def benjamini_hochberg(
-    pvalues: Sequence[float], alpha: float = 0.05
-) -> Tuple[List[bool], List[float]]:
+def benjamini_hochberg(pvalues: Sequence[float], alpha: float = 0.05) -> Tuple[List[bool], List[float]]:
     """Procedimiento de Benjamini-Hochberg (control de FDR).
 
     Devuelve `(reject, qvalues)` en el MISMO orden que la entrada.
@@ -124,9 +122,7 @@ def benjamini_hochberg(
     return reject, qvalues
 
 
-def bonferroni(
-    pvalues: Sequence[float], alpha: float = 0.05
-) -> Tuple[List[bool], List[float]]:
+def bonferroni(pvalues: Sequence[float], alpha: float = 0.05) -> Tuple[List[bool], List[float]]:
     """Corrección de Bonferroni, conservadora, para reporte comparativo.
 
     English: Bonferroni correction, conservative, for comparison reporting.

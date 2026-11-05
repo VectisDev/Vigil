@@ -26,9 +26,15 @@ import pytest
 # Importación de paquete con fallback para ejecuciones aisladas.
 try:
     from vigil.core.crypto.centinel_shamir import (
-        GF256, ShamirError, combine_byte, combine_shares, split_byte, split_secret,
+        GF256,
+        ShamirError,
+        combine_byte,
+        combine_shares,
+        split_byte,
+        split_secret,
     )
     from vigil.core.crypto.centinel_share_format import ShareFormatError, parse_share, serialize_share
+
     # Scripts are in repo root scripts/, add to path for ceremony/reconstruct imports.
     _SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
     if str(_SCRIPTS_DIR) not in sys.path:
@@ -38,7 +44,12 @@ except ModuleNotFoundError:
     SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
     sys.path.insert(0, str(SCRIPTS_DIR))
     from centinel_shamir import (  # type: ignore[no-redef]
-        GF256, ShamirError, combine_byte, combine_shares, split_byte, split_secret,
+        GF256,
+        ShamirError,
+        combine_byte,
+        combine_shares,
+        split_byte,
+        split_secret,
     )
     from centinel_share_format import ShareFormatError, parse_share, serialize_share  # type: ignore[no-redef]
 
@@ -249,9 +260,7 @@ class TestSplitSecret:
 
     def test_roundtrip_ed25519_key_size(self):
         # Ed25519 private keys are 32 bytes.
-        secret = bytes.fromhex(
-            "deadbeefcafebabe1234567890abcdef" * 2
-        )
+        secret = bytes.fromhex("deadbeefcafebabe1234567890abcdef" * 2)
         assert len(secret) == 32
         shares = split_secret(secret, 3, 5)
         # Any 3 of 5 shares recovers the key.
@@ -466,9 +475,7 @@ class TestKeyCeremony:
             assert (tmp_path / f"test_witness.share_{i:02d}.txt").exists()
 
         # Verify ceremony record matches what was generated.
-        loaded_record = json.loads(
-            (tmp_path / "test_witness.ceremony_record.json").read_text()
-        )
+        loaded_record = json.loads((tmp_path / "test_witness.ceremony_record.json").read_text())
         assert loaded_record["threshold"] == 3
         assert loaded_record["total_shares"] == 5
         assert loaded_record["custodians"] == custodians
@@ -586,10 +593,7 @@ class TestInformationTheoreticSecurity:
         # Expected count per bucket ~= 5000 / 256 ~= 19.5
         # Chi-squared test: with df=255, critical value at p=0.001 is ~331.
         expected = trials / 256
-        chi_squared = sum(
-            (count - expected) ** 2 / expected
-            for count in counts.values()
-        )
+        chi_squared = sum((count - expected) ** 2 / expected for count in counts.values())
         # Plus zero contributions for unobserved values.
         missing = 256 - len(counts)
         chi_squared += missing * expected  # treat missing as observed 0
@@ -597,6 +601,5 @@ class TestInformationTheoreticSecurity:
         # At df=255, critical p=0.001 is ~331; we're checking the
         # distribution isn't obviously skewed.
         assert chi_squared < 500, (
-            f"Distribution appears non-uniform (chi^2={chi_squared:.1f}); "
-            "this suggests a flaw in random sampling."
+            f"Distribution appears non-uniform (chi^2={chi_squared:.1f}); " "this suggests a flaw in random sampling."
         )
