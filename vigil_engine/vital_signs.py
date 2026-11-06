@@ -82,7 +82,6 @@ class ResilienceMode(str, Enum):
         """
         return self.value
 
-
     NORMAL = "normal"
     CONSERVATIVE = "conservative"
     HIBERNATION = "hibernation"
@@ -344,9 +343,7 @@ def check_vital_signs(config: Dict[str, Any], status: Dict[str, Any]) -> Dict[st
         delay = hibernation_delay
         actions.extend(["pause_collection", "keep_secure_backup", "validate_hash_chain_local"])
         if _policy_blocks_exceed_window(status, int(_resolve_threshold(config, "policy_block_window_seconds"))):
-            logger.warning(
-                "posible política anti-scraping detectada – pausando por cumplimiento ético"
-            )
+            logger.warning("posible política anti-scraping detectada – pausando por cumplimiento ético")
     elif critical_reasons:
         mode = ResilienceMode.CRITICAL
         delay = max(1800, baseline * 6)

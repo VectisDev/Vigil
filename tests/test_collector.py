@@ -258,6 +258,15 @@ def test_fetch_json_with_retry_uses_dns_pinning_and_connection_close(monkeypatch
         return {"ok": True}
 
     monkeypatch.setattr(collector, "_fetch_json_over_pinned_https", _fake_fetch)
+    # El gate de seguridad resuelve el host por DNS real. Sin esto la prueba
+    # dependeria de que cne.hn resuelva en la maquina que la ejecuta, y mide
+    # la red en vez del pinning. El gate tiene cobertura propia en
+    # test_is_safe_http_url_*, con este mismo seam.
+    # English: the safety gate performs a real DNS lookup. Without this stub
+    # the test would depend on cne.hn resolving on the host running it,
+    # measuring the network rather than the pinning. The gate has its own
+    # coverage in test_is_safe_http_url_*, through this same seam.
+    monkeypatch.setattr(collector, "is_safe_outbound_url", lambda *a, **k: True)
     monkeypatch.setattr(collector, "resolve_outbound_target", lambda *a, **k: _Target())
     monkeypatch.setattr(collector, "pin_dns_resolution", lambda _target: _Ctx())
 
