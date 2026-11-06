@@ -36,20 +36,33 @@ jobs:
           echo "Poetry: $(poetry --version)"
           ls -la
           ls -la data || true
-      - name: Check election closed
-        run: |
-          if [ -f ELECTION_CLOSED ]; then
-            echo "ELECTION_CLOSED marker found — ciclo electoral terminado. Pipeline detenido."
-            exit 0
-          fi
+      # El marcador ELECTION_CLOSED hacia `exit 0` dentro de su propio paso, lo
+      # que termina ESE paso y no el job: el colector de abajo se ejecutaba
+      # igualmente. El unico freno a la captura era decorativo. Ahora el modo
+      # resuelto condiciona los pasos siguientes con `if:`, que si los salta.
+      # English: the ELECTION_CLOSED marker did `exit 0` inside its own step,
+      # which ends THAT step and not the job: the collector below ran anyway.
+      # The only brake on collection was decorative. The resolved mode now
+      # gates the following steps with `if:`, which does skip them.
+      - name: Resolve node mode
+        id: mode
+        run: poetry run python .github/scripts/resolve_mode.py
 
       - name: Run collector
+        if: steps.mode.outputs.go == 'true'
         run: |
           if ! poetry run python -m scripts.collector; then
             echo "Error details: collector failed"
             ls -la data || true
             exit 1
           fi
+
+      - name: Explain why nothing was collected
+        if: steps.mode.outputs.go != 'true'
+        run: |
+          echo "Modo ${{ steps.mode.outputs.mode }}: no se captura nada."
+          echo "Motivo: ${{ steps.mode.outputs.reason }}"
+          echo "Cero peticiones a la fuente. Esto no es un fallo."
 
   audit:
     runs-on: ubuntu-latest
@@ -94,8 +107,26 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.11'
+      # El exportador es solo-stdlib a proposito; resolve_mode necesita yaml.
+      # English: the exporter is stdlib-only on purpose; resolve_mode needs yaml.
+      - name: Install mode resolver dependency
+        run: python -m pip install --quiet "PyYAML>=6.0.2,<7.0.0"
+
+      - name: Resolve node mode
+        id: mode
+        run: python .github/scripts/resolve_mode.py
+
+      # Sin --mode el exportador no sabe si la ausencia de datos es un fallo o
+      # el estado correcto, y declara NO_DATA saliendo en rojo. Entre
+      # elecciones eso seria un rojo permanente.
+      # English: without --mode the exporter cannot tell whether absent data is
+      # a failure or the correct state, and declares NO_DATA with a red exit.
+      # Between elections that would be a permanent red.
       - name: Export static snapshot
-        run: python scripts/export_static_snapshot.py
+        run: |
+          python scripts/export_static_snapshot.py \
+            --mode "${{ steps.mode.outputs.mode }}" \
+            --mode-reason "${{ steps.mode.outputs.reason }}"
       - name: Commit and push snapshot.json
         run: |
           git config user.name "VectisDev"

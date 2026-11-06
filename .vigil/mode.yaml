@@ -1,0 +1,58 @@
+# =============================================================================
+# VIGIL — Estado declarado del nodo / Declared node state
+# =============================================================================
+#
+# ESPAÑOL
+# Este archivo es la unica fuente de verdad sobre lo que este nodo esta
+# haciendo. Ningun estado se infiere del silencio: si el panel no muestra
+# datos, este archivo dice por que.
+#
+# Sustituye al marcador ELECTION_CLOSED, que era binario y cuyo valor por
+# defecto era "seguir capturando". Un interruptor cuyo defecto es raspar una
+# fuente esta del reves.
+#
+#   REPLAY  Reproduce el conjunto verificado de 2025 por el pipeline real.
+#           Cero peticiones a la fuente. Es el estado por defecto.
+#   ARMED   Fuente configurada, ventana electoral cerrada. Cero peticiones.
+#           El panel declara "a la espera"; no afirma nada sobre la fuente.
+#   LIVE    Ventana abierta. Captura solo su porcion asignada.
+#
+# Pasar a LIVE exige TODAS estas condiciones, comprobadas por
+# .github/scripts/resolve_mode.py. Si alguna falla, el nodo cae a ARMED:
+#   - mode: LIVE
+#   - source.active: true
+#   - la fecha de hoy dentro de [election.window_start, election.window_end]
+#
+# ENGLISH
+# Single source of truth for what this node is doing. No state is inferred
+# from silence: if the panel shows no data, this file says why. It replaces
+# the ELECTION_CLOSED marker, which was binary and defaulted to "keep
+# collecting" -- a switch whose default is to scrape a source is backwards.
+# =============================================================================
+
+mode: REPLAY
+
+country: HN
+
+election:
+  name: "Honduras General 2029"
+  # ISO 8601 UTC. null = sin ventana programada / no scheduled window.
+  window_start: null
+  window_end: null
+
+source:
+  config: config/prod/endpoints.yaml
+  # Debe ponerse a true deliberadamente. No basta con que mode sea LIVE.
+  # Must be set deliberately. mode: LIVE alone is not enough.
+  active: false
+
+replay:
+  dataset: tests/fixtures/hnd_2025
+  # Raiz Merkle anclada a Bitcoin, confirmada por 3 calendars independientes.
+  # El replay la recalcula y falla si no coincide: ese aserto es la prueba
+  # de punta a punta de que la cadena de confianza funciona.
+  # English: Bitcoin-anchored Merkle root, confirmed by 3 independent
+  # calendars. Replay recomputes it and fails on mismatch; that assert is the
+  # end-to-end proof that the trust chain works.
+  merkle_root: f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780
+  ots_proof: tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots

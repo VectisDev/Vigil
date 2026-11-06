@@ -25,16 +25,28 @@ jobs:
         run: |
           pip install -r requirements.txt
           playwright install chromium --with-deps 2>/dev/null || true
-      - name: Check election closed
+      # El marcador ELECTION_CLOSED hacia `exit 0` dentro de su propio paso, lo
+      # que termina ESE paso y no el job: los pasos siguientes se ejecutaban
+      # igualmente. El unico freno a la captura era decorativo.
+      # English: the ELECTION_CLOSED marker did `exit 0` inside its own step,
+      # ending THAT step and not the job, so the steps below ran anyway. The
+      # only brake on collection was decorative.
+      - name: Resolve node mode
+        id: mode
+        run: python .github/scripts/resolve_mode.py
+
+      - name: Explain why nothing was collected
+        if: steps.mode.outputs.go != 'true'
         run: |
-          if [ -f ELECTION_CLOSED ]; then
-            echo "ELECTION_CLOSED marker found — ciclo electoral terminado. Scheduler detenido."
-            exit 0
-          fi
+          echo "Modo ${{ steps.mode.outputs.mode }}: no se captura nada."
+          echo "Motivo: ${{ steps.mode.outputs.reason }}"
+          echo "Cero peticiones a la fuente. Esto no es un fallo."
 
       - name: Run collector
+        if: steps.mode.outputs.go == 'true'
         run: python -m scripts.download_and_hash
       - name: Commit data
+        if: steps.mode.outputs.go == 'true'
         run: |
           git config --global user.name "VectisDev"
           git config --global user.email "VectisDev@users.noreply.github.com"
@@ -43,7 +55,11 @@ jobs:
           git push
 
       - name: Push data to centinel-data
-        if: always()
+        # `always()` para que un fallo de la captura no impida subir lo que si
+        # se obtuvo; `go` para no subir nada cuando no se capturo nada.
+        # English: `always()` so a collection failure does not block pushing
+        # whatever was obtained; `go` so nothing is pushed when nothing ran.
+        if: always() && steps.mode.outputs.go == 'true'
         env:
           DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}

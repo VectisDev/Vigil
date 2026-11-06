@@ -188,7 +188,21 @@ def _build_endpoint_health(root: Path) -> dict:
         return empty
 
 
-def export_snapshot(root: Path = Path(".")) -> Path:
+def export_snapshot(
+    root: Path = Path("."),
+    declared_mode: str | None = None,
+    mode_reason: str = "",
+) -> Path:
+    """Escribe `web/data/snapshot.json`.
+
+    `declared_mode` viene de `.github/scripts/resolve_mode.py`, el unico sitio
+    donde se decide que esta haciendo el nodo. Sin el, el exportador se comporta
+    como antes: util para una ejecucion local suelta, no para un workflow.
+
+    English: `declared_mode` comes from `resolve_mode.py`, the single place
+    where the node's state is decided. Without it the exporter behaves as
+    before, which suits an ad-hoc local run but not a workflow.
+    """
     data_dir = root / "data"
     hash_dir = root / "hashes"
     analysis_dir = root / "analysis"
@@ -221,7 +235,32 @@ def export_snapshot(root: Path = Path(".")) -> Path:
     # chain state it did not measure. If the pipeline left no state and there is
     # no chain and no snapshot, that is absence of data and is declared as such.
     has_any_evidence = bool(state) or chain["chain_length"] > 0 or bool(snapshot)
-    if not has_any_evidence:
+    declared = (declared_mode or "").strip().upper()
+
+    # Un nodo sin datos puede estar roto o estar legitimamente inactivo, y las
+    # dos cosas se veian igual: ausencia de evidencia era siempre NO_DATA y
+    # salida en rojo. Pero entre elecciones no hay nada que capturar, asi que
+    # ese rojo seria permanente, y un rojo permanente ensena a ignorar los
+    # rojos. El modo declarado es lo que las separa.
+    # English: a node with no data may be broken or legitimately idle, and both
+    # looked identical: absence of evidence always meant NO_DATA and a red exit.
+    # Between elections there is nothing to collect, so that red would be
+    # permanent -- and a permanent red teaches people to ignore reds. The
+    # declared mode is what tells the two apart.
+    if declared == "ARMED":
+        status = "ARMED"
+        status_reason = mode_reason or "a la espera de eleccion; sin intentos de captura"
+    elif declared == "REPLAY" and has_any_evidence:
+        status = "REPLAY"
+        status_reason = mode_reason or "reproduccion de un conjunto verificado; no es captura en vivo"
+    elif declared == "REPLAY":
+        # REPLAY declarado y sin datos SI es un fallo: el replay debia
+        # producirlos. El detector sigue disparando donde corresponde.
+        # English: REPLAY declared with no data IS a failure: the replay was
+        # supposed to produce them. The detector still fires where it should.
+        status = "NO_DATA"
+        status_reason = "modo REPLAY declarado pero el replay no produjo datos"
+    elif not has_any_evidence:
         status = "NO_DATA"
         status_reason = f"pipeline_state.json {state_status}; chain empty; no snapshot in {data_dir}"
     elif cne_status["reachable"] is False:
@@ -239,6 +278,7 @@ def export_snapshot(root: Path = Path(".")) -> Path:
         "generated_at": _utcnow(),
         "status": status,
         "status_reason": status_reason,
+        "declared_mode": declared or None,
         "cne_status": cne_status,
         "chain": chain,
         "national": _build_national(snapshot),
@@ -258,10 +298,17 @@ def export_snapshot(root: Path = Path(".")) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export static snapshot.json for the public panel.")
     parser.add_argument("--root", default=".", help="Repository root (default: cwd)")
+    parser.add_argument(
+        "--mode",
+        default=None,
+        choices=["REPLAY", "ARMED", "LIVE"],
+        help="Modo efectivo, tal como lo resuelve .github/scripts/resolve_mode.py.",
+    )
+    parser.add_argument("--mode-reason", default="", help="Motivo legible del modo.")
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
-    out = export_snapshot(root)
+    out = export_snapshot(root, declared_mode=args.mode, mode_reason=args.mode_reason)
     written, _ = _read_json_checked(out)
     status = written.get("status", "NO_DATA")
     print(f"Exported: {out} (status={status})")
