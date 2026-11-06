@@ -93,6 +93,27 @@ def check_cne_connectivity(config: dict[str, Any]) -> bool:
             error=str(exc),
         )
         return False
+    except Exception as exc:  # noqa: BLE001
+        # Un healthcheck nunca debe propagar. Un job caido es
+        # indistinguible de un job que nunca corrio, y esa ambiguedad es
+        # justo la que el sistema existe para eliminar: si el chequeo
+        # aborta, nadie puede decir si el endpoint esta mal o si el
+        # observador no miro. Cualquier error ajeno a la jerarquia de
+        # httpx (resolucion DNS, capa de sockets, TLS) cuenta como
+        # endpoint no sano y se reporta como tal.
+        # English: a healthcheck must never propagate. A crashed job is
+        # indistinguishable from a job that never ran, which is precisely
+        # the ambiguity this system exists to remove. Anything outside
+        # httpx's hierarchy (DNS, socket layer, TLS) counts as unhealthy.
+        log_event(
+            logger,
+            logging.WARNING,
+            "healthcheck_dummy_unexpected_error",
+            endpoint=dummy_endpoint,
+            error=str(exc),
+            error_type=type(exc).__name__,
+        )
+        return False
 
 
 def check_cne_endpoints(config: dict[str, Any]) -> bool:
@@ -124,6 +145,26 @@ def check_cne_endpoints(config: dict[str, Any]) -> bool:
                     "healthcheck_failed",
                     endpoint=endpoint,
                     error=str(exc),
+                )
+            except Exception as exc:  # noqa: BLE001
+                # Un healthcheck nunca debe propagar. Un job caido es
+                # indistinguible de un job que nunca corrio, y esa ambiguedad es
+                # justo la que el sistema existe para eliminar: si el chequeo
+                # aborta, nadie puede decir si el endpoint esta mal o si el
+                # observador no miro. Cualquier error ajeno a la jerarquia de
+                # httpx (resolucion DNS, capa de sockets, TLS) cuenta como
+                # endpoint no sano y se reporta como tal.
+                # English: a healthcheck must never propagate. A crashed job is
+                # indistinguishable from a job that never ran, which is precisely
+                # the ambiguity this system exists to remove. Anything outside
+                # httpx's hierarchy (DNS, socket layer, TLS) counts as unhealthy.
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    "healthcheck_unexpected_error",
+                    endpoint=endpoint,
+                    error=str(exc),
+                    error_type=type(exc).__name__,
                 )
     finally:
         client.close()

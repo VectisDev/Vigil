@@ -157,3 +157,36 @@ def _reset_global_singletons():
     _reset()
     yield
     _reset()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_unified_pipeline_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Aisla el state.json unificado del pipeline fuera del arbol de trabajo.
+
+    `run_pipeline.load_resilience_checkpoint` consulta primero el state.json
+    unificado y solo despues la ruta heredada `FAILURE_CHECKPOINT_PATH`. Las
+    pruebas que parchean unicamente la ruta heredada leian, y escribian, el
+    `data/state.json` del repositorio real.
+
+    El efecto era una prueba que pasaba en una maquina limpia, se dejaba a si
+    misma un state.json con `current_index=19`, y fallaba en todas las
+    ejecuciones posteriores en esa maquina. Un fallo con esa forma parece
+    preexistente e inexplicable, y hace que el rojo deje de significar algo.
+
+    Redirigir la constante aqui impide que cualquier prueba lea o ensucie el
+    estado real. Una prueba que necesite su propia ruta sigue pudiendo
+    parchearla: este fixture corre antes.
+
+    English: `load_resilience_checkpoint` consults the unified state.json
+    before the legacy `FAILURE_CHECKPOINT_PATH`. Tests patching only the legacy
+    path read and wrote the repository's real `data/state.json`, so a test
+    passed once on a clean machine, left a state.json behind, and failed on
+    every later run there. Redirecting the constant keeps every test off the
+    real state; a test needing its own path can still patch it afterwards.
+    """
+    module = sys.modules.get("scripts.run_pipeline") or sys.modules.get("run_pipeline")
+    if module is None:
+        # No importado en esta sesion de pruebas: nada que aislar.
+        # Not imported in this test session: nothing to isolate.
+        return
+    monkeypatch.setattr(module, "STATE_UNIFIED_PATH", tmp_path / "unified_state.json", raising=False)
