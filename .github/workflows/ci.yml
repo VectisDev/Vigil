@@ -105,11 +105,8 @@ jobs:
             --ignore=tests/test_collector.py \
             --ignore=tests/test_failure_injection.py \
             --ignore=tests/test_failure_resilience.py \
-            --ignore=tests/test_hostile_scenarios.py \
-            --ignore=tests/test_integration_loop.py \
             --ignore=tests/test_opentimestamps_client.py \
-            --ignore=tests/test_stress.py \
-            --ignore=tests/test_vital_signs.py
+            --ignore=tests/test_stress.py
 
   # ----------------------------------------------------------------------
   # Fallos preexistentes, visibles pero no bloqueantes hasta ser triados.
@@ -146,18 +143,15 @@ jobs:
             tests/test_collector.py \
             tests/test_failure_injection.py \
             tests/test_failure_resilience.py \
-            tests/test_hostile_scenarios.py \
-            tests/test_integration_loop.py \
             tests/test_opentimestamps_client.py \
             tests/test_stress.py \
-            tests/test_vital_signs.py \
             --junitxml=known-failures.xml | tee known-failures.log
           set -e
 
           {
             echo "## Known pre-existing failures"
             echo
-            echo "These 8 files carry failures that predate the change which made"
+            echo "These 5 files carry failures that predate the change which made"
             echo "the suite runnable at all. They are reported here, not hidden, and"
             echo "not counted against the blocking \`Tests\` job. Triage is pending."
             echo

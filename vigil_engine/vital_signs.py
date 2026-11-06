@@ -73,6 +73,16 @@ class ResilienceMode(str, Enum):
     before consolidating into watchdog.py.
     """
 
+    def __str__(self) -> str:
+        """Devuelve el valor, no "Clase.MIEMBRO".
+
+        English: Return the value, not "Class.MEMBER". Enum.__str__ would
+        otherwise shadow str.__str__ and silently produce the qualified name
+        wherever a caller formats or serialises a member.
+        """
+        return self.value
+
+
     NORMAL = "normal"
     CONSERVATIVE = "conservative"
     HIBERNATION = "hibernation"
@@ -364,8 +374,13 @@ def check_vital_signs(config: Dict[str, Any], status: Dict[str, Any]) -> Dict[st
         },
     }
     _emit_alert(mode, result, config=config)
-    # Serialize mode to string so callers comparing result["mode"] == "normal" keep working.
-    result["mode"] = str(mode)
+    # Serializar por valor. str() sobre un `class X(str, Enum)` devuelve
+    # "ResilienceMode.NORMAL", no "normal", asi que el serializado rompia
+    # exactamente la comparacion que este comentario decia preservar.
+    # Serialize by value. str() on a `class X(str, Enum)` returns
+    # "ResilienceMode.NORMAL", not "normal", so this serialisation broke the
+    # very comparison the comment claimed to preserve.
+    result["mode"] = mode.value
     return result
 
 
