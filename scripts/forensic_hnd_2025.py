@@ -85,7 +85,9 @@ def main() -> None:
     velocity = tracker.detect_resolution_velocity_anomalies()
     print(f"\nVelocity anomalies: {len(velocity)}")
     for v in velocity:
-        print(f"  {v['timestamp']}: {v['rate_per_minute']} actas/min ({v['delta_actas']} in {v['elapsed_minutes']} min)")
+        print(
+            f"  {v['timestamp']}: {v['rate_per_minute']} actas/min ({v['delta_actas']} in {v['elapsed_minutes']} min)"
+        )
 
     asymmetry = tracker.detect_asymmetric_benefit()
     if asymmetry:
@@ -105,14 +107,39 @@ def main() -> None:
     hold = tracker.detect_hold_and_release()
     print(f"\nHold-and-release patterns: {len(hold)}")
     for p in hold:
-        print(f"  {p['stagnation_cycles']} cycles stagnation -> {p['released_actas']} actas released at {p['release_timestamp']}")
+        print(
+            f"  {p['stagnation_cycles']} cycles stagnation -> {p['released_actas']} actas released at {p['release_timestamp']}"
+        )
 
     progressive = tracker.detect_progressive_injection()
     if progressive:
-        print(f"\nProgressive injection: DETECTED")
+        # Nombrar QUE disparo, y no solo que algo disparo. Antes se imprimia
+        # "DETECTED" seguido del z-score y su p-valor, aunque el criterio que
+        # habia disparado fuera otro: un lector veia "DETECTED ... p=0.097" y
+        # concluia, con razon, que el proyecto declara detecciones sobre
+        # resultados no significativos.
+        # English: name WHAT fired, not merely that something did. It used to
+        # print "DETECTED" followed by the z-score and its p-value even when a
+        # different criterion had fired: a reader saw "DETECTED ... p=0.097" and
+        # concluded, reasonably, that the project declares detections on
+        # non-significant results.
+        print("\nProgressive injection: DETECTED")
+        print(f"  Triggered by: {', '.join(progressive['triggered_by'])}")
         print(f"  Cycles: {progressive['cycles_count']}")
         print(f"  Avg delta/cycle: {progressive['avg_delta_per_cycle']:.2f}")
-        print(f"  Z-score: {progressive['z_score_acumulado']:+.3f} (p={progressive['z_score_pvalue']:.5f})")
+
+        mt = progressive["multiple_testing"]
+        print(f"  Pruebas con p-valor (familia de {mt['family_size']}, BH alfa={mt['alpha']}):")
+        for name in mt["tests"]:
+            raw = mt["raw_pvalues"][name]
+            q = mt["bh_qvalues"][name]
+            verdict = "significativo" if name in progressive["significant_after_correction"] else "NO significativo"
+            print(f"    {name:<14} p={raw:.5f}  q={q:.5f}  -> {verdict}")
+
+        if progressive["heuristics_fired"]:
+            print(f"  Heuristicas (sin p-valor): {', '.join(progressive['heuristics_fired'])}")
+
+        print(f"  Z-score acumulado: {progressive['z_score_acumulado']:+.3f}")
     else:
         print("\nProgressive injection: not detected")
 
