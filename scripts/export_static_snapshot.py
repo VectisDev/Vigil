@@ -20,10 +20,30 @@ from pathlib import Path
 
 
 def _read_json(path: Path) -> dict:
+    """Lee JSON devolviendo {} si falta o es ilegible.
+
+    English: Read JSON, returning {} when missing or unreadable. Prefer
+    _read_json_checked() where the difference matters: "absent" and "corrupt"
+    are different facts and must not both be published as healthy emptiness.
+    """
+    data, _ = _read_json_checked(path)
+    return data
+
+
+def _read_json_checked(path: Path) -> tuple[dict, str]:
+    """Devuelve (datos, estado) con estado en {"ok", "missing", "unreadable"}.
+
+    English: Return (data, status) where status is one of "ok", "missing" or
+    "unreadable", so the caller can tell a file that was never written from one
+    that is corrupt.
+    """
+    if not path.exists():
+        return {}, "missing"
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
+        parsed = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}, "unreadable"
+    return (parsed if isinstance(parsed, dict) else {}), "ok"
 
 
 def _utcnow() -> str:
@@ -37,16 +57,26 @@ def _blackout_hash(endpoint: str, blackout_since: str, error_type: str | None) -
 
 def _build_cne_status(state: dict, endpoint: str) -> dict:
     consecutive = int(state.get("cne_consecutive_failures", 0))
-    reachable = consecutive == 0
 
     last_ok = state.get("cne_last_successful_scrape_at")
     last_attempt = state.get("cne_last_attempt_at")
+
+    # Sin ningun intento registrado no se puede afirmar alcanzabilidad: el valor
+    # es None ("desconocido"), nunca True. Antes, cero intentos se codificaba
+    # como salud plena porque consecutive_failures valia 0 por defecto.
+    # With no recorded attempt we cannot assert reachability: the value is None
+    # ("unknown"), never True. Previously zero attempts was encoded as full
+    # health because consecutive_failures defaulted to 0.
+    if not last_attempt:
+        reachable = None
+    else:
+        reachable = consecutive == 0
     first_unreachable = state.get("cne_first_unreachable_at")
 
     blackout_minutes = 0
     blackout_hash_val = None
 
-    if not reachable and first_unreachable:
+    if reachable is False and first_unreachable:
         try:
             since_dt = datetime.fromisoformat(first_unreachable.replace("Z", "+00:00"))
             now_dt = datetime.now(timezone.utc)
@@ -62,8 +92,8 @@ def _build_cne_status(state: dict, endpoint: str) -> dict:
         "last_attempt": last_attempt,
         "consecutive_failures": consecutive,
         "blackout_minutes": blackout_minutes,
-        "blackout_since": first_unreachable if not reachable else None,
-        "error_type": state.get("cne_last_error_type") if not reachable else None,
+        "blackout_since": first_unreachable if reachable is False else None,
+        "error_type": state.get("cne_last_error_type") if reachable is False else None,
         "blackout_hash": blackout_hash_val,
     }
 
@@ -152,6 +182,7 @@ def _build_endpoint_health(root: Path) -> dict:
     try:
         sys.path.insert(0, str(root / "src"))
         from vigil.sync.forensics_publisher import build_endpoint_health_block
+
         return build_endpoint_health_block(root / "config" / "prod" / "endpoints.yaml")
     except Exception:
         return empty
@@ -164,7 +195,7 @@ def export_snapshot(root: Path = Path(".")) -> Path:
     out_dir = root / "web" / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    state = _read_json(data_dir / "pipeline_state.json")
+    state, state_status = _read_json_checked(data_dir / "pipeline_state.json")
     alerts_raw = _read_json(analysis_dir / "alerts.json")
     alerts = alerts_raw if isinstance(alerts_raw, list) else alerts_raw.get("alerts", [])
     snapshot = _latest_snapshot(data_dir)
@@ -180,11 +211,36 @@ def export_snapshot(root: Path = Path(".")) -> Path:
     forensics_path = analysis_dir / "forensics_latest.json"
     forensics = _read_json(forensics_path) if forensics_path.exists() else {}
 
+    chain = _build_chain(state, hash_dir)
+    cne_status = _build_cne_status(state, endpoint)
+
+    # El exportador nunca publica un documento que afirme alcanzabilidad,
+    # cobertura o estado de cadena que no midio. Si el pipeline no dejo estado y
+    # no hay cadena ni snapshot, eso es ausencia de datos y se declara como tal.
+    # The exporter never publishes a document asserting reachability, coverage or
+    # chain state it did not measure. If the pipeline left no state and there is
+    # no chain and no snapshot, that is absence of data and is declared as such.
+    has_any_evidence = bool(state) or chain["chain_length"] > 0 or bool(snapshot)
+    if not has_any_evidence:
+        status = "NO_DATA"
+        status_reason = f"pipeline_state.json {state_status}; chain empty; no snapshot in {data_dir}"
+    elif cne_status["reachable"] is False:
+        status = "DEGRADED"
+        status_reason = f"source unreachable ({cne_status['consecutive_failures']} consecutive failures)"
+    elif cne_status["reachable"] is None:
+        status = "DEGRADED"
+        status_reason = "no fetch attempt recorded"
+    else:
+        status = "MONITORING"
+        status_reason = ""
+
     result = {
         "schema_version": 1,
         "generated_at": _utcnow(),
-        "cne_status": _build_cne_status(state, endpoint),
-        "chain": _build_chain(state, hash_dir),
+        "status": status,
+        "status_reason": status_reason,
+        "cne_status": cne_status,
+        "chain": chain,
         "national": _build_national(snapshot),
         "departments": _build_departments(snapshot),
         "forensics": forensics,
@@ -206,7 +262,19 @@ def main() -> None:
 
     root = Path(args.root).resolve()
     out = export_snapshot(root)
-    print(f"Exported: {out}")
+    written, _ = _read_json_checked(out)
+    status = written.get("status", "NO_DATA")
+    print(f"Exported: {out} (status={status})")
+
+    # Salir distinto de cero cuando no hay nada que publicar, para que el
+    # workflow falle en rojo en vez de commitear un documento vacio que aparenta
+    # salud. Sin esto, un pipeline roto es indistinguible de un pipeline inactivo.
+    # Exit non-zero when there is nothing to publish, so the workflow goes red
+    # instead of committing an empty document that looks healthy. Without this a
+    # broken pipeline is indistinguishable from an idle one.
+    if status == "NO_DATA":
+        print(f"NO_DATA: {written.get('status_reason', '')}", file=sys.stderr)
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

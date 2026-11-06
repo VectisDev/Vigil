@@ -117,6 +117,7 @@ _install_apscheduler_stubs()
 def _install_crypto_stub() -> None:
     """/** Instala stub de cryptography.fernet para tests. / Install cryptography.fernet stub for tests. **"""
     import importlib.util
+
     if importlib.util.find_spec("cryptography") is not None:
         # Real package is available — importing the stub would block cryptography.hazmat
         return
@@ -170,6 +171,16 @@ _install_crypto_stub()
 
 def _install_dotenv_stub() -> None:
     """/** Instala stub de dotenv para tests. / Install dotenv stub for tests. **"""
+    import importlib.util
+
+    if importlib.util.find_spec("dotenv") is not None:
+        # El paquete real esta disponible: instalar el stub dejaria
+        # sys.modules["dotenv"].__spec__ en None para toda la sesion, y
+        # cualquier find_spec("dotenv") posterior lanzaria ValueError.
+        # Real package is available — installing the stub would leave
+        # sys.modules["dotenv"].__spec__ as None for the whole session, making
+        # any later find_spec("dotenv") raise ValueError.
+        return
     dotenv_module = types.ModuleType("dotenv")
 
     def _load_dotenv(*_args, **_kwargs):
@@ -264,9 +275,7 @@ def test_run_pipeline_resumes_from_checkpoint(monkeypatch, tmp_path) -> None:
         "latest_snapshot": snapshot_path.name,
         "last_content_hash": content_hash,
     }
-    run_pipeline.FAILURE_CHECKPOINT_PATH.write_text(
-        json.dumps(checkpoint_payload, indent=2), encoding="utf-8"
-    )
+    run_pipeline.FAILURE_CHECKPOINT_PATH.write_text(json.dumps(checkpoint_payload, indent=2), encoding="utf-8")
 
     commands: list[list[str]] = []
 
@@ -346,9 +355,7 @@ def test_emit_critical_alerts_writes_outputs(monkeypatch, tmp_path) -> None:
         "alerts": {"log_path": str(alerts_log), "output_path": str(alerts_output)},
         "arbitrum": {"enabled": False},
     }
-    critical_anomalies = [
-        {"type": "CHAOS_SPIKE", "description": "Falla crítica", "file": "snap.json"}
-    ]
+    critical_anomalies = [{"type": "CHAOS_SPIKE", "description": "Falla crítica", "file": "snap.json"}]
 
     run_pipeline.emit_critical_alerts(critical_anomalies, config, run_id="run-1")
 

@@ -47,3 +47,13 @@ flask-limiter>=3.7.0,<4.0.0
 # PDF reporting
 qrcode[pil]>=7.4.2
 reportlab>=4.2.5
+
+# Dependencias directas que el codigo importa y que faltaban aqui: sin ellas la
+# coleccion de pruebas abortaba. Versiones alineadas con pyproject.toml.
+# Direct dependencies the code imports that were missing here: without them
+# test collection aborted. Versions aligned with pyproject.toml.
+tenacity>=8.2.0,<10.0.0        # Politica de reintentos (vigil.downloader)
+structlog>=23.0.0,<26.0.0      # Logging estructurado (vigil.download)
+pydantic-settings>=2.0.0,<3.0.0  # Carga de configuracion (vigil.config)
+defusedxml>=0.7.1,<1.0.0       # Parseo XML seguro
+typer>=0.9.0,<1.0.0            # CLI (vigil.cli)

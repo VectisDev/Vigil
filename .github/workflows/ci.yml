@@ -85,13 +85,98 @@ jobs:
       - name: Install minimal test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "pytest>=9.0.3,<10.0.0" "pytest-asyncio>=0.23,<2.0" python-dateutil
+          python -m pip install -r requirements.txt -r requirements/dev.txt
 
-      - name: Run tests (core smoke suite)
+      # El job bloqueante corre la suite completa EXCEPTO los archivos con
+      # fallos preexistentes listados abajo. No es una cuarentena para aparentar
+      # verde: esos archivos se ejecutan en el job `known-failures` de abajo, que
+      # no bloquea, para que su estado real sea visible en cada commit.
+      # Hasta ahora este job corria 2 de 89 archivos, porque la suite no podia
+      # completarse: la coleccion abortaba y un test dormia el backoff real.
+      #
+      # The blocking job runs the whole suite EXCEPT the files with pre-existing
+      # failures listed below. This is not a quarantine to fake green: those
+      # files run in the non-blocking `known-failures` job so their real state
+      # stays visible on every commit. Until now this job ran 2 of 89 files,
+      # because the suite could not complete at all.
+      - name: Run tests
         run: |
-          python -m pytest -q \
-            tests/test_hashchain.py \
-            tests/test_turnout_impossible_rule.py
+          python -m pytest -q --timeout=120 \
+            --ignore=tests/test_collector.py \
+            --ignore=tests/test_failure_injection.py \
+            --ignore=tests/test_failure_resilience.py \
+            --ignore=tests/test_hostile_scenarios.py \
+            --ignore=tests/test_integration_loop.py \
+            --ignore=tests/test_opentimestamps_client.py \
+            --ignore=tests/test_stress.py \
+            --ignore=tests/test_vital_signs.py
+
+  # ----------------------------------------------------------------------
+  # Fallos preexistentes, visibles pero no bloqueantes hasta ser triados.
+  # Pre-existing failures: visible but non-blocking until triaged.
+  # ----------------------------------------------------------------------
+  known-failures:
+    name: Known pre-existing failures (report only)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements/dev.txt
+
+      # Este job REPORTA, no bloquea ni falla: `continue-on-error` seguiria
+      # publicando un check en rojo permanente, y un rojo que siempre esta rojo
+      # ensena a ignorar los rojos. El recuento va al resumen de la ejecucion,
+      # asi que el estado real es visible sin ruido.
+      # This job REPORTS; it neither blocks nor fails. `continue-on-error` would
+      # still publish a permanently red check, and a red that is always red
+      # teaches people to ignore reds. The count goes to the run summary, so the
+      # real state stays visible without the noise.
+      - name: Run known-failing files (report only)
+        run: |
+          set +e
+          python -m pytest -q --timeout=120 \
+            tests/test_collector.py \
+            tests/test_failure_injection.py \
+            tests/test_failure_resilience.py \
+            tests/test_hostile_scenarios.py \
+            tests/test_integration_loop.py \
+            tests/test_opentimestamps_client.py \
+            tests/test_stress.py \
+            tests/test_vital_signs.py \
+            --junitxml=known-failures.xml | tee known-failures.log
+          set -e
+
+          {
+            echo "## Known pre-existing failures"
+            echo
+            echo "These 8 files carry failures that predate the change which made"
+            echo "the suite runnable at all. They are reported here, not hidden, and"
+            echo "not counted against the blocking \`Tests\` job. Triage is pending."
+            echo
+            echo '```'
+            grep -E "^(FAILED|ERROR) " known-failures.log | sed "s/ - .*//" || true
+            echo '```'
+            echo
+            tail -n 1 known-failures.log
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v5.0.0
+        with:
+          name: known-failures-report
+          path: |
+            known-failures.xml
+            known-failures.log
+          if-no-files-found: ignore
 
   security-tests:
     name: Security Integration Tests (Python 3.11)

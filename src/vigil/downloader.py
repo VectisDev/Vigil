@@ -93,6 +93,7 @@ from typing import Any, Callable, Mapping
 
 import requests
 import yaml
+from tenacity import nap
 from tenacity import Retrying, retry_if_exception_type
 
 structlog = None
@@ -304,10 +305,7 @@ class StructuredLogger:
         """
         # Use real structlog only when the full package is present
         # (has BoundLogger attr). Stubs/mocks fall through to stdlib.
-        _is_real_structlog = (
-            structlog is not None
-            and hasattr(structlog, "BoundLogger")
-        )
+        _is_real_structlog = structlog is not None and hasattr(structlog, "BoundLogger")
         if _is_real_structlog:
             self._logger = structlog.get_logger(name)
             self._use_structlog = True
@@ -562,6 +560,7 @@ def _perform_request(
                 pass
         try:
             from vigil_engine.rate_limiter import get_rate_limiter
+
             get_rate_limiter().notify_response(
                 response.status_code,
                 success=False,
@@ -582,6 +581,19 @@ def _perform_request(
     return response
 
 
+def _retry_sleep(seconds: float) -> None:
+    """Pausa entre reintentos. Indireccion sustituible en pruebas.
+
+    English:
+        Backoff pause between retries. tenacity binds its default sleep
+        strategy at import time, so patching tenacity.nap afterwards does not
+        affect it; passing this module-level function to Retrying() gives tests
+        a seam. Without one, a test that simulates a failing endpoint sleeps the
+        full production backoff and blocks the run.
+    """
+    nap.sleep(seconds)
+
+
 def _request_with_retry(
     session: requests.Session,
     url: str,
@@ -600,6 +612,7 @@ def _request_with_retry(
         wait=PolicyWait(),
         stop=PolicyStop(),
         before_sleep=lambda state: _log_before_sleep(logger, state),
+        sleep=_retry_sleep,
         reraise=True,
     )
 
@@ -631,9 +644,7 @@ def _request_with_retry(
                         payload = response.json()
                     except (json.JSONDecodeError, ValueError) as exc:
                         policy = retry_config.policy_for_exception(exc)
-                        response_text = _extract_response_text(
-                            response, retry_config.log_payload_bytes
-                        )
+                        response_text = _extract_response_text(response, retry_config.log_payload_bytes)
                         logger.warning(
                             "json_parse_error",
                             url=url,
@@ -762,10 +773,7 @@ def should_skip_snapshot(data_dir: Path, source_id: str, *, retry_config: RetryC
     latest = candidates[0]
     age_seconds = max(
         0.0,
-        (
-            datetime.now(timezone.utc)
-            - datetime.fromtimestamp(latest.stat().st_mtime, tz=timezone.utc)
-        ).total_seconds(),
+        (datetime.now(timezone.utc) - datetime.fromtimestamp(latest.stat().st_mtime, tz=timezone.utc)).total_seconds(),
     )
     return age_seconds <= retry_config.recent_snapshot_seconds
 

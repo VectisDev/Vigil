@@ -48,7 +48,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -64,6 +63,40 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 if str(PARENT_ROOT) in sys.path:
     sys.path.remove(str(PARENT_ROOT))
+
+
+@pytest.fixture(autouse=True)
+def no_real_backoff_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ningún test debe dormir el backoff real de los reintentos.
+
+    English:
+        No test should sleep real retry backoff. The production retry policy
+        (tenacity, exponential) is exercised by tests that simulate failing
+        endpoints; without this, each of those tests blocks the whole run for
+        the full backoff budget. tests/integration/test_full_cycle.py was
+        hanging the suite this way, which is why CI had been narrowed to a
+        two-file smoke subset instead.
+
+        Only tenacity's sleep is replaced, so the retry LOGIC (attempt counts,
+        exception classification, before_sleep hooks) is still exercised — only
+        the wall-clock wait is removed.
+    """
+    # No parchear time.sleep: tenacity.nap.time ES el modulo time de la stdlib,
+    # y desactivarlo globalmente rompe tests que dependen de ventanas reales.
+    # Tampoco basta parchear tenacity.nap.sleep: Retrying fija su estrategia de
+    # sleep como argumento por defecto al importar tenacity. El punto de
+    # sustitucion es la indireccion que el propio codigo pasa a Retrying().
+    # Do not patch time.sleep: tenacity.nap.time IS the stdlib time module, and
+    # disabling it globally breaks tests that rely on real time windows. Nor is
+    # patching tenacity.nap.sleep enough: Retrying binds its sleep strategy as
+    # a default argument at tenacity import time. The seam is the indirection
+    # the code itself passes to Retrying().
+    try:
+        from vigil import downloader
+    except ImportError:  # pragma: no cover - entorno sin el paquete
+        return
+
+    monkeypatch.setattr(downloader, "_retry_sleep", lambda _seconds: None)
 
 
 @pytest.fixture(autouse=True)
