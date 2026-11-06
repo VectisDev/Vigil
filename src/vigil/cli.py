@@ -139,9 +139,6 @@ def status() -> None:
 
     English: Show overall system status.
     """
-    import json
-    from pathlib import Path as _Path
-
     typer.echo("🔍 VIGIL Status")
     typer.echo("=" * 50)
 
@@ -151,8 +148,8 @@ def status() -> None:
     # This command reports what it can actually read from disk. It used to print
     # "OPERATIONAL" unconditionally, which made it useless exactly when it
     # mattered: a broken system looked identical to a healthy one.
-    snapshot_path = _Path("web/data/snapshot.json")
-    state_path = _Path("data/pipeline_state.json")
+    snapshot_path = Path("web/data/snapshot.json")
+    state_path = Path("data/pipeline_state.json")
 
     if snapshot_path.exists():
         try:
