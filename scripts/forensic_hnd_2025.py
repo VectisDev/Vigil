@@ -85,7 +85,9 @@ def main() -> None:
     velocity = tracker.detect_resolution_velocity_anomalies()
     print(f"\nVelocity anomalies: {len(velocity)}")
     for v in velocity:
-        print(f"  {v['timestamp']}: {v['rate_per_minute']} actas/min ({v['delta_actas']} in {v['elapsed_minutes']} min)")
+        print(
+            f"  {v['timestamp']}: {v['rate_per_minute']} actas/min ({v['delta_actas']} in {v['elapsed_minutes']} min)"
+        )
 
     asymmetry = tracker.detect_asymmetric_benefit()
     if asymmetry:
@@ -105,7 +107,9 @@ def main() -> None:
     hold = tracker.detect_hold_and_release()
     print(f"\nHold-and-release patterns: {len(hold)}")
     for p in hold:
-        print(f"  {p['stagnation_cycles']} cycles stagnation -> {p['released_actas']} actas released at {p['release_timestamp']}")
+        print(
+            f"  {p['stagnation_cycles']} cycles stagnation -> {p['released_actas']} actas released at {p['release_timestamp']}"
+        )
 
     progressive = tracker.detect_progressive_injection()
     if progressive:

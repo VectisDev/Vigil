@@ -93,9 +93,7 @@ def test_triggered_by_is_the_union_and_is_never_empty_when_improbable(
     stats = tracker.run_injection_statistical_tests([0.0] * 6)
     assert stats["improbable"] is True
     assert stats["triggered_by"]
-    assert stats["triggered_by"] == (
-        stats["significant_after_correction"] + stats["heuristics_fired"]
-    )
+    assert stats["triggered_by"] == (stats["significant_after_correction"] + stats["heuristics_fired"])
 
 
 def test_nothing_fires_on_plainly_random_deltas(tracker: InconsistentActsTracker):
