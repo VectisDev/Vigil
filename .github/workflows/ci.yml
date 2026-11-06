@@ -25,6 +25,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # Historia completa: los pasos de abajo comparan contra el commit base
+          # y leen mensajes de commit. Con el checkout superficial por defecto
+          # ese objeto no existe en el clon, `git diff` falla con "bad object",
+          # y el fallo se pierde dentro de la sustitucion de proceso: el paso
+          # reportaba "No Python file changes detected" y salia en verde sin
+          # haber ejecutado flake8 ni black ni una sola vez.
+          # English: full history. The steps below diff against the base commit
+          # and read commit messages. With the default shallow checkout that
+          # object is absent, `git diff` fails with "bad object", and the
+          # failure is swallowed by the process substitution: the step reported
+          # "No Python file changes detected" and passed without ever running
+          # flake8 or black.
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
@@ -37,7 +51,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install "flake8>=7.0.0,<8.0.0" "black>=25.0.0,<26.0.0"
 
-      - name: Run flake8/black on changed Python files
+      - name: Resolve comparison range
+        id: range
         shell: bash
         run: |
           set -euo pipefail
@@ -48,20 +63,70 @@ jobs:
             BASE_SHA="${{ github.event.before }}"
           fi
 
+          # Sin base utilizable (primer push a una rama nueva, por ejemplo) se
+          # revisa el arbol entero en vez de no revisar nada. Un gate que se
+          # salta a si mismo cuando no sabe que comparar no es un gate.
+          # English: with no usable base (first push to a new branch) check the
+          # whole tree rather than nothing. A gate that skips itself when it
+          # cannot tell what to compare is not a gate.
           if [[ -z "${BASE_SHA}" || "${BASE_SHA}" == "0000000000000000000000000000000000000000" ]]; then
-            echo "No valid base SHA found; skipping changed-files lint check."
+            echo "base=" >> "$GITHUB_OUTPUT"
+            echo "No usable base commit; falling back to whole-tree checks."
             exit 0
           fi
 
-          mapfile -t changed_py < <(git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- '*.py')
+          # Que el objeto falte es un error del workflow, no una ausencia de
+          # cambios. Antes se confundian y el lint pasaba sin ejecutarse.
+          # English: a missing object is a workflow error, not an absence of
+          # changes. The two used to be conflated and lint passed without running.
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::El commit base ${BASE_SHA} no esta en el checkout. Revisa fetch-depth."
+            exit 1
+          fi
+
+          echo "base=${BASE_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Run flake8/black on changed Python files
+        shell: bash
+        env:
+          BASE_SHA: ${{ steps.range.outputs.base }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${BASE_SHA}" ]]; then
+            mapfile -t changed_py < <(git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- '*.py')
+          else
+            mapfile -t changed_py < <(git ls-files -- '*.py')
+          fi
 
           if (( ${#changed_py[@]} == 0 )); then
             echo "No Python file changes detected."
             exit 0
           fi
 
+          echo "Comprobando ${#changed_py[@]} archivo(s):"
+          printf '  %s\n' "${changed_py[@]}"
+
           python -m flake8 "${changed_py[@]}" --select=E9,F63,F7,F82 --show-source --statistics
           python -m black --check "${changed_py[@]}"
+
+      # Firma unica: ni rutas, ni contenido, ni mensajes de commit pueden
+      # nombrar a un asistente de IA. Un mensaje de commit es permanente y
+      # publico; corregirlo despues del merge exige reescribir la historia.
+      # English: single signature. Neither paths, contents nor commit messages
+      # may name an AI assistant. A commit message is permanent and public;
+      # fixing it after the merge requires rewriting history.
+      - name: Assert single signature (no AI references)
+        shell: bash
+        env:
+          BASE_SHA: ${{ steps.range.outputs.base }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${BASE_SHA}" ]]; then
+            python .github/scripts/assert_no_ai_references.py "${BASE_SHA}..${GITHUB_SHA}"
+          else
+            python .github/scripts/assert_no_ai_references.py
+          fi
 
   tests:
     name: Tests (Python ${{ matrix.python-version }})
