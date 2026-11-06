@@ -164,6 +164,40 @@ def _build_coverage(snapshot: dict) -> dict:
     }
 
 
+def _build_replay(out_dir: Path) -> dict:
+    """Lo que el replay dejo, y nada que no haya dejado.
+
+    English: what the replay left behind, and nothing it did not.
+
+    `merkle_verified` solo es cierto si `replay_pipeline.py` recalculo la raiz
+    desde las capturas y coincidio con la comprometida; ese script falla cuando
+    no coincide, asi que el manifiesto no puede afirmarlo en falso sin que el
+    workflow haya salido en rojo antes.
+    """
+    manifest_path = out_dir / "replay_manifest.json"
+    if not manifest_path.exists():
+        return {}
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        # Un manifiesto ilegible no se convierte en un manifiesto ausente en
+        # silencio: no es evidencia, y el estado lo reflejara.
+        # English: an unreadable manifest is not silently treated as absent.
+        return {"merkle_verified": False, "error": "manifiesto ilegible"}
+    if not isinstance(manifest, dict):
+        return {"merkle_verified": False, "error": "manifiesto con forma inesperada"}
+    return {
+        "dataset": manifest.get("dataset"),
+        "files": manifest.get("files"),
+        "merkle_root": manifest.get("merkle_root"),
+        "merkle_verified": bool(manifest.get("merkle_verified")),
+        "ots_proof": manifest.get("ots_proof"),
+        "alerts": manifest.get("alerts"),
+        "generated_at": manifest.get("generated_at"),
+        "note": manifest.get("note"),
+    }
+
+
 def _latest_snapshot(data_dir: Path) -> dict:
     candidates = sorted(
         [p for p in data_dir.glob("*.json") if p.stem not in ("pipeline_state", "heartbeat", "custody_verification")],
@@ -234,7 +268,25 @@ def export_snapshot(
     # The exporter never publishes a document asserting reachability, coverage or
     # chain state it did not measure. If the pipeline left no state and there is
     # no chain and no snapshot, that is absence of data and is declared as such.
-    has_any_evidence = bool(state) or chain["chain_length"] > 0 or bool(snapshot)
+    # El replay deja su propia evidencia, y es la mas fuerte de las tres: una
+    # raiz de Merkle recalculada desde los archivos y coincidente con la que
+    # esta anclada en Bitcoin. Un pipeline_state.json solo dice que el pipeline
+    # corrio; esto dice que los datos son los mismos que se anclaron.
+    # English: the replay leaves its own evidence, and it is the strongest of
+    # the three: a Merkle root recomputed from the files that matches the one
+    # anchored in Bitcoin. A pipeline_state.json only says the pipeline ran.
+    replay = _build_replay(out_dir)
+
+    # Las dos evidencias se cuentan por separado a proposito. Reproducir un
+    # conjunto verificado NO es haber capturado nada: si se sumaran, bastaria
+    # con distribuir el fixture para que un nodo que declara LIVE pareciera
+    # tener datos. Es la misma clase de mentira que `reachable: true` sin medir.
+    # English: the two kinds of evidence are counted separately on purpose.
+    # Reproducing a verified dataset is NOT having captured anything: were they
+    # pooled, shipping the fixture would be enough to make a node that declares
+    # LIVE look like it holds data.
+    has_capture_evidence = bool(state) or chain["chain_length"] > 0 or bool(snapshot)
+    has_replay_evidence = bool(replay and replay.get("merkle_verified"))
     declared = (declared_mode or "").strip().upper()
 
     # Un nodo sin datos puede estar roto o estar legitimamente inactivo, y las
@@ -250,7 +302,7 @@ def export_snapshot(
     if declared == "ARMED":
         status = "ARMED"
         status_reason = mode_reason or "a la espera de eleccion; sin intentos de captura"
-    elif declared == "REPLAY" and has_any_evidence:
+    elif declared == "REPLAY" and (has_capture_evidence or has_replay_evidence):
         status = "REPLAY"
         status_reason = mode_reason or "reproduccion de un conjunto verificado; no es captura en vivo"
     elif declared == "REPLAY":
@@ -259,8 +311,8 @@ def export_snapshot(
         # English: REPLAY declared with no data IS a failure: the replay was
         # supposed to produce them. The detector still fires where it should.
         status = "NO_DATA"
-        status_reason = "modo REPLAY declarado pero el replay no produjo datos"
-    elif not has_any_evidence:
+        status_reason = "modo REPLAY declarado pero el replay no produjo datos verificados"
+    elif not has_capture_evidence:
         status = "NO_DATA"
         status_reason = f"pipeline_state.json {state_status}; chain empty; no snapshot in {data_dir}"
     elif cne_status["reachable"] is False:
@@ -288,6 +340,7 @@ def export_snapshot(
         "coverage": _build_coverage(snapshot),
         "report_pdf_url": state.get("last_report_pdf_url"),
         "endpoint_health": _build_endpoint_health(root),
+        "replay": replay,
     }
 
     out_path = out_dir / "snapshot.json"
