@@ -24,8 +24,19 @@ on:
 
 # Necesita write para commitear los arreglos de formato de vuelta al PR.
 # Needs write to commit formatting fixes back to the PR branch.
+# Solo lectura. Antes era `contents: write` para empujar el arreglo a la rama
+# del PR, y ese push dejaba la ejecucion de CI del nuevo head en
+# `action_required`: el head quedaba sin verificar mientras el PR mostraba los
+# checks de un commit anterior. Un workflow que puede reescribir la rama de un
+# PR es ademas superficie de ataque en un proyecto cuya premisa es la
+# verificabilidad.
+# English: read-only. It used to be `contents: write` so it could push the fix
+# to the PR branch, and that push left CI on the new head in `action_required`:
+# the head went unverified while the PR displayed an earlier commit's checks. A
+# workflow able to rewrite a PR branch is also attack surface in a project
+# whose premise is verifiability.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-autoheal-${{ github.event.pull_request.number || github.ref }}
@@ -100,23 +111,31 @@ jobs:
             git --no-pager diff --stat
           fi
 
-      - name: Commit healed files back to the PR
-        if: steps.heal.outputs.healed == 'true' && inputs.dry_run != true
+      # Reporta el arreglo en vez de empujarlo. El diff va al resumen de la
+      # ejecucion, donde quien abrio el PR lo aplica en su propia rama y el head
+      # conserva su CI verificado.
+      # El lint de ci.yml ya falla ante estos mismos defectos (black y F401), asi
+      # que esto es un informe util, no el unico control.
+      # English: report the fix instead of pushing it. The diff goes to the run
+      # summary, where the PR author applies it on their own branch and the head
+      # keeps its verified CI. ci.yml's lint already fails on these same defects
+      # (black and F401), so this is a useful report, not the only control.
+      - name: Report what would be healed
+        if: steps.heal.outputs.healed == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add -A
-          git commit -m "style: auto-heal formato Black + imports sin uso [bot]"
-          # Reintento con rebase por si el PR avanzó mientras corría.
-          # Rebase-retry in case the PR moved while running.
-          for attempt in 1 2 3; do
-            if git push origin "HEAD:${{ github.head_ref }}"; then
-              echo "Pushed healed commit."
-              break
-            fi
-            echo "Push rejected (attempt $attempt) — rebasing and retrying."
-            git pull --rebase origin "${{ github.head_ref }}" || true
-            sleep $((attempt * 2))
-          done
+          {
+            echo "## Formato por corregir"
+            echo
+            echo "Este workflow ya NO empuja a la rama: hacerlo dejaba la"
+            echo "ejecucion de CI del nuevo head en \`action_required\`, sin"
+            echo "verificar. Aplica el diff en tu rama y vuelve a empujar."
+            echo
+            echo '```diff'
+            git --no-pager diff
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::warning::Hay formato por corregir. El diff esta en el resumen de la ejecucion."
+          git --no-pager diff --stat

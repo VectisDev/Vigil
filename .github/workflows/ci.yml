@@ -107,7 +107,15 @@ jobs:
           echo "Comprobando ${#changed_py[@]} archivo(s):"
           printf '  %s\n' "${changed_py[@]}"
 
-          python -m flake8 "${changed_py[@]}" --select=E9,F63,F7,F82 --show-source --statistics
+          # F401 (import sin uso) se anade porque era lo unico que el bot de
+          # auto-heal detectaba y este gate no, y por eso un import muerto llego
+          # a un PR. El gate solo mira archivos cambiados, asi que esto no
+          # obliga a limpiar todo el arbol de golpe.
+          # English: F401 (unused import) is added because it was the only thing
+          # the auto-heal bot caught and this gate did not, which is how a dead
+          # import reached a PR. The gate only looks at changed files, so this
+          # does not force cleaning the whole tree at once.
+          python -m flake8 "${changed_py[@]}" --select=E9,F63,F7,F82,F401 --show-source --statistics
           python -m black --check "${changed_py[@]}"
 
       # Firma unica: ni rutas, ni contenido, ni mensajes de commit pueden
