@@ -247,11 +247,15 @@ class InconsistentActsTracker:
                 candidate_net[candidate] = candidate_net.get(candidate, 0) + int(delta)
 
         stats = self.run_injection_statistical_tests(deltas)
-        statistically_unlikely = bool(
-            stats["improbable"]
-            or stats["autocorrelation_lag1"] > 0.5
-            or stats["run_test_pvalue"] < self.run_test_pvalue_threshold
-        )
+        # Antes este OR volvia a evaluar el runs test y la autocorrelacion, que
+        # run_injection_statistical_tests ya habia considerado: dos capas de
+        # disyuncion sobre los mismos criterios, una de ellas sobre el p crudo.
+        # La decision vive ahora en un solo sitio y sobre valores corregidos.
+        # English: this OR used to re-evaluate the runs test and the
+        # autocorrelation, which run_injection_statistical_tests had already
+        # weighed: two layers of disjunction over the same criteria, one of them
+        # on the raw p. The decision now lives in one place, over corrected values.
+        statistically_unlikely = bool(stats["improbable"])
         detection = {
             "detected": statistically_unlikely,
             "start_timestamp": self.injection_history[0]["timestamp"],
@@ -263,6 +267,10 @@ class InconsistentActsTracker:
             "z_score_pvalue": stats["z_score_pvalue"],
             "run_test_pvalue": stats["run_test_pvalue"],
             "autocorrelation_lag1": stats["autocorrelation_lag1"],
+            "triggered_by": stats["triggered_by"],
+            "significant_after_correction": stats["significant_after_correction"],
+            "heuristics_fired": stats["heuristics_fired"],
+            "multiple_testing": stats["multiple_testing"],
             "description": (
                 "Patrón de inyección progresiva detectado: "
                 f"{len(self.injection_history)} ciclos consecutivos con delta <{self.progressive_injection_threshold} "
@@ -304,12 +312,38 @@ class InconsistentActsTracker:
         run_pvalue = self._runs_test_pvalue(deltas)
         autocorr = self._autocorrelation_lag1(deltas)
         deltas_variance = sum((value - (sum(deltas) / len(deltas))) ** 2 for value in deltas) / max(len(deltas) - 1, 1)
-        # English/Español: near-zero variance in consecutive micro-deltas is itself non-random / varianza casi cero en micro-deltas consecutivos ya es no aleatoria.
-        improbable = bool(
-            z_pvalue < 0.01
-            or run_pvalue < self.run_test_pvalue_threshold
-            or (len(deltas) >= self.min_consecutive_injections and deltas_variance < 1.0)
-        )
+
+        # Dos pruebas con p-valor forman una familia, y una familia sin corregir
+        # dispara mas de lo que su alfa promete. Se corrige con BH, igual que la
+        # familia de candidatos de mas abajo, y la decision pasa a tomarse sobre
+        # el q-valor y no sobre el p crudo.
+        # English: two p-value tests form a family, and an uncorrected family
+        # fires more often than its alpha promises. Corrected with BH, like the
+        # candidate family below, and the decision now rests on the q-value
+        # rather than the raw p.
+        alpha = self.run_test_pvalue_threshold
+        pvalue_tests = ("z_cumulative", "runs")
+        raw_pvalues = [z_pvalue, run_pvalue]
+        reject, qvalues = benjamini_hochberg(raw_pvalues, alpha=alpha)
+        family_size = len(raw_pvalues)
+
+        significant: list[str] = [name for name, keep in zip(pvalue_tests, reject) if keep]
+
+        # La varianza casi nula y la autocorrelacion NO son pruebas con p-valor:
+        # son heuristicas. Mezclarlas en el mismo OR que los p-valores era lo
+        # que producia un "DETECTED" acompanado de un p no significativo, porque
+        # el estadistico que se mostraba no era el que habia disparado.
+        # English: near-zero variance and autocorrelation are NOT p-value tests;
+        # they are heuristics. Folding them into the same OR as the p-values is
+        # what produced a "DETECTED" next to a non-significant p: the statistic
+        # on display was not the one that fired.
+        heuristics: list[str] = []
+        if autocorr > 0.5:
+            heuristics.append("autocorrelation_lag1")
+        if len(deltas) >= self.min_consecutive_injections and deltas_variance < 1.0:
+            heuristics.append("near_zero_variance")
+
+        triggered_by = significant + heuristics
 
         return {
             "z_score_acumulado": float(z_score),
@@ -317,7 +351,21 @@ class InconsistentActsTracker:
             "run_test_pvalue": run_pvalue,
             "autocorrelation_lag1": autocorr,
             "variance": float(deltas_variance),
-            "improbable": improbable,
+            "improbable": bool(triggered_by),
+            "triggered_by": triggered_by,
+            "significant_after_correction": significant,
+            "heuristics_fired": heuristics,
+            "multiple_testing": {
+                "method": "bh",
+                "alpha": alpha,
+                "family_size": family_size,
+                "tests": list(pvalue_tests),
+                "raw_pvalues": dict(zip(pvalue_tests, raw_pvalues)),
+                "bh_qvalues": dict(zip(pvalue_tests, qvalues)),
+                "bonferroni_adjusted_pvalues": {
+                    name: min(value * family_size, 1.0) for name, value in zip(pvalue_tests, raw_pvalues)
+                },
+            },
         }
 
     def detect_resolution_velocity_anomalies(self) -> list[dict[str, Any]]:
