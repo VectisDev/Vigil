@@ -34,7 +34,6 @@ jobs:
         run: |
           echo "Python: $(python --version)"
           echo "Poetry: $(poetry --version)"
-          env | sort | head -n 40
           ls -la
           ls -la data || true
       - name: Check election closed
@@ -70,7 +69,6 @@ jobs:
       - name: Debug environment
         run: |
           echo "Python: $(python --version)"
-          env | sort | head -n 40
           ls -la data || true
           ls -la hashes || true
       - name: Ejecutar snapshot y hash
@@ -143,14 +141,12 @@ jobs:
           python -m pip install bandit pytest==8.3.3 psutil pyyaml flask requests opentimestamps-client
       - name: Debug security context
         run: |
-          set -x
           pwd
           ls -la
           ls -la scripts || true
           ls -la tests || true
       - name: Run Bandit (developer-friendly in dev branches)
         run: |
-          set -x
           if [[ "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
             bandit -r . -c .github/bandit.yaml --severity-level medium || true
           else
@@ -158,7 +154,6 @@ jobs:
           fi
       - name: Run security suites
         run: |
-          set -x
           if [[ "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
             make security || true
           else

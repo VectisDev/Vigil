@@ -1,18 +1,48 @@
 #!/usr/bin/env python3
 """
-Wizard step: generate seeds, write web/access.json, write plaintext seeds
-to /tmp/centinel-seeds.txt for the GitHub Actions artifact.
+Wizard step: generate seeds and write their SHA-256 hashes to web/access.json.
 
-Helper for fork self-configuration. NOTE: no workflow currently invokes this;
-setup-wizard.yml is not present in the repository. Environment variables:
+The plaintext seeds are written to a 0600 file under RUNNER_TEMP so a later
+step in the same job can read them.
+
+SEGURIDAD: ese archivo NUNCA debe subirse como artifact de Actions. En un repo
+publico, cualquiera con la URL de la ejecucion descarga los artifacts durante
+90 dias, lo que equivaldria a publicar las claves del panel OPS.
+
+SECURITY: that file must NEVER be uploaded as an Actions artifact. On a public
+repository anyone holding the run URL can download artifacts for 90 days, which
+would be equivalent to publishing the OPS panel keys.
+
+Helper for fork self-configuration. Environment variables:
   CENTINEL_COUNTRY  — country code (HN, GT, ...)
   REPO_OWNER        — GitHub username
   REPO_NAME         — repository name
   GITHUB_RUN_ID     — Actions run ID (for artifact URL in the seeds file)
 """
-import hashlib, secrets, json, os, sys, base64
+import hashlib, secrets, json, os, sys, base64, tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+
+# RUNNER_TEMP es privado del job en Actions; fuera de Actions, el temporal del
+# sistema. Nunca una ruta fija y predecible como /tmp/<nombre-conocido>, que
+# cualquier usuario de la maquina puede leer o pre-crear.
+# English: RUNNER_TEMP is job-private on Actions; elsewhere the system temp dir.
+# Never a fixed predictable path, which any local user could read or pre-create.
+SEEDS_PATH = Path(os.environ.get("RUNNER_TEMP") or tempfile.gettempdir()) / "vigil-seeds.txt"
+
+
+def write_seeds_file(text: str) -> None:
+    """Escribe el archivo de claves solo legible por su dueno (0600).
+
+    English: write the key file readable by its owner only (0600). The mode is
+    applied at creation, not afterwards, so there is no window in which the
+    file exists with wider permissions.
+    """
+    SEEDS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(SEEDS_PATH, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(text)
+
 
 COUNTRY = os.environ.get("VIGIL_COUNTRY", os.environ.get("CENTINEL_COUNTRY", "HN"))
 OWNER = os.environ.get("REPO_OWNER", "")
@@ -27,9 +57,7 @@ if access_path.exists() and os.environ.get("FORCE_REGENERATE") != "true":
         existing = json.loads(access_path.read_text())
         if existing.get("seeds") and len(existing["seeds"]) >= 12:
             print("Seeds already exist — skipping generation.")
-            Path(
-                "/tmp/centinel-seeds.txt"
-            ).write_text(  # nosec B108 - ephemeral GitHub Actions runner; path used to pass output between steps
+            write_seeds_file(
                 "Seeds ya configurados en una ejecución anterior.\n"
                 "Usa el panel OPS para regenerarlos si es necesario.\n"
             )
@@ -79,7 +107,7 @@ lines = [
     "  CONFIDENCIAL — Guarda este archivo FUERA DE LINEA.",
     "    El sistema solo almacena los hashes SHA-256.",
     "    Si pierdes estas claves, regenera desde el panel OPS.",
-    "    Este archivo EXPIRA en 24 horas (artifact de GitHub Actions).",
+    "    Este archivo solo existe en el runner y se destruye con el job.",
     "",
     "-" * 62,
     f"  {NUM_SEEDS} CLAVES DE ACCESO:",
@@ -96,7 +124,5 @@ lines += [
     f"  Run de origen:     {run_url}",
     "=" * 62,
 ]
-Path("/tmp/centinel-seeds.txt").write_text(
-    "\n".join(lines) + "\n"
-)  # nosec B108 - ephemeral GitHub Actions runner; path used to pass output between steps
-print("Seeds file written to /tmp/centinel-seeds.txt")
+write_seeds_file("\n".join(lines) + "\n")
+print(f"Seeds file written to {SEEDS_PATH} (mode 0600, do NOT upload as artifact)")

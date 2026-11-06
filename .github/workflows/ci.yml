@@ -136,8 +136,15 @@ jobs:
 
       - name: Run mandatory release gate
         run: |
+          # El gate es identico en PR y en main. Antes se saltaba en PR, asi que
+          # un PR verde podia poner roja la rama protegida al mergear: es
+          # exactamente lo que paso en #785, #786 y #787. Un gate que solo actua
+          # despues del merge no es un gate.
+          # English: identical on PR and main. It used to be skipped on PRs, so a
+          # green PR could turn the protected branch red on merge. A gate that
+          # only fires after the merge is not a gate.
           SKIP_LOCK_FLAG=""
-          if [[ "${{ github.event_name }}" == "pull_request" || "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
+          if [[ "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
             SKIP_LOCK_FLAG="--skip-lock-check"
           fi
 
@@ -155,14 +162,6 @@ jobs:
             ${{ env.SBOM_FILE }}
             artifacts/release_gate_${{ env.RELEASE_VERSION }}.json
             artifacts/secrets_audit.json
-
-      - name: Debug security workspace
-        run: |
-          set -x
-          pwd
-          ls -la
-          ls -la tests || true
-
 
       - name: Run secrets audit gate
         run: |
@@ -184,8 +183,14 @@ jobs:
 
       - name: Run security scans
         run: |
-          set -x
-          if [[ "${{ github.event_name }}" == "pull_request" || "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
+          # El gate es identico en PR y en main. Antes se saltaba en PR, asi que
+          # un PR verde podia poner roja la rama protegida al mergear: es
+          # exactamente lo que paso en #785, #786 y #787. Un gate que solo actua
+          # despues del merge no es un gate.
+          # English: identical on PR and main. It used to be skipped on PRs, so a
+          # green PR could turn the protected branch red on merge. A gate that
+          # only fires after the merge is not a gate.
+          if [[ "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
             bandit -r . -c .github/bandit.yaml --severity-level medium || true
           else
             bandit -r . -c .github/bandit.yaml --severity-level medium
@@ -193,8 +198,14 @@ jobs:
 
       - name: Run security suites
         run: |
-          set -x
-          if [[ "${{ github.event_name }}" == "pull_request" || "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
+          # El gate es identico en PR y en main. Antes se saltaba en PR, asi que
+          # un PR verde podia poner roja la rama protegida al mergear: es
+          # exactamente lo que paso en #785, #786 y #787. Un gate que solo actua
+          # despues del merge no es un gate.
+          # English: identical on PR and main. It used to be skipped on PRs, so a
+          # green PR could turn the protected branch red on merge. A gate that
+          # only fires after the merge is not a gate.
+          if [[ "${GITHUB_REF_NAME}" == dev-v* || "${GITHUB_REF_NAME}" == "work" ]]; then
             make security || true
           else
             make security
