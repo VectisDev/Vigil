@@ -15,8 +15,35 @@ on:
   schedule:
     - cron: '0 */3 * * *'  # Cada 3 horas (cambia a '*/30 * * * *' para pruebas)
 
+# Una captura encolada que espera es aceptable; una cancelada pierde el ciclo.
+# Por eso `false`: a diferencia de scheduler.yml y pipeline.yml, que compartian
+# grupo CON cancelacion y se mataban mutuamente, aqui el solapamiento se
+# resuelve esperando. El grupo lleva el nombre del repositorio para que dos
+# nodos distintos no compitan entre si.
+# English: a queued capture that waits is acceptable; a cancelled one loses the
+# cycle. Hence `false`. The group carries the repository name so two separate
+# nodes never contend with each other.
+concurrency:
+  group: vigil-capture-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
+  # Este workflow era el unico de los cinco de captura sin ninguna comprobacion
+  # de modo: #789 cableo scheduler, pipeline, poller-A y poller-B, y dejo fuera
+  # justo el que corre cada tres horas. Hasta aqui, un repositorio creado desde
+  # plantilla empezaba a consultar el portal del CNE cada tres horas por el solo
+  # hecho de existir.
+  # English: this was the one capture workflow with no mode check at all. Until
+  # now, a repository created from the template began querying the CNE portal
+  # every three hours simply by existing.
+  gate:
+    uses: ./.github/workflows/_gate.yml
+    with:
+      purpose: audit
+
   audit:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 

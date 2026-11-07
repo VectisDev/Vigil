@@ -1,0 +1,193 @@
+# La única pregunta que un nodo hace antes de capturar: ¿debo correr?
+#
+# ======================== ESPAÑOL ========================
+# Un despliegue de VIGIL es un repositorio creado desde plantilla en la cuenta
+# de otra persona. En el momento en que se crea, hereda diez workflows
+# programados, cuatro de los cuales consultan el portal de una autoridad
+# electoral. Sin este gate, alguien que pulsa «Use this template» por
+# curiosidad empieza a raspar cne.hn cada quince minutos sin saberlo, y con N
+# despliegues la carga se multiplica por N.
+#
+# Eso convertiría al proyecto en lo contrario de lo que dice ser.
+#
+# Una `if:` a nivel de job no sirve para esto: se evalúa antes de que exista
+# un runner, así que no puede mirar un archivo del repositorio. Por eso el
+# gate es un workflow reutilizable con su propio runner, y cada workflow de
+# captura pasa a tener dos jobs:
+#
+#   jobs:
+#     gate:    {uses: ./.github/workflows/_gate.yml}
+#     capture: {needs: gate, if: needs.gate.outputs.go == 'true'}
+#
+# Un solo sitio donde se decide, en vez de la misma condición copiada en
+# cuatro workflows — que es exactamente cómo el marcador ELECTION_CLOSED
+# acabó sin detener nada en ninguno de los cuatro.
+#
+# Falla cerrado: cualquier paso que no pueda concluir deja `go=false`.
+# Un gate que ante la duda deja pasar no es un gate.
+#
+# ======================== ENGLISH ========================
+# A VIGIL deployment is a repository created from a template in someone else's
+# account. The moment it is created it inherits ten scheduled workflows, four
+# of which query an electoral authority's portal. Without this gate, anyone
+# who clicks "Use this template" out of curiosity starts scraping cne.hn every
+# fifteen minutes without knowing it, and with N deployments the load is
+# multiplied by N.
+#
+# A job-level `if:` cannot do this: it is evaluated before a runner exists, so
+# it cannot read a file in the repository. Hence a reusable workflow with its
+# own runner, and one place where the decision is made instead of the same
+# condition copied into four workflows -- which is exactly how the old
+# ELECTION_CLOSED marker ended up stopping nothing in any of them.
+#
+# Fails closed: any step that cannot conclude leaves `go=false`.
+
+name: _gate
+
+on:
+  workflow_call:
+    inputs:
+      purpose:
+        description: Para qué pregunta quien llama (solo para el registro).
+        type: string
+        default: capture
+    outputs:
+      go:
+        description: '"true" solo si este nodo debe capturar ahora.'
+        value: ${{ jobs.decide.outputs.go }}
+      mode:
+        description: Modo efectivo resuelto (REPLAY | ARMED | LIVE).
+        value: ${{ jobs.decide.outputs.mode }}
+      reason:
+        description: Por qué, en una línea legible.
+        value: ${{ jobs.decide.outputs.reason }}
+      node_id:
+        description: Identidad estable del nodo, o vacío si aún no arrancó.
+        value: ${{ jobs.decide.outputs.node_id }}
+
+permissions:
+  contents: read
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.verdict.outputs.go }}
+      mode: ${{ steps.verdict.outputs.mode }}
+      reason: ${{ steps.verdict.outputs.reason }}
+      node_id: ${{ steps.verdict.outputs.node_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Decidir
+        id: verdict
+        shell: bash
+        env:
+          IS_FORK: ${{ github.event.repository.fork }}
+          EVENT: ${{ github.event_name }}
+          PURPOSE: ${{ inputs.purpose }}
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pyyaml
+
+          deny() {
+            echo "go=false"      >> "$GITHUB_OUTPUT"
+            echo "reason=$1"     >> "$GITHUB_OUTPUT"
+            echo "## Gate: no se captura"  >> "$GITHUB_STEP_SUMMARY"
+            echo ""                        >> "$GITHUB_STEP_SUMMARY"
+            echo "**Motivo:** $1"          >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+
+          # 1 · Un fork no es un despliegue. GitHub desactiva sus workflows por
+          #     defecto, pero si alguien los activa a mano no debe empezar a
+          #     capturar por eso.
+          if [ "${IS_FORK}" = "true" ]; then
+            echo "mode=UNKNOWN" >> "$GITHUB_OUTPUT"
+            echo "node_id="     >> "$GITHUB_OUTPUT"
+            deny "es un fork; los forks no capturan"
+          fi
+
+          # 2 · El original es la plantilla, no un observador. Lleva
+          #     .vigil/UPSTREAM; el arranque lo borra en cada nodo. Se
+          #     comprueba por archivo y no por nombre de repositorio para que
+          #     sobreviva a un renombrado o a una transferencia.
+          #
+          #     Solo bloquea las ejecuciones programadas: un despacho manual
+          #     desde el original sigue siendo posible, para no perder la
+          #     capacidad de capturar sin tocar archivos.
+          if [ -f .vigil/UPSTREAM ] && [ "${EVENT}" = "schedule" ]; then
+            echo "mode=UPSTREAM" >> "$GITHUB_OUTPUT"
+            echo "node_id="      >> "$GITHUB_OUTPUT"
+            deny "este repositorio es la plantilla original (.vigil/UPSTREAM); no captura por horario"
+          fi
+
+          # 3 · El modo. Único punto de decisión, ya existente. Se resuelve una
+          #     vez a un archivo y se lee de ahí: resolverlo tres veces podría
+          #     dar tres respuestas si la ventana electoral se cruza en medio.
+          #     English: resolved once to a file and read from there -- doing
+          #     it three times could give three answers if the election window
+          #     is crossed in between.
+          #
+          #     `env -u GITHUB_OUTPUT` no es cosmético. resolve_mode.py
+          #     escribe mode/reason/go en $GITHUB_OUTPUT cuando la variable
+          #     existe, porque los cuatro workflows que lo invocan
+          #     directamente leen esas salidas. Dentro del gate eso duplicaría
+          #     la clave `go`, y de las dos ganaría la última por orden de
+          #     escritura. Hoy la última es la nuestra y el resultado es
+          #     correcto por accidente: reordenar estas líneas invertiría el
+          #     gate a dejar pasar, en silencio. Se le quita la variable para
+          #     que solo emita JSON y haya un único autor de `go`.
+          #     English: resolve_mode.py also writes go= to $GITHUB_OUTPUT,
+          #     which would duplicate the key -- last write wins, so today the
+          #     result is right by accident and reordering these lines would
+          #     silently flip the gate open. Stripping the variable leaves one
+          #     author of `go`.
+          env -u GITHUB_OUTPUT python .github/scripts/resolve_mode.py --json > "${RUNNER_TEMP}/mode.json"
+          MODE="$(jq -r '.mode' "${RUNNER_TEMP}/mode.json")"
+          MODE_GO="$(jq -r '.go' "${RUNNER_TEMP}/mode.json")"
+          MODE_REASON="$(jq -r '.reason' "${RUNNER_TEMP}/mode.json" | tr '\n' ' ')"
+          echo "mode=${MODE}" >> "$GITHUB_OUTPUT"
+
+          NODE_ID=""
+          if [ -f .vigil/node.json ]; then
+            NODE_ID="$(jq -r '.node_id // ""' .vigil/node.json)"
+          fi
+          echo "node_id=${NODE_ID}" >> "$GITHUB_OUTPUT"
+
+          if [ "${MODE_GO}" != "true" ]; then
+            deny "modo ${MODE}: ${MODE_REASON}"
+          fi
+
+          # 4 · El techo ético. Se comprueba aquí y no solo en CI porque el
+          #     repositorio de un nodo puede cambiar después del último CI que
+          #     pasó, y lo que importa es la config con la que se va a salir a
+          #     la red ahora.
+          #     El motivo lo da el propio aserto: puede ser el recuento, un
+          #     limite declarado por encima del techo, o un host fuera del
+          #     preset del pais. Decir siempre «excede el techo» seria mentir
+          #     en dos de los tres casos.
+          #     English: the assert names the cause -- count, declared limit,
+          #     or a host outside the country preset. Always saying "over the
+          #     ceiling" would be false in two cases out of three.
+          if ! BUDGET_ERR="$(python .github/scripts/assert_source_budget.py 2>&1 >/dev/null)"; then
+            FIRST="$(printf '%s' "$BUDGET_ERR" | grep -m1 '^  - ' | sed 's/^  - //')"
+            deny "presupuesto de fuentes: ${FIRST:-violacion no detallada}"
+          fi
+
+          echo "go=true" >> "$GITHUB_OUTPUT"
+          echo "reason=modo ${MODE}, dentro del techo de fuentes" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Gate: se captura"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Modo | \`${MODE}\` |"
+            echo "| Nodo | \`${NODE_ID:-sin arrancar}\` |"
+            echo "| Para | \`${PURPOSE}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

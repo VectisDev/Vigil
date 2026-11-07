@@ -1,16 +1,39 @@
 name: VIGIL Data Fetcher
+#
+# Sin horario, a proposito.
+#
+# Este workflow declaraba `*/15 * * * *` y compartia el grupo de concurrencia
+# `centinel-pipeline` con `cancel-in-progress: true` junto a pipeline.yml. Dos
+# workflows con horarios distintos en un grupo que cancela significa que el que
+# dispara segundo mata al primero en vuelo: la cadencia efectiva se reducia y
+# una captura a medias podia quedar truncada.
+#
+# Ademas duplica lo que audit.yml ya hace mejor: su `git add data/` cae sobre
+# una ruta ignorada por .gitignore, asi que no llegaba a commitear nada -- pero
+# si emitia las peticiones. Horario fuera; queda el despacho manual, que es
+# para lo que de verdad sirve.
+#
+# English: no schedule, on purpose. This declared */15 and shared a
+# cancelling concurrency group with pipeline.yml, so whichever fired second
+# killed the other mid-flight. It also duplicates audit.yml, and its `git add
+# data/` targets a gitignored path, so it committed nothing while still
+# issuing the requests. The schedule is gone; manual dispatch remains.
 on:
-  schedule:
-    - cron: '*/15 * * * *' # Corre cada 15 minutos
-  workflow_dispatch: # Permite correrlo manual
+  workflow_dispatch: # Despacho manual; la captura por horario vive en audit.yml
 
-# Cancel any in-progress run before starting a new one.
 concurrency:
-  group: centinel-pipeline
-  cancel-in-progress: true
+  group: vigil-capture-${{ github.repository }}
+  cancel-in-progress: false
 
 jobs:
+  gate:
+    uses: ./.github/workflows/_gate.yml
+    with:
+      purpose: scheduler
+
   build:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -25,28 +48,16 @@ jobs:
         run: |
           pip install -r requirements.txt
           playwright install chromium --with-deps 2>/dev/null || true
-      # El marcador ELECTION_CLOSED hacia `exit 0` dentro de su propio paso, lo
-      # que termina ESE paso y no el job: los pasos siguientes se ejecutaban
-      # igualmente. El unico freno a la captura era decorativo.
-      # English: the ELECTION_CLOSED marker did `exit 0` inside its own step,
-      # ending THAT step and not the job, so the steps below ran anyway. The
-      # only brake on collection was decorative.
-      - name: Resolve node mode
-        id: mode
-        run: python .github/scripts/resolve_mode.py
-
-      - name: Explain why nothing was collected
-        if: steps.mode.outputs.go != 'true'
-        run: |
-          echo "Modo ${{ steps.mode.outputs.mode }}: no se captura nada."
-          echo "Motivo: ${{ steps.mode.outputs.reason }}"
-          echo "Cero peticiones a la fuente. Esto no es un fallo."
-
+      # El modo ya lo resolvio el job `gate`, que es ahora el unico punto de
+      # decision. Resolverlo otra vez aqui seria una segunda fuente de verdad
+      # que puede discrepar de la primera si la ventana electoral se cruza
+      # entre los dos jobs.
+      # English: the mode was already resolved by the `gate` job, now the one
+      # decision point. Resolving it again here would be a second source of
+      # truth that can disagree with the first.
       - name: Run collector
-        if: steps.mode.outputs.go == 'true'
         run: python -m scripts.download_and_hash
       - name: Commit data
-        if: steps.mode.outputs.go == 'true'
         run: |
           git config --global user.name "VectisDev"
           git config --global user.email "VectisDev@users.noreply.github.com"
@@ -56,10 +67,11 @@ jobs:
 
       - name: Push data to centinel-data
         # `always()` para que un fallo de la captura no impida subir lo que si
-        # se obtuvo; `go` para no subir nada cuando no se capturo nada.
+        # se obtuvo. El job entero solo existe si el gate dijo que si, asi que
+        # la condicion de modo ya no hace falta aqui.
         # English: `always()` so a collection failure does not block pushing
-        # whatever was obtained; `go` so nothing is pushed when nothing ran.
-        if: always() && steps.mode.outputs.go == 'true'
+        # whatever was obtained. The job only exists if the gate said yes.
+        if: always()
         env:
           DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}

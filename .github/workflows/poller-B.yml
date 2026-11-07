@@ -40,7 +40,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Los pollers corren 5,5 horas seguidas haciendo peticiones. Son, con
+  # diferencia, el mayor consumidor de la cuota etica del proyecto, y hasta
+  # ahora comprobaban el modo pero no si el repositorio era un fork ni si la
+  # configuracion seguia dentro del techo de 19 endpoints.
+  # English: the pollers run for 5.5 hours making requests. They are by far
+  # the largest consumer of the project's ethical budget, and until now they
+  # checked the mode but neither whether the repository was a fork nor
+  # whether the config still sat within the 19-endpoint ceiling.
+  gate:
+    uses: ./.github/workflows/_gate.yml
+    with:
+      purpose: poller-B
+
   continuous-poll-B:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 330
 
@@ -75,19 +90,10 @@ jobs:
       # English: the ELECTION_CLOSED marker did `exit 0` inside its own step,
       # ending THAT step and not the job, so the steps below ran anyway. The
       # only brake on collection was decorative.
-      - name: Resolve node mode
-        id: mode
-        run: python .github/scripts/resolve_mode.py
-
-      - name: Explain why nothing was collected
-        if: steps.mode.outputs.go != 'true'
-        run: |
-          echo "Modo ${{ steps.mode.outputs.mode }}: no se captura nada."
-          echo "Motivo: ${{ steps.mode.outputs.reason }}"
-          echo "Cero peticiones a la fuente. Esto no es un fallo."
-
+      # El modo lo resolvio el job `gate`. Este job solo existe si dijo
+      # que si, asi que los `if:` por paso sobran.
+      # English: the mode was resolved by the `gate` job.
       - name: Setup data branch
-        if: steps.mode.outputs.go == 'true'
         run: |
           # Snapshots go to a dedicated 'snapshots' branch (separate history).
           # NOTE: this branch CANNOT be named 'data' — that name conflicts with
@@ -99,7 +105,6 @@ jobs:
              git checkout -) || true
 
       - name: Run continuous poller B
-        if: steps.mode.outputs.go == 'true'
         env:
           POLL_INTERVAL:      ${{ inputs.interval_minutes || '3' }}
           MAX_RUNTIME:        ${{ inputs.max_runtime_seconds || '19200' }}

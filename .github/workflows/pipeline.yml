@@ -1,22 +1,49 @@
 name: Vigil Pipeline CI
 
+# Sin horario: la captura periodica vive en audit.yml y en ningun otro sitio.
+#
+# Este workflow declaraba `*/30` y compartia el grupo `centinel-pipeline` con
+# `cancel-in-progress: true` junto a scheduler.yml, que declaraba `*/15`. Dos
+# horarios distintos en un grupo que cancela: el que disparaba segundo mataba
+# al primero en vuelo. Medido sobre el historial del repositorio, la cadencia
+# observada tenia mediana de 283 minutos frente a los 30 declarados.
+#
+# English: no schedule. This declared */30 and shared a cancelling concurrency
+# group with scheduler.yml's */15, so whichever fired second killed the other
+# mid-flight. Measured over the repo's history, observed cadence had a median
+# of 283 minutes against the 30 declared.
+#
+# Solo despacho manual. No se le anaden disparadores de PR o push: su job
+# `publish` commitea web/data/snapshot.json, y correrlo desde un PR intentaria
+# escribir desde un contexto que no debe escribir. El CI de PR es ci.yml.
+# English: manual dispatch only. No PR or push triggers are added: its
+# `publish` job commits web/data/snapshot.json, and running it from a PR would
+# write from a context that must not write. PR CI lives in ci.yml.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/30 * * * *'
 
 # Security: explicit minimal permissions.
 permissions:
   contents: read
 
-# Cancel any in-progress run before starting a new one.
-# Prevents minute pile-up if a run takes longer than the schedule interval.
 concurrency:
-  group: centinel-pipeline
+  group: vigil-pipeline-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # El gate solo decide sobre la captura. Los demas jobs (audit, publish,
+  # security) son analisis sobre lo que ya hay en el arbol y no emiten
+  # peticiones a la fuente, asi que corren siempre.
+  # English: the gate decides about collection only. The other jobs analyse
+  # what is already in the tree and issue no requests to the source.
+  gate:
+    uses: ./.github/workflows/_gate.yml
+    with:
+      purpose: pipeline
+
   collector:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,19 +64,11 @@ jobs:
           ls -la
           ls -la data || true
       # El marcador ELECTION_CLOSED hacia `exit 0` dentro de su propio paso, lo
-      # que termina ESE paso y no el job: el colector de abajo se ejecutaba
-      # igualmente. El unico freno a la captura era decorativo. Ahora el modo
-      # resuelto condiciona los pasos siguientes con `if:`, que si los salta.
-      # English: the ELECTION_CLOSED marker did `exit 0` inside its own step,
-      # which ends THAT step and not the job: the collector below ran anyway.
-      # The only brake on collection was decorative. The resolved mode now
-      # gates the following steps with `if:`, which does skip them.
-      - name: Resolve node mode
-        id: mode
-        run: poetry run python .github/scripts/resolve_mode.py
-
+      # El modo lo resuelve el job `gate`, unico punto de decision. Este job
+      # solo existe si dijo que si, asi que los `if:` por paso sobran.
+      # English: the mode is resolved by the `gate` job, the single decision
+      # point. This job only exists if it said yes.
       - name: Run collector
-        if: steps.mode.outputs.go == 'true'
         run: |
           if ! poetry run python -m scripts.collector; then
             echo "Error details: collector failed"
@@ -57,17 +76,18 @@ jobs:
             exit 1
           fi
 
-      - name: Explain why nothing was collected
-        if: steps.mode.outputs.go != 'true'
-        run: |
-          echo "Modo ${{ steps.mode.outputs.mode }}: no se captura nada."
-          echo "Motivo: ${{ steps.mode.outputs.reason }}"
-          echo "Cero peticiones a la fuente. Esto no es un fallo."
-
   audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # `collector` ahora puede saltarse (modo REPLAY o ARMED), y un `needs` a
+    # un job saltado salta tambien el dependiente. `always()` mas la
+    # comprobacion explicita de fallo conserva el orden sin encadenar el
+    # salto: el analisis sobre el arbol debe correr aunque no se capturara.
+    # English: `collector` can now be skipped, and `needs` on a skipped job
+    # skips the dependent too. `always()` plus an explicit failure check keeps
+    # the ordering without propagating the skip.
     needs: collector
+    if: always() && needs.collector.result != 'failure'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0

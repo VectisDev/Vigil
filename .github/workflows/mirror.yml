@@ -68,11 +68,39 @@ concurrency:
 permissions:
   contents: read
 
+# El destino del espejo se deriva del repositorio, no va a fuego.
+#
+# Estaba escrito literalmente como `codeberg.org/VectisDev/centinel.git`. En un
+# repositorio creado desde plantilla eso apunta al espejo del operador
+# original: cualquiera que configurase su propio CODEBERG_TOKEN empujaria su
+# historia al Codeberg de otra persona, con --force y sobre todas las ramas.
+# Hoy no ocurre porque sin el secreto el paso sale antes, pero eso es una
+# barrera de configuracion, no de diseno.
+#
+# Y habia una discrepancia: el push iba a `.../centinel.git` mientras el paso
+# de verificacion consultaba `.../Vigil`. La verificacion miraba un
+# repositorio distinto del que escribia, asi que confirmaba lo que encontrase
+# alli. Ahora ambos leen de aqui, que es la razon de que esto viva al nivel
+# del workflow y no dentro de un paso.
+#
+# English: the mirror destination is derived, not hardcoded. It read
+# `codeberg.org/VectisDev/centinel.git` literally, which in a
+# template-derived repository points at the original operator's mirror. There
+# was also a mismatch: the push went to `.../centinel.git` while the
+# verification step queried `.../Vigil` -- it checked a different repository
+# than the one it wrote to. Both now read from here, which is why these live
+# at workflow level rather than inside a step.
+env:
+  CODEBERG_OWNER: ${{ vars.CODEBERG_OWNER || github.repository_owner }}
+  CODEBERG_REPO: ${{ vars.CODEBERG_REPO || github.event.repository.name }}
+  CODEBERG_USER: ${{ vars.CODEBERG_USER || github.repository_owner }}
+
 jobs:
   # ----------------------------------------------------------------------
   # JOB 1: Mirror to Codeberg
   # ----------------------------------------------------------------------
   mirror-codeberg:
+    if: ${{ !github.event.repository.fork }}
     name: Mirror to Codeberg
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -102,11 +130,13 @@ jobs:
             exit 0
           fi
 
+          echo "Destino del espejo: codeberg.org/${CODEBERG_OWNER}/${CODEBERG_REPO}.git"
+
           # Configure Codeberg remote. We use the token in the URL so that
           # it never gets logged in plaintext (the URL is masked by GHA).
           # Configurar remote a Codeberg. Usamos el token en la URL para
           # que nunca se loguee en texto plano.
-          CODEBERG_URL="https://centinel-mirror-bot:${CODEBERG_TOKEN}@codeberg.org/VectisDev/centinel.git"
+          CODEBERG_URL="https://${CODEBERG_USER}:${CODEBERG_TOKEN}@codeberg.org/${CODEBERG_OWNER}/${CODEBERG_REPO}.git"
           git remote remove codeberg 2>/dev/null || true
           git remote add codeberg "${CODEBERG_URL}"
 
@@ -146,7 +176,7 @@ jobs:
           BRANCH="${GITHUB_REF##*/}"
           CODEBERG_HEAD="$(curl -fsS \
               -H "Authorization: token ${CODEBERG_TOKEN}" \
-              "https://codeberg.org/api/v1/repos/VectisDev/Vigil/branches/${BRANCH}" \
+              "https://codeberg.org/api/v1/repos/${CODEBERG_OWNER}/${CODEBERG_REPO}/branches/${BRANCH}" \
               | python3 -c 'import sys,json; print(json.load(sys.stdin)["commit"]["id"])' 2>/dev/null || echo "UNKNOWN")"
 
           echo "GitHub HEAD ($BRANCH):   ${GITHUB_HEAD}"
@@ -330,7 +360,7 @@ jobs:
           TRIGGER="${{ github.event_name }}"
           MONTH=$(date -u +%Y-%m)
           IA_LINK="https://archive.org/details/centinel-mirror-${MONTH}"
-          CODEBERG_LINK="https://codeberg.org/VectisDev/centinel/commit/${HEAD_SHA}"
+          CODEBERG_LINK="https://codeberg.org/${CODEBERG_OWNER}/${CODEBERG_REPO}/commit/${HEAD_SHA}"
 
           # The Internet Archive cell reports what actually happened. A skipped
           # or failed upload is never recorded as an archive.
