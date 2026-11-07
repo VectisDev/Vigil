@@ -12,8 +12,12 @@ docs/
 LICENSE
 SECURITY_AUDIT.md
 
-# Testing
-tests/
+# Testing. The demo image needs the bundled sample, so that directory is re-included.
+tests/**
+!tests/fixtures/
+tests/fixtures/**
+!tests/fixtures/hnd_2025/
+!tests/fixtures/hnd_2025/**
 conftest.py
 requirements/chaos.txt
 requirements/dev.txt
@@ -26,6 +30,7 @@ artifacts/
 .github/bandit.yaml
 .coveragerc
 Makefile
+!Makefile
 
 # Virtual environments
 .venv/
