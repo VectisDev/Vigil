@@ -1,0 +1,32 @@
+Este repositorio es la plantilla original de VIGIL, no un nodo observador.
+
+La presencia de este archivo hace que `_gate.yml` deniegue las capturas
+disparadas por horario. El despacho manual sigue disponible, así que no se
+pierde la capacidad de capturar desde aquí; lo que se pierde es la captura
+automática, que en la plantilla no tiene sentido.
+
+Se comprueba por archivo y no por nombre de repositorio a propósito: un nombre
+deja de coincidir en cuanto alguien renombra o transfiere el repositorio, y
+entonces la plantilla empezaría a raspar sin que nadie lo hubiera decidido.
+Un archivo sobrevive a ambas cosas y aparece en el diff cuando se quita.
+
+`bootstrap.yml` borra este archivo en cada repositorio creado desde la
+plantilla. Ése es el momento exacto en que una copia deja de ser plantilla y
+pasa a ser un nodo.
+
+--------------------------------------------------------------------------
+
+This repository is the original VIGIL template, not an observing node.
+
+The presence of this file makes `_gate.yml` deny schedule-triggered captures.
+Manual dispatch still works, so the ability to capture from here is not lost;
+what is lost is automatic capture, which a template has no business doing.
+
+It is checked by file rather than by repository name on purpose: a name stops
+matching the moment someone renames or transfers the repository, and the
+template would then start scraping without anyone having decided that. A file
+survives both, and shows up in the diff when removed.
+
+`bootstrap.yml` deletes this file in every repository created from the
+template. That is the exact moment a copy stops being a template and becomes
+a node.
