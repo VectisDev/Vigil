@@ -227,3 +227,92 @@ def test_no_declared_mode_keeps_the_previous_behaviour(tmp_path: Path):
     doc = _written(tmp_path)
     assert doc["status"] == "NO_DATA"
     assert doc["declared_mode"] is None
+
+
+# ── el replay como evidencia, y solo si está verificado ───────────────────────
+
+
+def _manifest(root: Path, **fields) -> None:
+    out = root / "web" / "data"
+    out.mkdir(parents=True, exist_ok=True)
+    base = {
+        "dataset": "tests/fixtures/hnd_2025",
+        "files": 64,
+        "merkle_root": "f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780",
+        "merkle_verified": True,
+        "alerts": 21,
+    }
+    base.update(fields)
+    (out / "replay_manifest.json").write_text(json.dumps(base), encoding="utf-8")
+
+
+def test_a_verified_replay_is_evidence_on_its_own(tmp_path: Path):
+    """Sin `data/`, pero con una raíz recalculada y coincidente: es REPLAY.
+
+    English: with no `data/` but a recomputed, matching Merkle root, the node is
+    in REPLAY, not NO_DATA. The root is stronger evidence than a state file: it
+    says the data is the data that was anchored, not merely that a job ran.
+    """
+    (tmp_path / "data").mkdir()
+    _manifest(tmp_path)
+    export_snapshot(tmp_path, declared_mode="REPLAY")
+    doc = _written(tmp_path)
+    assert doc["status"] == "REPLAY"
+    assert doc["replay"]["merkle_verified"] is True
+    assert doc["replay"]["files"] == 64
+
+
+def test_an_unverified_manifest_is_not_evidence(tmp_path: Path):
+    """`merkle_verified: false` no vale como replay.
+
+    English: a manifest that does not claim a verified root buys nothing. This
+    is the hole worth closing: writing the file must not be enough to turn a
+    red node green.
+    """
+    (tmp_path / "data").mkdir()
+    _manifest(tmp_path, merkle_verified=False)
+    export_snapshot(tmp_path, declared_mode="REPLAY")
+    doc = _written(tmp_path)
+    assert doc["status"] == "NO_DATA"
+    assert "verificados" in doc["status_reason"]
+
+
+def test_a_missing_merkle_verified_key_is_not_evidence(tmp_path: Path):
+    """La ausencia de la clave no se interpreta a favor del nodo."""
+    (tmp_path / "data").mkdir()
+    out = tmp_path / "web" / "data"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "replay_manifest.json").write_text(json.dumps({"files": 64}), encoding="utf-8")
+    export_snapshot(tmp_path, declared_mode="REPLAY")
+    assert _written(tmp_path)["status"] == "NO_DATA"
+
+
+def test_an_unreadable_manifest_is_reported_not_swallowed(tmp_path: Path):
+    """Un manifiesto corrupto se declara; no se trata como ausente en silencio.
+
+    English: a corrupt manifest is declared rather than silently treated as
+    absent, so the panel never hides a broken replay behind an empty one.
+    """
+    (tmp_path / "data").mkdir()
+    out = tmp_path / "web" / "data"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "replay_manifest.json").write_text("{ no es json", encoding="utf-8")
+    export_snapshot(tmp_path, declared_mode="REPLAY")
+    doc = _written(tmp_path)
+    assert doc["status"] == "NO_DATA"
+    assert doc["replay"]["merkle_verified"] is False
+    assert "ilegible" in doc["replay"]["error"]
+
+
+def test_replay_evidence_does_not_make_a_live_node_green(tmp_path: Path):
+    """Un replay verificado no sustituye a una captura en vivo.
+
+    English: a verified replay does not stand in for live capture. A node that
+    declares LIVE with nothing but a replay manifest is still NO_DATA —
+    otherwise shipping the fixture would be enough to look like an active
+    observer during an election.
+    """
+    (tmp_path / "data").mkdir()
+    _manifest(tmp_path)
+    export_snapshot(tmp_path, declared_mode="LIVE")
+    assert _written(tmp_path)["status"] == "NO_DATA"

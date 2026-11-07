@@ -1,0 +1,198 @@
+[
+  {
+    "kind": "high_impact_resolution",
+    "severity": "critical",
+    "message": "Resolution exceeded 10% of pending inconsistent acts in one cycle.",
+    "timestamp": "2025-12-04T16:00:04+00:00",
+    "metadata": {
+      "ratio": 1.0,
+      "delta_actas": 2346
+    }
+  },
+  {
+    "kind": "bulk_resolution",
+    "severity": "critical",
+    "message": "Bulk resolution threshold reached.",
+    "timestamp": "2025-12-04T16:00:04+00:00",
+    "metadata": {
+      "delta_actas": 2346
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T13:00:06+00:00",
+    "metadata": {
+      "stagnation_cycles": 8
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T14:00:12+00:00",
+    "metadata": {
+      "stagnation_cycles": 9
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T15:00:05+00:00",
+    "metadata": {
+      "stagnation_cycles": 10
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T16:00:29+00:00",
+    "metadata": {
+      "stagnation_cycles": 11
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T17:00:03+00:00",
+    "metadata": {
+      "stagnation_cycles": 12
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T18:00:08+00:00",
+    "metadata": {
+      "stagnation_cycles": 13
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T18:59:29+00:00",
+    "metadata": {
+      "stagnation_cycles": 14
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-06T20:00:14+00:00",
+    "metadata": {
+      "stagnation_cycles": 15
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T11:00:04+00:00",
+    "metadata": {
+      "stagnation_cycles": 16
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T12:00:09+00:00",
+    "metadata": {
+      "stagnation_cycles": 17
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T13:00:02+00:00",
+    "metadata": {
+      "stagnation_cycles": 18
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T14:00:06+00:00",
+    "metadata": {
+      "stagnation_cycles": 19
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T15:00:13+00:00",
+    "metadata": {
+      "stagnation_cycles": 20
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T16:00:16+00:00",
+    "metadata": {
+      "stagnation_cycles": 21
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T17:00:18+00:00",
+    "metadata": {
+      "stagnation_cycles": 22
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T18:00:16+00:00",
+    "metadata": {
+      "stagnation_cycles": 23
+    }
+  },
+  {
+    "kind": "prolonged_stagnation",
+    "severity": "warning",
+    "message": "Inconsistent count stagnated for over 1 hour.",
+    "timestamp": "2025-12-07T19:00:07+00:00",
+    "metadata": {
+      "stagnation_cycles": 24
+    }
+  },
+  {
+    "kind": "anomalous_resolution_velocity",
+    "severity": "critical",
+    "message": "Velocidad de resolución anómala: 39.2 actas/min (2346 actas en 59.9 min). Umbral plausible: 10.0 actas/min.",
+    "timestamp": "2025-12-04T16:00:04+00:00",
+    "metadata": {
+      "rate_per_minute": 39.15,
+      "delta_actas": 2346,
+      "elapsed_minutes": 59.92
+    }
+  },
+  {
+    "kind": "blackout_with_trend_shift",
+    "severity": "critical",
+    "message": "Apagón comunicacional de 786 min (2025-12-03 22:00:40+00:00 → 2025-12-04 11:06:50+00:00). AI: 2211 → 2308 (Δ=-97). Cambios de tendencia: SALVADOR ALEJANDRO CESAR NASRALLA SALUM: -0.504pp",
+    "timestamp": "2025-12-04T11:06:50+00:00",
+    "metadata": {
+      "gap_minutes": 786.2,
+      "delta_inconsistent": -97,
+      "trend_shifts_pp": {
+        "SALVADOR ALEJANDRO CESAR NASRALLA SALUM": -0.504
+      }
+    }
+  }
+]

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VIGIL — REPLAY Noviembre 2025</title>
+<title>VIGIL — REPLAY Honduras 2025</title>
 <link rel="icon" type="image/svg+xml" href="../assets/mark.svg">
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -18,16 +18,6 @@
 body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased}
 
 /* ── LOGIN ── */
-#login-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
-#login-overlay.hidden{display:none}
-.login-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:40px 44px;width:380px;max-width:90vw}
-.login-box h1{font-size:20px;font-weight:700;margin-bottom:6px}
-.login-box p{color:var(--muted);font-size:13px;margin-bottom:28px;line-height:1.6}
-.login-field{width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--fg);font-size:14px;outline:none;margin-bottom:12px;transition:.15s}
-.login-field:focus{border-color:var(--accent)}
-.login-btn{width:100%;padding:12px;background:var(--accent);color:#0b1220;border:none;border-radius:9px;font-weight:700;font-size:15px;cursor:pointer;transition:.15s}
-.login-btn:hover{filter:brightness(1.08)}
-#login-error{color:var(--bad);font-size:12px;margin-top:8px;text-align:center;min-height:18px}
 
 /* ── REPLAY BANNER ── */
 #replay-banner{background:rgba(201,122,247,.1);border-bottom:2px solid rgba(201,122,247,.35);padding:10px 24px;font-size:13px;font-weight:600;color:var(--replay);letter-spacing:.04em;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
@@ -87,26 +77,22 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 </head>
 <body>
 
-<!-- ── LOGIN OVERLAY ── -->
-<div id="login-overlay">
-  <div class="login-box">
-    <h1><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> REPLAY 2025</h1>
-    <p>Acceso restringido a investigadores autorizados.<br>
-       Ingresa tu Seed de acceso (S1-A … S1-L).</p>
-    <input id="login-pass"  class="login-field" type="password" placeholder="Seed de 24 caracteres" autocomplete="current-password">
-    <button class="login-btn" onclick="doLogin()">Ingresar al REPLAY</button>
-    <div id="login-error"></div>
-  </div>
-</div>
-
 <!-- ── REPLAY BANNER ── -->
 <div id="replay-banner">
   <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> MODO REPLAY</span>
-  <span class="pill">Datos históricos — Noviembre 2025</span>
+  <span class="pill" id="period-pill">Datos históricos</span>
   <span class="pill">No en vivo</span>
   <a href="../monitor/" style="color:var(--muted);font-size:12px;text-decoration:none;margin-left:8px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Panel en vivo</a>
   <span id="replay-user"></span>
 </div>
+
+<!-- ── PROCEDENCIA ──
+     Lo que el anclaje prueba y lo que no. Un anclaje Merkle sobre un conjunto
+     demuestra que esos archivos existian en esa forma en la fecha del anclaje;
+     no demuestra custodia continua durante el conteo. Decir lo segundo seria
+     el mismo error que afirmar alcanzabilidad sin haberla medido.
+     English: states what the anchor proves and what it does not. -->
+<div id="provenance" style="display:none;background:rgba(0,0,0,.25);border-bottom:1px solid var(--border);padding:8px 24px;font-size:11px;color:var(--muted);line-height:1.5"></div>
 
 <!-- ── TIME SCRUBBER ── -->
 <div id="scrubber-wrap">
@@ -123,8 +109,10 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 
 <!-- ── MAIN CONTENT ── -->
 <div id="loading">Cargando snapshots históricos…</div>
-<div id="no-data">No se encontraron snapshots en <code>replay_snapshots</code>.<br>
-  Genera los datos con <code>python scripts/gen_sim_series.py</code> primero.</div>
+<div id="no-data">No se encontraron capturas en <code>web/data/replay_snapshots.json</code>.<br>
+  Reprodúcelas desde el conjunto verificado con<br>
+  <code>python scripts/replay_pipeline.py --dataset tests/fixtures/hnd_2025 --out web/data</code><br>
+  <span style="font-size:11px;color:var(--muted)">El replay reproduce capturas reales; no genera series sintéticas.</span></div>
 
 <main id="replay-main" style="display:none">
 
@@ -136,9 +124,9 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
     <div class="kpi-label">registros en REPLAY</div>
   </div>
   <div class="card">
-    <h2>Departamentos</h2>
+    <h2>Ámbito</h2>
     <div class="kpi-val" id="r-depts">—</div>
-    <div class="kpi-label">cubiertos</div>
+    <div class="kpi-label" id="r-depts-label">endpoints cubiertos</div>
   </div>
   <div class="card">
     <h2>Primer captura</h2>
@@ -187,7 +175,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 
 <!-- ── LISTADO DE SNAPSHOTS ── -->
 <div class="card">
-  <h2>Todos los snapshots — Noviembre 2025</h2>
+  <h2>Todos los snapshots — <span id="period-table">período reproducido</span></h2>
   <div style="max-height:340px;overflow-y:auto">
     <table class="tbl" id="snap-table">
       <thead><tr><th>#</th><th>Capturado</th><th>Departamento</th><th>Fuente</th></tr></thead>
@@ -206,9 +194,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 
 <script>
 const REPLAY_SALT  = 'centinel-replay-salt-v1';
-const REPLAY_ITERS = 600_000;
 
-let sbUser = null;
 let allSnapshots = [];
 let charts = {};
 
@@ -310,69 +296,55 @@ function _scoreToCat(score){
   return 0;
 }
 
-// ── PBKDF2 helpers ──
-async function pbkdf2Key(password, salt, iterations){
-  const enc = new TextEncoder();
-  const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'},
-    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']);
-}
-
-async function pbkdf2Hex(password, salt, iterations){
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    {name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, key, 256);
-  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-// ── AUTH ──
-async function checkAuth(){
-  const tok = sessionStorage.getItem('centinel_replay_tok');
-  const exp = parseInt(sessionStorage.getItem('centinel_replay_exp')||'0',10);
-  if(tok && Date.now() < exp){
-    sbUser = {seed: tok};
-    document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('replay-user').textContent = tok;
-    loadSnapshots();
-  }
-}
-
-async function doLogin(){
-  const pass  = document.getElementById('login-pass').value.trim();
-  const errEl = document.getElementById('login-error');
-  errEl.textContent = '';
-  if(!pass){errEl.textContent='Ingresa el seed de acceso.';return;}
-  try{
-    const accessUrl = new URL('../access.json', location.href).href;
-    const ac = await fetch(accessUrl+'?t='+Date.now()).then(r=>r.json());
-    const candidate = await pbkdf2Hex(pass, ac.salt||'centinel-admin-salt-v1', ac.iterations||REPLAY_ITERS);
-    const matched = Object.entries(ac.seeds||{}).find(([,h])=>h===candidate);
-    if(!matched){errEl.textContent='Seed incorrecto.';return;}
-    const seedId = matched[0];
-    sessionStorage.setItem('centinel_replay_tok', seedId);
-    sessionStorage.setItem('centinel_replay_exp', String(Date.now()+8*3600*1000));
-    sbUser = {seed: seedId};
-    document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('replay-user').textContent = seedId;
-    loadSnapshots();
-  }catch(e){
-    errEl.textContent = 'Error: '+e.message;
-  }
-}
-document.getElementById('login-pass').addEventListener('keydown', e=>{if(e.key==='Enter')doLogin();});
+// El REPLAY es publico, y no por descuido.
+//
+// Este panel reproduce datos electorales ya publicos, anclados en Bitcoin y
+// publicados como conjunto citable. El login que habia aqui no protegia nada:
+// los archivos son JSON estatico que Pages sirve a cualquiera en
+// ../data/replay_snapshots.json, y `sbUser` se asignaba sin leerse nunca. Lo
+// unico que ocultaba era la interfaz, delante de la pieza que el proyecto
+// necesita que un evaluador pueda abrir.
+//
+// English: the REPLAY panel is public on purpose. The login that stood here
+// protected nothing -- the data is static JSON that Pages serves to anyone --
+// and all it hid was the interface, in front of the one page an evaluator
+// needs to be able to open.
 
 // ── LOAD SNAPSHOTS ──
+async function loadProvenance(){
+  try{
+    const r = await fetch('../data/replay_manifest.json?t='+Date.now());
+    if(!r.ok) return;
+    const m = await r.json();
+    const el = document.getElementById('provenance');
+    const root = (m.merkle_root || '').slice(0, 16);
+    el.innerHTML =
+      '<strong style="color:var(--replay)">Procedencia:</strong> ' +
+      (m.files || 0) + ' capturas reproducidas desde <code>' + (m.dataset || '—') + '</code>. ' +
+      'Raíz de Merkle <code>' + root + '…</code> ' +
+      (m.merkle_verified ? '<span style="color:#4ade80">recalculada y coincidente</span>' : '<span style="color:#f87171">SIN VERIFICAR</span>') +
+      '. &nbsp;El anclaje prueba que estos archivos existían en esta forma en la fecha del anclaje; ' +
+      '<strong>no</strong> prueba custodia continua durante el conteo. ' +
+      (m.alerts != null ? m.alerts + ' alertas emitidas por los detectores reales. ' : '') +
+      'Reproducible: <code>python scripts/replay_pipeline.py</code>.';
+    el.style.display = 'block';
+  }catch{}
+}
+
 async function loadSnapshots(){
   document.getElementById('loading').style.display = 'block';
+  loadProvenance();
   let snaps = [];
   // Load static JSON data (no server dependency)
   try{
     const r = await fetch('../data/replay_snapshots.json?t='+Date.now());
     if(r.ok) snaps = await r.json();
   }catch{}
-  if(!snaps.length) snaps = _demoSnapshots();
+  // Sin datos no se inventan datos: se declara la ausencia. El respaldo de
+  // demostracion anterior fabricaba 20 registros con aspecto de capturas
+  // reales, que es peor que una pagina vacia.
+  // English: no data means say so. The former demo fallback fabricated 20
+  // records that looked like real captures, which is worse than blank.
 
   document.getElementById('loading').style.display = 'none';
 
@@ -422,12 +394,33 @@ async function loadSnapshots(){
 // ── KPIs ──
 function renderKPIs(snaps){
   document.getElementById('r-total').textContent = snaps.length;
-  const depts = new Set(snaps.map(s=>s.dept_code).filter(Boolean));
-  document.getElementById('r-depts').textContent = depts.size || '—';
+
+  // El conjunto HN-2025 es el endpoint nacional, no 18 departamentos. Llamar
+  // "1 departamento cubierto" a una cobertura nacional confunde el ambito con
+  // la granularidad, y un evaluador que abre los datos lo ve enseguida.
+  // English: the HN-2025 dataset is the national endpoint, not 18 departments.
+  // Calling national coverage "1 department" confuses scope with granularity.
+  const scopes = new Set(snaps.map(s=>s.dept_code).filter(Boolean));
+  const onlyNational = scopes.size === 1 && scopes.has('Nacional');
+  document.getElementById('r-depts').textContent = onlyNational ? 'Nacional' : (scopes.size || '—');
+  document.getElementById('r-depts-label').textContent =
+    onlyNational ? 'agregado nacional, sin desglose departamental' : 'endpoints cubiertos';
+
   const first = snaps[0]?.captured_at;
   const last  = snaps[snaps.length-1]?.captured_at;
   document.getElementById('r-first').textContent = first ? new Date(first).toLocaleDateString('es-HN') : '—';
   document.getElementById('r-last').textContent  = last  ? new Date(last).toLocaleDateString('es-HN')  : '—';
+
+  // El periodo sale de las capturas, no de una constante que puede quedar
+  // desfasada del conjunto que realmente se esta reproduciendo.
+  // English: the period comes from the captures, not from a constant that can
+  // drift away from the dataset actually being replayed.
+  if(first && last){
+    const fmt = d => new Date(d).toLocaleDateString('es-HN', {day:'numeric', month:'long', year:'numeric'});
+    const label = fmt(first) + ' — ' + fmt(last);
+    document.getElementById('period-pill').textContent = 'Datos históricos — ' + label;
+    document.getElementById('period-table').textContent = label;
+  }
 }
 
 // ── TABLE ──
@@ -486,6 +479,28 @@ function renderDetail(snap){
 
 // ── CHARTS ──
 function renderCharts(snaps){
+  // Chart.js viene de un CDN. Si no carga -- CDN caido, red filtrada, un
+  // verificador trabajando sin conexion -- lo que fallaba era una excepcion no
+  // capturada (`Chart is not defined`) que mataba todo lo que viniera despues
+  // en silencio. La evidencia de este panel son las capturas y la raiz de
+  // Merkle, no los graficos: la ausencia de graficos se declara, y la tabla,
+  // los totales y la procedencia siguen funcionando.
+  // English: Chart.js comes from a CDN. When it fails to load -- CDN outage,
+  // filtered network, a verifier working offline -- the page used to die on an
+  // uncaught `Chart is not defined`. The evidence here is the captures and the
+  // Merkle root, not the charts: a missing chart library is declared, and the
+  // table, the totals and the provenance keep working.
+  if(typeof Chart === 'undefined'){
+    document.querySelectorAll('#replay-main canvas').forEach(c => {
+      const note = document.createElement('div');
+      note.style.cssText = 'padding:18px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6';
+      note.innerHTML = 'Gráfico no disponible: la librería de gráficos no cargó.<br>' +
+        'Los datos siguen completos en la tabla y en ' +
+        '<code>web/data/replay_snapshots.json</code>.';
+      c.replaceWith(note);
+    });
+    return;
+  }
   renderBenfordReplay(snaps);
   renderTimelineReplay(snaps);
   renderLastDigitReplay(snaps);
@@ -611,23 +626,7 @@ function renderDeptReplay(snaps){
   });
 }
 
-// ── DEMO DATA ──
-function _demoSnapshots(){
-  const base = new Date('2025-11-28T18:00:00Z');
-  return Array.from({length:20},(_, i)=>{
-    const ts = new Date(base.getTime() + i*15*60*1000).toISOString();
-    return {
-      id: i+1,
-      captured_at: ts,
-      dept_code: ['HN-FM','HN-CR','HN-OL','HN-AT','Nacional'][i%5],
-      raw_json: {totalVotes: 800000+i*12345, actasEscrutadas: 2000+i*87, actasTotal: 18327},
-      source: 'nov2025',
-      imported_at: new Date().toISOString(),
-    };
-  });
-}
-
-checkAuth();
+loadSnapshots();
 </script>
 </body>
 </html>
