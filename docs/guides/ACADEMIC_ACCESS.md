@@ -1,6 +1,6 @@
 # VIGIL — Academic Research Access
 
-**For: independent academic reviewer (pending), UPNFM Mathematics Department, and collaborating researchers**
+**For: independent researchers. No institutional partner and no production host are claimed.**
 
 ---
 
@@ -29,7 +29,7 @@ puedan verificar en tiempo real sin necesidad de credenciales.
 #### `/audit/health` → Disponibilidad del subsistema
 
 ```bash
-curl https://centinel.upnfm.edu.hn/audit/health
+curl https://example.invalid/audit/health
 ```
 
 Retorna:
@@ -60,7 +60,7 @@ versión del protocolo público que implementa.
 #### `/audit/chain/verify` → Verificación completa de la cadena
 
 ```bash
-curl https://centinel.upnfm.edu.hn/audit/chain/verify
+curl https://example.invalid/audit/chain/verify
 ```
 
 Retorna:
@@ -103,7 +103,7 @@ detectar divergencia o manipulación.
 #### `/audit/timeline?limit=100&offset=0` → Índice cronológico
 
 ```bash
-curl 'https://centinel.upnfm.edu.hn/audit/timeline?limit=5&offset=0'
+curl 'https://example.invalid/audit/timeline?limit=5&offset=0'
 ```
 
 Retorna:
@@ -142,7 +142,7 @@ cambios en URLs de fuente, versiones de software. Detectar anomalías o patrones
 #### `/audit/snapshots/{date}` → Filtrar por fecha electoral (UTC)
 
 ```bash
-curl 'https://centinel.upnfm.edu.hn/audit/snapshots/2026-11-29'
+curl 'https://example.invalid/audit/snapshots/2026-11-29'
 ```
 
 Retorna:
@@ -172,7 +172,7 @@ cronología de eventos alrededor de un anomalía reportada.
 #### `/audit/proof/{hash}` → Prueba de inclusión y verificación
 
 ```bash
-curl 'https://centinel.upnfm.edu.hn/audit/proof/deadbeef...'
+curl 'https://example.invalid/audit/proof/deadbeef...'
 ```
 
 Retorna:
@@ -246,7 +246,7 @@ manipular la secuencia de snapshots de forma que la cadena aún verifique localm
 #### 3. **Ciencia Política: Criptografía como Escudo Político**
 
 **Pregunta:** ¿Cómo cambia el debate público cuando los resultados electorales
-están respaldados por pruebas criptográficas que un sistema experto (UPNFM) ha validado?
+están respaldados por pruebas criptográficas que un tercero puede repetir?
 
 **Enfoque:**
 - Analizar cómo la validación matemática afecta la credibilidad política
@@ -296,7 +296,7 @@ Luego accede a:
 El sistema está desplegado en:
 
 ```
-https://centinel.upnfm.edu.hn/
+https://example.invalid/
 ```
 
 (Hipotético; ajusta a tu URL de producción real)
@@ -315,11 +315,11 @@ Para reproducir una verificación:
 
 ```bash
 # 1. Obtener un hash de la línea de tiempo
-HASH=$(curl -s 'https://centinel.upnfm.edu.hn/audit/timeline?limit=1' | \
+HASH=$(curl -s 'https://example.invalid/audit/timeline?limit=1' | \
   python3 -c 'import json,sys; print(json.load(sys.stdin)["entries"][0]["expected_hash"])')
 
 # 2. Obtener la prueba de inclusión
-curl -s "https://centinel.upnfm.edu.hn/audit/proof/$HASH" > proof.json
+curl -s "https://example.invalid/audit/proof/$HASH" > proof.json
 
 # 3. En tu máquina, reproducir el hash localmente
 python3 -c '
@@ -353,7 +353,7 @@ Para papers y tesis, cita como:
 Vigil Election Monitoring System. Accessed [DATE].
 Hash chain verified at [HASH]. Snapshot timestamp [UTC].
 Reproduction: GET /audit/proof/{HASH}
-URL: https://centinel.upnfm.edu.hn
+URL: https://example.invalid
 ```
 
 Ejemplo en BibTeX:
@@ -376,7 +376,7 @@ Para preguntas técnicas:
 
 - **GitHub Issues:** https://github.com/VectisDev/Vigil/issues
 - **Email:** [maintainer email]
-- **UPNFM Partnership:** [coordinator contact]
+- **Institutional partnership:** none claimed
 
 ---
 
@@ -423,8 +423,10 @@ open http://localhost:8000/docs
 
 #### Production
 
+No institutional host is deployed. `example.invalid` below is a placeholder, not a live site.
+
 ```
-https://centinel.upnfm.edu.hn/
+https://example.invalid/
 ```
 
 All endpoints are public. No credentials required.
@@ -447,7 +449,7 @@ For academic work:
 Vigil Election Monitoring System. Accessed [DATE].
 Hash chain verified at [HASH]. Snapshot timestamp [UTC].
 Reproduction: GET /audit/proof/{HASH}
-URL: https://centinel.upnfm.edu.hn
+URL: https://example.invalid
 ```
 
 ---
@@ -458,7 +460,7 @@ For technical questions:
 
 - **GitHub Issues:** https://github.com/VectisDev/Vigil/issues
 - **Email:** [maintainer email]
-- **UPNFM Partnership:** [coordinator contact]
+- **Institutional partnership:** none claimed
 
 ---
 
@@ -495,4 +497,4 @@ The system is hardened against:
 **Document Version:** 1.0  
 **Last Updated:** 2026-05-15  
 **System Version:** vigil-v0.1.0+  
-**Audience:** UPNFM Researchers, Academic Partners, Independent Auditors
+**Audience:** Independent researchers and auditors. No institutional audience is claimed.

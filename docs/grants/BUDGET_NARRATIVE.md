@@ -31,9 +31,10 @@ no software licenses. Requested funds do not finance operations; they finance
 | Análisis estadístico independiente | USD 4,000 | Revisión externa por estadístico PhD (no afiliado al proyecto) |
 | Publicación open-access (arXiv + journal submission) | USD 2,000 | APCs si se acepta en revista Q1; arXiv es gratuito |
 
-*Justificación:* La validación académica independiente es el único gap técnico
-que VIGIL no puede resolver internamente. El the independent reviewer de la UPNFM ya
-conoce el proyecto; los fondos permiten formalizar la colaboración.
+*Justificación:* La validación académica independiente es un vacío que el
+proyecto no puede llenar solo. Ningún revisor institucional está comprometido.
+Los fondos servirían para contratar esa revisión, no para continuar una que
+ya exista.
 
 ---
 

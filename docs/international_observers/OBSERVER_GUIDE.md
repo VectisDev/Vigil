@@ -57,13 +57,16 @@ curl -O https://raw.githubusercontent.com/VectisDev/Vigil/main/verify/verify_cha
 # Verificar un directorio de snapshots
 python3 verify_chain.py /ruta/a/los/snapshots/
 
-# Resultado esperado en cadena íntegra:
-# ╔══════════════════════════════════════════════════╗
+# Cadena realmente enlazada (cada archivo trae previous_hash del anterior):
 # ║  ✅  CHAIN INTEGRITY VERIFIED — CADENA ÍNTEGRA ║
-# ╚══════════════════════════════════════════════════╝
+# y el proceso sale con código 0.
 
-# Resultado si hay manipulación:
-# ⛔ CHAIN BREAK DETECTED at snapshot_0042.json
+# Capturas crudas, sin previous_hash (es el caso de tests/fixtures/hnd_2025/):
+# ║  ⚠️  CUSTODY NOT PROVEN — CADENA NO DEMOSTRADA ║
+# y el proceso sale con código 1. Eso no es una cadena íntegra.
+
+# Hash que no coincide:
+# ⛔ CHAIN BREAK DETECTED / CADENA ROTA
 ```
 
 ### Opción B — Ejecutar análisis completo
@@ -134,14 +137,12 @@ Cada snapshot de VIGIL incluye el hash SHA-256 del snapshot anterior.
 Para verificar que ningún dato fue alterado después de la captura:
 
 ```bash
-# Sin dependencias — solo Python 3.6+
+# Sin dependencias. Sobre el piloto HN2025 esto DEBE salir en 1:
+# 63 de 64 archivos no tienen previous_hash. No son una cadena.
 python3 verify/verify_chain.py tests/fixtures/hnd_2025/
 
-# Con verbose (muestra el hash de cada archivo)
-python3 verify/verify_chain.py tests/fixtures/hnd_2025/ -v
-
-# Guardar reporte
-python3 verify/verify_chain.py tests/fixtures/hnd_2025/ -o reporte_verificacion.txt
+# La comprobación positiva, también sin red: la raíz Merkle de esos bytes.
+python3 scripts/replay_pipeline.py --dataset tests/fixtures/hnd_2025 --skip-detectors --out /tmp/vigil-replay
 ```
 
 ### Verificar el anclaje en Bitcoin

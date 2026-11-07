@@ -212,7 +212,18 @@ def _latest_snapshot(data_dir: Path) -> dict:
 
 
 def _build_endpoint_health(root: Path) -> dict:
-    empty = {"available": False, "total": 0, "online": 0, "degraded": 0, "offline": 0, "endpoints": []}
+    empty = {
+        "available": False,
+        "observed": False,
+        "checked_at": None,
+        "total": 0,
+        "online": 0,
+        "degraded": 0,
+        "offline": 0,
+        "unknown": 0,
+        "endpoints": [],
+        "note": "No endpoint configuration was read.",
+    }
     try:
         sys.path.insert(0, str(root / "src"))
         from vigil.sync.forensics_publisher import build_endpoint_health_block

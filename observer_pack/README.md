@@ -62,7 +62,7 @@ with SHA-256, and applies statistical detectors to flag anomalies and integrity 
 ## Contexto de Honduras / Honduras Context
 
 - **Elecciones generales 2025:** 96 archivos JSON de resultados, 18 departamentos, ~2.5M votos
-- **Institución aliada / Partner institution:** Universidad Pedagógica Nacional Francisco Morazán (UPNFM)
+- **Institución aliada / Partner institution:** ninguna declarada / none claimed
 - **Marco legal / Legal framework:** Constitución de Honduras Art. 3, Ley Electoral y de las Organizaciones Políticas
 - **Relevancia:** Honduras es el único país de Centroamérica con un sistema de auditoría electoral open-source operativo
 

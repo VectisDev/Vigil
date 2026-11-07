@@ -193,8 +193,11 @@ PYTHONPATH=src python scripts/forensic_hnd_2025.py
 # Reproducir auditoría completa
 make reproduce-2025-audit
 
-# Verificar cadena de integridad (sin dependencias)
+# Los 64 JSON son capturas crudas: verify_chain debe salir en 1 (63 huérfanos).
 python verify/verify_chain.py tests/fixtures/hnd_2025/
+
+# La comprobación positiva es la raíz Merkle, sin red.
+python scripts/replay_pipeline.py --dataset tests/fixtures/hnd_2025 --skip-detectors --out /tmp/vigil-replay
 ```
 
 ---

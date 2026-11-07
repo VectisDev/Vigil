@@ -2,7 +2,7 @@
 Version: 1.1
 Date: 2026-05-20
 Status: Active
-Audience: Grant evaluators · OTF · NED · NDI · IRI · Mozilla Foundation · Carter Center · UPNFM
+Audience: Grant evaluators · OTF · NED · NDI · IRI · Mozilla Foundation · Carter Center
 ---
 
 # Autonomous Operations Capability / Capacidad de Operación Autónoma

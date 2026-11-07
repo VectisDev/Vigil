@@ -52,9 +52,8 @@ No fiscal host organization is engaged at this time. Any such arrangement
 will be declared directly to the funder. We invite scrutiny.
 
 **2. Who built it / Quién lo construyó:**
-`VectisDev`, an independent software engineer, with
-academic validation from independent academic reviewer (pending) (Mathematics Department,
-UPNFM). No political affiliation. Source code is public and auditable.
+`VectisDev`, publishing under that pseudonym. No university, party, or
+fiscal sponsor is claimed. Source code is public and auditable.
 
 **3. What it can prove / Qué puede probar:**
 Only that publicly published data exists, was captured at a certain time,
@@ -311,8 +310,8 @@ attacks.
 **"El desarrollador no tiene credenciales académicas"**
 
 *Response:*
-The methodology has been submitted for academic review to the Mathematics
-Department of UPNFM (independent academic reviewer (pending)). Peer review is ongoing. We
+No academic institution has signed a review. Independent review is sought and
+is not in progress with a named university. We
 invite any qualified mathematician or statistician to review the work at
 https://github.com/VectisDev/Vigil/blob/main/docs/ and publish their critique. The code does not become more or less
 correct based on the credentials of its author — only on whether the
@@ -393,7 +392,7 @@ Hour 0: DETECTION
   - Monitor: Google Alerts on "VIGIL electoral", project handles,
     and key personnel names.
   - Classify the attack: Category A / B / C / D / E (from Part 2).
-  - Activate: Carlos + 1 trusted collaborator minimum.
+  - Activate: the on-call maintainer (VectisDev) + 1 trusted collaborator minimum.
 
 Hour 0–1: VERIFY
   - Is the claim factually new? Does it allege a technical or

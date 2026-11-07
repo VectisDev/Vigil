@@ -10,17 +10,17 @@
 
 ### The Regional Pattern / El Patron Regional
 
-Central America concentrates more contested digital vote counts per capita than
-any other region in the Western Hemisphere. Between 2017 and 2025, five of six
-Northern Triangle and isthmus elections produced credible allegations of digital
-result manipulation — not at the ballot box, but in the data pipeline between
-polling stations and the public-facing results system.
+Central America has had a run of elections in which the public results feed
+was disputed: it stopped, resumed, or could not be checked by an outsider.
+This document does not decide those disputes. It describes why a third party
+needs a record of what an official portal published, and of when that portal
+went offline.
 
-Centroamerica concentra mas conteos digitales disputados por capita que cualquier
-otra region del hemisferio occidental. Entre 2017 y 2025, cinco de seis
-elecciones en el Triangulo Norte y el istmo produjeron denuncias creibles de
-manipulacion digital de resultados — no en la urna, sino en el canal de datos
-entre las mesas receptoras y el sistema publico de resultados.
+En Centroamerica ha habido una serie de elecciones en las que el canal publico
+de resultados fue disputado: se detuvo, volvio, o un tercero no pudo comprobarlo.
+Este documento no resuelve esas disputas. Describe por que un tercero necesita
+un registro de lo que un portal oficial publico, y de cuando ese portal dejo
+de responder.
 
 ### Recent Contested Elections / Elecciones Recientes Disputadas
 
@@ -47,22 +47,22 @@ subsequently attempted to suspend Semilla's legal status and annul the result.
 The TSE's digital infrastructure could not independently prove whether delays
 were technical or strategic.
 
-**El Salvador (concentration of power).** Between 2019 and 2024, President
-Nayib Bukele consolidated control over the Tribunal Supremo Electoral, the
-Constitutional Chamber (which authorized his constitutionally prohibited
-re-election), and the Attorney General's office. The February 2024 election was
-conducted under conditions where the TSE functioned as a dependent institution.
-International observers from the EU noted "serious concerns about the integrity
-of the tabulation process," including unexplained delays in acta processing.
+**El Salvador.** Published accounts of 2019–2024 describe concentration of
+authority over electoral and judicial institutions, and EU observers reported
+concerns about tabulation delays in February 2024. This repository does not
+adopt those accounts as a finding of its own. The engineering fact it uses is
+narrower: a results portal can go quiet or change, and a third party needs a
+record of what was published.
 
-**Honduras 2025.** The Consejo Nacional Electoral conducted general elections
-on November 30, 2025. VIGIL's forensic engine was applied retroactively to 64 JSON
-snapshots captured from the public results endpoint — a post-mortem analysis,
-not a live audit. The engine flagged a prolonged publication gap followed by a
-trend shift, and an acta resolution rate of 39.15 per minute, approximately
-3.9x the pre-registered operational threshold. Prolonged
-stagnation windows were documented with cryptographic timestamps. This was the
-first Central American election with an independent, cryptographic digital audit.
+**Honduras 2025.** The Consejo Nacional Electoral published results after the
+30 November 2025 general election. VIGIL's engine was run afterwards on 64
+public JSON files. That is not a live audit, and those files are not a hash
+chain (`verify_chain.py` reports 63 orphans and exits 1). The engine recorded
+a long publication gap, a later trend shift, and an acta resolution rate of
+39.15 per minute, about 3.9× a pre-registered operational threshold. That
+threshold is not a physical limit measured in the field. A Merkle root of the
+64 files is committed. It binds those bytes; it is not continuous custody
+during the count.
 
 ### The Common Pattern / El Patron Comun
 
@@ -227,12 +227,12 @@ cryptographic timestamps.
 **Timeline:** November 2025 - March 2026
 **Status:** Complete
 
-- Full pipeline deployed and validated with real election data
-- 64 snapshots captured, chained, and Bitcoin-anchored
-- 24 statistical detectors tested against real data
-- Dashboard operational with public verification
-- Academic partnership established with UPNFM
-- Documentation and methodology published under AGPL-3.0
+- Pipeline exercised on 64 official public JSON files (retroactive, not a live capture)
+- Those files are not a hash chain; a Merkle root of the bytes is committed, with an OpenTimestamps proof
+- 24 statistical detectors run against that public sample
+- Dashboard can show the replay; it must not present the replay as a live feed
+- No academic partnership is claimed
+- Documentation published under AGPL-3.0
 
 ### Phase 2: Guatemala 2027 Municipal Elections / Fase 2: Elecciones Municipales Guatemala 2027
 

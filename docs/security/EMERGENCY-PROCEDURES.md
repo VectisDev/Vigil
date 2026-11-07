@@ -250,7 +250,7 @@ Fill before deployment:
 |------|------|---------|
 | Technical lead | ________ | ________ |
 | Backup operator | ________ | ________ |
-| UPNFM academic liaison | ________ | ________ |
+| Academic liaison (none engaged) | ________ | ________ |
 | OTF program contact | ________ | ________ |
 
 ### Guiding Principle

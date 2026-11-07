@@ -26,13 +26,19 @@ How it works / Cómo funciona:
     2. Computes SHA-256 of each file's raw bytes.
     3. Reads the "previous_hash" field from each JSON.
     4. Verifies that previous_hash matches the actual SHA-256 of the prior file.
-    5. Reports any break in the chain.
+    5. Treats a missing previous_hash (except on the first file) as an orphan.
+       Orphans are a failed verification: raw JSON is not a hash chain.
+    6. Exits 0 only when every file after the first is linked. Otherwise exits 1.
 
     A single altered byte in any file breaks the chain from that point forward.
     This is the same property that makes Bitcoin's blockchain tamper-evident.
 
+    The bundled Honduras 2025 fixtures are official JSON without previous_hash.
+    Verifying that directory must report orphans and exit 1. Custody of those
+    files, if any, is the separate Merkle root, not this chain check.
+
 License: AGPL-3.0 (same as VIGIL)
-Version: 1.0.0
+Version: 1.1.0
 """
 
 import hashlib
@@ -51,6 +57,7 @@ SNAPSHOT_HASH_KEY = "snapshot_hash"
 # ---------------------------------------------------------------------------
 # Core verification / Verificación central
 # ---------------------------------------------------------------------------
+
 
 def sha256_file(filepath: str) -> str:
     """Compute SHA-256 hex digest of a file's raw bytes."""
@@ -94,19 +101,26 @@ def verify_chain(directory: str, verbose: bool = False) -> dict:
     Returns:
         dict with keys:
             total: number of files processed
-            valid: number of valid chain links
+            valid: number of valid chain links (the first file counts as genesis)
             broken: list of (filename, expected_hash, actual_hash) for breaks
             first_file: first file in chain (has no previous to verify)
-            orphans: files where previous_hash field was not found
-            chain_intact: True if entire chain is valid
+            orphans: files after the first where previous_hash was not found
+            chain_intact: True only when there is no break and no orphan
+            status: "intact" | "orphans" | "broken" | "empty"
     """
     path = Path(directory)
     json_files = sorted(path.glob("*.json"))
 
     if not json_files:
         return {
-            "total": 0, "valid": 0, "broken": [], "first_file": None,
-            "orphans": [], "chain_intact": False, "error": "No .json files found"
+            "total": 0,
+            "valid": 0,
+            "broken": [],
+            "first_file": None,
+            "orphans": [],
+            "chain_intact": False,
+            "status": "empty",
+            "error": "No .json files found",
         }
 
     results = {
@@ -116,6 +130,7 @@ def verify_chain(directory: str, verbose: bool = False) -> dict:
         "first_file": json_files[0].name,
         "orphans": [],
         "chain_intact": True,
+        "status": "intact",
     }
 
     prev_hash = None
@@ -152,10 +167,12 @@ def verify_chain(directory: str, verbose: bool = False) -> dict:
             results["valid"] += 1
         else:
             if recorded_prev is None:
-                # No previous_hash field found
+                # No previous_hash field found. This is not a successful link.
+                # A directory of raw snapshots must not be reported as intact.
                 results["orphans"].append(filepath.name)
+                results["chain_intact"] = False
                 if verbose:
-                    print(f"         ⚠️  No previous_hash field found — cannot verify link")
+                    print(f"         ⚠️  No previous_hash field found — orphan, custody not proven")
             elif recorded_prev == prev_hash:
                 # Chain link is valid
                 results["valid"] += 1
@@ -172,12 +189,25 @@ def verify_chain(directory: str, verbose: bool = False) -> dict:
 
         prev_hash = file_hash
 
+    if results["broken"]:
+        results["status"] = "broken"
+        results["chain_intact"] = False
+    elif results["orphans"]:
+        # Orphans are a failed check, distinct from a hash mismatch: the files
+        # were never linked. Calling that "intact" is a false green.
+        results["status"] = "orphans"
+        results["chain_intact"] = False
+    else:
+        results["status"] = "intact"
+        results["chain_intact"] = True
+
     return results
 
 
 # ---------------------------------------------------------------------------
 # Report generation / Generación de reporte
 # ---------------------------------------------------------------------------
+
 
 def format_report(results: dict, directory: str) -> str:
     """Generate a human-readable verification report."""
@@ -193,6 +223,7 @@ def format_report(results: dict, directory: str) -> str:
         f"Broken links / Enlaces rotos:  {len(results['broken'])}",
         f"Orphans (no prev_hash) / Huérfanos:  {len(results['orphans'])}",
         f"First file / Primer archivo:  {results.get('first_file', 'N/A')}",
+        f"Status / Estado:  {results.get('status', 'unknown')}",
         "",
     ]
 
@@ -200,7 +231,8 @@ def format_report(results: dict, directory: str) -> str:
         lines.append(f"ERROR: {results['error']}")
         lines.append("")
 
-    if results["chain_intact"] and results["total"] > 0:
+    status = results.get("status")
+    if status == "intact" and results["total"] > 0 and not results["orphans"]:
         lines.append("╔══════════════════════════════════════════════════════╗")
         lines.append("║  ✅  CHAIN INTEGRITY VERIFIED — CADENA ÍNTEGRA     ║")
         lines.append("║                                                      ║")
@@ -210,6 +242,24 @@ def format_report(results: dict, directory: str) -> str:
         lines.append("║  Todos los snapshots están criptográficamente        ║")
         lines.append("║  enlazados. No se detectó manipulación.              ║")
         lines.append("╚══════════════════════════════════════════════════════╝")
+    elif status == "orphans" and not results["broken"]:
+        orphan_count = len(results["orphans"])
+        lines.append("╔══════════════════════════════════════════════════════╗")
+        lines.append("║  ⚠️  CUSTODY NOT PROVEN — CADENA NO DEMOSTRADA    ║")
+        lines.append("║                                                      ║")
+        lines.append("║  Files after the first have no previous_hash.        ║")
+        lines.append("║  These are raw snapshots, not a verified hash chain. ║")
+        lines.append("║  This is not evidence of tampering.                  ║")
+        lines.append("║                                                      ║")
+        lines.append("║  Hay archivos sin previous_hash (huérfanos).         ║")
+        lines.append("║  Son capturas crudas, no una cadena verificada.      ║")
+        lines.append("║  Esto no es evidencia de manipulación.               ║")
+        lines.append("╚══════════════════════════════════════════════════════╝")
+        lines.append("")
+        lines.append(
+            f"  Orphans / Huérfanos: {orphan_count} of {results['total']} files "
+            "(the first file is genesis and is not counted as an orphan)."
+        )
     else:
         lines.append("╔══════════════════════════════════════════════════════╗")
         lines.append("║  ⛔  CHAIN INTEGRITY FAILED — CADENA ROTA          ║")
@@ -229,7 +279,7 @@ def format_report(results: dict, directory: str) -> str:
 
     lines.append("")
     lines.append("-" * 70)
-    lines.append("Verification tool: verify_chain.py v1.0.0")
+    lines.append("Verification tool: verify_chain.py v1.1.0")
     lines.append("Algorithm: SHA-256 (NIST FIPS 180-4)")
     lines.append("This report was generated independently of the VIGIL engine.")
     lines.append("Este reporte fue generado independientemente del motor VIGIL.")
@@ -242,12 +292,13 @@ def format_report(results: dict, directory: str) -> str:
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def main():
     import argparse
 
     parser = argparse.ArgumentParser(
         description="VIGIL — Independent hash chain verifier / Verificador independiente de cadena de hashes",
-        epilog="No dependencies required. Works with Python 3.6+ standard library only."
+        epilog="No dependencies required. Works with Python 3.6+ standard library only.",
     )
     parser.add_argument("directory", help="Directory containing .json snapshot files")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show hash of each file")
@@ -275,8 +326,8 @@ def main():
     else:
         print(output)
 
-    # Exit code: 0 if chain intact, 1 if broken
-    sys.exit(0 if results["chain_intact"] else 1)
+    # Exit 0 only when every link was checked. Orphans are a failure.
+    sys.exit(0 if results.get("status") == "intact" else 1)
 
 
 if __name__ == "__main__":

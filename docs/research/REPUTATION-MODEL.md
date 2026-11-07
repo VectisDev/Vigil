@@ -391,7 +391,7 @@ Este documento es parte del proyecto Vigil (AGPL-3.0). Para citar en publicacion
   author = {{VectisDev}},
   year   = {2026},
   month  = {5},
-  institution = {Proyecto Vigil / UPNFM},
+  institution = {VIGIL Project},
   note   = {Documento técnico interno v1.0}
 }
 ```

@@ -15,7 +15,7 @@
 | Piloto forense retroactivo | Completado: 64 archivos oficiales de Honduras 2025 ([detalle](Piloto-Honduras-2025-—-Honduras-2025-pilot)) |
 | Análisis de falsos positivos | 500 ejecuciones, [resultados publicados](https://github.com/VectisDev/Vigil/blob/main/docs/research/FALSE_POSITIVE_ANALYSIS.md) |
 | Convenciones estadísticas | Unificadas en un [documento de referencia](https://github.com/VectisDev/Vigil/blob/main/docs/stats/STATISTICAL_CONVENTIONS.md) |
-| Validación académica independiente | Iniciada con la Universidad Pedagógica Nacional Francisco Morazán (UPNFM) |
+| Validación académica independiente | Buscada. Ninguna institución ha firmado una revisión |
 | Piloto en vivo | Pendiente: previsto en una elección intermedia de 2026–2027, antes de Honduras 2029 |
 
 ### Hoja de ruta
@@ -45,7 +45,7 @@ Detalle de cada fase: [hoja de ruta](https://github.com/VectisDev/Vigil/blob/mai
 | Retroactive forensic pilot | Completed: 64 official Honduras 2025 files ([details](Piloto-Honduras-2025-—-Honduras-2025-pilot)) |
 | False positive analysis | 500 runs, [results published](https://github.com/VectisDev/Vigil/blob/main/docs/research/FALSE_POSITIVE_ANALYSIS.md) |
 | Statistical conventions | Unified in a [reference document](https://github.com/VectisDev/Vigil/blob/main/docs/stats/STATISTICAL_CONVENTIONS.md) |
-| Independent academic validation | Started with the Universidad Pedagógica Nacional Francisco Morazán (UPNFM) |
+| Independent academic validation | Sought. No institution has signed a review |
 | Live pilot | Pending: planned for an intermediate election in 2026–2027, ahead of Honduras 2029 |
 
 ### Roadmap

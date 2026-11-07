@@ -57,10 +57,10 @@ anchors:
       branch: "main"
       credential_env: "GIT_OEA_DEPLOY_KEY"
       push_interval_hours: 24
-    - name: "upnfm-university"
-      url: "https://github.com/upnfm-transparency/centinel-hashes"
+    - name: "example-university"
+      url: "https://example.invalid/centinel-hashes"
       branch: "main"
-      credential_env: "GIT_UPNFM_DEPLOY_KEY"
+      credential_env: "GIT_EXAMPLE_DEPLOY_KEY"
       push_interval_hours: 24
     - name: "ndi-mirror"
       url: "https://github.com/ndi-democracy/electoral-audit"
@@ -194,10 +194,10 @@ if not (bitcoin_ok or mirrors_ok['passed'] >= 2):
 
 ### Deployment timeline
 - **Week 1:** Set up OpenTimestamps integration (done: `src/anchor/opentimestamps.py`)
-- **Week 2:** Onboard 3 mirror partners (OEA, UPNFM, NDI)
+- **Week 2:** Onboard mirror operators (none committed; names below are examples)
 - **Week 3:** Test full chain: snapshot → merkle → Bitcoin + mirrors
 - **Week 4:** Automated weekly commits to mirrors
-- **Pre-pilot:** Demonstrate consistency to UPNFM validators
+- **Pre-pilot:** Demonstrate consistency to an independent reviewer (none engaged)
 
 ---
 

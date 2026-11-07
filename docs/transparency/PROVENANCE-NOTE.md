@@ -2,10 +2,10 @@
 
 ## English
 
-This repository is the public tree of VIGIL. Prior development history is
-retained in a private archive under the same GitHub account for provenance, and
-can be made available to funders under confidentiality if a grant process
-requires evidence of continuous development.
+This repository is the public tree of VIGIL, and it still contains its
+development history. That history includes earlier author metadata that is
+not repeated in this file. A separate private archive has not replaced it.
+Rewriting that history is a maintainer decision; this note does not do it.
 
 The published dataset for the Honduras 2025 retroactive analysis is deposited
 independently of this repository:
@@ -25,10 +25,10 @@ Authorship is published under the pseudonym **VectisDev** for operator safety.
 
 ## Español
 
-Este repositorio es el árbol público de VIGIL. El historial de desarrollo previo
-se conserva en un archivo privado bajo la misma cuenta de GitHub para efectos de
-procedencia, y puede ponerse a disposición de financiadores bajo
-confidencialidad si un proceso lo requiere.
+Este repositorio es el árbol público de VIGIL y todavía contiene su historial
+de desarrollo. Ese historial incluye metadatos de autor anteriores que este
+archivo no repite. Un archivo privado aparte no lo ha reemplazado. Reescribir
+ese historial es una decisión del mantenedor; esta nota no lo hace.
 
 El dataset publicado del análisis retroactivo de Honduras 2025 está depositado de
 forma independiente de este repositorio:

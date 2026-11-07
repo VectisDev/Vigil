@@ -48,7 +48,7 @@ Esta nota resume qué puede presentar hoy VIGIL en conversaciones de alto nivel 
    - Se define manifiesto de publicación y ventanas mínimas de retención verificable.
 
 6. **Ciclo de atestación técnica independiente**
-   - Institucionalizar revisiones técnicas externas recurrentes sobre reproducibilidad, postura de seguridad y controles operativos (separado de la validación estadística que lleva UPNFM).
+   - Institucionalizar revisiones técnicas externas recurrentes sobre reproducibilidad, postura de seguridad y controles operativos. La revisión estadística independiente también está pendiente; ninguna institución la lleva.
 
 ## Plan sugerido de 60 días
 

@@ -40,7 +40,7 @@ En el análisis forense retroactivo sobre 64 archivos JSON originales del CNE de
 
 **Marcar:** ☑ Desarrollo tecnológico  ☑ Investigación aplicada
 
-El financiamiento se destinaría a: (1) validación académica independiente con la Universidad Pedagógica Nacional Francisco Morazán (UPNFM); (2) expansión del motor estadístico con calibración contra datos históricos de Honduras; (3) guías técnicas para periodistas y observadores internacionales; (4) piloto de campo en Guatemala y El Salvador.
+El financiamiento se destinaría a: (1) validación académica independiente, aún sin institución comprometida; (2) expansión del motor estadístico con calibración contra datos históricos de Honduras; (3) guías técnicas para periodistas y observadores internacionales; (4) piloto de campo en Guatemala y El Salvador.
 
 ---
 

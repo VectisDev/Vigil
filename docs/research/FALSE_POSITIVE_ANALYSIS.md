@@ -246,14 +246,8 @@ PYTHONPATH=src python scripts/validate_false_positive_rate.py
 
 ## Aprobación / Approval
 
-Pendiente revisión técnica y firma:
-
-**independent academic reviewer (pending)**  
-Departamento de Matemáticas y Estadística  
-Universidad Pedagógica Nacional Francisco Morazán (UPNFM)  
-Tegucigalpa, Honduras
-
-_Firma: _________________________ Fecha: _____________
+Pendiente. Ninguna institución ha firmado esta revisión. No se afirma una
+afiliación universitaria.
 
 ---
 *VIGIL — AGPL-3.0 — WP-CENTINEL-2026-01 v1.0*

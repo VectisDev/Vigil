@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: "VIGIL: verifiable monitoring of official public-information portals"
+message: "If you use this software, please cite it using these metadata."
+type: software
+authors:
+  - name: VectisDev
+    email: security@vectis.dev
+    website: "https://github.com/VectisDev"
+repository-code: "https://github.com/VectisDev/Vigil"
+url: "https://github.com/VectisDev/Vigil"
+abstract: >-
+  VIGIL preserves what an official public information portal publishes and
+  makes a later alteration, or an outage, evident to a third party. The
+  Honduras 2025 materials in this repository are a retroactive demonstration
+  on public JSON. They are not a live chain of custody and they do not
+  attribute intent to any party.
+license: AGPL-3.0-only
+version: 0.1.0
+date-released: 2026-01-02
+keywords:
+  - public-information
+  - election-results
+  - hash-chain
+  - outage-monitoring
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.20598892
+    description: >-
+      Dataset of the Honduras 2025 public JSON captures. Not a DOI for this
+      software tree.

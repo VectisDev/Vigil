@@ -35,8 +35,7 @@ candidatura electoral activa en los países donde el sistema opera.
 
 Compuesto por representantes de:
 
-- **UPNFM** (Universidad Pedagógica Nacional Francisco Morazán) — revisión de métodos
-  estadísticos
+- **Revisor académico independiente** — buscado; ninguna institución está comprometida
 - **Observadores independientes** — uso operativo del sistema en contexto electoral
 - **Comunidad open source** — revisión de código y seguridad
 
@@ -84,8 +83,8 @@ Si un mantenedor identifica un conflicto de intereses:
 1. Fork del repositorio → rama de feature → Pull Request
 2. El PR debe pasar CI (tests, linting, type checking)
 3. Revisión por al menos 1 mantenedor
-4. Para cambios en reglas estadísticas o núcleo criptográfico: revisión por UPNFM
-   o revisor técnico independiente
+4. Para cambios en reglas estadísticas o núcleo criptográfico: revisión por un
+   revisor técnico independiente (ninguna institución está comprometida a la fecha)
 
 #### Para contribuciones de documentación
 
@@ -134,15 +133,9 @@ obligación de publicación, condicionada a:
 
 ### Entidad Legal
 
-Para efectos de recepción de grants y contratos, el proyecto opera bajo la supervisión
-académica de:
-
-**Universidad Pedagógica Nacional Francisco Morazán (UPNFM)**
-- País: Honduras
-- Contacto institucional: En coordinación con el equipo del proyecto
-- Rol: Fiscal sponsor para grants internacionales, revisión académica de métodos
-
-*(Esta sección se actualizará una vez que la relación formal con UPNFM esté establecida)*
+No hay patrocinador fiscal ni supervisor académico. Cualquier arreglo futuro se
+declara al financiador antes de recibir fondos. No se afirma una relación con
+ninguna universidad.
 
 ---
 

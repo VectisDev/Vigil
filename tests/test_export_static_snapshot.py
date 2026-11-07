@@ -79,6 +79,34 @@ def test_no_data_never_claims_reachable_true(tmp_path: Path):
     assert not (doc["cne_status"]["reachable"] and doc["cne_status"]["last_attempt"] is None)
 
 
+def test_export_does_not_call_unprobed_endpoints_offline(tmp_path: Path):
+    """El YAML de endpoints no es una medición. Sin last_validated no hay apagón."""
+    (tmp_path / "data").mkdir()
+    cfg = tmp_path / "config" / "prod"
+    cfg.mkdir(parents=True)
+    (cfg / "endpoints.yaml").write_text(
+        "cne:\n  presidential_endpoints:\n    - url: https://example.invalid/a\n",
+        encoding="utf-8",
+    )
+    export_snapshot(tmp_path)
+    health = _written(tmp_path)["endpoint_health"]
+    assert health["observed"] is False
+    assert health["offline"] == 0
+    assert health["endpoints"][0]["status"] == "unknown"
+
+
+def test_published_snapshot_status_matches_observations():
+    """El snapshot publicado no puede afirmar salud que el documento no midió."""
+    doc = json.loads((REPO_ROOT / "web" / "data" / "snapshot.json").read_text(encoding="utf-8"))
+    cne = doc["cne_status"]
+    if cne.get("reachable") is True:
+        assert cne.get("last_attempt"), "reachable=true requires a recorded fetch attempt"
+    health = doc.get("endpoint_health") or {}
+    for endpoint in health.get("endpoints") or []:
+        if not endpoint.get("last_validated"):
+            assert endpoint.get("status") in (None, "", "unknown")
+
+
 def test_tree_with_chain_is_monitoring(tmp_path: Path):
     (tmp_path / "data").mkdir()
     (tmp_path / "hashes").mkdir()

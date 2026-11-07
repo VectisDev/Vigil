@@ -143,3 +143,59 @@ def test_run_and_publish_emits_coverage_alerts(monkeypatch, tmp_path: Path) -> N
     )
 
     assert any(a["kind"] == "capture_gap" for a in alerts)
+
+
+def test_unprobed_endpoints_are_unknown_not_offline(tmp_path: Path) -> None:
+    """A config file is not a probe. Missing last_validated must not read as an outage.
+
+    Un archivo de configuración no es una consulta. Sin last_validated el estado
+    es desconocido, no un apagón.
+    """
+    yaml_path = tmp_path / "endpoints.yaml"
+    yaml_path.write_text(
+        "\n".join(
+            [
+                "cne:",
+                "  main_url: https://example.invalid/nacional",
+                "  presidential_endpoints:",
+                "    - url: https://example.invalid/01",
+                "    - url: https://example.invalid/02",
+                "      validation_status: ok",
+                "healing:",
+                "  argos_protocol: normal",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    block = fp.build_endpoint_health_block(yaml_path)
+    assert block["observed"] is False
+    assert block["checked_at"] is None
+    assert block["online"] == 0
+    assert block["offline"] == 0
+    assert block["unknown"] == 2
+    assert all(ep["status"] == "unknown" for ep in block["endpoints"])
+    assert all(ep["last_validated"] is None for ep in block["endpoints"])
+
+
+def test_offline_status_requires_a_recorded_probe(tmp_path: Path) -> None:
+    """offline is allowed only together with the timestamp of the probe that saw it."""
+    yaml_path = tmp_path / "endpoints.yaml"
+    yaml_path.write_text(
+        "\n".join(
+            [
+                "cne:",
+                "  presidential_endpoints:",
+                "    - url: https://example.invalid/01",
+                "      validation_status: offline",
+                "      last_validated: '2026-11-01T00:00:00Z'",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    block = fp.build_endpoint_health_block(yaml_path)
+    assert block["observed"] is True
+    assert block["offline"] == 1
+    assert block["endpoints"][0]["status"] == "offline"
+    assert block["checked_at"]
