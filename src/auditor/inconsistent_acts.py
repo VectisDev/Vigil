@@ -579,12 +579,11 @@ class InconsistentActsTracker:
         }
 
     def detect_blackout_windows(self) -> list[dict[str, Any]]:
-        """Detect communication blackout windows followed by trend shifts.
+        """Flag a long gap between stored snapshots, then a share change.
 
-        Detecta ventanas de apagón comunicacional seguidas de cambios de tendencia.
-        Un apagón es un gap temporal inusualmente largo entre snapshots consecutivos.
-        Si después del gap la tendencia de un candidato cambia significativamente,
-        esto indica que durante el apagón se alteraron datos.
+        A long gap between timestamps on files we already hold. It does not
+        show that a portal stopped answering, and it does not show that
+        anyone altered the unpublished interval.
         """
         blackouts: list[dict[str, Any]] = []
         if len(self.snapshots) < 2:

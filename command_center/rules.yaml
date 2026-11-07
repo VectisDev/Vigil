@@ -45,6 +45,8 @@ chi2_p_critical: 0.01
 benford_min_samples: 10
 max_json_presidenciales: 19
 
+# promotion: exploratory means the rule is not treated as settled.
+# A CRITICAL rule stays exploratory until tests/fixtures/promotion/<key>.json exists.
 # ── 04. REGLAS ANALÍTICAS ────────────────────────────────────
 # Cada entrada usa el config_key del decorador @rule en el módulo correspondiente.
 # Each entry uses the config_key from the @rule decorator in the corresponding module.
@@ -71,6 +73,7 @@ rules:
   benford_law:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     min_samples: 30
 
   # ── BENFORD primer dígito por candidato (investigación) ──
@@ -89,6 +92,7 @@ rules:
   last_digit_uniformity:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     min_samples: 20
     chi_pvalue_critical: 0.001
 
@@ -97,6 +101,7 @@ rules:
   granular_anomaly:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     negative_delta_threshold: 0
     delta_pct_alert: 3.0
     delta_pct_time_window_minutes: 30
@@ -119,24 +124,28 @@ rules:
   mesa_impossibility:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
 
   # ── MUTACIÓN DE REGISTROS ENTRE PUBLICACIONES ────────────
   # Módulo: mesa_reconciliation_rule.py | Severity: CRITICAL
   mesa_reconciliation:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
 
   # ── MESAS DUPLICADAS O DESAPARECIDAS ─────────────────────
   # Módulo: mesas_diff_rule.py | Severity: CRITICAL
   mesas_diff:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
 
   # ── SALTOS ENTRE SNAPSHOTS (>X% en Y min) ────────────────
   # Módulo: snapshot_jump_rule.py | Severity: CRITICAL
   snapshot_jump:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     max_change_pct: 5
     max_minutes: 10
 
@@ -145,6 +154,7 @@ rules:
   participation_vote_correlation:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     min_samples: 30
     warning_r: 0.70    # NEW dev-v12: HN2025 r=0.76 — calibrated early-warning level
     critical_r: 0.85    # VALIDATED: not triggered in HN2025 data (r=0.76 < 0.85 ✓)
@@ -154,6 +164,7 @@ rules:
   geographic_dispersion:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     critical_cv: 0.45
     min_departments: 5
 
@@ -166,6 +177,7 @@ rules:
   null_blank_votes:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     warning_pct: 8
     critical_pct: 12
 
@@ -174,6 +186,7 @@ rules:
   table_consistency:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     total_tolerance: 1
 
   # ── TASA DE INCONSISTENCIA ESTRUCTURAL ───────────────────
@@ -200,6 +213,7 @@ rules:
   inconsistency_rate:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     critical_pct: 10
     # Umbral de escalada calibrado: 0.5% = >5σ sobre la stdev real HN 2025 (0.10%).
     # Calibrated escalation threshold: 0.5% = >5σ above real HN 2025 stdev (0.10%).
@@ -210,6 +224,7 @@ rules:
   runs_test:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     min_samples: 30
     critical_pvalue: 0.01
 
@@ -232,6 +247,7 @@ rules:
   participation_anomaly_advanced:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     min_turnout_pct: 70   # CALIBRATED HN2025: observed min=80%, buffer 10pp (was 40 — unreachable)
     max_turnout_pct: 100
     # Calculado desde 54 snapshots con votos válidos, elección presidencial HN 2025.
@@ -244,6 +260,7 @@ rules:
   turnout_impossible:
     enabled: true
     severity: "CRITICAL"
+    promotion: exploratory  # no fixture outside tests/fixtures/hnd_2025
     min_turnout_pct: 0
     max_turnout_pct: 100
 

@@ -1,0 +1,20 @@
+# Offline demo. Base image is pinned by digest so the Python build does not float.
+# No project dependencies are installed.
+FROM python:3.11.11-slim-bookworm@sha256:a8e0a3090316aed0b11037aac613aef32fb1747dcc1dcb5c0f6c727a0113a07f
+
+WORKDIR /opt/vigil
+
+# The slim image has Python and not make. make is the documented command.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends make \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY Makefile ./
+COPY verify ./verify
+COPY scripts/replay_pipeline.py ./scripts/replay_pipeline.py
+COPY src/vigil/__init__.py ./src/vigil/__init__.py
+COPY src/vigil/core/__init__.py ./src/vigil/core/__init__.py
+COPY src/vigil/core/anchoring.py ./src/vigil/core/anchoring.py
+COPY tests/fixtures/hnd_2025 ./tests/fixtures/hnd_2025
+
+CMD ["make", "replay-offline"]

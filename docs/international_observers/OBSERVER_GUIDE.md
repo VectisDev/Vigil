@@ -90,7 +90,7 @@ ls tests/fixtures/hnd_2025/   # 64 JSON del CNE
 
 ### Opción C — Desplegar para monitoreo en tiempo real
 
-Ver [docs/guides/QUICKSTART.md](../guides/QUICKSTART.md) — 3 pasos, sin servidores, costo cero.
+Ver [docs/guides/QUICKSTART.md](../guides/QUICKSTART.md). La comprobación de la muestra no necesita servidor: [docs/VERIFY.md](../VERIFY.md).
 
 ---
 

@@ -12,6 +12,15 @@ make replay-offline
 
 `make` uses `python3`. The target does not install dependencies.
 
+The same check inside the pinned image, still with no pip packages:
+
+```bash
+docker build -f Dockerfile.demo -t vigil-demo .
+docker run --rm vigil-demo
+```
+
+`requirements/verify.txt` is intentionally empty of packages. Playwright and WeasyPrint are optional extras (`reports`) for PDF and browser capture. They are not on this path.
+
 ## What you should see
 
 **Step 1.** `verify/verify_chain.py tests/fixtures/hnd_2025/` exits **1**.

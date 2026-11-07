@@ -22,7 +22,7 @@ La muestra de 2025 se describe solo en [`docs/evidence/HN2025.md`](../evidence/H
 - Calibración con una serie que no sea la de 2025. Si no aparece, el entregable del pedido de 75,000 USD es un resultado negativo escrito.
 - Separación con compuerta de promoción entre reglas estables y experimentales. `rules.enable_research_rules` puede existir; no hay una compuerta que impida promover un umbral calibrado solo con `tests/fixtures/hnd_2025/`.
 - Cobertura de todo el repositorio. Hay un piso solo sobre custodia y estadística, en el job `coverage-core`.
-- Build reproducible (imagen o Nix) y fuzzing. No están en este árbol.
+- Una imagen del demo está en `Dockerfile.demo` y el job `demo-image` la ejecuta. No hay un build Nix del sistema completo.
 - Un patrocinador fiscal. No se afirma uno.
 
 ## Pedido de fondos
@@ -55,7 +55,7 @@ The 2025 sample is described only in [`docs/evidence/HN2025.md`](../evidence/HN2
 - Calibration on a series other than 2025. If none turns up, the deliverable in the 75,000 USD ask is a written negative result.
 - A promotion gate between stable and experimental rules. `rules.enable_research_rules` may exist; nothing stops a threshold fit only on `tests/fixtures/hnd_2025/` from being treated as settled.
 - Coverage of the whole repository. There is a floor only on custody and statistics, in the `coverage-core` job.
-- A reproducible image or Nix build, and fuzzing. Not in this tree.
+- The demo image is `Dockerfile.demo`, and the `demo-image` job runs it. There is no Nix build of the whole system. A bounded parser fuzz lives in `tests/test_fuzz_parsers.py`.
 - A fiscal sponsor. None is claimed.
 
 ## Funding ask

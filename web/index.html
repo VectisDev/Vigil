@@ -775,15 +775,15 @@ footer {
   </h2>
 
   <p class="hero-body" data-lang="en">
-    VIGIL captures every publication of official data,
-    chains each snapshot cryptographically, and detects statistical anomalies —
-    in real time, at zero cost, for any country in Latin America.
+    VIGIL stores what an official portal published, when a capture job is actually running.
+    The Honduras 2025 files in this repo are a saved sample, not a live chain.
+    The offline check needs only Python.
   </p>
 
   <p class="hero-body" data-lang="es">
-    VIGIL captura cada publicación de datos oficiales,
-    encadena cada snapshot criptográficamente, y detecta anomalías estadísticas —
-    en tiempo real, a costo cero, para cualquier país de América Latina.
+    VIGIL guarda lo que un portal oficial publicó, cuando hay una captura en marcha.
+    Los archivos de Honduras 2025 en este repo son una muestra guardada, no una cadena en vivo.
+    La comprobación sin red solo necesita Python.
   </p>
 
   <div class="hero-actions">
@@ -812,30 +812,30 @@ footer {
     <div class="stats-row">
       <div class="stat">
         <div class="stat-number">13h</div>
-        <div class="stat-label" data-lang="en">No data published</div>
-        <div class="stat-label" data-lang="es">Sin datos publicados</div>
-        <div class="stat-sub" data-lang="en">Complete blackout during count consolidation</div>
-        <div class="stat-sub" data-lang="es">Apagón completo durante consolidación del conteo</div>
+        <div class="stat-label" data-lang="en">No file stored in that interval</div>
+        <div class="stat-label" data-lang="es">Sin archivo guardado en ese intervalo</div>
+        <div class="stat-sub" data-lang="en">Filename gap. Not a measured portal outage. See docs/evidence/HN2025.md</div>
+        <div class="stat-sub" data-lang="es">Hueco entre nombres de archivo. No es una caída medida del portal.</div>
       </div>
       <div class="stat">
         <div class="stat-number">2,346</div>
-        <div class="stat-label" data-lang="en">Tally sheets processed above the pre-registered threshold</div>
-        <div class="stat-label" data-lang="es">Actas resueltas por encima del umbral pre-registrado</div>
-        <div class="stat-sub" data-lang="en">39 acts/min — threshold is 10/min</div>
-        <div class="stat-sub" data-lang="es">39 actas/min — umbral es 10/min</div>
+        <div class="stat-label" data-lang="en">Fewer inconsistent tally sheets between two stored files</div>
+        <div class="stat-label" data-lang="es">Menos actas inconsistentes entre dos archivos guardados</div>
+        <div class="stat-sub" data-lang="en">39.15/min, about 3.9× a heuristic of 10. Not a pre-registered study</div>
+        <div class="stat-sub" data-lang="es">39.15/min, cerca de 3.9× una heurística de 10. No es un estudio pre-registrado</div>
       </div>
       <div class="stat">
-        <div class="stat-number">+69.6%</div>
-        <div class="stat-label" data-lang="en">The gap across the publication window</div>
-        <div class="stat-label" data-lang="es">Brecha observada entre capturas</div>
-        <div class="stat-sub" data-lang="en">While data was invisible to the public</div>
-        <div class="stat-sub" data-lang="es">Entre la captura previa y la posterior</div>
+        <div class="stat-number">63</div>
+        <div class="stat-label" data-lang="en">Files with no previous_hash</div>
+        <div class="stat-label" data-lang="es">Archivos sin previous_hash</div>
+        <div class="stat-sub" data-lang="en">verify_chain.py exits 1. Not an intact chain</div>
+        <div class="stat-sub" data-lang="es">verify_chain.py sale en 1. No es una cadena íntegra</div>
       </div>
     </div>
 
     <div class="chain-proof">
-      <span class="chain-proof-label" data-lang="en">SHA-256 chain root · 64 snapshots · cryptographically sealed</span>
-      <span class="chain-proof-label" data-lang="es">Raíz de cadena SHA-256 · 64 snapshots · sellado criptográficamente</span>
+      <span class="chain-proof-label" data-lang="en">Merkle root of 64 files · not a hash chain</span>
+      <span class="chain-proof-label" data-lang="es">Raíz Merkle de 64 archivos · no es una cadena de hashes</span>
       <span class="chain-proof-hash">f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780</span>
       <span class="chain-proof-anchor" data-lang="en">Anchored to Bitcoin via OpenTimestamps · reproducible by anyone, offline</span>
       <span class="chain-proof-anchor" data-lang="es">Anclado a Bitcoin vía OpenTimestamps · reproducible por cualquiera, sin conexión</span>
@@ -878,8 +878,8 @@ footer {
 
       <span class="verified-item pending">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        <span class="verified-text" data-lang="en"><strong>Open Technology Fund</strong><span>Internet Freedom Fund · application in review</span></span>
-        <span class="verified-text" data-lang="es"><strong>Open Technology Fund</strong><span>Internet Freedom Fund · solicitud en revisión</span></span>
+        <span class="verified-text" data-lang="en"><strong>Open Technology Fund</strong><span>Draft notes in the repo. Not a filed application.</span></span>
+        <span class="verified-text" data-lang="es"><strong>Open Technology Fund</strong><span>Borrador en el repo. No es una solicitud presentada.</span></span>
       </span>
 
     </div>

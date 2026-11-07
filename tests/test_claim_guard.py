@@ -25,6 +25,9 @@ SCANNED = [
     "docs/wiki/Observadores-—-Observers.md",
     "docs/international_observers/OBSERVER_GUIDE.md",
     "docs/mathematics/inconsistent-acts.md",
+    "docs/research/ARXIV_SUBMISSION.md",
+    "web/index.html",
+    "web/status/index.html",
 ]
 
 # These pages are where a gap was being narrated as a portal outage.
@@ -33,6 +36,8 @@ OUTAGE_CLAIM_FILES = {
     "docs/operations/PILOT_REPORT_HN_2025.md",
     "docs/wiki/Piloto-Honduras-2025-—-Honduras-2025-pilot.md",
     "docs/grants/OTF_ConceptNote_IFF2026.md",
+    "web/index.html",
+    "web/status/index.html",
 }
 
 PHYSICAL = [
