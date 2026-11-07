@@ -229,11 +229,10 @@ esta fase, pero planificadas:
    Pinning IPFS para evidencia — separado del mirror de código;
    apuntaría al repo de evidencia `centinel-data` específicamente una
    vez que la estabilidad de los servicios de pinning madure.
-3. **Self-hosted Forgejo on UPNFM/UNAH academic infrastructure** —
-   strategic partnership target for 2027; converts mirror network from
-   commercial-only to commercial + academic + non-profit triad.
-   Forgejo autoalojado en infraestructura académica UPNFM/UNAH —
-   objetivo estratégico de alianza para 2027.
+3. **Self-hosted Forgejo on independent infrastructure** —
+   a possible later mirror. No university or other host is committed.
+   Forgejo autoalojado en infraestructura independiente —
+   un espejo posible más adelante. Ningún anfitrión está comprometido.
 
 ## 8. References / Referencias
 

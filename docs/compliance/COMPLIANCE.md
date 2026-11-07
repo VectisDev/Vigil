@@ -2,7 +2,7 @@
 
 > **Modalidad: Alineamiento documentado — no certificación formal.**
 >
-> Este documento traza qué componentes de Vigil se alinean con qué cláusulas de qué norma, con referencia al archivo de código o documentación correspondiente. No implica auditoría independiente ni certificación de conformidad. Está destinado a revisores externos (OEA, Carter Center, NDI, UPNFM, OTF) que necesiten evaluar el rigor técnico del sistema.
+> Este documento traza qué componentes de Vigil se alinean con qué cláusulas de qué norma, con referencia al archivo de código o documentación correspondiente. No implica auditoría independiente ni certificación de conformidad. Está destinado a revisores externos (OEA, Carter Center, NDI, OTF) que necesiten evaluar el rigor técnico del sistema. No afirma una relación institucional.
 
 ---
 

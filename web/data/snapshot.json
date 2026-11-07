@@ -31,7 +31,7 @@
   },
   "report_pdf_url": null,
   "endpoint_health": {
-    "checked_at": "2026-11-06T23:15:46.174492+00:00",
+    "checked_at": null,
     "argos_protocol": "normal",
     "safe_mode_active": false,
     "consecutive_failures": 0,
@@ -39,13 +39,14 @@
     "total": 18,
     "online": 0,
     "degraded": 0,
-    "offline": 18,
+    "offline": 0,
+    "unknown": 18,
     "endpoints": [
       {
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/01",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -53,7 +54,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/02",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -61,7 +62,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/03",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -69,7 +70,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/04",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -77,7 +78,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/05",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -85,7 +86,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/06",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -93,7 +94,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/07",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -101,7 +102,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/08",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -109,7 +110,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/09",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -117,7 +118,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/10",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -125,7 +126,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/11",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -133,7 +134,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/12",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -141,7 +142,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/13",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -149,7 +150,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/14",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -157,7 +158,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/15",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -165,7 +166,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/16",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -173,7 +174,7 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/17",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       },
@@ -181,12 +182,14 @@
         "url": "https://resultadosgenerales2025.cne.hn/api/presidencial/departamento/18",
         "dept": "?",
         "level": "?",
-        "status": "offline",
+        "status": "unknown",
         "last_validated": null,
         "auto_replaced": false
       }
     ],
-    "available": true
+    "available": true,
+    "observed": false,
+    "note": "No fetch recorded. Status is unknown, not offline and not online."
   },
   "replay": {
     "dataset": "tests/fixtures/hnd_2025",

@@ -41,7 +41,7 @@ tier)                                     de severidad         saben que hay    
                  internacionales          Reporte forense
                                           reproducible con
                  Validación               un solo comando
-                 académica (UPNFM)
+                 académica (buscada)
 ```
 
 ### Premisas / Assumptions
@@ -111,7 +111,7 @@ a costo cero operativo. El grant solicitado es de validación y expansión, no d
 | CNE cambia formato JSON | Media | Alto | Adaptadores por país en `countries.py`; arquitectura modular |
 | CNE bloquea acceso | Alta | Alto | Swarm P2P federado; Tor fallback; gossip-first design |
 | Instrumentalización política | Media | Crítico | AGPL-3.0; neutralidad en diseño; DISCLAIMER.md; academia |
-| Credibilidad cuestionada | Baja | Alto | Validación UPNFM; calibración empírica; código abierto |
+| Credibilidad cuestionada | Baja | Alto | Revisión independiente buscada; calibración empírica pendiente; código abierto |
 | Falta de adopción | Media | Medio | Guías para observadores; documentación accesible |
 
 ---

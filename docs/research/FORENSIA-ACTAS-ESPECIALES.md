@@ -3,8 +3,9 @@
 ## Por qué existe este documento
 
 El escrutinio especial —actas con inconsistencias, apartadas y
-procesadas al final con menos escrutinio público— es históricamente el
-punto de consolidación de fraude en Honduras (2017, 2024). Hasta esta
+procesadas al final con menos escrutinio público— es un tramo del conteo
+más opaco para quien solo ve el agregado. Este documento no atribuye ese
+tramo a ninguna parte. Hasta esta
 capa, Vigil sellaba el JSON completo del CNE pero **analizaba solo
 agregados**: detectaba que el total nacional cambiaba, no *qué mesa*
 fue modificada ni *entre qué fases*.

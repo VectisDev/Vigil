@@ -718,8 +718,8 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 </div>
 <!-- ── STATUS CARDS ROW ── -->
 <div id="status-row">
-  <div id="alert-badge" class="status-card sc-ok" data-gtt="Estado general del sistema de auditoría. NORMAL = sin anomalías detectadas en el último ciclo."><span class="dot dot-ok"></span>SISTEMA NORMAL</div>
-  <div id="chain-badge" class="status-card sc-ok" data-gtt="Integridad de la cadena SHA-256. Cada snapshot está enlazado criptográficamente al anterior. Si un dato fue alterado, la cadena se rompe aquí."><span class="dot dot-ok"></span>CADENA ÍNTEGRA</div>
+  <div id="alert-badge" class="status-card sc-warn" data-gtt="Estado general. SIN OBSERVACIÓN = este documento no trae una consulta a la fuente. NORMAL solo aparece después de un intento registrado."><span class="dot dot-warn"></span>SIN OBSERVACIÓN</div>
+  <div id="chain-badge" class="status-card sc-warn" data-gtt="Integridad de la cadena SHA-256. CADENA NO VERIFICADA = no hay enlaces observados en este documento. Ausencia de datos no es integridad."><span class="dot dot-warn"></span>CADENA NO VERIFICADA</div>
   <div id="ots-badge" class="status-card sc-warn" data-gtt="Estado del anclaje a Bitcoin vía OpenTimestamps (OTS). VERIFICANDO = el timestamp fue enviado y está esperando confirmación en la blockchain (~1h)."><span class="dot dot-warn"></span>OTS VERIFICANDO</div>
   <div id="mirror-badge" class="status-card sc-ok" data-gtt="Espejos de respaldo activos. Si GitHub Pages cae, los datos siguen disponibles en nodos alternativos."><span class="dot dot-ok"></span>ESPEJOS —</div>
   <div id="ep-national-badge" class="status-card sc-ok" hidden data-gtt="Estado del endpoint nacional del CNE. Verde = responde. Rojo = sin datos, tiempo de blackout registrado con hash."><span class="dot dot-ok"></span>CNE —</div>
@@ -763,8 +763,8 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
       <div class="hero-sub" id="hero-sub">integridad</div>
     </div>
   </div>
-  <div class="hero-label" id="hero-label">CADENA ÍNTEGRA — 0 MUTACIONES</div>
-  <div class="hero-detail" id="hero-detail">Todos los snapshots capturados mantienen la cadena SHA-256 sin alteraciones. Verificable de forma independiente.</div>
+  <div class="hero-label" id="hero-label">CADENA NO VERIFICADA</div>
+  <div class="hero-detail" id="hero-detail">Este documento no trae una cadena observada. Ausencia de evidencia no es integridad.</div>
 </div>
 
 <!-- ── CRS BANNER — Score de Riesgo Compuesto ── -->
@@ -1245,8 +1245,8 @@ function setViewMode(mode){
 
 // ── HERO INTEGRITY RING ──
 function renderHero(data){
-  const ip=data?.national?.integrityPercent??100;
-  const state=data?.alertState||'normal';
+  const ip=data?.national?.integrityPercent;
+  const state=data?.alertState||'unknown';
   const incons=data?.forensics?.inconsistent_acts?.current_count||0;
   const ring=document.getElementById('hero-ring-fg');
   const pctEl=document.getElementById('hero-pct');
@@ -1254,6 +1254,28 @@ function renderHero(data){
   const labelEl=document.getElementById('hero-label');
   const detailEl=document.getElementById('hero-detail');
   const circumference=2*Math.PI*88;
+  if(state==='replay'){
+    ring.style.strokeDasharray=circumference;
+    ring.style.strokeDashoffset=circumference*0.35;
+    ring.className='hero-ring-fg warn';
+    pctEl.textContent='—';
+    labelEl.textContent='REPLAY — RAIZ MERKLE COINCIDE';
+    detailEl.textContent='Reproducción local de archivos ya publicados. No es una cadena de custodia en vivo y no afirma que la fuente esté en línea.';
+    subEl.textContent='replay';
+    renderCitizenSemaphore(data);
+    return;
+  }
+  if(state==='unknown'||ip==null){
+    ring.style.strokeDasharray=circumference;
+    ring.style.strokeDashoffset=circumference;
+    ring.className='hero-ring-fg warn';
+    pctEl.textContent='—';
+    labelEl.textContent='CADENA NO VERIFICADA';
+    detailEl.textContent='Este documento no trae una cadena observada. Ausencia de evidencia no es integridad.';
+    subEl.textContent='sin observación';
+    renderCitizenSemaphore(data);
+    return;
+  }
   const offset=circumference*(1-ip/100);
   ring.style.strokeDasharray=circumference;
   ring.style.strokeDashoffset=offset;
@@ -1279,7 +1301,9 @@ function renderCitizenSemaphore(data){
   const benfordOk=!f.benford||f.benford.pvalue>=0.05;
   const zscoreOk=!f.zscore?.detected;
   const velocityOk=!f.velocity_anomaly?.detected;
-  const chainOk=(data?.national?.integrityPercent??100)>=100;
+  const ipChain=data?.national?.integrityPercent;
+  const chainKnown=ipChain!=null;
+  const chainOk=chainKnown&&ipChain>=100;
   function s(id,ok,txtOk,txtBad){
     const dot=document.getElementById(id);
     const txt=document.getElementById(id+'-txt');
@@ -1290,7 +1314,7 @@ function renderCitizenSemaphore(data){
   s('sem-benford',benfordOk,'Distribución de dígitos: Normal','Distribución de dígitos: Inusual');
   s('sem-zscore',zscoreOk,'Departamentos: Sin valores atípicos','Departamentos: Valores atípicos detectados');
   s('sem-velocity',velocityOk,'Velocidad de conteo: Normal','Velocidad de conteo: Anómala');
-  s('sem-chain',chainOk,'Cadena criptográfica: Íntegra','Cadena criptográfica: Comprometida');
+  s('sem-chain',chainOk,'Cadena criptográfica: Íntegra',chainKnown?'Cadena criptográfica: Comprometida':'Cadena criptográfica: Sin verificación');
 }
 
 // ── CONFIDENCE SCORE (0–100 composite) ──
@@ -1299,7 +1323,7 @@ function renderConfidenceScore(data){
   const clamp01=v=>Math.max(0,Math.min(1,v));
   const pToScore=(p,thr)=>p!=null?clamp01(p/(thr||0.05)):1;
   const factors=[
-    {name:'Cadena SHA-256',weight:25,score:((data?.national?.integrityPercent??100)>=100)?1:0},
+    {name:'Cadena SHA-256',weight:25,score:(data?.national?.integrityPercent==null)?0:(data.national.integrityPercent>=100?1:0)},
     {name:'Mebane 2do dígito',weight:20,score:pToScore(f.benford_2nd?.pvalue)},
     {name:'Z-score departamental',weight:15,score:f.zscore?.detected?0:1},
     {name:'Velocidad de escrutinio',weight:15,score:f.velocity_anomaly?.detected?0:1},
@@ -1769,7 +1793,7 @@ function exportObserverReport(){
   const b2Ok=!f.benford_2nd||f.benford_2nd.pvalue>=0.05;
   const zOk=!f.zscore?.detected;
   const velOk=!f.velocity_anomaly?.detected;
-  const chainOk=(nat.integrityPercent??100)>=100;
+  const chainOk=nat.integrityPercent!=null&&nat.integrityPercent>=100;
   const injOk=!f.progressive_injection?.detected;
   const asymOk=!f.asymmetric_benefit?.detected;
   const hrOk=!f.hold_and_release?.detected;
@@ -1811,7 +1835,7 @@ function exportObserverReport(){
     `Actas Transmitted: ${fmt(nat.actasEscrutadas||0)} / ${fmt(nat.actasTotal||0)} (${nat.actasTotal?Math.round((nat.actasEscrutadas||0)/(nat.actasTotal)*100):0}%)`,
     `Total Votes:       ${fmt(nat.totalVotes||0)}`,
     `Turnout:           ${(nat.turnoutPercent||0).toFixed(1)}%`,
-    `Integrity:         ${(nat.integrityPercent??100).toFixed(1)}%`,
+    `Integrity:         ${nat.integrityPercent==null?'not observed':nat.integrityPercent.toFixed(1)+'%'}`,
     '',
     '── STATISTICAL OBSERVATIONS ─────────────────────────────────',
     `Confidence Score: ${score}/100`,
@@ -1875,16 +1899,25 @@ function exportObserverReport(){
 
 // ── STATUS BAR ──
 function updateStatusBar(data){
-  const state=data.alertState||'normal';
+  const state=data.alertState||'unknown';
   const ab=document.getElementById('alert-badge');
   if(state==='normal'){ab.className='status-card sc-ok';ab.innerHTML='<span class="dot dot-ok"></span>SISTEMA NORMAL'}
   else if(state==='anomaly'){ab.className='status-card sc-warn';ab.innerHTML='<span class="dot dot-warn"></span>ANOMALÍA DETECTADA'}
+  else if(state==='replay'){ab.className='status-card sc-warn';ab.innerHTML='<span class="dot dot-warn"></span>REPLAY — NO ES CAPTURA'}
+  else if(state==='unknown'){ab.className='status-card sc-warn';ab.innerHTML='<span class="dot dot-warn"></span>SIN OBSERVACIÓN'}
   else{ab.className='status-card sc-bad';ab.innerHTML='<span class="dot dot-bad"></span>RUPTURA DE CADENA'}
 
-  const ip=data.national?.integrityPercent??100;
+  const ip=data.national?.integrityPercent;
   const cb=document.getElementById('chain-badge');
-  cb.className=ip>=100?'status-card sc-ok':'status-card sc-bad';
-  cb.innerHTML=ip>=100?'<span class="dot dot-ok"></span>CADENA ÍNTEGRA':'<span class="dot dot-bad"></span>CADENA ROTA';
+  if(state==='replay'||ip==null){
+    cb.className='status-card sc-warn';
+    cb.innerHTML=state==='replay'
+      ?'<span class="dot dot-warn"></span>CADENA NO DEMOSTRADA'
+      :'<span class="dot dot-warn"></span>CADENA NO VERIFICADA';
+  }else{
+    cb.className=ip>=100?'status-card sc-ok':'status-card sc-bad';
+    cb.innerHTML=ip>=100?'<span class="dot dot-ok"></span>CADENA ÍNTEGRA':'<span class="dot dot-bad"></span>CADENA ROTA';
+  }
 
   document.getElementById('last-update').textContent='Actualizado '+ago(new Date().toISOString());
 }
@@ -1900,10 +1933,15 @@ function renderKPIs(nat){
   document.getElementById('prog-actas').style.width=pct+'%';
   document.getElementById('v-votos').textContent=fmt(nat.totalVotes);
   document.getElementById('v-part').textContent=(nat.turnoutPercent??0).toFixed(1)+'%';
-  const ip=nat.integrityPercent??100;
+  const ip=nat.integrityPercent;
   const vi=document.getElementById('v-int');
-  vi.textContent=ip.toFixed(1)+'%';
-  document.getElementById('kpi-int').className='card'+(ip>=100?' kpi-ok':ip>=95?' kpi-warn':' kpi-bad');
+  if(ip==null){
+    vi.textContent='—';
+    document.getElementById('kpi-int').className='card';
+  }else{
+    vi.textContent=ip.toFixed(1)+'%';
+    document.getElementById('kpi-int').className='card'+(ip>=100?' kpi-ok':ip>=95?' kpi-warn':' kpi-bad');
+  }
 }
 
 // ── CANDIDATOS ──
@@ -2302,15 +2340,21 @@ function renderEndpointHealth(eh){
     if(dept==='NACIONAL'){_epNational=ep;}
     else{const code=DEPT_CODE_FROM_NAME[dept];if(code)_epByCode[code]=ep;}
   });
-  // Badge nacional en status bar
+  // Badge nacional en status bar. Sin observación no es "en línea":
+  // offline===0 en un archivo sin consultas también era 0, y eso pintaba verde.
   const ep=_epNational||null;
-  const epOk=ep?ep.status==='ok':(eh.offline===0&&eh.total>0);
-  const epWarn=ep?ep.status==='degraded':(eh.degraded>0);
-  const dotCls=epOk?'dot-ok':epWarn?'dot-warn':'dot-bad';
-  const badgeCls=epOk?'badge-ok':epWarn?'badge-warn':'badge-bad';
   const mode=(eh.argos_protocol||eh.animal_mode||'?').toUpperCase();
-  nb.className=`badge ${badgeCls}`;
-  nb.innerHTML=`<span class="dot ${dotCls}"></span>CNE ${mode}`;
+  if(eh.observed===false){
+    nb.className='badge badge-warn';
+    nb.innerHTML='<span class="dot dot-warn"></span>CNE SIN OBSERVACIÓN';
+  }else{
+    const epOk=ep?ep.status==='ok':false;
+    const epWarn=ep?ep.status==='degraded':(eh.degraded>0);
+    const dotCls=epOk?'dot-ok':epWarn?'dot-warn':'dot-bad';
+    const badgeCls=epOk?'badge-ok':epWarn?'badge-warn':'badge-bad';
+    nb.className=`badge ${badgeCls}`;
+    nb.innerHTML=`<span class="dot ${dotCls}"></span>CNE ${mode}`;
+  }
   nb.hidden=false;
   updateDeptCellEpDots();
   // ── poblar card ──
@@ -2323,7 +2367,11 @@ function renderEndpointHealth(eh){
     if(summary)summary.textContent='';
     return;
   }
-  if(summary)summary.textContent=`${eh.online||0}/${eh.total||0} en línea · ${eh.degraded||0} degradados · ${eh.offline||0} sin respuesta`;
+  if(summary){
+    summary.textContent=eh.observed===false
+      ?'Sin consulta registrada. No es un apagón ni una confirmación de que la fuente responde.'
+      :`${eh.online||0}/${eh.total||0} en línea · ${eh.degraded||0} degradados · ${eh.offline||0} sin respuesta · ${eh.unknown||0} sin dato`;
+  }
   grid.innerHTML='';
   const sorted=[...eh.endpoints].sort((a,b)=>{
     if((a.dept||'').toUpperCase()==='NACIONAL')return -1;
@@ -2331,17 +2379,17 @@ function renderEndpointHealth(eh){
     return (a.dept||'').localeCompare(b.dept||'','es');
   });
   sorted.forEach(ep=>{
-    const ok=ep.status==='ok',deg=ep.status==='degraded';
+    const ok=ep.status==='ok',deg=ep.status==='degraded',unk=ep.status==='unknown'||!ep.status;
     const row=document.createElement('div');
     row.className='ep-row';
     row.title=ep.url||ep.dept||'';
-    row.innerHTML=`<span class="dot ${ok?'dot-ok':deg?'dot-warn':'dot-bad'}"></span>`
+    row.innerHTML=`<span class="dot ${ok?'dot-ok':deg?'dot-warn':unk?'dot-warn':'dot-bad'}"></span>`
       +`<span class="ep-name">${_fmtDept(ep.dept)}</span>`
       +(ep.auto_replaced?'<span style="color:var(--warn);font-size:9px" title="Endpoint reemplazado automáticamente"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></span>':'')
-      +`<span class="ep-badge ${ok?'ep-ok':deg?'ep-warn':'ep-bad'}">${ok?'OK':deg?'DEG':'OFF'}</span>`;
+      +`<span class="ep-badge ${ok?'ep-ok':deg?'ep-warn':unk?'ep-warn':'ep-bad'}">${ok?'OK':deg?'DEG':unk?'N/D':'OFF'}</span>`;
     grid.appendChild(row);
   });
-  const ts=eh.checked_at?`Verificado ${ago(eh.checked_at)}`:'';
+  const ts=eh.observed===false?'Sin consulta registrada':(eh.checked_at?`Verificado ${ago(eh.checked_at)}`:'');
   const _argosMode=eh.argos_protocol||eh.animal_mode;
   const modeStr=_argosMode&&_argosMode!=='normal'?` · Protocolo ARGOS ${_argosMode.toUpperCase()}`:'';
   if(footer)footer.textContent=ts+modeStr;
@@ -2500,20 +2548,28 @@ function _hideBlackoutBanner(){
 function _applySnapshot(snap){
   const EMPTY_FORENSICS={progressive_injection:{detected:false,cumulative_zscore:[],autocorrelation_lag1:0,run_test_pvalue:1,z_score_pvalue:1,net_swing:0},velocity_anomaly:{detected:false,max_rate:0,threshold:10,history:[]},asymmetric_benefit:{detected:false,per_candidate:[]},hold_and_release:{detected:false,patterns:[]},benford:{chi2:0,pvalue:1,digits:[]},zscore:{detected:false,outliers:[]},blackout:{detected:false,gaps:[]},inconsistent_acts:{current_count:0,delta_from_first:0,trend:'unknown',history:[]}};
   const nat=snap.national||{};
+  const reachable=(snap.cne_status&&Object.prototype.hasOwnProperty.call(snap.cne_status,'reachable'))?snap.cne_status.reachable:null;
+  const chain=snap.chain||{};
+  const hasChain=(chain.chain_length||0)>0&&!!chain.latest_hash;
+  const isReplay=snap.status==='REPLAY'||snap.declared_mode==='REPLAY';
+  let alertState='unknown';
+  if(isReplay)alertState='replay';
+  else if(reachable===false)alertState='anomaly';
+  else if(reachable===true)alertState='normal';
   const data={
-    alertState: (snap.cne_status?.reachable===false) ? 'anomaly' : 'normal',
+    alertState,
     national:{
       actasTotal:nat.actas_total||0,
       actasEscrutadas:nat.actas_escrutadas||0,
       totalVotes:nat.total_votos||0,
-      integrityPercent:100,
+      integrityPercent:(!isReplay&&hasChain&&reachable===true)?100:null,
       turnoutPercent:0,
       candidates:Object.entries(nat.candidatos||{}).map(([n,v])=>({name:n,votes:v})),
     },
     departments:snap.departments||{},
     forensics:snap.forensics||EMPTY_FORENSICS,
     coverage:snap.coverage||null,
-    endpoint_health:null,
+    endpoint_health:snap.endpoint_health||null,
     chain_records:[{
       hash:snap.chain?.latest_hash||'',
       merkle_root:snap.chain?.merkle_root||'',
@@ -2525,7 +2581,7 @@ function _applySnapshot(snap){
       captured_at:snap.generated_at,
       merkle_root:snap.chain?.merkle_root||'',
       chain_hash:snap.chain?.latest_hash||'',
-      alert_state:snap.cne_status?.reachable===false?'anomaly':'normal',
+      alert_state:alertState,
       raw_meta:{report_pdf_url:snap.report_pdf_url,forensics:snap.forensics,coverage:snap.coverage},
     }],
     _alerts:snap.alerts||[],
@@ -2883,7 +2939,7 @@ async function downloadEvidenceBundle(){
         actas_total:data.national?.actasTotal||0,
         actas_escrutadas:data.national?.actasEscrutadas||0,
         total_votes:data.national?.totalVotes||0,
-        integrity_pct:data.national?.integrityPercent||100,
+        integrity_pct:data.national?.integrityPercent??null,
         alerts_count:(data._alerts||[]).length,
       },
       anomalies_with_evidence:(data._alerts||[]).map(a=>({
@@ -3001,6 +3057,10 @@ function _hideDemoBanner(){
 }
 
 function _isSnapshotEmpty(snap){
+  // A declared status is an observation, even when the national totals are empty.
+  // Treating that as "no data" used to fall through to the fictional demo,
+  // which paints an intact chain.
+  if(snap && (snap.status || snap.declared_mode)) return false;
   const nat=snap.national||{};
   const hasCandidates=Object.keys(nat.candidatos||nat.candidates||{}).length>0;
   const hasDepartments=Object.keys(snap.departments||{}).length>0;

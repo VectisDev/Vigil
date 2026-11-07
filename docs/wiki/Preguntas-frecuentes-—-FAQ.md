@@ -23,7 +23,7 @@ Nada. Funciona en un portátil o con el plan gratuito de GitHub Actions y GitHub
 El código es AGPL-3.0: cualquiera puede hacer un *fork* y seguir operando, y toda obra derivada debe seguir siendo abierta. La evidencia ya anclada en Bitcoin sigue siendo verificable sin el proyecto.
 
 **¿Está validado?**
-El núcleo criptográfico es estable y las pruebas automatizadas se ejecutan en cada cambio. Hay un piloto forense retroactivo con datos reales de Honduras 2025 y una revisión académica iniciada con la Universidad Pedagógica Nacional Francisco Morazán (UPNFM). El piloto en vivo está pendiente.
+El núcleo criptográfico es estable y las pruebas automatizadas se ejecutan en cada cambio. Hay un piloto forense retroactivo con datos públicos de Honduras 2025. La revisión académica independiente está buscada; ninguna institución la ha firmado. El piloto en vivo está pendiente.
 
 **¿Por qué a veces aparece el nombre CENTINEL?**
 Es el nombre anterior del proyecto. Se conserva a propósito en las constantes criptográficas (cambiarlas invalidaría la evidencia ya anclada), en algunos nombres externos y en documentos históricos; los nombres antiguos de paquetes, comandos y variables siguen funcionando como alias. Lista completa: [nombres heredados](https://github.com/VectisDev/Vigil/blob/main/docs/architecture/LEGACY-NAMES.md).
@@ -54,7 +54,7 @@ Nothing. It runs on a laptop or on the free tier of GitHub Actions and GitHub Pa
 The code is AGPL-3.0: anyone can fork it and keep operating, and every derivative must stay open. Evidence already anchored to Bitcoin remains verifiable without the project.
 
 **Is it validated?**
-The cryptographic core is stable and the automated tests run on every change. There is a retroactive forensic pilot on real Honduras 2025 data, and an academic review has started with the Universidad Pedagógica Nacional Francisco Morazán (UPNFM). A live pilot is pending.
+The cryptographic core is stable and the automated tests run on every change. There is a retroactive forensic pilot on public Honduras 2025 data. Independent academic review is sought; no institution has signed one. A live pilot is pending.
 
 **Why does the name CENTINEL show up sometimes?**
 It is the project's former name. It is kept on purpose in cryptographic constants (changing them would invalidate evidence already anchored), in some external names and in historical documents; the old package, command and variable names still work as aliases. Full list: [legacy names](https://github.com/VectisDev/Vigil/blob/main/docs/architecture/LEGACY-NAMES.md).

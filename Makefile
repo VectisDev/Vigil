@@ -2,9 +2,9 @@
         init snapshot collect audit analyze summary pipeline report calibrate \
         security test-stress security-scan test lint \
         test-security test-security-chaos test-security-all \
-        reproduce-2025-audit
+        reproduce-2025-audit replay-offline
 
-PYTHON_COMMAND ?= python
+PYTHON_COMMAND ?= python3
 SERVICE        := scripts/vigil_service.sh
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -138,3 +138,10 @@ reproduce-2025-audit: ## Reproducir análisis forense completo HND-2025 / Reprod
 	@echo ""
 	@echo "Step 3/3: Done. Reports in reports/ directory."
 	@echo "══════════════════════════════════════════════════════════════"
+
+replay-offline: ## Verificar la muestra HN2025 sin red / Verify bundled HN2025 sample offline
+	@echo "1/2 Raw JSON is not a hash chain. Expect exit 1 and an orphan report."
+	-$(PYTHON_COMMAND) verify/verify_chain.py tests/fixtures/hnd_2025/
+	@$(PYTHON_COMMAND) -c 'import json,subprocess,sys; p=subprocess.run([sys.executable,"verify/verify_chain.py","tests/fixtures/hnd_2025/","--json"],capture_output=True,text=True); d=json.loads(p.stdout[p.stdout.find("{"):]); assert p.returncode==1 and d["status"]=="orphans" and len(d["orphans"])==63, d; print("verify_chain: 63 orphans, custody not proven (expected)")'
+	@echo "2/2 Recompute the committed Merkle root. No network."
+	@$(PYTHON_COMMAND) scripts/replay_pipeline.py --dataset tests/fixtures/hnd_2025 --skip-detectors --out /tmp/vigil-replay-offline

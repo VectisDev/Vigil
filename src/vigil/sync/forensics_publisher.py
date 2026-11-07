@@ -197,11 +197,13 @@ def build_forensics_block(tracker: InconsistentActsTracker) -> dict[str, Any]:
         total = sum(s.candidate_votes.values()) + s.null_votes + s.blank_votes
         if total <= 0:
             continue
-        invalids_history.append({
-            "ts": s.timestamp.isoformat(),
-            "nulPct": round(s.null_votes / total * 100, 2),
-            "blaPct": round(s.blank_votes / total * 100, 2),
-        })
+        invalids_history.append(
+            {
+                "ts": s.timestamp.isoformat(),
+                "nulPct": round(s.null_votes / total * 100, 2),
+                "blaPct": round(s.blank_votes / total * 100, 2),
+            }
+        )
 
     return {
         "progressive_injection": progressive_block,
@@ -277,10 +279,21 @@ def build_coverage(
     }
 
 
+# A status is an observation only when a probe wrote last_validated.
+# A missing validation_status used to be reported as "offline", which made an
+# unprobed config look like an outage.
+_OBSERVED_OK = {"ok", "healthy", "online"}
+_OBSERVED_DEGRADED = {"degraded", "stale"}
+_OBSERVED_OFFLINE = {"offline", "unreachable", "failed", "down"}
+
+
 def build_endpoint_health_block(endpoints_yaml_path: Optional[Path] = None) -> dict[str, Any]:
     """Read the endpoints YAML and build the health block for raw_meta.
 
     Lee el YAML de endpoints y construye el bloque de salud para raw_meta.
+
+    `observed` is true only when at least one endpoint has `last_validated`.
+    Without that timestamp the status is `unknown`, never `offline` or `ok`.
     """
     path = endpoints_yaml_path or Path("config/prod/endpoints.yaml")
     try:
@@ -292,8 +305,12 @@ def build_endpoint_health_block(endpoints_yaml_path: Optional[Path] = None) -> d
             "online": 0,
             "degraded": 0,
             "offline": 0,
+            "unknown": 0,
             "endpoints": [],
             "available": False,
+            "observed": False,
+            "checked_at": None,
+            "note": "No endpoint configuration was read.",
         }
 
     cne = raw.get("cne", {}) if isinstance(raw, dict) else {}
@@ -301,33 +318,38 @@ def build_endpoint_health_block(endpoints_yaml_path: Optional[Path] = None) -> d
     endpoints_raw = cne.get("presidential_endpoints") or []
 
     endpoints: list[dict[str, Any]] = []
-    online = degraded = offline = 0
+    online = degraded = offline = unknown = 0
     for ep in endpoints_raw:
         if not isinstance(ep, dict):
             continue
-        vs = ep.get("validation_status", "unknown")
-        if vs == "ok":
+        vs = str(ep.get("validation_status") or "unknown").lower()
+        last_validated = ep.get("last_validated")
+        if last_validated and vs in _OBSERVED_OK:
             status = "ok"
             online += 1
-        elif vs == "degraded":
+        elif last_validated and vs in _OBSERVED_DEGRADED:
             status = "degraded"
             degraded += 1
-        else:
+        elif last_validated and vs in _OBSERVED_OFFLINE:
             status = "offline"
             offline += 1
+        else:
+            status = "unknown"
+            unknown += 1
         endpoints.append(
             {
                 "url": ep.get("url", ""),
                 "dept": ep.get("department", "?"),
                 "level": ep.get("level", "?"),
                 "status": status,
-                "last_validated": ep.get("last_validated"),
+                "last_validated": last_validated,
                 "auto_replaced": ep.get("source", "") == "auto_replaced",
             }
         )
 
+    observed = (online + degraded + offline) > 0
     return {
-        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "checked_at": datetime.now(timezone.utc).isoformat() if observed else None,
         "argos_protocol": healing.get("argos_protocol", healing.get("animal_mode", "unknown")),
         "safe_mode_active": bool(healing.get("safe_mode_active", False)),
         "consecutive_failures": int(healing.get("consecutive_failures", 0) or 0),
@@ -336,8 +358,11 @@ def build_endpoint_health_block(endpoints_yaml_path: Optional[Path] = None) -> d
         "online": online,
         "degraded": degraded,
         "offline": offline,
+        "unknown": unknown,
         "endpoints": endpoints,
-        "available": True,
+        "available": bool(endpoints),
+        "observed": observed,
+        "note": None if observed else "No fetch recorded. Status is unknown, not offline and not online.",
     }
 
 
