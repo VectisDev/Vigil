@@ -54,15 +54,11 @@ adopt those accounts as a finding of its own. The engineering fact it uses is
 narrower: a results portal can go quiet or change, and a third party needs a
 record of what was published.
 
-**Honduras 2025.** The Consejo Nacional Electoral published results after the
-30 November 2025 general election. VIGIL's engine was run afterwards on 64
-public JSON files. That is not a live audit, and those files are not a hash
-chain (`verify_chain.py` reports 63 orphans and exits 1). The engine recorded
-a long publication gap, a later trend shift, and an acta resolution rate of
-39.15 per minute, about 3.9× a pre-registered operational threshold. That
-threshold is not a physical limit measured in the field. A Merkle root of the
-64 files is committed. It binds those bytes; it is not continuous custody
-during the count.
+**Honduras 2025.** See [`docs/evidence/HN2025.md`](../evidence/HN2025.md).
+Sixty-four public JSON files, saved by hand. Not a hash chain
+(`verify_chain.py` exits 1, 63 orphans). A rate of 39.15 per minute is about
+3.9× a heuristic of 10, not a pre-registered study. Intervals with no stored
+file are not a measured portal outage. The Merkle root commits the bytes.
 
 ### The Common Pattern / El Patron Comun
 
@@ -364,16 +360,10 @@ a coordinated multi-country monitoring network:
 
 ### Budget Overview / Resumen Presupuestario
 
-The total budget range for validation plus regional pilot is **$180,000 to
-$350,000**, distributed across three phases:
-
-| Phase | Activities | Budget Range | Timeline |
-|---|---|---|---|
-| Validation (Honduras) | Academic validation, paper publication, methodology documentation, security audit completion | $30K - $50K | 2026 H2 |
-| Pilot (Guatemala 2027) | Scraper finalization, civil society training, 3-node deployment, real-time monitoring, post-election report | $80K - $150K | 2027 H1 |
-| Regional scale-up | El Salvador + Nicaragua adapters, operator training network, unified dashboard, swarm interoperability | $70K - $150K | 2027 H2 - 2028 |
-
-Budget details are documented in [BUDGET_NARRATIVE.md](BUDGET_NARRATIVE.md).
+**This is not the funding ask.** The only total in this repository is
+**75,000 USD over 12 months**, in
+[BUDGET_NARRATIVE.md](BUDGET_NARRATIVE.md). A wider regional sketch was removed
+from this section so two documents would not quote two prices.
 
 ### What the Money Buys / Que Compra el Dinero
 

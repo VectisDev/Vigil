@@ -90,11 +90,12 @@ class InconsistentActsTracker:
         "inconsistencias",
     )
 
-    # Resolución manual realista: ~2 actas/minuto por mesa de escrutinio.
-    # Un valor superior indica procesamiento automatizado o irregular.
+    # Heurística, no una capacidad humana medida. 2–3 actas por mesa sería
+    # otra cantidad; este número no la codifica. La muestra HN2025 no es un
+    # estudio pre-registrado contra este valor.
     DEFAULT_MAX_RESOLUTION_RATE = 10.0  # actas por minuto
 
-    # Umbral de gap temporal para considerar un apagón comunicacional.
+    # Hueco entre archivos guardados. No es, por sí solo, una caída medida del portal.
     DEFAULT_BLACKOUT_GAP_MINUTES = 30
 
     def __init__(
@@ -369,12 +370,10 @@ class InconsistentActsTracker:
         }
 
     def detect_resolution_velocity_anomalies(self) -> list[dict[str, Any]]:
-        """Detect resolutions that exceed the maximum plausible rate (actas/minute).
+        """Flag rates above the configured heuristic (actas/minute).
 
-        Detecta resoluciones que exceden la tasa máxima plausible (actas/minuto).
-        Un comité de escrutinio especial revisa cada acta manualmente: lectura de votos,
-        verificación de firmas, cotejo con copias de partidos. Tasas superiores a
-        ~2-3 actas/minuto por mesa son físicamente implausibles para un proceso humano.
+        Marca tasas por encima de la heurística configurada (actas/minuto).
+        No afirma una capacidad humana medida ni un estudio pre-registrado.
         """
         anomalies: list[dict[str, Any]] = []
         for i in range(1, len(self.snapshots)):
@@ -399,7 +398,7 @@ class InconsistentActsTracker:
                         "description": (
                             f"Velocidad de resolución anómala: {rate:.1f} actas/min "
                             f"({delta_actas} actas en {elapsed_minutes:.1f} min). "
-                            f"Umbral plausible: {self.max_resolution_rate} actas/min."
+                            f"Heuristica configurada: {self.max_resolution_rate} actas/min."
                         ),
                     }
                 )

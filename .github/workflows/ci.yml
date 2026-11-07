@@ -323,3 +323,63 @@ jobs:
           path: |
             resilience.junit.xml
             artifacts/resilience_report.json
+
+  replay-offline:
+    name: Offline demo (stdlib)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.11"
+
+      # No requirements.txt. The demo must run on the standard library.
+      - name: Verify the bundled sample
+        run: make replay-offline
+
+  coverage-core:
+    name: Coverage floor (custody and export)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.11"
+
+      - name: Install what these tests import
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pytest>=9.0.3,<10" "coverage>=7,<8" "pyyaml>=6" "cryptography>=50,<51" "scipy>=1.11.4,<2" "numpy>=1.24,<3"
+
+      # Tracing auditor.inconsistent_acts pulls NumPy in twice under coverage
+      # and aborts the process. Those tests still run below, untraced. The
+      # floor is on the two modules coverage can measure.
+      - name: Fail if custody or export coverage drops under 80
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          python -m coverage run --source=vigil.core.custody,scripts.export_static_snapshot \
+            -m pytest -o addopts= -q \
+            tests/test_custody.py \
+            tests/test_export_static_snapshot.py \
+            tests/test_verify_chain_standalone.py \
+            -p no:cov
+          python -m coverage report --fail-under=80
+
+      - name: Run statistics and claim guards
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m pytest -o addopts= -q \
+            tests/test_inconsistent_acts.py \
+            tests/test_claim_guard.py \
+            tests/test_preregistration_hash.py

@@ -15,9 +15,9 @@ durante las elecciones en Honduras. Está diseñado para ser usado por observado
 electorales, periodistas y ciudadanos **sin acceso especial, sin costo y sin
 necesidad de cooperación del CNE**.
 
-**Principio fundamental:** VIGIL no afirma fraude. Detecta anomalías estadísticas
-en datos públicos y proporciona prueba criptográfica de integridad para evaluación
-humana independiente.
+**Principio:** VIGIL no acusa a ninguna parte. Registra lo que un portal público
+publicó y deja que otra persona compruebe los bytes. Los pasos están en
+[`docs/VERIFY.md`](../VERIFY.md).
 
 ---
 
@@ -45,6 +45,8 @@ humana independiente.
 ---
 
 ## 3. Cómo usar VIGIL en campo / How to use VIGIL in the field
+
+Los pasos canónicos y el código de salida de la muestra están en [`docs/VERIFY.md`](../VERIFY.md). Lo de abajo es el mismo verificador.
 
 ### Opción A — Verificar la cadena (sin instalar nada)
 
@@ -113,7 +115,7 @@ Si se dispara: el CNE modificó datos que ya habían sido publicados y capturado
 **2. Tasa de resolución imposible (Rule 15 — processing_speed)**
 Detecta cuando las actas inconsistentes se resuelven a una velocidad mayor que
 la capacidad humana plausible (~10 actas/minuto).
-En HN 2025: 39.15 actas/min — 3.9× el umbral. Hallazgo verificable.
+En la muestra de 2025: 39.15 actas/min, cerca de 3.9× la heurística de 10. No es un estudio pre-registrado. Ficha: `docs/evidence/HN2025.md`.
 
 **3. Apagón de comunicación (Rule 14 — snapshot_jump)**
 Detecta períodos donde el CNE deja de publicar datos. En HN 2025: 13.1 horas
@@ -167,7 +169,7 @@ VIGIL es políticamente neutral y metodológicamente transparente:
 
 - **Código abierto** (AGPL-3.0): cualquier experto puede auditar la metodología
 - **Reproducible**: los mismos datos + el mismo código = los mismos resultados
-- **No afirma fraude**: reporta anomalías estadísticas para evaluación humana
+- **No acusa a ninguna parte**: reporta observaciones para evaluación humana
 - **Datos exclusivamente públicos**: analiza solo lo que el CNE publica en línea
 
 **Limitaciones técnicas importantes para observadores:**
@@ -187,9 +189,11 @@ VIGIL es políticamente neutral y metodológicamente transparente:
 ## 7. Preguntas frecuentes de observadores / Observer FAQ
 
 **¿Puedo citar los hallazgos de VIGIL en un informe oficial de observación?**
-Sí, con la aclaración de que son anomalías estadísticas en datos públicos del CNE,
-no conclusiones sobre fraude. Citar como: *"El sistema VIGIL detectó [hallazgo]
-en los datos publicados por el CNE el [fecha]."*
+Sí, citando la ficha `docs/evidence/HN2025.md` y el comando `make replay-offline`.
+No cites un intervalo sin archivo guardado como una caída medida del portal.
+Ejemplo: *"En los archivos públicos guardados entre [fecha] y [fecha], el conteo
+de actas inconsistentes bajó en [N]. Eso es una diferencia entre archivos, no una
+conclusión sobre quién la causó."*
 
 **¿Cómo sé que VIGIL no ha sido manipulado?**
 El código fuente es público (github.com/VectisDev/Vigil, AGPL-3.0). Cualquier

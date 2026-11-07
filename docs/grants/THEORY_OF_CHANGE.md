@@ -96,11 +96,11 @@ tier)                                     de severidad         saben que hay    
 |-------------|-------|-----------|-----------------|
 | Misión observación OEA | USD 200,000–500,000 / elección | Parcial (muestral) | Cualitativa |
 | Misión EU EOM | USD 1,000,000–3,000,000 / elección | Parcial | Cualitativa |
-| **VIGIL (operación)** | **USD 0** | **100% datos publicados** | **Criptográfica** |
-| VIGIL (con grant validación) | USD 75,000 (una vez) | 100% + validación académica | Criptográfica + par |
+| VIGIL, comprobación offline | sin servidores propios | los bytes que estén en el repo | raíz Merkle de la muestra; la muestra de 2025 no es una cadena |
+| VIGIL, este pedido | 75,000 USD, 12 meses | revisión aún no contratada | misma tabla que `BUDGET_NARRATIVE.md` |
 
 **Ratio de eficiencia:** VIGIL entrega cobertura 100% + verificabilidad criptográfica
-a costo cero operativo. El grant solicitado es de validación y expansión, no de operación.
+sin servidores dedicados en este pedido. El monto pedido es 75,000 USD en 12 meses, para revisión y artefactos comprobables, no para un piloto de campo.
 
 ---
 

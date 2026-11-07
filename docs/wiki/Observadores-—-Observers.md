@@ -4,9 +4,9 @@
 
 ## Español
 
-Esta página es para observadores electorales, periodistas y ciudadanos que quieren **comprobar por sí mismos** que los datos capturados por VIGIL no fueron alterados, sin instalar el sistema ni confiar en sus operadores.
+Esta página es para quien quiere comprobar los bytes sin instalar el motor. Los pasos canónicos, con el código de salida esperado, están en [`docs/VERIFY.md`](https://github.com/VectisDev/Vigil/blob/main/docs/VERIFY.md). La muestra de 2025 no es una cadena: el verificador sale en 1.
 
-### Verificar la cadena en 2 minutos
+### Verificar un directorio de snapshots
 
 Solo necesitas Python 3.6 o superior; el verificador usa únicamente la biblioteca estándar.
 
@@ -37,7 +37,7 @@ Esto vuelve a ejecutar el análisis forense del [piloto Honduras 2025](Piloto-Ho
 |---|---|
 | Captura los datos que la autoridad publica en línea | Analiza actas físicas ni papeletas |
 | Encadena cada captura con SHA-256 y la ancla a Bitcoin | Accede a sistemas internos de la autoridad |
-| Detecta anomalías con 24 reglas y 7 detectores forenses | Emite juicios políticos ni afirma fraude |
+| Señala deltas en la serie guardada | Acusa a una parte o decide una elección |
 | Permite que cualquiera verifique sin conexión | Reemplaza la observación en las mesas de votación |
 | | Constituye por sí mismo prueba jurídica: es evidencia técnica para evaluación experta |
 
@@ -84,7 +84,7 @@ This re-runs the forensic analysis of the [Honduras 2025 pilot](Piloto-Honduras-
 |---|---|
 | Capture the data the authority publishes online | Analyze physical tally sheets or ballots |
 | Chain every capture with SHA-256 and anchor it to Bitcoin | Access the authority's internal systems |
-| Detect anomalies with 24 rules and 7 forensic detectors | Make political judgments or assert fraud |
+| Points at deltas in the stored series | Accuses a party or decides an election |
 | Let anyone verify offline | Replace observation at polling stations |
 | | Constitute legal proof by itself: it is technical evidence for expert evaluation |
 

@@ -1,0 +1,92 @@
+# Software release. Does not run on push.
+# The maintainer starts it on purpose. See docs/operations/RELEASE.md.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag to create, for example v0.1.0. Must match pyproject.toml."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.11"
+
+      - name: Refuse a tag that does not match pyproject.toml or already exists
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "${RELEASE_VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          py_version="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['tool']['poetry']['version'])")"
+          if [[ "${RELEASE_VERSION}" != "v${py_version}" ]]; then
+            echo "version ${RELEASE_VERSION} does not match pyproject.toml (${py_version})"
+            exit 1
+          fi
+          git fetch --tags origin
+          if git rev-parse -q --verify "refs/tags/${RELEASE_VERSION}" >/dev/null; then
+            echo "tag ${RELEASE_VERSION} already exists"
+            exit 1
+          fi
+
+      - name: Source tarball and CycloneDX SBOM
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          plain="${RELEASE_VERSION#v}"
+          python -m pip install --upgrade pip
+          python -m pip install "cyclonedx-bom>=7,<8"
+          git archive --format=tar.gz --prefix="vigil-${plain}/" -o "vigil-${plain}.tar.gz" HEAD
+          cyclonedx-py requirements requirements.txt --output-format json --output-file sbom.cdx.json
+          test -s "vigil-${plain}.tar.gz"
+          test -s sbom.cdx.json
+          sha256sum "vigil-${plain}.tar.gz" sbom.cdx.json | tee SHA256SUMS
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532  # v4.1.3
+
+      - name: Keyless signature over SHA256SUMS
+        run: |
+          set -euo pipefail
+          cosign sign-blob --yes SHA256SUMS \
+            --output-signature SHA256SUMS.sig \
+            --output-certificate SHA256SUMS.pem
+          test -s SHA256SUMS.sig
+          test -s SHA256SUMS.pem
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          plain="${RELEASE_VERSION#v}"
+          gh release create "${RELEASE_VERSION}" \
+            --target "${GITHUB_SHA}" \
+            --title "${RELEASE_VERSION}" \
+            --notes "Software release. Not a forensic-trail export. Verification steps: docs/operations/RELEASE.md" \
+            "vigil-${plain}.tar.gz" \
+            sbom.cdx.json \
+            SHA256SUMS \
+            SHA256SUMS.sig \
+            SHA256SUMS.pem

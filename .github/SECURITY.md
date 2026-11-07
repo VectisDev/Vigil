@@ -53,9 +53,16 @@ records are signed with Ed25519.
 - The panel, admin, and replay pages are **static HTML** served via GitHub Pages.
 - No secrets, database credentials, or private keys are stored in this repository.
 - `web/access.json` contains **only key hashes** — never the keys.
-- Every change is checked by CodeQL, code quality analysis, Dependabot and
-  secret scanning (with push protection).
+- CodeQL and Dependabot are configured in this repository.
+- Secret-scanning push protection is a GitHub setting. This file does not
+  assert that it is enabled. The maintainer confirms that in the repository
+  settings.
 
 ## Contact
 
-security@vectis.dev (PGP key available on request)
+security@vectis.dev
+
+No public encryption key is in this repository. Do not describe one as
+available on request. To publish one later, add the fingerprint to this
+section and commit the public key as `docs/security/vectisdev.asc`. Until
+that file exists, use GitHub private vulnerability reporting.

@@ -22,7 +22,7 @@
 
 ## CAMPO 2 — Describe tu proyecto en 1-3 oraciones
 
-En Honduras y Centroamérica, los datos electorales oficiales pueden ser publicados, alterados o suprimidos sin que periodistas, activistas ni ciudadanos tengan forma de detectarlo. **VIGIL** es un sistema de software libre que captura, encadena criptográficamente y somete a 23 pruebas estadísticas y forenses cada publicación del organismo electoral — de forma continua o retroactiva, a costo cero, sin depender de ninguna autoridad. En el análisis forense retroactivo sobre archivos JSON originales del CNE de las elecciones hondureñas de 2025, detectó automáticamente un apagón de 13 horas de datos y una tasa de resolución de 39,15 actas por minuto, aproximadamente 3,9× el umbral operativo pre-registrado.
+En Honduras y Centroamérica, un portal oficial puede publicar un JSON, cambiarlo después, o dejar de responder, y un tercero no tiene un registro propio. **VIGIL** guarda lo que ese portal publicó, cuando el pipeline está corriendo, y deja que otra persona compruebe los bytes sin pedir permiso. La muestra de Honduras 2025 no es esa cadena en vivo: son 64 archivos guardados a mano. La ficha está en `docs/evidence/HN2025.md`. `verify_chain.py` sale en 1 (63 huérfanos). Una tasa de 39,15 actas por minuto es cerca de 3.9× una heurística de 10; no es un estudio pre-registrado.
 
 ---
 
@@ -32,7 +32,7 @@ En elecciones de entornos con instituciones débiles, los organismos electorales
 
 Esta asimetría de información reduce la verificabilidad del proceso y silencia a quienes intentan reportarlo: sin evidencia técnica, las denuncias son tratadas como opiniones políticas. VIGIL elimina esta asimetría. Usando exclusivamente datos que el propio Estado publica, genera prueba criptográfica de integridad que cualquier periodista, defensor de derechos u observador puede verificar de forma independiente, offline y sin acreditación institucional alguna.
 
-En el análisis forense retroactivo sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30 de noviembre de 2025, el motor de VIGIL detectó automáticamente: 41 brechas de comunicación, incluyendo 6 apagones nocturnos de más de 10 horas; y una tasa de resolución de 39.15 actas por minuto — aproximadamente 3,9× el umbral operativo pre-registrado (no es un límite físico medido en campo; calibración empírica pendiente). Cualquier periodista puede reproducir estos hallazgos con un solo comando, usando los mismos archivos originales del CNE. VIGIL no requiere infraestructura propia, no genera costos operativos y puede ser desplegado en cualquier país de la región.
+Sobre los 64 JSON de Honduras 2025, lo reproducible sin red es `make replay-offline` (`docs/VERIFY.md`): el verificador sale en 1 y la raíz Merkle coincide. Los huecos entre nombres de archivo no están medidos como caídas del portal, porque no hay registro de intentos. La tasa de 39.15 actas por minuto es cerca de 3.9× la heurística de 10 del código. Cualquier persona con Python 3.11 puede repetir esa comprobación. El análisis estadístico más pesado es otro comando y necesita dependencias; no es el comando de un minuto.
 
 ---
 
@@ -40,7 +40,7 @@ En el análisis forense retroactivo sobre 64 archivos JSON originales del CNE de
 
 **Marcar:** ☑ Desarrollo tecnológico  ☑ Investigación aplicada
 
-El financiamiento se destinaría a: (1) validación académica independiente, aún sin institución comprometida; (2) expansión del motor estadístico con calibración contra datos históricos de Honduras; (3) guías técnicas para periodistas y observadores internacionales; (4) piloto de campo en Guatemala y El Salvador.
+El financiamiento se destinaría a: (1) una revisión estadística independiente, todavía no contratada; (2) un intento de calibración con series que no sean la de 2025, o un resultado negativo escrito si esas series no se pueden archivar; (3) guías que repiten `docs/VERIFY.md`; (4) notas de adaptación a un segundo portal público, sin viaje.
 
 ---
 
@@ -48,13 +48,13 @@ El financiamiento se destinaría a: (1) validación académica independiente, a�
 
 **Actividad 1 — Validación académica (meses 1-4):** Publicar working paper con metodología de las 23 reglas estadísticas en colaboración con an independent academic reviewer. Someter a revisión por pares en *Electoral Studies* o *PLOS One*.
 
-**Actividad 2 — Calibración con datos hondureños reales (meses 2-5):** Ajustar los 23 umbrales estadísticos usando series históricas del CNE 2013-2025. Eliminar umbrales arbitrarios e implementar calibración departamental.
+**Actividad 2 — Calibración o resultado negativo:** Buscar series públicas anteriores a 2025. Si se archivan, publicar la distribución de la misma heurística. Si no, publicar que no se encontraron. No se presenta la muestra de 2025 como calibración cerrada.
 
-**Actividad 3 — Guías para periodistas y observadores (meses 3-6):** Producir documentación técnica accesible en español para periodistas de investigación y observadores electorales de Centroamérica. Incluir tutoriales de verificación independiente con `verify_chain.py`.
+**Actividad 3 — Guías:** Materiales en español cuyo comando es el de `docs/VERIFY.md`, el mismo que corre CI.
 
-**Actividad 4 — Expansión regional (meses 4-8):** Despliegue de análisis retroactivo en Guatemala (TSE) y El Salvador (TSE), con configuraciones de país y pruebas coordinadas con organizaciones de la sociedad civil locales.
+**Actividad 4 — Segundo portal, en escritorio:** Notas de adaptación del esquema JSON de un portal público más. Sin viaje y sin afirmar un piloto de campo.
 
-**Actividad 5 — Documentación internacional (meses 6-8):** Preparar materiales para presentación ante OEA y Carter Center. Mapeo de cumplimiento contra estándares internacionales de observación electoral.
+**Actividad 5 — Release comprobable:** El mantenedor ejecuta el workflow de `docs/operations/RELEASE.md` (tarball, SBOM, SHA256SUMS, firma keyless). Este repositorio no publica el tag solo.
 
 ---
 
@@ -62,9 +62,9 @@ El financiamiento se destinaría a: (1) validación académica independiente, a�
 
 Existen herramientas de observación electoral de NDI (DemTools), IFES y organismos regionales, pero ninguna comparte las propiedades fundamentales de VIGIL:
 
-- **Costo cero:** DemTools y sistemas similares requieren servidores, personal técnico y presupuesto. VIGIL opera exclusivamente en la capa gratuita de GitHub. Cualquier periodista puede operar una instancia sin presupuesto.
+- **Sin servidores propios en este pedido:** la comprobación offline corre en un portátil. Operar un nodo de captura sí gasta minutos de CI y tiempo de una persona; eso no es "costo cero".
 
-- **Verificabilidad criptográfica:** Ninguna herramienta conocida genera una cadena SHA-256 encadenada verificable offline por terceros. VIGIL incluye `verify_chain.py`, un script de 0 dependencias que cualquier persona puede usar para verificar la integridad de todos los datos capturados.
+- **Verificabilidad:** `verify/verify_chain.py` no tiene dependencias. Sale en 0 solo si cada archivo después del primero trae el hash del anterior. En la muestra de 2025 sale en 1. La comprobación positiva de esos bytes es la raíz Merkle, documentada en `docs/VERIFY.md`.
 
 - **Resistencia a la censura:** El diseño de swarm federado (P2P) garantiza que no existe un punto central que una autoridad pueda presionar, bloquear o capturar. El código fuente, bajo licencia AGPL-3.0, no puede ser privatizado.
 
@@ -74,24 +74,23 @@ Existen herramientas de observación electoral de NDI (DemTools), IFES y organis
 
 ## CAMPO 7 — ¿Cuánto tiempo durará?
 
-**6 meses a 1 año.** El núcleo técnico ya está construido y validado retroactivamente. El financiamiento acelera la validación académica independiente, la expansión regional y la producción de materiales para usuarios finales.
+**12 meses.** El núcleo ya corre en CI. El financiamiento paga la ficha de evidencia, una revisión estadística independiente todavía no contratada, el detector de caídas basado en intentos registrados (no en la muestra de 2025), materiales que repiten los mismos comandos, y la coordinación. El detalle está en `docs/grants/BUDGET_NARRATIVE.md`.
 
 ---
 
 ## CAMPO 8 — ¿Cuánto financiamiento necesita? (USD)
 
-**$75,000 USD**
+**75,000 USD durante 12 meses.** La misma tabla está en `docs/grants/BUDGET_NARRATIVE.md`. No hay un segundo total en este repositorio.
 
-| Rubro | Monto |
-|-------|-------|
-| Validación académica y publicación | $15,000 |
-| Calibración estadística con datos históricos | $10,000 |
-| Guías técnicas y materiales para periodistas | $12,000 |
-| Piloto regional Guatemala/El Salvador | $20,000 |
-| Documentación internacional (OEA/Carter Center) | $10,000 |
-| Contingencia y coordinación | $8,000 |
-| **Infraestructura operativa** | **$0** (GitHub free tier) |
-| **Total** | **$75,000** |
+| Hito | USD |
+|------|-----|
+| Revisión estadística independiente, aún no contratada, o un resultado negativo escrito si la serie histórica no se puede archivar | 22,000 |
+| Revisión de seguridad, release firmado y SBOM (el mantenedor publica el tag; el workflow ya está) | 15,000 |
+| Detector de caídas = intentos fallidos con marca de tiempo, para la próxima ventana en vivo | 10,000 |
+| Materiales en español que repiten `docs/VERIFY.md` | 12,000 |
+| Notas de adaptación a un segundo portal público, sin viaje | 8,000 |
+| Coordinación y contingencia | 8,000 |
+| **Total** | **75,000** |
 
 ---
 
@@ -121,11 +120,11 @@ Global: misiones OEA, UE, Carter Center (observadores internacionales).
 
 El equipo ha demostrado capacidad técnica real, no solo teórica: el motor forense de VIGIL fue aplicado retroactivamente sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30/11/2025, detectando automáticamente hallazgos estadísticos reproducibles por cualquier tercero con los mismos archivos públicos.
 
-**Capacidad técnica:** El motor de 23 reglas estadísticas y forenses está implementado, documentado y cuenta con 526 tests automatizados. La arquitectura criptográfica (SHA-256 encadenado, Ed25519, PBKDF2) ha sido revisada internamente. El código es completamente abierto bajo licencia AGPL-3.0.
+**Capacidad técnica:** El código es AGPL-3.0. El job `tests` de `.github/workflows/ci.yml` es la prueba; este documento no congela un conteo de tests. La muestra de 2025 se comprueba con `make replay-offline`, no con una cadena que esos archivos no tienen.
 
-**Respaldo académico:** Se busca revisión académica independiente de la metodología para validación estadística. No existe coautoría ni acuerdo institucional firmado a la fecha de esta solicitud.
+**Revisión académica:** Se busca y no está contratada. No hay coautoría institucional.
 
-**Contexto local irreemplazable:** El equipo opera desde Honduras, con conocimiento directo del contexto electoral centroamericano, los patrones históricos del CNE y las necesidades reales de los periodistas y observadores locales.
+**Autoría:** VectisDev, seudónimo. La identidad legal no está en este repositorio.
 
 ---
 
