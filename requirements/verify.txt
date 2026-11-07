@@ -1,0 +1,4 @@
+# Offline check of the bundled sample.
+# Python 3.11 standard library only. Do not add packages to this file.
+# Run: make replay-offline
+# Or:  docker build -f Dockerfile.demo -t vigil-demo . && docker run --rm vigil-demo

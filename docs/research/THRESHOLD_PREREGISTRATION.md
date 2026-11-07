@@ -21,7 +21,7 @@ makes one visible if the hash below is updated.
 |-------|-------|
 | **Earlier lock** | 2026-06-10, hash `a15df9d95d96e5f10a6935b2e5a18b71640a6008e1bcd649882453924625493f` (does not match the file) |
 | **Source of truth** | `command_center/rules.yaml` |
-| **rules.yaml SHA-256** | `2c6f4d80f1c589f107c1a2105b142eb3364c45bd3df08901ee59ad62ed13d8ab` |
+| **rules.yaml SHA-256** | `d6bba0b37c299f11c948937a37fb155440180ea179c89388d40502484a32bd60` |
 | **OTS proofs** | `docs/research/rules_yaml.ots` and `docs/research/preregistration.ots` are still pending. They do not cover the current file. |
 | **Verification** | `sha256sum command_center/rules.yaml` must equal the current hash above |
 
@@ -299,7 +299,7 @@ ots upgrade preregistration.ots
 
 # The hash that must match the file today (not the June 2026 lock):
 sha256sum command_center/rules.yaml
-# Expected: 2c6f4d80f1c589f107c1a2105b142eb3364c45bd3df08901ee59ad62ed13d8ab
+# Expected: d6bba0b37c299f11c948937a37fb155440180ea179c89388d40502484a32bd60
 # The June 2026 string a15df9d9… does not match. It is kept above as a superseded lock.
 
 # Verify the OTS proof against Bitcoin blockchain:

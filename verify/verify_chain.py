@@ -78,6 +78,8 @@ def find_previous_hash(data: dict) -> str | None:
     Extract the previous_hash field from a parsed JSON snapshot.
     Tries multiple key names for compatibility.
     """
+    if not isinstance(data, dict):
+        return None
     for key in PREVIOUS_HASH_KEYS:
         if key in data:
             return str(data[key])
@@ -147,11 +149,19 @@ def verify_chain(directory: str, verbose: bool = False) -> dict:
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError) as e:
             results["broken"].append((filepath.name, "VALID_JSON", f"PARSE_ERROR: {e}"))
             results["chain_intact"] = False
             if verbose:
                 print(f"         ⛔ PARSE ERROR: {e}")
+            prev_hash = file_hash
+            continue
+
+        if not isinstance(data, dict):
+            results["broken"].append((filepath.name, "JSON_OBJECT", type(data).__name__))
+            results["chain_intact"] = False
+            if verbose:
+                print(f"         ⛔ NOT AN OBJECT: {type(data).__name__}")
             prev_hash = file_hash
             continue
 

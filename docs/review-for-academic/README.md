@@ -39,7 +39,7 @@ valuable to us than confirmation.
 
 ### 2.1 Are the 24 detection rules statistically defensible?
 
-Each rule in `src/centinel/core/rules/` implements a single statistical
+Each rule in `src/vigil/core/rules/` implements a single statistical
 detector with an `apply()` function. The rules use chi-squared tests,
 Z-scores, binomial tests, Wald-Wolfowitz runs tests, Isolation Forest (ML),
 and domain-specific heuristics. We need to know:
@@ -122,13 +122,13 @@ Files are listed in priority order. Line counts are approximate.
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `src/centinel/core/rules/benford_first_digit_rule.py` | 289 | Benford's Law chi-squared test on first digits of vote counts. Primary statistical claim. |
-| `src/centinel/core/rules/benford_law_rule.py` | 16 | Thin wrapper; delegates to benford_first_digit_rule. Check if delegation is correct. |
-| `src/centinel/core/rules/last_digit_uniformity_rule.py` | 174 | Tests whether last digits of vote counts follow uniform distribution. Chi-squared test. |
-| `src/centinel/core/rules/runs_test_rule.py` | 193 | Wald-Wolfowitz runs test for randomness in sequences. Check if applied correctly to this data type. |
-| `src/centinel/core/rules/correlation_participation_vote_rule.py` | 162 | Pearson correlation between participation rate and vote share. Check for ecological fallacy risk. |
-| `src/centinel/core/rules/granular_anomaly_rule.py` | 601 | Multi-dimensional anomaly detection at mesa level. Largest rule; most complex statistical logic. |
-| `src/centinel/core/rules/ml_outliers_rule.py` | 215 | Isolation Forest for multivariate outlier detection. Check if ML is justified vs. simpler methods. |
+| `src/vigil/core/rules/benford_first_digit_rule.py` | 289 | Benford's Law chi-squared test on first digits of vote counts. Primary statistical claim. |
+| `src/vigil/core/rules/benford_law_rule.py` | 16 | Thin wrapper; delegates to benford_first_digit_rule. Check if delegation is correct. |
+| `src/vigil/core/rules/last_digit_uniformity_rule.py` | 174 | Tests whether last digits of vote counts follow uniform distribution. Chi-squared test. |
+| `src/vigil/core/rules/runs_test_rule.py` | 193 | Wald-Wolfowitz runs test for randomness in sequences. Check if applied correctly to this data type. |
+| `src/vigil/core/rules/correlation_participation_vote_rule.py` | 162 | Pearson correlation between participation rate and vote share. Check for ecological fallacy risk. |
+| `src/vigil/core/rules/granular_anomaly_rule.py` | 601 | Multi-dimensional anomaly detection at mesa level. Largest rule; most complex statistical logic. |
+| `src/vigil/core/rules/ml_outliers_rule.py` | 215 | Isolation Forest for multivariate outlier detection. Check if ML is justified vs. simpler methods. |
 
 ### Priority 2: Forensic auditor module
 
@@ -140,31 +140,31 @@ Files are listed in priority order. Line counts are approximate.
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `src/centinel/core/rules/participation_anomaly_rule.py` | 167 | Flags departments with participation rates outside expected range. |
-| `src/centinel/core/rules/participation_anomaly_advanced_rule.py` | 200 | Extended version with historical comparison and Z-score. |
-| `src/centinel/core/rules/trend_shift_rule.py` | 184 | Detects sudden changes in vote-count trends between snapshots. |
-| `src/centinel/core/rules/snapshot_jump_rule.py` | 139 | Flags large jumps in cumulative totals between consecutive snapshots. |
-| `src/centinel/core/rules/irreversibility_rule.py` | 277 | Detects if cumulative vote counts ever decrease (should be monotonic). |
-| `src/centinel/core/rules/processing_speed_rule.py` | 138 | Flags implausible mesa-processing speeds (too fast to be real). |
-| `src/centinel/core/rules/turnout_impossible_rule.py` | 137 | Flags turnout >100% or other physically impossible values. |
-| `src/centinel/core/rules/inconsistency_rate_rule.py` | 201 | Tracks rate of inconsistent ballot tallies across mesas. |
-| `src/centinel/core/rules/large_numbers_rule.py` | 238 | Law of large numbers test for convergence in aggregated results. |
-| `src/centinel/core/rules/geographic_dispersion_rule.py` | 172 | Spatial consistency checks across departments. |
-| `src/centinel/core/rules/null_blank_rule.py` | 149 | Flags anomalous rates of null/blank votes. |
-| `src/centinel/core/rules/table_consistency_rule.py` | 173 | Checks internal consistency of tabulation (votes <= registered voters, etc.). |
-| `src/centinel/core/rules/mesa_impossibility_rule.py` | 128 | Flags physically impossible mesa-level results. |
-| `src/centinel/core/rules/mesa_reconciliation_rule.py` | 122 | Checks mesa totals reconcile with department aggregates. |
-| `src/centinel/core/rules/late_mesa_rule.py` | 112 | Flags mesas that report unusually late relative to peers. |
-| `src/centinel/core/rules/mesas_diff_rule.py` | 141 | Diff-based anomaly detection between consecutive mesa reports. |
-| `src/centinel/core/rules/basic_diff_rule.py` | 228 | Basic difference tracking between snapshots. |
+| `src/vigil/core/rules/participation_anomaly_rule.py` | 167 | Flags departments with participation rates outside expected range. |
+| `src/vigil/core/rules/participation_anomaly_advanced_rule.py` | 200 | Extended version with historical comparison and Z-score. |
+| `src/vigil/core/rules/trend_shift_rule.py` | 184 | Detects sudden changes in vote-count trends between snapshots. |
+| `src/vigil/core/rules/snapshot_jump_rule.py` | 139 | Flags large jumps in cumulative totals between consecutive snapshots. |
+| `src/vigil/core/rules/irreversibility_rule.py` | 277 | Detects if cumulative vote counts ever decrease (should be monotonic). |
+| `src/vigil/core/rules/processing_speed_rule.py` | 138 | Flags rates above the configured heuristic. The heuristic is not a measured human capacity. |
+| `src/vigil/core/rules/turnout_impossible_rule.py` | 137 | Flags turnout outside 0–100%. |
+| `src/vigil/core/rules/inconsistency_rate_rule.py` | 201 | Tracks rate of inconsistent ballot tallies across mesas. |
+| `src/vigil/core/rules/large_numbers_rule.py` | 238 | Law of large numbers test for convergence in aggregated results. |
+| `src/vigil/core/rules/geographic_dispersion_rule.py` | 172 | Spatial consistency checks across departments. |
+| `src/vigil/core/rules/null_blank_rule.py` | 149 | Flags anomalous rates of null/blank votes. |
+| `src/vigil/core/rules/table_consistency_rule.py` | 173 | Checks internal consistency of tabulation (votes <= registered voters, etc.). |
+| `src/vigil/core/rules/mesa_impossibility_rule.py` | 128 | Flags mesa totals that cannot add up (for example more votes than ballots). |
+| `src/vigil/core/rules/mesa_reconciliation_rule.py` | 122 | Checks mesa totals reconcile with department aggregates. |
+| `src/vigil/core/rules/late_mesa_rule.py` | 112 | Flags mesas that report unusually late relative to peers. |
+| `src/vigil/core/rules/mesas_diff_rule.py` | 141 | Diff-based anomaly detection between consecutive mesa reports. |
+| `src/vigil/core/rules/basic_diff_rule.py` | 228 | Basic difference tracking between snapshots. |
 
 ### Priority 4: Configuration and infrastructure
 
 | File | Lines | Description |
 |------|-------|-------------|
 | `command_center/rules.yaml` | 281 | All thresholds and parameters for detection rules. Review for calibration. |
-| `src/centinel/core/rules/common.py` | 429 | Shared utilities, base classes, and the `@rule` decorator. |
-| `src/centinel/core/rules/registry.py` | 112 | Rule discovery and registration. Not statistical; skip unless curious about architecture. |
+| `src/vigil/core/rules/common.py` | 429 | Shared utilities, base classes, and the `@rule` decorator. |
+| `src/vigil/core/rules/registry.py` | 112 | Rule discovery and registration. Not statistical; skip unless curious about architecture. |
 
 ---
 
@@ -299,7 +299,7 @@ pytest
 pytest tests/ -k "rule"
 
 # Run with coverage report
-pytest --cov=src/centinel/core/rules --cov-report=term-missing
+pytest --cov=src/vigil/core/rules --cov-report=term-missing
 ```
 
 ### 5.7 Review rule configuration
