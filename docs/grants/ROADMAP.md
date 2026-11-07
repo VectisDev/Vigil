@@ -1,91 +1,63 @@
 # Roadmap
 
-## Fases priorizadas (impacto y ejecución)
+Lo que sigue es el estado real del árbol, no una lista de fases ya cerradas.
+La muestra de 2025 se describe solo en [`docs/evidence/HN2025.md`](../evidence/HN2025.md).
 
-### Fase 1 — Verificabilidad pública (Top prioridad)
-- Entregar verificación externa de 1 click con `scripts/verify_snapshot_bundle.py`.
-- Publicar por corrida los artefactos mínimos: snapshot, hashchain, reglas activadas y reporte.
-- Mantener checklist corto de replicación para terceros no técnicos.
+## Hecho y comprobable
 
-### Fase 2 — Refuerzo criptográfico
-- Firmar digitalmente artefactos de salida por versión de pipeline.
-- Estado actual: hash records firmables desde `scripts/hash.py` y verificables en `verify_snapshot_bundle.py`.
-- Anclar opcionalmente raíces Merkle de corridas críticas.
-- Operar doble canal de verificación: hash local + evidencia pública.
+- `make replay-offline` comprueba la muestra sin red: el verificador sale en 1 (63 huérfanos) y la raíz Merkle coincide. El job `replay-offline` de `.github/workflows/ci.yml` corre ese comando en cada pull request, sin instalar `requirements.txt`.
+- Pasos para un tercero: [`docs/VERIFY.md`](../VERIFY.md).
+- `reachable` queda desconocido si no hay un intento registrado. Los fixtures están en `tests/fixtures/fetch_logs/`.
+- Benford de primer dígito está bajado de severidad en `command_center/rules.yaml`. Hay corrección de comparaciones múltiples en `src/auditor/inconsistent_acts.py`.
+- CI corre la suite de pytest, CodeQL y Dependabot. El conteo de tests no se congela en los documentos de grants.
 
-### Fase 3 — Core estable vs reglas experimentales
-- Separar `core_rules` (deterministas) y `research_rules` (flag explícito).
-- Estado actual: separación operativa habilitada con `rules.enable_research_rules` (default: `false`).
-- Definir gate de promoción `research -> core` basado en evidencia reproducible.
-- Mantener trazabilidad de cambios por regla y versión.
+## Preparado, no publicado
 
-### Fase 4 — Resiliencia demostrable
-- Ejecutar suite de resiliencia en CI y publicar cobertura de fallos recuperados.
-- Estado actual: CI genera `resilience_report.json` y `resilience_score` por release.
-- Reportar MTTR, eventos 429/503, retries efectivos y recoveries de watchdog.
-- Introducir `resilience_score` por release.
+- `.github/workflows/release.yml` arma tarball, SBOM CycloneDX, `SHA256SUMS` y firma keyless. **No hay tag de software publicado por este cambio.** El mantenedor corre el comando de [`docs/operations/RELEASE.md`](../operations/RELEASE.md).
+- Scorecard corre en `.github/workflows/scorecard.yml` y sube el SARIF. No hay badge en el README.
+- El hash de junio de 2026 en `docs/research/THRESHOLD_PREREGISTRATION.md` ya no coincide con `rules.yaml`. El hash actual está en ese documento. Las pruebas OpenTimestamps de ese directorio siguen pendientes y no cubren el archivo de hoy.
 
-### Fase 5 — Gobernanza y supply-chain
-- Cerrar lockfile íntegro y hashes de artefactos en entorno conectado.
-- Convertir release checklist en gate obligatorio.
-- Estado actual: CI ejecuta `release_gate.py` + SBOM versionado por release.
-- Publicar SBOM versionado por release.
+## No hecho
 
-### Fase 6 — Métricas de precisión auditables
-- Exponer métricas por regla (FP/FN revisables históricamente).
-- Estado actual: métricas por regla automatizadas vía `scripts/rule_quality_metrics.py`.
-- Publicar rúbrica de confianza de anomalías.
-- Hacer validación cruzada con revisión manual de casos etiquetados.
+- Calibración con una serie que no sea la de 2025. Si no aparece, el entregable del pedido de 75,000 USD es un resultado negativo escrito.
+- Separación con compuerta de promoción entre reglas estables y experimentales. `rules.enable_research_rules` puede existir; no hay una compuerta que impida promover un umbral calibrado solo con `tests/fixtures/hnd_2025/`.
+- Cobertura de todo el repositorio. Hay un piso solo sobre custodia y estadística, en el job `coverage-core`.
+- Build reproducible (imagen o Nix) y fuzzing. No están en este árbol.
+- Un patrocinador fiscal. No se afirma uno.
 
-### Fase 7 — Endurecimiento de seguridad en producción
-- Validación estricta de JSON como bloqueo operativo.
-- Estado actual: validación JSON estricta en hashing + gate de auditoría de secretos en CI.
-- Redacción obligatoria de datos sensibles en logs.
-- Auditoría periódica de secretos y política de rotación.
+## Pedido de fondos
+
+75,000 USD, 12 meses, una sola tabla: [`BUDGET_NARRATIVE.md`](BUDGET_NARRATIVE.md).
 
 ---
 
 # Roadmap (English)
 
-## Prioritized phases (impact-first delivery)
+What follows is the state of the tree, not a list of closed phases.
+The 2025 sample is described only in [`docs/evidence/HN2025.md`](../evidence/HN2025.md).
 
-### Phase 1 — Public verifiability (Top priority)
-- Deliver one-click external verification with `scripts/verify_snapshot_bundle.py`.
-- Publish per-run minimum artifacts: snapshot, hashchain, enabled rules, and report.
-- Keep a short reproducibility checklist for non-technical third parties.
+## Done and checkable
 
-### Phase 2 — Cryptographic hardening
-- Digitally sign output artifacts per pipeline version.
-- Current status: hash records are signable from `scripts/hash.py` and verifiable in `verify_snapshot_bundle.py`.
-- Optionally anchor critical run Merkle roots.
-- Operate dual-channel verification: local hash + public evidence.
+- `make replay-offline` checks the sample with no network: the verifier exits 1 (63 orphans) and the Merkle root matches. The `replay-offline` job in `.github/workflows/ci.yml` runs that command on every pull request, without installing `requirements.txt`.
+- Steps for a stranger: [`docs/VERIFY.md`](../VERIFY.md).
+- `reachable` stays unknown when no attempt is recorded. Fixtures: `tests/fixtures/fetch_logs/`.
+- First-digit Benford is demoted in `command_center/rules.yaml`. Multiple-comparison correction lives in `src/auditor/inconsistent_acts.py`.
+- CI runs the pytest suite, CodeQL, and Dependabot. Grant docs do not freeze a test count.
 
-### Phase 3 — Stable core vs experimental rules
-- Separate `core_rules` (deterministic) and `research_rules` (explicit flag).
-- Current status: operational separation enabled with `rules.enable_research_rules` (default: `false`).
-- Define a promotion gate `research -> core` based on reproducible evidence.
-- Keep per-rule/per-version traceability.
+## Prepared, not published
 
-### Phase 4 — Demonstrable resilience
-- Run resilience suite in CI and publish recovered-failure coverage.
-- Current status: CI publishes `resilience_report.json` and release-level `resilience_score`.
-- Report MTTR, 429/503 events, effective retries, and watchdog recoveries.
-- Introduce a release-level `resilience_score`.
+- `.github/workflows/release.yml` builds a tarball, a CycloneDX SBOM, `SHA256SUMS`, and a keyless signature. **This change does not publish a software tag.** The maintainer runs the command in [`docs/operations/RELEASE.md`](../operations/RELEASE.md).
+- Scorecard runs in `.github/workflows/scorecard.yml` and uploads the SARIF. There is no badge in the README.
+- The June 2026 hash in `docs/research/THRESHOLD_PREREGISTRATION.md` no longer matches `rules.yaml`. The current hash is in that document. The OpenTimestamps proofs in that directory are still pending and do not cover today's file.
 
-### Phase 5 — Governance and supply-chain
-- Close lockfile integrity and artifact hashing in a connected environment.
-- Turn release checklist into a mandatory gate.
-- Current status: CI runs `release_gate.py` + release-versioned SBOM.
-- Publish release-versioned SBOMs.
+## Not done
 
-### Phase 6 — Third-party meaningful quality metrics
-- Expose per-rule quality metrics (historically reviewable FP/FN).
-- Current status: automated per-rule metrics via `scripts/rule_quality_metrics.py`.
-- Publish anomaly confidence rubric.
-- Perform cross-validation with manually reviewed labeled cases.
+- Calibration on a series other than 2025. If none turns up, the deliverable in the 75,000 USD ask is a written negative result.
+- A promotion gate between stable and experimental rules. `rules.enable_research_rules` may exist; nothing stops a threshold fit only on `tests/fixtures/hnd_2025/` from being treated as settled.
+- Coverage of the whole repository. There is a floor only on custody and statistics, in the `coverage-core` job.
+- A reproducible image or Nix build, and fuzzing. Not in this tree.
+- A fiscal sponsor. None is claimed.
 
-### Phase 7 — Stricter production security
-- Enforce strict JSON validation as an operational gate.
-- Current status: strict JSON validation in hashing + secrets audit gate in CI.
-- Mandate sensitive-data redaction in logs.
-- Run periodic secrets audits and rotation policy.
+## Funding ask
+
+75,000 USD, 12 months, one table: [`BUDGET_NARRATIVE.md`](BUDGET_NARRATIVE.md).

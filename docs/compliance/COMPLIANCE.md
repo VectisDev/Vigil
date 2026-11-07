@@ -53,7 +53,7 @@ ISO 27037 define principios para que la evidencia digital sea admisible, relevan
 | Cláusula 27042 | Requisito | Componente Vigil | Archivo | Estado |
 |---|---|---|---|---|
 | 5.1 — Reproducibilidad | El análisis debe ser replicable por terceros | Reglas engine 100% determinista; dataset público CNE | `src/vigil/core/anomaly_detector.py`, `config/prod/rules_core.yaml` | ✅ Alineado |
-| 5.2 — Validación del método | Método analítico documentado y validado | `docs/methodology/crs.md`; 526 tests pytest | `tests/`, `docs/methodology/crs.md` | ✅ Alineado |
+| 5.2 — Validación del método | Método analítico documentado | `docs/methodology/crs.md`; job `tests` en `.github/workflows/ci.yml` | `tests/` | Parcial — este documento no congela un conteo de tests |
 | 5.3 — Incertidumbre | Reconocer limitaciones del análisis | Disclaimer permanente en `/lab/` y `/replay/`: "no constituye prueba estadística formal" | `web/lab/index.html`, `web/replay/index.html` | ✅ Alineado |
 | 6.1 — Análisis de datos | Proceso sistemático documentado | Rules engine modular (23+ reglas, categorías A–E) | `src/vigil/core/anomaly_detector.py` | ✅ Alineado |
 | 6.2 — Interpretación | Distinguir correlación de causalidad | CRS es "indicador operacional" explícitamente, no afirma causalidad | `docs/methodology/crs.md §What this is` | ✅ Alineado |
@@ -96,14 +96,14 @@ ISO 27037 define principios para que la evidencia digital sea admisible, relevan
 | Característica 25010 | Subcaracterística | Componente Vigil | Evidencia | Estado |
 |---|---|---|---|---|
 | Funcionalidad — Completitud | Cubre todas las funciones requeridas | 23+ reglas de detección activas | `config/prod/rules_core.yaml` | ✅ |
-| Funcionalidad — Corrección | Produce resultados correctos | 526 tests; pytest CI | `tests/`, `.github/workflows/` | ✅ |
+| Funcionalidad — Corrección | El job de CI corre la suite | job `tests` en `.github/workflows/ci.yml` | `tests/` | Parcial — ver el run, no un número fijo |
 | Fiabilidad — Tolerancia a fallos | Degradación controlada ante errores | Kill-switch automático; modo crítico | `src/vigil/core/kill_switch.py` | ✅ |
 | Fiabilidad — Disponibilidad | Uptime durante observación | Mirror nodes P2P; GitHub Pages CDN | `docs/architecture/RESILIENCE.md` | ✅ |
 | Seguridad — Confidencialidad | Protección de datos sensibles | No se procesan datos personales (PII-free) | `docs/legal/LEGAL-COMPLIANCE-MATRIX.md` | ✅ |
 | Seguridad — Integridad | Integridad de datos verificable | SHA-256 + Ed25519 + OTS | `vigil_engine/hash_chain.py` | ✅ |
 | Seguridad — No repudio | Evidencia de acciones pasadas | Bitcoin anchoring timestamp | `src/vigil/core/anchoring.py` | ✅ |
 | Mantenibilidad — Modularidad | Bajo acoplamiento entre módulos | Rules engine plugin-style; separación rules/UI | `config/prod/rules_core.yaml`, `src/vigil/` | ✅ |
-| Mantenibilidad — Testabilidad | Facilidad de prueba | 526 tests; cobertura rules engine | `tests/` | ✅ |
+| Mantenibilidad — Testabilidad | Hay pruebas; la cobertura no está congelada aquí | `.github/workflows/ci.yml` | `tests/` | Parcial |
 | Usabilidad — Operabilidad | Fácil de operar sin entrenamiento | Modo Fácil / Modo Completo en `/ops/` | `web/ops/index.html` | ✅ |
 | Usabilidad — Accesibilidad | Accesible a usuarios con discapacidades | WCAG 2.2 AA (ver sección 5) | `web/lab/index.html`, `web/replay/index.html` | ⚠️ Parcial |
 | Rendimiento — Eficiencia temporal | Respuesta en tiempo razonable | Polling ≤5 min; UI sin backend | `vigil_engine/scheduler.py` | ✅ |
@@ -186,7 +186,7 @@ NIST 800-53 es el catálogo de referencia de controles de seguridad para sistema
 | CP — Contingencia | CP-10 Recuperación | Kill-switch; auto-doctor; endpoint healer | `src/vigil/core/kill_switch.py`, `vigil_engine/electoral_authority_healer.py` | ✅ |
 | RA — Evaluación de riesgos | RA-3 Evaluación de riesgos | No existe registro formal de riesgos | — | ❌ Brecha |
 | PL — Planificación | PL-1 Políticas y procedimientos | Principios operativos documentados | `docs/legal/OPERATING-PRINCIPLES.md` | ⚠️ Parcial |
-| SA — Adquisición de sistemas | SA-11 Pruebas de seguridad del desarrollador | 526 tests pytest; CI automático | `tests/`, `.github/workflows/` | ✅ |
+| SA — Adquisición de sistemas | SA-11 Pruebas de seguridad del desarrollador | job `security-tests` en `.github/workflows/ci.yml` | `.github/workflows/ci.yml` | Parcial |
 
 **Brechas principales:**
 - RA-3: Sin risk register formal documentado.

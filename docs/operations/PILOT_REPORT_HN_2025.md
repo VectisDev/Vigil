@@ -6,22 +6,22 @@
 **Versión:** 1.0  
 **Datos fuente:** 64 archivos JSON originales del CNE, elecciones 30/11/2025  
 **Período de publicación:** 2025-12-03 16:25 → 2025-12-10 17:03  
-**Método:** Análisis forense retroactivo — motor VIGIL dev-v12  
+**Método:** Análisis retroactivo de archivos guardados a mano. La ficha única es [`docs/evidence/HN2025.md`](../evidence/HN2025.md).
 
 ---
 
 ## Declaración de método / Method Statement
 
-Este reporte se basa en el análisis retroactivo del motor VIGIL sobre
-64 archivos JSON originales publicados por el Consejo Nacional Electoral (CNE)
-de Honduras durante el escrutinio de las elecciones generales del 30 de
-noviembre de 2025. Las capturas fueron realizadas manualmente (no con el
-sistema automatizado de polling cada ≤5 minutos) durante el período
-3-10 de diciembre de 2025.
+Este reporte describe 64 archivos JSON del Consejo Nacional Electoral (CNE)
+de Honduras, guardados a mano entre el 3 y el 10 de diciembre de 2025.
+No son una cadena de hashes. No hay un registro de intentos de descarga.
+Un intervalo entre dos nombres de archivo no demuestra que el portal estuviera
+caído: puede ser un rato en el que nadie guardó un archivo. La nota de más
+abajo ya lo dice.
 
-**VIGIL no afirma fraude.** Los hallazgos son anomalías estadísticas y
-operacionales detectadas automáticamente. Su interpretación corresponde a
-evaluadores humanos independientes con acceso al contexto completo.
+Los números se leen como diferencias entre archivos guardados. La comparación
+con 10 actas por minuto es una heurística del código, no un estudio
+pre-registrado y no una capacidad humana medida.
 
 ---
 
@@ -38,14 +38,15 @@ evaluadores humanos independientes con acceso al contexto completo.
 | Intervalo máximo | **25.1 horas** |
 | Gaps > 1 hora | 29 (46% de todos los intervalos) |
 | Gaps > 4 horas | 10 |
-| Gaps > 10 horas (apagones nocturnos) | **7** |
+| Intervalos > 10 h sin archivo guardado | **7** |
 | Escrutinio final | 99.4% (19,052 / 19,167 actas) |
 | Actas inconsistentes al cierre | 2,773 |
 
 > **Nota sobre método de captura:** Las capturas del piloto 2025 fueron
 > manuales, con intervalo mediano de 60 minutos. El sistema automatizado
-> de VIGIL (≤5 minutos) no estaba activo en este período. Los gaps
-> nocturnos reflejan ausencia del operador humano, no del sistema.
+> de VIGIL (≤5 minutos) no estaba activo en este período. Los intervalos
+> largos coinciden con momentos en los que no hay un archivo guardado.
+> No son una medición de que el portal estuviera caído.
 
 ---
 
@@ -60,7 +61,7 @@ evaluadores humanos independientes con acceso al contexto completo.
 | 5 | 03/12 20:00 | 15,378 | 2,199 | +25 | 60 |
 | 6 | 03/12 21:00 | 15,393 | 2,202 | +15 | 60 |
 | 7 | 03/12 22:00 | 15,419 | 2,209 | +26 | 60 |
-| — | **APAGÓN 13.1h** | — | — | — | **786 min** |
+| — | **SIN ARCHIVO 13.1h** | — | — | — | **786 min** |
 | 8 | 04/12 11:06 | 15,565 | 2,296 | +146 | 786 |
 | 9 | 04/12 12:00 | 15,600 | 2,327 | +35 | 54 |
 | 10 | 04/12 13:00 | 15,630 | 2,345 | +30 | 60 |
@@ -69,21 +70,21 @@ evaluadores humanos independientes con acceso al contexto completo.
 | 13 | 04/12 15:00 | 17,010 | 4,713 | +1,328 | 60 |
 | 14 | **04/12 16:00** | 17,782 | **2,367** | +772 | **60** ← resolución |
 | 15 | 04/12 17:00 | 17,794 | 2,367 | +12 | 60 |
-| — | **APAGÓN 19.1h** | — | — | — | **1,147 min** |
+| — | **SIN ARCHIVO 19.1h** | — | — | — | **1,147 min** |
 | 16 | 05/12 12:07 | 17,844 | 2,404 | +50 | 1,147 |
 | … | *[ciclos 16-40 estancamiento]* | … | 2,404~2,407 | … | … |
-| — | **APAGÓN 15.0h** | — | — | — | **903 min** |
-| — | **APAGÓN 16.0h** | — | — | — | **960 min** |
-| — | **APAGÓN 18.1h** | — | — | — | **1,086 min** |
+| — | **SIN ARCHIVO 15.0h** | — | — | — | **903 min** |
+| — | **SIN ARCHIVO 16.0h** | — | — | — | **960 min** |
+| — | **SIN ARCHIVO 18.1h** | — | — | — | **1,086 min** |
 | 62 | 09/12 16:00 | 19,024 | 2,773 | … | … |
-| — | **APAGÓN 25.1h** | — | — | — | **1,508 min** |
+| — | **SIN ARCHIVO 25.1h** | — | — | — | **1,508 min** |
 | 64 | **10/12 17:03** | 19,052 | 2,773 | +28 | 1,508 |
 
 ---
 
 ## 3. Hallazgos forenses / Forensic Findings
 
-### 3.1 Apagón de comunicación — 13.1 horas [CRÍTICO]
+### 3.1 Intervalo sin archivo guardado — 13.1 horas
 
 | Campo | Valor |
 |-------|-------|
@@ -92,13 +93,13 @@ evaluadores humanos independientes con acceso al contexto completo.
 | Duración | **13.1 horas** (786 minutos) |
 | Actas en backlog al inicio | 2,209 inconsistentes |
 | Actas al reanudar | 2,296 inconsistentes (+87) |
-| Cambio de tendencia post-apagón | −0.504 pp en share líder |
+| Diferencia de share entre los dos archivos | −0.504 pp en el share líder |
 
-El CNE no publicó actualizaciones durante la noche del 3 al 4 de diciembre.
-Al reanudarse la publicación, se detectó un cambio estadísticamente significativo
-en la tendencia de share del candidato líder.
+No hay un archivo guardado entre esas dos marcas. Eso no demuestra que el
+portal estuviera caído. La diferencia de −0.504 puntos es una resta entre dos
+agregados guardados, no una prueba con un contraste declarado de antemano.
 
-### 3.2 Tasa de resolución sobre el umbral pre-registrado [CRÍTICO]
+### 3.2 Tasa entre dos archivos, comparada con una heurística
 
 | Campo | Valor |
 |-------|-------|
@@ -106,14 +107,12 @@ en la tendencia de share del candidato líder.
 | Actas inconsistentes resueltas | **2,346** |
 | Tiempo transcurrido | 60 minutos |
 | Tasa de resolución | **39.15 actas/min** |
-| Umbral físico plausible | ~10 actas/min |
-| Factor de exceso | **3.9×** el límite plausible |
+| Heurística en el código | 10 actas/min |
+| Comparación | cerca de 3.9× esa heurística |
 
-La resolución de 2,346 actas inconsistentes en 60 minutos implica una cadencia
-de 39.15 actas por minuto. Considerando que cada acta inconsistente requiere
-revisión manual individual, verificación de datos, y registro en el sistema,
-la tasa máxima físicamente plausible con personal dedicado es aproximadamente
-10 actas/minuto. El evento representa 3.9× esa capacidad.
+39.15 es el delta dividido por 60. El 10 del código es una heurística
+(`DEFAULT_MAX_RESOLUTION_RATE`). No es una capacidad humana medida y no es
+un resultado pre-registrado. Ver [`docs/evidence/HN2025.md`](../evidence/HN2025.md).
 
 ### 3.3 Estancamiento prolongado de inconsistencias [ALTO]
 
@@ -134,9 +133,9 @@ de actas inconsistentes permanece estático mientras el escrutinio avanza.
 
 ### 3.4 Inyección progresiva — 17 ciclos [ALTO]
 
-17 intervalos de captura con Δactas < 100 mientras el backlog de inconsistentes
-superaba 1,000 unidades. Patrón consistente con publicación deliberadamente
-ralentizada durante acumulación de backlog.
+17 intervalos entre archivos guardados con Δactas < 100 mientras el conteo de
+inconsistentes seguía por encima de 1,000. Es una descripción de la serie
+guardada, no una atribución de intención.
 
 | Muestra | Δ actas publicadas | Backlog inconsistentes |
 |---------|--------------------|------------------------|
@@ -145,7 +144,7 @@ ralentizada durante acumulación de backlog.
 | 03/12 18:00→19:00 | +12 | 2,196 |
 | 03/12 19:00→20:00 | +25 | 2,198 |
 
-### 3.5 Apagones nocturnos — 7 eventos [ALTO]
+### 3.5 Siete intervalos largos sin archivo guardado
 
 | # | Inicio | Fin | Duración |
 |---|--------|-----|----------|
@@ -157,8 +156,9 @@ ralentizada durante acumulación de backlog.
 | 6 | 08/12 17:00 | 09/12 11:03 | **18.1 h** |
 | 7 | 09/12 16:00 | 10/12 17:03 | **25.1 h** |
 
-Todos los apagones corresponden a períodos nocturnos (17:00-22:00 inicio,
-11:00 reactivación). El patrón es sistemático y repetitivo durante 7 días consecutivos.
+Esos siete intervalos caen de tarde a la mañana siguiente. El propio reporte
+dice que en este piloto nadie estaba guardando archivos de noche. No son
+una medición de caída del portal.
 
 ---
 
@@ -180,24 +180,10 @@ sin resolución documentada en los datos disponibles.
 ## 5. Reproducibilidad / Reproducibility
 
 ```bash
-# Clonar y ejecutar análisis completo
+# Pasos canónicos, sin dependencias del proyecto. Ver docs/VERIFY.md.
 git clone https://github.com/VectisDev/Vigil.git
-cd centinel && git checkout dev-v12
-
-# Los 64 archivos JSON originales del CNE están en:
-ls tests/fixtures/hnd_2025/
-
-# Reproducir análisis operacional
-PYTHONPATH=src python scripts/forensic_hnd_2025.py
-
-# Reproducir auditoría completa
-make reproduce-2025-audit
-
-# Los 64 JSON son capturas crudas: verify_chain debe salir en 1 (63 huérfanos).
-python verify/verify_chain.py tests/fixtures/hnd_2025/
-
-# La comprobación positiva es la raíz Merkle, sin red.
-python scripts/replay_pipeline.py --dataset tests/fixtures/hnd_2025 --skip-detectors --out /tmp/vigil-replay
+cd Vigil
+make replay-offline
 ```
 
 ---
@@ -209,8 +195,8 @@ python scripts/replay_pipeline.py --dataset tests/fixtures/hnd_2025 --skip-detec
 | Saltos entre snapshots | `snapshot_jump` | Resolución 39.15 actas/min |
 | Irreversibilidad estadística | `irreversibility` | Estancamiento 25 ciclos |
 | Anomalía de participación | `participation_anomaly` | Inyección progresiva |
-| Velocidad de procesamiento | `processing_speed` | Tasa imposible |
-| Mesas duplicadas/desaparecidas | `mesas_diff` | Gaps de publicación |
+| Velocidad de procesamiento | `processing_speed` | 39.15/min contra la heurística de 10 |
+| Mesas duplicadas/desaparecidas | `mesas_diff` | Intervalos sin archivo guardado |
 
 ---
 

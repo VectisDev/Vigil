@@ -57,7 +57,7 @@ python3 scripts/replay_pipeline.py \
   --out /tmp/vigil-replay
 ```
 
-`make replay-offline` runs both and checks the expected outcomes. Python 3.11+ and the standard library are enough for these two commands. `PYTHONPATH` does not need to be set.
+`make replay-offline` runs both and checks the expected outcomes. Python 3.11+ and the standard library are enough for these two commands. `PYTHONPATH` does not need to be set. The same steps, with the output to expect, are in [`docs/VERIFY.md`](docs/VERIFY.md). The 2025 numbers are in [`docs/evidence/HN2025.md`](docs/evidence/HN2025.md).
 
 A fuller statistical pass needs the project dependencies (`pip install -r requirements.txt`) and `make reproduce-2025-audit`. That pass is not required to check custody of the bytes.
 
@@ -80,7 +80,7 @@ Detail: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
 - **The 2025 sample is retroactive.** The JSON files are public captures from 3–10 December 2025. The git history of this repository starts later. Nothing in the sample is a chain that was linked while the count was open.
 - **`verify_chain.py` fails on that sample, on purpose.** 63 of the 64 files have no `previous_hash`. They are raw portal JSON. The banner for that directory is "custody not proven", and the process exits 1.
 - **The Merkle root is a commitment to bytes, not continuous custody.** `tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots` covers the root `f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780`. It does not say when the authority published each file.
-- **Statistics are signals with a pre-registered threshold, not a measured physical limit.** A resolution rate above the threshold in `docs/research/THRESHOLD_PREREGISTRATION.md` is an observation. It is not a finding that someone altered a tally. Historical calibration against 2013–2021 is not done.
+- **The 10-per-minute figure is a heuristic in code.** The 2025 sample was not a pre-registered study, and that heuristic is not a measured human capacity. The June 2026 hash in `docs/research/THRESHOLD_PREREGISTRATION.md` no longer matches `command_center/rules.yaml`. Historical series other than 2025 are not in the tree.
 - **The unit of data is an aggregate.** Departmental and national JSON cannot see a single polling station. Power is low.
 - **No academic institution has signed a review.** Independent review is sought. It is not in progress with a named university.
 - **A panel that has not fetched the portal must say so.** `web/data/snapshot.json` in this tree is a replay of the sample. `cne_status.reachable` is null. Endpoint rows are `unknown`.

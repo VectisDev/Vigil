@@ -1,18 +1,17 @@
 # VIGIL — Threshold Pre-Registration
 # Pre-Registro de Umbrales Estadísticos
 
-**Status / Estado:** LOCKED — thresholds below are immutable for any electoral
-event analyzed after this document's commit date.
+**Status / Estado:** The 2026-06-10 lock no longer matches the file. The hash
+below is `command_center/rules.yaml` at this commit. It is **not** a completed
+pre-registration of the Honduras 2025 retrospective.
 
-**Propósito:** Este documento pre-registra los 23 umbrales estadísticos de
-VIGIL antes de cualquier evento electoral futuro, eliminando la posibilidad
-de ajuste post-hoc (p-hacking). Cualquier modificación posterior a la fecha
-de commit es detectable criptográficamente.
+**Propósito:** Guardar los umbrales que usa el código hoy, y decir con claridad
+que el candado de junio de 2026 se rompió cuando el YAML cambió. Esto no impide
+un ajuste posterior: solo lo hace visible si alguien actualiza el hash.
 
-**Purpose:** Pre-registers VIGIL's 23 statistical thresholds before any
-future electoral event, eliminating the possibility of post-hoc adjustment
-(p-hacking). Any modification after the commit date is cryptographically
-detectable.
+**Purpose:** Record the thresholds in the file today, and state that the June
+2026 lock broke when the YAML changed. This does not prevent a later edit. It
+makes one visible if the hash below is updated.
 
 ---
 
@@ -20,14 +19,11 @@ detectable.
 
 | Field | Value |
 |-------|-------|
-| **Pre-registration date** | 2026-06-10 |
+| **Earlier lock** | 2026-06-10, hash `a15df9d95d96e5f10a6935b2e5a18b71640a6008e1bcd649882453924625493f` (does not match the file) |
 | **Source of truth** | `command_center/rules.yaml` |
-| **rules.yaml SHA-256** | `a15df9d95d96e5f10a6935b2e5a18b71640a6008e1bcd649882453924625493f` |
-| **OTS calendars used** | `bob.btc.calendar.opentimestamps.org` + `finney.calendar.eternitywall.com` |
-| **rules.yaml OTS proof** | `docs/research/rules_yaml.ots` (incomplete — upgrade after Bitcoin confirmation) |
-| **This document OTS proof** | `docs/research/preregistration.ots` (incomplete — upgrade after Bitcoin confirmation) |
-| **Anchoring** | OpenTimestamps / Bitcoin (two independent calendars) |
-| **Verification** | `sha256sum command_center/rules.yaml` must equal the hash above |
+| **rules.yaml SHA-256** | `2c6f4d80f1c589f107c1a2105b142eb3364c45bd3df08901ee59ad62ed13d8ab` |
+| **OTS proofs** | `docs/research/rules_yaml.ots` and `docs/research/preregistration.ots` are still pending. They do not cover the current file. |
+| **Verification** | `sha256sum command_center/rules.yaml` must equal the current hash above |
 
 ---
 

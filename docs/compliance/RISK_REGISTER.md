@@ -26,7 +26,7 @@
 | R-06 | A-05 | Cambio silencioso de endpoints por CNE | Media | Alto | Alto | Endpoint healer; alertas automáticas de cambio de estructura | Medio — ventana de ceguera hasta detección |
 | R-07 | A-06 | De-anonimización del operador | Media | Crítico | Alto | Sin PII en código ni logs; OSINT hygiene | Medio — depende de disciplina operativa |
 | R-08 | A-01 | Rollback de actas por CNE (retiro de datos ya capturados) | Media | Alto | Alto | Hash chain inalterable; OTS ancla timestamp previo | Bajo — evidencia del estado anterior preservada |
-| R-09 | A-03 | Falsos positivos sistemáticos en reglas | Media | Alto | Alto | 526 tests; calibración pendiente HND 2017/2021; disclaimer UI | Medio — calibración empírica pendiente |
+| R-09 | A-03 | Falsos positivos sistemáticos en reglas | Media | Alto | Alto | suite en CI; calibración fuera de la muestra 2025 pendiente | Medio — calibración empírica pendiente |
 | R-10 | A-04 | Uso malintencionado de hallazgos por actores políticos | Media | Alto | Alto | Disclaimer permanente; metodología pública; neutralidad explícita | Medio — fuera del control técnico |
 
 ## Tratamiento de riesgos residuales aceptados

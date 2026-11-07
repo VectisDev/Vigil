@@ -3,126 +3,52 @@
 
 **Grant:** OTF Internet Freedom Fund IFF-2026-06  
 **Monto solicitado / Requested amount:** USD 75,000  
-**Período / Period:** 18 meses / 18 months  
-**Costo operativo / Operational cost:** USD 0 (GitHub free tier)
+**Período / Period:** 12 meses / 12 months  
+**Infraestructura de nube en este pedido / Cloud in this ask:** ninguna / none
 
 ---
 
 ## Principio presupuestario / Budgetary principle
 
-VIGIL opera a **costo cero absoluto** — sin servidores, sin contratos de nube,
-sin licencias de software. Los fondos solicitados no financian operación; financian
-**validación, expansión académica e impacto documentado**.
+Este es el único total del repositorio: **75,000 USD, 12 meses**. La nota
+conceptual usa la misma tabla. Un bosquejo regional más amplio que estaba en
+`REGIONAL-NARRATIVE.md` no es esta solicitud.
 
-VIGIL operates at **zero operational cost** — no servers, no cloud contracts,
-no software licenses. Requested funds do not finance operations; they finance
-**validation, academic expansion, and documented impact**.
-
----
-
-## Desglose presupuestario / Budget Breakdown
-
-### Línea 1 — Validación Académica / Academic Validation
-**USD 18,000 · 24%**
-
-| Ítem | Costo | Justificación |
-|------|-------|---------------|
-| Tiempo investigador co-PI (independent reviewer, TBD) | USD 12,000 | 300 hrs × $40/hr: revisión metodológica, calibración con datos históricos 2013-2021, co-autoría working paper |
-| Análisis estadístico independiente | USD 4,000 | Revisión externa por estadístico PhD (no afiliado al proyecto) |
-| Publicación open-access (arXiv + journal submission) | USD 2,000 | APCs si se acepta en revista Q1; arXiv es gratuito |
-
-*Justificación:* La validación académica independiente es un vacío que el
-proyecto no puede llenar solo. Ningún revisor institucional está comprometido.
-Los fondos servirían para contratar esa revisión, no para continuar una que
-ya exista.
+Los fondos no compran una granja de servidores. Sí pagan revisión, un release
+comprobable, un detector de caídas para la próxima ventana (intentos con marca
+de tiempo) y materiales. No hay una persona co-PI contratada.
 
 ---
 
-### Línea 2 — Expansión Regional / Regional Expansion
-**USD 22,000 · 29%**
+## Hitos / Milestones
 
-| Ítem | Costo | Justificación |
-|------|-------|---------------|
-| Piloto Guatemala (GT) — campo + validación | USD 8,000 | Viaje + tiempo técnico para validar configuración GT contra datos TSE reales |
-| Piloto El Salvador (SV) — campo + validación | USD 7,000 | Misma metodología que GT |
-| Adaptación de schemas JSON para 2 países nuevos | USD 4,000 | 100 hrs desarrollo × $40/hr |
-| Documentación localizada (ES) para cada país | USD 3,000 | Guías de observadores adaptadas al contexto local |
+Cada fila nombra un artefacto que un tercero puede abrir. No hay viaje ni
+conferencias en este pedido.
 
-*Justificación:* VIGIL ya tiene configuraciones para GT y SV en el código.
-Los fondos financian la prueba de campo real, no el desarrollo desde cero.
-Costo por país adicional: ~$7,500 — fracción del costo de una misión de observación.
+| # | Entregable | Dónde se ve | USD |
+|---|---|---|---|
+| 1 | Revisión estadística independiente, aún no contratada. Si las series anteriores a 2025 no se pueden archivar, el entregable es un resultado negativo escrito. | memo en `docs/research/` cuando exista; hoy el hueco está dicho en `docs/evidence/HN2025.md` | 22,000 |
+| 2 | Release de software: tarball, CycloneDX, `SHA256SUMS`, firma keyless. El mantenedor corre el comando de `docs/operations/RELEASE.md`. Este cambio no publica el tag. | GitHub Release `vX.Y.Z` después de ese comando | 15,000 |
+| 3 | Una caída es N intentos fallidos con marca de tiempo. La muestra de 2025 no se reetiqueta como caídas medidas. | `tests/fixtures/fetch_logs/` y `scripts/export_static_snapshot.py` | 10,000 |
+| 4 | Materiales en español cuyo comando es el de `docs/VERIFY.md`. | `docs/VERIFY.md` | 12,000 |
+| 5 | Notas de adaptación a un segundo portal público, sin trabajo de campo. | un documento futuro; no está prometido como piloto | 8,000 |
+| 6 | Coordinación e imprevistos, 12 meses. | informes al financiador | 8,000 |
+| | **Total** | | **75,000** |
 
----
+## Lo que este presupuesto no incluye
 
-### Línea 3 — Seguridad y Opsec / Security & Operational Security
-**USD 12,000 · 16%**
+- Servidores dedicados.
+- Una persona co-investigadora ya nombrada.
+- Viajes, conferencias, o un piloto de campo en otro país.
+- Licencias de software cerrado.
 
-| Ítem | Costo | Justificación |
-|------|-------|---------------|
-| Auditoría de seguridad independiente | USD 8,000 | Revisión del código por firma de seguridad externa (threat model completo) |
-| Infraestructura de opsec para operadores | USD 2,000 | Equipos seguros, VPN empresarial, gestión de claves para operadores en campo |
-| Capacitación en seguridad digital para operadores | USD 2,000 | Talleres con periodistas y sociedad civil en HN, GT, SV |
+## Después de los 12 meses
 
-*Justificación:* VIGIL opera en entornos de alto riesgo. La auditoría
-independiente es un requisito para ser tomado en serio por misiones internacionales
-y es exigida explícitamente por OTF en proyectos de tecnología electoral.
-
----
-
-### Línea 4 — Incidencia y Comunicación / Advocacy & Communications
-**USD 15,000 · 20%**
-
-| Ítem | Costo | Justificación |
-|------|-------|---------------|
-| Presentación ante misión OEA / Carter Center | USD 5,000 | Viaje + materiales para briefing técnico formal ante observadores internacionales |
-| Presencia en conferencias (RightsCon, OEA Electoral Forum) | USD 6,000 | 2 conferencias internacionales — visibilidad con donantes y observadores |
-| Materiales de comunicación para sociedad civil | USD 4,000 | Videos explicativos, infografías, guías no-técnicas en ES para ciudadanos |
-
-*Justificación:* La herramienta existe. El gap es visibilidad estratégica.
-Una presentación ante la OEA vale más que 10 comunicados de prensa.
+El código sigue en AGPL-3.0. Mantenerlo pide tiempo de quien lo publica, no una
+subscripción de nube. No hay patrocinador fiscal en el repositorio; recibirlo
+es un paso del mantenedor, fuera de git.
 
 ---
 
-### Línea 5 — Gestión y Coordinación / Management & Coordination
-**USD 8,000 · 11%**
-
-| Ítem | Costo | Justificación |
-|------|-------|---------------|
-| Coordinación técnica del proyecto (18 meses) | USD 6,000 | Gestión de deliverables, reporting a OTF, coordinación con co-PI |
-| Costos administrativos e imprevistos (10%) | USD 2,000 | Contingencia estándar |
-
----
-
-## Resumen / Summary
-
-| Línea | Descripción | USD | % |
-|-------|-------------|-----|---|
-| 1 | Validación académica | 18,000 | 24% |
-| 2 | Expansión regional (GT + SV) | 22,000 | 29% |
-| 3 | Seguridad y opsec | 12,000 | 16% |
-| 4 | Incidencia y comunicación | 15,000 | 20% |
-| 5 | Gestión y coordinación | 8,000 | 11% |
-| **TOTAL** | | **75,000** | **100%** |
-
----
-
-## Lo que este presupuesto NO incluye / What this budget does NOT include
-
-- ❌ Servidores ni infraestructura de nube (costo operativo = $0)
-- ❌ Desarrollo de funcionalidades básicas (ya implementadas)
-- ❌ Licencias de software (todo open-source)
-- ❌ Publicidad o marketing comercial
-
-## Sostenibilidad post-grant / Post-grant sustainability
-
-Al término del período de financiamiento, VIGIL continuará operando a costo
-cero en GitHub free tier, con el código publicado bajo AGPL-3.0. La validación
-académica y la expansión regional son inversiones de una sola vez; el sistema
-no requiere mantenimiento continuo pagado.
-
-**VIGIL es sostenible por diseño — no por financiamiento recurrente.**
-
----
-
-*VIGIL — AGPL-3.0 — docs/grants/BUDGET_NARRATIVE.md v1.0*  
-*OTF Internet Freedom Fund IFF-2026-06 · USD 75,000 · 18 meses*
+*VIGIL — AGPL-3.0 — docs/grants/BUDGET_NARRATIVE.md*  
+*75,000 USD · 12 meses · misma tabla que `OTF_ConceptNote_IFF2026.md`*

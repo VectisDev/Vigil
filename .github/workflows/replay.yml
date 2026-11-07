@@ -29,7 +29,7 @@ on:
         default: true
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: vigil-replay-${{ github.repository }}
@@ -37,6 +37,8 @@ concurrency:
 
 jobs:
   replay:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     # El original no se reproduce a sí mismo en cada fork.
     # English: the upstream does not replay itself inside every fork.

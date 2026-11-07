@@ -1,0 +1,101 @@
+"""Grant and pilot prose may not outrun the evidence card.
+
+El texto de grants y del piloto no puede ir más lejos que la ficha.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+SCANNED = [
+    "README.md",
+    "docs/VERIFY.md",
+    "docs/evidence/HN2025.md",
+    "docs/operations/PILOT_REPORT_HN_2025.md",
+    "docs/operations/RELEASE.md",
+    "docs/grants/OTF_ConceptNote_IFF2026.md",
+    "docs/grants/BUDGET_NARRATIVE.md",
+    "docs/grants/THEORY_OF_CHANGE.md",
+    "docs/grants/ROADMAP.md",
+    "docs/grants/REGIONAL-NARRATIVE.md",
+    "docs/wiki/Piloto-Honduras-2025-—-Honduras-2025-pilot.md",
+    "docs/wiki/Observadores-—-Observers.md",
+    "docs/international_observers/OBSERVER_GUIDE.md",
+    "docs/mathematics/inconsistent-acts.md",
+]
+
+# These pages are where a gap was being narrated as a portal outage.
+OUTAGE_CLAIM_FILES = {
+    "docs/evidence/HN2025.md",
+    "docs/operations/PILOT_REPORT_HN_2025.md",
+    "docs/wiki/Piloto-Honduras-2025-—-Honduras-2025-pilot.md",
+    "docs/grants/OTF_ConceptNote_IFF2026.md",
+}
+
+PHYSICAL = [
+    re.compile(r"físicamente", re.IGNORECASE),
+    re.compile(r"fisicamente", re.IGNORECASE),
+    re.compile(r"umbral físico", re.IGNORECASE),
+    re.compile(r"límite físico", re.IGNORECASE),
+    re.compile(r"limite fisico", re.IGNORECASE),
+    re.compile(r"physically plausible", re.IGNORECASE),
+    re.compile(r"physically implausible", re.IGNORECASE),
+    re.compile(r"physical limit", re.IGNORECASE),
+]
+
+
+def _read(rel: str) -> str:
+    return (ROOT / rel).read_text(encoding="utf-8")
+
+
+def test_scanned_pages_do_not_accuse_or_invent_a_physical_limit() -> None:
+    problems: list[str] = []
+    for rel in SCANNED:
+        text = _read(rel)
+        if re.search(r"fraude", text, re.IGNORECASE) or re.search(r"\bfraud\b", text, re.IGNORECASE):
+            problems.append(f"{rel}: fraude/fraud")
+        for pattern in PHYSICAL:
+            if pattern.search(text):
+                problems.append(f"{rel}: {pattern.pattern}")
+        for match in re.finditer(r"3[.,]9\s*[×x]", text):
+            window = text[max(0, match.start() - 220) : match.end() + 220]
+            if not re.search(r"heur", window, re.IGNORECASE):
+                problems.append(f"{rel}: 3.9× without a heuristic nearby")
+        for match in re.finditer(r"pre-?regist", text, re.IGNORECASE):
+            before = text[max(0, match.start() - 180) : match.start()]
+            if not re.search(r"\b(not|no|sin)\b", before, re.IGNORECASE):
+                problems.append(f"{rel}: pre-registered claim without a negation just before it")
+    assert problems == []
+
+
+def test_gap_pages_do_not_call_filename_holes_outages() -> None:
+    problems: list[str] = []
+    banned = re.compile(r"apag[oó]n|blackout", re.IGNORECASE)
+    for rel in OUTAGE_CLAIM_FILES:
+        text = _read(rel)
+        if banned.search(text):
+            problems.append(rel)
+    assert problems == []
+
+
+def test_mailmap_does_not_repeat_the_personal_mailbox() -> None:
+    text = (ROOT / ".mailmap").read_text(encoding="utf-8").lower()
+    # Built in pieces so this test does not reintroduce the mailbox into the tree.
+    mailbox = "node" + "77e1@" + "ya" + "hoo.com"
+    assert mailbox not in text
+    assert "ya" + "hoo.com" not in text
+
+
+def test_single_budget_total() -> None:
+    budget = _read("docs/grants/BUDGET_NARRATIVE.md")
+    note = _read("docs/grants/OTF_ConceptNote_IFF2026.md")
+    theory = _read("docs/grants/THEORY_OF_CHANGE.md")
+    for text, name in ((budget, "budget"), (note, "note"), (theory, "theory")):
+        assert "75,000" in text or "75.000" in text, name
+        assert "12 meses" in text or "12 months" in text, name
+    assert "180,000" not in budget
+    assert "180,000" not in _read("docs/grants/REGIONAL-NARRATIVE.md")
+    assert "costo cero absoluto" not in budget.lower()

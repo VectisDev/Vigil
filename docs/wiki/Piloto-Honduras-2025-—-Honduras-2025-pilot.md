@@ -4,17 +4,17 @@
 
 ## Español
 
-> **Transparencia metodológica.** Es un **análisis forense retroactivo**, no una auditoría en vivo. Se hizo sobre 64 archivos JSON del Consejo Nacional Electoral (CNE) descargados manualmente el **4 de diciembre de 2025**, después de la elección del 30 de noviembre. Esos archivos no traen `previous_hash`: `verify_chain.py` debe reportar 63 huérfanos y salir en 1. Lo que sí está comprometido es la raíz Merkle de esos bytes, calculada después, no una custodia continua durante el conteo. La captura continua en vivo es el objetivo para Honduras 2029.
+> **Transparencia metodológica.** Es un análisis retroactivo de 64 archivos JSON del CNE, guardados a mano entre el 3 y el 10 de diciembre de 2025. No es una auditoría en vivo. La ficha única está en [`docs/evidence/HN2025.md`](https://github.com/VectisDev/Vigil/blob/main/docs/evidence/HN2025.md). Esos archivos no traen `previous_hash`: `verify_chain.py` sale en 1 con 63 huérfanos. La raíz Merkle compromete esos bytes; no es custodia continua. Los huecos entre nombres de archivo no son una medición de que el portal estuviera caído.
 
-### Qué detectó el motor
+### Qué hay en la serie guardada
 
-| Hallazgo | Detalle |
+| Observación | Detalle |
 |---|---|
-| Apagón de comunicación de 13 horas | 3 dic 22:00 → 4 dic 11:06, sin datos publicados durante la noche; cambio de tendencia de −0,504 puntos |
-| Tasa de resolución sobre el umbral pre-registrado | 2.346 actas inconsistentes resueltas a 39,15 actas/min (umbral operativo: 10/min; no es un límite físico medido en campo) |
-| Estancamiento prolongado | 17 eventos en que el conteo de actas inconsistentes quedó congelado 8 o más ciclos seguidos |
-| Patrón de inyección progresiva | 6 ciclos seguidos de deltas bajos con más de 1.000 actas inconsistentes pendientes |
-| Interrupciones de comunicación | 41, incluidos 6 apagones nocturnos de más de 10 horas |
+| Intervalo largo sin archivo guardado | 3 dic 22:00 → 4 dic 11:06 entre dos archivos; diferencia de share −0,504 puntos. No hay registro de intentos de descarga |
+| Tasa entre dos archivos | 2.346 actas inconsistentes menos en 60 minutos (39,15/min), cerca de 3.9× la heurística de 10/min. No es un estudio pre-registrado |
+| Conteo de inconsistentes quieto | 17 tramos en que ese conteo no se movió durante 8 ciclos o más |
+| Deltas pequeños | 6 ciclos con delta bajo y más de 1.000 actas inconsistentes todavía en el archivo |
+| Intervalos largos | 41 intervalos entre archivos, 7 de ellos de más de 10 horas, sin prueba de caída del portal |
 
 **VIGIL no acusa a ninguna parte.** Son observaciones sobre datos públicos, para que observadores calificados las evalúen.
 
@@ -34,17 +34,17 @@ make replay-offline
 
 ## English
 
-> **Methodological transparency.** This is a **retroactive forensic analysis**, not a live audit. It was run on 64 JSON files from Honduras' National Electoral Council (CNE), downloaded manually on **December 4, 2025**, after the November 30 election. Those files have no `previous_hash`: `verify_chain.py` must report 63 orphans and exit 1. What is committed is the Merkle root of those bytes, computed afterwards, not continuous custody during the count. Continuous live capture is the target for Honduras 2029.
+> **Methodological transparency.** This is a retrospective look at 64 CNE JSON files saved by hand from 3 to 10 December 2025. It is not a live audit. The single card is [`docs/evidence/HN2025.md`](https://github.com/VectisDev/Vigil/blob/main/docs/evidence/HN2025.md). Those files have no `previous_hash`: `verify_chain.py` exits 1 with 63 orphans. The Merkle root commits those bytes; it is not continuous custody. Gaps between filenames are not a measurement that the portal was down.
 
-### What the engine detected
+### What the stored series shows
 
-| Finding | Detail |
+| Observation | Detail |
 |---|---|
-| 13-hour communication blackout | Dec 3 22:00 → Dec 4 11:06, no data published overnight; −0.504 point trend shift |
-| Resolution rate above the pre-registered threshold | 2,346 inconsistent tally sheets resolved at 39.15 per minute (operational threshold: 10/min; not a field-measured physical limit) |
-| Prolonged stagnation | 17 events where the inconsistent count froze for 8+ consecutive cycles |
-| Progressive injection pattern | 6 consecutive low-delta cycles with over 1,000 inconsistent sheets pending |
-| Communication gaps | 41, including 6 overnight blackouts longer than 10 hours |
+| Long interval with no stored file | 3 Dec 22:00 → 4 Dec 11:06 between two files; share difference −0.504 points. No fetch log |
+| Rate between two files | 2,346 fewer inconsistent tally sheets in 60 minutes (39.15/min), about 3.9× the heuristic of 10/min. Not a pre-registered study |
+| Inconsistent count unmoved | 17 stretches where that count did not move for 8 or more cycles |
+| Small deltas | 6 cycles with a low delta and more than 1,000 inconsistent tally sheets still in the file |
+| Long intervals | 41 intervals between files, 7 of them longer than 10 hours, with no proof the portal was down |
 
 **VIGIL does not accuse any party.** These are observations on public data, for qualified observers to evaluate.
 

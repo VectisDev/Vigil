@@ -95,6 +95,27 @@ def test_export_does_not_call_unprobed_endpoints_offline(tmp_path: Path):
     assert health["endpoints"][0]["status"] == "unknown"
 
 
+def test_fetch_log_without_an_attempt_stays_unknown():
+    """Un registro de intentos vacío no es una caída del portal."""
+    state = json.loads(
+        (REPO_ROOT / "tests" / "fixtures" / "fetch_logs" / "no_attempt.json").read_text(encoding="utf-8")
+    )
+    status = _build_cne_status(state, "https://example.invalid/")
+    assert status["reachable"] is None
+    assert status["last_attempt"] is None
+
+
+def test_fetch_log_with_failures_is_unreachable():
+    """Solo un intento registrado y fallido puede marcar la fuente como inalcanzable."""
+    state = json.loads(
+        (REPO_ROOT / "tests" / "fixtures" / "fetch_logs" / "consecutive_failures.json").read_text(encoding="utf-8")
+    )
+    status = _build_cne_status(state, "https://example.invalid/")
+    assert status["reachable"] is False
+    assert status["last_attempt"] == "2026-11-05T18:00:00Z"
+    assert status["consecutive_failures"] == 4
+
+
 def test_published_snapshot_status_matches_observations():
     """El snapshot publicado no puede afirmar salud que el documento no midió."""
     doc = json.loads((REPO_ROOT / "web" / "data" / "snapshot.json").read_text(encoding="utf-8"))

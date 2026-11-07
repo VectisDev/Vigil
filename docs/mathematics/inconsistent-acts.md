@@ -85,7 +85,7 @@ $$\text{alerta} \iff r > r_{\max}$$
 
 | Parametro | Valor | Justificacion |
 |-----------|-------|---------------|
-| `max_resolution_rate` | 10 actas/min | Un comite de escrutinio especial revisa ~2-3 actas/min por mesa (lectura de votos, verificacion de firmas, cotejo con copias de partidos) |
+| `max_resolution_rate` | 10 actas/min | Heurística del código (`DEFAULT_MAX_RESOLUTION_RATE`). No sale de una medición de 2–3 actas por mesa, y no es un estudio pre-registrado de la muestra de 2025. |
 
 ---
 
