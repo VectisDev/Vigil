@@ -6,7 +6,8 @@ Revisado el 7 de noviembre de 2026 contra las páginas del fondo:
 
 - Preguntas de la nota: [Apéndice I](https://docs.opentech.fund/otf-application-guidebook/appendix-i-concept-note-guide). Esa página no publica un límite de palabras para estas respuestas. Los límites del [apéndice II](https://docs.opentech.fund/otf-application-guidebook/appendix-ii-proposal-guide) valen solo si OTF pide una propuesta completa.
 - Rango de montos: [Internet Freedom Fund](https://www.opentech.fund/funds/internet-freedom-fund/). Los premios pueden ir de 10.000 a 900.000 USD y hasta 24 meses. OTF dice que el pedido ideal está entre 50.000 y 200.000 USD por 6 a 12 meses. Este pedido es **75.000 USD por 12 meses**, dentro de ese rango.
-- El pago es por entregables, en USD, a una persona u organización que pueda firmar. Puede aplicar una persona mayor de 18 años. OTF no financia conectividad, TIC para el desarrollo, ni incidencia de política, como tales.
+- El pago es por entregables, en USD. El contrato se firma con quien solicita ([página del fondo](https://www.opentech.fund/funds/internet-freedom-fund/)). OTF financia a personas y también a proyectos ([nota del foro, 6 de abril de 2018](https://we.opentech.fund/t/does-otf-support-projects-individuals-or-both/894)). OTF no financia conectividad, TIC para el desarrollo, ni incidencia de política, como tales.
+- Las notas conceptuales se aceptan de forma continua ([guía](https://docs.opentech.fund/otf-application-guidebook/our-funds-and-fellowships/internet-freedom-fund)). Este archivo no fija una fecha de envío.
 
 Categoría en el formulario: **Desarrollo tecnológico** (una sola, como pide el formulario). No es un encuentro, así que la pregunta de fecha de inicio no aplica.
 
@@ -87,7 +88,7 @@ Los archivos de 2025 muestran el límite de la idea cuando la cadena no se escri
 
 ## ¿Cuánto financiamiento estima que necesitará? (en dólares de EE. UU.)
 
-75.000 USD. Es el único total del repositorio (`docs/grants/BUDGET_NARRATIVE.md`). No hay viajes ni conferencias. La vía prevista es aplicar a través de un patrocinador fiscal, **[FISCAL SPONSOR]**, que todavía no tiene nombre y no está firmado. El contrato de OTF lo firmaría ese patrocinador cuando exista. Este archivo público no inventa un firmante y no guarda un nombre legal.
+75.000 USD. Es el único total del repositorio (`docs/grants/BUDGET_NARRATIVE.md`). No hay viajes ni conferencias. Quien solicita es el mantenedor, una persona. La identidad pública es VectisDev. El nombre legal se da solo al financiador al contratar y no está en este archivo. No hace falta un patrocinador fiscal. Uno puede considerarse más adelante. No hay ninguno. NLnet, si se usa, paga a la persona directo después de cada hito y no exige una entidad legal ([preguntas de NLnet](https://nlnet.nl/core/faq/)).
 
 | Entregable | USD |
 |---|---|
@@ -111,9 +112,9 @@ América Latina y el Caribe, en la lista regional M49 de Naciones Unidas a la qu
 
 ## ¿Cuál es su nombre?
 
-[OWNER LEGAL NAME]
+VectisDev
 
-El formulario permite un seudónimo. El historial git se publica como VectisDev (`CITATION.cff`). El nombre legal lo escribe el titular y no está en este repositorio.
+El formulario permite un seudónimo. Esa es la identidad pública (`CITATION.cff`). El nombre legal se divulga solo al financiador al contratar y no se escribe en este repositorio.
 
 ## ¿Qué correo debemos usar para contactarle?
 
@@ -125,7 +126,7 @@ Es la dirección en `.github/SECURITY.md`, `CITATION.cff` y `pyproject.toml`.
 
 El repositorio es la evidencia, no un currículum. Un tercero puede correr `make replay-offline` (`docs/VERIFY.md`). El CI de la rama por defecto incluye ese job y una imagen de contenedor fijada (`.github/workflows/ci.yml`, `Dockerfile.demo`). El merge que llevó esa imagen a la rama por defecto es el pull request 796; el CI de ese merge salió en verde (ejecución 42423340598 de GitHub Actions).
 
-Hay un solo mantenedor y ningún socio universitario (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). La vía prevista para contratar es un patrocinador fiscal, **[FISCAL SPONSOR]**, todavía sin nombrar. No hay nada firmado. Eso es un riesgo para un contrato de 12 meses. Se dice aquí para que no aparezca después.
+Hay un solo mantenedor y ningún socio universitario (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). Quien solicita es esa persona. OTF puede contratar con una persona. No hace falta un patrocinador fiscal. Uno puede considerarse más adelante. No hay ninguno.
 
 ## Fecha de inicio propuesta
 

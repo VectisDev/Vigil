@@ -23,7 +23,7 @@ El detalle está en [`docs/grants/ROADMAP.md`](https://github.com/VectisDev/Vigi
 - Calibración con una serie distinta de 2025.
 - Una compuerta que impida tratar como cerrado un umbral ajustado solo con `tests/fixtures/hnd_2025/`.
 - Cobertura de todo el repositorio. Hay un piso sobre custodia y el exportador estático.
-- Un patrocinador fiscal firmado. La vía prevista es **[FISCAL SPONSOR]**, todavía sin nombrar.
+- Un segundo mantenedor. Hoy publica una persona, VectisDev. No hace falta un patrocinador fiscal. Uno puede considerarse más adelante. No hay ninguno.
 
 El único pedido escrito es 75.000 USD en 12 meses, en `docs/grants/BUDGET_NARRATIVE.md`.
 
@@ -50,6 +50,6 @@ The detail is in [`docs/grants/ROADMAP.md`](https://github.com/VectisDev/Vigil/b
 - Calibration on a series other than 2025.
 - A gate that stops a threshold fit only on `tests/fixtures/hnd_2025/` from being treated as settled.
 - Coverage of the whole repository. There is a floor on custody and the static exporter.
-- A signed fiscal sponsor. The intended path is **[FISCAL SPONSOR]**, not yet named.
+- A second maintainer. One person, VectisDev, publishes the tree today. No fiscal sponsor is needed. One may be considered later. None is in place.
 
 The only written ask is 75,000 USD over 12 months, in `docs/grants/BUDGET_NARRATIVE.md`.

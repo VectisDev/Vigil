@@ -12,7 +12,7 @@ Una persona publica este repositorio, con el seudónimo **VectisDev**. No hay eq
 
 El único total escrito como pedido es **75.000 USD en 12 meses** (`docs/grants/BUDGET_NARRATIVE.md`). No hay un segundo presupuesto.
 
-La vía prevista para recibirlo es un patrocinador fiscal, **[FISCAL SPONSOR]**, todavía sin nombrar y sin contrato firmado. Esta página no inventa un firmante.
+Quien solicita es esa persona. El nombre legal se da solo al financiador al contratar y no está en el repositorio. OTF financia a personas y acepta notas conceptuales de forma continua. NLnet paga a la persona después de cada hito. No hace falta un patrocinador fiscal. Uno puede considerarse más adelante. No hay ninguno.
 
 ### Decisiones
 
@@ -40,7 +40,7 @@ One person publishes this repository, under the pseudonym **VectisDev**. There i
 
 The only total written as an ask is **75,000 USD over 12 months** (`docs/grants/BUDGET_NARRATIVE.md`). There is no second budget.
 
-The intended way to receive it is a fiscal sponsor, **[FISCAL SPONSOR]**, not yet named and not signed. This page does not invent a signer.
+The applicant is that person. The legal name is given only to the funder at contracting and is not in the repository. OTF funds individuals and accepts concept notes on a rolling basis. NLnet pays the person after each milestone. No fiscal sponsor is needed. One may be considered later. None is in place.
 
 ### Decisions
 

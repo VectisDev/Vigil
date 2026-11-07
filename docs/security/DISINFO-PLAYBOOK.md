@@ -48,13 +48,13 @@ querer investigar:
 
 **1. Who funds us / Quién nos financia:**
 No external funding as of June 9, 2026. Development is unfunded volunteer work.
-The intended path for a future grant is a fiscal sponsor, **[FISCAL SPONSOR]**,
-not yet named and not signed. Any signed arrangement will be declared to the
-funder. We invite scrutiny.
+The applicant, if a grant is filed, is the individual maintainer VectisDev.
+No fiscal sponsor is needed. One may be considered later. None is in place.
+Any later arrangement will be written in this file.
 
 **2. Who built it / Quién lo construyó:**
 `VectisDev`, publishing under that pseudonym. No university or party is
-claimed. A fiscal sponsor, if used, will be **[FISCAL SPONSOR]** once named.
+claimed. The legal name is given only to a funder at contracting.
 Source code is public and auditable.
 
 **3. What it can prove / Qué puede probar:**
@@ -92,10 +92,9 @@ seriously and will publish corrections prominently.
 
 *Response:*
 VIGIL has received zero funding as of June 9, 2026. Every line of code was
-written on a volunteer basis. A future grant is intended to go through
-**[FISCAL SPONSOR]**, not yet named; any signed arrangement will be declared
-to the funder. The allegation is false; if evidence exists, we
-invite its public presentation so we can address it.
+written on a volunteer basis. A future grant, if any, is to the individual
+maintainer. No fiscal sponsor is in place. The allegation is false; if
+evidence exists, we invite its public presentation so we can address it.
 
 ---
 
@@ -117,12 +116,11 @@ cannot be assessed from the code because the code has none.
 **"Un patrocinador fiscal genera un conflicto de interés"**
 
 *Response:*
-Any fiscal sponsorship engaged for grant receipt would handle banking and
-administrative infrastructure only, and would be declared directly to the
-funder. Methodology, statistical thresholds, findings and publication
-decisions are governed by this public repository: the rules and thresholds
-are versioned in the open and any third party can verify that a sponsor did
-not alter them. No sponsor holds any such influence.
+No fiscal sponsor is in place, and none is required. OTF funds individuals.
+NLnet pays an individual after milestones. One may be considered later. If
+that happens, it will be written in this file. Methodology, statistical
+thresholds, findings and publication decisions stay in this public
+repository. Rules and thresholds are versioned in the open.
 
 ---
 

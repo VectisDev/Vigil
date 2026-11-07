@@ -24,3 +24,7 @@ AGPL-3.0-only. Source: https://github.com/VectisDev/Vigil
 ## What this page does not claim
 
 No partner institution, no filed NLnet application, no conference tour, and no finding about a party or a candidate. The 2025 numbers are the ones in `docs/evidence/HN2025.md`.
+
+## Who would be paid
+
+The applicant is the individual maintainer. The public identity is VectisDev. The legal name is given only to the funder at contracting and is not in this repository. NLnet does not require a legal entity: it can pay that person directly after each milestone ([FAQ](https://nlnet.nl/core/faq/)). No fiscal sponsor is needed. One may be considered later. None is in place. NLnet's own call has its own dates; this page does not copy them, and it does not set a date for an OTF concept note. OTF accepts those notes on a rolling basis.

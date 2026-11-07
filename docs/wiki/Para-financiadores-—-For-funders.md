@@ -4,7 +4,7 @@
 
 ## Español
 
-Lo publica una persona, el seudónimo VectisDev. El código corre en el plan gratuito de GitHub. El único pedido escrito es 75.000 USD en 12 meses, por un patrocinador fiscal todavía sin nombrar: [Financiamiento y gobernanza](Financiamiento-y-gobernanza-—-Funding-and-governance). La licencia es AGPL-3.0.
+Lo publica una persona, el seudónimo VectisDev. El código corre en el plan gratuito de GitHub. El único pedido escrito es 75.000 USD en 12 meses. Quien solicita es esa persona. No hace falta un patrocinador fiscal. Uno puede considerarse más adelante. No hay ninguno. OTF acepta notas conceptuales de forma continua. Detalle: [Financiamiento y gobernanza](Financiamiento-y-gobernanza-—-Funding-and-governance). La licencia es AGPL-3.0.
 
 ### Por qué es distinto
 
@@ -33,7 +33,7 @@ Lo publica una persona, el seudónimo VectisDev. El código corre en el plan gra
 
 ## English
 
-One person publishes it, the pseudonym VectisDev. The code runs on GitHub's free tier. The only written ask is 75,000 USD over 12 months, through a fiscal sponsor not yet named: [Funding and governance](Financiamiento-y-gobernanza-—-Funding-and-governance). The license is AGPL-3.0.
+One person publishes it, the pseudonym VectisDev. The code runs on GitHub's free tier. The only written ask is 75,000 USD over 12 months. The applicant is that person. No fiscal sponsor is needed. One may be considered later. None is in place. OTF accepts concept notes on a rolling basis. Detail: [Funding and governance](Financiamiento-y-gobernanza-—-Funding-and-governance). The license is AGPL-3.0.
 
 ### Why it is different
 

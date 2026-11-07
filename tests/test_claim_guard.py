@@ -135,9 +135,48 @@ def test_old_contact_address_does_not_reappear() -> None:
     ):
         body = _read(note)
         assert current in body
-        assert "[OWNER LEGAL NAME]" in body
         assert "[OWNER EMAIL]" not in body
-        assert "[FISCAL SPONSOR]" in body
+        assert "VectisDev" in body
+
+
+def test_applicant_is_an_individual_and_notes_are_rolling() -> None:
+    """No sponsor placeholder, and no dated OTF window, in the tree."""
+    sponsor = "[" + "FISCAL SPONSOR]"
+    legal = "[" + "OWNER LEGAL NAME]"
+    windows = (
+        "Dec 1" + "-7",
+        "Dec 1" + "–7",
+        "December 1" + "-7",
+        "December 1" + "–7",
+        "1-7 " + "December",
+        "1–7 " + "December",
+        "1-7 de " + "diciembre",
+        "1–7 de " + "diciembre",
+        "cannot be " + "paid",
+        "no fiscal " + "host",
+    )
+    problems: list[str] = []
+    skip = {".git", ".venv", "__pycache__", "node_modules"}
+    for path in ROOT.rglob("*"):
+        if not path.is_file() or skip.intersection(path.parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        rel = str(path.relative_to(ROOT))
+        if sponsor in text or legal in text:
+            problems.append(rel)
+        for window in windows:
+            if window in text:
+                problems.append(f"{rel}: {window}")
+    assert problems == []
+    english = _read("docs/grants/OTF_CONCEPT_NOTE_FINAL.md")
+    spanish = _read("docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md")
+    assert "rolling basis" in english
+    assert "forma continua" in spanish
+    assert "apply through a fiscal sponsor" not in english.lower()
+    assert "aplicar a través" not in spanish
 
 
 def test_security_policy_matches_one_maintainer() -> None:

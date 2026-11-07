@@ -116,11 +116,14 @@ No hay una licencia especial aparte de la AGPL-3.0. Una administración que adap
 
 ---
 
-### Entidad Legal
+### Quién cobra
 
-La vía prevista para recibir un grant es un patrocinador fiscal,
-**[FISCAL SPONSOR]**, todavía sin nombrar y sin contrato firmado. No hay
-supervisor académico. No se afirma una relación con ninguna universidad.
+Quien solicita es el mantenedor, una persona, con identidad pública VectisDev.
+El nombre legal se da solo al financiador al contratar y no está en este
+repositorio. OTF financia a personas. NLnet paga a la persona después de cada
+hito. No hace falta un patrocinador fiscal. Uno puede considerarse más
+adelante. No hay ninguno. No hay supervisor académico. No se afirma una
+relación con ninguna universidad.
 
 ---
 
@@ -133,6 +136,10 @@ supervisor académico. No se afirma una relación con ninguna universidad.
 ---
 
 ## English
+
+### Who is paid
+
+The applicant is the individual maintainer. The public identity is VectisDev. The legal name is given only to the funder at contracting and is not in this repository. OTF funds individuals. NLnet pays an individual after each milestone. No fiscal sponsor is needed. One may be considered later. None is in place. There is no academic supervisor and no university relationship.
 
 ### Purpose
 

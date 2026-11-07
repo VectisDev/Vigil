@@ -58,25 +58,25 @@ cooperación — que los datos no fueron alterados después de su publicación.
 |------|-------|-------------|
 | Lead developer | `VectisDev` | Independent |
 | Academic validation | Independent review (sought; none signed) | — |
-| Fiscal custodian | [FISCAL SPONSOR], to be named; nothing signed | — |
+| Applicant | VectisDev, one individual. No fiscal sponsor. One may be considered later. | — |
 
 **Pseudonymity:** public authorship is released under the pseudonym
 `VectisDev` for operator safety. Legal identity can be disclosed to funders
 under confidentiality where a grant process requires it.
 
-**Conflict of interest:** any fiscal sponsorship arrangement for grant
-receipt will be declared directly to the funder. Methodology, thresholds and
-publication decisions are governed by this public repository, not by
-sponsors.
+**Conflict of interest:** no fiscal sponsor is in place, and none is required
+for OTF or NLnet to pay this applicant. One may be considered later. If that
+happens, it will be written here. Methodology, thresholds and publication
+decisions stay in this public repository.
 
 **Seudonimidad:** la autoría pública se publica bajo el seudónimo
 `VectisDev` por seguridad del operador. La identidad legal puede divulgarse
 a financiadores bajo confidencialidad cuando un proceso lo requiera.
 
-**Conflicto de interés:** cualquier acuerdo de patrocinio fiscal para la
-recepción de fondos se declarará directamente al financiador. La metodología,
-los umbrales y las decisiones de publicación se rigen por este repositorio
-público, no por patrocinadores.
+**Conflicto de interés:** no hay patrocinador fiscal, y OTF y NLnet no lo
+exigen para pagar a esta persona. Uno puede considerarse más adelante. Si
+ocurre, se escribe aquí. La metodología, los umbrales y las decisiones de
+publicación siguen en este repositorio.
 
 ---
 

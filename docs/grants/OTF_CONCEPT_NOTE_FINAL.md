@@ -6,7 +6,8 @@ Checked against the Internet Freedom Fund pages on 7 November 2026:
 
 - Concept-note questions: [Appendix I](https://docs.opentech.fund/otf-application-guidebook/appendix-i-concept-note-guide). That page does not publish a word cap for these answers. Word caps on the [proposal guide](https://docs.opentech.fund/otf-application-guidebook/appendix-ii-proposal-guide) apply only if OTF invites a full proposal.
 - Award band: [Internet Freedom Fund](https://www.opentech.fund/funds/internet-freedom-fund/). Awards can be 10,000–900,000 USD for up to 24 months. OTF says ideal asks are 50,000–200,000 USD for 6–12 months. This ask is **75,000 USD for 12 months**, inside that band.
-- Payments are performance-based, in USD, to a person or organization that can sign. Individuals 18+ may apply. OTF does not fund connectivity, ICT4D, or policy advocacy as such.
+- Payments are performance-based, in USD. The contract is signed with the applicant ([fund page](https://www.opentech.fund/funds/internet-freedom-fund/)). OTF funds individuals as well as projects ([forum post, 6 April 2018](https://we.opentech.fund/t/does-otf-support-projects-individuals-or-both/894)). OTF does not fund connectivity, ICT4D, or policy advocacy as such.
+- Concept notes are accepted on a rolling basis ([guidebook](https://docs.opentech.fund/otf-application-guidebook/our-funds-and-fellowships/internet-freedom-fund)). This file does not set a submission date.
 
 Category on the form: **Technology Development** (one category, as the form asks). The work is an open-source tool, not a convening, so the start-date question does not apply.
 
@@ -87,7 +88,7 @@ The 2025 files show the limit of the idea when the chain was not written at the 
 
 ## How much funding do you estimate you will need? (In US Dollars)
 
-75,000 USD. This is the only total in the repository (`docs/grants/BUDGET_NARRATIVE.md`). There is no travel and no conference line. The intended path is to apply through a fiscal sponsor, **[FISCAL SPONSOR]**, which is not yet named and is not signed. OTF's contract would be signed by that sponsor once named. This public file does not invent a signer and does not store a legal name.
+75,000 USD. This is the only total in the repository (`docs/grants/BUDGET_NARRATIVE.md`). There is no travel and no conference line. The applicant is the individual maintainer. The public identity is VectisDev. The legal name is given only to the funder at contracting and is not stored in this file. No fiscal sponsor is needed. One may be considered later. None is in place. NLnet, if used, pays an individual directly after each milestone and does not require a legal entity ([NLnet FAQ](https://nlnet.nl/core/faq/)).
 
 | Deliverable | USD |
 |---|---|
@@ -111,9 +112,9 @@ Latin America and the Caribbean, in the United Nations M49 regional list that OT
 
 ## What is your name?
 
-[OWNER LEGAL NAME]
+VectisDev
 
-The form allows a pseudonym. Git history is published as VectisDev (`CITATION.cff`). The legal name is filled by the owner and is not stored in this repository.
+The form allows a pseudonym. That is the public identity (`CITATION.cff`). The legal name is disclosed only to the funder at contracting and is not written in this repository.
 
 ## What email address should we use to contact you?
 
@@ -125,7 +126,7 @@ That is the address in `.github/SECURITY.md`, `CITATION.cff`, and `pyproject.tom
 
 The repository is the evidence, not a résumé. A third party can run `make replay-offline` (`docs/VERIFY.md`). CI on the default branch includes that job and a pinned container image (`.github/workflows/ci.yml`, `Dockerfile.demo`). The merge that brought that image to the default branch is pull request 796; the CI run on that merge succeeded (GitHub Actions run 42423340598).
 
-There is one maintainer and no university partner (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). The intended contracting path is a fiscal sponsor, **[FISCAL SPONSOR]**, still to be named. Nothing is signed. That is a risk for a 12-month contract. It is stated here so it is not discovered later.
+There is one maintainer and no university partner (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). The applicant is that individual. OTF can contract with an individual. No fiscal sponsor is needed. One may be considered later. None is in place.
 
 ## Proposed start date
 

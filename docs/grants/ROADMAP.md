@@ -23,11 +23,11 @@ La muestra de 2025 se describe solo en [`docs/evidence/HN2025.md`](../evidence/H
 - Separación con compuerta de promoción entre reglas estables y experimentales. `rules.enable_research_rules` puede existir; no hay una compuerta que impida promover un umbral calibrado solo con `tests/fixtures/hnd_2025/`.
 - Cobertura de todo el repositorio. Hay un piso solo sobre custodia y estadística, en el job `coverage-core`.
 - Una imagen del demo está en `Dockerfile.demo` y el job `demo-image` la ejecuta. No hay un build Nix del sistema completo.
-- Un patrocinador fiscal firmado. La vía prevista es **[FISCAL SPONSOR]**, todavía sin nombrar.
+- Un segundo mantenedor. Hoy publica una persona, VectisDev.
 
 ## Pedido de fondos
 
-75,000 USD, 12 meses, una sola tabla: [`BUDGET_NARRATIVE.md`](BUDGET_NARRATIVE.md).
+75,000 USD, 12 meses, una sola tabla: [`BUDGET_NARRATIVE.md`](BUDGET_NARRATIVE.md). Quien solicita es esa persona. No hace falta un patrocinador fiscal. Uno puede considerarse más adelante. No hay ninguno. OTF acepta notas conceptuales de forma continua; este archivo no fija una fecha de envío.
 
 ---
 
@@ -56,8 +56,8 @@ The 2025 sample is described only in [`docs/evidence/HN2025.md`](../evidence/HN2
 - A promotion gate between stable and experimental rules. `rules.enable_research_rules` may exist; nothing stops a threshold fit only on `tests/fixtures/hnd_2025/` from being treated as settled.
 - Coverage of the whole repository. There is a floor only on custody and statistics, in the `coverage-core` job.
 - The demo image is `Dockerfile.demo`, and the `demo-image` job runs it. There is no Nix build of the whole system. A bounded parser fuzz lives in `tests/test_fuzz_parsers.py`.
-- A signed fiscal sponsor. The intended path is **[FISCAL SPONSOR]**, not yet named.
+- A second maintainer. One person, VectisDev, publishes the tree today.
 
 ## Funding ask
 
-75,000 USD, 12 months, one table: [`BUDGET_NARRATIVE.md`](BUDGET_NARRATIVE.md).
+75,000 USD, 12 months, one table: [`BUDGET_NARRATIVE.md`](BUDGET_NARRATIVE.md). The applicant is that person. No fiscal sponsor is needed. One may be considered later. None is in place. OTF accepts concept notes on a rolling basis; this file does not set a submission date.
