@@ -68,31 +68,42 @@ concurrency:
 permissions:
   contents: read
 
-# El destino del espejo se deriva del repositorio, no va a fuego.
+# El destino del espejo se declara. No va a fuego, y tampoco se adivina.
 #
 # Estaba escrito literalmente como `codeberg.org/VectisDev/centinel.git`. En un
 # repositorio creado desde plantilla eso apunta al espejo del operador
 # original: cualquiera que configurase su propio CODEBERG_TOKEN empujaria su
 # historia al Codeberg de otra persona, con --force y sobre todas las ramas.
-# Hoy no ocurre porque sin el secreto el paso sale antes, pero eso es una
-# barrera de configuracion, no de diseno.
 #
-# Y habia una discrepancia: el push iba a `.../centinel.git` mientras el paso
-# de verificacion consultaba `.../Vigil`. La verificacion miraba un
+# El intento obvio -- derivarlo de `github.event.repository.name` -- se probo y
+# esta mal, y el fallo lo demostro en produccion: este repositorio se llama
+# `Vigil` en GitHub y su espejo se llama `centinel`, porque se renombro en un
+# sitio y no en el otro. El nombre del espejo es independiente del nombre en
+# GitHub y no hay forma de deducirlo. Peor: Codeberg respondio
+# `Push to create is not enabled for users`, lo que significa que con esa
+# opcion activada la derivacion habria CREADO un repositorio con el nombre
+# adivinado y le habria empujado todas las ramas con --force.
+#
+# Asi que se exige declararlo. Sin `vars.CODEBERG_REPO` el espejo se salta y lo
+# dice; no se empuja a un destino supuesto. Es la misma regla que el resto del
+# proyecto: ante la duda, no actuar sobre algo ajeno.
+#
+# Y habia una discrepancia de base: el push iba a `.../centinel.git` mientras
+# el paso de verificacion consultaba `.../Vigil`. La verificacion miraba un
 # repositorio distinto del que escribia, asi que confirmaba lo que encontrase
-# alli. Ahora ambos leen de aqui, que es la razon de que esto viva al nivel
-# del workflow y no dentro de un paso.
+# alli. Ahora ambos leen de aqui.
 #
-# English: the mirror destination is derived, not hardcoded. It read
-# `codeberg.org/VectisDev/centinel.git` literally, which in a
-# template-derived repository points at the original operator's mirror. There
-# was also a mismatch: the push went to `.../centinel.git` while the
-# verification step queried `.../Vigil` -- it checked a different repository
-# than the one it wrote to. Both now read from here, which is why these live
-# at workflow level rather than inside a step.
+# English: the mirror destination is declared, neither hardcoded nor guessed.
+# Deriving it from the repository name was tried and is wrong -- this repo is
+# `Vigil` on GitHub and its mirror is `centinel` -- and Codeberg's
+# `Push to create is not enabled for users` shows that with that option on,
+# the derivation would have CREATED a repository under the guessed name and
+# force-pushed every branch to it. Without `vars.CODEBERG_REPO` the mirror is
+# skipped and says so. There was also a base mismatch: the push went to
+# `.../centinel.git` while verification queried `.../Vigil`.
 env:
   CODEBERG_OWNER: ${{ vars.CODEBERG_OWNER || github.repository_owner }}
-  CODEBERG_REPO: ${{ vars.CODEBERG_REPO || github.event.repository.name }}
+  CODEBERG_REPO: ${{ vars.CODEBERG_REPO }}
   CODEBERG_USER: ${{ vars.CODEBERG_USER || github.repository_owner }}
 
 jobs:
@@ -127,6 +138,26 @@ jobs:
           set -euo pipefail
           if [ -z "${CODEBERG_TOKEN}" ]; then
             echo "CODEBERG_TOKEN not configured — skipping Codeberg mirror."
+            exit 0
+          fi
+
+          if [ -z "${CODEBERG_REPO}" ]; then
+            {
+              echo "### Espejo a Codeberg: omitido"
+              echo ""
+              echo "Falta la variable de repositorio \`CODEBERG_REPO\`."
+              echo ""
+              echo "El nombre del espejo no se deduce del nombre en GitHub: pueden"
+              echo "diferir, y de hecho difieren en el repositorio original"
+              echo "(\`Vigil\` en GitHub, \`centinel\` en Codeberg). Empujar a un"
+              echo "nombre adivinado puede crear un repositorio que nadie pidio y"
+              echo "llenarlo con \`--force\`, asi que no se hace."
+              echo ""
+              echo "Para activarlo: Settings → Secrets and variables → Actions →"
+              echo "Variables → \`CODEBERG_REPO\` con el nombre del repositorio"
+              echo "en Codeberg."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "CODEBERG_REPO no declarada — espejo omitido (no se adivina el destino)."
             exit 0
           fi
 
@@ -165,6 +196,17 @@ jobs:
           CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
         run: |
           set -euo pipefail
+          # Si no hay destino declarado no se empujo nada, asi que no hay nada
+          # que verificar. Consultar con el nombre vacio preguntaria por otro
+          # repositorio y reportaria lo que encontrase alli -- exactamente el
+          # error que este archivo ya tenia.
+          # English: with no declared destination nothing was pushed, so there
+          # is nothing to verify. Querying with an empty name would ask about
+          # a different repository and report whatever it found there.
+          if [ -z "${CODEBERG_REPO}" ]; then
+            echo "Sin destino declarado — nada que verificar."
+            exit 0
+          fi
           if [ -z "${CODEBERG_TOKEN}" ]; then
             echo "CODEBERG_TOKEN not configured — skipping Codeberg mirror."
             exit 0
@@ -360,7 +402,17 @@ jobs:
           TRIGGER="${{ github.event_name }}"
           MONTH=$(date -u +%Y-%m)
           IA_LINK="https://archive.org/details/centinel-mirror-${MONTH}"
-          CODEBERG_LINK="https://codeberg.org/${CODEBERG_OWNER}/${CODEBERG_REPO}/commit/${HEAD_SHA}"
+          # Sin destino declarado no hubo espejo, y la celda no debe afirmar
+          # que lo hubo. Un registro de transparencia que miente sobre una
+          # replica es peor que uno que declara su ausencia.
+          # English: with no declared destination there was no mirror, and the
+          # cell must not claim there was. A transparency log that lies about
+          # a replica is worse than one that declares its absence.
+          if [ -n "${CODEBERG_REPO}" ]; then
+            CODEBERG_CELL="[✓](https://codeberg.org/${CODEBERG_OWNER}/${CODEBERG_REPO}/commit/${HEAD_SHA})"
+          else
+            CODEBERG_CELL="— (sin destino declarado)"
+          fi
 
           # The Internet Archive cell reports what actually happened. A skipped
           # or failed upload is never recorded as an archive.
@@ -370,7 +422,7 @@ jobs:
             *)       IA_CELL="✗ (failed)" ;;
           esac
 
-          echo "| ${TIMESTAMP} | ${TRIGGER} | \`${HEAD_SHORT}\` | [✓](${CODEBERG_LINK}) | ${IA_CELL} |" >> "${LOG}"
+          echo "| ${TIMESTAMP} | ${TRIGGER} | \`${HEAD_SHORT}\` | ${CODEBERG_CELL} | ${IA_CELL} |" >> "${LOG}"
 
       - name: Commit and push log update
         run: |
