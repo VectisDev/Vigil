@@ -24,7 +24,7 @@
 
 1. Ir a https://proton.me/mail
 2. Crear cuenta con el dominio registrado
-3. Email resultado: `security@vectis.dev`
+3. Email resultado: `vectisdev26@proton.me`
 
 O usar **Proton for Organizations** (gratis para 1 usuario con dominio propio):
 https://proton.me/business/plans

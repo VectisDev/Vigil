@@ -23,7 +23,7 @@ La muestra de 2025 se describe solo en [`docs/evidence/HN2025.md`](../evidence/H
 - Separación con compuerta de promoción entre reglas estables y experimentales. `rules.enable_research_rules` puede existir; no hay una compuerta que impida promover un umbral calibrado solo con `tests/fixtures/hnd_2025/`.
 - Cobertura de todo el repositorio. Hay un piso solo sobre custodia y estadística, en el job `coverage-core`.
 - Una imagen del demo está en `Dockerfile.demo` y el job `demo-image` la ejecuta. No hay un build Nix del sistema completo.
-- Un patrocinador fiscal. No se afirma uno.
+- Un patrocinador fiscal firmado. La vía prevista es **[FISCAL SPONSOR]**, todavía sin nombrar.
 
 ## Pedido de fondos
 
@@ -56,7 +56,7 @@ The 2025 sample is described only in [`docs/evidence/HN2025.md`](../evidence/HN2
 - A promotion gate between stable and experimental rules. `rules.enable_research_rules` may exist; nothing stops a threshold fit only on `tests/fixtures/hnd_2025/` from being treated as settled.
 - Coverage of the whole repository. There is a floor only on custody and statistics, in the `coverage-core` job.
 - The demo image is `Dockerfile.demo`, and the `demo-image` job runs it. There is no Nix build of the whole system. A bounded parser fuzz lives in `tests/test_fuzz_parsers.py`.
-- A fiscal sponsor. None is claimed.
+- A signed fiscal sponsor. The intended path is **[FISCAL SPONSOR]**, not yet named.
 
 ## Funding ask
 

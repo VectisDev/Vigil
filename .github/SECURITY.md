@@ -60,7 +60,7 @@ records are signed with Ed25519.
 
 ## Contact
 
-security@vectis.dev
+vectisdev26@proton.me
 
 No public encryption key is in this repository. Do not describe one as
 available on request. To publish one later, add the fingerprint to this

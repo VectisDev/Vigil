@@ -133,9 +133,9 @@ obligación de publicación, condicionada a:
 
 ### Entidad Legal
 
-No hay patrocinador fiscal ni supervisor académico. Cualquier arreglo futuro se
-declara al financiador antes de recibir fondos. No se afirma una relación con
-ninguna universidad.
+La vía prevista para recibir un grant es un patrocinador fiscal,
+**[FISCAL SPONSOR]**, todavía sin nombrar y sin contrato firmado. No hay
+supervisor académico. No se afirma una relación con ninguna universidad.
 
 ---
 

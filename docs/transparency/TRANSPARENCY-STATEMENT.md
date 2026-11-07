@@ -58,7 +58,7 @@ cooperación — que los datos no fueron alterados después de su publicación.
 |------|-------|-------------|
 | Lead developer | `VectisDev` | Independent |
 | Academic validation | Independent review (sought; none signed) | — |
-| Fiscal custodian | Fiscal host organization (TBD) | — |
+| Fiscal custodian | [FISCAL SPONSOR], to be named; nothing signed | — |
 
 **Pseudonymity:** public authorship is released under the pseudonym
 `VectisDev` for operator safety. Legal identity can be disclosed to funders

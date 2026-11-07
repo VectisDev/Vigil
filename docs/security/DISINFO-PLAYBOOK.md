@@ -48,12 +48,14 @@ querer investigar:
 
 **1. Who funds us / Quién nos financia:**
 No external funding as of June 9, 2026. Development is unfunded volunteer work.
-No fiscal host organization is engaged at this time. Any such arrangement
-will be declared directly to the funder. We invite scrutiny.
+The intended path for a future grant is a fiscal sponsor, **[FISCAL SPONSOR]**,
+not yet named and not signed. Any signed arrangement will be declared to the
+funder. We invite scrutiny.
 
 **2. Who built it / Quién lo construyó:**
-`VectisDev`, publishing under that pseudonym. No university, party, or
-fiscal sponsor is claimed. Source code is public and auditable.
+`VectisDev`, publishing under that pseudonym. No university or party is
+claimed. A fiscal sponsor, if used, will be **[FISCAL SPONSOR]** once named.
+Source code is public and auditable.
 
 **3. What it can prove / Qué puede probar:**
 Only that publicly published data exists, was captured at a certain time,
@@ -90,9 +92,9 @@ seriously and will publish corrections prominently.
 
 *Response:*
 VIGIL has received zero funding as of June 9, 2026. Every line of code was
-written on a volunteer basis. Our fiscal sponsor for future grant
-applications is not yet engaged; any such arrangement will be declared
-directly to the funder. The allegation is false; if evidence exists, we
+written on a volunteer basis. A future grant is intended to go through
+**[FISCAL SPONSOR]**, not yet named; any signed arrangement will be declared
+to the funder. The allegation is false; if evidence exists, we
 invite its public presentation so we can address it.
 
 ---

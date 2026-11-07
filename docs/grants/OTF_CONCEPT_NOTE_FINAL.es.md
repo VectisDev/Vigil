@@ -87,7 +87,7 @@ Los archivos de 2025 muestran el límite de la idea cuando la cadena no se escri
 
 ## ¿Cuánto financiamiento estima que necesitará? (en dólares de EE. UU.)
 
-75.000 USD. Es el único total del repositorio (`docs/grants/BUDGET_NARRATIVE.md`). No hay viajes ni conferencias. No hay patrocinador fiscal nombrado. El contrato de OTF lo tendría que firmar el titular; este archivo no inventa un firmante.
+75.000 USD. Es el único total del repositorio (`docs/grants/BUDGET_NARRATIVE.md`). No hay viajes ni conferencias. La vía prevista es aplicar a través de un patrocinador fiscal, **[FISCAL SPONSOR]**, que todavía no tiene nombre y no está firmado. El contrato de OTF lo firmaría ese patrocinador cuando exista. Este archivo público no inventa un firmante y no guarda un nombre legal.
 
 | Entregable | USD |
 |---|---|
@@ -117,15 +117,15 @@ El formulario permite un seudónimo. El historial git se publica como VectisDev 
 
 ## ¿Qué correo debemos usar para contactarle?
 
-[OWNER EMAIL]
+vectisdev26@proton.me
 
-`.github/SECURITY.md` lista `security@vectis.dev`. El titular confirma qué buzón recibe de verdad el correo de la solicitud, antes de enviarla.
+Es la dirección en `.github/SECURITY.md`, `CITATION.cff` y `pyproject.toml`.
 
 ## ¿Por qué usted y su equipo son las personas adecuadas?
 
 El repositorio es la evidencia, no un currículum. Un tercero puede correr `make replay-offline` (`docs/VERIFY.md`). El CI de la rama por defecto incluye ese job y una imagen de contenedor fijada (`.github/workflows/ci.yml`, `Dockerfile.demo`). El merge que llevó esa imagen a la rama por defecto es el pull request 796; el CI de ese merge salió en verde (ejecución 42423340598 de GitHub Actions).
 
-Hay un solo mantenedor y ningún socio institucional (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). Eso es un riesgo para un contrato de 12 meses. Se dice aquí para que no aparezca después.
+Hay un solo mantenedor y ningún socio universitario (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). La vía prevista para contratar es un patrocinador fiscal, **[FISCAL SPONSOR]**, todavía sin nombrar. No hay nada firmado. Eso es un riesgo para un contrato de 12 meses. Se dice aquí para que no aparezca después.
 
 ## Fecha de inicio propuesta
 

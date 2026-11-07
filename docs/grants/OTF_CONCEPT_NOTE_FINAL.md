@@ -87,7 +87,7 @@ The 2025 files show the limit of the idea when the chain was not written at the 
 
 ## How much funding do you estimate you will need? (In US Dollars)
 
-75,000 USD. This is the only total in the repository (`docs/grants/BUDGET_NARRATIVE.md`). There is no travel and no conference line. No fiscal host is named. OTF's contract would have to be signed by the owner; this file does not invent a signer.
+75,000 USD. This is the only total in the repository (`docs/grants/BUDGET_NARRATIVE.md`). There is no travel and no conference line. The intended path is to apply through a fiscal sponsor, **[FISCAL SPONSOR]**, which is not yet named and is not signed. OTF's contract would be signed by that sponsor once named. This public file does not invent a signer and does not store a legal name.
 
 | Deliverable | USD |
 |---|---|
@@ -117,15 +117,15 @@ The form allows a pseudonym. Git history is published as VectisDev (`CITATION.cf
 
 ## What email address should we use to contact you?
 
-[OWNER EMAIL]
+vectisdev26@proton.me
 
-`.github/SECURITY.md` lists `security@vectis.dev`. The owner confirms which mailbox actually receives application mail before submitting.
+That is the address in `.github/SECURITY.md`, `CITATION.cff`, and `pyproject.toml`.
 
 ## Why are you, and your team members, the right people to work on this project?
 
 The repository is the evidence, not a résumé. A third party can run `make replay-offline` (`docs/VERIFY.md`). CI on the default branch includes that job and a pinned container image (`.github/workflows/ci.yml`, `Dockerfile.demo`). The merge that brought that image to the default branch is pull request 796; the CI run on that merge succeeded (GitHub Actions run 42423340598).
 
-There is one maintainer and no institutional partner (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). That is a risk for a 12-month contract. It is stated here so it is not discovered later.
+There is one maintainer and no university partner (`docs/operations/BUS_FACTOR.md`, `docs/legal/GOVERNANCE.md`). The intended contracting path is a fiscal sponsor, **[FISCAL SPONSOR]**, still to be named. Nothing is signed. That is a risk for a 12-month contract. It is stated here so it is not discovered later.
 
 ## Proposed start date
 

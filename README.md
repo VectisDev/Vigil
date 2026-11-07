@@ -34,7 +34,7 @@ VIGIL watches an official portal that publishes machine-readable results. It sto
 
 The reference case is the public JSON of Honduras' National Electoral Council (CNE) for the 2025 general election. The same capture shape applies to any authority that publishes a comparable feed.
 
-Authorship is the pseudonym **VectisDev**. No university, party, or fiscal sponsor is claimed.
+Authorship is the pseudonym **VectisDev**. No university or party is claimed. A grant, if any, is intended to go through a fiscal sponsor still to be named: **[FISCAL SPONSOR]**. Nothing is signed.
 
 ## What a reviewer can check offline
 

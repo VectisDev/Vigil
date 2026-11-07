@@ -45,8 +45,9 @@ conferencias en este pedido.
 ## Después de los 12 meses
 
 El código sigue en AGPL-3.0. Mantenerlo pide tiempo de quien lo publica, no una
-subscripción de nube. No hay patrocinador fiscal en el repositorio; recibirlo
-es un paso del mantenedor, fuera de git.
+subscripción de nube. La vía prevista para recibir los fondos es un
+patrocinador fiscal, **[FISCAL SPONSOR]**, todavía sin nombrar. No hay un
+contrato firmado.
 
 ---
 

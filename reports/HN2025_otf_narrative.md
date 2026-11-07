@@ -172,6 +172,6 @@ python verify/verify_chain.py tests/fixtures/hnd_2025/
 ## Contacto
 
 Divulgación de seguridad: GitHub Security Advisories en
-[`VectisDev/Vigil`](https://github.com/VectisDev/Vigil), o `security@vectis.dev`.
+[`VectisDev/Vigil`](https://github.com/VectisDev/Vigil), o `vectisdev26@proton.me`.
 
 La autoría pública se publica bajo el seudónimo `VectisDev` por seguridad del operador.

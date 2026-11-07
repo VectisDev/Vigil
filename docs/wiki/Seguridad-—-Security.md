@@ -6,7 +6,7 @@
 
 ### Reportar una vulnerabilidad
 
-Repórtala **en privado** desde la pestaña [Security → Report a vulnerability](https://github.com/VectisDev/Vigil/security/advisories/new). No abras un *issue* público para fallos de seguridad. El objetivo es responder en 48 horas y publicar una corrección o mitigación en 7 días para fallos críticos. Contacto alternativo: security@vectis.dev.
+Repórtala **en privado** desde la pestaña [Security → Report a vulnerability](https://github.com/VectisDev/Vigil/security/advisories/new). No abras un *issue* público para fallos de seguridad. El objetivo es responder en 48 horas y publicar una corrección o mitigación en 7 días para fallos críticos. Contacto alternativo: vectisdev26@proton.me.
 
 ### Cómo se protege la evidencia
 
@@ -34,7 +34,7 @@ Repórtala **en privado** desde la pestaña [Security → Report a vulnerability
 
 ### Reporting a vulnerability
 
-Report it **privately** from the [Security → Report a vulnerability](https://github.com/VectisDev/Vigil/security/advisories/new) tab. Do not open a public issue for security bugs. The goal is to acknowledge within 48 hours and publish a fix or mitigation within 7 days for critical issues. Alternative contact: security@vectis.dev.
+Report it **privately** from the [Security → Report a vulnerability](https://github.com/VectisDev/Vigil/security/advisories/new) tab. Do not open a public issue for security bugs. The goal is to acknowledge within 48 hours and publish a fix or mitigation within 7 days for critical issues. Alternative contact: vectisdev26@proton.me.
 
 ### How the evidence is protected
 

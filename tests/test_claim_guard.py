@@ -100,6 +100,34 @@ def test_hnd_2025_report_does_not_invent_a_portal_outage() -> None:
         assert phrase not in text, phrase
 
 
+def test_old_contact_address_does_not_reappear() -> None:
+    """The retired mailbox must not come back in a tracked file."""
+    retired = "security@" + "vectis.dev"
+    current = "vectisdev26@proton.me"
+    problems: list[str] = []
+    skip = {".git", ".venv", "__pycache__", "node_modules"}
+    for path in ROOT.rglob("*"):
+        if not path.is_file() or skip.intersection(path.parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        if retired in text:
+            problems.append(str(path.relative_to(ROOT)))
+    assert problems == []
+    assert current in (ROOT / ".github" / "SECURITY.md").read_text(encoding="utf-8")
+    for note in (
+        "docs/grants/OTF_CONCEPT_NOTE_FINAL.md",
+        "docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md",
+    ):
+        body = _read(note)
+        assert current in body
+        assert "[OWNER LEGAL NAME]" in body
+        assert "[OWNER EMAIL]" not in body
+        assert "[FISCAL SPONSOR]" in body
+
+
 def test_mailmap_does_not_repeat_the_personal_mailbox() -> None:
     text = (ROOT / ".mailmap").read_text(encoding="utf-8").lower()
     # Built in pieces so this test does not reintroduce the mailbox into the tree.
