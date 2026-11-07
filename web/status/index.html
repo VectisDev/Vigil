@@ -90,10 +90,10 @@ a{color:var(--accent);text-decoration:none}
 
 <div class="findings">
   <div class="card-hdr" style="margin-bottom:10px">HN 2025 — Forensic Findings (Statistical anomalies in CNE published data)</div>
-  <div class="f"><span class="badge bc">CRITICAL</span> &nbsp;<strong>13.1h communication blackout</strong> — No CNE data Dec 3 22:00 → Dec 4 11:06. Post-blackout trend shift −0.504pp in leading share.<div class="fd">Rule: snapshot_jump · Dec 3–4, 2025</div></div>
-  <div class="f"><span class="badge bc">CRITICAL</span> &nbsp;<strong>Impossible resolution rate</strong> — 2,346 inconsistent actas resolved in 60 min = 39.15 acts/min. Plausible threshold: ~10/min. Factor: 3.9×.<div class="fd">Rule: processing_speed · Dec 4, 2025</div></div>
+  <div class="f"><span class="badge bw">NOTE</span> &nbsp;<strong>13.1h with no stored file</strong> — Filename gap Dec 3 22:00 → Dec 4 11:06. Share difference −0.504pp between those two files. Not a measured portal outage.<div class="fd">See docs/evidence/HN2025.md</div></div>
+  <div class="f"><span class="badge bw">NOTE</span> &nbsp;<strong>Rate between two stored files</strong> — 2,346 fewer inconsistent actas in 60 min = 39.15/min, about 3.9× a heuristic of 10. Not a pre-registered study.<div class="fd">See docs/evidence/HN2025.md · Dec 4, 2025</div></div>
   <div class="f"><span class="badge bw">HIGH</span> &nbsp;<strong>25-cycle stagnation</strong> — Inconsistent actas frozen at 2,407 for 25 consecutive snapshots (~50h) while scrutiny advanced.<div class="fd">Rule: irreversibility · Dec 5–7, 2025</div></div>
-  <div class="f"><span class="badge bw">HIGH</span> &nbsp;<strong>7 overnight blackouts</strong> — Systematic nightly pattern, 11–25h each. Total: 117+ hours without published data across 7 days.<div class="fd">Rule: snapshot_jump · Dec 3–10, 2025</div></div>
+  <div class="f"><span class="badge bw">NOTE</span> &nbsp;<strong>7 long intervals with no stored file</strong> — 11–25h between filenames. Not a measured portal outage.<div class="fd">See docs/evidence/HN2025.md · Dec 3–10, 2025</div></div>
   <div class="f"><span class="badge bw">HIGH</span> &nbsp;<strong>17 progressive injection cycles</strong> — Low-delta batches (Δ&lt;100) published while backlog exceeded 1,000 inconsistent actas.<div class="fd">Rule: participation_anomaly · Dec 3–5, 2025</div></div>
 </div>
 

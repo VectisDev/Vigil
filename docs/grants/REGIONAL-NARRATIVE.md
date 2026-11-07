@@ -169,44 +169,32 @@ function in any Central American context.
 
 ### What Was Captured / Que se Capturo
 
-During the November-December 2025 general election count, VIGIL
-processed **64 real snapshots** of the CNE's results transmission system
-(SIEDE). Each snapshot was:
-
-- Downloaded via the CNE's public-facing API
-- Hashed with SHA-256 and chained to the previous snapshot
-- Anchored to the Bitcoin blockchain via OpenTimestamps
-- Analyzed by 24 statistical detectors in real time
-- Stored in `tests/fixtures/hnd_2025/` and deposited at DOI 10.5281/zenodo.20598892
+The repository holds **64 JSON files** saved by hand from the CNE's public
+responses, in `tests/fixtures/hnd_2025/`. They were not chained to each other,
+they were not written by the live poller, and they were not each anchored to
+Bitcoin. One Merkle root of the set is committed. Read
+[`docs/evidence/HN2025.md`](../evidence/HN2025.md) before quoting a number.
 
 ### Key Findings / Hallazgos Clave
 
-**Finding 1: 13-hour communication blackout with trend shift.**
-The CNE's results API ceased updating for approximately 13 hours during a
-critical phase of the count. When updates resumed, the distribution of newly
-reported actas showed a statistically significant shift in party vote shares
-compared to the pre-blackout trend. This pattern is consistent with the
-Honduras 2017 precedent. Vigil's blackout detector (`detect_blackout_windows`)
-flagged this automatically, with cryptographic timestamps proving the exact
-duration and the before/after data states.
+**Finding 1: 13 hours with no stored file.**
+Two filenames are 13 hours apart. There is no fetch log, so this is not
+evidence that the API stopped. The share difference between those two files
+is a subtraction, not a pre-declared significance test, and it is not a
+finding about 2017.
 
-**Finding 2: Bulk acta resolution at 39 actas per minute.**
-During the post-blackout catch-up period, the CNE processed actas at a rate
-of 39 per minute — substantially above the normal processing rate observed
-earlier in the count. This bulk resolution pattern is consistent with batch
-data entry rather than sequential polling station reporting. The temporal
-anomaly detector flagged this rate as a Z-score outlier.
+**Finding 2: 39.15 inconsistent actas per minute between two files.**
+That is the delta from 15:00 to 16:00 on 4 December, divided by 60. It is
+about 3.9× a heuristic of 10 in the code. It is not a pre-registered study
+and it does not say who typed the actas.
 
-**Finding 3: Prolonged stagnation windows.**
-Multiple periods of zero acta progression were detected outside the main
-blackout window. These stagnation periods, each lasting between 20 minutes
-and 2 hours, occurred at points where the margin between leading candidates
-was narrowing. The stagnation detector documented each window with
-cryptographic timestamps.
+**Finding 3: Stretches where the inconsistent-acta count does not move.**
+That is a description of the stored series. The timestamps are the ones in
+the filenames, not a chain written during the count.
 
 ### Validation Status / Estado de Validacion
 
-- 64 snapshots processed and chained
+- 64 JSON files stored. Not a hash chain (`verify_chain.py` exits 1)
 - 96 JSON source files archived (18 departments)
 - Approximately 2.5 million votes covered
 - 24 statistical detectors applied
@@ -401,7 +389,7 @@ Grant funding covers:
 | Acta | Official tally sheet from a single polling station (mesa), recording vote counts per party |
 | TREP | Transmision de Resultados Electorales Preliminares — the preliminary results system used by Central American electoral authorities |
 | SIEDE | Sistema de Escrutinio y Divulgacion Electronica — Honduras CNE's electronic results system |
-| Blackout window | A period during which the electoral authority's results API stops updating, detected by Vigil's `detect_blackout_windows` rule |
+| Long gap | A long interval between stored files. `detect_blackout_windows` flags that interval. It does not, by itself, show that an API stopped answering. |
 | Witness swarm | A network of independent Vigil nodes sharing cryptographically signed snapshots via P2P gossip protocol |
 | Hash chain | A sequence of SHA-256 hashes where each block includes the hash of the previous block, creating a tamper-evident chain of custody |
 | OpenTimestamps | A protocol for anchoring data hashes to Bitcoin's blockchain, providing an external, decentralized timestamp that cannot be falsified |

@@ -297,10 +297,10 @@ cd docs/research/
 ots upgrade rules_yaml.ots
 ots upgrade preregistration.ots
 
-# Verify that rules.yaml matches its pre-registered hash:
-# Verificar que rules.yaml coincide con su hash pre-registrado:
+# The hash that must match the file today (not the June 2026 lock):
 sha256sum command_center/rules.yaml
-# Expected: a15df9d95d96e5f10a6935b2e5a18b71640a6008e1bcd649882453924625493f
+# Expected: 2c6f4d80f1c589f107c1a2105b142eb3364c45bd3df08901ee59ad62ed13d8ab
+# The June 2026 string a15df9d9… does not match. It is kept above as a superseded lock.
 
 # Verify the OTS proof against Bitcoin blockchain:
 ots verify rules_yaml.ots -f command_center/rules.yaml
