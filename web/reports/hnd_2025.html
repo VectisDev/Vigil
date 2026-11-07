@@ -112,7 +112,7 @@ footer a{color:var(--accent);text-decoration:none}
 <div id="status-row">
   <div id="badge-estado" class="status-card sc-ok"><span class="dot dot-ok"></span><span id="badge-estado-txt">CARGANDO</span></div>
   <div id="badge-alertas" class="status-card sc-ok"><span class="dot dot-ok"></span><span id="badge-alertas-txt">ALERTAS —</span></div>
-  <div id="badge-blackout" class="status-card sc-ok"><span class="dot dot-ok"></span><span id="badge-blackout-txt">SIN BLACKOUT</span></div>
+  <div id="badge-blackout" class="status-card sc-ok"><span class="dot dot-ok"></span><span id="badge-blackout-txt">INTERVALO NO MEDIDO</span></div>
   <div id="badge-escrutinio" class="status-card sc-purple"><span class="dot dot-purple"></span><span id="badge-escrutinio-txt">ESCRUTINIO —</span></div>
 </div>
 <div id="loading-msg">Cargando datos del CNE Honduras 2025…</div>
@@ -143,7 +143,7 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 <div class="card">
   <h2>Resultados por Candidato</h2>
-  <div id="blackout-notice"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> BLACKOUT DE DATOS — Los votos desaparecieron del servidor CNE en este instante</div>
+  <div id="blackout-notice"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> HUECO EN EL ARCHIVO — Este archivo guardado no trae votos. No es una medición de que el portal estuviera caído. Ver docs/evidence/HN2025.md</div>
   <div id="cand-list"></div>
 </div>
 <div class="grid2">
@@ -153,7 +153,7 @@ footer a{color:var(--accent);text-decoration:none}
   </div>
   <div class="card forensic-card" id="fc-blackout" onclick="toggleFC('blackout')">
     <div class="forensic-header"><div class="forensic-status" id="fs-blackout" style="background:var(--muted)"></div><div class="forensic-title">Blackout de Datos</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
-    <div class="forensic-body" id="fb-blackout"><p>Períodos donde los votos se vuelven vacíos mientras las actas siguen contando. El servidor CNE dejó de reportar candidatos pero continuó acumulando actas.</p><div id="fm-blackout" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>data_blackout_start/end</code> · 16 alertas · 8 períodos</div></div>
+    <div class="forensic-body" id="fb-blackout"><p>En algunos archivos guardados el bloque de votos está vacío mientras el conteo de actas no lo está. Eso es una diferencia dentro del archivo. No demuestra que el portal haya dejado de responder.</p><div id="fm-blackout" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>data_blackout_start/end</code> · 16 alertas · 8 períodos</div></div>
   </div>
   <div class="card forensic-card" id="fc-jump" onclick="toggleFC('jump')">
     <div class="forensic-header"><div class="forensic-status" id="fs-jump" style="background:var(--muted)"></div><div class="forensic-title">Salto de Snapshot</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
@@ -165,11 +165,11 @@ footer a{color:var(--accent);text-decoration:none}
   </div>
   <div class="card forensic-card" id="fc-reversal" onclick="toggleFC('reversal')">
     <div class="forensic-header"><div class="forensic-status" id="fs-reversal" style="background:var(--muted)"></div><div class="forensic-title">Reversión Post-Blackout</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
-    <div class="forensic-body" id="fb-reversal"><p>La brecha entre 1.er y 2.o partido aumentó un 69.6% durante el período de opacidad. El partido en segundo lugar mejoró su posición mientras los datos eran invisibles.</p><div id="fm-reversal" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>trend_reversal_at_blackout</code> · 1 alerta</div></div>
+    <div class="forensic-body" id="fb-reversal"><p>Hay una diferencia de share entre dos archivos guardados. La ficha en docs/evidence/HN2025.md no publica un porcentaje de esa brecha, y esta página tampoco.</p><div id="fm-reversal" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>trend_reversal_at_blackout</code> · 1 alerta</div></div>
   </div>
   <div class="card forensic-card" id="fc-speed" onclick="toggleFC('speed')">
     <div class="forensic-header"><div class="forensic-status" id="fs-speed" style="background:var(--muted)"></div><div class="forensic-title">Velocidad de Procesamiento</div><span class="forensic-chevron"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
-    <div class="forensic-body" id="fb-speed"><p>Aceleración anómala en la velocidad de ingreso de actas. El ritmo excedió el límite estadístico para escrutinio manual.</p><div id="fm-speed" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>processing_speed</code> · 1 alerta · severidad HIGH</div></div>
+    <div class="forensic-body" id="fb-speed"><p>Entre dos archivos, el conteo de actas inconsistentes bajó a un ritmo cercano a 3.9× la heurística de 10 por minuto. No es un estudio pre-registrado ni una capacidad medida.</p><div id="fm-speed" class="alert-msg" style="display:none"></div><div class="forensic-note">Detector: <code>processing_speed</code> · 1 alerta · severidad HIGH</div></div>
   </div>
 </div>
 <div class="grid2">
@@ -289,9 +289,9 @@ function updateStatusBadges(snap,idx){
   alertBadge.querySelector('.dot').className=criticals>0?'dot dot-bad':'dot dot-ok';
   document.getElementById('badge-alertas-txt').textContent=criticals+' ALERTAS CRÍTICAS';
   var boBadge=document.getElementById('badge-blackout');
-  if(snap.blackout){boBadge.className='status-card sc-bad';boBadge.querySelector('.dot').className='dot dot-bad';document.getElementById('badge-blackout-txt').innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> BLACKOUT ACTIVO';}
-  else if(blackoutsUpTo>0){boBadge.className='status-card sc-warn';boBadge.querySelector('.dot').className='dot dot-warn';document.getElementById('badge-blackout-txt').textContent=blackoutsUpTo+' BLACKOUTS VISTOS';}
-  else{boBadge.className='status-card sc-ok';boBadge.querySelector('.dot').className='dot dot-ok';document.getElementById('badge-blackout-txt').textContent='SIN BLACKOUT';}
+  if(snap.blackout){boBadge.className='status-card sc-bad';boBadge.querySelector('.dot').className='dot dot-bad';document.getElementById('badge-blackout-txt').textContent='HUECO EN ARCHIVO';}
+  else if(blackoutsUpTo>0){boBadge.className='status-card sc-warn';boBadge.querySelector('.dot').className='dot dot-warn';document.getElementById('badge-blackout-txt').textContent=blackoutsUpTo+' HUECOS EN ARCHIVOS';}
+  else{boBadge.className='status-card sc-warn';boBadge.querySelector('.dot').className='dot dot-warn';document.getElementById('badge-blackout-txt').textContent='INTERVALO NO MEDIDO';}
   document.getElementById('badge-escrutinio-txt').textContent='ESCRUTINIO '+snap.pct_escrutinio.toFixed(1)+'%';
 }
 

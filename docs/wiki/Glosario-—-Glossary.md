@@ -5,7 +5,7 @@ Términos que aparecen en VIGIL y su documentación · Terms used across VIGIL a
 | Acta | Tally sheet | Documento con el resultado de una mesa de votación · Record of one polling table's result |
 | Acta inconsistente | Inconsistent tally sheet | Acta con errores aritméticos o de registro que pasa a escrutinio especial · Sheet with arithmetic or record errors sent to special scrutiny |
 | Anclaje | Anchoring | Registro de un hash en Bitcoin para probar que existía en una fecha · Recording a hash on Bitcoin to prove it existed at a date |
-| Apagón de comunicación | Communication blackout | Periodo en que la autoridad deja de publicar datos · Period in which the authority stops publishing data |
+| Intervalo sin archivo | Gap between stored files | Diferencia entre dos marcas de tiempo en archivos ya guardados. No es, por sí sola, una caída medida del portal · A gap between timestamps on files already stored. Not, by itself, a measured portal outage |
 | Cadena de hashes | Hash chain | Secuencia en la que cada captura incluye el hash de la anterior · Sequence where each capture includes the previous one's hash |
 | Captura (snapshot) | Snapshot | Copia de los datos oficiales en un momento dado · Copy of the official data at a given moment |
 | Escrutinio especial | Special scrutiny | Revisión de actas inconsistentes por la autoridad · The authority's review of inconsistent sheets |

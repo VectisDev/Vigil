@@ -1,5 +1,7 @@
 # Vigil Cost Elimination Roadmap
 
+This file is not a funding ask. The only ask in the repository is 75,000 USD over 12 months, in `docs/grants/BUDGET_NARRATIVE.md` and `docs/grants/OTF_CONCEPT_NOTE_FINAL.md`. Figures below are internal sketches, not a second application.
+
 ## Objetivo Estratégico
 Transformar Vigil de "costo variable por validación" a "costo fijo por infraestructura" + "costo marginal ~0" por elección.
 

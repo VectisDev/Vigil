@@ -11,7 +11,7 @@
 ## Principio presupuestario / Budgetary principle
 
 Este es el único total del repositorio: **75,000 USD, 12 meses**. La nota
-conceptual usa la misma tabla. Un bosquejo regional más amplio que estaba en
+para el formulario está en `OTF_CONCEPT_NOTE_FINAL.md` y usa la misma tabla. Un bosquejo regional más amplio que estaba en
 `REGIONAL-NARRATIVE.md` no es esta solicitud.
 
 Los fondos no compran una granja de servidores. Sí pagan revisión, un release
