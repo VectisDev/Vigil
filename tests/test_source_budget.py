@@ -106,18 +106,32 @@ def test_the_right_count_pointed_elsewhere_still_fails(config: dict):
         entry["url"] = entry["url"].replace("resultadosgenerales2025.cne.hn", "evil.example.org")
     problems = check(config, "HN")
     assert len(collect_urls(config)) == MAX_SOURCES, "el recuento sigue dentro del techo"
-    assert problems, "y aun asi debe fallar"
-    assert all("evil.example.org" in p for p in problems)
+
+    # Comparacion exacta del mensaje, no `"host" in mensaje`. Buscar un host
+    # como subcadena es el patron del saneamiento incompleto de URLs
+    # -- `"example.org" in url` tambien casa con `evil.example.org.attacker.net`
+    # -- y aunque aqui se inspeccione un mensaje de error y no una URL, la
+    # forma es la peligrosa y conviene no escribirla ni en las pruebas. La
+    # comparacion exacta es ademas una asercion mas estricta.
+    # English: exact comparison rather than `"host" in message`. Substring
+    # matching on a host is the incomplete-URL-sanitization pattern; even
+    # though this inspects an error message and not a URL, the shape is the
+    # dangerous one. Exact comparison is also a stricter assertion.
+    expected = [
+        f"host fuera del preset de HN: evil.example.org ({entry['url']})"
+        for entry in config["cne"]["presidential_endpoints"]
+    ]
+    assert problems == expected
 
 
 def test_a_single_redirected_endpoint_is_caught(config: dict):
     config["cne"]["presidential_endpoints"][7]["url"] = "https://attacker.test/api/x"
-    assert any("attacker.test" in p for p in check(config, "HN"))
+    assert check(config, "HN") == ["host fuera del preset de HN: attacker.test (https://attacker.test/api/x)"]
 
 
 def test_the_national_url_is_checked_too(config: dict):
     config["cne"]["main_url"] = "https://attacker.test/api/nacional"
-    assert any("attacker.test" in p for p in check(config, "HN"))
+    assert check(config, "HN") == ["host fuera del preset de HN: attacker.test (https://attacker.test/api/nacional)"]
 
 
 def test_the_allowlist_comes_from_the_country_preset():

@@ -38,6 +38,13 @@ jobs:
   # every three hours simply by existing.
   gate:
     uses: ./.github/workflows/_gate.yml
+    # El workflow declara contents: write e issues: write porque el job de
+    # captura los necesita. El gate solo decide y no escribe nada, asi que
+    # se le acotan aqui en vez de heredarlos.
+    # English: the workflow declares contents: write and issues: write for
+    # the capture job. The gate only decides and writes nothing.
+    permissions:
+      contents: read
     with:
       purpose: audit
 

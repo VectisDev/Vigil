@@ -28,6 +28,14 @@ concurrency:
 jobs:
   gate:
     uses: ./.github/workflows/_gate.yml
+    # El gate solo decide; no escribe nada. Sin este bloque hereda el
+    # defecto del repositorio, que suele ser amplio, para una llamada que
+    # unicamente necesita leer el arbol.
+    # English: the gate only decides and writes nothing. Without this block it
+    # inherits the repository default, usually broad, for a call that only
+    # needs to read the tree.
+    permissions:
+      contents: read
     with:
       purpose: scheduler
 
