@@ -1,6 +1,8 @@
-# Security Audit Follow-ups
+# Security follow-ups (maintainer checklist)
 
-## Security Score: 9.9-10/10 (Hardened)
+This file is not a third-party audit and it is not a score.
+No external security audit has been completed.
+Disclosure and contact: [`.github/SECURITY.md`](../../.github/SECURITY.md).
 
 ## Estado de recomendaciones
 

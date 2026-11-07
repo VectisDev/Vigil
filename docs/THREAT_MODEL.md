@@ -1,41 +1,34 @@
 # Threat model — summary / Modelo de amenaza — resumen
 
-Resumen orientado a revisores y financiadores. El modelo formal completo, con
-activos A1–A8 y actores, está en
-[`docs/security/THREAT-MODEL.md`](security/THREAT-MODEL.md).
+One maintainer publishes this repository, under the pseudonym VectisDev.
+The longer note in [`docs/security/THREAT-MODEL.md`](security/THREAT-MODEL.md) is a design sketch.
+Where it describes a witness federation, or a witness list, as already running, this page is the one that matches the tree. That list is not pre-registered here.
 
-Summary for reviewers and funders. The full formal model, with assets A1–A8 and
-threat actors, is in [`docs/security/THREAT-MODEL.md`](security/THREAT-MODEL.md).
+Un solo mantenedor publica este repositorio, con el seudónimo VectisDev.
+La nota larga en [`docs/security/THREAT-MODEL.md`](security/THREAT-MODEL.md) es un boceto de diseño.
+Si describe una federación de testigos, una lista de testigos ya registrada, o un control como si ya operara, manda esta página.
 
-## Premisa distintiva / Distinguishing premise
+## What is being watched
 
-VIGIL sigue el linaje de Certificate Transparency (RFC 6962) con una inversión
-fundamental: **la autoridad que publica es el adversario primario**, no un
-intermediario de red. El sistema no pide confianza a la autoridad ni se la
-concede.
+The published feed, not a ballot box. Useful failures are: a stored capture no longer matches what was stored, or a portal stops answering during a window when a fetch was actually attempted. The software records those events. It does not decide why they happened and it does not name a responsible party.
 
-VIGIL follows the Certificate Transparency (RFC 6962) lineage with one
-fundamental inversion: **the publishing authority is the primary adversary**, not
-a network intermediary. The system neither requests nor extends trust to the
-authority.
+Lo observado es el flujo publicado, no una urna. Los fallos útiles son: una captura guardada ya no coincide con lo guardado, o un portal deja de responder en una ventana en la que sí hubo un intento. El software registra esos hechos. No decide la causa y no señala un responsable.
 
-## Capa de seguridad → amenaza mitigada
+## Controls that exist in this tree
 
-| Amenaza / Threat | Control en VIGIL / Control |
+| Threat | What the software does |
 |---|---|
-| Alteración silenciosa de capturas tras su publicación | Cadena SHA-256 encadenada + raíz Merkle + anclaje OpenTimestamps/Bitcoin |
-| Operador único como punto de fallo o de coerción | Diseño sin intervención humana continua; federación de testigos; reconstrucción `k` de `n` sin que dos custodios basten |
-| Panel de control atacado / robo de credenciales | Semillas de alta entropía (no contraseñas humanas); solo hashes en `web/access.json`; el token de escritura vive únicamente en memoria de página y nunca se persiste |
-| Presión para suavizar hallazgos | AGPL-3.0 + verificación offline; umbrales pre-registrados y versionados en abierto, comprobables contra la fecha del hallazgo |
-| Acusación de caja negra | Código abierto, fixtures reales incluidos, scripts de reproducción de un comando |
-| Imputación de intención o de fraude | El motor emite observaciones descriptivas; los veredictos están prohibidos por `docs/legal/OPERATING-PRINCIPLES.md` §8 |
-| Carga abusiva sobre la autoridad auditada | Techo de 480 peticiones/hora por host, estiramiento automático del intervalo, alcance limitado a 19 endpoints |
-| Exposición del operador / doxxing | Publicación seudónima; mínimo PII en el repositorio; identidades de custodios sin divulgar |
+| Silent change after a capture | SHA-256 link to the previous capture, when the pipeline is running and writing `previous_hash` |
+| Dispute about which bytes were stored | Merkle root, plus an OpenTimestamps proof when one was actually created |
+| A report that invents a healthy source | `reachable` stays unknown until a fetch is recorded. Unprobed endpoints stay unknown |
+| Load on the authority | Hard ceiling of 480 requests/hour per host |
+| A public panel treated as a vault | The Pages site is static. `web/access.json` stores hashes. The gate is not a boundary |
+| Pressure to soften a result | AGPL-3.0. Thresholds live in `command_center/rules.yaml`. They are not a pre-registered study of the 2025 sample |
+| The maintainer disappears | Anyone can fork the repository. There is no second maintainer in the tree |
 
-## Lo que el modelo NO cubre / Out of scope
+## Out of scope
 
-- Alteración ocurrida **antes** de la publicación oficial: VIGIL custodia lo
-  publicado, no puede atestiguar lo no publicado.
-- Fraude presencial en mesa, que no deja traza en el flujo de datos.
-- Determinación de causa o intención: queda reservada a observadores
-  calificados, tribunales y la opinión pública.
+- A change made before the authority published the file. The tool keeps what was published.
+- What happened at a polling station. The bundled 2025 files are national aggregates.
+- Why a number moved. That is for a reader, a court, or the public.
+- A second operator. None is configured here.

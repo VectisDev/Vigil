@@ -10,6 +10,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+def _wiki_pages() -> list[str]:
+    wiki = ROOT / "docs" / "wiki"
+    return sorted(path.relative_to(ROOT).as_posix() for path in wiki.glob("*.md") if path.is_file())
+
+
 SCANNED = [
     "README.md",
     "docs/VERIFY.md",
@@ -30,7 +36,13 @@ SCANNED = [
     "web/status/index.html",
     "docs/grants/OTF_CONCEPT_NOTE_FINAL.md",
     "docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md",
+    ".github/SECURITY.md",
+    "docs/security/SECURITY-POLICY.md",
+    "docs/compliance/SECURITY_POLICY.md",
+    "docs/THREAT_MODEL.md",
+    "docs/legal/GOVERNANCE.md",
 ]
+SCANNED.extend(_wiki_pages())
 
 # These pages are where a gap was being narrated as a portal outage.
 OUTAGE_CLAIM_FILES = {
@@ -126,6 +138,24 @@ def test_old_contact_address_does_not_reappear() -> None:
         assert "[OWNER LEGAL NAME]" in body
         assert "[OWNER EMAIL]" not in body
         assert "[FISCAL SPONSOR]" in body
+
+
+def test_security_policy_matches_one_maintainer() -> None:
+    policy = _read(".github/SECURITY.md")
+    current = "vectisdev26@proton.me"
+    assert current in policy
+    assert "48 hours" not in policy
+    assert "7 days" not in policy
+    assert "push protection is enabled" not in policy.lower()
+    assert "No third-party security audit has been completed" in policy
+    wiki = _read("docs/wiki/Seguridad-—-Security.md")
+    assert current in wiki
+    assert "48 hours" not in wiki
+    assert "7 días" not in wiki
+    retired_disclosure = "security-low"
+    old_policy = _read("docs/security/SECURITY-POLICY.md")
+    assert retired_disclosure not in old_policy
+    assert current in old_policy
 
 
 def test_mailmap_does_not_repeat_the_personal_mailbox() -> None:

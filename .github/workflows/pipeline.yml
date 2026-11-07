@@ -38,6 +38,8 @@ jobs:
   # what is already in the tree and issue no requests to the source.
   gate:
     uses: ./.github/workflows/_gate.yml
+    permissions:
+      contents: read
     with:
       purpose: pipeline
 

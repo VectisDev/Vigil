@@ -39,6 +39,9 @@ concurrency:
   group: centinel-poller-B-singleton
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   # Los pollers corren 5,5 horas seguidas haciendo peticiones. Son, con
   # diferencia, el mayor consumidor de la cuota etica del proyecto, y hasta

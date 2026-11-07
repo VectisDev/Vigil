@@ -1,9 +1,7 @@
 name: Vigilante Electoral Permanente
 
 permissions:
-  contents: write
-  actions: read
-  issues: write
+  contents: read
 
 on:
   workflow_dispatch:
@@ -38,11 +36,8 @@ jobs:
   # every three hours simply by existing.
   gate:
     uses: ./.github/workflows/_gate.yml
-    # El workflow declara contents: write e issues: write porque el job de
-    # captura los necesita. El gate solo decide y no escribe nada, asi que
-    # se le acotan aqui en vez de heredarlos.
-    # English: the workflow declares contents: write and issues: write for
-    # the capture job. The gate only decides and writes nothing.
+    # El token del workflow es de lectura. Este job solo decide.
+    # English: the workflow token is read-only. This job only decides.
     permissions:
       contents: read
     with:
@@ -53,6 +48,10 @@ jobs:
     if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+      issues: write
 
     steps:
       - name: Checkout del repositorio

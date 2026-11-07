@@ -1,7 +1,11 @@
 # Incident Response Protocol — VIGIL
 ## Protocolo de Respuesta a Incidentes
 
-**Version:** 1.0 | **Date:** 2025-05-17 | **Status:** Active
+**Version:** 1.1 | **Date:** 2026-11-07
+
+One maintainer, pseudonym VectisDev. There is no on-call rotation and no response measured in minutes.
+A security bug in the software goes to [`.github/SECURITY.md`](../../.github/SECURITY.md), not to this electoral-anomaly note.
+This note is what that same person does when they are at the keyboard and a stored series looks wrong.
 
 ---
 
@@ -29,52 +33,47 @@ notificación, la preservación de evidencia digital y la plantilla de reporte d
 
 ### Flujo de Respuesta por Nivel
 
-#### CRÍTICO — Responder en < 15 minutos
+#### CRÍTICO — cuando el mantenedor lo ve
+
+No hay un plazo de 15 minutos. Hay una sola persona.
 
 ```
 1. PRESERVAR
-   └─ No reiniciar ni detener el sistema
+   └─ No reiniciar ni detener el sistema antes de copiar el estado
    └─ Exportar snapshot actual: python scripts/export_snapshot.py --full
-   └─ Guardar attack_log.jsonl en storage externo inmediato
+   └─ Copiar attack_log.jsonl fuera de la máquina de trabajo
    └─ Tomar screenshot del panel con timestamp visible
 
-2. NOTIFICAR (en este orden)
-   └─ Coordinador técnico del equipo observador
-   └─ Entidad legal (revisor académico independiente)
-   └─ Misión de observación presente (OEA/UE/NDI si aplica)
+2. ANOTAR
+   └─ No hay coordinador, ni entidad legal, ni misión que este repositorio notifique
+   └─ Completar la plantilla de abajo
+   └─ Registrar: hora UTC, hash del bloque afectado, qué cambió
 
-3. DOCUMENTAR
-   └─ Completar plantilla de Reporte de Incidente (ver abajo)
-   └─ Registrar: hora exacta UTC, hash del bloque afectado,
-      descripción del cambio observado
+3. CONSERVAR
+   └─ La evidencia primaria es attack_log.jsonl más los archivos hasheados
+   └─ No hay clave OpenPGP publicada. No describas una como disponible
 
-4. CONSERVAR CADENA DE CUSTODIA
-   └─ No compartir datos crudos por canales inseguros
-   └─ Usar canales cifrados (Signal, correo GPG) para comunicación inicial
-   └─ La evidencia primaria es el archivo attack_log.jsonl + hash chain
-
-5. NO HACER
-   └─ No publicar en redes sociales sin coordinación con entidad legal
-   └─ No interpretar públicamente como fraude sin validación técnica
-   └─ No reiniciar el pipeline sin preservar logs completos
+4. NO HACER
+   └─ No publicar una causa ni un responsable
+   └─ No reiniciar el pipeline sin copiar los logs
 ```
 
-#### ALTO — Responder en < 60 minutos
+#### ALTO — en la siguiente revisión, no en 60 minutos
 
 ```
 1. VERIFICAR
    └─ Confirmar que la anomalía persiste en la siguiente captura
    └─ Revisar si hay correlación con otro departamento o regla
 
-2. NOTIFICAR
-   └─ Coordinador técnico
+2. ANOTAR
+   └─ No hay un segundo revisor. Lo anota el mantenedor.
 
 3. DOCUMENTAR
    └─ Registrar en Reporte de Incidente con nivel ALTO
    └─ Incluir: regla disparada, umbral, valor observado, contexto
 ```
 
-#### MEDIO / BAJO — Responder en < 4 horas
+#### MEDIO / BAJO — en la bitácora, sin plazo de horas
 
 ```
 1. REGISTRAR en bitácora de turno
@@ -84,36 +83,15 @@ notificación, la preservación de evidencia digital y la plantilla de reporte d
 
 ---
 
-### Cadena de Notificación
+### Quién actúa
 
-```
-DETECCIÓN AUTOMÁTICA
-        │
-        ▼
-OPERADOR DE TURNO
-        │
-        ├─── CRÍTICO/ALTO ──────────────────────────────────┐
-        │                                                   │
-        ▼                                                   ▼
-COORDINADOR TÉCNICO                                 ENTIDAD LEGAL
-(responsable de confirmar                           (revisor académico independiente)
-la anomalía técnicamente)                                   │
-        │                                                   │
-        └─────────────────────────┬─────────────────────────┘
-                                  │
-                                  ▼
-                    MISIÓN DE OBSERVACIÓN PRESENTE
-                    (OEA DECO / UE EOM / NDI si aplica)
-                                  │
-                                  ▼
-                    DECISIÓN CONJUNTA: publicar / litigar / monitorear
-```
+Hay una persona: VectisDev. No hay turno, ni coordinador, ni entidad legal, ni misión que este repositorio avise. La nota se escribe en el repositorio o se queda en el disco del mantenedor.
 
 ---
 
 ### Preservación de Evidencia Digital
 
-La evidencia forense de VIGIL tiene valor legal cuando:
+Un paquete guardado se puede volver a mirar cuando:
 
 1. **El hash chain está íntegro**: cada bloque referencia el hash del anterior
 2. **El ancla Bitcoin existe**: el primer hash del día está en OpenTimestamps
@@ -166,9 +144,8 @@ y qué departamentos o totales están involucrados]
 
 ━━━━━━ ACCIONES TOMADAS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 □ Evidencia preservada en: [ruta/URL]
-□ Notificado coordinador técnico a las: [hora UTC]
-□ Notificada entidad legal a las: [hora UTC]
-□ Notificada misión de observación a las: [hora UTC]
+□ Revisado por el mantenedor (VectisDev) a las: [hora UTC]
+□ No hay segundo revisor en este repositorio
 □ Screenshot del panel adjunto: [sí/no]
 
 ━━━━━━ ANÁLISIS TÉCNICO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -202,9 +179,8 @@ Estas condiciones son esperadas y NO deben escalar:
 
 ### Purpose
 
-This document defines what the VIGIL operator does when the system detects a
-statistical or cryptographic anomaly during an electoral process. It defines the notification
-chain, digital evidence preservation, and the incident report template.
+This document is what the one maintainer does when they are at the keyboard and a stored series looks wrong.
+There is no on-call clock. A software vulnerability is reported through `.github/SECURITY.md`.
 
 ---
 
@@ -222,7 +198,7 @@ chain, digital evidence preservation, and the incident report template.
 
 ### Digital Evidence Preservation
 
-VIGIL forensic evidence has legal value when:
+A stored series is easier to re-check when:
 
 1. **The hash chain is intact**: each block references the hash of the previous one
 2. **The Bitcoin anchor exists**: the first hash of the day is in OpenTimestamps
@@ -256,9 +232,8 @@ and which departments or totals are involved]
 
 ━━━━━━ ACTIONS TAKEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 □ Evidence preserved at: [path/URL]
-□ Technical coordinator notified at: [UTC time]
-□ Legal entity notified at: [UTC time]
-□ Observation mission notified at: [UTC time]
+□ Maintainer (VectisDev) reviewed at: [UTC time]
+□ No second reviewer exists in this repository
 □ Panel screenshot attached: [yes/no]
 
 ━━━━━━ STATUS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

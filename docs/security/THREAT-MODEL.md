@@ -1,9 +1,17 @@
 # Threat Model / Modelo de Amenazas
 
-**Version:** 1.0 | **Date:** 2026-06-01 | **Status:** Active
+**Status:** design sketch, not a statement of what is deployed.
+The operating summary is [`docs/THREAT_MODEL.md`](../THREAT_MODEL.md).
+One person maintains the repository, under the pseudonym VectisDev.
+There is no witness federation running from this tree, no pre-registered witness list, and no second operator.
+Tables below that say a control is in place describe a design, unless the summary page says the same thing.
 
-**ES:** Modelo formal de amenazas para VIGIL  
-**EN:** Formal threat model for VIGIL
+**Estado:** boceto de diseño, no una descripción de lo que está en marcha.
+El resumen que manda es [`docs/THREAT_MODEL.md`](../THREAT_MODEL.md).
+Una persona mantiene el repositorio, con el seudónimo VectisDev.
+No hay una federación de testigos operando desde este árbol, ni una lista de testigos ya registrada, ni un segundo operador.
+
+**Version:** 1.0 | **Date:** 2026-06-01
 
 ---
 
@@ -20,10 +28,10 @@ independent witnesses. The design follows the Certificate Transparency
 (RFC 6962) lineage, with the fundamental inversion that the publishing
 authority---not a network intermediary---is the primary adversary.
 
-Vigil no cuenta votos, no afirma fraude, y no reemplaza al tribunal
-electoral. Produce un registro de custodia verificable: prueba de que los
-datos capturados no fueron alterados silenciosamente, y prueba de que un
-corte de acceso dirigido dejo huella firmada e inmutable.
+Vigil no cuenta votos y no reemplaza al tribunal electoral. Cuando el
+pipeline escribe `previous_hash`, el registro sirve para ver si esos bytes
+cambiaron después. La muestra de 2025 no es esa cadena. Un corte del portal
+solo queda registrado si hubo un intento de descarga.
 
 ### Data Flow Diagram / Diagrama de Flujo de Datos
 
@@ -188,7 +196,7 @@ corte de acceso dirigido dejo huella firmada e inmutable.
 | Git metadata exposure | Commits reveal operator identity, timezone, email | **Residual risk**---pseudonym strategy recommended but not enforced |
 | Key custody under coercion | Operator forced to hand over Ed25519 private key | Multi-witness federation (Corollary) degrades gracefully; but requires >=2 independent operators |
 | Device seizure | Physical access to running Vigil instance | Encrypted backups (ChaCha20-Poly1305); but runtime state is in memory |
-| Public attribution | Operator publicly known as project maintainer | **Residual risk**---foundation adoption or pseudonym strategy recommended |
+| Public attribution | The maintainer publishes under the pseudonym VectisDev | **Residual risk.** Git history can still carry older identities. No organization holds the name. |
 
 ---
 
@@ -344,9 +352,9 @@ coordination. Documented as future work.
 identity of the operator are potential exposure vectors. In Honduras,
 this can translate to physical danger.
 
-**Current mitigation:** Code audited for no phone-home. Pseudonym
-strategy recommended but not enforced. Foundation adoption to decouple
-operator identity from project is recommended.
+**Current mitigation:** The public name is the pseudonym VectisDev.
+There is no organization in this repository that could hold the name instead.
+A third-party audit has not been done.
 
 **Severity:** Critical in hostile jurisdictions. Operational, not
 technical.
@@ -401,12 +409,8 @@ not a technical one.
 
 **Priority:** High (before public exposure)
 
-Define and implement a sustainable pseudonym strategy for the primary
-operator. Options: (a) pseudonymous maintainer identity with no
-traceable link to physical person, (b) foundation or institutional
-adoption that depersonalizes the project, (c) distributed maintainership
-where no single individual is identified as the author. This is a
-personal safety issue in Honduras and similar jurisdictions.
+The public author is the pseudonym VectisDev. The legal name is not in this repository.
+There is no foundation and no second maintainer. History may still contain older identities; that is not rewritten here.
 
 ### 8.4 Upgrade Binary Integrity to BLAKE3
 

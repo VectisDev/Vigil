@@ -16,7 +16,7 @@ on:
     - cron: '0 */6 * * *'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: s3-mirror
@@ -25,6 +25,8 @@ concurrency:
 jobs:
   sync:
     if: ${{ !github.event.repository.fork }}
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

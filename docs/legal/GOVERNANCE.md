@@ -24,20 +24,13 @@ El mantenedor principal es responsable de:
 
 - Decisiones de arquitectura técnica del núcleo criptográfico y estadístico
 - Aprobación de contribuciones que afecten la cadena de hashes o las reglas estadísticas
-- Comunicación con organizaciones de observación electoral y partners académicos
-- Gestión de divulgación responsable de vulnerabilidades de seguridad
+- La divulgación de vulnerabilidades, por los dos canales de `.github/SECURITY.md`
 
 **Criterio de selección:** Competencia técnica demostrable en criptografía aplicada,
 estadística electoral y sistemas distribuidos. Sin afiliación a partido político o
 candidatura electoral activa en los países donde el sistema opera.
 
-#### Comité Técnico Asesor (en formación)
-
-Compuesto por representantes de:
-
-- **Revisor académico independiente** — buscado; ninguna institución está comprometida
-- **Observadores independientes** — uso operativo del sistema en contexto electoral
-- **Comunidad open source** — revisión de código y seguridad
+No hay comité técnico, ni consejo, ni segundo mantenedor. La revisión académica se busca y ninguna institución la ha firmado.
 
 ---
 
@@ -55,8 +48,7 @@ Los mantenedores y contribuyentes del proyecto NO pueden:
    sin autorización escrita explícita
 4. **Recibir remuneración de partidos políticos o candidatos** simultáneamente a trabajar
    en el proyecto
-5. **Publicar interpretaciones políticas** de los resultados del sistema sin coordinación
-   con la entidad legal responsable
+5. **Publicar una causa o un responsable** a partir de una señal del software. El repositorio no tiene una entidad legal que autorice ese texto.
 
 #### Declaración requerida
 
@@ -69,10 +61,10 @@ Todo mantenedor y contribuyente con acceso al repositorio principal debe declara
 
 #### Proceso de divulgación
 
-Si un mantenedor identifica un conflicto de intereses:
-1. Declararlo inmediatamente al mantenedor principal o al comité técnico
-2. Abstenerse de tomar decisiones sobre componentes relacionados con el conflicto
-3. El comité técnico puede solicitar inhibición temporal del rol
+Si el mantenedor identifica un conflicto de intereses:
+1. Escribirlo en el repositorio, en este archivo o en el informe del caso
+2. No mezclar ese conflicto con una lectura de los datos
+3. No hay un comité que pueda apartar a otra persona: solo está VectisDev
 
 ---
 
@@ -94,23 +86,21 @@ Si un mantenedor identifica un conflicto de intereses:
 
 #### Para reporte de seguridad
 
-Ver `SECURITY.md`. Nunca publicar vulnerabilidades sin coordinación con el equipo.
+Ver `.github/SECURITY.md`. No publicar un fallo de seguridad en un issue. El contacto es vectisdev26@proton.me o el aviso privado de GitHub.
 
 ---
 
 ### Política de Divulgación Responsable
 
-Si el sistema detecta una anomalía significativa durante un proceso electoral real:
+Si el sistema muestra una anomalía durante un proceso electoral real:
 
-1. El operador preserva evidencia y notifica al coordinador técnico
-2. El coordinador técnico verifica la anomalía técnicamente
-3. **No se publican resultados públicos sin validación técnica independiente**
-4. La misión de observación presente (OEA, UE, NDI) es notificada antes de cualquier
-   comunicación pública
-5. Los medios de comunicación solo son contactados con coordinación de la entidad legal
+1. El mantenedor copia la evidencia antes de reiniciar nada
+2. No hay un segundo revisor en este repositorio
+3. El texto público describe el archivo guardado y enlaza `docs/evidence/HN2025.md` cuando habla de 2025
+4. No se notifica a una misión ni a un medio en nombre de una entidad que no existe
+5. No se nombra una causa ni un responsable
 
-Esta política protege la credibilidad del sistema: una falsa alarma publicada prematuramente
-daña tanto al proyecto como al proceso electoral que se intenta proteger.
+Una lectura publicada antes de mirar los bytes daña el registro.
 
 ---
 
@@ -122,12 +112,7 @@ Todo código del proyecto está bajo AGPL-3.0, lo que requiere que cualquier mod
 sea publicada como código abierto. Esto garantiza que no puede existir una versión privada
 del sistema con capacidades adicionales o reducidas sin transparencia.
 
-**Uso gubernamental:** Los organismos electorales gubernamentales que deseen adaptar el
-sistema pueden solicitar una licencia especial que permita modificaciones internas sin
-obligación de publicación, condicionada a:
-- Que las modificaciones no reduzcan las capacidades de verificación pública
-- Que el código original permanezca accesible
-- Que se notifique al mantenedor principal sobre el deployment
+No hay una licencia especial aparte de la AGPL-3.0. Una administración que adapte el código publica las modificaciones, como cualquier otra persona.
 
 ---
 
@@ -166,7 +151,7 @@ grant application.
 2. Include real candidate names in code, tests, or documentation
 3. Share private electoral data obtained for technical validation with third parties
 4. Receive remuneration from political parties or candidates while working on the project
-5. Publish political interpretations of system results without coordination with the legal entity
+5. Publish a cause or a responsible party from a software signal. This repository has no legal entity that clears that text.
 
 **Required disclosure:** All maintainers with access to the main repository must declare
 any active affiliation with political parties or candidates in countries where the system
@@ -176,13 +161,13 @@ operates.
 
 ### Responsible Disclosure Policy
 
-If the system detects a significant anomaly during a real electoral process:
+If a stored series looks wrong during a real election:
 
-1. The operator preserves evidence and notifies the technical coordinator
-2. The technical coordinator verifies the anomaly independently
-3. **No public results are published without independent technical validation**
-4. Present observation missions (OAS, EU, NDI) are notified before any public communication
-5. Media are only contacted with coordination of the legal entity
+1. The maintainer copies the evidence before restarting anything
+2. There is no second reviewer in this repository
+3. Public text describes the stored file
+4. No mission and no newsroom is contacted in the name of an entity that does not exist
+5. No cause and no responsible party is named
 
 ---
 

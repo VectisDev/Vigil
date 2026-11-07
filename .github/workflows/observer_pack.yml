@@ -23,7 +23,7 @@ on:
         default: ''
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   PYTHONPATH: src
@@ -31,6 +31,8 @@ env:
 jobs:
   build-observer-pack:
     name: Build & Upload Observer Pack
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 20
 

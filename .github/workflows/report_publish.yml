@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   PYTHONPATH: src
@@ -24,6 +24,8 @@ env:
 jobs:
   generate-report:
     name: Generate & Publish PDF
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

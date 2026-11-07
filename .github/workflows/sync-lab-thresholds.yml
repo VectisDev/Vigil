@@ -11,6 +11,9 @@ on:
       - 'config/prod/rate_limiter.yaml'
       - 'scripts/generate_lab_thresholds.py'
 
+permissions:
+  contents: read
+
 jobs:
   sync:
     runs-on: ubuntu-latest

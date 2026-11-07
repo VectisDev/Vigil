@@ -14,13 +14,13 @@ VIGIL is open-source under AGPL-3.0. We welcome technical contributions, bug rep
 
 ### 1. Report Issues
 
-Found a bug or security issue? Open an issue on GitHub with:
+Found a bug? Open an issue on GitHub with:
 - Clear description of problem
 - Steps to reproduce
 - Expected vs. actual behavior
 - Platform/environment info
 
-**Security issues:** Email instead of public issue (see [SECURITY_AUDIT.md](../audits/SECURITY_AUDIT.md))
+**Security issues:** do not open a public issue. Use GitHub private vulnerability reporting or vectisdev26@proton.me. See [`.github/SECURITY.md`](../../.github/SECURITY.md).
 
 ### 2. Submit Code
 
