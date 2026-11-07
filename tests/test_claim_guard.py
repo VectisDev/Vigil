@@ -28,6 +28,8 @@ SCANNED = [
     "docs/research/ARXIV_SUBMISSION.md",
     "web/index.html",
     "web/status/index.html",
+    "docs/grants/OTF_CONCEPT_NOTE_FINAL.md",
+    "docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md",
 ]
 
 # These pages are where a gap was being narrated as a portal outage.
@@ -84,6 +86,18 @@ def test_gap_pages_do_not_call_filename_holes_outages() -> None:
         if banned.search(text):
             problems.append(rel)
     assert problems == []
+
+
+def test_hnd_2025_report_does_not_invent_a_portal_outage() -> None:
+    text = _read("web/reports/hnd_2025.html")
+    for phrase in (
+        "desaparecieron del servidor",
+        "69.6%",
+        "límite estadístico para escrutinio manual",
+        "SIN BLACKOUT",
+        "dejó de reportar candidatos",
+    ):
+        assert phrase not in text, phrase
 
 
 def test_mailmap_does_not_repeat_the_personal_mailbox() -> None:
