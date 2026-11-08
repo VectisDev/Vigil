@@ -62,7 +62,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 from __future__ import annotations
 
 import atexit
@@ -150,6 +149,7 @@ from vigil.defense.security_utils import (
 
 try:
     from cryptography.fernet import Fernet
+
     _HAS_CRYPTOGRAPHY = True
 except BaseException as exc:  # noqa: BLE001 – PanicException (pyo3) is not an Exception subclass
     if isinstance(exc, (KeyboardInterrupt, SystemExit)):
@@ -304,7 +304,7 @@ class IdentityRotator:
         self._min_rotation = max(1, int(config.rotate_every_min_polls))
         self._max_rotation = max(self._min_rotation, int(config.rotate_every_max_polls))
         self._next_rotation = random.randint(self._min_rotation, self._max_rotation)
-        self._current_ua = "Mozilla/5.0 (compatible; Vigil-Engine/1.0)"
+        self._current_ua = "VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)"
         self._current_proxy = ""
         # Proactive first-rotation so the first request is not static.
         # Rotacion proactiva inicial para evitar perfil estatico en el primer request.
@@ -547,7 +547,6 @@ class BackupManager:
         }
         self._persist_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         self.maybe_backup(force=True)
-
 
     @staticmethod
     def _normalize_git_remote(remote: str) -> str:

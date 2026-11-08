@@ -5,19 +5,18 @@ Initial setup and seed regeneration endpoints.
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Header, HTTPException
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from vigil.countries import LATAM_COUNTRIES, list_countries
-from vigil.seed_pdf import generate_seeds, hash_seeds, generate_pdf, SEED1_SALT, SEED1_ITERS
+from vigil.ops_keys import empty_registry, new_record, save_registry, verify_presented, load_registry
+from vigil.seed_pdf import generate_pdf, generate_seeds
 
 logger = logging.getLogger("vigil.api.setup")
 
@@ -26,10 +25,11 @@ def _sl(value: str) -> str:
     """Sanitize a value for safe log inclusion (prevents log injection)."""
     return str(value).replace("\n", "\\n").replace("\r", "\\r")
 
+
 router = APIRouter(prefix="/api/setup", tags=["setup"])
 
 _BASE = Path(__file__).resolve().parents[4]
-_ACCESS_JSON = _BASE / "web" / "access.json"
+_REGISTRY = _BASE / "config" / "ops_keys.yml"
 _SETUP_MARKER = _BASE / ".centinel-setup.json"
 _CONFIG_YAML = _BASE / "command_center" / "config.yaml"
 
@@ -43,58 +43,19 @@ def _read_setup() -> dict:
         return {}
 
 
-def _read_access() -> dict:
-    if not _ACCESS_JSON.exists():
-        return {}
-    try:
-        return json.loads(_ACCESS_JSON.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-
-
-def _write_access(hashes: dict[str, str]) -> None:
-    payload = {
-        "version": 1,
-        "algo": "PBKDF2-SHA256",
-        "salt": SEED1_SALT,
-        "iterations": SEED1_ITERS,
-        "seeds": hashes,
-    }
-    _ACCESS_JSON.parent.mkdir(parents=True, exist_ok=True)
-    _ACCESS_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+def _store_keys(seeds: dict[str, str]) -> None:
+    """Store a salted hash for each key. The plaintext is not written."""
+    registry = empty_registry()
+    registry["keys"] = [new_record(key) for key in seeds.values()]
+    save_registry(_REGISTRY, registry)
 
 
 def _verify_seed(seed_value: str, seed_label: str | None = None) -> bool:
-    """Verify a plaintext seed against access.json.
-
-    Supports v3 (list of SHA-256 hashes, or objects with ``hash``) and the
-    legacy v1/v2 format (dict label -> PBKDF2 hash).
-    """
+    """Hash-compare a presented key. The label is not a name and is not required."""
+    del seed_label
     if not seed_value:
         return False
-    access = _read_access()
-    seeds = access.get("seeds") or {}
-    if (access.get("version") or 0) >= 3 or access.get("method") == "SHA-256":
-        actual = hashlib.sha256(seed_value.encode()).hexdigest()
-    else:
-        actual = hashlib.pbkdf2_hmac(
-            "sha256",
-            seed_value.encode(),
-            str(access.get("salt") or SEED1_SALT).encode(),
-            int(access.get("iterations") or SEED1_ITERS),
-        ).hex()
-
-    if isinstance(seeds, dict):
-        candidates = [seeds.get(seed_label)] if seed_label else list(seeds.values())
-    else:
-        candidates = [s.get("hash") if isinstance(s, dict) else s for s in seeds]
-
-    # Constant-time comparison against every candidate (no early exit)
-    matched = False
-    for expected in candidates:
-        if isinstance(expected, str) and hmac.compare_digest(actual, expected):
-            matched = True
-    return matched
+    return verify_presented(seed_value.strip(), load_registry(_REGISTRY)) is not None
 
 
 def _require_operator(key: str | None) -> None:
@@ -119,6 +80,7 @@ def _update_config_yaml(code: str) -> None:
         return
     try:
         import yaml
+
         text = _CONFIG_YAML.read_text(encoding="utf-8")
         cfg = yaml.safe_load(text) or {}
 
@@ -127,6 +89,7 @@ def _update_config_yaml(code: str) -> None:
         domain = None
         if country.url_pattern:
             from urllib.parse import urlparse
+
             domain = urlparse(country.url_pattern).netloc
         if not domain:
             # Fallback: derive from authority abbreviation
@@ -160,7 +123,7 @@ class ChangeCountryRequest(BaseModel):
 class RegenerateRequest(BaseModel):
     country_code: str | None = None
     seed_label: str | None = None  # optional legacy label, e.g. "S1-A"
-    seed_value: str                # plaintext seed to authenticate
+    seed_value: str  # plaintext seed to authenticate
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -197,10 +160,8 @@ def get_countries() -> list[dict]:
 
 @router.get("/access.json")
 def get_access_json():
-    """Sirve web/access.json para que el panel OPS pueda verificar seeds localmente."""
-    if not _ACCESS_JSON.exists():
-        raise HTTPException(status_code=404, detail="access.json not found. Run setup first.")
-    return FileResponse(_ACCESS_JSON, media_type="application/json")
+    """The browser does not receive the hash file. Verification is not done in page script."""
+    raise HTTPException(status_code=404, detail="The hash file is not served to the browser.")
 
 
 @router.post("/init")
@@ -222,9 +183,7 @@ def setup_init(req: InitRequest) -> Response:
 
     country = LATAM_COUNTRIES[code]
     seeds = generate_seeds()
-    hashes = hash_seeds(seeds)
-
-    _write_access(hashes)
+    _store_keys(seeds)
 
     _SETUP_MARKER.write_text(
         json.dumps(
@@ -325,6 +284,7 @@ def discover_endpoints(
     # Run healer with the correct country context
     try:
         import sys
+
         # Reload healer module so EXPECTED_DEPARTMENTS picks up the new country
         healer_mod = "vigil_engine.electoral_authority_healer"
         old_env = os.environ.get("VIGIL_COUNTRY")  # restored verbatim below
@@ -333,6 +293,7 @@ def discover_endpoints(
             if healer_mod in sys.modules:
                 del sys.modules[healer_mod]
             from vigil_engine.electoral_authority_healer import ElectoralAuthorityHealer
+
             healer = ElectoralAuthorityHealer(config_path=config_path, env_name="prod")
             result = healer.run()
         finally:
@@ -368,15 +329,15 @@ def discover_endpoints(
             detected_format = LATAM_COUNTRIES[country_code].result_format or "auto"
         else:
             detected_format = "auto"
-        logger.info("format_hint country=%s format=%s (from preset)",
-                    _sl(country_code), detected_format)
+        logger.info("format_hint country=%s format=%s (from preset)", _sl(country_code), detected_format)
     except Exception as fmt_exc:  # noqa: BLE001
-        logger.warning("format_hint_failed country=%s err=%s",
-                       _sl(country_code), _sl(str(fmt_exc)))
+        logger.warning("format_hint_failed country=%s err=%s", _sl(country_code), _sl(str(fmt_exc)))
 
     logger.info(
         "discover_endpoints url=%s country=%s found=%d",
-        _sl(main_url), _sl(country_code), len(endpoints),
+        _sl(main_url),
+        _sl(country_code),
+        len(endpoints),
     )
     return {
         "success": True,
@@ -411,9 +372,7 @@ def regenerate_seeds(req: RegenerateRequest) -> Response:
 
     country = LATAM_COUNTRIES[code]
     seeds = generate_seeds()
-    hashes = hash_seeds(seeds)
-
-    _write_access(hashes)
+    _store_keys(seeds)
 
     setup["last_regenerated_at"] = datetime.now(timezone.utc).isoformat()
     _SETUP_MARKER.write_text(json.dumps(setup, indent=2) + "\n", encoding="utf-8")

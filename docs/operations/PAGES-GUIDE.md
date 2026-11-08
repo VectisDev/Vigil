@@ -38,19 +38,19 @@ El panel estará disponible en `https://{tu-usuario}.github.io/vigil/` en el sig
 
 ---
 
-## Credenciales de acceso — PBKDF2 (sin servidor) / Access credentials — PBKDF2 (serverless)
+## Claves de operaciones / Ops keys
 
-El panel y el sandbox académico funcionan completamente sin dependencias externas. La autenticación es cliente-local: PBKDF2-SHA256 contra `web/access.json` (solo hashes, nunca contraseñas en texto plano).
+Quien hace el fork genera las claves y las entrega a su equipo. Cada clave tiene 12 caracteres de un alfabeto de 62 (unos 71 bits). El sitio público no pide la clave y no la comprueba en el navegador.
 
-Para generar nuevos seeds de acceso:
+The forker generates the keys and hands them to their team. Each key is 12 characters from a 62-character alphabet (about 71 bits). The public site does not ask for the key and does not check it in the browser.
 
 ```bash
-make wizard   # o: python scripts/setup_wizard.py
+python3 scripts/ops_keys.py generate
 ```
 
-El wizard genera 12 seeds aleatorios (S1-A … S1-L), almacena solo los hashes en `web/access.json`, y muestra los seeds en pantalla una sola vez. **Guárdalos en un lugar seguro — no se pueden recuperar.**
+Eso imprime las claves una vez y escribe solo hashes con sal en `config/ops_keys.yml`. Ese archivo se puede commitear. Las claves no.
 
-No se requiere ningún servicio externo ni cuenta de terceros.
+That prints the keys once and writes only salted hashes to `config/ops_keys.yml`. That file can be committed. The keys cannot.
 
 ---
 

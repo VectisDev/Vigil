@@ -58,6 +58,8 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from playwright.sync_api import sync_playwright
 
+from vigil.identity import USER_AGENT
+
 
 def _build_url(base_url: str, params: Mapping[str, str]) -> str:
     """Combina URL base y parámetros en una URL completa.
@@ -76,16 +78,12 @@ def _build_url(base_url: str, params: Mapping[str, str]) -> str:
 
 
 def _apply_stealth(page) -> None:
-    """Inyecta scripts básicos para reducir detección de bots.
+    """Stealth is not used to fetch a source. This function does nothing.
 
     English:
-        Inject basic scripts to reduce bot detection.
+        Stealth is not used to fetch a source. This function does nothing.
     """
-    page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        Object.defineProperty(navigator, 'languages', {get: () => ['es-ES', 'es']});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-        """)
+    del page
 
 
 def fetch_payload_with_playwright(
@@ -147,15 +145,15 @@ def fetch_payload_with_playwright(
         browser = playwright.chromium.launch(headless=True)
         context = browser.new_context(
             extra_http_headers=dict(headers),
-            user_agent=user_agent,
+            user_agent=user_agent or USER_AGENT,
             locale=locale,
             timezone_id=timezone_id,
             viewport=viewport,
         )
         try:
             page = context.new_page()
-            if stealth:
-                _apply_stealth(page)
+            # Stealth stays off for a source fetch, even if a caller asks.
+            del stealth
             response = page.goto(url, wait_until="networkidle", timeout=int(timeout * 1000))
             if response is None:
                 raise RuntimeError("Playwright no recibió respuesta al cargar la URL.")

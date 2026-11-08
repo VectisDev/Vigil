@@ -31,15 +31,15 @@ make wizard            # abre / opens http://127.0.0.1:7474
 |---|---|
 | Valida el país / Validates the country | Debe existir en `src/vigil/countries.py` / Must exist in `src/vigil/countries.py` |
 | Genera 12 claves de acceso / Generates 12 access keys | Se entregan en un PDF que solo se descarga una vez / Delivered in a PDF downloaded only once |
-| Escribe `web/access.json` / Writes `web/access.json` | Solo hashes de las claves, nunca las claves / Key hashes only, never the keys |
+| Escribe `config/ops_keys.yml` / Writes `config/ops_keys.yml` | Solo un hash con sal por clave, nunca la clave / A per-key salted hash, never the key |
 | Escribe `.centinel-setup.json` | Marca la instancia como configurada / Marks the instance as configured |
 | Actualiza `command_center/config.yaml` | País y dominio de la autoridad / Country and authority domain |
 
 ### Operaciones posteriores / Later operations
 
-Estas llamadas exigen una clave de operador válida (cabecera `X-Vigil-Key`, que el panel envía tras iniciar sesión).
+Estas llamadas exigen una clave de operador válida en la cabecera `X-Vigil-Key`. La API local compara el hash. El sitio público no envía esa cabecera y no pide la clave.
 
-These calls require a valid operator key (`X-Vigil-Key` header, sent by the panel after login).
+These calls require an operator key in the `X-Vigil-Key` header. The local API hash-compares it. The public site does not send that header and does not ask for the key.
 
 | Endpoint | ES | EN |
 |---|---|---|
@@ -54,7 +54,7 @@ These calls require a valid operator key (`X-Vigil-Key` header, sent by the pane
 1. **Fork** del repositorio / of the repository.
 2. **Actions:** en la pestaña Actions del fork, activa los workflows / in the fork's Actions tab, enable the workflows.
 3. **Pages:** Settings → Pages → Source: **GitHub Actions**. `pages.yml` publica `web/` en cada push que cambie `web/**` / publishes `web/` on every push that changes `web/**`.
-4. **Claves del panel / Panel keys:** ejecuta el asistente local una vez y sube el `web/access.json` resultante; guarda el PDF de claves fuera del repositorio / run the local wizard once and commit the resulting `web/access.json`; keep the key PDF outside the repository.
+4. **Claves del panel / Panel keys:** `python3 scripts/ops_keys.py generate` imprime las claves una vez y escribe hashes en `config/ops_keys.yml`. Commitea ese archivo. No commitees las claves. / prints the keys once and writes hashes to `config/ops_keys.yml`. Commit that file. Do not commit the keys.
 
 ### Repositorio de datos (opcional) / Data repository (optional)
 

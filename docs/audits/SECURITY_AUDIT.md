@@ -132,12 +132,12 @@ Disclosure and contact: [`.github/SECURITY.md`](../../.github/SECURITY.md).
 - **RT-17**: nivel de log en `cne_endpoint_healer.py` ascendido de `WARNING` a `CRITICAL` con mensaje completo sobre riesgo MITM estatal.
 - **RT-18**: `scripts/panic.py` emite `CRITICAL` auditable cuando `CENTINEL_PANIC_TOKEN` no está configurado.
 - **RT-19**: `/snapshots/latest` y `/snapshots/{snapshot_id}` tienen `@limiter.limit()` + `Request`; el segundo añade validación de formato SHA-256 (hex 64 chars).
-- **RT-20**: pendiente de acción operativa — regenerar `web/access.json` con 1 000 000 iteraciones.
+- **RT-20**: superseded. The public site does not check a key, and `web/access.json` is not the store. New keys are 12 characters. A per-key salted hash lives in `config/ops_keys.yml`.
 
 | RT-21 | IP de nodos expuesta en requests CNE y en gossip P2P | `centinel_engine/cne_endpoint_healer.py:164` + `src/centinel/federation/gossip.py:343` | **ALTO** | `requests.Session()` sin proxy → IP real visible en todos los requests al CNE. `my_url` se difunde a todos los peers en gossip. | Durante 30 días de monitoreo continuo, el CNE (o un actor con acceso a sus logs) puede identificar y bloquear la IP del nodo. En la red P2P, cualquier peer aprende la URL pública del nodo. | ✅ Corregido — proxy manager conectado a `cne_endpoint_healer` vía `_do_get()`; `CENTINEL_TOR_ENABLED=true` enruta via `socks5h://127.0.0.1:9050`; `CENTINEL_PRIVACY_MODE=true` suprime `my_url` en gossip. |
 
 ### Recomendaciones operativas para período de 30 días
 
 1. **Antes de iniciar monitoreo**: configurar `CENTINEL_BACKUP_KEY`, `CENTINEL_CNE_CERT_SHA256` y `CENTINEL_PANIC_TOKEN`. Verificar logs de arranque en busca de mensajes CRITICAL.
-2. **Semana 1**: regenerar `web/access.json` con 1 000 000 iteraciones de PBKDF2-SHA256.
+2. **Semana 1**: superseded. Do not republish `web/access.json`. The forker generates 12-character keys; `config/ops_keys.yml` keeps the salted hashes.
 3. **Continuo**: monitorear logs de nivel CRITICAL/ERROR; los nuevos mensajes de arranque harán visible cualquier configuración faltante desde el primer minuto.

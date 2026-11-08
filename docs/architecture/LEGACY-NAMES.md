@@ -19,7 +19,7 @@ They feed hashes, signatures and keys. Changing them would invalidate evidence t
 | `centinel-anchor-v1` | `src/vigil/core/anchoring_payload.py` | Raíz anclada con OpenTimestamps / OpenTimestamps-anchored root |
 | `CENTINEL-ASYNC-POLLER-GENESIS-2026` | `src/vigil/core/poller_async.py` | Bloque génesis del poller / Poller genesis block |
 | `centinel-checkpoint` | `src/vigil/checkpointing.py` | `info` de HKDF para checkpoints cifrados / HKDF `info` for encrypted checkpoints |
-| `centinel-admin-salt-v1` | `src/vigil/seed_pdf.py`, `scripts/setup_wizard.py` | Sal de las claves del panel (formato v1) / Panel key salt (v1 format) |
+| `centinel-admin-salt-v1` | `src/vigil/seed_pdf.py` | Sal fija del formato v1. Las claves nuevas usan una sal por clave en `config/ops_keys.yml` / Fixed salt of the v1 format. New keys use a per-key salt in `config/ops_keys.yml` |
 | `centinel-log-v1` | `scripts/logging_utils.py`, `reports/report_generator.py` | Esquema de la evidencia exportada / Exported evidence schema |
 | `-----BEGIN/END CENTINEL SHAMIR SHARE-----` | `src/vigil/core/crypto/centinel_share_format.py` | Marcas de las acciones de clave ya entregadas / Markers of key shares already handed out |
 

@@ -46,7 +46,6 @@ requests = {version = ">=2.33.0", extras = ["socks"]}
 idna = ">=3.15"                   # CVE-2026-45409
 urllib3 = ">=2.8.0"
 playwright = {version = ">=1.49.0", optional = true}
-playwright-stealth = {version = ">=1.0.6", optional = true}
 pandas = ">=2.1.0"
 numpy = ">=1.24.0"
 scipy = ">=1.11.4"
@@ -111,7 +110,7 @@ exclude = ["tests/chaos/test_chaos_scenarios.py", "scripts/chaos_test.py"]
 [tool.poetry.extras]
 # Not required to check the bundled sample. `pip install -r requirements.txt`
 # still installs the full application, including these.
-reports = ["playwright", "playwright-stealth", "WeasyPrint"]
+reports = ["playwright", "WeasyPrint"]
 
 [tool.poetry.scripts]
 vigil = "vigil.cli:main"

@@ -52,6 +52,36 @@ The nodes keep the last bytes they successfully stored. The stop time they can s
 
 Los nodos conservan los últimos bytes que guardaron con éxito. La hora de parada que pueden firmar es la hora del primer intento fallido después de uno exitoso. No inventan una hora anterior, ni bytes que la fuente nunca envió.
 
+## Freedom with visible responsibility / Libertad con responsabilidad visible
+
+Vigil does not forbid a faster pace. The default stays respectful: 480 requests per hour, a gap of at least 1 second, and a burst of at most 8. The numbers live in `config/prod/rate_limiter.yaml` in your own copy. There is no account for this.
+
+Going past that default is the user's freedom. It is applied only after a public commit, signed with a key, adds `rate_override.yml` and one of these lines:
+
+`responsibility: I accept full responsibility for the consequences of requests above the respectful pace, including load on the source comparable to a denial of service.`
+
+`responsibility: Acepto toda la responsabilidad por las consecuencias de peticiones por encima del ritmo respetuoso, incluida una carga sobre la fuente comparable a una denegación de servicio.`
+
+The signature is an anonymous key. It is not a legal name. A key that the person has registered with a GitHub account can still show that account on GitHub. This repository does not store a name.
+
+An unsigned file, a comment, or a score does not change the pace. There is no swarm penalty for using the override. The room does not lower anyone's score for this choice.
+
+Vigil no prohíbe un ritmo más rápido. El valor por defecto sigue siendo respetuoso: 480 peticiones por hora, un hueco de al menos 1 segundo y una ráfaga de 8 como máximo. Los números viven en `config/prod/rate_limiter.yaml` en tu propia copia. Esto no tiene cuenta.
+
+Pasar ese valor es libertad de quien lo usa. Se aplica solo después de un commit público, firmado con una clave, que añada `rate_override.yml` y una de las dos líneas. La firma es una clave anónima, no un nombre legal. Una clave registrada en una cuenta de GitHub puede mostrar esa cuenta en GitHub. Este repositorio no guarda un nombre.
+
+Un archivo sin firma, un comentario o una puntuación no cambian el ritmo. No hay una pena del enjambre por usar este cambio. La sala no baja la puntuación de nadie por esta elección.
+
+The commit also names an ops key id. The person who forks generates those keys and hands them to their team. Each key is 12 characters from a 62-character alphabet (about 71 bits), drawn with a CSPRNG. The key is the secret. The id in the commit is a fingerprint of the key, so a faster pace is attributed to that key and not to a legal name. `config/ops_keys.yml` stores a per-key salt and a PBKDF2 hash. The public site does not ask for the key and does not check it in page script. An Action checks that the named id is active; a local command can hash-compare a key that someone presents. Revocation marks an id revoked, which stops later actions and leaves the id on older commits. Rotation writes a new hash that records which id it replaces. No name, email, or other personal data is stored. The room does not penalize the choice.
+
+El commit también nombra el id de una clave de operaciones. Quien hace el fork genera esas claves y las entrega a su equipo. Cada clave tiene 12 caracteres de un alfabeto de 62 (unos 71 bits), sacados de un CSPRNG. La clave es el secreto. El id del commit es una huella de la clave, así que un ritmo más rápido se atribuye a esa clave y no a un nombre legal. `config/ops_keys.yml` guarda una sal por clave y un hash PBKDF2. El sitio público no pide la clave y no la comprueba en el script de la página. Una Action comprueba que el id esté activo; un comando local puede comparar el hash de una clave que alguien presenta. Revocar marca el id como revocado: frena acciones posteriores y deja el id en los commits viejos. Rotar escribe un hash nuevo que dice a qué id reemplaza. No se guarda nombre, correo ni otro dato personal. La sala no penaliza esta elección.
+
+## How a fetch names itself / Cómo se nombra una descarga
+
+The default name on a request is `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`. It is one string, not a rotation of other names. The ceiling stays 480 requests per hour per host. Where a `robots.txt` exists and forbids that name, the fetch stops. Hiding the client is not the default, and the source path does not use a stealth browser.
+
+El nombre por defecto en una petición es `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`. Es una sola cadena, no una rotación de otros nombres. El techo sigue siendo 480 peticiones por hora y por host. Donde existe un `robots.txt` y prohíbe ese nombre, la descarga se detiene. Ocultar al cliente no es el valor por defecto, y la ruta hacia la fuente no usa un navegador oculto.
+
 ## Limit / Límite
 
 Vigil cannot recover data that was never published. If the source never sent a file, no node has it, and no number of forks creates it.

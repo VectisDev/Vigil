@@ -25,7 +25,7 @@ No hay un tag de release publicado. Las correcciones entran en `main`. Cuando ex
 
 - El enlace SHA-256 existe cuando el pipeline escribe `previous_hash`. Los 64 archivos de Honduras 2025 no lo tienen: `verify_chain.py` sale en 1.
 - OpenTimestamps cubre una raíz Merkle cuando el archivo `.ots` existe. No es custodia continua del conteo de 2025.
-- El sitio público no pide una clave. No recoge datos de quien lo visita. La nota está en `web/privacy/index.html`.
+- El sitio público no pide una clave y no la comprueba. Las claves de operaciones las genera quien hace el fork: 12 caracteres, alfabeto de 62, unos 71 bits. El archivo `config/ops_keys.yml` guarda un hash con sal, no la clave. No recoge datos de quien visita. La nota está en `web/privacy/index.html`.
 - CodeQL (`.github/workflows/codeql.yml`) y Dependabot (`.github/dependabot.yml`) están en el repositorio.
 - El escaneo de secretos y la protección al hacer push son ajustes de GitHub. Esta página no dice que estén activos.
 - No hay una auditoría de seguridad hecha por un tercero. Scorecard corre y sube un SARIF. No es una auditoría aprobada y no hay insignia en el README.
@@ -63,7 +63,7 @@ No release tag is published. Fixes land on `main`. Once a tag exists, the scope 
 
 - The SHA-256 link exists when the pipeline writes `previous_hash`. The 64 Honduras 2025 files do not have it: `verify_chain.py` exits 1.
 - OpenTimestamps covers a Merkle root when the `.ots` file exists. It is not continuous custody of the 2025 count.
-- The public site does not ask for a key. It collects no visitor data. The note is `web/privacy/index.html`.
+- The public site does not ask for a key and does not check one. The forker generates the ops keys: 12 characters, a 62-character alphabet, about 71 bits. `config/ops_keys.yml` stores a salted hash, not the key. It collects no visitor data. The note is `web/privacy/index.html`.
 - CodeQL (`.github/workflows/codeql.yml`) and Dependabot (`.github/dependabot.yml`) are in the repository.
 - Secret scanning and push protection are GitHub settings. This page does not say they are on.
 - No third-party security audit has been done. Scorecard runs and uploads SARIF. That is not a passed audit, and the README has no badge.

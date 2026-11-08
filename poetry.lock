@@ -2335,25 +2335,6 @@ greenlet = "3.1.1"
 pyee = "12.0.0"
 
 [[package]]
-name = "playwright-stealth"
-version = "1.0.6"
-description = "playwright stealth"
-optional = true
-python-versions = ">=3, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-groups = ["main"]
-markers = "extra == \"reports\""
-files = [
-    {file = "playwright-stealth-1.0.6.tar.gz", hash = "sha256:b504d951d00fac755c7d13665a29611d415180510bd7d23f14ebc89439ba2043"},
-    {file = "playwright_stealth-1.0.6-py3-none-any.whl", hash = "sha256:b1b2bcf58eb6859aa53d42c49b91c4e27b74a6d13fc3d0c85eea513dd55efda3"},
-]
-
-[package.dependencies]
-playwright = "*"
-
-[package.extras]
-test = ["pytest"]
-
-[[package]]
 name = "pluggy"
 version = "1.6.0"
 description = "plugin and hook calling mechanisms for python"
@@ -3976,9 +3957,9 @@ files = [
 test = ["pytest"]
 
 [extras]
-reports = ["WeasyPrint", "playwright", "playwright-stealth"]
+reports = ["WeasyPrint", "playwright"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "d4243958ee635d4341f63eb7ca7d2cd4ef8dd009123905e8cf2e6a136f4af087"
+content-hash = "9cfaab0a7e9cfacde7fdd532daf56bd020593d3abcd890a2d630095bda5ca70a"

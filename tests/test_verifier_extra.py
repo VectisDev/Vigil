@@ -14,11 +14,12 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_report_tools_are_optional_extras() -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     deps = project["tool"]["poetry"]["dependencies"]
-    for name in ("playwright", "playwright-stealth", "WeasyPrint"):
+    for name in ("playwright", "WeasyPrint"):
         spec = deps[name]
         assert isinstance(spec, dict) and spec.get("optional") is True, name
+    assert "playwright-stealth" not in deps
     extra = project["tool"]["poetry"]["extras"]["reports"]
-    assert set(extra) == {"playwright", "playwright-stealth", "WeasyPrint"}
+    assert set(extra) == {"playwright", "WeasyPrint"}
 
 
 def test_verify_requirements_install_nothing() -> None:

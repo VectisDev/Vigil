@@ -46,21 +46,15 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+from vigil.identity import USER_AGENT
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_ROTATION_EVERY_N = 5
 ROTATION_TRIGGER_CODES = {403, 429}
 
-# ponytail: Phase 4b — UA rotation uses secrets.choice (not random.choice) intentionally;
-# secrets.choice is cryptographically unpredictable, harder to fingerprint than random.
-# Downgrade to random.choice only if secrets overhead becomes measurable in load tests.
-USER_AGENT_POOL = (
-    "VIGIL-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Electoral-Monitor/1.0 (public-data-audit; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Engine/1.0 (Decreto-170-2006-HN; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Watchdog/1.0 (electoral-transparency; +https://github.com/VectisDev/Vigil)",
-)
+# One open name. A rotating pool of different names is not the default.
+USER_AGENT_POOL = (USER_AGENT,)
 
 _ACCEPT_POOL = (
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",

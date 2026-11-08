@@ -188,7 +188,7 @@ En `web/panel/index.html`:
    ```javascript
    const VIGIL_PAGES_URL = 'https://[tu-org].github.io/[tu-repo]';
    ```
-3. Regenerar seeds de acceso con `make wizard` (genera nuevos hashes en `web/access.json`)
+3. Generar claves nuevas con `python3 scripts/ops_keys.py generate` (hashes con sal en `config/ops_keys.yml`, nunca la clave)
 
 ---
 

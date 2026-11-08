@@ -35,6 +35,7 @@ from vigil.paths import (
 )
 from scripts.circuit_breaker import CircuitBreaker
 from vigil.defense.fetcher import build_rotating_request_profile
+from vigil.identity import USER_AGENT
 from vigil.defense.hasher import trigger_post_hash_backup
 
 from monitoring.health import get_health_state
@@ -69,7 +70,7 @@ _SCRAPE_TTL_MINUTES = int(os.getenv("VIGIL_SCRAPE_TTL_MINUTES", os.getenv("CENTI
 
 _ROBOTS_CACHE: dict[str, tuple[urllib.robotparser.RobotFileParser | None, float]] = {}
 _ROBOTS_TTL_SECONDS = 3600.0
-_CENTINEL_UA = "Vigil-Engine/1.0"
+_CENTINEL_UA = USER_AGENT
 
 
 def _check_robots_allowed(url: str) -> bool:
@@ -360,8 +361,7 @@ def build_request_headers(
     headers: dict[str, str] = {
         "Accept": "application/json",
     }
-    if user_agents:
-        headers["User-Agent"] = rng.choice(user_agents)
+    headers["User-Agent"] = rng.choice(user_agents) if user_agents else USER_AGENT
     if accept_languages:
         headers["Accept-Language"] = rng.choice(accept_languages)
     if referers:
@@ -794,7 +794,11 @@ def process_sources(
                     _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
                     if isinstance(_raw_for_validation, dict):
                         _cne_errors = _validate_cne(_raw_for_validation, source_id)
-                        if _cne_errors and os.getenv("VIGIL_STRICT_VALIDATION", os.getenv("CENTINEL_STRICT_VALIDATION", "0")) == "1":
+                        if (
+                            _cne_errors
+                            and os.getenv("VIGIL_STRICT_VALIDATION", os.getenv("CENTINEL_STRICT_VALIDATION", "0"))
+                            == "1"
+                        ):
                             logger.error("suspect_response_rejected source=%s errors=%s", source_id, _cne_errors)
                             had_errors = True
                             continue
@@ -893,7 +897,9 @@ def _persist_snapshot_payload(
     # en lugar de persistir evidencia sin custodio criptográfico. Sin este
     # control, un atacante que comprometa el disco antes de configurar la
     # clave produce una cadena entera sin firma y nadie lo detecta.
-    require_signature = os.getenv("VIGIL_REQUIRE_SIGNATURE", os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false")).strip().lower() in (
+    require_signature = os.getenv(
+        "VIGIL_REQUIRE_SIGNATURE", os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false")
+    ).strip().lower() in (
         "1",
         "true",
         "yes",

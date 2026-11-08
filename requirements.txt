@@ -8,7 +8,6 @@ urllib3>=2.8.0,<3.0.0          # Transitiva endurecida (CVE-2026-44431/44432)
 aiohttp>=3.14.4,<4.0.0         # ponytail: retained for poller_async.py; remove when poller_async.py is migrated to httpx[asyncio]
 pygments>=2.20.0,<3.0.0        # Transitiva endurecida (CVE-2026-4539, ReDoS)
 playwright>=1.49.0,<2.0.0      # Fallback scraping con navegador headless
-playwright-stealth>=1.0.6      # Modo stealth para evitar detección anti-bot
 apscheduler>=3.10.4,<4.0.0     # Scheduler para healthchecks
 flask-limiter>=3.7.0,<4.0.0    # Rate limiting para el dashboard/app
 flask>=3.0.0,<4.0.0            # Honeypot mínimo para forense

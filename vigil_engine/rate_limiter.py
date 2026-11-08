@@ -46,7 +46,10 @@ import random
 import threading
 import time
 from collections import deque
+from pathlib import Path
 from typing import Any, Deque, Optional
+
+import yaml
 
 from vigil_engine.config_loader import load_config
 
@@ -58,23 +61,35 @@ HARD_CEILING_MAX_BURST: int = 8
 
 PRESET_MODES: dict[str, dict[str, Any]] = {
     "normal": {
-        "rate_interval": 10.0, "burst": 5, "min_interval": 6.0,
-        "max_interval": 12.0, "max_requests_per_hour": 240,
+        "rate_interval": 10.0,
+        "burst": 5,
+        "min_interval": 6.0,
+        "max_interval": 12.0,
+        "max_requests_per_hour": 240,
         "conservative_min_delay_seconds": 600.0,
     },
     "electoral": {
-        "rate_interval": 7.0, "burst": 6, "min_interval": 3.0,
-        "max_interval": 8.0, "max_requests_per_hour": 360,
+        "rate_interval": 7.0,
+        "burst": 6,
+        "min_interval": 3.0,
+        "max_interval": 8.0,
+        "max_requests_per_hour": 360,
         "conservative_min_delay_seconds": 300.0,
     },
     "aggressive": {
-        "rate_interval": 5.0, "burst": 8, "min_interval": 2.0,
-        "max_interval": 6.0, "max_requests_per_hour": 480,
+        "rate_interval": 5.0,
+        "burst": 8,
+        "min_interval": 2.0,
+        "max_interval": 6.0,
+        "max_requests_per_hour": 480,
         "conservative_min_delay_seconds": 120.0,
     },
     "conservative": {
-        "rate_interval": 15.0, "burst": 3, "min_interval": 10.0,
-        "max_interval": 20.0, "max_requests_per_hour": 120,
+        "rate_interval": 15.0,
+        "burst": 3,
+        "min_interval": 10.0,
+        "max_interval": 20.0,
+        "max_requests_per_hour": 120,
         "conservative_min_delay_seconds": 900.0,
     },
 }
@@ -269,7 +284,7 @@ class TokenBucketRateLimiter:
             return 0.0
         base = max(3600.0 / float(self.max_requests_per_hour), self.min_interval)
         jitter = random.uniform(DEFAULT_BACKOFF_JITTER_MIN, DEFAULT_BACKOFF_JITTER_MAX)
-        return base * (2 ** self._consecutive_failures) * jitter
+        return base * (2**self._consecutive_failures) * jitter
 
     def _is_conservative_active(self, now_wall: float) -> bool:
         """Check whether conservative mode is active.
@@ -311,7 +326,9 @@ class TokenBucketRateLimiter:
                 core_wait = self._compute_wait(now_mono)
                 hourly_wait = self._enforce_hourly_limit_wait(now_wall)
                 adaptive_wait = self._compute_adaptive_backoff_delay()
-                conservative_wait = self.conservative_min_delay_seconds if self._is_conservative_active(now_wall) else 0.0
+                conservative_wait = (
+                    self.conservative_min_delay_seconds if self._is_conservative_active(now_wall) else 0.0
+                )
 
                 wait_seconds = max(core_wait, hourly_wait, adaptive_wait, conservative_wait)
                 # Wider jitter + random sleep to disrupt advanced timing fingerprinting / # Jitter más amplio + sleep random para romper fingerprinting por timing avanzado
@@ -409,7 +426,10 @@ class TokenBucketRateLimiter:
             self._tokens = min(self._tokens, float(self.burst))
             logger.info(
                 "rate_limiter_reconfigured | mode=%s rph=%d min_interval=%.1f burst=%d",
-                self._mode, self.max_requests_per_hour, self.min_interval, self.burst,
+                self._mode,
+                self.max_requests_per_hour,
+                self.min_interval,
+                self.burst,
             )
 
     @property
@@ -547,29 +567,72 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
 
             max_requests_per_hour = int(
                 _resolve(
-                    "max_requests_per_hour", "max_requests_per_hour",
+                    "max_requests_per_hour",
+                    "max_requests_per_hour",
                     core_limits.get("MAX_REQUESTS_PER_HOUR", DEFAULT_MAX_REQUESTS_PER_HOUR),
                 )
             )
+            min_interval = float(_resolve("min_interval", "min_interval_seconds", DEFAULT_MIN_INTERVAL))
+            burst = int(_resolve("burst", "capacity", DEFAULT_BURST))
+
+            from vigil.ops_keys import key_is_active, load_registry
+            from vigil.pace import (
+                git_override_is_signed,
+                override_is_refused,
+                override_key_id,
+                read_override,
+                within_lock,
+            )
+
+            repo_root = Path(__file__).resolve().parents[1]
+            override_text = read_override(repo_root)
+            active = key_is_active(
+                load_registry(repo_root / "config" / "ops_keys.yml"),
+                override_key_id(override_text),
+            )
+            signed = git_override_is_signed(repo_root) if override_text else False
+            accepted = override_text is not None and not override_is_refused(override_text, signed, key_active=active)
+            past_lock = False
+            if accepted and override_text:
+                loaded_pace = yaml.safe_load(override_text) or {}
+                if isinstance(loaded_pace, dict):
+                    past_lock = not within_lock(
+                        float(loaded_pace.get("max_requests_per_hour", max_requests_per_hour)),
+                        float(loaded_pace.get("min_interval_seconds", min_interval)),
+                        float(loaded_pace.get("max_burst", burst)),
+                    )
+            lock_open = accepted and past_lock
+            if lock_open:
+                loaded = yaml.safe_load(override_text) or {}
+                if isinstance(loaded, dict):
+                    max_requests_per_hour = int(loaded.get("max_requests_per_hour", max_requests_per_hour))
+                    min_interval = float(loaded.get("min_interval_seconds", min_interval))
+                    burst = int(loaded.get("max_burst", burst))
 
             ceiling = config.get("hard_ceiling", {})
             is_custom = active_mode == "custom"
 
             _rate_limiter_singleton = TokenBucketRateLimiter(
                 rate_interval=float(_resolve("rate_interval", "rate_interval_seconds", DEFAULT_RATE_INTERVAL)),
-                burst=int(_resolve("burst", "capacity", DEFAULT_BURST)),
-                min_interval=float(_resolve("min_interval", "min_interval_seconds", DEFAULT_MIN_INTERVAL)),
+                burst=burst,
+                min_interval=min_interval,
                 max_interval=float(_resolve("max_interval", "max_interval_seconds", DEFAULT_MAX_INTERVAL)),
                 max_requests_per_hour=max_requests_per_hour,
                 conservative_min_delay_seconds=float(
-                    _resolve("conservative_min_delay_seconds", "conservative_min_delay_seconds", DEFAULT_CONSERVATIVE_MIN_DELAY_SECONDS)
+                    _resolve(
+                        "conservative_min_delay_seconds",
+                        "conservative_min_delay_seconds",
+                        DEFAULT_CONSERVATIVE_MIN_DELAY_SECONDS,
+                    )
                 ),
                 mode=active_mode,
-                enforce_ceiling=not is_custom,
+                enforce_ceiling=not lock_open,
             )
 
-            if ceiling and not is_custom:
-                HARD_CEILING_MAX_REQUESTS_PER_HOUR_CFG = int(ceiling.get("max_requests_per_hour", HARD_CEILING_MAX_REQUESTS_PER_HOUR))
+            if ceiling and not is_custom and not lock_open:
+                HARD_CEILING_MAX_REQUESTS_PER_HOUR_CFG = int(
+                    ceiling.get("max_requests_per_hour", HARD_CEILING_MAX_REQUESTS_PER_HOUR)
+                )
                 HARD_CEILING_MIN_INTERVAL_CFG = float(ceiling.get("min_interval_seconds", HARD_CEILING_MIN_INTERVAL))
                 HARD_CEILING_MAX_BURST_CFG = int(ceiling.get("max_burst", HARD_CEILING_MAX_BURST))
                 _rate_limiter_singleton.max_requests_per_hour = min(
@@ -578,15 +641,15 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
                 _rate_limiter_singleton.min_interval = max(
                     _rate_limiter_singleton.min_interval, HARD_CEILING_MIN_INTERVAL_CFG
                 )
-                _rate_limiter_singleton.burst = min(
-                    _rate_limiter_singleton.burst, HARD_CEILING_MAX_BURST_CFG
-                )
+                _rate_limiter_singleton.burst = min(_rate_limiter_singleton.burst, HARD_CEILING_MAX_BURST_CFG)
 
             logger.info(
                 "rate_limiter_initialized | mode=%s rph=%d min_interval=%.1f burst=%d enforce_ceiling=%s",
-                active_mode, _rate_limiter_singleton.max_requests_per_hour,
-                _rate_limiter_singleton.min_interval, _rate_limiter_singleton.burst,
-                not is_custom,
+                active_mode,
+                _rate_limiter_singleton.max_requests_per_hour,
+                _rate_limiter_singleton.min_interval,
+                _rate_limiter_singleton.burst,
+                not lock_open,
             )
         return _rate_limiter_singleton
 
