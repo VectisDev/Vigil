@@ -4,24 +4,24 @@
 
 ## Español
 
-**Todavía no es producción.** No hay una red en marcha.
+## Empieza aquí
 
-La idea es una sala de hasta 12 claves anónimas. Con 12 claves, un hash se confirma solo con 9 firmas distintas. Una clave que firma dos hashes distintos no cuenta. La puntuación no sustituye una firma. GitHub puede guardar los archivos; los mismos archivos pueden vivir en otro sitio.
+No necesitas una cuenta.
+Pide un código de sala.
+Ejecuta `python3 scripts/swarm_join.py CODIGO`.
+Verde: las copias coinciden. Amarillo: todavía no. Rojo: no coinciden.
+Ese es todo el paso.
 
-El texto está en [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).
-
-```bash
-python3 scripts/swarm_status.py
-```
+El detalle está en [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).
 
 ## English
 
-**Not yet production.** No network is running.
+## Start here
 
-The idea is a room of up to 12 anonymous keys. With 12 keys, a hash is confirmed only with 9 distinct signatures. A key that signs two different hashes counts for neither. The score does not stand in for a signature. GitHub can store the files; the same files can live somewhere else.
+You do not need an account.
+Ask for a room code.
+Run `python3 scripts/swarm_join.py CODE`.
+Green means the copies match. Yellow means not yet. Red means they disagree.
+That is the whole step.
 
-The text is [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).
-
-```bash
-python3 scripts/swarm_status.py
-```
+The detail is in [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).

@@ -1,5 +1,13 @@
 # Swarm mode / Modo enjambre
 
+## Start here
+
+You do not need an account.
+Ask for a room code.
+Run `python3 scripts/swarm_join.py CODE`.
+Green means the copies match. Yellow means not yet. Red means they disagree.
+That is the whole step.
+
 **Not yet production. / Todavía no es producción.**
 
 Nothing here joins a network. The same member list and the same room code always produce the same seating on every machine. There is no central server.

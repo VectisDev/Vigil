@@ -7,6 +7,14 @@
 
 # VIGIL
 
+## Start here
+
+You do not need an account.
+Ask for a room code.
+Run `python3 scripts/swarm_join.py CODE`.
+Green means the copies match. Yellow means not yet. Red means they disagree.
+That is the whole step.
+
 VIGIL keeps a saved copy of a public results feed, so a later reader can check those bytes without an account. One person maintains it, under the pseudonym VectisDev.
 
 ## Verify it yourself

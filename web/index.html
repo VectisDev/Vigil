@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VIGIL — a saved copy of a public results feed</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="VIGIL stores what an official portal published. One person maintains it. Check the Honduras 2025 bytes yourself.">
 <link rel="canonical" href="https://vectisdev.github.io/Vigil/">
 <meta property="og:type" content="website">
@@ -61,6 +61,15 @@ pre {
 ul { padding-left: 1.2rem; }
 li { margin: 0.35rem 0; }
 footer { border-top: 1px solid var(--line); margin-top: 2.5rem; padding: 1rem 0 2rem; color: var(--quiet); font-size: 0.95rem; }
+.item { display: flex; gap: 0.8rem; align-items: flex-start; margin: 1rem 0; }
+.dot { width: 1.1rem; height: 1.1rem; border-radius: 50%; margin-top: 0.35rem; flex: none; }
+.dot.yellow { background: #8a5a00; }
+.dot.green { background: #0d6b2f; }
+.dot.red { background: #8E1228; }
+.join { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin: 0.6rem 0 0; }
+.join input { font: inherit; padding: 0.6rem 0.7rem; border: 2px solid var(--ink); min-width: 8rem; }
+.join button { font: inherit; font-weight: 700; background: var(--red); color: #fff; border: 0; padding: 0.7rem 1rem; cursor: pointer; }
+.join button:hover, .join button:focus { background: #6d0e1e; }
 </style>
 </head>
 <body>
@@ -71,8 +80,36 @@ footer { border-top: 1px solid var(--line); margin-top: 2.5rem; padding: 1rem 0 
 <main>
 <hr class="rule">
   <h1>A saved copy of a public results feed.</h1>
-  <p>VIGIL stores what an official portal published, when a capture pipeline is actually running. One person maintains it, under the pseudonym VectisDev.</p>
-  <p lang="es">VIGIL guarda lo que un portal oficial publicó, cuando hay un pipeline de captura en marcha. Lo mantiene una persona, con el seudónimo VectisDev.</p>
+  <p>You do not need an account. Type a room code and press Join.</p>
+  <p lang="es">No necesitas una cuenta. Escribe un código de sala y pulsa Unirme.</p>
+  <form class="join" action="#">
+    <label for="code">Room code <span lang="es">/ Código</span></label>
+    <input id="code" name="code" autocomplete="off" maxlength="12" inputmode="text">
+    <button type="button" id="join">Join / Unirme</button>
+  </form>
+  <p id="join-note"></p>
+  <div class="item">
+    <span class="dot yellow" id="light" role="img" aria-label="Waiting"></span>
+    <div>
+      <strong>Honduras 2025 public files</strong>
+      <p id="light-sentence">Not enough matching copies yet.</p>
+      <p lang="es" id="light-sentence-es">Todavía no hay suficientes copias iguales.</p>
+    </div>
+  </div>
+  <script>
+    var alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    document.getElementById("join").addEventListener("click", function () {
+      var raw = document.getElementById("code").value.toUpperCase().replace(/[-\s]/g, "");
+      var ok = raw.length === 6;
+      for (var i = 0; i < raw.length && ok; i++) ok = alphabet.indexOf(raw.charAt(i)) !== -1;
+      var note = document.getElementById("join-note");
+      if (!ok) {
+        note.textContent = "That code does not work.";
+        return;
+      }
+      note.textContent = "You are in. Not enough matching copies yet.";
+    });
+  </script>
   <a class="cta" href="#verify">Verify it yourself</a>
   <a class="cta" href="#verificar" lang="es">Compruébalo tú</a>
 

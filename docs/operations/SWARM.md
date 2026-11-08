@@ -1,5 +1,7 @@
 # Swarm mode
 
+You do not need an account. Run `python3 scripts/swarm_join.py CODE`.
+
 The design is [`docs/swarm/README.md`](../swarm/README.md). It is not yet production.
 
 ```bash

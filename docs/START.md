@@ -1,5 +1,11 @@
 # Start here
 
+You do not need an account.
+Ask for a room code.
+Run `python3 scripts/swarm_join.py CODE`.
+Green means the copies match. Yellow means not yet. Red means they disagree.
+That is the whole step.
+
 One person publishes this repository, under the pseudonym VectisDev.
 
 ## Check the bytes
