@@ -176,6 +176,70 @@ jobs:
       - name: Run tests
         run: python -m pytest -q --timeout=180
 
+  # ── pruebas de navegador ────────────────────────────────────────────────────
+  # Las pruebas que necesitan un navegador se omiten solas donde no hay
+  # binario, y eso esta bien: sin la guarda el job saldria en rojo por una
+  # dependencia ausente y no por un fallo del codigo. Pero una prueba omitida
+  # en TODAS partes se ve igual que un verde, asi que el precio se paga una
+  # vez, aqui: este job instala Chromium y las selecciona por marcador.
+  #
+  # Va en un job aparte y no dentro de `tests` a proposito. La instalacion del
+  # navegador descarga del orden de 170 MB, y meterla en la matriz la cobraria
+  # dos veces por cada ejecucion para ejercitar lo mismo.
+  #
+  # English: browser tests skip themselves where there is no binary, which is
+  # right -- without the guard the job would go red for a missing dependency
+  # rather than a code failure. But a test skipped everywhere looks exactly
+  # like a pass, so the cost is paid once, here. It is a separate job rather
+  # than part of `tests` on purpose: installing the browser downloads some
+  # 170 MB, and putting it in the matrix would pay that twice per run to
+  # exercise the same thing.
+  browser-tests:
+    name: Browser tests (Python 3.11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements/dev.txt
+
+      - name: Install the browser
+        run: python -m playwright install --with-deps chromium
+
+      # `VIGIL_REQUIRE_BROWSER=1` convierte la omision en FALLO. En este job el
+      # navegador acaba de instalarse, asi que su ausencia solo puede significar
+      # que la instalacion se rompio, y omitir en silencio seria un verde que no
+      # prueba nada: el mismo patron que #788 encontro en el lint, donde un
+      # fallo tragado reportaba verde sin haber ejecutado nada.
+      #
+      # `-m browser` sin coincidencias sale con codigo 5 («no tests ran»), que
+      # tambien pone el job en rojo. Es la salida correcta: un job de pruebas de
+      # navegador que no encuentra ninguna no esta pasando, esta vacio.
+      #
+      # English: VIGIL_REQUIRE_BROWSER=1 turns the skip into a FAILURE. The
+      # browser was just installed here, so its absence can only mean the
+      # install broke, and skipping quietly would be a green that proves
+      # nothing. `-m browser` with no matches exits 5, which also fails the job
+      # -- the correct outcome, since a browser-test job that finds none is not
+      # passing, it is empty.
+      - name: Run the browser tests
+        env:
+          VIGIL_REQUIRE_BROWSER: "1"
+        run: python -m pytest -q -m browser --timeout=180
+
   security-tests:
     name: Security Integration Tests (Python 3.11)
     runs-on: ubuntu-latest

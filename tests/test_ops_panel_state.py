@@ -27,6 +27,7 @@ reimplementing the logic in Python would test the reimplementation.
 
 from __future__ import annotations
 
+import os
 import socket
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -39,6 +40,22 @@ WEB_ROOT = REPO_ROOT / "web"
 
 pytest.importorskip("playwright.sync_api", reason="playwright no instalado")
 from playwright.sync_api import sync_playwright  # noqa: E402
+
+# El job `browser-tests` de ci.yml selecciona por este marcador. Sin el, este
+# modulo se omite en los jobs normales —que no instalan el binario— y el job
+# de navegador no lo recoge: 19 pruebas que no corren en ningun sitio, en
+# silencio y pareciendo verde.
+# English: the browser-tests job selects by this marker. Without it this module
+# skips in the normal jobs and the browser job does not pick it up: 19 tests
+# running nowhere, silently, looking green.
+pytestmark = pytest.mark.browser
+
+# Con esto a "1", no haber navegador es un FALLO y no una omision. Lo pone el
+# job que acaba de instalarlo, donde la ausencia solo puede significar que la
+# instalacion se rompio.
+# English: with this at "1", a missing browser is a FAILURE. Set by the job
+# that just installed it, where absence can only mean the install broke.
+REQUIRE_BROWSER = os.environ.get("VIGIL_REQUIRE_BROWSER") == "1"
 
 
 def _free_port() -> int:
@@ -115,18 +132,35 @@ _SYSTEM_CHROMIUM = Path("/opt/pw-browsers/chromium")
 
 @pytest.fixture(scope="module")
 def browser():
-    try:
-        with sync_playwright() as pw:
-            kwargs = {"args": ["--no-sandbox"]}
-            if _SYSTEM_CHROMIUM.exists():
-                kwargs["executable_path"] = str(_SYSTEM_CHROMIUM)
+    """El navegador, u omitir —o fallar— si no hay uno utilizable.
+
+    La guarda caza SOLO el fallo de arranque. La version anterior envolvia
+    tambien el `yield`, y aunque pytest no reinyecta en el generador la
+    excepcion de una prueba, una guarda que abarca mas de lo que tiene que
+    cazar acaba cazando lo que no debe. Estrechada a proposito.
+
+    English: the guard catches ONLY the launch failure. The previous version
+    wrapped the `yield` as well; although pytest does not throw a test's
+    exception back into the generator, a guard that spans more than it needs to
+    catch ends up catching what it should not.
+    """
+    kwargs = {"args": ["--no-sandbox"]}
+    if _SYSTEM_CHROMIUM.exists():
+        kwargs["executable_path"] = str(_SYSTEM_CHROMIUM)
+    with sync_playwright() as pw:
+        try:
             b = pw.chromium.launch(**kwargs)
-            try:
-                yield b
-            finally:
-                b.close()
-    except Exception as exc:  # pragma: no cover - entorno sin navegador
-        pytest.skip(f"no hay navegador utilizable: {exc}")
+        except Exception as exc:  # pragma: no cover - entorno sin navegador
+            if REQUIRE_BROWSER:
+                raise AssertionError(
+                    "VIGIL_REQUIRE_BROWSER=1 pero el navegador no arranca, asi que "
+                    f"la instalacion de Chromium fallo en este job: {exc}"
+                ) from exc
+            pytest.skip(f"no hay navegador utilizable: {exc}")
+        try:
+            yield b
+        finally:
+            b.close()
 
 
 @pytest.fixture
