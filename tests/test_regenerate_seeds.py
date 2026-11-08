@@ -18,6 +18,11 @@ def test_the_workflow_uploads_a_one_day_artifact_and_does_not_print_keys() -> No
     assert "workflow_dispatch" in on
     assert "schedule" not in on
     assert doc["permissions"]["contents"] == "read"
+    assert "github.actor == github.repository_owner" in text
+    assert "FORCE_REGENERATE" in text
+    assert "git add web/access.json" in text
+    assert "config/ops_keys.yml" not in text
+    assert doc["jobs"]["regenerate"]["permissions"] == {"contents": "write"}
     assert "vigil-keys-download-once" in text
     assert "retention-days: 1" in text
     assert "vigil-seeds.txt" in text

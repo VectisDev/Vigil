@@ -19,7 +19,7 @@ A fetch names itself `Vigil/0.1.0 (+https://github.com/VectisDev/Vigil; key:<id>
 
 Freedom with visible responsibility. Vigil does not forbid a faster pace. The default stays respectful: 480 requests per hour, a gap of at least 1 second, and a burst of at most 8. Going past that is the user's freedom. It counts only after a public signed commit adds `rate_override.yml`, names an active ops key id, and accepts full responsibility for the consequences, including load on the source comparable to a denial of service. The git signature is an anonymous key, not a legal name. A key registered with a GitHub account can still show that account on GitHub. There is no swarm penalty for this choice. An unsigned file does not change the pace.
 
-The ops page is the control panel. Three clicks replace the keys: open Regenerar claves, run Regenerate Admin Seeds, then download the artifact `vigil-keys-download-once` from that run. It expires in one day. The page does not show the keys. A key is 12 characters from a 62-character alphabet, about 71 bits. `config/ops_keys.yml` stores a salted hash, never the key.
+The ops page is the control panel. Three clicks replace the keys: open Regenerar claves, run Regenerate Admin Seeds (`.github/workflows/regenerate-seeds.yml`), then download the artifact `vigil-keys-download-once` from that run. It expires in one day. Only the owner of that copy can run it. The workflow commits hashes in `web/access.json` and does not print the keys. The page does not show them. A key is 12 characters from a 62-character alphabet, about 71 bits.
 
 VIGIL keeps a saved copy of a public results feed, so a later reader can check those bytes without an account. One person maintains it, under the pseudonym VectisDev.
 

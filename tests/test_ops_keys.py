@@ -89,5 +89,5 @@ def test_the_published_registry_has_no_keys_and_the_site_does_not_check_one() ->
     assert "sessionstorage" not in ops
     assert "console.log" not in ops
     wizard = (ROOT / ".github" / "scripts" / "wizard_seeds.py").read_text(encoding="utf-8")
-    assert "web/access.json" not in wizard
+    assert "web/access.json" in wizard
     assert "upload-artifact" not in wizard

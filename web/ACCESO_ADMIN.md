@@ -4,9 +4,9 @@ The ops panel keeps the access-key field. That field is not sent, not stored, an
 
 Three clicks, on your own copy:
 
-1. Open the panel and press Regenerar claves. That opens Actions → Regenerate Admin Seeds.
+1. Open the panel and press Regenerar claves. That opens Actions → Regenerate Admin Seeds (`.github/workflows/regenerate-seeds.yml`) on your own copy. Only the owner of that copy can run it.
 2. Press Run workflow.
-3. When the run finishes, download the artifact `vigil-keys-download-once`. It expires in one day.
+3. When the run finishes, download the artifact `vigil-keys-download-once`. It expires in one day. The workflow commits hashes in `web/access.json` and does not print the keys.
 
 The boundary for a commit GitHub reports as verified is still the signature. Pushing that commit uses a GitHub credential.
 
