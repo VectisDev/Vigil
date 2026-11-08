@@ -19,3 +19,8 @@ html[data-ops-tab="avanzado"] #main-area > [data-tab="avanzado"]{display:block !
 #auth-card button{background:#000;color:#fff;width:100%;margin-top:12px}
 #auth-err{color:#b00000;font-weight:650;min-height:1.4em}
 .section{min-width:0}
+
+html[data-theme] .primary,html[data-theme] #btn-login{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+html[data-theme] .map-wrap path{fill:var(--bg);stroke:var(--fg)}
+html[data-theme] .map-wrap path.selected{fill:var(--fg);stroke:var(--red)}
+@media(max-width:700px){html[data-theme] .nav{background:var(--bg);border-top-color:var(--fg)}}
