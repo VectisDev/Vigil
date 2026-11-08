@@ -19,7 +19,7 @@ VIGIL combina **24 reglas estadísticas** (registradas en `src/vigil/core/rules/
 
 ### Detectores forenses
 
-Analizan el flujo de actas inconsistentes: inyección progresiva, velocidad de resolución imposible, beneficio asimétrico entre escrutinio especial y normal, retención y liberación masiva, Benford sobre el escrutinio especial y apagones de comunicación seguidos de cambios de tendencia.
+Analizan el flujo de actas inconsistentes: inyección progresiva, una tasa de resolución por encima de una heurística, beneficio asimétrico entre escrutinio especial y normal, retención y liberación, Benford sobre el escrutinio especial, y un tramo sin archivo guardado seguido de un cambio de tendencia. Un hueco entre archivos no es, por sí solo, una caída medida del portal.
 
 ### Calibración
 
@@ -29,7 +29,7 @@ Todos los umbrales se configuran en `config/prod/rules.yaml`. Los valores por de
 
 - **Audita el dato publicado, no la papeleta.** Detecta manipulación del dato en línea, no del voto en la urna.
 - **No prueba que el dato original sea correcto.** Si la autoridad publica un dato falso desde el primer momento, la cadena lo preserva pero no lo invalida; esa defensa corresponde al consenso entre testigos y a los detectores estadísticos.
-- **Benford no aplica a todo.** Distribuciones acotadas pueden desviarse sin fraude; por eso la regla de Benford de primer dígito está limitada a severidad informativa y nunca actúa sola.
+- **Benford no aplica a todo.** Una distribución acotada puede desviarse sin que eso demuestre una intención. La regla de Benford de primer dígito está limitada a severidad informativa y no actúa sola.
 - **Reglas con memoria.** Algunas reglas necesitan varios ciclos de historial antes de ser fiables.
 
 ### Documentación completa
@@ -57,7 +57,7 @@ VIGIL combines **24 statistical rules** (registered in `src/vigil/core/rules/`) 
 
 ### Forensic detectors
 
-They analyze the flow of inconsistent tally sheets: progressive injection, impossible resolution speed, asymmetric benefit between special and regular scrutiny, hold-and-release, Benford on special scrutiny, and communication blackouts followed by trend shifts.
+They analyze the flow of inconsistent tally sheets: progressive injection, a resolution rate above a heuristic, asymmetric benefit between special and regular scrutiny, hold-and-release, Benford on special scrutiny, and a stretch with no stored file followed by a trend shift. A gap between files is not, by itself, a measured portal outage.
 
 ### Calibration
 
@@ -67,7 +67,7 @@ Every threshold is configurable in `config/prod/rules.yaml`. Defaults follow cla
 
 - **It audits the published data, not the ballot.** It detects tampering with the online data, not with the vote in the box.
 - **It does not prove the original data is correct.** If the authority publishes false data from the start, the chain preserves it without invalidating it; that defense belongs to witness consensus and the statistical detectors.
-- **Benford does not apply everywhere.** Bounded distributions can deviate without fraud; that is why the first-digit Benford rule is capped at informational severity and never acts alone.
+- **Benford does not apply everywhere.** A bounded distribution can deviate without that showing intent. The first-digit Benford rule is capped at informational severity and does not act alone.
 - **Stateful rules.** Some rules need several cycles of history before they are reliable.
 
 ### Full documentation

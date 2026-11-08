@@ -45,8 +45,11 @@ conferencias en este pedido.
 ## Después de los 12 meses
 
 El código sigue en AGPL-3.0. Mantenerlo pide tiempo de quien lo publica, no una
-subscripción de nube. No hay patrocinador fiscal en el repositorio; recibirlo
-es un paso del mantenedor, fuera de git.
+subscripción de nube. Quien cobra, si hay un grant, es el mantenedor, una
+persona, con identidad pública VectisDev. El nombre legal se da solo al
+financiador al contratar. OTF financia a personas. NLnet paga a la persona
+después de cada hito. No hace falta un patrocinador fiscal. Uno puede
+considerarse más adelante. No hay ninguno.
 
 ---
 

@@ -25,6 +25,9 @@ concurrency:
   group: vigil-capture-${{ github.repository }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   gate:
     uses: ./.github/workflows/_gate.yml

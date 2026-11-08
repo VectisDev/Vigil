@@ -1,6 +1,6 @@
 # If the maintainer is offline
 
-One person publishes this repository, under the name VectisDev. There is no second maintainer in the tree and no fiscal host.
+One person publishes this repository, under the name VectisDev. There is no second maintainer in the tree. A grant, if any, is paid to that person. No fiscal sponsor is needed. One may be considered later. None is in place. The legal name is given only to the funder at contracting.
 
 The check that does not need that person:
 
@@ -14,4 +14,4 @@ The same command is `docker build -f Dockerfile.demo -t vigil-demo . && docker r
 
 `.github/CODEOWNERS` names `@VectisDev` so review requests have a destination. That is not a second person.
 
-Receiving grant money needs a legal party. None is named here. The only funding total written as an ask is 75,000 USD over 12 months, in `docs/grants/BUDGET_NARRATIVE.md`.
+The only funding total written as an ask is 75,000 USD over 12 months, in `docs/grants/BUDGET_NARRATIVE.md`. OTF funds individuals. NLnet pays an individual after milestones. Neither requires a fiscal sponsor for this applicant.

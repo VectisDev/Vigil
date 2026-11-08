@@ -43,7 +43,7 @@ poetry run pytest --cov=src/vigil --cov-report=term-missing
 5. Documentar en `docs/RULES.md` (tabla + sección descriptiva)
 
 ## Preguntas
-Si tienes dudas, abre un issue o contacta al equipo mantenedor.
+Si tienes dudas, abre un issue. Hay un solo mantenedor, el seudónimo VectisDev. Un fallo de seguridad no va en un issue: vectisdev26@proton.me o el aviso privado de GitHub (`.github/SECURITY.md`).
 
 ---
 

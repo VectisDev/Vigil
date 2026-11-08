@@ -1,9 +1,12 @@
-# Security Review | Auditoría de Seguridad
+# Security Review | Notas de seguridad
 
-**Version:** 1.0 | **Date:** 2026-05-18 | **Status:** Active
+**Status:** maintainer notes. Not a third-party audit. The percentages below are not a measured assurance level.
+Disclosure, contact, and response time are in [`.github/SECURITY.md`](../../.github/SECURITY.md).
 
-**ES:** Revisión de Seguridad Técnica — Análisis de Defensas, Debilidades, Mitigaciones  
-**EN:** Technical Security Review — Defense Analysis, Weaknesses, Mitigations
+**Estado:** notas del mantenedor. No es una auditoría de un tercero. Los porcentajes de abajo no son un nivel de aseguramiento medido.
+La divulgación, el contacto y el plazo están en [`.github/SECURITY.md`](../../.github/SECURITY.md).
+
+**Version:** 1.0 | **Date:** 2026-05-18
 
 ---
 

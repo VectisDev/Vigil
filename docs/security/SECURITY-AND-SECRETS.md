@@ -6,9 +6,10 @@
 Define prácticas de seguridad para VIGIL, incluyendo manejo de secretos, cifrado, logging seguro y backups. Complementa [README](../README.md) y [docs/SECRETS_BACKUP.md](SECRETS_BACKUP.md).
 
 ### Gestión de secretos
-- **Variables de entorno:** usar `.env`/`.env.local` con `python-dotenv` para separar secretos del código.
-- **Cifrado de claves sensibles:** utilizar `scripts/encrypt_secrets.py` para cifrar valores sensibles (ej. `ARBITRUM_KEY`).
-- **Ubicación de configuración:** mantener secretos y parámetros operativos en `command_center/.env` y `command_center/config.yaml`.
+- Los tokens, claves privadas y contraseñas no se commitean. Cifrarlos y subir el archivo sigue siendo un secreto en git.
+- Los secretos de GitHub Actions viven en la configuración del repositorio, no en el árbol.
+- `scripts/encrypt_secrets.py` sirve para un archivo local. Este repositorio no guarda una clave de Arbitrum ni una clave de firma, cifrada o no.
+- Contacto de seguridad: vectisdev26@proton.me y el aviso privado de GitHub. Ver `.github/SECURITY.md`.
 
 ### Cifrado y protección de datos
 - **Hashing criptográfico:** snapshots y diffs se protegen con hashes encadenados para integridad.
@@ -45,9 +46,10 @@ Define prácticas de seguridad para VIGIL, incluyendo manejo de secretos, cifrad
 Defines security practices for VIGIL, including secrets handling, encryption, safe logging, and backups. It complements the [README](../README.md) and [docs/SECRETS_BACKUP.md](SECRETS_BACKUP.md).
 
 ### Secrets management
-- **Environment variables:** use `.env`/`.env.local` with `python-dotenv` to keep secrets out of code.
-- **Encrypt sensitive keys:** use `scripts/encrypt_secrets.py` to encrypt sensitive values (e.g., `ARBITRUM_KEY`).
-- **Configuration location:** keep secrets and operational parameters in `command_center/.env` and `command_center/config.yaml`.
+- Tokens, private keys, and passwords are not committed. Encrypting them and uploading the file is still a secret in git.
+- GitHub Actions secrets live in repository settings, not in the tree.
+- `scripts/encrypt_secrets.py` is for a local file. This repository does not store an Arbitrum key or a signing key, encrypted or otherwise.
+- Security contact: vectisdev26@proton.me and GitHub private vulnerability reporting. See `.github/SECURITY.md`.
 
 ### Encryption and data protection
 - **Cryptographic hashing:** snapshots and diffs are protected with chained hashes for integrity.

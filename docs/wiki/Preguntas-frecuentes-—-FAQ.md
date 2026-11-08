@@ -7,14 +7,14 @@
 **¿VIGIL es un sistema de votación electrónica?**
 No. Es auditoría independiente de los datos que la autoridad electoral ya publica. No toca votos, urnas ni sistemas de la autoridad.
 
-**¿VIGIL afirma que hubo fraude?**
-No. Detecta anomalías estadísticas y prueba que los datos no se alteraron después de publicarse. La interpretación corresponde a observadores calificados, tribunales y la ciudadanía.
+**¿VIGIL nombra un responsable?**
+No. Señala cambios en datos públicos. Quien interpreta es un observador, un tribunal o la ciudadanía. La muestra de 2025 no es una cadena de custodia.
 
 **¿Necesito permiso de la autoridad electoral?**
 No. VIGIL trabaja solo con datos públicos, sin acceso privilegiado. Revisa igualmente los [límites legales y operativos](https://github.com/VectisDev/Vigil/blob/main/docs/legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md) de tu país.
 
 **¿Puede saturar el sitio de la autoridad?**
-No. La captura tiene límite de velocidad, y los nodos de la federación comparten capturas firmadas en lugar de repetir consultas: el enjambre entero se comporta como un solo visitante.
+Hay un techo de 480 peticiones por hora y por host. En este repositorio no hay una segunda persona capturando.
 
 **¿Cuánto cuesta operarlo?**
 Nada. Funciona en un portátil o con el plan gratuito de GitHub Actions y GitHub Pages.
@@ -38,14 +38,14 @@ Lee la [guía de contribución](https://github.com/VectisDev/Vigil/blob/main/.gi
 **Is VIGIL an electronic voting system?**
 No. It is an independent audit of data the electoral authority already publishes. It never touches votes, ballot boxes or the authority's systems.
 
-**Does VIGIL claim there was fraud?**
-No. It detects statistical anomalies and proves the data was not altered after publication. Interpretation belongs to qualified observers, courts and the public.
+**Does VIGIL name a responsible party?**
+No. It flags changes in public data. A reader, a court, or the public interprets them. The 2025 sample is not a custody chain.
 
 **Do I need the electoral authority's permission?**
 No. VIGIL only works with public data, with no privileged access. Still, check the [legal and operational boundaries](https://github.com/VectisDev/Vigil/blob/main/docs/legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md) in your country.
 
 **Can it overload the authority's website?**
-No. Capture is rate-limited, and federation nodes share signed captures instead of repeating requests: the whole swarm behaves like a single visitor.
+There is a ceiling of 480 requests per hour per host. This repository does not have a second person capturing.
 
 **How much does it cost to run?**
 Nothing. It runs on a laptop or on the free tier of GitHub Actions and GitHub Pages.

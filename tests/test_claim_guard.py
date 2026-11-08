@@ -10,6 +10,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+def _wiki_pages() -> list[str]:
+    wiki = ROOT / "docs" / "wiki"
+    return sorted(path.relative_to(ROOT).as_posix() for path in wiki.glob("*.md") if path.is_file())
+
+
 SCANNED = [
     "README.md",
     "docs/VERIFY.md",
@@ -30,7 +36,13 @@ SCANNED = [
     "web/status/index.html",
     "docs/grants/OTF_CONCEPT_NOTE_FINAL.md",
     "docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md",
+    ".github/SECURITY.md",
+    "docs/security/SECURITY-POLICY.md",
+    "docs/compliance/SECURITY_POLICY.md",
+    "docs/THREAT_MODEL.md",
+    "docs/legal/GOVERNANCE.md",
 ]
+SCANNED.extend(_wiki_pages())
 
 # These pages are where a gap was being narrated as a portal outage.
 OUTAGE_CLAIM_FILES = {
@@ -98,6 +110,91 @@ def test_hnd_2025_report_does_not_invent_a_portal_outage() -> None:
         "dejó de reportar candidatos",
     ):
         assert phrase not in text, phrase
+
+
+def test_old_contact_address_does_not_reappear() -> None:
+    """The retired mailbox must not come back in a tracked file."""
+    retired = "security@" + "vectis.dev"
+    current = "vectisdev26@proton.me"
+    problems: list[str] = []
+    skip = {".git", ".venv", "__pycache__", "node_modules"}
+    for path in ROOT.rglob("*"):
+        if not path.is_file() or skip.intersection(path.parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        if retired in text:
+            problems.append(str(path.relative_to(ROOT)))
+    assert problems == []
+    assert current in (ROOT / ".github" / "SECURITY.md").read_text(encoding="utf-8")
+    for note in (
+        "docs/grants/OTF_CONCEPT_NOTE_FINAL.md",
+        "docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md",
+    ):
+        body = _read(note)
+        assert current in body
+        assert "[OWNER EMAIL]" not in body
+        assert "VectisDev" in body
+
+
+def test_applicant_is_an_individual_and_notes_are_rolling() -> None:
+    """No sponsor placeholder, and no dated OTF window, in the tree."""
+    sponsor = "[" + "FISCAL SPONSOR]"
+    legal = "[" + "OWNER LEGAL NAME]"
+    windows = (
+        "Dec 1" + "-7",
+        "Dec 1" + "–7",
+        "December 1" + "-7",
+        "December 1" + "–7",
+        "1-7 " + "December",
+        "1–7 " + "December",
+        "1-7 de " + "diciembre",
+        "1–7 de " + "diciembre",
+        "cannot be " + "paid",
+        "no fiscal " + "host",
+    )
+    problems: list[str] = []
+    skip = {".git", ".venv", "__pycache__", "node_modules"}
+    for path in ROOT.rglob("*"):
+        if not path.is_file() or skip.intersection(path.parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        rel = str(path.relative_to(ROOT))
+        if sponsor in text or legal in text:
+            problems.append(rel)
+        for window in windows:
+            if window in text:
+                problems.append(f"{rel}: {window}")
+    assert problems == []
+    english = _read("docs/grants/OTF_CONCEPT_NOTE_FINAL.md")
+    spanish = _read("docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md")
+    assert "rolling basis" in english
+    assert "forma continua" in spanish
+    assert "apply through a fiscal sponsor" not in english.lower()
+    assert "aplicar a través" not in spanish
+
+
+def test_security_policy_matches_one_maintainer() -> None:
+    policy = _read(".github/SECURITY.md")
+    current = "vectisdev26@proton.me"
+    assert current in policy
+    assert "48 hours" not in policy
+    assert "7 days" not in policy
+    assert "push protection is enabled" not in policy.lower()
+    assert "No third-party security audit has been completed" in policy
+    wiki = _read("docs/wiki/Seguridad-—-Security.md")
+    assert current in wiki
+    assert "48 hours" not in wiki
+    assert "7 días" not in wiki
+    retired_disclosure = "security-low"
+    old_policy = _read("docs/security/SECURITY-POLICY.md")
+    assert retired_disclosure not in old_policy
+    assert current in old_policy
 
 
 def test_mailmap_does_not_repeat_the_personal_mailbox() -> None:

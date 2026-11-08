@@ -4,7 +4,7 @@
 
 ## Español
 
-VIGIL está diseñado para **costo operativo cero**, máxima verificabilidad y una licencia AGPL-3.0 que impide que el proyecto sea capturado, cerrado o privatizado.
+Lo publica una persona, el seudónimo VectisDev. El código corre en el plan gratuito de GitHub. El único pedido escrito es 75.000 USD en 12 meses. Quien solicita es esa persona. No hace falta un patrocinador fiscal. Uno puede considerarse más adelante. No hay ninguno. OTF acepta notas conceptuales de forma continua. Detalle: [Financiamiento y gobernanza](Financiamiento-y-gobernanza-—-Funding-and-governance). La licencia es AGPL-3.0.
 
 ### Por qué es distinto
 
@@ -14,7 +14,7 @@ VIGIL está diseñado para **costo operativo cero**, máxima verificabilidad y u
 | Independencia | Requiere acceso, financiamiento y acreditación | Total: no necesita permiso |
 | Verificabilidad | Informes y declaraciones | Prueba criptográfica verificable sin conexión |
 | Escala | Equipos de observadores y semanas de preparación | Un operador y un portátil |
-| Resistencia a la censura | Una organización es un único punto de presión | Federación P2P sin centro que incautar o sobornar |
+| Quién lo publica | Una misión con plantilla y sede | Una persona, seudónimo VectisDev. No hay fundación ni segundo mantenedor |
 | Prueba temporal | Ninguna | Cadena SHA-256 anclada a Bitcoin |
 | Replicabilidad | Metodología cerrada | Cada paso es reproducible por terceros |
 
@@ -33,7 +33,7 @@ VIGIL está diseñado para **costo operativo cero**, máxima verificabilidad y u
 
 ## English
 
-VIGIL is designed for **zero operating cost**, maximum verifiability and an AGPL-3.0 license that prevents the project from being captured, closed or privatized.
+One person publishes it, the pseudonym VectisDev. The code runs on GitHub's free tier. The only written ask is 75,000 USD over 12 months. The applicant is that person. No fiscal sponsor is needed. One may be considered later. None is in place. OTF accepts concept notes on a rolling basis. Detail: [Funding and governance](Financiamiento-y-gobernanza-—-Funding-and-governance). The license is AGPL-3.0.
 
 ### Why it is different
 
@@ -43,7 +43,7 @@ VIGIL is designed for **zero operating cost**, maximum verifiability and an AGPL
 | Independence | Needs access, funding and accreditation | Complete: no permission required |
 | Verifiability | Reports and statements | Cryptographic proof verifiable offline |
 | Scale | Observer teams and weeks of preparation | One operator and one laptop |
-| Censorship resistance | One organization is a single point of pressure | P2P federation with no center to seize or bribe |
+| Who publishes it | A mission with staff and an office | One person, pseudonym VectisDev. No foundation and no second maintainer |
 | Temporal proof | None | SHA-256 chain anchored to Bitcoin |
 | Replicability | Closed methodology | Every step reproducible by third parties |
 

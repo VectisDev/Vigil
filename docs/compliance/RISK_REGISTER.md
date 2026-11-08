@@ -40,4 +40,4 @@
 | R-10 | Aceptado | Fuera del alcance técnico del sistema |
 
 ---
-*Mantenido por el equipo técnico de Vigil. Ver también: `docs/legal/OPERATING-PRINCIPLES.md`.*
+*Mantenido por VectisDev, una sola persona. Ver también: `docs/legal/OPERATING-PRINCIPLES.md`.*

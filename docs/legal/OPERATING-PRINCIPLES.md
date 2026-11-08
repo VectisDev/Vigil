@@ -7,9 +7,7 @@
 VIGIL es un sistema técnico de observación y auditoría de datos electorales
 **exclusivamente públicos**.
 
-No es una organización política.
-No es un medio de comunicación.
-No es un actor electoral.
+Lo publica una persona, con el seudónimo VectisDev. No es una organización, un partido, un medio ni un actor electoral.
 
 VIGIL es un sistema diseñado para registrar, comparar y publicar automáticamente
 cambios observables en datos oficiales divulgados por terceros.

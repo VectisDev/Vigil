@@ -6,7 +6,7 @@
 
 ### Neutralidad
 
-VIGIL **no afirma fraude**. Detecta anomalías estadísticas en datos electorales públicos y aporta prueba criptográfica de su integridad para que personas calificadas las evalúen. No representa posiciones partidarias ni emite juicios políticos.
+Lo publica una persona, el seudónimo VectisDev. No es una organización. El programa señala cambios en datos públicos y no nombra un responsable. No representa a un partido.
 
 VIGIL es **infraestructura de preservación de evidencia electoral pública**: no es una autoridad electoral, un observador acreditado ni un árbitro de disputas. La interpretación de las anomalías corresponde a observadores calificados, tribunales y la ciudadanía.
 
@@ -42,7 +42,7 @@ VIGIL es **infraestructura de preservación de evidencia electoral pública**: n
 
 ### Neutrality
 
-VIGIL **does not assert fraud**. It detects statistical anomalies in public electoral data and provides cryptographic proof of its integrity for qualified human evaluation. It does not represent partisan positions or make political judgments.
+One person publishes it, the pseudonym VectisDev. It is not an organization. The program flags changes in public data and names no responsible party. It does not represent a party.
 
 VIGIL is **public electoral evidence preservation infrastructure**: it is not an electoral authority, an accredited observer or an arbiter of disputes. Interpreting anomalies belongs to qualified observers, courts and the public.
 

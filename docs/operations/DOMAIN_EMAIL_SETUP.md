@@ -1,6 +1,18 @@
-# Guía: Email Institucional + Dominio Propio
-# Por qué es importante: gmail en formularios de grants es señal de baja seriedad.
-# Tiempo estimado: 30 minutos. Costo: ~$12/año (dominio) + $0 (email con Proton).
+# Contacto publicado
+
+El contacto del repositorio es `vectisdev26@proton.me`.
+No hay otra dirección. No hay dominio propio registrado para este proyecto.
+No hay una organización que ese dominio pudiera representar.
+
+Un dominio propio es opcional y no está hecho. Si algún día se registra:
+
+- La privacidad de WHOIS se deja activada. El nombre legal no se publica.
+- El buzón no sustituye a `vectisdev26@proton.me` hasta que `.github/SECURITY.md`, `CITATION.cff` y `pyproject.toml` cambien en el mismo commit.
+- No se compra un dominio para parecer una organización.
+
+## Nota histórica sobre un dominio propio
+
+El texto de abajo quedó como apunte. No está ejecutado.
 
 ---
 
@@ -12,8 +24,7 @@
 2. Buscar: `vigil.hn` o `centinelelectoral.org` o `centinel-audit.org`
 3. Si `vigil.hn` no está disponible (TLD Honduras puede requerir trámite),
    usar `.org` — es el más creíble para proyectos cívicos.
-4. Registrar con pago por tarjeta. NO activar privacidad de WHOIS si el proyecto
-   eventualmente busca ser público (la transparencia es un activo).
+4. Si se registra, dejar la privacidad de WHOIS activada. El seudónimo público es VectisDev.
 
 **Dominios sugeridos (en orden de preferencia):**
 - `centinelelectoral.org` (~$10/año)
@@ -24,7 +35,7 @@
 
 1. Ir a https://proton.me/mail
 2. Crear cuenta con el dominio registrado
-3. Email resultado: `security@vectis.dev`
+3. Email resultado: `vectisdev26@proton.me`
 
 O usar **Proton for Organizations** (gratis para 1 usuario con dominio propio):
 https://proton.me/business/plans
@@ -45,10 +56,6 @@ Una vez tengas el email, actualizar:
 
 ## Nota sobre el nombre del dominio
 
-Para OTF en particular, un dominio `.org` con nombre descriptivo
-es señal de organización seria. `centinel-audit.org` o
-`centinelelectoral.org` comunican el propósito inmediatamente.
-
-`vigil.lat` es la opción más impactante narrativamente
-("auditoría electoral para toda Latinoamérica").
+Un `.org` no convierte este repositorio en una organización.
+El mantenedor es una persona con el seudónimo VectisDev.
 

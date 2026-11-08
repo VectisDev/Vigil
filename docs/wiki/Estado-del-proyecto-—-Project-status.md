@@ -10,7 +10,7 @@
 
 | Eje | Estado |
 |---|---|
-| Garantías criptográficas (T1–T4) | Completas y verificables en el código |
+| Enlace SHA-256 | Existe cuando el pipeline escribe `previous_hash`. La muestra de 2025 no lo tiene |
 | Pruebas automatizadas | Se ejecutan en cada cambio (Python 3.11 y 3.12), junto con CodeQL, análisis de calidad y Dependabot |
 | Piloto forense retroactivo | Completado: 64 archivos oficiales de Honduras 2025 ([detalle](Piloto-Honduras-2025-—-Honduras-2025-pilot)) |
 | Análisis de falsos positivos | 500 ejecuciones, [resultados publicados](https://github.com/VectisDev/Vigil/blob/main/docs/research/FALSE_POSITIVE_ANALYSIS.md) |
@@ -40,7 +40,7 @@ Detalle de cada fase: [hoja de ruta](https://github.com/VectisDev/Vigil/blob/mai
 
 | Axis | Status |
 |---|---|
-| Cryptographic guarantees (T1–T4) | Complete and verifiable in the code |
+| SHA-256 link | Exists when the pipeline writes `previous_hash`. The 2025 sample does not have it |
 | Automated tests | Run on every change (Python 3.11 and 3.12), together with CodeQL, code quality analysis and Dependabot |
 | Retroactive forensic pilot | Completed: 64 official Honduras 2025 files ([details](Piloto-Honduras-2025-—-Honduras-2025-pilot)) |
 | False positive analysis | 500 runs, [results published](https://github.com/VectisDev/Vigil/blob/main/docs/research/FALSE_POSITIVE_ANALYSIS.md) |

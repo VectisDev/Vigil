@@ -118,7 +118,7 @@ Global: misiones OEA, UE, Carter Center (observadores internacionales).
 
 ## CAMPO 11 — ¿Por qué ustedes son las personas correctas?
 
-El equipo ha demostrado capacidad técnica real, no solo teórica: el motor forense de VIGIL fue aplicado retroactivamente sobre 64 archivos JSON originales del CNE de las elecciones hondureñas del 30/11/2025, detectando automáticamente hallazgos estadísticos reproducibles por cualquier tercero con los mismos archivos públicos.
+Hay un solo mantenedor, el seudónimo VectisDev. No hay equipo. El motor se aplicó de forma retroactiva sobre 64 archivos JSON públicos del CNE de las elecciones hondureñas del 30/11/2025. Un tercero puede repetir la comprobación de bytes con `make replay-offline`. Esos archivos no son una cadena de custodia.
 
 **Capacidad técnica:** El código es AGPL-3.0. El job `tests` de `.github/workflows/ci.yml` es la prueba; este documento no congela un conteo de tests. La muestra de 2025 se comprueba con `make replay-offline`, no con una cadena que esos archivos no tienen.
 
@@ -143,4 +143,4 @@ El equipo ha demostrado capacidad técnica real, no solo teórica: el motor fore
 ---
 
 *VIGIL — AGPL-3.0 — github.com/VectisDev/Vigil (repositorio aún bajo el nombre histórico VIGIL; migración de nombre en curso)*  
-*Documento preparado por el equipo VIGIL · Junio 2026*
+*Documento preparado por el mantenedor VectisDev · Junio 2026*

@@ -233,9 +233,9 @@ Este documento **no constituye ni reemplaza**:
 - Una opinión legal.
 - Una afirmación de que Vigil cumple íntegramente con cualquiera de las normas listadas.
 
-El propósito es demostrar que Vigil fue diseñado con conciencia de estos estándares internacionales y que sus componentes se alinean técnicamente con sus principios centrales, en el nivel de recursos y alcance de un proyecto de sociedad civil de código abierto.
+El propósito es dejar escrito qué partes del diseño se parecen a esos estándares. No es una certificación. El repositorio lo mantiene una persona, el seudónimo VectisDev.
 
 ---
 
-*Última actualización: 2026-06-23. Mantenido por el equipo técnico de Vigil / VectisDev.*
+*Última actualización: 2026-11-07. Mantenido por VectisDev, una sola persona.*
 *Revisión académica independiente buscada; ninguna firmada a la fecha.*
