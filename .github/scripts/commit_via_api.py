@@ -32,7 +32,8 @@ from pathlib import Path
 
 def git_blob_sha(data: bytes) -> str:
     header = f"blob {len(data)}\0".encode()
-    return hashlib.sha1(header + data).hexdigest()
+    # Identificador de blob de git, no un hash de seguridad.
+    return hashlib.sha1(header + data, usedforsecurity=False).hexdigest()
 
 
 class GitHub:
