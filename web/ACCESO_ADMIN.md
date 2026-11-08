@@ -37,6 +37,22 @@ El workflow es `.github/workflows/regenerate-seeds.yml`, nombre **Regenerate Adm
 1. Ve a **Actions → Regenerate Admin Seeds** en el repositorio.
 2. Haz clic en **Run workflow**.
 3. Abre esa ejecución y descarga el artifact `centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA`. Se conserva 1 día. Guárdalo fuera de línea.
+4. **Espera unos 2 minutos** antes de entrar con la clave nueva.
+
+> **Por qué esos 2 minutos.** El workflow commitea los hashes nuevos en
+> `web/access.json`, pero un push hecho con `GITHUB_TOKEN` no dispara otros
+> workflows: es la protección de GitHub contra ejecuciones recursivas. Hasta
+> ahora eso dejaba la página publicada con los hashes viejos, y la clave nueva
+> daba «Clave incorrecta» sin que nada explicara por qué; había que disparar
+> **Deploy web verifier to GitHub Pages** a mano.
+>
+> El workflow ahora lo dispara él mismo al terminar, y ese despliegue tarda
+> aproximadamente dos minutos. Mientras tanto **la clave anterior sigue
+> funcionando**, así que no te quedas fuera en ningún momento.
+>
+> Si el disparo falla, el workflow lo avisa con un `::warning::` pero no se
+> interrumpe: las claves ya están regeneradas y el artifact es su única copia.
+> En ese caso dispara Pages a mano desde **Actions**.
 
 ### Desde línea de comandos (modo servidor local)
 

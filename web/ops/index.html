@@ -27,7 +27,11 @@ window.VigilToken = window.VigilToken || (function () {
 try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 </script>
-<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<!-- js-yaml alojado en el repositorio, no en un CDN. Un tercero que sirve
+     este script ve la IP de cada visitante y puede cambiar el archivo bajo
+     nuestros pies; ver web/vendor/README.md.
+     English: js-yaml is repo-hosted, not CDN-hosted. -->
+<script src="../vendor/js-yaml-4.1.0.min.js"></script>
 <script src="../config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -727,7 +731,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
             <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2z"/></svg>
               <span data-lang="es">Mirror externo — Amazon S3</span><span data-lang="en">External mirror — Amazon S3</span>
-              <span class="badge badge-neutral" id="aws-status-badge"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
+              <span class="badge badge-neutral" id="aws-status-badge" data-ops-loading="_loadAwsState"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
               <span class="sec-tip" data-tip-es="Replica web/data/ y web/reports/ a un bucket S3 propio vía GitHub Actions. Las credenciales van como GitHub Secrets en tu fork — nunca en este panel. El estado se actualiza automáticamente tras cada ejecución del workflow." data-tip-en="Replicates web/data/ and web/reports/ to your own S3 bucket via GitHub Actions. Credentials go as GitHub Secrets in your fork — never in this panel. Status updates automatically after each workflow run.">ⓘ</span>
             </span>
             <div style="display:flex;gap:6px;align-items:center">
@@ -989,7 +993,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
         <div class="ctrl-section">
           <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
-          <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;">
+          <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;" data-ops-loading="loadSeedStatus">
             <span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span>
           </div>
         </div>
@@ -1262,7 +1266,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
           <div style="display:flex;align-items:center;gap:12px;margin:12px 0">
             <span id="ec-status-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok)"></span>
-            <span id="ec-status-label" style="font-size:14px;font-weight:600"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
+            <span id="ec-status-label" style="font-size:14px;font-weight:600" data-ops-loading="loadElectionStatus"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="ec-mode-line"></div>
 
@@ -1450,6 +1454,64 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 
 <!-- ════ PURGE DATA MODAL ════ -->
+<!-- Guia de regeneracion de claves en modo `pages`.
+     En GitHub Pages no hay endpoint que regenerar: lo hace un workflow. El
+     tercer paso es el que importa y el que faltaba: ese archivo es el unico
+     momento en que las claves nuevas existen en claro, y se borra al dia.
+     English: on Pages there is no endpoint to regenerate -- a workflow does
+     it. The third step is the one that matters and the one that was missing:
+     that file is the only moment the new keys exist in the clear. -->
+<div id="regen-guide-modal" role="dialog" aria-modal="true" aria-labelledby="regen-guide-title"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center"
+     onclick="if(event.target===this)closeRegenerateGuide()">
+  <div class="modal-box" style="max-width:520px">
+    <h2 id="regen-guide-title">
+      <span data-lang="es">Regenerar las claves de acceso</span>
+      <span data-lang="en">Regenerate the access keys</span>
+    </h2>
+    <p class="modal-lead">
+      <span data-lang="es">Este panel se publica sin servidor, así que la regeneración
+        la hace un workflow en GitHub. Son tres pasos.</span>
+      <span data-lang="en">This panel is published without a server, so a GitHub
+        workflow does the regeneration. Three steps.</span>
+    </p>
+    <ol class="ops-steps">
+      <li>
+        <span data-lang="es">Abre el workflow y pulsa <strong>Run workflow</strong>.</span>
+        <span data-lang="en">Open the workflow and press <strong>Run workflow</strong>.</span>
+      </li>
+      <li>
+        <span data-lang="es">Cuando termine, entra en <strong>Summary</strong> y luego en
+          <strong>Artifacts</strong>, y descarga el archivo de claves.</span>
+        <span data-lang="en">When it finishes, go to <strong>Summary</strong>, then
+          <strong>Artifacts</strong>, and download the key file.</span>
+      </li>
+      <li>
+        <span data-lang="es"><strong>Guárdalo fuera de línea.</strong> Es el único momento
+          en que las claves nuevas existen en claro, y el archivo se borra al día.</span>
+        <span data-lang="en"><strong>Save it offline.</strong> This is the only moment the
+          new keys exist in the clear, and the file is deleted after a day.</span>
+      </li>
+    </ol>
+    <p class="modal-note">
+      <span data-lang="es">La página tarda un par de minutos en publicar las claves nuevas.
+        Hasta entonces sigue funcionando la clave anterior.</span>
+      <span data-lang="en">The page takes a couple of minutes to publish the new keys.
+        The previous key keeps working until then.</span>
+    </p>
+    <div class="modal-actions">
+      <a class="btn-primary" data-regen-link href="#" target="_blank" rel="noopener">
+        <span data-lang="es">Abrir el workflow</span>
+        <span data-lang="en">Open the workflow</span>
+      </a>
+      <button type="button" class="btn-secondary" onclick="closeRegenerateGuide()">
+        <span data-lang="es">Cerrar</span>
+        <span data-lang="en">Close</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="purge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center">
   <div class="modal-box" style="max-width:460px;border-top:3px solid var(--warn)">
     <h2 style="color:var(--warn)"><span data-lang="es">Limpiar datos de scraping</span><span data-lang="en">Clear scraping data</span></h2>
@@ -1743,12 +1805,40 @@ async function pbkdf2Hex(password, salt, iterations) {
 const REPO_OWNER = (()=>{
   try{ const u=new URL(location.href); return u.hostname.split('.')[0]; }catch{return '';}
 })();
-const REPO_NAME = 'centinel';
+
+// El nombre del repositorio se deriva de la URL. Estaba a fuego como
+// 'centinel', un nombre que el repositorio dejo de tener al renombrarse a
+// Vigil, mientras REPO_OWNER si se derivaba del hostname. El resultado:
+// RAW_BASE y API_BASE apuntaban a un repositorio con el nombre viejo y TODA
+// peticion de datos del panel daba 404 -- departamentos, snapshot, las seis
+// configuraciones, alertas, log de ataques. Y para cualquiera que despliegue
+// desde la plantilla con otro nombre, fallaria igual desde el primer dia.
+//
+// Tres lineas mas abajo el mismo archivo ya lo derivaba bien para un enlace
+// (`parts[0] || 'Vigil'`); lo que faltaba era usar ese valor en todas partes.
+//
+// English: the repository name is derived from the URL. It was hardcoded as
+// 'centinel', a name the repository stopped having when it was renamed to
+// Vigil, while REPO_OWNER was derived from the hostname. Every data request
+// the panel makes 404'd. The same file already derived it correctly for one
+// link three lines below; what was missing was using that value everywhere.
+const REPO_NAME = (()=>{
+  try{
+    const parts = location.pathname.split('/').filter(Boolean);
+    // En un sitio de proyecto (owner.github.io/REPO/...) el primer segmento es
+    // el repositorio. En un sitio de usuario (owner.github.io/...) no lo es, y
+    // tampoco en file:// ni en un servidor local.
+    // English: on a project site the first path segment is the repository; on
+    // a user site, file:// or a local server it is not.
+    const isProjectSite = /\.github\.io$/i.test(location.hostname) && parts.length >= 2;
+    if (isProjectSite) return parts[0];
+  }catch(e){}
+  return 'Vigil';
+})();
+
 const regenLink = document.getElementById('btn-regen');
 if (regenLink && REPO_OWNER) {
-  const parts = location.pathname.split('/').filter(Boolean);
-  const repo = parts[0] || 'Vigil';
-  regenLink.href = 'https://github.com/' + REPO_OWNER + '/' + repo + '/actions/workflows/regenerate-seeds.yml';
+  regenLink.href = 'https://github.com/' + REPO_OWNER + '/' + REPO_NAME + '/actions/workflows/regenerate-seeds.yml';
 }
 const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
 const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
@@ -1899,7 +1989,13 @@ let ceilingUnlocked = false;
 })();
 
 async function doAdminLogin(prefillKey) {
-  const pass = prefillKey || document.getElementById('adm-pass').value.trim();
+  // Se recortan AMBAS: la del campo y la que llega por enlace. Un espacio
+  // invisible al final de una URL compartida daba «Clave incorrecta» sin
+  // explicacion posible para quien la habia escrito bien.
+  // English: both are trimmed -- the typed one and the one arriving in a
+  // link. A trailing space in a shared URL produced an unexplainable
+  // "wrong key" for someone who had typed it correctly.
+  const pass = (prefillKey || document.getElementById('adm-pass').value || '').trim();
   const btn  = document.getElementById('btn-login');
   const err  = document.getElementById('auth-err');
   if (!pass) { err.textContent = 'Ingresa la clave de acceso.'; return; }
@@ -1909,9 +2005,9 @@ async function doAdminLogin(prefillKey) {
   try {
     const fallbackUrl = new URL('../access.json', location.href).href;
     let ac;
-    if (window.VIGIL_API_BASE) {
+    if (!opsIsPages()) {
       try {
-        const r = await fetch(window.VIGIL_API_BASE + '/api/setup/access.json?t=' + Date.now());
+        const r = await opsApi('/api/setup/access.json?t=' + Date.now());
         if (r.ok) ac = await r.json();
       } catch(_) {}
     }
@@ -1956,7 +2052,15 @@ async function doAdminLogin(prefillKey) {
           return false;
         });
     if (!matched) {
-      err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
+      // Si las claves se acaban de regenerar, la pagina publicada todavia
+      // lleva los hashes viejos durante un par de minutos. Sin esta frase,
+      // la persona concluye que perdio el acceso.
+      // English: if the keys were just regenerated, the published page still
+      // carries the old hashes for a couple of minutes. Without this line the
+      // person concludes they have lost access.
+      err.textContent = prefillKey
+        ? 'La clave del enlace no es válida o ha expirado.'
+        : 'Clave incorrecta. Si regeneraste las claves hace poco, espera 2 minutos a que la página se actualice.';
       btn.disabled = false; btn.textContent = 'Entrar'; return;
     }
     sessionStorage.setItem('centinel_admin_tok', 'operador');
@@ -2083,9 +2187,26 @@ function showAdminShell(){
 // INIT
 // ══════════════════════════════════════════════════════════
 async function initAll(){
+  // Primero el modo: todo lo que sigue depende de si hay nodo detras.
+  // Se resuelve una vez y se publica en el <body> para que el CSS y las
+  // secciones lo consulten sin volver a sondear la API.
+  // English: the mode first -- everything below depends on whether there is
+  // a node behind. Resolved once and published on <body> so CSS and the
+  // sections can read it without probing the API again.
+  await detectMode();
+  document.body.classList.remove('ops-mode-pages','ops-mode-servidor');
+  document.body.classList.add('ops-mode-' + window.OPS_MODE);
   if(typeof VELE!=='undefined') VELE.init('ops');
   // Wrap each synchronous call so a transient error can't abort the whole
   // init chain and leave later sections (like 2 dept grid) unrendered.
+  // La guarda de 8 s se arma ANTES de lanzar los cargadores. Al reves, la
+  // foto que toma ya es lo que el cargador acaba de pintar, y al vencer lo
+  // sustituye por el mensaje generico: «necesita tu nodo encendido» se
+  // convertia en «No hay datos todavía».
+  // English: the 8s guard is armed BEFORE the loaders go out. The other way
+  // round, its snapshot is whatever a loader has just rendered, and on expiry
+  // it replaces it with the generic message.
+  try { opsArmLoadingGuards(); } catch(e){ console.warn('opsArmLoadingGuards',e); }
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
   await loadDepartments(ACTIVE_COUNTRY_CODE);
   try { buildDeptGrid(); }    catch(e){ console.warn('buildDeptGrid',e); }
@@ -2110,7 +2231,7 @@ async function initAll(){
   loadReputationPanel();
   loadElectionStatus();
   // Restore pipeline button state if already running
-  fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/status')
+  opsApi('/api/pipeline/status')
     .then(r => r.ok ? r.json() : null)
     .then(d => { if (d?.running) { _setPipelineUI(true, d.pid); _startPipelinePoll(); } })
     .catch(() => {});

@@ -223,7 +223,7 @@ async function loadCountrySelector() {
   // Current country from API status (best-effort), fall back to localStorage
   let currentCode = ACTIVE_COUNTRY_CODE || 'HN';
   try {
-    const s = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/status');
+    const s = await opsApi('/api/setup/status');
     if (s.ok) { const d = await s.json(); currentCode = d.country_code || currentCode; }
   } catch(_) {}
 
@@ -317,7 +317,7 @@ async function doIniciar() {
   if (btn?.classList.contains('running')) {
     if (!confirm('¿Detener el monitoreo en curso?')) return;
     try {
-      await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
+      await opsApi('/api/pipeline/stop', { method: 'POST' });
     } catch (_) {}
     auditLog('monitoreo detenido', '', {msgid:'MONITORING_STOP', severity:'WARNING'});
     _setPipelineUI(false);
@@ -352,7 +352,7 @@ async function doIniciar() {
 
   // 1. Apply config silently to server
   try {
-    await fetch((window.VIGIL_API_BASE || '') + '/api/config/apply', {
+    await opsApi('/api/config/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -365,7 +365,7 @@ async function doIniciar() {
 
   // 2. Start the pipeline
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/start', {
+    const r = await opsApi('/api/pipeline/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ main_url: mainUrl, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
@@ -380,9 +380,15 @@ async function doIniciar() {
       const detail = err.detail || 'Error al iniciar el pipeline.';
       _setPipelineUI(false, null, '❌ ' + detail + ' (Verifica que VIGIL esté corriendo en el servidor)');
     }
-  } catch (_) {
-    // Offline / GitHub Pages — show clear message
-    _setPipelineUI(false, null, '❌ Panel en modo offline. Para iniciar el monitoreo, ejecuta VIGIL en el servidor local y recarga.');
+  } catch (e) {
+    // Sin nodo no es un fallo: es que no hay donde iniciar nada. La cruz roja
+    // decia lo contrario y convertia un estado esperado en una averia.
+    // English: with no node this is not a failure -- there is nowhere to
+    // start anything. The red cross said otherwise and turned an expected
+    // state into a fault.
+    _setPipelineUI(false, null, opsIsOffline(e)
+      ? t('empty.needs_node')
+      : '❌ ' + (e && e.message ? e.message : t('empty.no_data_yet')));
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -431,7 +437,7 @@ function _startPipelinePoll() {
   if (_pipelinePollTimer) return;
   _pipelinePollTimer = setInterval(async () => {
     try {
-      const r = await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/status');
+      const r = await opsApi('/api/pipeline/status');
       if (r.ok) {
         const d = await r.json();
         if (!d.running) {
@@ -533,7 +539,7 @@ async function saveElectoralUrl() {
   if (res) { res.style.display = ''; res.style.background = 'rgba(212,176,102,.08)'; res.style.border = '1px solid rgba(212,176,102,.25)'; res.style.color = 'var(--warn)'; res.textContent = 'Analizando el sitio del ente electoral…'; }
 
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/setup/discover_endpoints', {
+    const r = await opsApi('/api/setup/discover_endpoints', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Vigil-Key': sessionStorage.getItem('centinel_admin_key') || '' },
       body: JSON.stringify({ main_url: url, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
@@ -667,7 +673,7 @@ async function doChangeCountry() {
   // Best-effort API sync (silent on failure — works offline / GitHub Pages)
   let apiSynced = false;
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/change_country', {
+    const r = await opsApi('/api/setup/change_country', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-Vigil-Key': sessionStorage.getItem('centinel_admin_key') || ''},
       body: JSON.stringify({country_code: code}),
@@ -679,7 +685,7 @@ async function doChangeCountry() {
         loadSeedStatus();
         if (swWarn) {
           try {
-            const sw = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
+            const sw = await opsApi('/api/swarm/status');
             const sd = sw.ok ? await sw.json() : {running: false};
             swWarn.style.display = (sd.running || sd.connected_peers > 0) ? '' : 'none';
           } catch(_) { swWarn.style.display = 'none'; }
@@ -703,12 +709,12 @@ async function doChangeCountry() {
 
   // If swarm was running, reconnect with new country so isolation takes effect immediately
   try {
-    const sw = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
+    const sw = await opsApi('/api/swarm/status');
     if (sw.ok) {
       const sd = await sw.json();
       if (sd.running) {
-        await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
-        await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/connect', {
+        await opsApi('/api/swarm/disconnect', { method: 'POST' });
+        await opsApi('/api/swarm/connect', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({}),
@@ -723,7 +729,7 @@ async function loadSeedStatus() {
   const el = document.getElementById('seed-status');
   if (!el) return;
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/status');
+    const r = await opsApi('/api/setup/status');
     const s = await r.json();
     if (s.configured) {
       const since = s.configured_at ? new Date(s.configured_at).toLocaleString() : '—';
@@ -740,6 +746,11 @@ async function loadSeedStatus() {
       document.getElementById('btn-regen').disabled = true;
     }
   } catch(e) {
+    // Sin nodo detras no hubo fallo de carga: no habia nada que cargar. El
+    // mensaje generico hacia pensar que el panel estaba roto.
+    // English: with no node behind, nothing failed to load -- there was
+    // nothing to load. The generic message suggested the panel was broken.
+    if (opsIsOffline(e)) { opsNeedsNode(el); return; }
     el.innerHTML = `<span style="color:var(--muted)">${t('seed.error_carga')}</span>`;
   }
 }
@@ -749,7 +760,7 @@ async function doRegenerate() {
   const errEl = document.getElementById('regen-err');
   errEl.textContent = '';
 
-  if (window.VIGIL_API_BASE) {
+  if (!opsIsPages()) {
     const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
     if (!seedValue) {
       errEl.textContent = t('seed.ingresa_clave');
@@ -760,10 +771,10 @@ async function doRegenerate() {
     document.getElementById('regen-confirm').style.display = 'none';
 
     try {
-      const statusR = await fetch(window.VIGIL_API_BASE + '/api/setup/status');
+      const statusR = await opsApi('/api/setup/status');
       const status = await statusR.json();
 
-      const r = await fetch(window.VIGIL_API_BASE + '/api/setup/regenerate', {
+      const r = await opsApi('/api/setup/regenerate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -797,13 +808,45 @@ async function doRegenerate() {
       if (btn) { btn.disabled = false; btn.textContent = t('seed.si_regenerar'); }
     }
   } else {
-    const workflowUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/regenerate-seeds.yml`;
+    // En Pages no hay endpoint que regenerar: lo hace un workflow. Antes esto
+    // era una frase y un enlace sueltos dentro del hueco del error, en ambar,
+    // y no decia que hacer despues de pulsar. Ahora es un modal con los tres
+    // pasos completos, porque el tercero -- guardar el archivo fuera de linea
+    // -- es el unico momento en que esas claves existen en claro.
+    // English: on Pages there is no endpoint to regenerate: a workflow does
+    // it. This used to be a sentence and a bare link inside the error slot,
+    // in amber, saying nothing about what to do after clicking. It is now a
+    // modal with all three steps, because the third -- saving the file
+    // offline -- is the only moment those keys exist in the clear.
     document.getElementById('regen-confirm').style.display = 'none';
-    errEl.innerHTML = `<span style="color:var(--warn)">${t('seed.modo_pages')}<br>` +
-      `<a href="${workflowUrl}" target="_blank" rel="noopener" style="color:var(--accent)">` +
-      `${t('seed.abre_workflow')}</a> ${t('seed.run_workflow_hint')}</span>`;
+    errEl.textContent = '';
+    openRegenerateGuide();
   }
 }
+
+// Guia de regeneracion para el modo `pages`.
+function openRegenerateGuide() {
+  const workflowUrl =
+    `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/regenerate-seeds.yml`;
+  const modal = document.getElementById('regen-guide-modal');
+  if (!modal) { window.open(workflowUrl, '_blank', 'noopener'); return; }
+  const link = modal.querySelector('[data-regen-link]');
+  if (link) link.href = workflowUrl;
+  modal.style.display = 'flex';
+  const first = modal.querySelector('a, button');
+  if (first) first.focus();
+  document.addEventListener('keydown', _regenGuideEsc);
+}
+window.openRegenerateGuide = openRegenerateGuide;
+
+function closeRegenerateGuide() {
+  const modal = document.getElementById('regen-guide-modal');
+  if (modal) modal.style.display = 'none';
+  document.removeEventListener('keydown', _regenGuideEsc);
+}
+window.closeRegenerateGuide = closeRegenerateGuide;
+
+function _regenGuideEsc(e) { if (e.key === 'Escape') closeRegenerateGuide(); }
 
 
 async function reloadConfig(){
@@ -863,11 +906,23 @@ let _swarmPollTimer = null;
 
 async function loadSwarmStatus() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
+    const r = await opsApi('/api/swarm/status');
     if (!r.ok) return;
     const s = await r.json();
     _renderSwarmStatus(s);
-  } catch(_) {}
+  } catch(e) {
+    // Sin nodo, el enjambre no es «desconectado»: es que no hay nada que
+    // conectar todavia. La diferencia importa, porque «desconectado» invita a
+    // buscar una averia que no existe.
+    // English: with no node, the swarm is not "disconnected" -- there is
+    // nothing to connect yet. The difference matters: "disconnected" invites
+    // hunting for a fault that does not exist.
+    if (!opsIsOffline(e)) return;
+    const label = document.getElementById('swarm-label');
+    const dot = document.getElementById('swarm-dot');
+    if (dot) dot.style.background = 'var(--muted)';
+    if (label) label.textContent = t('empty.needs_node');
+  }
 }
 
 function _renderSwarmStatus(s) {
@@ -965,7 +1020,7 @@ function _renderSwarmStatus(s) {
 
 async function loadSwarmConsensus() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/consensus_findings?min_nodes=1&limit=20');
+    const r = await opsApi('/api/swarm/consensus_findings?min_nodes=1&limit=20');
     if (!r.ok) return;
     const d = await r.json();
     const items = d.consensus || [];
@@ -1003,7 +1058,7 @@ async function doSwarmConnect() {
 
   const myUrl = (document.getElementById('swarm-my-url')||{}).value || undefined;
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/connect', {
+    const r = await opsApi('/api/swarm/connect', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ my_url: myUrl || null }),
@@ -1028,7 +1083,7 @@ async function doSwarmDisconnect() {
   if (btn) { btn.disabled = true; btn.textContent = t('swarm.desconectando'); }
   _stopSwarmPoll();
   try {
-    await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
+    await opsApi('/api/swarm/disconnect', { method: 'POST' });
     await loadSwarmStatus();
   } catch(_) {}
   if (btn) { btn.disabled = false; btn.textContent = t('swarm.desconectar'); }
@@ -1065,7 +1120,7 @@ async function createSala() {
   // Make sure the engine is running first
   let nodeId = '—', myUrl = '';
   try {
-    const sr = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/status');
+    const sr = await opsApi('/api/swarm/status');
     if (sr.ok) { const s = await sr.json(); nodeId = s.node_id || '—'; myUrl = s.my_url || ''; }
   } catch(_) {}
 
@@ -1073,7 +1128,7 @@ async function createSala() {
   let roomRegistered = false;
   if (myUrl) {
     try {
-      const rr = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/room', {
+      const rr = await opsApi('/api/swarm/room', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ room_code: _salaId })
       });
@@ -1153,7 +1208,7 @@ async function joinSala() {
     if (myUrl)    body.my_url    = myUrl;
     if (roomCode) body.room_code = roomCode;
 
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/connect', {
+    const r = await opsApi('/api/swarm/connect', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
@@ -1174,7 +1229,7 @@ async function joinSala() {
 async function kickPeer(nodeId) {
   if (!confirm(`¿Expulsar nodo ${nodeId} del enjambre?\n\nEsto lo bloquea hasta que el engine reinicie.`)) return;
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + `/api/swarm/peer/${nodeId}`, { method: 'DELETE' });
+    const r = await opsApi(`/api/swarm/peer/${nodeId}`, { method: 'DELETE' });
     if (!r.ok) { const e = await r.json().catch(() => ({})); alert('Error: ' + (e.detail || r.status)); return; }
     _addActivity('bad', `Nodo expulsado: ${nodeId}`, 'ahora');
     await loadSwarmStatus();
@@ -1187,7 +1242,7 @@ let _repPollTimer = null;
 
 async function loadReputationPanel() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/reputation');
+    const r = await opsApi('/api/swarm/reputation');
     if (!r.ok) return;
     const d = await r.json();
     _renderReputationPanel(d);
@@ -1256,10 +1311,17 @@ async function openSwarmHist(nodeId) {
   document.getElementById('swarm-hist-modal').classList.add('open');
   document.getElementById('hist-modal-node').textContent = nodeId;
   document.getElementById('hist-modal-title').textContent = 'Historial de reputación';
-  document.getElementById('hist-modal-body').innerHTML =
+  const _histBody = document.getElementById('hist-modal-body');
+  _histBody.innerHTML =
     '<div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div>';
+  // El «Cargando…» de este modal nace al abrirlo, asi que la guarda se arma
+  // aqui y no en el arranque: al arrancar, el modal esta oculto y vacio.
+  // English: this modal's "Loading…" is born when it opens, so the guard is
+  // armed here rather than at boot, when the modal is hidden and empty.
+  delete _histBody.dataset.opsResolved;
+  opsLoadTimeout(_histBody, function(){ openSwarmHist(nodeId); });
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + `/api/swarm/reputation/${nodeId}/history?limit=50`);
+    const r = await opsApi(`/api/swarm/reputation/${nodeId}/history?limit=50`);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     const evts = d.events || [];
@@ -1320,7 +1382,7 @@ function _renderSwarmStatus(s) {
 
 async function loadElectionStatus() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/election/status');
+    const r = await opsApi('/api/election/status');
     if (!r.ok) return;
     const d = await r.json();
     const banner = document.getElementById('election-closed-banner');
@@ -1346,7 +1408,24 @@ async function loadElectionStatus() {
       if (modeLine) modeLine.textContent = t('ec.modo') + ': ' + (d.centinel_mode || '—') +
         '  ·  Snapshots: ' + d.chain_length;
     }
-  } catch(_) {}
+  } catch(e) {
+    // Este `catch` estaba vacio, y por eso la etiqueta se quedaba en
+    // «Cargando…» para siempre: el error se tragaba y nadie tocaba el texto.
+    // Un estado que no se puede conocer tiene que decirse.
+    // English: this catch was empty, which is why the label stayed on
+    // "Loading…" forever -- the error was swallowed and nobody touched the
+    // text. A state that cannot be known has to say so.
+    const label = document.getElementById('ec-status-label');
+    const dot = document.getElementById('ec-status-dot');
+    if (dot) dot.style.background = 'var(--muted)';
+    if (label) {
+      label.textContent = opsIsOffline(e) ? t('empty.needs_node') : t('empty.no_data_yet');
+      // Esta seccion ya dijo lo suyo; la guarda de 8 s no debe pisarlo.
+      // English: this section has said its piece; the 8s guard must not
+      // overwrite it.
+      label.dataset.opsResolved = '1';
+    }
+  }
 }
 
 function openFinalizeModal() {
@@ -1391,7 +1470,7 @@ async function doFinalizeElection() {
   }, 2000);
 
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/election/finalize', {
+    const r = await opsApi('/api/election/finalize', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({}),
@@ -1433,8 +1512,8 @@ async function doFinalizeElection() {
 async function refreshSwarmPanel() {
   try {
     const [statusRes, repRes] = await Promise.allSettled([
-      fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status'),
-      fetch((window.VIGIL_API_BASE||'') + '/api/swarm/reputation'),
+      opsApi('/api/swarm/status'),
+      opsApi('/api/swarm/reputation'),
     ]);
     const status = statusRes.status === 'fulfilled' && statusRes.value.ok ? await statusRes.value.json() : null;
     const rep = repRes.status === 'fulfilled' && repRes.value.ok ? await repRes.value.json() : null;

@@ -11,6 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Para disparar pages.yml al final. Un push hecho con GITHUB_TOKEN no
+      # dispara workflows, asi que sin esto la web se queda con los hashes
+      # viejos y las claves nuevas dan "Clave incorrecta".
+      # English: to dispatch pages.yml at the end. A push made with
+      # GITHUB_TOKEN does not trigger workflows, so without this the site
+      # keeps the old hashes and the new keys read as wrong.
+      actions: write
     steps:
       - name: Require a repository admin
         env:
@@ -54,6 +61,44 @@ jobs:
           git add -- web/access.json
           git diff --cached --quiet || git commit -m "Regenerate access key hashes"
           git push
+
+      # Publicar la web con los hashes nuevos.
+      #
+      # Este es el eslabon que faltaba. El paso anterior commitea
+      # web/access.json con GITHUB_TOKEN, y GitHub no dispara workflows con
+      # eventos originados por ese token -- es su proteccion contra ejecuciones
+      # recursivas. pages.yml escucha `push` sobre `web/**`, asi que nunca se
+      # enteraba: la persona regeneraba sus claves, la pagina seguia sirviendo
+      # los hashes viejos, y la clave nueva daba "Clave incorrecta" sin que
+      # nada explicara por que. Hasta hoy habia que disparar Pages a mano.
+      #
+      # `workflow_dispatch` es la excepcion documentada a esa proteccion: los
+      # eventos workflow_dispatch y repository_dispatch si crean ejecucion
+      # aunque los origine GITHUB_TOKEN.
+      #
+      # English: the missing link. The previous step commits web/access.json
+      # with GITHUB_TOKEN, and GitHub does not trigger workflows from events
+      # that token originates -- its recursion guard. pages.yml listens for
+      # `push` on `web/**`, so it never heard: the person regenerated their
+      # keys, the site kept serving the old hashes, and the new key read as
+      # wrong with nothing explaining why. `workflow_dispatch` is the
+      # documented exception -- it does create a run even from GITHUB_TOKEN.
+      - name: Publish the site with the new hashes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh workflow run pages.yml --ref "${GITHUB_REF_NAME}"; then
+            echo "Pages dispatched; the new hashes are live in about two minutes."
+          else
+            # No se falla el job: las claves YA se regeneraron y el archivo de
+            # abajo es la unica copia. Perderlo por un fallo de publicacion
+            # seria peor que publicar tarde.
+            # English: the job does not fail -- the keys are ALREADY
+            # regenerated and the file below is the only copy. Losing it to a
+            # publish failure would be worse than publishing late.
+            echo "::warning::No se pudo disparar pages.yml. Dispáralo a mano para publicar los hashes nuevos."
+          fi
 
       - name: Upload the one-day key file
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
