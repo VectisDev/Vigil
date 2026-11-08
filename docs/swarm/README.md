@@ -8,6 +8,8 @@
 
 On a computer: `python3 scripts/swarm_join.py CODE`
 
+Interruptions: [`RESILIENCE.md`](RESILIENCE.md).
+
 **Not yet production. / Todavía no es producción.**
 
 Nothing here joins a network. The same member list and the same room code always produce the same seating on every machine. There is no central server.

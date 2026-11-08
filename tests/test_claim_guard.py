@@ -44,6 +44,7 @@ SCANNED = [
     "docs/START.md",
     "docs/operations/SWARM.md",
     "docs/swarm/README.md",
+    "docs/swarm/RESILIENCE.md",
     "docs/README.md",
 ]
 SCANNED.extend(_wiki_pages())
