@@ -2,58 +2,66 @@
 
 **Not yet production. / Todavía no es producción.**
 
-Nothing in this repository joins a network. The functions below are pure: the same input gives the same output on every machine. There is no central server in the design.
+Nothing here joins a network. The same member list and the same room code always produce the same seating on every machine. There is no central server.
 
-Nada en este repositorio se une a una red. Las funciones de abajo son puras: la misma entrada da la misma salida en cada máquina. El diseño no tiene un servidor central.
-
-## Idea
-
-Rain World is a game where each creature follows local rules and the world has no referee. This design borrows only that shape: each node applies the same written rules to the same public files. It is not a game, and it does not copy that game's code.
-
-Rain World es un juego en el que cada criatura sigue reglas locales y el mundo no tiene árbitro. Este diseño toma solo esa forma: cada nodo aplica las mismas reglas escritas a los mismos archivos públicos. No es un juego y no copia el código de ese juego.
-
-Joining a room uses a short code, the way a custom match uses a short code. The code is not a secret password and it is not an account. Anyone with the code and the member list can compute the seating.
-
-Unirse a una sala usa un código corto, como un código de partida personalizada. El código no es una clave y no es una cuenta. Quien tenga el código y la lista de miembros puede calcular los puestos.
+Nada de esto se une a una red. La misma lista de miembros y el mismo código de sala dan el mismo resultado en cada máquina. No hay un servidor central.
 
 ```text
   public portal
        |
-       +---- node A saves the public JSON, hashes it
-       +---- node B saves the same public JSON, hashes it
+       +-- each seated id downloads the public JSON itself
+       +-- each id publishes only the hash
        |
-       k of n equal hashes  -->  the group accepts that hash
+       enough equal hashes  -->  the room accepts that hash
 ```
+
+## What a room is
+
+A room is a label plus a set of public ids. The label is 6 characters. It is not a key and not an account. A typo is rejected, so a wrong label does not produce a seating.
+
+Una sala es una etiqueta más un conjunto de identificadores públicos. La etiqueta tiene 6 caracteres. No es una clave ni una cuenta. Un error de escritura se rechaza, así que una etiqueta mala no produce puestos.
+
+Each id is a name the group chose for a node. It is not a legal name. At most 12 ids. A 13th id is an error. The list is not cut down in silence, because two machines must not quietly seat different people.
+
+Cada identificador es un nombre que el grupo eligió para un nodo. No es un nombre legal. Como máximo 12. Un decimotercero es un error. La lista no se recorta en silencio, porque dos máquinas no deben sentar a personas distintas sin decirlo.
+
+Join is adding an id and computing again. Leave is removing an id and computing again. There is no other membership step.
+
+Unirse es añadir un identificador y calcular de nuevo. Salir es quitarlo y calcular de nuevo. No hay otro paso.
+
+## One job
+
+Every seat does the same work: download the public file yourself, and publish its hash. Nobody accepts bytes they did not download. Sorting the ids makes the seating independent of who spoke first.
+
+Todos los puestos hacen lo mismo: descargar uno mismo el archivo público y publicar su hash. Nadie acepta bytes que no descargó. Ordenar los identificadores hace que el resultado no dependa de quién habló primero.
+
+| Seats | Job |
+|---|---|
+| 1–12 | Save the public JSON. Publish its hash. |
+
+## Agreement
+
+Quorum is two thirds of the seated ids, rounded up. Twelve ids need 8 equal hashes. One id needs 1, and that result is that id's own hash, not a group finding. `agreed_hash` returns the hash that reaches the count, or nothing.
+
+El quórum es dos tercios de los identificadores sentados, redondeado hacia arriba. Doce necesitan 8 hashes iguales. Uno necesita 1, y ese resultado es el hash de ese identificador, no un hallazgo de grupo.
 
 ## What is shared
 
-Only a public electoral snapshot and its hash. Never a name, an address, a key, or a message about a person.
+Only a public electoral snapshot and its hash. Never a name of a person, an address, a key, or a message about a person.
 
-Solo una captura electoral pública y su hash. Nunca un nombre, una dirección, una clave, ni un mensaje sobre una persona.
+Solo una captura electoral pública y su hash. Nunca el nombre de una persona, una dirección, una clave, ni un mensaje sobre una persona.
 
-## Join by code
+## Where the ideas come from and what we simplified
 
-1. One person picks a room code with `room_code_from_seed` (6 characters, no 0/O or 1/I).
-2. Each node is a public id, not a legal name. The list has at most 12 seated ids.
-3. Every node calls `assign_roles(members, code)`.
-4. If the code is not valid, no seating is produced.
-5. Members are sorted. Slot 0 is host, then witnesses, archivists, checkers, reserves. The input order does not matter, so there is no race to be first.
+Two outside pictures suggested the shape. They are not specifications, and they are not named in the pages a visitor opens.
 
-The host does not run a server. The host is the person who showed the code. After that, the host follows the same table as everyone else.
+One picture is a world where each creature follows local rules and there is no referee. What we kept is that every node can recompute the result from the same written rules. What we dropped is any simulation of creatures, territory, or reputation.
 
-## Roles for 12 seats
+The other picture is a short code that lets people meet in one room. What we kept is a 6-character label with no ambiguous characters, rejected if mistyped. What we dropped is matchmaking, a lobby, a privileged host, and any use of the code as a secret.
 
-| Seat | Role | Job |
-|---|---|---|
-| 1 | host | Shows the code. Then does the same work as a witness. |
-| 2–4 | witness | Saves the public JSON and its hash. |
-| 5–6 | archivist | Keeps that public file. |
-| 7–10 | checker | Compares the hashes the others publish. |
-| 11–12 | reserve | Seated. Publishes a hash only if asked by the same rules. |
+We also dropped separate jobs (who archives, who checks, who waits). Those jobs need extra rules and let one node accept another node's bytes. One job is easier to audit: each id fetches the public file. We dropped a waiting list past 12 seats, because a silent cut can seat different ids on different machines. Join and leave are edits to the member list, not a second protocol.
 
-A 13th id, after sorting, waits. It is not seated.
-
-Quorum is two thirds of the seated nodes, rounded up. One node needs 1 match. Twelve nodes need 8 matching hashes. `agreed_hash` returns that hash, or nothing if no hash reaches the count.
+The older HTTP routes in `src/vigil/api/routes/swarm.py` are not this design and are not a way to join.
 
 ## Code
 
@@ -64,10 +72,3 @@ python3 scripts/swarm_status.py
 ```
 
 That command prints this status. It does not open a port and it does not join a room.
-
-## What this is not
-
-- Not a running network.
-- Not a login.
-- Not a place to send personal data.
-- The older HTTP routes in `src/vigil/api/routes/swarm.py` are not this design and are not a way to join.
