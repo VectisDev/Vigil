@@ -1,11 +1,16 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="web/assets/logo-dark.svg">
-    <img src="web/assets/logo.svg" alt="VIGIL" width="560">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/banner-oscuro.svg">
+    <img alt="VIGIL — Integridad electoral verificable" src="docs/brand/banner-claro.svg" width="100%">
   </picture>
 </p>
 
 <h1 align="center">VIGIL</h1>
+
+<p align="center">
+  <strong>Integridad electoral verificable</strong><br>
+  <em>Verifiable electoral integrity</em>
+</p>
 
 <p align="center">
   <strong>Verifiable monitoring of official public-information portals</strong><br>

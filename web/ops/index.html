@@ -5,13 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>VIGIL — Ops</title>
-<!-- Marca propia de OPS, en la paleta del panel. La compartida lleva azul y
-     amarillo; se crea una aparte en vez de cambiar la del sitio entero,
-     porque esto es el rediseño de OPS y no de la identidad publica. De paso,
-     dos pestañas abiertas se distinguen de un vistazo.
-     English: an OPS-specific mark in the panel palette. The shared one has
-     blue and yellow; a separate file keeps this change scoped to OPS. -->
-<link rel="icon" type="image/svg+xml" href="../assets/mark-ops.svg">
+<link rel="icon" href="../assets/favicon/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/favicon/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../assets/favicon/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="../assets/favicon/favicon-180.png">
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/brand-header.css">
 <script>
 // ── Token de escritura: SOLO en memoria ─────────────────────────────────────
 // Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
@@ -91,7 +90,7 @@ html[data-ops-tab="avanzado"] body.election-mode #main-area > [data-tab="avanzad
      only region. Expressed with role rather than by swapping the tag. -->
 <div id="auth-screen" role="main">
   <nav class="auth-nav">
-    <span class="auth-wordmark">VIGIL</span>
+    <a class="vigil-lockup" href="../" aria-label="VIGIL inicio"><picture class="mark-light"><img alt="VIGIL — Integridad electoral verificable" src="../assets/brand/vigil-horizontal-corto.svg" height="28"></picture><picture class="mark-dark"><source media="(prefers-color-scheme: dark)" srcset="../assets/brand/vigil-horizontal-corto-oscuro.svg"><img alt="" src="../assets/brand/vigil-horizontal-corto-oscuro.svg" height="28"></picture></a>
     <button class="auth-ops-pill" id="auth-ops-pill" type="button">OPS ▾</button>
   </nav>
   <div class="auth-card" id="auth-card">
@@ -110,7 +109,7 @@ html[data-ops-tab="avanzado"] body.election-mode #main-area > [data-tab="avanzad
 <div id="admin-shell">
   <!-- HEADER -->
   <div id="admin-header">
-    <a href="../" class="hdr-brand-link">VIGIL</a><span class="hdr-sep">/</span><span class="hdr-brand">OPS</span>
+    <a class="vigil-lockup hdr-brand-link" href="../" aria-label="VIGIL inicio"><picture class="mark-light"><img alt="VIGIL — Integridad electoral verificable" src="../assets/brand/vigil-horizontal-corto.svg" height="28"></picture><picture class="mark-dark"><source media="(prefers-color-scheme: dark)" srcset="../assets/brand/vigil-horizontal-corto-oscuro.svg"><img alt="" src="../assets/brand/vigil-horizontal-corto-oscuro.svg" height="28"></picture></a><span class="hdr-sep">/</span><span class="hdr-brand">OPS</span>
     <!-- Nombre del nodo o sala: dice de quien es este panel. Sin el, dos
          pestañas de dos nodos distintos son indistinguibles.
          English: node or room name -- without it, two tabs for two different

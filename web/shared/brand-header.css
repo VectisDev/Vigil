@@ -1,0 +1,54 @@
+/* Cabecera común: el logo corto y los tres colores de la marca.
+   El modo sigue prefers-color-scheme, igual que el <picture> del logo. */
+.vigil-lockup {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+.vigil-lockup img {
+  height: 28px;
+  width: auto;
+  min-width: 96px;
+  max-width: none;
+  display: block;
+}
+#vigil-title { flex: 0 0 auto; overflow: visible; }
+.vigil-lockup .mark-dark { display: none; }
+.vigil-lockup .mark-light { display: inline-flex; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .vigil-lockup .mark-light { display: none; }
+  html:not([data-theme="light"]) .vigil-lockup .mark-dark { display: inline-flex; }
+}
+[data-theme="dark"] .vigil-lockup .mark-light { display: none; }
+[data-theme="dark"] .vigil-lockup .mark-dark { display: inline-flex; }
+[data-theme="light"] .vigil-lockup .mark-light { display: inline-flex; }
+[data-theme="light"] .vigil-lockup .mark-dark { display: none; }
+
+#vigil-titlebar {
+  --bg: var(--vigil-blanco, #ffffff);
+  --fg: var(--vigil-negro, #0a0a0a);
+  --panel: var(--vigil-blanco, #ffffff);
+  --border: var(--vigil-linea, #e5e5e5);
+  --muted: #6b6b6b;
+  --accent: var(--vigil-rojo, #d7262e);
+  background: var(--bg);
+  color: var(--fg);
+  border-bottom: 1px solid var(--border);
+}
+#vigil-title,
+#vigil-title a {
+  color: var(--fg);
+}
+
+@media (prefers-color-scheme: dark) {
+  #vigil-titlebar {
+    --bg: var(--vigil-negro, #0a0a0a);
+    --fg: var(--vigil-blanco, #ffffff);
+    --panel: var(--vigil-negro, #0a0a0a);
+    --border: #2a2a2a;
+    --muted: #f2f2f2;
+    --accent: var(--vigil-rojo-oscuro-fondo, #ff4d55);
+  }
+}

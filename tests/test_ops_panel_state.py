@@ -167,10 +167,12 @@ def browser():
         try:
             launched = _launch_browser(pw)
         except Exception as exc:
-            pytest.fail(
-                "el navegador no arrancó; en CI hay que instalarlo "
-                f"(python -m playwright install --with-deps chromium): {exc}"
-            )
+            if os.environ.get("VIGIL_REQUIRE_BROWSER") == "1":
+                raise AssertionError(
+                    "VIGIL_REQUIRE_BROWSER=1 pero el navegador no arranca, asi que "
+                    f"la instalacion de Chromium fallo en este job: {exc}"
+                ) from exc
+            pytest.skip(f"no hay navegador utilizable: {exc}")
         try:
             yield launched
         finally:
@@ -373,8 +375,7 @@ def test_inicio_does_not_show_another_tabs_elements(page):
     """
     page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
     page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'inicio'")
-    seen = page.evaluate(
-        """() => {
+    seen = page.evaluate("""() => {
             const foreign = [];
             for (const el of document.querySelectorAll('[data-tab]')) {
                 if (el.getAttribute('data-tab') === 'inicio') continue;
@@ -385,8 +386,7 @@ def test_inicio_does_not_show_another_tabs_elements(page):
                 }
             }
             return {foreign, text: document.body.innerText};
-        }"""
-    )
+        }""")
     assert seen["foreign"] == [], f"en Inicio se ven otras pestañas: {seen['foreign']}"
     for phrase in (
         "SISTEMA NOMINAL",
