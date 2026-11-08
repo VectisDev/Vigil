@@ -32,7 +32,7 @@ https://vectisdev.github.io/Vigil/ops/
 
 ### Desde GitHub Actions (recomendado para GitHub Pages)
 
-El workflow es `.github/workflows/regenerate-seeds.yml`, nombre **Regenerate Admin Seeds**. Solo quien es dueño del repositorio puede ejecutarlo. El log no imprime las claves. El commit contiene solo los hashes de `web/access.json`.
+El workflow es `.github/workflows/regenerate-seeds.yml`, nombre **Regenerate Admin Seeds**. Solo los repository admins pueden ejecutarlo. El log no imprime las claves. El commit contiene solo los hashes de `web/access.json`.
 
 1. Ve a **Actions → Regenerate Admin Seeds** en el repositorio.
 2. Haz clic en **Run workflow**.
@@ -51,7 +51,7 @@ make wizard
 
 Si se pierden todos los seeds y no hay acceso al panel:
 
-1. Ve a **Actions → Regenerate Admin Seeds** (solo el owner del repo).
+1. Ve a **Actions → Regenerate Admin Seeds** (solo los repository admins).
 2. Haz clic en **Run workflow**.
 3. Descarga el artifact `centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA` de esa ejecución. Se conserva 1 día. El log no imprime las claves.
 
