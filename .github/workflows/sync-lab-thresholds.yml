@@ -37,10 +37,7 @@ jobs:
 
       - name: Commit and push if changed
         run: |
-          git config user.email "VectisDev@users.noreply.github.com"
-          git config user.name "VectisDev"
-          git add web/lab-thresholds.json
-          git diff --cached --quiet && echo "No changes" || (
-            git commit -m "chore: sync lab thresholds from config [skip ci]"
-            git push
-          )
+          GH_TOKEN="${{ github.token }}" python3 .github/scripts/commit_via_api.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message "chore: sync lab thresholds from config [skip ci]" \
+            -- web/lab-thresholds.json

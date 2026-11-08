@@ -14,8 +14,8 @@
 #    Sube un bundle git firmado del HEAD actual al Internet Archive,
 #    que actúa como nodo de preservación independiente y de
 #    jurisdicción distinta.
-# 3. Logs the mirror operation in the project's transparency log.
-#    Registra la operación de espejo en el log de transparencia del proyecto.
+# 3. Logs the mirror operation on the branch `data/mirror-log`, not on main.
+#    Registra la operación en la rama `data/mirror-log`, no en main.
 #
 # Triggers / Disparadores:
 # - On push to main or dev-v12 (primary branches per project convention).
@@ -424,21 +424,13 @@ jobs:
 
           echo "| ${TIMESTAMP} | ${TRIGGER} | \`${HEAD_SHORT}\` | ${CODEBERG_CELL} | ${IA_CELL} |" >> "${LOG}"
 
-      - name: Commit and push log update
+      - name: Publicar el registro en data/mirror-log
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add docs/transparency/MIRROR-LOG.md
-
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "chore(mirror): append mirror event $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          for i in 1 2 3 4 5; do
-            git pull --rebase origin main && git push origin HEAD:main && break
-            [ "$i" = 5 ] && exit 1
-            echo "push rejected (attempt $i), retrying..."; sleep $((i * 5))
-          done
+          python3 .github/scripts/commit_via_api.py \
+            --branch data/mirror-log \
+            --from main \
+            --message "chore(mirror): append mirror event $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -- docs/transparency/MIRROR-LOG.md

@@ -80,49 +80,25 @@ jobs:
       - name: Commit y push con resiliencia (3 intentos)
         id: git_push
         run: |
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-
-          git add data/ hashes/ diffs/ reports/
-
-          if git diff --cached --quiet; then
-            echo "Sin cambios reales, no se commitea"
+          set +e
+          out=$(GH_TOKEN="${{ github.token }}" python3 .github/scripts/commit_via_api.py \
+            --branch main \
+            --message "Actualización automática: snapshot y diffs $(date +'%Y-%m-%d %H:%M')" \
+            -- data hashes diffs reports 2>&1)
+          code=$?
+          set -e
+          echo "$out"
+          if [ "$code" != 0 ]; then
+            echo "pushed=failed" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if printf '%s' "$out" | grep -q "sin cambios"; then
             echo "pushed=skipped" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          git commit -m "Actualización automática: snapshot y diffs $(date +'%Y-%m-%d %H:%M')"
-
-          # Intento 1: rebase normal
-          if git pull --rebase origin main && git push origin main; then
+          else
             echo "pushed=true" >> $GITHUB_OUTPUT
-            exit 0
           fi
 
-          # Intento 2: abortar rebase, aplicar snapshot encima de origin/main
-          echo "WARN: rebase falló — intento 2: fetch+reset+recomit"
-          git rebase --abort 2>/dev/null || true
-          git fetch origin main
-          git reset --hard origin/main
-          git add data/ hashes/ diffs/ reports/
-          git diff --cached --quiet || git commit -m "Actualización automática: snapshot y diffs $(date +'%Y-%m-%d %H:%M')"
-          if git push origin main; then
-            echo "pushed=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Intento 3: force-with-lease (snapshot local prevalece)
-          echo "WARN: intento 2 falló — intento 3: force-with-lease"
-          if git push --force-with-lease origin main; then
-            echo "pushed=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "WARN: git push falló en los 3 intentos — datos preservados localmente para el próximo ciclo"
-          echo "pushed=failed" >> $GITHUB_OUTPUT
-          exit 0  # No fallar el workflow — el snapshot ya está capturado en disco
-
-      - name: Notificar fallo de git push (ntfy + Issue)
+      - name: Notificar fallo de publicacion (ntfy + Issue)
         if: steps.git_push.outputs.pushed == 'failed'
         env:
           VIGIL_NTFY_TOPIC: ${{ secrets.VIGIL_NTFY_TOPIC || secrets.CENTINEL_NTFY_TOPIC }}
@@ -137,7 +113,7 @@ jobs:
               await fetch(`https://ntfy.sh/${topic}`, {
                 method: 'POST',
                 headers: { 'Priority': 'high', 'Tags': 'warning,floppy_disk' },
-                body: `Vigil — git push falló 3 veces en audit. Los datos están en disco y se reintentarán en el próximo ciclo (3h). Revisa el Issue abierto en tu repo.`
+                body: `Vigil — la publicacion firmada fallo en audit. Los datos estan en disco y se reintentaran en el proximo ciclo (3h).`
               }).catch(() => {});
             }
             // Open Issue (deduplication)
@@ -147,10 +123,10 @@ jobs:
             if (existing.data.length > 0) return;
             await github.rest.issues.create({
               owner, repo,
-              title: '⚠️ Error persistente de git push en audit — datos locales no sincronizados',
+              title: 'Error persistente al publicar el audit — datos locales no sincronizados',
               labels: ['centinel-git-error'],
               body: [
-                '## El workflow `audit.yml` intentó sincronizar datos 3 veces y falló.',
+                '## El workflow `audit.yml` no pudo publicar el commit firmado.',
                 '',
                 '**Los datos capturados están seguros en disco.** Se reintentará en el próximo ciclo (3 horas).',
                 '',
@@ -163,12 +139,7 @@ jobs:
                 '',
                 '1. Verifica que no haya otro proceso escribiendo al mismo branch',
                 `2. Revisa los logs: **[→ Actions → Vigilante Electoral](https://github.com/${owner}/${repo}/actions/workflows/audit.yml)**`,
-                '3. Solución manual:',
-                '   ```bash',
-                '   git fetch origin main',
-                '   git reset --hard origin/main',
-                '   git push --force-with-lease origin main',
-                '   ```',
+                '3. Vuelve a lanzar el workflow. No fuerces la rama por defecto.',
                 '',
                 '> Este issue se cerrará automáticamente cuando el próximo ciclo complete con éxito.',
               ].join('\n')
@@ -211,8 +182,10 @@ jobs:
           [ -d diffs ]   && cp -r diffs/.   /tmp/centinel-data/diffs/    || true
           [ -d reports ] && cp -r reports/. /tmp/centinel-data/reports/  || true
           cd /tmp/centinel-data
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add .
-          git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push origin main
+          GH_TOKEN="$DATA_REPO_TOKEN" python3 "$GITHUB_WORKSPACE/.github/scripts/commit_via_api.py" \
+            --repository "${REPO_OWNER}/centinel-data" \
+            --branch main \
+            --root /tmp/centinel-data \
+            --sync \
+            --message "data: $(date -u +'%Y-%m-%d %H:%M UTC')" \
+            -- .

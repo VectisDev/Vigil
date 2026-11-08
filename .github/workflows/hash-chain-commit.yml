@@ -73,13 +73,10 @@ jobs:
       - name: Commit to hash chain
         run: python src/vigil/federation/hash_chain.py
 
-      - name: Push hash chain branch
-        run: |
-          git push origin data/reputation --force-with-lease
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create chain verification
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git log refs/heads/data/reputation --oneline -10 > chain-verification.txt
+          git fetch origin data/reputation || true
+          git log origin/data/reputation --oneline -10 > chain-verification.txt || true
           cat chain-verification.txt

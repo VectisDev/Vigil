@@ -36,12 +36,8 @@ jobs:
 
       - name: Commit restored files (if any)
         run: |
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "heal: restore missing/corrupt web files [bot]"
-            git push
-          else
-            echo "Nothing to restore."
-          fi
+          GH_TOKEN="${{ github.token }}" python3 .github/scripts/commit_via_api.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message "heal: restore missing or corrupt web files" \
+            --sync \
+            -- web
