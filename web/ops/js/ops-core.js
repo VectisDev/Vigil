@@ -127,7 +127,12 @@ function opsApi(path, init) {
     err.opsOffline = true;
     return Promise.reject(err);
   }
-  return opsApi(path, init);
+  // En modo servidor sí sale la petición. La llamada anterior se invocaba
+  // a sí misma y reventaba la pila en cuanto había un nodo.
+  // English: in server mode the request does go out. The previous call
+  // invoked itself and blew the stack as soon as a node existed.
+  const base = String(window.VIGIL_API_BASE || '').replace(/\/$/, '');
+  return fetch(base + path, init);
 }
 window.opsApi = opsApi;
 
@@ -219,6 +224,20 @@ function opsArmLoadingGuards(root) {
   });
 }
 window.opsArmLoadingGuards = opsArmLoadingGuards;
+
+// En Pages un skeleton no se llena: no hay nodo que mande datos. Quitar la
+// clase deja el texto que ya se escribió (el umbral de Benford, por ejemplo)
+// en vez de un bloque gris que brilla para siempre.
+// English: on Pages a skeleton never fills -- there is no node sending data.
+// Removing the class reveals the text already written instead of a grey
+// block that shimmers forever.
+function opsSettlePagesChrome() {
+  if (!opsIsPages()) return;
+  document.querySelectorAll('.skel-pulse').forEach(function (el) {
+    el.classList.remove('skel-pulse');
+  });
+}
+window.opsSettlePagesChrome = opsSettlePagesChrome;
 
 function populateControls(){
   const ep = localConfig['config/prod/endpoints.yaml'] || {};
@@ -342,7 +361,8 @@ async function loadSnapshot(){
     updateStatusBadges();
     if(typeof renderAwsMeter==='function'){ try { renderAwsMeter(); } catch(_){} }
     const age = snapshotData?.timestamp ? relTime(snapshotData.timestamp) : '—';
-    document.getElementById('snap-age').textContent = `actualizado ${age}`;
+    const ageEl = document.getElementById('snap-age');
+    if (ageEl) ageEl.textContent = `actualizado ${age}`;
   }catch(e){console.warn('loadSnapshot',e);}
 }
 
@@ -848,13 +868,15 @@ function updateMapNarrative(svg, configured){
 // Single source of truth for the 4-color legend
 // (OK / Tardío / Caído / Sin configurar) shared by dots and map fills.
 function deptDotColor(code, configured){
-  if(!configured.includes(code)) return '#3a3f49'; // Sin configurar
+  // Gris neutro, no pizarra: #3a3f49 tiene tono azul y el panel no usa azul.
+  // English: a neutral grey, not slate -- #3a3f49 carries a blue hue.
+  if(!configured.includes(code)) return '#525252'; // Sin configurar
   const status = getEndpointStatus(code);
-  if(!snapshotData) return '#3a3f49';
+  if(!snapshotData) return '#525252';
   if(status.cls === 'ok')   return 'var(--ok)'; // OK
   if(status.cls === 'bad')  return 'var(--bad)'; // Caído / Error
   if(status.cls === 'warn') return 'var(--warn)'; // Tardío
-  return '#3a3f49'; // sin datos todavía
+  return '#525252'; // sin datos todavía
 }
 function updateStatusBadges(){
   const ep = localConfig['config/prod/endpoints.yaml'] || {};
@@ -1056,12 +1078,14 @@ function syncSlider(key, val){
   if(key==='benford'){
     const sv = document.getElementById('scv-benford');
     const sd = document.getElementById('scd-benford');
-    if(sv) sv.textContent = `χ²=${v}`;
-    if(sd) sd.textContent = `Umbral: ${display}`;
+    if(sv){ sv.textContent = `χ²=${v}`; sv.classList.remove('skel-pulse'); }
+    if(sd){ sd.textContent = `Umbral: ${display}`; sd.classList.remove('skel-pulse'); }
   }
   if(key==='zscore'){
     const sv = document.getElementById('scv-zscore');
-    if(sv) sv.textContent = `${v}σ umbral`;
+    const sd = document.getElementById('scd-zscore');
+    if(sv){ sv.textContent = `${v}σ umbral`; sv.classList.remove('skel-pulse'); }
+    if(sd) sd.classList.remove('skel-pulse');
   }
   markDirty();
 }

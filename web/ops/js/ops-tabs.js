@@ -33,6 +33,13 @@ function _opsTabFromHash() {
 
 function goTab(tab) {
   if (!OPS_TABS.includes(tab)) tab = OPS_TAB_DEFAULT;
+  // El atributo en <html> es lo que el CSS lee para mostrar una sola
+  // pestaña. `hidden` solo no alcanzaba: una regla de `display` más
+  // específica lo pisaba y las cuatro secciones se veían juntas.
+  // English: the attribute on <html> is what the CSS reads to show one
+  // tab. `hidden` alone was not enough -- a more specific display rule
+  // overrode it and all four sections painted together.
+  document.documentElement.setAttribute('data-ops-tab', tab);
   document.querySelectorAll('[data-tab]').forEach(function (el) {
     el.hidden = el.getAttribute('data-tab') !== tab;
   });

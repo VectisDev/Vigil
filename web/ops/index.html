@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-ops-tab="inicio">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -51,7 +51,34 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
      For a panel whose operators may be in a context where that matters, this
      is not a performance detail. System fonts are already installed, are not
      downloaded, and tell nobody anything. -->
-<link rel="stylesheet" href="ops.css">
+<link rel="stylesheet" href="ops.css?v=20261108ops2">
+<style>
+/* Candado de pestañas, en el HTML y no solo en la hoja.
+   Una hoja vieja en caché dejaba los botones con el estilo nativo del
+   navegador y pintaba todas las secciones a la vez: el enrutador ponía
+   `hidden` y un `display:block` anterior lo deshacía. Estas reglas ganan
+   por `!important` y por especificidad, aunque ops.css no se haya
+   actualizado. El rojo del botón primario va fijo: si la hoja vieja aún
+   define `--red` como azul, la variable no puede volver a pintarlo.
+   English: the tab lock lives in the HTML, not only in the sheet. A stale
+   cached sheet left native buttons and painted every section at once.
+   These rules win even when ops.css has not updated, and the primary
+   button stays red even if a stale sheet still defines --red as blue. */
+html[data-ops-tab] #main-area > [data-tab]{display:none !important}
+html[data-ops-tab="inicio"] #main-area > [data-tab="inicio"],
+html[data-ops-tab="evidencia"] #main-area > [data-tab="evidencia"],
+html[data-ops-tab="red"] #main-area > [data-tab="red"],
+html[data-ops-tab="avanzado"] #main-area > [data-tab="avanzado"]{display:block !important}
+html[data-ops-tab] #main-area > [data-tab].election-only{display:none !important}
+html[data-ops-tab="avanzado"] body.election-mode #main-area > [data-tab="avanzado"].election-only{display:block !important}
+[hidden]{display:none !important}
+.btn-primary,.hdr-btn.primary{
+  background:#c40500 !important;color:#ffffff !important;border-color:#c40500 !important;
+  appearance:none;
+}
+.ops-tab,.hero-btn,.hero-card,.ops-details>summary{appearance:none}
+#admin-header{flex-shrink:0;height:auto}
+</style>
 </head>
 <body class="lang-es">
 
@@ -338,7 +365,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           <span><span class="dot" style="background:var(--ok)"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
           <span><span class="dot" style="background:var(--warn)"></span> <span data-lang="es">Tardío (20–60 min)</span><span data-lang="en">Delayed (20–60 min)</span></span>
           <span><span class="dot" style="background:var(--bad)"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
-          <span><span class="dot" style="background:#3a3f49"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
+          <span><span class="dot" style="background:#525252"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
         </div>
         <!-- Status badges removed — state now lives authoritatively in the
              command-header (Defensas / Modo elec.) and the sensor cards
@@ -1890,12 +1917,12 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
   </div>
 </div>
 
-<script src="js/vigil-log.js"></script>
-<script src="js/ops-core.js"></script>
-<script src="js/ops-tabs.js"></script>
-<script src="js/ops-panel.js"></script>
-<script src="js/ops-monitor.js"></script>
-<script src="js/ops-command.js"></script>
+<script src="js/vigil-log.js?v=20261108ops2"></script>
+<script src="js/ops-core.js?v=20261108ops2"></script>
+<script src="js/ops-tabs.js?v=20261108ops2"></script>
+<script src="js/ops-panel.js?v=20261108ops2"></script>
+<script src="js/ops-monitor.js?v=20261108ops2"></script>
+<script src="js/ops-command.js?v=20261108ops2"></script>
 <script>
 // ══════════════════════════════════════════════════════════
 // GLOBALS
@@ -2374,6 +2401,12 @@ async function initAll(){
   updateDirtyState();
   if(typeof _maybeOfferWizard==='function'){ try { _maybeOfferWizard(); } catch(e){ console.warn('wizard',e); } }
   if(typeof _startConfigPoll==='function'){ try { _startConfigPoll(); } catch(e){ console.warn('configPoll',e); } }
+  // En Pages los skeletons no tienen de dónde llenarse. Si alguno quedó
+  // con la clase, el brillo no termina nunca: Benford y Z-score escribían
+  // el texto y dejaban `skel-pulse`, que lo pinta transparente.
+  // English: on Pages a skeleton has nothing to fill from. Benford and
+  // Z-score wrote their text and left skel-pulse, which keeps it transparent.
+  if(typeof opsSettlePagesChrome==='function'){ try { opsSettlePagesChrome(); } catch(e){ console.warn('opsSettle',e); } }
 }
 
 
@@ -2634,14 +2667,19 @@ function toggleOpsTheme(){
   setOpsTheme(cur === 'light' ? 'dark' : 'light');
 }
 function setOpsLang(l){
-  document.body.className = 'lang-' + l;
+  // No reemplazar className: eso borraba ops-mode-pages y cualquier otra
+  // clase que el panel hubiera puesto en el body.
+  // English: do not replace className -- that wiped ops-mode-pages and any
+  // other class the panel had put on the body.
+  document.body.classList.remove('lang-es','lang-en');
+  document.body.classList.add('lang-' + l);
   const btn = document.getElementById('lang-toggle');
   if(btn) btn.textContent = l === 'en' ? 'ES' : 'EN';
   localStorage.setItem('vigil-lang', l);
   if(window.refreshOpsLang) refreshOpsLang();
 }
 function toggleOpsLang(){
-  const cur = document.body.className === 'lang-en' ? 'en' : 'es';
+  const cur = document.body.classList.contains('lang-en') ? 'en' : 'es';
   setOpsLang(cur === 'en' ? 'es' : 'en');
 }
 setOpsTheme(localStorage.getItem('vigil-theme') || 'dark');

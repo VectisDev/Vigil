@@ -4,7 +4,7 @@
 	aria-label="Map of Honduras"
 >
 	<style>
-		path { fill: #374151; stroke: var(--bg, #0a0a0a); stroke-width: 0.6; transition: fill .2s, opacity .15s; cursor: pointer; }
+		path { fill: #525252; stroke: var(--bg, #0a0a0a); stroke-width: 0.6; transition: fill .2s, opacity .15s; cursor: pointer; }
 		path:hover { opacity: .82; filter: brightness(1.18); }
 	</style>
 	<path
