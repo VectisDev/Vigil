@@ -13,7 +13,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from vigil.pace import git_override_is_signed, override_is_refused, read_override
+from vigil.ops_keys import key_is_active, load_registry
+from vigil.pace import git_override_is_signed, override_is_refused, override_key_id, read_override
 
 ROOT = Path(__file__).resolve().parents[1]
 OVERRIDE = ROOT / "rate_override.yml"
@@ -50,10 +51,11 @@ def main() -> int:
         print("Pace lock holds. No override file.")
         return 0
     text = read_override(ROOT) or ""
-    if override_is_refused(text, _signed()):
-        print("Unsigned or incomplete pace override. The lock stays.")
+    active = key_is_active(load_registry(ROOT / "config" / "ops_keys.yml"), override_key_id(text))
+    if override_is_refused(text, _signed(), key_active=active):
+        print("Pace override needs a signature, the responsibility line, and an active key id.")
         return 1
-    print("Pace override is signed and states the responsibility.")
+    print("Pace override is signed, names an active key id, and states the responsibility.")
     return 0
 
 

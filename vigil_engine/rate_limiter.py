@@ -575,13 +575,33 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
             min_interval = float(_resolve("min_interval", "min_interval_seconds", DEFAULT_MIN_INTERVAL))
             burst = int(_resolve("burst", "capacity", DEFAULT_BURST))
 
-            from vigil.pace import git_override_is_signed, override_is_refused, read_override
+            from vigil.ops_keys import key_is_active, load_registry
+            from vigil.pace import (
+                git_override_is_signed,
+                override_is_refused,
+                override_key_id,
+                read_override,
+                within_lock,
+            )
 
             repo_root = Path(__file__).resolve().parents[1]
             override_text = read_override(repo_root)
-            lock_open = override_text is not None and not override_is_refused(
-                override_text, git_override_is_signed(repo_root)
+            active = key_is_active(
+                load_registry(repo_root / "config" / "ops_keys.yml"),
+                override_key_id(override_text),
             )
+            signed = git_override_is_signed(repo_root) if override_text else False
+            accepted = override_text is not None and not override_is_refused(override_text, signed, key_active=active)
+            past_lock = False
+            if accepted and override_text:
+                loaded_pace = yaml.safe_load(override_text) or {}
+                if isinstance(loaded_pace, dict):
+                    past_lock = not within_lock(
+                        float(loaded_pace.get("max_requests_per_hour", max_requests_per_hour)),
+                        float(loaded_pace.get("min_interval_seconds", min_interval)),
+                        float(loaded_pace.get("max_burst", burst)),
+                    )
+            lock_open = accepted and past_lock
             if lock_open:
                 loaded = yaml.safe_load(override_text) or {}
                 if isinstance(loaded, dict):
@@ -609,7 +629,7 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
                 enforce_ceiling=not lock_open,
             )
 
-            if ceiling and not is_custom:
+            if ceiling and not is_custom and not lock_open:
                 HARD_CEILING_MAX_REQUESTS_PER_HOUR_CFG = int(
                     ceiling.get("max_requests_per_hour", HARD_CEILING_MAX_REQUESTS_PER_HOUR)
                 )
@@ -629,7 +649,7 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
                 _rate_limiter_singleton.max_requests_per_hour,
                 _rate_limiter_singleton.min_interval,
                 _rate_limiter_singleton.burst,
-                not is_custom,
+                not lock_open,
             )
         return _rate_limiter_singleton
 

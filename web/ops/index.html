@@ -25,10 +25,15 @@ a { color: #8E1228; }
   </div>
   <p>The numbers live in your own copy, in <code>config/prod/rate_limiter.yaml</code>. There is no account on this page. The signature is an anonymous key, not a legal name. A key registered with a GitHub account can still show that account on GitHub.</p>
   <p lang="es">Los números viven en tu propia copia, en <code>config/prod/rate_limiter.yaml</code>. Esta página no tiene cuenta. La firma es una clave anónima, no un nombre legal.</p>
-  <p>Add <code>rate_override.yml</code> at the root of your copy, with one of these lines, and sign the commit:</p>
-  <pre>responsibility: I accept full responsibility for the consequences of requests above the respectful pace, including load on the source comparable to a denial of service.</pre>
-  <pre>responsibility: Acepto toda la responsabilidad por las consecuencias de peticiones por encima del ritmo respetuoso, incluida una carga sobre la fuente comparable a una denegación de servicio.</pre>
-  <p>Without that signed public line, the software keeps the respectful pace. There is no swarm penalty for signing it.</p>
+  <p>Add <code>rate_override.yml</code> at the root of your copy, with the key id and one of these lines, and sign the commit:</p>
+  <pre>key_id: &lt;fingerprint&gt;
+responsibility: I accept full responsibility for the consequences of requests above the respectful pace, including load on the source comparable to a denial of service.</pre>
+  <pre>key_id: &lt;fingerprint&gt;
+responsibility: Acepto toda la responsabilidad por las consecuencias de peticiones por encima del ritmo respetuoso, incluida una carga sobre la fuente comparable a una denegación de servicio.</pre>
+  <p>Without that signed public line and an active key id, the software keeps the respectful pace. There is no swarm penalty for signing it.</p>
+  <h2>Ops keys</h2>
+  <p>The person who forks this repository generates the keys and hands them to their team. A key is 12 characters from a 62-character alphabet, about 71 bits, drawn with a CSPRNG. The key is the secret. The id in a commit is a fingerprint of that key, so a faster pace is attributed to the key and not to a legal name. <code>config/ops_keys.yml</code> stores a salted hash. This page does not ask for the key and does not check it. Revoking an id stops later actions. Older commits keep the old id. No personal data is collected.</p>
+  <p lang="es">Quien hace el fork genera las claves y las entrega a su equipo. Una clave tiene 12 caracteres de un alfabeto de 62, unos 71 bits. La clave es el secreto. El id del commit es una huella, así que el ritmo se atribuye a la clave y no a un nombre legal. <code>config/ops_keys.yml</code> guarda un hash con sal. Esta página no pide la clave y no la comprueba.</p>
   <p><a href="../">Home</a> · <a href="../privacy/">Privacy</a></p>
 </main>
 </body>

@@ -49,27 +49,41 @@ def statement_present(text: str) -> bool:
     return value in STATEMENTS
 
 
+def override_key_id(text: str | None) -> str:
+    if not text:
+        return ""
+    try:
+        loaded = yaml.safe_load(text) or {}
+    except yaml.YAMLError:
+        return ""
+    if not isinstance(loaded, dict):
+        return ""
+    return str(loaded.get("key_id") or "").strip()
+
+
 def apply_pace(
     requests_per_hour: float,
     interval_seconds: float,
     burst: float,
     override_text: str | None,
     signed: bool,
+    key_active: bool = False,
 ) -> tuple[float, float, float]:
     """Return the pace a node may use.
 
     Inside the lock, the numbers pass through. Past the lock, they pass
-    only when the statement is present and the commit is signed.
+    only when the statement is present, the commit is signed, and the
+    named ops key id is active.
     """
     if within_lock(requests_per_hour, interval_seconds, burst):
         return (float(requests_per_hour), float(interval_seconds), float(burst))
-    if override_text and statement_present(override_text) and signed:
+    if override_text and statement_present(override_text) and signed and key_active and override_key_id(override_text):
         return (float(requests_per_hour), float(interval_seconds), float(burst))
     return clamp(requests_per_hour, interval_seconds, burst)
 
 
-def override_is_refused(text: str | None, signed: bool) -> bool:
-    """True when a file tries to go past the lock without a signed acceptance."""
+def override_is_refused(text: str | None, signed: bool, key_active: bool = False) -> bool:
+    """True when a file claims a faster pace, or an ops action, without a signed active key id."""
     if text is None:
         return False
     try:
@@ -83,9 +97,14 @@ def override_is_refused(text: str | None, signed: bool) -> bool:
         float(loaded.get("min_interval_seconds", MIN_INTERVAL_SECONDS)),
         float(loaded.get("max_burst", MAX_BURST)),
     )
-    if within_lock(*pace):
+    names_an_action = bool(str(loaded.get("action") or "").strip())
+    past = not within_lock(*pace)
+    if not past and not names_an_action:
         return False
-    return not (statement_present(text) and signed)
+    kid = str(loaded.get("key_id") or "").strip()
+    if past:
+        return not (statement_present(text) and signed and key_active and bool(kid))
+    return not (signed and key_active and bool(kid))
 
 
 def commit_has_signature(commit_text: str) -> bool:

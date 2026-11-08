@@ -2,20 +2,17 @@
 Generador de PDF de seeds de acceso administrativo.
 Access seed PDF generator using WeasyPrint.
 
-Los seeds se generan aquí en texto claro, se hashean con PBKDF2-SHA256
-y solo los hashes se persisten en web/access.json.
-El PDF es el único registro de los seeds reales.
+Los seeds se generan aquí en texto claro. El PDF es el único registro
+de las claves. El repositorio guarda un hash con sal por clave en
+config/ops_keys.yml. El sitio público no pide la clave.
 
-Seeds are generated in plaintext here, hashed with PBKDF2-SHA256,
-and only hashes are persisted in web/access.json.
-The PDF is the only record of the real seeds.
+Seeds are generated in plaintext here. The PDF is the only record of
+the keys. The repository stores a per-key salted hash in
+config/ops_keys.yml. The public site does not ask for the key.
 """
 
 from __future__ import annotations
 
-import hashlib
-import secrets
-import string
 from datetime import datetime, timezone
 from typing import Dict
 
@@ -23,34 +20,25 @@ from typing import Dict
 SEED1_SALT = "centinel-admin-salt-v1"
 SEED1_ITERS = 600_000
 SEED1_LABELS = list("ABCDEFGHIJKL")
-SEED_LENGTH = 24
+SEED_LENGTH = 12
 
 
-def generate_seeds() -> Dict[str, str]:
-    """Genera 12 seeds aleatorios de 24 caracteres con alta entropía."""
-    alphabet = string.ascii_letters + string.digits
-    return {
-        f"S1-{label}": "".join(secrets.choice(alphabet) for _ in range(SEED_LENGTH))
-        for label in SEED1_LABELS
-    }
+def generate_seeds(count: int = 12) -> Dict[str, str]:
+    """Genera claves de 12 caracteres. La clave del mapa es el id público, no un nombre."""
+    from vigil.ops_keys import fingerprint, generate_key
 
-
-def hash_seeds(seeds: Dict[str, str]) -> Dict[str, str]:
-    """Deriva hashes PBKDF2-SHA256 de los seeds. Solo los hashes se persisten."""
-    return {
-        key: hashlib.pbkdf2_hmac(
-            "sha256", seed.encode(), SEED1_SALT.encode(), SEED1_ITERS
-        ).hex()
-        for key, seed in seeds.items()
-    }
+    issued: Dict[str, str] = {}
+    for _ in range(count):
+        key = generate_key()
+        issued[fingerprint(key)] = key
+    return issued
 
 
 def _build_html(seeds: Dict[str, str], country_name: str, country_flag: str) -> str:
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     rows = "".join(
-        f"<tr><td class='label'>{key}</td><td class='seed'>{value}</td></tr>"
-        for key, value in seeds.items()
+        f"<tr><td class='label'>{key}</td><td class='seed'>{value}</td></tr>" for key, value in seeds.items()
     )
 
     return f"""<!DOCTYPE html>
@@ -118,24 +106,24 @@ def _build_html(seeds: Dict[str, str], country_name: str, country_flag: str) -> 
     <div class="meta">
       Generado: {generated_at} &nbsp;·&nbsp;
       Algoritmo: PBKDF2-SHA256 &nbsp;·&nbsp;
-      Iteraciones: 600,000 &nbsp;·&nbsp;
-      Salt: {SEED1_SALT}
+      Iteraciones: {SEED1_ITERS:,} &nbsp;·&nbsp;
+      Sal: una por clave, no un valor fijo
     </div>
   </div>
 
   <div class="warning-box">
     <strong>⚠ DOCUMENTO CONFIDENCIAL — GUARDA ESTE PDF EN LUGAR SEGURO</strong>
-    Estos seeds son la <strong>única</strong> forma de acceder al panel de administración.
-    El sistema <strong>no guarda</strong> los seeds — solo sus hashes criptográficos.
-    Si pierdes este PDF, deberás regenerar nuevos seeds desde el panel OPS,
-    lo que invalidará todos los seeds anteriores permanentemente.
+    Cada clave tiene 12 caracteres. Es el secreto y, por su huella, el id anónimo.
+    El sistema <strong>no guarda</strong> la clave — solo un hash con sal en
+    <code>config/ops_keys.yml</code>. El sitio público no pide la clave.
+    Si pierdes este PDF, rota la clave. La id anterior queda revocada.
   </div>
 
   <table>
     <thead>
       <tr>
         <th>Seed</th>
-        <th>Valor (24 caracteres · alta entropía · uso único)</th>
+        <th>Clave (12 caracteres, alfabeto de 62, unos 71 bits)</th>
       </tr>
     </thead>
     <tbody>{rows}</tbody>
@@ -144,17 +132,17 @@ def _build_html(seeds: Dict[str, str], country_name: str, country_flag: str) -> 
   <div class="instructions">
     <h2>¿Cómo usar estos seeds?</h2>
     <ul>
-      <li>Ingresa <strong>cualquiera</strong> de los 12 seeds en el panel OPS para autenticarte.</li>
-      <li>Cada seed funciona independientemente — distribúyelos entre personas de confianza.</li>
-      <li>Para regenerar: accede al panel OPS con un seed válido → sección §7 Acceso y Seeds.</li>
-      <li>La regeneración invalida <strong>todos</strong> los seeds anteriores sin excepción.</li>
+      <li>Quien hace el fork entrega cada clave a su equipo, fuera de este sitio.</li>
+      <li>El sitio público no tiene un campo para la clave y no la comprueba.</li>
+      <li>Un commit firmado que administre el panel nombra el id (la huella), no la clave.</li>
+      <li>Rotar una clave revoca ese id. Los commits viejos siguen mostrando el id anterior.</li>
     </ul>
   </div>
 
   <div class="verify-box">
-    <strong>Verificación:</strong> Los hashes PBKDF2-SHA256 de estos seeds están en
-    <code>web/access.json</code>. El sistema nunca almacena seeds en texto claro.
-    Este PDF es el único registro. Verificable offline con cualquier implementación PBKDF2.
+    <strong>Verificación:</strong> el hash con sal está en <code>config/ops_keys.yml</code>.
+    La comparación se hace en un comando o en una Action, no en el JavaScript de la página.
+    Este PDF es el único registro de la clave.
   </div>
 
   <div class="footer">

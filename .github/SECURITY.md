@@ -45,7 +45,7 @@ The software records what a portal published. It does not decide why a number ch
 - A capture is linked with SHA-256 only when the pipeline writes `previous_hash`. The bundled Honduras 2025 files do not have that field. `verify/verify_chain.py` exits 1 on them. See `docs/evidence/HN2025.md`.
 - A Merkle root can be anchored with OpenTimestamps when a proof file was actually created. The proof next to the 2025 sample commits to that root. It is not continuous custody during the count.
 - Ed25519 signing exists in the code. Private keys are not in this repository. No witness set is operating from this tree.
-- The public site under `web/` has no login. Operator actions are not published there. `web/privacy/index.html` says the site collects no user data.
+- The public site under `web/` has no login and does not ask for or check an ops key. `web/privacy/index.html` says the site collects no user data.
 - A local API, if an operator runs one, may still check `X-Vigil-Key`. That check is not part of the public site. Changing the repository on GitHub requires a token with that permission.
 
 ## Secrets
@@ -53,7 +53,8 @@ The software records what a portal published. It does not decide why a number ch
 - Do not commit tokens, private keys, passwords, or plaintext panel keys.
 - GitHub Actions secrets stay in the repository settings. Workflows pass them as environment variables. They are not printed.
 - `scripts/encrypt_secrets.py` can encrypt a local env file. Ciphertext in git is still a secret in git. This repository does not store an encrypted signing key or an Arbitrum key. Arbitrum stays off unless an operator sets `ARBITRUM_PRIVATE_KEY` outside the tree.
-- `web/access.json` is not published. It used to hold hashes of operator seeds, not the seeds. Those seeds, if they still exist outside the repository, should be retired.
+- Ops keys are 12 characters from a 62-character alphabet (about 71 bits), drawn with a CSPRNG. The forker generates them and hands them to their team. The key is the secret. Its fingerprint is the anonymous id named in a signed ops commit, including a pace override. `config/ops_keys.yml` stores a per-key salt and a PBKDF2 hash, never the key and never a name. The browser does not receive that file and does not check the key. An Action checks that the named id is active. A local command hash-compares a key presented on stdin. Revocation and rotation are edits to that hash file. There is no swarm penalty for using an override.
+- No plaintext ops key is in the current tree. Every historical `web/access.json` blob is a 64-character hex hash (PBKDF2 or SHA-256), not the key. The `ghp_` strings in history are placeholders, not a token. No private-key block is in history. An old workflow (`7e9729d89`) uploaded `/tmp/centinel-seeds.txt` as an Actions artifact with a one-day retention. That file is not in git, and the artifact list checked on 2026-11-08 has no seed artifact. Anyone who kept a copy of those older seeds should retire them. This repository does not contain a replacement key; the forker generates the new ones.
 
 ## Workflow permissions
 

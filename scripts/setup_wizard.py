@@ -9,25 +9,19 @@ Uso / Usage:
 
 from __future__ import annotations
 
-import hashlib
-import json
 import os
 import re
 import secrets
-import string
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "src"))
+
 CONFIG_YAML = REPO_ROOT / "command_center" / "config.yaml"
 ENV_FILE = REPO_ROOT / ".env"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
-ACCESS_JSON = REPO_ROOT / "web" / "access.json"
-
-# Protocol constant: keeps the pre-rename name on purpose (see docs/architecture/LEGACY-NAMES.md).
-SEED1_SALT = "centinel-admin-salt-v1"
-SEED1_ITERS = 600_000
-SEED1_LABELS = list("ABCDEFGHIJKL")
+REGISTRY = REPO_ROOT / "config" / "ops_keys.yml"
 
 _COUNTRY_LABELS = {
     "HN": "Honduras        (CNE — production-ready)",
@@ -185,53 +179,39 @@ def _save_env(path: Path, env: dict[str, str], example: Path) -> None:
 
 
 def _generate_seed1() -> None:
-    """Generate Seed 1 (S1-A … S1-L) and write web/access.json."""
-    _header("SEED 1 — Generación de accesos de administrador")
-    print("  Se generarán 12 seeds de acceso (S1-A … S1-L).")
-    print("  Cada seed tiene 24 caracteres alfanuméricos.")
-    print("  Los hashes PBKDF2-SHA256 se guardan en web/access.json.")
-    print("  LOS SEEDS REALES no se guardan en el repo — cópialos ahora.")
+    """Generate 12 ops keys and write salted hashes to config/ops_keys.yml."""
+    from vigil.ops_keys import fingerprint, issue_keys, load_registry, revoke, save_registry
+
+    _header("OPS KEYS — claves de acceso")
+    print("  Se generarán 12 claves de 12 caracteres (alfabeto de 62, unos 71 bits).")
+    print("  Cada clave es el secreto y, por su huella, el id anónimo.")
+    print("  El archivo guarda un hash con sal. La clave no se escribe en el repo.")
+    print("  El sitio público no pide la clave.")
     print()
 
-    if ACCESS_JSON.exists():
-        if not _ask_yn("¿Regenerar access.json existente? (esto invalida seeds anteriores)", default=False):
-            _note("Generación de Seed 1 omitida.")
+    registry = load_registry(REGISTRY)
+    active = [row for row in registry.get("keys") or [] if isinstance(row, dict) and row.get("status") == "active"]
+    if active:
+        if not _ask_yn("¿Revocar las claves activas y generar otras?", default=False):
+            _note("Generación de claves omitida.")
             return
+        for row in active:
+            revoke(registry, str(row.get("id") or ""))
 
-    alphabet = string.ascii_letters + string.digits
-    seeds: dict[str, str] = {}
-    hashes: dict[str, str] = {}
-
-    for label in SEED1_LABELS:
-        seed = "".join(secrets.choice(alphabet) for _ in range(24))
-        dk = hashlib.pbkdf2_hmac("sha256", seed.encode(), SEED1_SALT.encode(), SEED1_ITERS)
-        key = f"S1-{label}"
-        seeds[key] = seed
-        hashes[key] = dk.hex()
+    issued = issue_keys(registry, 12)
+    save_registry(REGISTRY, registry)
 
     width = 58
     print()
     print(_c(BOLD, "  " + "═" * width))
-    print(_c(BOLD, "  ▶  SEEDS — COPIA ESTO EN UN LUGAR SEGURO (no se guarda)"))
+    print(_c(BOLD, "  ▶  CLAVES — CÓPIALAS AHORA (no se guardan)"))
     print(_c(BOLD, "  " + "═" * width))
-    for k, v in seeds.items():
-        print(f"  {_c(CYAN, k)}  {v}")
+    for key in issued:
+        print(f"  {_c(CYAN, fingerprint(key))}  {key}")
     print(_c(BOLD, "  " + "═" * width))
     print()
-
-    access = {
-        "version": 1,
-        "algo": "PBKDF2-SHA256",
-        "salt": SEED1_SALT,
-        "iterations": SEED1_ITERS,
-        "seeds": hashes,
-    }
-    ACCESS_JSON.parent.mkdir(parents=True, exist_ok=True)
-    ACCESS_JSON.write_text(json.dumps(access, indent=2) + "\n", encoding="utf-8")
-    _ok(f"web/access.json escrito con {len(hashes)} hashes.")
-    print()
-    print("  El archivo web/access.json se commitea al repo (solo hashes).")
-    print("  Después del commit haz 'git push' para publicarlo en Pages.")
+    _ok(f"config/ops_keys.yml escrito con {len(issued)} hashes.")
+    print("  Puedes commitear ese archivo. No contiene las claves.")
     print()
 
 
@@ -494,10 +474,17 @@ def main() -> None:
 
     # ── PASO 7: Seed 1 (admin passwords) ─────────────────────────────────────
     _header("PASO 7 / STEP 7: Accesos de administrador (Seed 1)")
-    print("  Genera o regenera los 12 seeds de acceso al panel de administración.")
-    print("  Solo se guardan los hashes en web/access.json (los seeds reales no se commitean).")
+    print("  Genera o rota las 12 claves del panel. Quien hace el fork las entrega a su equipo.")
+    print("  Solo se guardan hashes con sal en config/ops_keys.yml.")
     print()
-    if _ask_yn("¿Generar Seed 1 ahora?", default=not ACCESS_JSON.exists()):
+    from vigil.ops_keys import load_registry
+
+    _active = [
+        row
+        for row in (load_registry(REGISTRY).get("keys") or [])
+        if isinstance(row, dict) and row.get("status") == "active"
+    ]
+    if _ask_yn("¿Generar las claves ahora?", default=not _active):
         _generate_seed1()
     else:
         _note("Seed 1 omitido.")
@@ -516,7 +503,7 @@ def main() -> None:
     # ── Resumen y próximos pasos ──────────────────────────────────────────────
     country_label = _COUNTRY_LABELS.get(new_country, new_country)
     has_backup = bool(env.get("VIGIL_BACKUP_KEY", env.get("CENTINEL_BACKUP_KEY", "")))
-    seeds_status = "✓ generadas" if ACCESS_JSON.exists() else "— omitidas"
+    seeds_status = "✓ hashes guardados" if REGISTRY.exists() else "— omitidas"
 
     print()
     print(_c(BOLD, "─" * 62))
