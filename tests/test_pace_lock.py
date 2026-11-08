@@ -40,6 +40,15 @@ def test_a_signed_file_without_the_statement_is_refused() -> None:
     assert override_is_refused(text, True) is True
 
 
+def test_an_override_does_not_touch_swarm_reputation() -> None:
+    reputation = (ROOT / "src" / "vigil" / "swarm" / "reputation.py").read_text(encoding="utf-8")
+    pace = (ROOT / "src" / "vigil" / "pace.py").read_text(encoding="utf-8")
+    assert "rate_override" not in reputation
+    assert "reputation" not in pace
+    assert "denial of service" in pace
+    assert "freedom" in pace.lower() or "Freedom" in pace
+
+
 def test_the_action_checks_the_override_file() -> None:
     doc = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     on = doc.get(True, doc.get("on"))

@@ -1,7 +1,8 @@
-"""The respectful pace, and the only way past it.
+"""Freedom with visible responsibility.
 
-The lock is the default. A faster pace counts only when rate_override.yml
-contains the responsibility statement and the commit that added it is signed.
+Vigil does not forbid a faster pace. The default stays respectful.
+A faster pace is applied only after a public signed commit accepts
+the consequences. The signature is a key, not a legal name.
 """
 
 from __future__ import annotations
@@ -16,8 +17,8 @@ MIN_INTERVAL_SECONDS = 1.0
 MAX_BURST = 8
 
 STATEMENTS = (
-    "I accept responsibility for requests above the respectful pace.",
-    "Acepto la responsabilidad por peticiones por encima del ritmo respetuoso.",
+    "I accept full responsibility for the consequences of requests above the respectful pace, including load on the source comparable to a denial of service.",
+    "Acepto toda la responsabilidad por las consecuencias de peticiones por encima del ritmo respetuoso, incluida una carga sobre la fuente comparable a una denegación de servicio.",
 )
 
 

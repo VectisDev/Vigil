@@ -52,21 +52,25 @@ The nodes keep the last bytes they successfully stored. The stop time they can s
 
 Los nodos conservan los últimos bytes que guardaron con éxito. La hora de parada que pueden firmar es la hora del primer intento fallido después de uno exitoso. No inventan una hora anterior, ni bytes que la fuente nunca envió.
 
-## The pace lock / El candado del ritmo
+## Freedom with visible responsibility / Libertad con responsabilidad visible
 
-The pace can be changed. A lock holds it at or under 480 requests per hour, a gap of at least 1 second, and a burst of at most 8. The lock exists to be respectful. The numbers live in `config/prod/rate_limiter.yaml` in your own copy. There is no account for this.
+Vigil does not forbid a faster pace. The default stays respectful: 480 requests per hour, a gap of at least 1 second, and a burst of at most 8. The numbers live in `config/prod/rate_limiter.yaml` in your own copy. There is no account for this.
 
-Going past the lock is allowed only by a signed commit that adds `rate_override.yml` and one of these lines:
+Going past that default is the user's freedom. It is applied only after a public commit, signed with a key, adds `rate_override.yml` and one of these lines:
 
-`responsibility: I accept responsibility for requests above the respectful pace.`
+`responsibility: I accept full responsibility for the consequences of requests above the respectful pace, including load on the source comparable to a denial of service.`
 
-`responsibility: Acepto la responsabilidad por peticiones por encima del ritmo respetuoso.`
+`responsibility: Acepto toda la responsabilidad por las consecuencias de peticiones por encima del ritmo respetuoso, incluida una carga sobre la fuente comparable a una denegación de servicio.`
 
-An Action refuses the file when the commit is not signed or the line is missing. A score, a comment, or an unsigned edit does not open the lock.
+The signature is an anonymous key. It is not a legal name. A key that the person has registered with a GitHub account can still show that account on GitHub. This repository does not store a name.
 
-El ritmo se puede cambiar. Un candado lo mantiene en 480 peticiones por hora o menos, un hueco de al menos 1 segundo y una ráfaga de 8 como máximo. El candado existe para ser respetuoso. Los números viven en `config/prod/rate_limiter.yaml` en tu propia copia. Esto no tiene cuenta.
+An unsigned file, a comment, or a score does not change the pace. There is no swarm penalty for using the override. The room does not lower anyone's score for this choice.
 
-Pasar el candado solo se permite con un commit firmado que añada `rate_override.yml` y una de las dos líneas de responsabilidad. Una Action rechaza el archivo si el commit no está firmado o si falta la línea. Una puntuación, un comentario o un cambio sin firma no abren el candado.
+Vigil no prohíbe un ritmo más rápido. El valor por defecto sigue siendo respetuoso: 480 peticiones por hora, un hueco de al menos 1 segundo y una ráfaga de 8 como máximo. Los números viven en `config/prod/rate_limiter.yaml` en tu propia copia. Esto no tiene cuenta.
+
+Pasar ese valor es libertad de quien lo usa. Se aplica solo después de un commit público, firmado con una clave, que añada `rate_override.yml` y una de las dos líneas. La firma es una clave anónima, no un nombre legal. Una clave registrada en una cuenta de GitHub puede mostrar esa cuenta en GitHub. Este repositorio no guarda un nombre.
+
+Un archivo sin firma, un comentario o una puntuación no cambian el ritmo. No hay una pena del enjambre por usar este cambio. La sala no baja la puntuación de nadie por esta elección.
 
 ## How a fetch names itself / Cómo se nombra una descarga
 
