@@ -1,0 +1,125 @@
+# =============================================================================
+# VIGIL — Datos heredados de la plantilla / Data inherited from the template
+# =============================================================================
+#
+# ESPAÑOL
+# Un despliegue de VIGIL es un repositorio creado desde esta plantilla, así que
+# nace con los archivos de datos del operador anterior dentro. Este archivo
+# declara, por clase, qué se hace con cada uno, y `bootstrap_scrub.py` lo
+# aplica.
+#
+# Está en YAML y no dentro del script a propósito: quien despliega tiene que
+# poder leer qué se le borra y qué se le conserva sin leer Python.
+#
+# Las cuatro clases:
+#
+#   reset             Observaciones o credenciales del operador anterior. Se
+#                     van. Lo que se regenera, se regenera; lo que no, se
+#                     vacía.
+#   declare_reference Datos reales de Honduras 2025 que el nodo conserva como
+#                     referencia metodológica. Se quedan donde están y se
+#                     declaran como referencia, no como captura propia.
+#   keep              El replay. Es lo que el nodo nuevo muestra el día uno, y
+#                     el borrado FALLA si alguno falta al terminar.
+#   deferred          Lo que todavía no se toca, con el motivo escrito.
+#
+# ENGLISH
+# A VIGIL deployment is a repository created from this template, so it is born
+# with the previous operator's data files inside it. This declares what happens
+# to each, by class, and `bootstrap_scrub.py` applies it. It is YAML rather
+# than code on purpose: whoever deploys has to be able to read what gets
+# deleted and what gets kept without reading Python.
+# =============================================================================
+
+schema: 1
+
+# ── reset ────────────────────────────────────────────────────────────────────
+reset:
+  - path: web/access.json
+    action: delete
+    regenerated_by: .github/scripts/wizard_seeds.py
+    why: >-
+      Doce hashes SHA-256 de las claves de acceso del operador ANTERIOR. Es lo
+      más grave de todo lo heredado y no es peso, es acceso: sin borrarlo, las
+      doce claves del autor de la plantilla abren el panel OPS del nodo nuevo y
+      su operador no se enteraría. Y `wizard_seeds.py` se salta la generación
+      cuando ya hay doce seeds válidos, así que el arranque las habría dejado
+      en su sitio. English: twelve SHA-256 hashes of the PREVIOUS operator's
+      access keys. The worst of everything inherited, and it is access rather
+      than weight: without deleting it the template author's twelve keys open
+      the new node's OPS panel. `wizard_seeds.py` skips generation when twelve
+      valid seeds already exist, so the bootstrap would have left them in
+      place.
+
+  - path: web/data/snapshot.json
+    action: delete
+    regenerated_by: scripts/export_static_snapshot.py
+    why: >-
+      El único archivo que presenta observaciones ajenas como propias: el panel
+      lo lee como «lo que este nodo ha visto». El exportador lo regenera, y con
+      un nodo vacío devuelve `status: NO_DATA` y `chain_length: 0` mientras
+      conserva `replay.merkle_verified: true`. Es decir: el nodo nuevo dice la
+      verdad —no he capturado nada— y a la vez muestra la evidencia verificada
+      del replay. English: the one file that presents someone else's
+      observations as this node's. The exporter regenerates it, and on an empty
+      node returns NO_DATA with a verified replay.
+
+  - path: web/peers/*.json
+    action: empty_peers
+    why: >-
+      La lista de pares del operador anterior. Un nodo nuevo no tiene pares
+      todavía, y heredar los de otro hace que afirme una red que no tiene.
+      English: the previous operator's peer list. A new node has no peers yet,
+      and inheriting someone else's makes it claim a network it does not have.
+
+# ── declare_reference ────────────────────────────────────────────────────────
+declare_reference:
+  - path: web/data/hnd_2025_series.json
+    why: >-
+      Las 64 capturas de Honduras 2025 en forma de serie. Es la evidencia
+      metodológica que un evaluador quiere ver, así que borrarla sería un
+      error. El plan decía moverla a `web/data/reference/`; medido, eso
+      ROMPERÍA dos páginas que la cargan por ruta fija: `web/lab/index.html`
+      (es su dataset por defecto, línea 5432) y `web/reports/hnd_2025.html`.
+      Se queda donde está y se declara. English: the plan said relocate it;
+      measured, that would break two pages that load it by fixed path.
+
+  - path: web/data/calibration_hnd_2025.json
+    why: >-
+      Calibración del detector sobre Honduras 2025. La escribe `pages.yml` en
+      cada despliegue desde `/tmp/calibration/`, así que no es evidencia
+      heredada que reubicar sino un artefacto generado. Se declara para que no
+      se confunda con una calibración de este nodo. English: written by
+      pages.yml on every deploy, so it is a generated artefact rather than
+      inherited evidence.
+
+# ── keep ─────────────────────────────────────────────────────────────────────
+# Si algo de esto falta al terminar, el borrado FALLA. Es la red que impide que
+# un borrado mal escrito se lleve por delante lo único que el nodo nuevo tiene
+# que mostrar.
+# English: if any of these is missing when it finishes, the scrub FAILS.
+keep:
+  - tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots
+  - web/data/replay_manifest.json
+  - web/data/replay_snapshots.json
+  - web/data/departments
+  - .vigil/mode.yaml
+
+# ── deferred ─────────────────────────────────────────────────────────────────
+deferred:
+  - paths:
+      - web/data/sim_mes_adversarial_5min.json
+      - web/data/sim_mes_adversarial_anomala_5min.json
+      - web/data/sim_eleccion_anomala_5min.json
+      - web/data/sim_eleccion_limpia_5min.json
+    why: >-
+      15,4 MB de datos sintéticos, en torno al 46 % del peso del árbol. Es
+      peso, no evidencia, y el plan proponía descargarlos a un asset de
+      Release. No se hace todavía porque `web/lab/index.html` los ofrece en su
+      selector de datasets (líneas 659 y 663) por ruta fija: quitarlos sin
+      tocar esa página deja opciones que dan 404. Hacerlo bien exige que el
+      laboratorio degrade cuando falten, y eso es un cambio aparte en un
+      archivo grande. Se declara en vez de hacerse a medias. English: 15.4 MB
+      of synthetic data, around 46% of the tree. Weight, not evidence. Not
+      offloaded yet because web/lab offers them by fixed path and removing them
+      without touching that page leaves options that 404.
