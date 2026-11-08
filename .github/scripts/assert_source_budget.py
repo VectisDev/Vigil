@@ -128,6 +128,20 @@ def allowed_hosts_for(country: str) -> set[str]:
     return hosts
 
 
+def _why_no_allowlist(country: str) -> str:
+    """Distingue «no hay preset» de «el preset no declara URLs»."""
+    try:
+        from vigil.countries import get_country  # noqa: PLC0415
+
+        preset = get_country(country)
+    except (KeyError, ImportError):
+        return "no tiene preset en src/vigil/countries.py; no hay allowlist"
+    return (
+        f"tiene preset ({preset.name}) pero no declara ni `url_pattern` ni "
+        "`national_url` en src/vigil/countries.py, asi que no hay allowlist que derivar"
+    )
+
+
 def collect_urls(config: dict) -> list[str]:
     """Toda URL a la que la configuración apunta, venga de donde venga.
 
@@ -189,11 +203,19 @@ def check(config: dict, country: str) -> list[str]:
 
     allowed = allowed_hosts_for(country)
     if not allowed:
-        # Sin preset no hay con qué comparar. Es un fallo, no un permiso: la
+        # Sin allowlist no hay con qué comparar. Es un fallo, no un permiso: la
         # alternativa seria aceptar cualquier host para un pais desconocido.
-        # English: no preset means nothing to compare against. That is a
-        # failure, not a pass -- the alternative accepts any host.
-        problems.append(f"el pais '{country}' no tiene preset en src/vigil/countries.py; no hay allowlist")
+        #
+        # Las dos causas son distintas y mandan a archivos distintos, asi que
+        # el mensaje las separa: antes decia «no tiene preset» tambien cuando
+        # el preset existia y lo que le faltaba eran las URLs, que es el caso
+        # de Cuba, Haiti y Estados Unidos.
+        # English: no allowlist means nothing to compare against -- a failure,
+        # not a pass. The two causes send you to different files, so the
+        # message separates them: it used to say "no preset" even when the
+        # preset existed and what it lacked were the URLs, which is the case
+        # for Cuba, Haiti and the United States.
+        problems.append(f"el pais '{country}' {_why_no_allowlist(country)}")
     else:
         for url in urls:
             host = (urlparse(url).hostname or "").lower()
