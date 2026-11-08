@@ -25,13 +25,16 @@
 
 const OPS_TABS = ['inicio', 'evidencia', 'red', 'avanzado'];
 const OPS_TAB_DEFAULT = 'inicio';
+const OPS_TAB_ALIAS = { sala: 'red', controles: 'avanzado', room: 'red', controls: 'avanzado' };
 
 function _opsTabFromHash() {
-  const h = (location.hash || '').replace(/^#/, '');
+  let h = (location.hash || '').replace(/^#/, '');
+  if (OPS_TAB_ALIAS[h]) h = OPS_TAB_ALIAS[h];
   return OPS_TABS.includes(h) ? h : OPS_TAB_DEFAULT;
 }
 
 function goTab(tab) {
+  if (OPS_TAB_ALIAS[tab]) tab = OPS_TAB_ALIAS[tab];
   if (!OPS_TABS.includes(tab)) tab = OPS_TAB_DEFAULT;
   // El atributo en <html> es lo que el CSS lee para mostrar una sola
   // pestaña. `hidden` solo no alcanzaba: una regla de `display` más
@@ -63,6 +66,7 @@ function goTab(tab) {
   const main = document.getElementById('main-area');
   if (main) main.scrollTop = 0;
   window.scrollTo(0, 0);
+  if (typeof window.opsV4OnTab === 'function') window.opsV4OnTab(tab);
 }
 window.goTab = goTab;
 

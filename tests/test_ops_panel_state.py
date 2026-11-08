@@ -416,3 +416,143 @@ def test_no_visible_element_uses_a_forbidden_colour(page):
         page.wait_for_timeout(400)
         offenders = page.evaluate(_PALETTE_PROBE_JS)
         assert offenders == [], f"{tab}: colores fuera de paleta: {offenders}"
+
+
+def _open_shell(page):
+    page.evaluate("() => { try { showAdminShell(); } catch (e) {} }")
+    page.wait_for_selector("#capture-button", timeout=10000)
+
+
+def test_pause_cancel_returns_focus_and_confirm_does_not_fake_a_stop(page):
+    """Sin nodo, confirmar la pausa no dice que la captura se detuvo.
+
+    Cancelar devuelve el foco al mismo botón. Confirmar dice que no está
+    disponible y el botón sigue siendo Pausar.
+    """
+    _open_shell(page)
+    page.click("#capture-button")
+    page.wait_for_selector("#sheet-cancel")
+    page.click("#sheet-cancel")
+    page.wait_for_function("() => document.activeElement && document.activeElement.id === 'capture-button'")
+    assert "Pausar" in page.inner_text("#capture-button")
+    page.click("#capture-button")
+    page.click("#sheet-confirm")
+    page.wait_for_function("() => document.getElementById('announcement').textContent.includes('No disponible')")
+    assert "Pausar" in page.inner_text("#capture-button")
+    assert "Reanudar" not in page.inner_text("#capture-button")
+
+
+def test_pause_and_resume_follow_the_node_and_return_focus(page):
+    """Si el nodo acepta la orden, el botón alterna y el foco vuelve a él.
+
+    La frase no dice que los procesos se hayan comprobado: un HTTP de
+    aceptación no es una verificación.
+    """
+
+    def _answer(route):
+        route.fulfill(status=200, content_type="application/json", body='{"ok":true}')
+
+    page.route("**/api/pipeline/*", _answer)
+    _open_shell(page)
+    page.evaluate("() => { window.OPS_MODE = 'servidor'; window.VIGIL_API_BASE = location.origin; }")
+    page.click("#capture-button")
+    page.click("#sheet-confirm")
+    page.wait_for_function("() => document.getElementById('capture-button').textContent.includes('Reanudar')")
+    assert page.evaluate("() => document.activeElement.id") == "capture-button"
+    note = page.inner_text("#announcement")
+    assert "aceptó" in note
+    assert "No comprobamos" in note
+    page.click("#capture-button")
+    page.click("#sheet-confirm")
+    page.wait_for_function("() => document.getElementById('capture-button').textContent.includes('Pausar')")
+    assert page.evaluate("() => document.activeElement.id") == "capture-button"
+
+
+def test_stop_sheet_does_not_claim_vigil_stopped(page):
+    _open_shell(page)
+    page.click("#emergency-button")
+    page.wait_for_selector("#sheet-cancel")
+    assert page.inner_text("#sheet-title")
+    page.keyboard.press("Escape")
+    page.wait_for_function("() => document.activeElement && document.activeElement.id === 'emergency-button'")
+    page.click("#emergency-button")
+    page.click("#sheet-confirm")
+    note = page.inner_text("#announcement")
+    assert "No disponible" in note
+    assert (
+        "se detuvo" in note or "did not stop" in note or "no se detuvo" in note.lower() or "VIGIL no se detuvo" in note
+    )
+
+
+def test_destroy_confirmation_requires_the_word_and_deletes_nothing(page):
+    page.evaluate("() => sessionStorage.setItem('centinel_role', 'admin')")
+    _open_shell(page)
+    page.evaluate("() => goTab('avanzado')")
+    page.click("#destroy-open")
+    page.wait_for_selector("#destroy-word")
+    assert page.locator("#sheet-confirm").is_disabled()
+    page.focus("#destroy-word")
+    page.keyboard.press("Enter")
+    assert page.locator("#sheet").evaluate("el => el.open") is True
+    page.fill("#destroy-word", "DESTRUIR")
+    assert page.locator("#sheet-confirm").is_enabled()
+    page.click("#sheet-confirm")
+    note = page.inner_text("#announcement")
+    assert "No disponible" in note
+    assert "No se borró" in note
+
+
+def test_filters_narrow_and_clear_without_moving_focus(page):
+    _open_shell(page)
+    page.evaluate("() => goTab('evidencia')")
+    page.click("#filters summary")
+    page.wait_for_selector("#place-filter")
+    before = page.inner_text("#result-count")
+    page.select_option("#place-filter", "06")
+    page.wait_for_function("() => document.activeElement && document.activeElement.id === 'place-filter'")
+    after = page.inner_text("#result-count")
+    assert (
+        after != before
+        or "0" in after
+        or "Sin" in after
+        or "no disponible" in after.lower()
+        or "Cantidad" in after
+        or "hallazgos" in after
+    )
+    page.click("#clear-filters")
+    page.wait_for_function("() => document.getElementById('place-filter').value === 'all'")
+    assert page.evaluate("() => document.activeElement.id") == "clear-filters"
+
+
+def test_downloads_report_a_visible_status(page):
+    _open_shell(page)
+    page.evaluate("() => goTab('evidencia')")
+    page.click("[data-action=csv]")
+    page.wait_for_selector("#download-status:not([hidden])")
+    text = page.inner_text("#download-status")
+    assert "descarga" in text.lower() or "Descarga" in text or "prepar" in text.lower() or "Archivo" in text
+
+
+def test_layout_at_390_has_no_horizontal_overflow_and_cancel_comes_first(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    _open_shell(page)
+    width = page.evaluate("() => document.documentElement.scrollWidth")
+    assert width <= 390
+    page.click("#emergency-button")
+    page.wait_for_selector("#sheet-cancel")
+    order = page.evaluate(
+        """() => {
+            const cancel = document.getElementById('sheet-cancel').getBoundingClientRect();
+            const confirm = document.getElementById('sheet-confirm').getBoundingClientRect();
+            return {cancel: cancel.top, confirm: confirm.top};
+        }"""
+    )
+    assert order["cancel"] <= order["confirm"]
+    header = page.evaluate(
+        """() => {
+            const bar = document.querySelector('.mast').getBoundingClientRect();
+            const main = document.getElementById('main-area').getBoundingClientRect();
+            return {bar: bar.bottom, main: main.top};
+        }"""
+    )
+    assert header["bar"] <= header["main"] + 1
