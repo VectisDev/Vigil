@@ -52,6 +52,22 @@ The nodes keep the last bytes they successfully stored. The stop time they can s
 
 Los nodos conservan los últimos bytes que guardaron con éxito. La hora de parada que pueden firmar es la hora del primer intento fallido después de uno exitoso. No inventan una hora anterior, ni bytes que la fuente nunca envió.
 
+## The pace lock / El candado del ritmo
+
+The pace can be changed. A lock holds it at or under 480 requests per hour, a gap of at least 1 second, and a burst of at most 8. The lock exists to be respectful. The numbers live in `config/prod/rate_limiter.yaml` in your own copy. There is no account for this.
+
+Going past the lock is allowed only by a signed commit that adds `rate_override.yml` and one of these lines:
+
+`responsibility: I accept responsibility for requests above the respectful pace.`
+
+`responsibility: Acepto la responsabilidad por peticiones por encima del ritmo respetuoso.`
+
+An Action refuses the file when the commit is not signed or the line is missing. A score, a comment, or an unsigned edit does not open the lock.
+
+El ritmo se puede cambiar. Un candado lo mantiene en 480 peticiones por hora o menos, un hueco de al menos 1 segundo y una ráfaga de 8 como máximo. El candado existe para ser respetuoso. Los números viven en `config/prod/rate_limiter.yaml` en tu propia copia. Esto no tiene cuenta.
+
+Pasar el candado solo se permite con un commit firmado que añada `rate_override.yml` y una de las dos líneas de responsabilidad. Una Action rechaza el archivo si el commit no está firmado o si falta la línea. Una puntuación, un comentario o un cambio sin firma no abren el candado.
+
 ## How a fetch names itself / Cómo se nombra una descarga
 
 The default name on a request is `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`. It is one string, not a rotation of other names. The ceiling stays 480 requests per hour per host. Where a `robots.txt` exists and forbids that name, the fetch stops. Hiding the client is not the default, and the source path does not use a stealth browser.

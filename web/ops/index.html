@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VIGIL — ops</title>
+<title>VIGIL — pace</title>
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
 <style>
@@ -11,17 +11,25 @@ body { margin: 0; background: #fff; color: #141414; font-family: "Liberation San
 main { width: min(40rem, calc(100% - 2rem)); margin: 2rem auto; }
 a { color: #8E1228; }
 .rule { height: 4px; width: 3.5rem; background: #8E1228; border: 0; }
+.lock { border: 2px solid #141414; padding: 0.8rem 1rem; margin: 1rem 0; }
 </style>
 </head>
 <body>
 <main>
   <p><img src="../assets/logo-mark.svg" width="32" height="32" alt=""> <strong>VIGIL</strong></p>
   <hr class="rule">
-  <h1>Nothing to sign in to</h1>
-  <p>This address used to ask for an operator key. That gate is gone. The public site is static. Operator actions are not published here.</p>
-  <p lang="es">Esta dirección pedía una clave de operador. Esa puerta ya no está. El sitio público es estático. Lo que haría un operador no se publica aquí.</p>
-  <p>The site collects no user data. <a href="../privacy/">Privacy</a>.</p>
-  <p><a href="../">Home</a> · <a href="https://github.com/VectisDev/Vigil/blob/main/docs/VERIFY.md">Verify it yourself</a></p>
+  <h1>The pace lock</h1>
+  <div class="lock">
+    <p><strong>This lock exists to be respectful.</strong> The pace can be changed. It cannot go past 480 requests per hour, a gap under 1 second, or a burst above 8, unless you accept that in a signed commit.</p>
+    <p lang="es"><strong>Este candado existe para ser respetuoso.</strong> El ritmo se puede cambiar. No puede pasar de 480 peticiones por hora, un hueco menor de 1 segundo, o una ráfaga mayor de 8, salvo que lo aceptes en un commit firmado.</p>
+  </div>
+  <p>The numbers live in your own copy, in <code>config/prod/rate_limiter.yaml</code>. There is no account on this page.</p>
+  <p lang="es">Los números viven en tu propia copia, en <code>config/prod/rate_limiter.yaml</code>. Esta página no tiene cuenta.</p>
+  <p>To go past the lock, add <code>rate_override.yml</code> at the root of your copy, with one of these lines, and sign the commit:</p>
+  <pre>responsibility: I accept responsibility for requests above the respectful pace.</pre>
+  <pre>responsibility: Acepto la responsabilidad por peticiones por encima del ritmo respetuoso.</pre>
+  <p>An Action refuses the change when that commit is not signed, or when the line is missing.</p>
+  <p><a href="../">Home</a> · <a href="../privacy/">Privacy</a></p>
 </main>
 </body>
 </html>

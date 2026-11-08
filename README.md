@@ -17,6 +17,8 @@ On a computer: `python3 scripts/swarm_join.py CODE`
 
 A fetch names itself `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`, stays under the existing ceiling of 480 requests per hour per host, and stops when `robots.txt` forbids that name. It does not disguise itself.
 
+The pace can be changed in your own copy. A lock keeps it at or under 480 requests per hour, a 1 second gap, and a burst of 8. The lock exists to be respectful. Going past it requires `rate_override.yml` with the responsibility statement, in a signed commit. An Action refuses an unsigned override.
+
 VIGIL keeps a saved copy of a public results feed, so a later reader can check those bytes without an account. One person maintains it, under the pseudonym VectisDev.
 
 ## Verify it yourself
