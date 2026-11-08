@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VIGIL — System Status</title>
 <link rel="icon" type="image/svg+xml" href="../assets/mark-light.svg" data-icon-light="../assets/mark-light.svg" data-icon-dark="../assets/mark-dark.svg">
+<link rel="icon" href="../assets/favicon/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/favicon/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../assets/favicon/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="../assets/favicon/favicon-180.png">
 <script src="../shared/vigil-theme.js"></script>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/brand-header.css">
 <style>
 :root{--bg:#080b0f;--panel:#0d1117;--panel2:#131920;--border:#1e2530;--fg:#e7e9ec;--muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;--warn:#d4b066;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -39,7 +45,7 @@ a{color:var(--accent);text-decoration:none}
 </head>
 <body>
 <div class="hdr">
-  <div class="logo"><span>VIGIL</span> — Public Status</div>
+  <div class="logo"><a class="vigil-lockup" href="../" aria-label="VIGIL inicio"><picture class="mark-light"><img alt="VIGIL — Integridad electoral verificable" src="../assets/brand/vigil-horizontal-corto.svg" height="28"></picture><picture class="mark-dark"><source media="(prefers-color-scheme: dark)" srcset="../assets/brand/vigil-horizontal-corto-oscuro.svg"><img alt="" src="../assets/brand/vigil-horizontal-corto-oscuro.svg" height="28"></picture></a><span> — Public Status</span></div>
   <div class="sub">Electoral Audit System · Honduras · github.com/VectisDev/vigil</div>
 </div>
 
