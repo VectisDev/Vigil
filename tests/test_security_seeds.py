@@ -18,15 +18,19 @@ def test_regenerate_seeds_matches_the_documented_steps() -> None:
     assert list(on) == ["workflow_dispatch"]
     assert doc["permissions"] == {"contents": "read"}
     job = doc["jobs"]["regenerate"]
-    assert job["if"] == "github.actor == github.repository_owner"
+    assert "if" not in job
+    assert "github.actor == github.repository_owner" not in text
+    assert "repos/${GITHUB_REPOSITORY}/collaborators/${GITHUB_ACTOR}/permission" in text
+    assert "orgs/${GITHUB_REPOSITORY_OWNER}/memberships/${GITHUB_ACTOR}" in text
     assert job["permissions"] == {"contents": "write"}
+    assert "repository admins" in (ROOT / "web" / "ACCESO_ADMIN.md").read_text(encoding="utf-8")
     assert 'FORCE_REGENERATE: "true"' in text or "FORCE_REGENERATE: 'true'" in text
     assert "python3 .github/scripts/wizard_seeds.py" in text
     assert "git add -- web/access.json" in text
     assert "path: /tmp/centinel-seeds.txt" in text
     assert "retention-days: 1" in text
-    assert "echo " not in text
     assert "cat " not in text
+    assert "echo /tmp/centinel-seeds.txt" not in text
     script = (ROOT / ".github" / "scripts" / "wizard_seeds.py").read_text(encoding="utf-8")
     assert 'SEEDS_PATH = Path("/tmp/centinel-seeds.txt")' in script
     for line in script.splitlines():
@@ -40,6 +44,18 @@ def test_regenerate_seeds_matches_the_documented_steps() -> None:
     assert "Run workflow" in guide
     assert "centinel-seeds-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA" in guide
     assert "1 día" in guide
+
+
+def test_no_workflow_treats_the_actor_as_the_repository_owner() -> None:
+    needle = "github.actor == github.repository_owner"
+    problems: list[str] = []
+    for folder in (ROOT / ".github", ROOT / "scripts"):
+        for path in folder.rglob("*"):
+            if path.suffix.lower() not in {".yml", ".yaml", ".py", ".sh"}:
+                continue
+            if needle in path.read_text(encoding="utf-8"):
+                problems.append(str(path.relative_to(ROOT)))
+    assert problems == []
 
 
 def test_autoheal_does_not_checkout_a_pull_request_head() -> None:

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # The regenerate workflow uploads this exact path. Do not print the file.
-SEEDS_PATH = Path("/tmp/centinel-seeds.txt")
+SEEDS_PATH = Path("/tmp/centinel-seeds.txt")  # nosec B108 - artifact path, created mode 0600
 
 
 def write_seeds_file(text: str) -> None:
