@@ -125,7 +125,7 @@ jobs:
         if: ${{ inputs.commit != false }}
         run: |
           git config user.name  'VectisDev'
-          git config user.email 'VectisDev@users.noreply.github.com'
+          git config user.email '287128931+VectisDev@users.noreply.github.com'
           # Indexar solo lo que existe, en vez de tragarse el error de `git add`.
           # Las tres primeras las acaba de escribir el replay; snapshot.json lo
           # escribe el exportador y su ausencia seria un fallo del paso anterior.

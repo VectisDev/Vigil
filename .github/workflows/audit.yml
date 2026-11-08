@@ -88,7 +88,7 @@ jobs:
         id: git_push
         run: |
           git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
+          git config user.email "287128931+VectisDev@users.noreply.github.com"
 
           git add data/ hashes/ diffs/ reports/
 
@@ -219,7 +219,7 @@ jobs:
           [ -d reports ] && cp -r reports/. /tmp/centinel-data/reports/  || true
           cd /tmp/centinel-data
           git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
+          git config user.email "287128931+VectisDev@users.noreply.github.com"
           git add .
           git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main
