@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from vigil.defense.security_utils import is_safe_outbound_url, pin_dns_resolution, resolve_outbound_target
+from vigil.identity import USER_AGENT
 
 import requests
 import urllib3
@@ -155,7 +156,7 @@ def fetch_json_with_retry(
         try:
             headers = {
                 "User-Agent": (
-                    random.choice(user_agents) if user_agents else "Mozilla/5.0 (compatible; Centinel-Collector/1.0)"
+                    random.choice(user_agents) if user_agents else USER_AGENT
                 ),
                 "Accept": "application/json",
             }

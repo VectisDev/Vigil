@@ -52,6 +52,12 @@ The nodes keep the last bytes they successfully stored. The stop time they can s
 
 Los nodos conservan los últimos bytes que guardaron con éxito. La hora de parada que pueden firmar es la hora del primer intento fallido después de uno exitoso. No inventan una hora anterior, ni bytes que la fuente nunca envió.
 
+## How a fetch names itself / Cómo se nombra una descarga
+
+The default name on a request is `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`. It is one string, not a rotation of other names. The ceiling stays 480 requests per hour per host. Where a `robots.txt` exists and forbids that name, the fetch stops. Hiding the client is not the default, and the source path does not use a stealth browser.
+
+El nombre por defecto en una petición es `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`. Es una sola cadena, no una rotación de otros nombres. El techo sigue siendo 480 peticiones por hora y por host. Donde existe un `robots.txt` y prohíbe ese nombre, la descarga se detiene. Ocultar al cliente no es el valor por defecto, y la ruta hacia la fuente no usa un navegador oculto.
+
 ## Limit / Límite
 
 Vigil cannot recover data that was never published. If the source never sent a file, no node has it, and no number of forks creates it.

@@ -37,10 +37,10 @@ polling_rate_limit:
   state_path: data/temp/polling_rate_limit.json
 headers:
   Accept: application/json
-  User-Agent: VIGIL/1.0
+  User-Agent: VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)
 use_playwright: false
-playwright_stealth: true
-playwright_user_agent: VIGIL/1.0
+playwright_stealth: false
+playwright_user_agent: VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)
 playwright_viewport:
   width: 1280
   height: 720

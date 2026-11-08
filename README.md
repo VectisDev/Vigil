@@ -15,6 +15,8 @@
 
 On a computer: `python3 scripts/swarm_join.py CODE`
 
+A fetch names itself `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`, stays under the existing ceiling of 480 requests per hour per host, and stops when `robots.txt` forbids that name. It does not disguise itself.
+
 VIGIL keeps a saved copy of a public results feed, so a later reader can check those bytes without an account. One person maintains it, under the pseudonym VectisDev.
 
 ## Verify it yourself

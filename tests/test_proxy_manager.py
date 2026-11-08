@@ -119,7 +119,8 @@ class TestUserAgentPool:
         ">= 50" (old anonymization design) to "== len(USER_AGENT_POOL)"
         to match the current transparent design.
         """
-        assert len(USER_AGENT_POOL) == 5
+        assert len(USER_AGENT_POOL) == 1
+        assert USER_AGENT_POOL[0] == "VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)"
 
     def test_all_entries_are_strings(self) -> None:
         """All pool entries are non-empty strings.
@@ -141,7 +142,7 @@ class TestUserAgentPool:
         identification design — every UA self-identifies as VIGIL and
         links to the repository.
         """
-        vigil_count = sum(1 for ua in USER_AGENT_POOL if ua.startswith("VIGIL-"))
+        vigil_count = sum(1 for ua in USER_AGENT_POOL if ua.startswith("VIGIL/"))
         repo_link_count = sum(1 for ua in USER_AGENT_POOL if "github.com/VectisDev/Vigil" in ua)
         assert vigil_count == len(USER_AGENT_POOL)
         assert repo_link_count == len(USER_AGENT_POOL)
@@ -156,14 +157,7 @@ class TestUserAgentPool:
         transparently-named bot roles (Engine, Healer, Monitor, Watchdog),
         consistent with the current self-identification design.
         """
-        has_engine = any(ua.startswith("VIGIL-Engine/") for ua in USER_AGENT_POOL)
-        has_healer = any("Healer" in ua for ua in USER_AGENT_POOL)
-        has_monitor = any("Monitor" in ua for ua in USER_AGENT_POOL)
-        has_watchdog = any("Watchdog" in ua for ua in USER_AGENT_POOL)
-        assert has_engine
-        assert has_healer
-        assert has_monitor
-        assert has_watchdog
+        assert USER_AGENT_POOL == ("VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)",)
 
 
 # ---------------------------------------------------------------------------
@@ -189,7 +183,7 @@ class TestUARotation:
         for _ in range(20):
             _, ua = mgr.rotate_proxy_and_ua()
             uas.add(ua)
-        assert 1 < len(uas) <= len(USER_AGENT_POOL)
+        assert uas == set(USER_AGENT_POOL)
 
     def test_ua_is_from_pool(self) -> None:
         """Returned UA is always from the pool.

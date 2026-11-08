@@ -35,6 +35,7 @@ from vigil.paths import (
 )
 from scripts.circuit_breaker import CircuitBreaker
 from vigil.defense.fetcher import build_rotating_request_profile
+from vigil.identity import USER_AGENT
 from vigil.defense.hasher import trigger_post_hash_backup
 
 from monitoring.health import get_health_state
@@ -69,7 +70,7 @@ _SCRAPE_TTL_MINUTES = int(os.getenv("VIGIL_SCRAPE_TTL_MINUTES", os.getenv("CENTI
 
 _ROBOTS_CACHE: dict[str, tuple[urllib.robotparser.RobotFileParser | None, float]] = {}
 _ROBOTS_TTL_SECONDS = 3600.0
-_CENTINEL_UA = "Vigil-Engine/1.0"
+_CENTINEL_UA = USER_AGENT
 
 
 def _check_robots_allowed(url: str) -> bool:
@@ -360,8 +361,7 @@ def build_request_headers(
     headers: dict[str, str] = {
         "Accept": "application/json",
     }
-    if user_agents:
-        headers["User-Agent"] = rng.choice(user_agents)
+    headers["User-Agent"] = rng.choice(user_agents) if user_agents else USER_AGENT
     if accept_languages:
         headers["Accept-Language"] = rng.choice(accept_languages)
     if referers:

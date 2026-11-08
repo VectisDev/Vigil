@@ -114,7 +114,7 @@ JSON_URL_PATTERN = re.compile(r"(?:https?:)?//[^\s\"'`<>]+?\.json(?:\?[^\s\"'`<>
 
 DEFAULT_TIMEOUT = 12
 DEFAULT_HEADERS = {
-    "User-Agent": "Centinel-Engine-Healer/9.0",
+    "User-Agent": "VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)",
     "Accept": "application/json, text/javascript, */*;q=0.8",
 }
 
