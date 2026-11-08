@@ -34,7 +34,6 @@ from vigil.paths import (
     snapshot_filename,
 )
 from scripts.circuit_breaker import CircuitBreaker
-from vigil.defense.fetcher import build_rotating_request_profile
 from vigil.identity import USER_AGENT
 from vigil.defense.hasher import trigger_post_hash_backup
 
@@ -343,30 +342,8 @@ def build_request_headers(
     rng: random.Random,
 ) -> dict[str, str]:
     """/** Construye headers por request (low-profile opcional). / Build per-request headers (low-profile optional). **/"""
-    if not low_profile.get("enabled", False):
-        headers = config.get("headers", {}) if isinstance(config.get("headers"), dict) else {}
-        if "Accept" not in headers:
-            headers = {"Accept": "application/json", **headers}
-        try:
-            secure_headers, _ = build_rotating_request_profile()
-            headers = {**headers, **secure_headers}
-        except Exception as exc:
-            logger.warning("failed_to_build_rotating_profile error=%s", exc)
-        return headers
-
-    user_agents = low_profile.get("user_agents", []) or []
-    accept_languages = low_profile.get("accept_languages", []) or []
-    referers = low_profile.get("referers", []) or []
-
-    headers: dict[str, str] = {
-        "Accept": "application/json",
-    }
-    headers["User-Agent"] = rng.choice(user_agents) if user_agents else USER_AGENT
-    if accept_languages:
-        headers["Accept-Language"] = rng.choice(accept_languages)
-    if referers:
-        headers["Referer"] = rng.choice(referers)
-    return headers
+    del config, low_profile, rng
+    return {"Accept": "application/json", "User-Agent": USER_AGENT}
 
 
 def resolve_timeout_seconds(config: dict[str, Any], low_profile: dict[str, Any]) -> float:

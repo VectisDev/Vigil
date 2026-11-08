@@ -53,9 +53,7 @@ from vigil.defense.attack_logger import AttackForensicsLogbook, AttackLogConfig,
 
 
 def _read_jsonl(path: Path) -> list[dict]:
-    return [
-        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
-    ]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def test_log_http_request_classifies_flood(tmp_path: Path) -> None:
@@ -70,9 +68,7 @@ def test_log_http_request_classifies_flood(tmp_path: Path) -> None:
     logbook.start()
 
     for _ in range(3):
-        logbook.log_http_request(
-            ip="10.0.0.1", method="GET", route="/debug", headers={"User-Agent": "curl/8.0"}
-        )
+        logbook.log_http_request(ip="10.0.0.1", method="GET", route="/debug", headers={"User-Agent": "curl/8.0"})
     time.sleep(0.1)
     logbook.stop()
 
@@ -92,12 +88,8 @@ def test_rotation_creates_gzip_archive(tmp_path: Path) -> None:
     logbook = AttackForensicsLogbook(cfg)
     logbook.start()
 
-    logbook.log_http_request(
-        ip="10.0.0.2", method="GET", route="/admin", headers={"User-Agent": "sqlmap"}
-    )
-    logbook.log_http_request(
-        ip="10.0.0.2", method="GET", route="/admin2", headers={"User-Agent": "sqlmap"}
-    )
+    logbook.log_http_request(ip="10.0.0.2", method="GET", route="/admin", headers={"User-Agent": "sqlmap"})
+    logbook.log_http_request(ip="10.0.0.2", method="GET", route="/admin2", headers={"User-Agent": "sqlmap"})
     # Allow enough time for the background writer to flush both events to disk
     # and for the rotation to trigger on the second event.
     time.sleep(0.5)
@@ -112,9 +104,7 @@ def test_rotation_creates_gzip_archive(tmp_path: Path) -> None:
     assert payload["route"] == "/admin"
 
 
-def test_honeypot_logs_requests_via_flask_client(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_honeypot_logs_requests_via_flask_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     pytest.importorskip("flask")
     """English/Spanish: Honeypot endpoint should record request metadata."""
     cfg = AttackLogConfig(log_path=str(tmp_path / "attack_log.jsonl"), honeypot_enabled=True)
@@ -141,9 +131,7 @@ def test_honeypot_logs_requests_via_flask_client(
     }
 
 
-def test_external_summary_uses_anonymized_ip(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_external_summary_uses_anonymized_ip(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """English/Spanish: External summaries should anonymize IP when configured."""
     cfg = AttackLogConfig(
         log_path=str(tmp_path / "attack_log.jsonl"),
@@ -172,18 +160,15 @@ def test_external_summary_uses_anonymized_ip(
     monkeypatch.setattr("vigil.defense.attack_logger.pin_dns_resolution", lambda _target: nullcontext())
 
     logbook.start()
-    logbook.log_http_request(
-        ip="198.51.100.10", method="GET", route="/x", headers={"User-Agent": "ua"}
-    )
+    logbook.log_http_request(ip="198.51.100.10", method="GET", route="/x", headers={"User-Agent": "ua"})
     time.sleep(0.1)
     logbook.stop()
 
-    assert captured["payload"]["ip"].startswith("anon-")
+    assert "ip" not in captured["payload"]
+    assert "198.51.100.10" not in json.dumps(captured["payload"])
 
 
-def test_honeypot_default_firewall_blocks_public_ips(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_honeypot_default_firewall_blocks_public_ips(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """English/Spanish: Honeypot default firewall should deny non-local clients.
 
     El firewall por defecto del honeypot debe bloquear clientes no locales.
@@ -211,7 +196,10 @@ def test_log_http_request_redacts_sensitive_headers(tmp_path: Path) -> None:
     logbook.stop()
 
     entries = _read_jsonl(tmp_path / "attack_log.jsonl")
-    assert entries[-1]["headers"]["Authorization"] == "[REDACTED]"
+    assert "headers" not in entries[-1]
+    assert "ip" not in entries[-1]
+    assert "user_agent" not in entries[-1]
+    assert "Bearer secret" not in (tmp_path / "attack_log.jsonl").read_text(encoding="utf-8")
 
 
 def test_anonymization_salt_is_generated_and_reused(tmp_path: Path) -> None:
@@ -227,9 +215,7 @@ def test_anonymization_salt_is_generated_and_reused(tmp_path: Path) -> None:
     assert salt_path.read_text(encoding="utf-8").strip()
 
 
-def test_anonymization_ignores_short_env_salt(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_anonymization_ignores_short_env_salt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("ATTACK_LOG_SALT", "short")
     cfg = AttackLogConfig(log_path=str(tmp_path / "attack_log.jsonl"))
     logbook = AttackForensicsLogbook(cfg)

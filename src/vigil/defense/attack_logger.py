@@ -52,7 +52,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 from __future__ import annotations
 
 import gzip
@@ -357,9 +356,7 @@ class AttackForensicsLogbook:
             # multiple rotations within the same second cannot collide.
             self._size_rotation_counter += 1
             stamp_us = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
-            rotated = self.path.with_name(
-                f"attack_log-{stamp_us}-{self._size_rotation_counter:04d}.jsonl"
-            )
+            rotated = self.path.with_name(f"attack_log-{stamp_us}-{self._size_rotation_counter:04d}.jsonl")
             if self._handler:
                 try:
                     self._handler.flush()
@@ -436,18 +433,13 @@ class AttackForensicsLogbook:
         classification = self._classify(route=route, frequency=frequency, ua=ua, headers=headers, ip=ip)
         return {
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "ip": ip,
-            "user_agent": ua,
             "http_method": method,
             "route": route,
-            "headers": redact_headers(headers),
             "content_length": int(content_length or 0),
             "frequency_window_seconds": self.config.frequency_window_seconds,
             "frequency_count": frequency,
-            "sequence": list(routes),
             "classification": classification,
             "source": "honeypot_or_ingress",
-            "geo": self._resolve_geo(ip),
         }
 
     def _resolve_geo(self, ip: str) -> dict[str, str]:
@@ -538,9 +530,8 @@ class AttackForensicsLogbook:
         """
         if event.get("classification") != "flood":
             return True
-        ip = str(event.get("ip", "0.0.0.0"))  # nosec B104 - fallback default, not a bind address
-        self._per_ip_flood_counter[ip] += 1
-        return self._per_ip_flood_counter[ip] % self.config.flood_log_sample_ratio == 0
+        self._per_ip_flood_counter["aggregate"] += 1
+        return self._per_ip_flood_counter["aggregate"] % self.config.flood_log_sample_ratio == 0
 
     def log_http_request(
         self, *, ip: str, method: str, route: str, headers: dict[str, str], content_length: int = 0
@@ -611,11 +602,9 @@ class AttackForensicsLogbook:
             return
 
     def _anonymized_summary(self, event: dict[str, Any]) -> dict[str, Any]:
-        ip = str(event.get("ip", "0.0.0.0"))  # nosec B104 - fallback default, not a bind address
-        safe_ip = self._anonymize_ip(ip) if self.config.anonymize_summaries else ip
         return {
             "event": event.get("classification", "suspicious"),
-            "ip": safe_ip,
+            "count": 1,
             "frequency": event.get("frequency_count", 0),
             "window_seconds": event.get("frequency_window_seconds", self.config.frequency_window_seconds),
             "route": event.get("route", ""),

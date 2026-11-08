@@ -78,9 +78,9 @@ El commit también nombra el id de una clave de operaciones. Quien hace el fork 
 
 ## How a fetch names itself / Cómo se nombra una descarga
 
-The default name on a request is `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`. It is one string, not a rotation of other names. The ceiling stays 480 requests per hour per host. Where a `robots.txt` exists and forbids that name, the fetch stops. Hiding the client is not the default, and the source path does not use a stealth browser.
+The default name on a request is `Vigil/0.1.0 (+https://github.com/VectisDev/Vigil; key:<id>)`. `<id>` is the public key id, or `unset` when this repository has not issued one. It is one string, not a rotation of other names. The ceiling stays 480 requests per hour per host, and the minimum gap in code is 1 second, the same number as `config/prod/rate_limiter.yaml`. Where a `robots.txt` exists and forbids that name, the fetch stops. Hiding the client is not the default. The source path does not use a stealth browser, a proxy list, or Tor. An operator's network privacy comes from running on GitHub Actions (Microsoft addresses), not from disguise.
 
-El nombre por defecto en una petición es `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`. Es una sola cadena, no una rotación de otros nombres. El techo sigue siendo 480 peticiones por hora y por host. Donde existe un `robots.txt` y prohíbe ese nombre, la descarga se detiene. Ocultar al cliente no es el valor por defecto, y la ruta hacia la fuente no usa un navegador oculto.
+El nombre por defecto en una petición es `Vigil/0.1.0 (+https://github.com/VectisDev/Vigil; key:<id>)`. `<id>` es el id público de la clave, o `unset` cuando este repositorio no ha emitido una. Es una sola cadena, no una rotación de otros nombres. El techo sigue siendo 480 peticiones por hora y por host, y el hueco mínimo en el código es 1 segundo, el mismo número que `config/prod/rate_limiter.yaml`. Donde existe un `robots.txt` y prohíbe ese nombre, la descarga se detiene. Ocultar al cliente no es el valor por defecto. La ruta hacia la fuente no usa un navegador oculto, una lista de proxies ni Tor. La privacidad de red de quien opera viene de correr en GitHub Actions (direcciones de Microsoft), no de un disfraz.
 
 ## Limit / Límite
 

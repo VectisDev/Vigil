@@ -68,7 +68,7 @@ integrity_paths:
   - "scripts/run_pipeline.py"
 
 user_agents_list:
-  - "VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)"
+  - "Vigil/0.1.0 (+https://github.com/VectisDev/Vigil; key:unset)"
 rotate_every_min_polls: 10
 rotate_every_max_polls: 30
 

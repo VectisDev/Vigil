@@ -146,7 +146,7 @@ JSON_URL_PATTERN = re.compile(
 
 DEFAULT_TIMEOUT = 12
 DEFAULT_HEADERS = {
-    "User-Agent": "VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)",
+    "User-Agent": "Vigil/0.1.0 (+https://github.com/VectisDev/Vigil; key:unset)",
     "Accept": "application/json, text/javascript, */*;q=0.8",
 }
 

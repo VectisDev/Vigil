@@ -62,6 +62,16 @@ def quorum_size(seated: int) -> int:
     return seated - faulty_bound(seated)
 
 
+def join(members: list[str] | tuple[str, ...], member: str, code: str) -> Seating:
+    """Add one id and reseat. The same ids always get the same seats."""
+    return assign_roles([*members, member], code)
+
+
+def leave(members: list[str] | tuple[str, ...], member: str, code: str) -> Seating:
+    """Remove one id and reseat. Missing ids are a no-op."""
+    return assign_roles([item for item in members if str(item).strip() != str(member).strip()], code)
+
+
 def assign_roles(members: list[str] | tuple[str, ...], code: str) -> Seating:
     """Seat every id, or refuse. Order of the input does not matter.
 

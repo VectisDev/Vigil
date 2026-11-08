@@ -56,7 +56,7 @@ from vigil_engine.config_loader import load_config
 logger = logging.getLogger(__name__)
 
 HARD_CEILING_MAX_REQUESTS_PER_HOUR: int = 480
-HARD_CEILING_MIN_INTERVAL: float = 2.0
+HARD_CEILING_MIN_INTERVAL: float = 1.0
 HARD_CEILING_MAX_BURST: int = 8
 
 PRESET_MODES: dict[str, dict[str, Any]] = {
@@ -331,10 +331,6 @@ class TokenBucketRateLimiter:
                 )
 
                 wait_seconds = max(core_wait, hourly_wait, adaptive_wait, conservative_wait)
-                # Wider jitter + random sleep to disrupt advanced timing fingerprinting / # Jitter más amplio + sleep random para romper fingerprinting por timing avanzado
-                random_sleep: float = random.uniform(0.0, 3.2)
-                time.sleep(random_sleep)
-                total_waited += random_sleep
                 if wait_seconds <= 0:
                     break
                 # English: sleep in bounded chunks so long waits can adapt quickly. / Español: dormir en bloques para adaptar esperas largas.
@@ -418,7 +414,7 @@ class TokenBucketRateLimiter:
                     if hasattr(self, key):
                         setattr(self, key, type(getattr(self, key))(value))
 
-            if self._enforce_ceiling and self._mode != "custom":
+            if self._enforce_ceiling:
                 self.max_requests_per_hour = min(self.max_requests_per_hour, HARD_CEILING_MAX_REQUESTS_PER_HOUR)
                 self.min_interval = max(self.min_interval, HARD_CEILING_MIN_INTERVAL)
                 self.burst = min(self.burst, HARD_CEILING_MAX_BURST)
@@ -576,24 +572,13 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
             burst = int(_resolve("burst", "capacity", DEFAULT_BURST))
 
             from vigil.ops_keys import key_is_active, load_registry
-            from vigil.pace import (
-                git_override_is_signed,
-                override_is_refused,
-                override_key_id,
-                read_override,
-                within_lock,
-            )
+            from vigil.pace import verified_override_text, within_lock
 
             repo_root = Path(__file__).resolve().parents[1]
-            override_text = read_override(repo_root)
-            active = key_is_active(
-                load_registry(repo_root / "config" / "ops_keys.yml"),
-                override_key_id(override_text),
-            )
-            signed = git_override_is_signed(repo_root) if override_text else False
-            accepted = override_text is not None and not override_is_refused(override_text, signed, key_active=active)
+            registry = load_registry(repo_root / "config" / "ops_keys.yml")
+            ok, override_text = verified_override_text(repo_root, lambda key_id: key_is_active(registry, key_id))
             past_lock = False
-            if accepted and override_text:
+            if ok and override_text:
                 loaded_pace = yaml.safe_load(override_text) or {}
                 if isinstance(loaded_pace, dict):
                     past_lock = not within_lock(
@@ -601,7 +586,7 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
                         float(loaded_pace.get("min_interval_seconds", min_interval)),
                         float(loaded_pace.get("max_burst", burst)),
                     )
-            lock_open = accepted and past_lock
+            lock_open = bool(ok and past_lock)
             if lock_open:
                 loaded = yaml.safe_load(override_text) or {}
                 if isinstance(loaded, dict):
@@ -610,7 +595,6 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
                     burst = int(loaded.get("max_burst", burst))
 
             ceiling = config.get("hard_ceiling", {})
-            is_custom = active_mode == "custom"
 
             _rate_limiter_singleton = TokenBucketRateLimiter(
                 rate_interval=float(_resolve("rate_interval", "rate_interval_seconds", DEFAULT_RATE_INTERVAL)),
@@ -629,7 +613,7 @@ def get_rate_limiter(env: str = "prod") -> TokenBucketRateLimiter:
                 enforce_ceiling=not lock_open,
             )
 
-            if ceiling and not is_custom and not lock_open:
+            if ceiling and not lock_open:
                 HARD_CEILING_MAX_REQUESTS_PER_HOUR_CFG = int(
                     ceiling.get("max_requests_per_hour", HARD_CEILING_MAX_REQUESTS_PER_HOUR)
                 )

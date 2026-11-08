@@ -66,6 +66,13 @@ jobs:
       # English: the mode was already resolved by the `gate` job, now the one
       # decision point. Resolving it again here would be a second source of
       # truth that can disagree with the first.
+      - name: Refuse an unverified pace override
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/check_rate_override.py
+
       - name: Run collector
         run: python -m scripts.download_and_hash
       - name: Commit data

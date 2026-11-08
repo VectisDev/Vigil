@@ -70,6 +70,13 @@ jobs:
       # solo existe si dijo que si, asi que los `if:` por paso sobran.
       # English: the mode is resolved by the `gate` job, the single decision
       # point. This job only exists if it said yes.
+      - name: Refuse an unverified pace override
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: poetry run python scripts/check_rate_override.py
+
       - name: Run collector
         run: |
           if ! poetry run python -m scripts.collector; then

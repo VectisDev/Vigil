@@ -15,7 +15,7 @@
 
 On a computer: `python3 scripts/swarm_join.py CODE`
 
-A fetch names itself `VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)`, stays under the existing ceiling of 480 requests per hour per host, and stops when `robots.txt` forbids that name. It does not disguise itself.
+A fetch names itself `Vigil/0.1.0 (+https://github.com/VectisDev/Vigil; key:<id>)`. `<id>` is the public key id (`unset` in this repository). It stays under 480 requests per hour per host and stops when `robots.txt` forbids that name. It does not disguise itself. An operator's network privacy comes from running the fetch on GitHub Actions, which uses Microsoft addresses, not from a rotating name, a proxy, or Tor.
 
 Freedom with visible responsibility. Vigil does not forbid a faster pace. The default stays respectful: 480 requests per hour, a gap of at least 1 second, and a burst of at most 8. Going past that is the user's freedom. It counts only after a public signed commit adds `rate_override.yml`, names an active ops key id, and accepts full responsibility for the consequences, including load on the source comparable to a denial of service. The git signature is an anonymous key, not a legal name. A key registered with a GitHub account can still show that account on GitHub. There is no swarm penalty for this choice. An unsigned file does not change the pace.
 
