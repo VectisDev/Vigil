@@ -19,12 +19,12 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WEB_DIR   = REPO_ROOT / "web"
+WEB_DIR = REPO_ROOT / "web"
 
-BOLD  = "\033[1m"
+BOLD = "\033[1m"
 GREEN = "\033[32m"
-RED   = "\033[31m"
-CYAN  = "\033[36m"
+RED = "\033[31m"
+CYAN = "\033[36m"
 RESET = "\033[0m"
 
 CRITICAL_FILES = [
@@ -45,7 +45,9 @@ def _git_restore(path: str) -> bool:
     try:
         subprocess.run(
             ["git", "checkout", "HEAD", "--", path],
-            cwd=REPO_ROOT, check=True, capture_output=True,
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
         )
         return True
     except subprocess.CalledProcessError:
