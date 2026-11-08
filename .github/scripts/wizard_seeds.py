@@ -2,16 +2,9 @@
 """
 Wizard step: generate seeds and write their SHA-256 hashes to web/access.json.
 
-The plaintext seeds are written to a 0600 file under RUNNER_TEMP so a later
-step in the same job can read them.
-
-SEGURIDAD: ese archivo NUNCA debe subirse como artifact de Actions. En un repo
-publico, cualquiera con la URL de la ejecucion descarga los artifacts durante
-90 dias, lo que equivaldria a publicar las claves del panel OPS.
-
-SECURITY: that file must NEVER be uploaded as an Actions artifact. On a public
-repository anyone holding the run URL can download artifacts for 90 days, which
-would be equivalent to publishing the OPS panel keys.
+The plaintext seeds are written only to /tmp/centinel-seeds.txt (mode 0600).
+This script does not print them. The Regenerate Admin Seeds workflow may
+upload that file as an artifact kept for one day.
 
 Helper for fork self-configuration. Environment variables:
   CENTINEL_COUNTRY  — country code (HN, GT, ...)
@@ -19,16 +12,12 @@ Helper for fork self-configuration. Environment variables:
   REPO_NAME         — repository name
   GITHUB_RUN_ID     — Actions run ID (for artifact URL in the seeds file)
 """
-import hashlib, secrets, json, os, sys, base64, tempfile
+import hashlib, secrets, json, os, sys, base64
 from datetime import datetime, timezone
 from pathlib import Path
 
-# RUNNER_TEMP es privado del job en Actions; fuera de Actions, el temporal del
-# sistema. Nunca una ruta fija y predecible como /tmp/<nombre-conocido>, que
-# cualquier usuario de la maquina puede leer o pre-crear.
-# English: RUNNER_TEMP is job-private on Actions; elsewhere the system temp dir.
-# Never a fixed predictable path, which any local user could read or pre-create.
-SEEDS_PATH = Path(os.environ.get("RUNNER_TEMP") or tempfile.gettempdir()) / "vigil-seeds.txt"
+# The regenerate workflow uploads this exact path. Do not print the file.
+SEEDS_PATH = Path("/tmp/centinel-seeds.txt")
 
 
 def write_seeds_file(text: str) -> None:
@@ -125,4 +114,4 @@ lines += [
     "=" * 62,
 ]
 write_seeds_file("\n".join(lines) + "\n")
-print(f"Seeds file written to {SEEDS_PATH} (mode 0600, do NOT upload as artifact)")
+print("Key file written. This script does not print the keys.")

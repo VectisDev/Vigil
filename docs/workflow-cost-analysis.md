@@ -9,7 +9,7 @@ All Vigil workflows together use ~5 minutes of GitHub Actions per month, leaving
 ## Workflow Breakdown
 
 ### 1. Election Gossip via GitHub Issues
-**File:** `.github/workflows/election-gossip-github.yml`
+**File:** not in this repository. The sketch was election gossip via GitHub Issues.
 
 ```yaml
 on:
@@ -36,7 +36,7 @@ on:
 - **Total per run: ~30 seconds**
 
 ### 2. Gossip Archive Release
-**File:** `.github/workflows/gossip-archive-release.yml`
+**File:** not in this repository. The sketch was a weekly gossip archive.
 
 ```yaml
 on:
@@ -114,7 +114,7 @@ on:
 - **Total per run: ~20 seconds**
 
 ### 5. GPU Batch Validation (Optional)
-**File:** `.github/workflows/gpu-batch-validation.yml`
+**File:** not in this repository. The sketch was a GPU batch check.
 
 ```yaml
 on:

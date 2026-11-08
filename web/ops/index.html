@@ -1016,9 +1016,9 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
               <button class="hdr-btn primary" style="background:var(--bad);border-color:var(--bad)" onclick="doRegenerate()" id="btn-regen-confirm"><span data-lang="es">Sí, regenerar ahora</span><span data-lang="en">Yes, regenerate now</span></button>
             </div>
           </div>
-          <button class="hdr-btn" onclick="document.getElementById('regen-confirm').style.display='block'" id="btn-regen">
-            <span data-lang="es">Regenerar seeds y descargar nuevo PDF</span><span data-lang="en">Regenerate seeds and download new PDF</span>
-          </button>
+          <a class="hdr-btn" id="btn-regen" href="https://github.com/VectisDev/Vigil/actions/workflows/regenerate-seeds.yml">
+            <span data-lang="es">Regenerar claves</span><span data-lang="en">Regenerate keys</span>
+          </a>
         </div>
       </div>
 
@@ -1744,6 +1744,12 @@ const REPO_OWNER = (()=>{
   try{ const u=new URL(location.href); return u.hostname.split('.')[0]; }catch{return '';}
 })();
 const REPO_NAME = 'centinel';
+const regenLink = document.getElementById('btn-regen');
+if (regenLink && REPO_OWNER) {
+  const parts = location.pathname.split('/').filter(Boolean);
+  const repo = parts[0] || 'Vigil';
+  regenLink.href = 'https://github.com/' + REPO_OWNER + '/' + repo + '/actions/workflows/regenerate-seeds.yml';
+}
 const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
 const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
