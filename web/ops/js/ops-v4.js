@@ -564,6 +564,8 @@ function v4CloseSheet(afterId) {
   const sheet = v4$('#sheet');
   if (sheet && sheet.open && typeof sheet.close === 'function') sheet.close();
   else sheet?.removeAttribute('open');
+  const target = afterId ? document.getElementById(afterId) : null;
+  if (target && document.activeElement !== target) target.focus();
 }
 
 async function v4AskNode(path) {
@@ -853,8 +855,11 @@ function v4OnKey(e) {
 }
 
 function v4FocusReturn() {
-  const target = V4.focusAfterClose
-    ? document.getElementById(V4.focusAfterClose)
+  const requested = V4.focusAfterClose;
+  const current = document.activeElement;
+  if (!requested && current && current.id && current.id !== 'sheet-confirm' && current.id !== 'sheet-cancel') return;
+  const target = requested
+    ? document.getElementById(requested)
     : (V4.returnFocus && V4.returnFocus.isConnected && !V4.returnFocus.disabled ? V4.returnFocus : document.getElementById('hero-headline'));
   (target || document.getElementById('hero-headline'))?.focus();
   V4.focusAfterClose = null;
