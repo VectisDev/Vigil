@@ -34,9 +34,13 @@ DEFAULT_CONFIG_PATH = Path("command_center/config.yaml")
 #   - "1" / "true" / "on": always enabled (assumes swarm is running).
 #   - "0" / "false" / "off": always disabled regardless of swarm state.
 # This protects the CNE endpoint from collective overload across the swarm.
-_SWARM_COOP_SETTING = os.getenv("VIGIL_SWARM_COOPERATIVE", os.getenv("CENTINEL_SWARM_COOPERATIVE", "auto")).strip().lower()
+_SWARM_COOP_SETTING = (
+    os.getenv("VIGIL_SWARM_COOPERATIVE", os.getenv("CENTINEL_SWARM_COOPERATIVE", "auto")).strip().lower()
+)
 _SWARM_PORT = os.getenv("VIGIL_PORT", os.getenv("CENTINEL_PORT", "8000"))
-_SWARM_FRESHNESS_SECS = int(os.getenv("VIGIL_SWARM_FRESHNESS_SECS", os.getenv("CENTINEL_SWARM_FRESHNESS_SECS", "240")))  # 4 min default
+_SWARM_FRESHNESS_SECS = int(
+    os.getenv("VIGIL_SWARM_FRESHNESS_SECS", os.getenv("CENTINEL_SWARM_FRESHNESS_SECS", "240"))
+)  # 4 min default
 DEFAULT_RETRY_PATH = Path("config/prod/retry_config.yaml")
 DEFAULT_OUTPUT_PATH = Path("data/collector_latest.json")
 
@@ -155,9 +159,7 @@ def fetch_json_with_retry(
     for attempt in range(1, max_attempts + 1):
         try:
             headers = {
-                "User-Agent": (
-                    random.choice(user_agents) if user_agents else USER_AGENT
-                ),
+                "User-Agent": (random.choice(user_agents) if user_agents else USER_AGENT),
                 "Accept": "application/json",
             }
             if proxy_url:

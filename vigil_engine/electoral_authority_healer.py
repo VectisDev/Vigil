@@ -20,8 +20,9 @@ from typing import Any, Optional
 from urllib.parse import urljoin
 
 import requests  # ponytail: retained for _CertPinningAdapter.assert_fingerprint (SHA-256 TLS pin);
-                # httpx does not support urllib3-style assert_fingerprint natively.
-                # Migrate to httpx with a custom SSLContext transport when httpx adds fingerprint pinning.
+
+# httpx does not support urllib3-style assert_fingerprint natively.
+# Migrate to httpx with a custom SSLContext transport when httpx adds fingerprint pinning.
 import yaml
 from requests.adapters import HTTPAdapter
 
@@ -44,6 +45,7 @@ class _CertPinningAdapter(HTTPAdapter):
         kwargs["assert_fingerprint"] = self._fingerprint
         super().init_poolmanager(*args, **kwargs)
 
+
 def _build_country_departments() -> tuple[list[str], dict[str, str]]:
     """Load expected departments and code map from the active country preset.
 
@@ -52,6 +54,7 @@ def _build_country_departments() -> tuple[list[str], dict[str, str]]:
     """
     try:
         import sys
+
         _src = os.path.join(os.path.dirname(__file__), "..", "src")
         if _src not in sys.path:
             sys.path.insert(0, _src)
@@ -74,18 +77,45 @@ def _build_country_departments() -> tuple[list[str], dict[str, str]]:
     except Exception:
         # Hardcoded HN fallback — only reached if countries.py is unavailable
         _hn_depts = [
-            "ATLANTIDA", "CHOLUTECA", "COLON", "COMAYAGUA", "COPAN", "CORTES",
-            "EL PARAISO", "FRANCISCO MORAZAN", "GRACIAS A DIOS", "INTIBUCA",
-            "ISLAS DE LA BAHIA", "LA PAZ", "LEMPIRA", "OCOTEPEQUE", "OLANCHO",
-            "SANTA BARBARA", "VALLE", "YORO",
+            "ATLANTIDA",
+            "CHOLUTECA",
+            "COLON",
+            "COMAYAGUA",
+            "COPAN",
+            "CORTES",
+            "EL PARAISO",
+            "FRANCISCO MORAZAN",
+            "GRACIAS A DIOS",
+            "INTIBUCA",
+            "ISLAS DE LA BAHIA",
+            "LA PAZ",
+            "LEMPIRA",
+            "OCOTEPEQUE",
+            "OLANCHO",
+            "SANTA BARBARA",
+            "VALLE",
+            "YORO",
         ]
         _hn_codes = {
-            "00": "NACIONAL", "01": "ATLANTIDA", "02": "CHOLUTECA", "03": "COLON",
-            "04": "COMAYAGUA", "05": "COPAN", "06": "CORTES", "07": "EL PARAISO",
-            "08": "FRANCISCO MORAZAN", "09": "GRACIAS A DIOS", "10": "INTIBUCA",
-            "11": "ISLAS DE LA BAHIA", "12": "LA PAZ", "13": "LEMPIRA",
-            "14": "OCOTEPEQUE", "15": "OLANCHO", "16": "SANTA BARBARA",
-            "17": "VALLE", "18": "YORO",
+            "00": "NACIONAL",
+            "01": "ATLANTIDA",
+            "02": "CHOLUTECA",
+            "03": "COLON",
+            "04": "COMAYAGUA",
+            "05": "COPAN",
+            "06": "CORTES",
+            "07": "EL PARAISO",
+            "08": "FRANCISCO MORAZAN",
+            "09": "GRACIAS A DIOS",
+            "10": "INTIBUCA",
+            "11": "ISLAS DE LA BAHIA",
+            "12": "LA PAZ",
+            "13": "LEMPIRA",
+            "14": "OCOTEPEQUE",
+            "15": "OLANCHO",
+            "16": "SANTA BARBARA",
+            "17": "VALLE",
+            "18": "YORO",
         }
         return _hn_depts, _hn_codes
 
@@ -110,7 +140,9 @@ PRESIDENTIAL_HINT_VALUES = {
     "nacional",
 }
 
-JSON_URL_PATTERN = re.compile(r"(?:https?:)?//[^\s\"'`<>]+?\.json(?:\?[^\s\"'`<>]*)?|/[^\s\"'`<>]+?\.json(?:\?[^\s\"'`<>]*)?")
+JSON_URL_PATTERN = re.compile(
+    r"(?:https?:)?//[^\s\"'`<>]+?\.json(?:\?[^\s\"'`<>]*)?|/[^\s\"'`<>]+?\.json(?:\?[^\s\"'`<>]*)?"
+)
 
 DEFAULT_TIMEOUT = 12
 DEFAULT_HEADERS = {
@@ -175,6 +207,7 @@ class ElectoralAuthorityHealer:
         # Tor: set CENTINEL_TOR_ENABLED=true (routes via socks5h://127.0.0.1:9050).
         # Proxy list: set PROXY_LIST=url1,url2 and CENTINEL_PRIVACY_MODE=true.
         from vigil_engine.proxy_manager import get_proxy_ua_manager
+
         self._proxy_mgr = get_proxy_ua_manager()
         _proxy_mode = self._proxy_mgr.stats["proxy_mode"]
         self.logger.info("cne_proxy_mode mode=%s", _proxy_mode)
@@ -193,9 +226,7 @@ class ElectoralAuthorityHealer:
         if cert_pin:
             adapter = _CertPinningAdapter(cert_pin)
             self.session.mount("https://", adapter)
-            self.logger.info(
-                "cne_cert_pinning_active fingerprint_prefix=%s", cert_pin[:12]
-            )
+            self.logger.info("cne_cert_pinning_active fingerprint_prefix=%s", cert_pin[:12])
         else:
             self.logger.critical(
                 "SECURITY: cne_cert_pinning_INACTIVE — CENTINEL_CNE_CERT_SHA256 is not set. "
@@ -242,7 +273,9 @@ class ElectoralAuthorityHealer:
                 "reason": message,
                 "elapsed_minutes": elapsed_minutes,
                 "argos_protocol": str(healing_cfg.get("argos_protocol", healing_cfg.get("animal_mode", "normal"))),
-                "recommended_interval_minutes": int(healing_cfg.get("recommended_interval_minutes", healing_cfg.get("interval_minutes", 30))),
+                "recommended_interval_minutes": int(
+                    healing_cfg.get("recommended_interval_minutes", healing_cfg.get("interval_minutes", 30))
+                ),
                 "trusted_for_production": bool(healing_cfg.get("trusted_for_production", False)),
                 "safe_mode_active": bool(healing_cfg.get("safe_mode_active", False)),
             }
@@ -281,7 +314,9 @@ class ElectoralAuthorityHealer:
             "environment": self.env_name,
             "result": result,
         }
-        scan_hash = hashlib.sha256(json.dumps(scan_hash_payload, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+        scan_hash = hashlib.sha256(
+            json.dumps(scan_hash_payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
 
         healing_cfg.update(
             {
@@ -318,7 +353,9 @@ class ElectoralAuthorityHealer:
 
         discovered = self._discover_endpoint_candidates(main_url)
         discovered_national, discovered_departments = self._validate_candidates(discovered)
-        existing_national, existing_departments = self._index_existing_endpoints(config["cne"].get("presidential_endpoints", []))
+        existing_national, existing_departments = self._index_existing_endpoints(
+            config["cne"].get("presidential_endpoints", [])
+        )
 
         validated, summary = self._build_resilient_endpoint_set(
             discovered_national=discovered_national,
@@ -403,6 +440,7 @@ class ElectoralAuthorityHealer:
         bundles: list[str] = []
         try:
             from bs4 import BeautifulSoup
+
             soup = BeautifulSoup(html, "html.parser")
             for script in soup.select("script[src]"):
                 src = script.get("src", "").strip()
@@ -508,7 +546,9 @@ class ElectoralAuthorityHealer:
             if payload_department and url_department and payload_department != url_department:
                 self.logger.warning(
                     "⚠️ Department content mismatch for %s: URL implies %s but payload reports %s — skipping",
-                    candidate, url_department, payload_department,
+                    candidate,
+                    url_department,
+                    payload_department,
                 )
                 continue
 
@@ -531,7 +571,11 @@ class ElectoralAuthorityHealer:
             if department and department in EXPECTED_DEPARTMENTS and department not in per_department:
                 per_department[department] = replace(record, level="DEPARTAMENTAL")
 
-        self.logger.info("✅ Individually validated discovered endpoints: national=%s, departmental=%s", bool(national), len(per_department))
+        self.logger.info(
+            "✅ Individually validated discovered endpoints: national=%s, departmental=%s",
+            bool(national),
+            len(per_department),
+        )
         return national, per_department
 
     def _index_existing_endpoints(
@@ -558,7 +602,11 @@ class ElectoralAuthorityHealer:
             if record.level.upper() == "NACIONAL" and national is None:
                 national = EndpointRecord(**{**record.__dict__, "level": "NACIONAL", "department": None})
                 continue
-            if record.department and record.department in EXPECTED_DEPARTMENTS and record.department not in per_department:
+            if (
+                record.department
+                and record.department in EXPECTED_DEPARTMENTS
+                and record.department not in per_department
+            ):
                 per_department[record.department] = EndpointRecord(**{**record.__dict__, "level": "DEPARTAMENTAL"})
         return national, per_department
 
@@ -930,7 +978,6 @@ class ElectoralAuthorityHealer:
 
         return scan_result.get("trusted_for_production", False) and not scan_result.get("safe_mode_active", False)
 
-
     @staticmethod
     def _resolve_argos_protocol_mode(consecutive_failures: int) -> str:
         """English: Map failure streak to ARGOS Protocol operational mode.
@@ -957,7 +1004,6 @@ class ElectoralAuthorityHealer:
         """
 
         return int(HONEY_BADGER_INTERVALS.get(mode, 30))
-
 
     @staticmethod
     def _parse_iso8601(value: Any) -> datetime | None:

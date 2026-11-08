@@ -62,7 +62,6 @@ Notes:
 #   - Integraciones / Integrations
 
 
-
 from __future__ import annotations
 
 import atexit
@@ -150,6 +149,7 @@ from vigil.defense.security_utils import (
 
 try:
     from cryptography.fernet import Fernet
+
     _HAS_CRYPTOGRAPHY = True
 except BaseException as exc:  # noqa: BLE001 – PanicException (pyo3) is not an Exception subclass
     if isinstance(exc, (KeyboardInterrupt, SystemExit)):
@@ -547,7 +547,6 @@ class BackupManager:
         }
         self._persist_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         self.maybe_backup(force=True)
-
 
     @staticmethod
     def _normalize_git_remote(remote: str) -> str:

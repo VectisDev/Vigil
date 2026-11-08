@@ -794,7 +794,11 @@ def process_sources(
                     _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
                     if isinstance(_raw_for_validation, dict):
                         _cne_errors = _validate_cne(_raw_for_validation, source_id)
-                        if _cne_errors and os.getenv("VIGIL_STRICT_VALIDATION", os.getenv("CENTINEL_STRICT_VALIDATION", "0")) == "1":
+                        if (
+                            _cne_errors
+                            and os.getenv("VIGIL_STRICT_VALIDATION", os.getenv("CENTINEL_STRICT_VALIDATION", "0"))
+                            == "1"
+                        ):
                             logger.error("suspect_response_rejected source=%s errors=%s", source_id, _cne_errors)
                             had_errors = True
                             continue
@@ -893,7 +897,9 @@ def _persist_snapshot_payload(
     # en lugar de persistir evidencia sin custodio criptográfico. Sin este
     # control, un atacante que comprometa el disco antes de configurar la
     # clave produce una cadena entera sin firma y nadie lo detecta.
-    require_signature = os.getenv("VIGIL_REQUIRE_SIGNATURE", os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false")).strip().lower() in (
+    require_signature = os.getenv(
+        "VIGIL_REQUIRE_SIGNATURE", os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false")
+    ).strip().lower() in (
         "1",
         "true",
         "yes",
