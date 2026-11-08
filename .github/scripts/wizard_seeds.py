@@ -46,10 +46,7 @@ def _existing_count() -> int:
 def main() -> int:
     if _existing_count() and os.environ.get("FORCE_REGENERATE") != "true":
         print("Hashes already exist — skipping generation.")
-        write_seeds_file(
-            "Hashes were already configured.\n"
-            "Set FORCE_REGENERATE=true to replace them.\n"
-        )
+        write_seeds_file("Hashes were already configured.\n" "Set FORCE_REGENERATE=true to replace them.\n")
         return 0
     registry = empty_registry()
     issued = issue_keys(registry, 12)
