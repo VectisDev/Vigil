@@ -1,993 +1,732 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VIGIL — Despliegue en GitHub</title>
-<link rel="icon" type="image/svg+xml" href="../assets/mark.svg">
+<title>VIGIL — Desplegar un nodo</title>
+<meta name="robots" content="noindex">
+<!--
+  ============================================================================
+  VIGIL — Asistente de despliegue / Deployment assistant
+  ============================================================================
+
+  ESPAÑOL
+  Esta página no hace ninguna llamada a la API de GitHub y no pide ningún
+  token. Antes sí: pedía un Personal Access Token con permisos `repo` y
+  `workflow`, creaba el repositorio, empujaba archivos y cifraba el token
+  dentro de `web/access.json` para que el panel pudiera usarlo después.
+
+  Eso estaba del revés en dos sentidos.
+
+  El primero es de seguridad: un sistema cuya premisa es que no tengas que
+  confiar en nadie no puede empezar pidiéndote una credencial con permiso de
+  escritura sobre toda tu cuenta. El envoltorio tampoco era mitigación: cifrar
+  el token bajo doce claves derivadas de los seeds lo convierte en una
+  distribución 12-de-12 del MISMO secreto, y quien tenga uno de los doce lo
+  abre.
+
+  El segundo es que ya no hace falta. Crear un repositorio desde la plantilla
+  dispara `bootstrap.yml` allí dentro, que hace con `GITHUB_TOKEN` —el del
+  propio repositorio, de alcance mínimo y vida de un job— todo lo que antes
+  hacía este asistente con tu token personal. El navegador en el que ya estás
+  autenticado es la credencial; no hay que acuñar otra.
+
+  Lo que esta página hace ahora: elegir país y año, enseñar qué implica
+  desplegar, llevarte al formulario de GitHub, y generar en TU navegador las
+  doce claves de acceso, que nunca salen de aquí. Solo sus hashes viajan.
+
+  Cero scripts de terceros. La única petición que emite es a
+  `../data/countries.json`, un archivo estático del mismo despliegue: no sale
+  de este origen y no revela tu IP a nadie más.
+
+  ENGLISH
+  This page makes no GitHub API call and asks for no token. It used to ask for
+  a Personal Access Token with `repo` and `workflow` scope, create the
+  repository, push files, and encrypt the token into `web/access.json` so the
+  panel could use it later.
+
+  That was backwards twice over. First, on security: a system whose premise is
+  that you need not trust anyone cannot open by asking you for a credential
+  with write access to your whole account, and the wrapper was not mitigation
+  -- encrypting the token under twelve keys derived from the seeds makes it a
+  12-of-12 distribution of the same secret, which any one of the twelve opens.
+  Second, it is no longer needed: creating a repository from the template fires
+  `bootstrap.yml` inside it, which does all of this with `GITHUB_TOKEN` -- the
+  repository's own, minimally scoped, alive for one job. The browser you are
+  already signed into is the credential; there is no second one to mint.
+
+  Zero third-party scripts. The only request it issues is to
+  `../data/countries.json`, a static file from the same deployment.
+  ============================================================================
+-->
 <style>
-:root {
-  --bg:#0f1115; --panel:#15171c; --panel2:#1a1d23;
-  --border:#24272e; --fg:#e7e9ec; --muted:#8b929c;
-  --accent:#6ea8fe; --ok:#57c08d; --bad:#df6b86; --warn:#d4b066;
+/* Blanco, rojo, negro y grises. Sin azul, sin amarillo, sin morado: el mismo
+   acuerdo que el panel OPS, y por la misma razón — entre el 4 y el 8 % de los
+   hombres no distingue el verde del rojo, así que el color no puede ser el
+   único portador de un estado.
+   English: white, red, black and greys, the same agreement as the OPS panel. */
+:root, [data-theme="light"] {
+  --bg:#ffffff; --panel:#ffffff; --panel2:#f5f5f5; --border:#e5e5e5;
+  --fg:#0a0a0a; --muted:#525252;
+  --red:#c40500; --red-text:#c40500; --red-soft:rgba(196,5,0,.10);
 }
-*{box-sizing:border-box;margin:0;padding:0;}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0a0a0a; --panel:#111111; --panel2:#171717; --border:#262626;
+    --fg:#f5f5f5; --muted:#a3a3a3;
+    --red:#e10600; --red-text:#ff6b63; --red-soft:rgba(225,6,0,.12);
+  }
+}
+[data-theme="dark"] {
+  --bg:#0a0a0a; --panel:#111111; --panel2:#171717; --border:#262626;
+  --fg:#f5f5f5; --muted:#a3a3a3;
+  --red:#e10600; --red-text:#ff6b63; --red-soft:rgba(225,6,0,.12);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
 body{
-  background:var(--bg);color:var(--fg);
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  min-height:100vh;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:40px 20px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  background:var(--bg);color:var(--fg);line-height:1.6;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;align-items:center;
+  padding:40px 16px;min-height:100vh;
 }
-.screen{display:none;width:100%;max-width:640px;}
-.screen.active{display:block;}
-.logo{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:8px;text-align:center;}
-h1{font-size:26px;font-weight:700;letter-spacing:-.03em;text-align:center;margin-bottom:6px;}
-.sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:28px;}
+[hidden]{display:none !important}
 
-/* progress dots */
-.dots{display:flex;gap:8px;justify-content:center;margin-bottom:28px;}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.2s;}
-.dot.active{background:var(--accent);}
-.dot.done{background:var(--ok);}
+.wrap{width:100%;max-width:660px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);text-align:center;margin-bottom:10px}
+h1{font-size:27px;font-weight:700;letter-spacing:-.025em;text-align:center;margin-bottom:8px}
+h2{font-size:15px;font-weight:700;margin:22px 0 8px}
+.sub{font-size:14.5px;color:var(--muted);text-align:center;margin-bottom:26px}
 
-/* card */
-.card{background:var(--panel);border:1px solid var(--border);
-  border-radius:14px;padding:32px 28px;margin-bottom:16px;}
+.steps{display:flex;gap:6px;justify-content:center;margin-bottom:26px;list-style:none}
+.steps li{width:34px;height:4px;border-radius:2px;background:var(--border)}
+.steps li[aria-current="step"]{background:var(--fg)}
+.steps li.done{background:var(--muted)}
 
-/* inputs */
-label{font-size:12px;font-weight:600;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;}
-input,select{
-  width:100%;background:var(--panel2);border:1px solid var(--border);
-  color:var(--fg);border-radius:8px;padding:10px 14px;font-size:14px;
-  outline:none;transition:.15s;margin-bottom:16px;
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:26px 24px;margin-bottom:14px}
+p{margin-bottom:12px;font-size:14.5px}
+p:last-child{margin-bottom:0}
+ul{margin:8px 0 14px 20px;font-size:14.5px}
+li{margin-bottom:5px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em;
+  background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+a{color:var(--red-text);text-decoration:underline;text-underline-offset:2px}
+strong{font-weight:700}
+
+.note{border:1px solid var(--border);border-left:3px solid var(--muted);
+  background:var(--panel2);border-radius:6px;padding:12px 14px;margin:14px 0;font-size:13.5px}
+.note.warn{border-left-color:var(--red);background:var(--red-soft)}
+.note b{display:block;margin-bottom:4px}
+
+label{display:block;font-size:12px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin:16px 0 6px}
+input[type=text],select{
+  width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--border);
+  border-radius:8px;padding:11px 12px;font-size:15px;font-family:inherit}
+input[type=text]:focus,select:focus,button:focus-visible,a:focus-visible,
+input[type=checkbox]:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+
+.countries{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:6px}
+.country{display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;
+  background:var(--panel2);border:1px solid var(--border);border-radius:9px;
+  padding:11px 12px;font:inherit;color:inherit}
+.country[aria-pressed="true"]{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.country:disabled{cursor:not-allowed;opacity:.55}
+.country .flag{font-size:19px;line-height:1}
+.country .nm{font-size:14px;font-weight:600}
+.country .meta{font-size:11.5px;color:var(--muted)}
+
+.consent{display:flex;gap:10px;align-items:flex-start;margin-top:16px;
+  border:1px solid var(--border);border-radius:8px;padding:13px 14px;background:var(--panel2)}
+.consent input{margin-top:3px;width:17px;height:17px;accent-color:var(--red);flex:none}
+.consent label{margin:0;text-transform:none;letter-spacing:0;font-size:13.5px;
+  font-weight:400;color:var(--fg);cursor:pointer}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+button.act,a.act{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  border-radius:8px;padding:11px 17px;font-size:14.5px;font-weight:600;
+  font-family:inherit;text-decoration:none;border:1px solid var(--border);
+  background:var(--panel2);color:var(--fg)}
+button.act.primary,a.act.primary{background:var(--red);border-color:var(--red);color:#ffffff}
+button.act:disabled{opacity:.45;cursor:not-allowed}
+.row .spacer{flex:1 1 auto}
+
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:7px;margin:14px 0}
+.key{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:9px 11px}
+.key .n{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.08em}
+.key .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13.5px;word-break:break-all;user-select:all}
+
+textarea{width:100%;min-height:76px;background:var(--panel2);color:var(--fg);
+  border:1px solid var(--border);border-radius:8px;padding:10px 11px;resize:vertical;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+
+.said{font-size:13px;color:var(--muted);margin-top:8px;min-height:19px}
+
+footer{font-size:12.5px;color:var(--muted);text-align:center;margin-top:8px;max-width:660px}
+
+@media (max-width:420px){
+  body{padding:24px 16px}
+  h1{font-size:23px}
+  .card{padding:20px 17px}
 }
-input:focus,select:focus{border-color:var(--accent);}
-input::placeholder{color:var(--muted);}
-
-/* buttons */
-.btn{background:var(--accent);color:#0f1115;border:none;
-  border-radius:8px;padding:11px 24px;font-size:14px;
-  font-weight:700;cursor:pointer;transition:.15s;display:inline-block;}
-.btn:hover{opacity:.88;}
-.btn:disabled{opacity:.4;cursor:not-allowed;}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
-.btn-ghost:hover{border-color:var(--fg);color:var(--fg);}
-.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:4px;}
-
-/* country grid */
-.country-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px;}
-.c-card{background:var(--panel);border:1px solid var(--border);
-  border-radius:10px;padding:14px 10px;cursor:pointer;
-  text-align:center;transition:.15s;user-select:none;}
-.c-card:hover{border-color:var(--accent);background:var(--panel2);transform:translateY(-2px);}
-.c-card.selected{border-color:var(--accent);background:var(--panel2);}
-.c-card .flag{font-size:28px;display:block;margin-bottom:6px;}
-.c-card .name{font-size:12px;font-weight:600;}
-.c-card .auth{font-size:10px;color:var(--muted);margin-top:2px;}
-
-/* progress bar */
-.pbar-wrap{background:var(--panel2);border-radius:999px;height:6px;margin:12px 0;overflow:hidden;}
-.pbar{height:100%;background:var(--accent);border-radius:999px;width:0;transition:width .4s ease;}
-.pstep{font-size:12px;color:var(--muted);min-height:18px;margin-bottom:20px;}
-
-/* log */
-.log{background:var(--panel2);border-radius:8px;padding:12px 14px;
-  font-size:11px;font-family:monospace;max-height:160px;overflow-y:auto;
-  color:var(--muted);margin-bottom:20px;display:none;}
-.log .ok{color:var(--ok);}
-.log .er{color:var(--bad);}
-
-/* alert boxes */
-.box{border-radius:8px;padding:14px 16px;font-size:13px;margin-bottom:16px;}
-.box-warn{background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.3);color:var(--warn);}
-.box-ok{background:rgba(87,192,141,.08);border:1px solid rgba(87,192,141,.3);color:var(--ok);}
-.box-info{background:rgba(110,168,254,.08);border:1px solid rgba(110,168,254,.3);color:var(--accent);}
-.box strong{display:block;margin-bottom:4px;}
-
-/* seed grid */
-.seed-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
-.seed-item{background:var(--panel2);border-radius:8px;padding:10px 12px;}
-.seed-num{font-size:10px;color:var(--muted);margin-bottom:2px;}
-.seed-val{font-family:monospace;font-size:12px;letter-spacing:.04em;color:var(--fg);}
-
-/* done links */
-.link-card{background:var(--panel);border:1px solid var(--border);
-  border-radius:10px;padding:14px 16px;margin-bottom:10px;
-  display:flex;align-items:center;gap:12px;}
-.link-card .icon{font-size:22px;}
-.link-card .lbl{font-size:12px;color:var(--muted);margin-bottom:2px;}
-.link-card a{color:var(--accent);font-size:13px;word-break:break-all;}
-
-/* hint link */
-.hint{font-size:12px;color:var(--muted);margin-top:4px;}
-.hint a{color:var(--accent);}
-
-/* ── RESPONSIVE ── */
-@media(max-width:480px){
-  body{padding:16px 10px}
-  .card{padding:20px 16px}
-  .seed-grid{grid-template-columns:1fr}
-  .btn-row{flex-direction:column;gap:8px}
-  .btn-row .btn,.btn-row .btn-ghost{width:100%;text-align:center;justify-content:center}
-  .link-card{flex-direction:column;align-items:flex-start;gap:8px}
-  .dots{gap:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+@media print{
+  body{padding:0;background:#fff;color:#000}
+  .card,.key{border-color:#999}
+  .row,.steps,footer,.consent{display:none !important}
 }
 </style>
 </head>
 <body>
 
-<!-- ── 1. Bienvenida ── -->
-<div class="screen active" id="s1">
-  <div class="logo">VIGIL — Despliegue automático</div>
-  <h1>Vigilancia electoral en 5 minutos</h1>
-  <p class="sub">Sin instalar nada. Todo queda en tu cuenta de GitHub.</p>
-  <div class="dots">
-    <div class="dot active"></div><div class="dot"></div>
-    <div class="dot"></div><div class="dot"></div>
-    <div class="dot"></div><div class="dot"></div>
-  </div>
-  <div class="card">
-    <div style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:20px;">
-      Este asistente creará automáticamente en tu cuenta de GitHub:
-      <ul style="margin:10px 0 0 18px;">
-        <li>Un repositorio de datos privado con hash chain inmutable</li>
-        <li>Workflows de GitHub Actions que descargan y auditan los datos del CNE cada 15 minutos</li>
-        <li>Un panel público de transparencia en GitHub Pages</li>
-        <li>Un panel de administración (OPS) protegido con seeds de alta entropía</li>
-      </ul>
-    </div>
-    <div class="box box-info" style="margin-bottom:20px;">
-      <strong>Requisitos</strong>
-      Una cuenta de GitHub gratuita · Acceso a internet · Este navegador
-    </div>
-    <div class="btn-row" style="justify-content:center;">
-      <button class="btn" onclick="go(2)">Comenzar <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg></button>
-    </div>
-  </div>
-</div>
+<div class="wrap">
 
-<!-- ── 2. Token GitHub ── -->
-<div class="screen" id="s2">
-  <div class="logo">VIGIL — Paso 1 de 4</div>
-  <h1>Conectar tu cuenta de GitHub</h1>
-  <p class="sub">Necesitamos un token para crear el repositorio en tu cuenta.</p>
-  <div class="dots">
-    <div class="dot done"></div><div class="dot active"></div>
-    <div class="dot"></div><div class="dot"></div>
-    <div class="dot"></div><div class="dot"></div>
-  </div>
+<!-- ── Paso 1 · Qué es, qué implica, y dónde ──────────────────────────────── -->
+<section class="screen" id="s1">
+  <p class="eyebrow">VIGIL · Paso 1 de 4</p>
+  <h1>Desplegar tu propio nodo</h1>
+  <p class="sub">Sin instalar nada, sin crear ningún token.</p>
+  <ol class="steps" aria-label="Progreso">
+    <li aria-current="step"></li><li></li><li></li><li></li>
+  </ol>
+
   <div class="card">
-    <label>Personal Access Token (Classic)</label>
-    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-      autocomplete="off" spellcheck="false">
-    <div class="hint" style="margin-top:-10px;margin-bottom:16px;">
-      Necesitas permisos: <strong>repo</strong> y <strong>workflow</strong>.
-      <a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Vigil+Deploy" target="_blank">
-        Crear token <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg>
+    <h2>Qué vas a tener</h2>
+    <ul>
+      <li>Un repositorio en tu cuenta con el sistema entero dentro.</li>
+      <li>Un panel público que reproduce el conjunto verificado de Honduras
+          2025 y <strong>comprueba su raíz de Merkle</strong>: si no coincide,
+          falla y lo dice.</li>
+      <li>Un panel de administración protegido por doce claves que se generan
+          en este navegador.</li>
+    </ul>
+
+    <h2>Qué <em>no</em> va a hacer</h2>
+    <p>No va a consultar a ninguna autoridad electoral. Un nodo nuevo arranca
+      en modo <code>REPLAY</code>: cero peticiones, ni ahora ni por horario.
+      Pasar a captura en vivo exige editar <code>.vigil/mode.yaml</code> a mano
+      y cumplir tres condiciones a la vez. Un interruptor cuyo defecto es
+      raspar una fuente está del revés.</p>
+
+    <div class="note warn">
+      <b>Antes del botón, esto</b>
+      Al desplegar, tu cuenta de GitHub queda públicamente asociada a este
+      proyecto: tu nombre de usuario, tu repositorio y tus ejecuciones de
+      Actions son visibles para cualquiera, y los registros de Actions son
+      públicos. Si estás en un contexto donde eso implica riesgo personal,
+      considera una cuenta dedicada sin datos personales, o no despliegues.
+    </div>
+
+    <label id="lbl-country">País a vigilar</label>
+    <div class="countries" id="countries" role="group" aria-labelledby="lbl-country">
+      <p class="hint" id="countries-loading">Cargando el catálogo de países…</p>
+    </div>
+    <p class="hint" id="country-note"></p>
+
+    <label for="year">Año electoral</label>
+    <input type="text" id="year" value="2029" inputmode="numeric" maxlength="4" spellcheck="false">
+    <p class="hint">El año que el nodo declara vigilar. Se puede cambiar después.</p>
+
+    <div class="consent">
+      <input type="checkbox" id="consent">
+      <label for="consent">He leído lo de arriba y acepto que mi cuenta de
+        GitHub quede públicamente asociada a este despliegue.</label>
+    </div>
+
+    <div class="row">
+      <span class="spacer"></span>
+      <button class="act primary" id="to2" disabled>Continuar</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── Paso 2 · Crear el repositorio ──────────────────────────────────────── -->
+<section class="screen" id="s2" hidden>
+  <p class="eyebrow">VIGIL · Paso 2 de 4</p>
+  <h1>Crear el repositorio</h1>
+  <p class="sub">Un formulario de GitHub, en tu cuenta, con tu sesión.</p>
+  <ol class="steps" aria-label="Progreso">
+    <li class="done"></li><li aria-current="step"></li><li></li><li></li>
+  </ol>
+
+  <div class="card">
+    <p>El botón abre el formulario propio de GitHub con el nombre ya puesto.
+      No se te pide ningún token: estás autenticado en este navegador, y eso es
+      toda la credencial que hace falta.</p>
+
+    <div class="row">
+      <a class="act primary" id="generate" href="#" target="_blank" rel="noopener">
+        Usar esta plantilla en GitHub
       </a>
     </div>
-    <label>Usuario u organización dueña del repo</label>
-    <input type="text" id="ghUser" placeholder="mi-usuario o mi-org" autocomplete="off" spellcheck="false">
-    <div id="token-error" class="box box-warn" style="display:none;"></div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="go(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Atrás</button>
-      <button class="btn" id="btnVerifyToken" onclick="verifyToken()">Verificar <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg></button>
+
+    <div class="note">
+      <b>Qué ocurre nada más crearlo</b>
+      Crear un repositorio desde una plantilla dispara un <code>push</code>, y
+      a diferencia de un fork una plantilla arranca con Actions vivos. Ese push
+      ejecuta <code>bootstrap.yml</code> en <em>tu</em> repositorio: retira los
+      datos del operador anterior, genera la configuración de tu país dentro del
+      techo de 19 endpoints por ciclo, acuña doce claves y publica el panel.
+      Tarda un par de minutos.
+    </div>
+
+    <label for="repo">Qué repositorio creaste</label>
+    <input type="text" id="repo" placeholder="tu-usuario/vigil-hn" spellcheck="false"
+      autocomplete="off" autocapitalize="off">
+    <p class="hint">Dueño y nombre, separados por una barra. Hace falta para
+      construir los enlaces del paso siguiente; no se envía a ninguna parte.</p>
+
+    <div class="row">
+      <button class="act" id="back1">Atrás</button>
+      <span class="spacer"></span>
+      <button class="act primary" id="to3" disabled>Continuar</button>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ── 3. País + Configuración ── -->
-<div class="screen" id="s3">
-  <div class="logo">VIGIL — Paso 2 de 4</div>
-  <h1>Configura tu nodo</h1>
-  <p class="sub">Elige el país y el nombre del repositorio de datos.</p>
-  <div class="dots">
-    <div class="dot done"></div><div class="dot done"></div>
-    <div class="dot active"></div><div class="dot"></div>
-    <div class="dot"></div><div class="dot"></div>
-  </div>
+<!-- ── Paso 3 · Las doce claves ───────────────────────────────────────────── -->
+<section class="screen" id="s3" hidden>
+  <p class="eyebrow">VIGIL · Paso 3 de 4</p>
+  <h1>Tus doce claves de acceso</h1>
+  <p class="sub">Generadas aquí. No salen de este navegador.</p>
+  <ol class="steps" aria-label="Progreso">
+    <li class="done"></li><li class="done"></li><li aria-current="step"></li><li></li>
+  </ol>
+
   <div class="card">
-    <label>País a monitorear</label>
-    <div class="country-grid">
-      <div class="c-card selected" id="cc-HN" onclick="selCountry('HN')">
-        <span class="flag">🇭🇳</span>
-        <span class="name">Honduras</span>
-        <span class="auth">TSE / CNE</span>
-      </div>
-      <div class="c-card" id="cc-GT" onclick="selCountry('GT')" title="Próximamente">
-        <span class="flag">🇬🇹</span>
-        <span class="name">Guatemala</span>
-        <span class="auth" style="color:var(--border)">Próximamente</span>
-      </div>
-      <div class="c-card" id="cc-SV" onclick="selCountry('SV')" title="Próximamente">
-        <span class="flag">🇸🇻</span>
-        <span class="name">El Salvador</span>
-        <span class="auth" style="color:var(--border)">Próximamente</span>
-      </div>
-      <div class="c-card" id="cc-VE" onclick="selCountry('VE')" title="Próximamente">
-        <span class="flag">🇻🇪</span>
-        <span class="name">Venezuela</span>
-        <span class="auth" style="color:var(--border)">Próximamente</span>
-      </div>
+    <div class="note warn">
+      <b>Si cierras esta pestaña sin guardarlas, se pierden</b>
+      Se generan con <code>crypto.getRandomValues</code> en tu navegador. De
+      aquí solo viajan sus hashes SHA-256, que es lo único que el repositorio
+      guarda: con un hash no se puede entrar.
     </div>
-    <label>Nombre del repositorio de datos</label>
-    <input type="text" id="repoName" value="centinel-hn-datos"
-      placeholder="centinel-hn-datos" spellcheck="false"
-      oninput="updateRepoPreview()">
-    <div class="hint" style="margin-top:-10px;margin-bottom:16px;" id="repo-preview">
-      Se creará: <strong id="rp-full">tu-usuario/centinel-hn-datos</strong>
-    </div>
-    <label>Año electoral</label>
-    <select id="elecYear">
-      <option value="2025" selected>2025</option>
-      <option value="2026">2026</option>
-      <option value="2027">2027</option>
-    </select>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="go(2)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Atrás</button>
-      <button class="btn" onclick="go(4)">Siguiente <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg></button>
-    </div>
-  </div>
-</div>
 
-<!-- ── 4. Despliegue ── -->
-<div class="screen" id="s4">
-  <div class="logo">VIGIL — Paso 3 de 4</div>
-  <h1>Desplegando en GitHub</h1>
-  <p class="sub">Creando tu repositorio de datos y configurando los workflows…</p>
-  <div class="dots">
-    <div class="dot done"></div><div class="dot done"></div>
-    <div class="dot done"></div><div class="dot active"></div>
-    <div class="dot"></div><div class="dot"></div>
+    <div class="keys" id="keys" aria-label="Claves de acceso"></div>
+
+    <div class="row">
+      <button class="act primary" id="download">Descargar como archivo</button>
+      <button class="act" id="print">Vista para imprimir</button>
+      <button class="act" id="regen">Generar otras doce</button>
+    </div>
+    <p class="said" id="said-keys" role="status"></p>
+
+    <h2>Dárselas a tu nodo</h2>
+    <p>Este paso es opcional y <strong>es el camino preferible</strong>. Si lo
+      haces, las claves en claro no llegan nunca a una máquina de GitHub: solo
+      sus hashes. Si no lo haces, las doce que acuñó el arranque están en un
+      artifact de esa ejecución, y solo durante un día.</p>
+
+    <ol style="margin:8px 0 14px 20px;font-size:14.5px">
+      <li style="margin-bottom:5px">Copia los doce hashes.</li>
+      <li style="margin-bottom:5px">Abre <code>Bootstrap a node</code> en tu
+        repositorio, pulsa <em>Run workflow</em> y pégalos en
+        <code>seed_hashes</code>.</li>
+    </ol>
+
+    <textarea id="hashes" readonly aria-label="Los doce hashes SHA-256"></textarea>
+    <div class="row">
+      <button class="act primary" id="copy">Copiar los doce hashes</button>
+      <a class="act" id="dispatch" href="#" target="_blank" rel="noopener">Abrir el workflow</a>
+    </div>
+    <p class="said" id="said-copy" role="status"></p>
+
+    <div class="note">
+      <b>Por qué hay que pegarlos y no basta el enlace</b>
+      El formulario <em>Run workflow</em> de GitHub no acepta parámetros por
+      URL, así que ningún enlace puede llevar los hashes dentro. Se pide desde
+      2022 y sigue sin existir. Lo honesto es decirlo y darte el botón de
+      copiar, en vez de un enlace que parezca hacerlo y no lo haga.
+    </div>
+
+    <div class="row">
+      <button class="act" id="back2">Atrás</button>
+      <span class="spacer"></span>
+      <button class="act primary" id="to4" disabled>Continuar</button>
+    </div>
   </div>
+</section>
+
+<!-- ── Paso 4 · El paso que no se puede automatizar ───────────────────────── -->
+<section class="screen" id="s4" hidden>
+  <p class="eyebrow">VIGIL · Paso 4 de 4</p>
+  <h1>Activar Pages</h1>
+  <p class="sub">Un interruptor, y es el único paso manual que queda.</p>
+  <ol class="steps" aria-label="Progreso">
+    <li class="done"></li><li class="done"></li><li class="done"></li>
+    <li aria-current="step"></li>
+  </ol>
+
   <div class="card">
-    <div class="pbar-wrap"><div class="pbar" id="pbar"></div></div>
-    <div class="pstep" id="pstep">Iniciando…</div>
-    <div class="log" id="deploy-log"></div>
-    <div id="deploy-error" class="box box-warn" style="display:none;"></div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="go(3)" id="btnBack4"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m15 18-6-6 6-6"/></svg> Atrás</button>
-      <button class="btn" id="btnDeploy" onclick="startDeploy()">Desplegar <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg></button>
+    <p>En tu repositorio: <strong>Settings → Pages → Source:
+      <em>GitHub Actions</em></strong>.</p>
+
+    <div class="row">
+      <a class="act primary" id="pages-link" href="#" target="_blank" rel="noopener">
+        Abrir Settings → Pages
+      </a>
+    </div>
+
+    <h2>Por qué no lo hace el arranque por ti</h2>
+    <p>Buscamos la forma de automatizarlo y no existe. Las tres vías están
+      cerradas, y conviene que lo sepas por escrito en vez de preguntarte si es
+      pereza:</p>
+    <ul>
+      <li><code>POST /repos/{owner}/{repo}/pages</code> exige permiso
+        <code>Administration: write</code>, que <code>GITHUB_TOKEN</code> no
+        tiene y no puede recibir.</li>
+      <li><code>actions/configure-pages</code> tiene una entrada
+        <code>enablement</code>, pero su propio <code>action.yml</code> dice:
+        <em>«This option requires a token other than <code>GITHUB_TOKEN</code>
+        to be provided.»</em></li>
+      <li>La vía heredada de <code>gh-pages</code> tampoco:
+        <em>«Commits pushed by a workflow using the GITHUB_TOKEN don't trigger
+        a Pages build.»</em></li>
+    </ul>
+    <p>La alternativa sería pedirte un token personal con permiso de
+      administración sobre tu cuenta. Para este proyecto eso cuesta más de lo
+      que ahorra, así que el interruptor lo das tú.</p>
+
+    <h2>Cuando el panel responda</h2>
+    <div class="row">
+      <a class="act" id="panel-link" href="#" target="_blank" rel="noopener">Tu panel público</a>
+      <a class="act" id="ops-link" href="#" target="_blank" rel="noopener">Tu panel de administración</a>
+      <a class="act" id="actions-link" href="#" target="_blank" rel="noopener">Tus ejecuciones</a>
+    </div>
+    <p class="hint">El arranque abre además un Issue en tu repositorio con este
+      mismo paso y con lo que ya quedó hecho. Ciérralo cuando el panel
+      responda.</p>
+
+    <div class="row">
+      <button class="act" id="back3">Atrás</button>
     </div>
   </div>
+</section>
+
 </div>
 
-<!-- ── 5. Seeds PDF ── -->
-<div class="screen" id="s5">
-  <div class="logo">VIGIL — Paso 4 de 4</div>
-  <h1>Descarga tus seeds de acceso</h1>
-  <p class="sub">Son las llaves del panel de administración. Guárdalas en un lugar seguro.</p>
-  <div class="dots">
-    <div class="dot done"></div><div class="dot done"></div>
-    <div class="dot done"></div><div class="dot done"></div>
-    <div class="dot active"></div><div class="dot"></div>
-  </div>
-  <div class="card">
-    <div class="box box-warn" style="margin-bottom:16px;">
-      <strong><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> Lee esto antes de continuar</strong>
-      Estos 12 seeds son generados ahora mismo en tu navegador y
-      <strong>nunca se almacenan</strong> — solo sus hashes van al repo.
-      Si cierras esta pestaña sin descargar el PDF, deberás regenerar seeds nuevos.
-    </div>
-    <div class="seed-grid" id="seed-grid"><!-- llenado por JS --></div>
-    <div class="btn-row" style="justify-content:center;margin-bottom:16px;">
-      <button class="btn" onclick="downloadPDF()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg> Descargar PDF de seeds</button>
-    </div>
-    <div id="pdf-ok" class="box box-ok" style="display:none;">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> PDF descargado. Cuando lo hayas guardado en un lugar seguro, continúa.
-    </div>
-    <div class="btn-row">
-      <button class="btn" id="btnFinish" onclick="go(6)" disabled>
-        Ir a mi panel <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ── 6. Listo ── -->
-<div class="screen" id="s6">
-  <div class="logo">VIGIL — ¡Listo!</div>
-  <h1>Tu nodo está activo</h1>
-  <p class="sub">GitHub Actions comenzará a monitorear el CNE en los próximos 15 minutos.</p>
-  <div class="dots">
-    <div class="dot done"></div><div class="dot done"></div>
-    <div class="dot done"></div><div class="dot done"></div>
-    <div class="dot done"></div><div class="dot done"></div>
-  </div>
-  <div id="done-links"><!-- llenado por JS --></div>
-  <div class="box box-info" style="margin-top:16px;">
-    <strong>Siguiente paso</strong>
-    Activa GitHub Pages en tu repositorio de datos:
-    Settings → Pages → Source: <em>GitHub Actions</em>
-    (o espera — el primer workflow lo activa automáticamente).
-  </div>
-</div>
-
-<!-- jsPDF desde CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<footer>
+  Esta página no pide ningún token y no llama a la API de GitHub.
+  Lo único que descarga es el catálogo de países de este mismo despliegue.
+</footer>
 
 <script>
-// ── Estado global ──────────────────────────────────────────────────────────
-const STATE = {
-  token: '', user: '', country: 'HN', repo: 'centinel-hn-datos', year: '2025',
-  seeds: [], repoUrl: '', pagesUrl: '',
-};
+'use strict';
 
-// ── País ───────────────────────────────────────────────────────────────────
-const COUNTRIES = {
-  HN: { flag:'🇭🇳', name:'Honduras', auth:'TSE / CNE', available:true },
-  GT: { flag:'🇬🇹', name:'Guatemala', auth:'TSE Guatemala', available:false },
-  SV: { flag:'🇸🇻', name:'El Salvador', auth:'TSE El Salvador', available:false },
-  VE: { flag:'🇻🇪', name:'Venezuela', auth:'CNE Venezuela', available:false },
-};
-
-function selCountry(code) {
-  if (!COUNTRIES[code].available) return;
-  STATE.country = code;
-  document.querySelectorAll('.c-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('cc-'+code).classList.add('selected');
-  const repo = 'centinel-'+code.toLowerCase()+'-datos';
-  document.getElementById('repoName').value = repo;
-  STATE.repo = repo;
-  updateRepoPreview();
-}
-
-function updateRepoPreview() {
-  STATE.repo = document.getElementById('repoName').value.trim()
-    .replace(/[^a-z0-9_.-]/gi, '-').toLowerCase() || 'centinel-datos';
-  document.getElementById('rp-full').textContent =
-    (STATE.owner || STATE.user || 'tu-usuario') + '/' + STATE.repo;
-}
-
-// ── Verificar token ─────────────────────────────────────────────────────────
-async function verifyToken() {
-  const token = document.getElementById('ghToken').value.trim();
-  const user  = document.getElementById('ghUser').value.trim();
-  const errBox = document.getElementById('token-error');
-  errBox.style.display = 'none';
-
-  if (!token || !user) {
-    errBox.textContent = 'Introduce el token y tu nombre de usuario.';
-    errBox.style.display = 'block';
-    return;
-  }
-
-  document.getElementById('btnVerifyToken').disabled = true;
-  document.getElementById('btnVerifyToken').textContent = 'Verificando…';
-
+// ── De dónde sale la plantilla ───────────────────────────────────────────────
+// Se deriva del sitio que sirve esta página en vez de ir a fuego. Una
+// constante deja de ser cierta en cuanto el repositorio se renombra o se
+// transfiere, y entonces el asistente manda a la gente a un 404; la
+// derivación sobrevive a las dos cosas.
+// English: derived from the site serving this page rather than hardcoded. A
+// constant stops being true the moment the repository is renamed.
+const TEMPLATE = (function () {
+  const fallback = { owner: 'VectisDev', repo: 'Vigil' };
   try {
-    const r = await fetch('https://api.github.com/user', {
-      headers: { Authorization: 'Bearer '+token, 'X-GitHub-Api-Version': '2022-11-28' }
-    });
-    if (!r.ok) throw new Error('Token inválido (HTTP '+r.status+')');
-    const data = await r.json();
-    STATE.token = token;
-    STATE.user  = data.login;
-    STATE.owner = user.trim();
-    document.getElementById('rp-full').textContent = STATE.owner+'/'+STATE.repo;
-    go(3);
-  } catch(e) {
-    errBox.textContent = 'Error: ' + e.message;
-    errBox.style.display = 'block';
-  } finally {
-    document.getElementById('btnVerifyToken').disabled = false;
-    document.getElementById('btnVerifyToken').innerHTML = 'Verificar <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m9 18 6-6-6-6"/></svg>';
+    const host = location.hostname;
+    const parts = location.pathname.split('/').filter(Boolean);
+    const match = /^([^.]+)\.github\.io$/i.exec(host);
+    if (!match) return fallback;
+    // Sitio de proyecto: /<repo>/setup/. Sitio de usuario: /setup/.
+    if (parts.length >= 2) return { owner: match[1], repo: parts[0] };
+    return { owner: match[1], repo: match[1] + '.github.io' };
+  } catch (e) {
+    return fallback;
   }
+})();
+
+const NUM_KEYS = 12;
+const state = { country: null, catalog: [], keys: [], hashes: [] };
+
+const $ = function (id) { return document.getElementById(id); };
+
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ── Deploy ──────────────────────────────────────────────────────────────────
-let deploying = false;
-
-async function startDeploy() {
-  if (deploying) return;
-  STATE.repo = document.getElementById('repoName').value.trim() || STATE.repo;
-  STATE.year = document.getElementById('elecYear').value;
-  deploying = true;
-
-  document.getElementById('btnDeploy').disabled = true;
-  document.getElementById('btnBack4').disabled = true;
-  document.getElementById('deploy-error').style.display = 'none';
-  document.getElementById('deploy-log').style.display = 'block';
-
-  const steps = [
-    [10, 'Creando repositorio de datos…',       () => createRepo()],
-    [25, 'Configurando variables del repo…',     () => setRepoVars()],
-    [40, 'Pusheando workflow de recolección…',   () => pushCollectWorkflow()],
-    [55, 'Pusheando workflow de GitHub Pages…',  () => pushPagesWorkflow()],
-    [70, 'Pusheando panel de transparencia…',    () => pushDashboard()],
-    [82, 'Generando seeds y hashes PBKDF2…',     () => generateAndPushSeeds()],
-    [92, 'Activando GitHub Pages…',              () => enablePages()],
-    [100,'¡Listo!',                              () => Promise.resolve()],
-  ];
-
-  try {
-    for (const [pct, label, fn] of steps) {
-      logLine(label);
-      setPbar(pct, label);
-      await fn();
-      logLine('✓ ' + label, 'ok');
-    }
-    go(5);
-    renderSeeds();
-  } catch(e) {
-    const errBox = document.getElementById('deploy-error');
-    errBox.textContent = 'Error: ' + e.message;
-    errBox.style.display = 'block';
-    logLine('✗ ' + e.message, 'er');
-    document.getElementById('btnBack4').disabled = false;
-  } finally {
-    deploying = false;
-    document.getElementById('btnDeploy').disabled = false;
-  }
+function say(id, message) {
+  const el = $(id);
+  if (el) el.textContent = message;
 }
 
-function setPbar(pct, label) {
-  document.getElementById('pbar').style.width = pct + '%';
-  document.getElementById('pstep').textContent = label;
-}
-
-function logLine(msg, cls='') {
-  const log = document.getElementById('deploy-log');
-  const div = document.createElement('div');
-  if (cls) div.className = cls;
-  div.textContent = msg;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
-
-// ── GitHub API helper ───────────────────────────────────────────────────────
-async function gh(method, path, body) {
-  const r = await fetch('https://api.github.com' + path, {
-    method,
-    headers: {
-      Authorization: 'Bearer ' + STATE.token,
-      'Content-Type': 'application/json',
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!r.ok) {
-    const err = await r.json().catch(() => ({}));
-    throw new Error((err.message || r.statusText) + ' ['+r.status+']');
-  }
-  return r.status === 204 ? null : r.json();
-}
-
-function b64(str) {
-  return btoa(unescape(encodeURIComponent(str)));
-}
-
-// ── Deploy steps ────────────────────────────────────────────────────────────
-
-async function createRepo() {
-  const owner = STATE.owner || STATE.user;
-  const isOrg = owner.toLowerCase() !== STATE.user.toLowerCase();
-  try {
-    const endpoint = isOrg ? `/orgs/${owner}/repos` : '/user/repos';
-    await gh('POST', endpoint, {
-      name: STATE.repo,
-      description: 'VIGIL — Auditoría electoral automatizada ' + STATE.country + ' ' + STATE.year,
-      private: false,
-      auto_init: true,
-    });
-  } catch(e) {
-    if (e.message.includes('already exists') || e.message.includes('422')) {
-      logLine('  (repositorio ya existe, continuando…)');
-      return;
-    }
-    throw e;
-  }
-  await sleep(1500);
-  STATE.repoUrl = 'https://github.com/' + owner + '/' + STATE.repo;
-}
-
-async function setRepoVars() {
-  const owner = STATE.owner || STATE.user;
-  try {
-    await gh('POST', `/repos/${owner}/${STATE.repo}/actions/variables`, {
-      name: 'CENTINEL_COUNTRY', value: STATE.country });
-    await gh('POST', `/repos/${owner}/${STATE.repo}/actions/variables`, {
-      name: 'CENTINEL_YEAR', value: STATE.year });
-  } catch(e) {
-    // Variables API might require different perms — not fatal
-    logLine('  (variables: '+e.message+' — continuando)');
-  }
-}
-
-async function pushFile(path, content, message) {
-  const owner = STATE.owner || STATE.user;
-  let sha;
-  try {
-    const existing = await gh('GET', `/repos/${owner}/${STATE.repo}/contents/${path}`);
-    sha = existing.sha;
-  } catch(_) { sha = undefined; }
-
-  await gh('PUT', `/repos/${owner}/${STATE.repo}/contents/${path}`, {
-    message,
-    content: b64(content),
-    ...(sha ? { sha } : {}),
-  });
-}
-
-async function pushCollectWorkflow() {
-  const country = STATE.country;
-  const year = STATE.year;
-  const wf = `name: Vigil Collect
-on:
-  schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-jobs:
-  collect:
-    runs-on: ubuntu-latest
-    timeout-minutes: 14
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: \${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout VIGIL
-        uses: actions/checkout@v4
-        with:
-          repository: VectisDev/vigil
-          path: _engine
-          ref: main
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: pip
-          cache-dependency-path: _engine/requirements-prod.txt
-
-      - name: Install dependencies
-        run: |
-          pip install -q -r _engine/requirements-prod.txt
-          pip install -q -e _engine
-
-      - name: Run pipeline
-        env:
-          CENTINEL_COUNTRY: ${country}
-          CENTINEL_YEAR: ${year}
-          CENTINEL_DATA_DIR: \${{ github.workspace }}/data
-          PYTHONPATH: \${{ github.workspace }}/_engine/src
-        run: |
-          mkdir -p data hashes web/data
-          cd _engine
-          python scripts/run_pipeline.py --once || true
-          python scripts/export_static_snapshot.py 2>/dev/null || true
-          [ -f web/data/snapshot.json ] && cp web/data/snapshot.json \${{ github.workspace }}/web/data/ || true
-
-      - name: Commit data
-        run: |
-          git config user.email "centinel-bot@users.noreply.github.com"
-          git config user.name "Vigil Bot"
-          git add data/ hashes/ web/data/ 2>/dev/null || true
-          git diff --staged --quiet || git commit -m "data: \$(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
-          git push
-`;
-  await pushFile('.github/workflows/collect.yml', wf,
-    'ci: add Vigil collect workflow');
-}
-
-async function pushPagesWorkflow() {
-  const wf = `name: Deploy Pages
-on:
-  push:
-    branches: [main]
-    paths: ['web/**']
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
-jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: web
-      - id: deployment
-        uses: actions/deploy-pages@v4
-`;
-  await pushFile('.github/workflows/pages.yml', wf,
-    'ci: add GitHub Pages deploy workflow');
-}
-
-async function pushDashboard() {
-  const raw = `https://raw.githubusercontent.com/${STATE.owner||STATE.user}/${STATE.repo}/main/web/data/snapshot.json`;
-  const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VIGIL — ${STATE.country} ${STATE.year}</title>
-<style>
-:root{--bg:#0f1115;--panel:#15171c;--border:#24272e;--fg:#e7e9ec;--muted:#8b929c;--accent:#6ea8fe;--ok:#57c08d;--bad:#df6b86;}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:40px 20px;min-height:100vh;}
-h1{font-size:22px;font-weight:700;margin-bottom:4px;}
-.sub{font-size:13px;color:var(--muted);margin-bottom:32px;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;}
-.card .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
-.card .val{font-size:26px;font-weight:700;letter-spacing:-.02em;}
-.cand-row{display:flex;justify-content:space-between;align-items:center;
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:8px;padding:12px 14px;margin-bottom:8px;}
-.cand-name{font-size:13px;font-weight:600;}
-.cand-party{font-size:11px;color:var(--muted);}
-.cand-votes{font-size:15px;font-weight:700;color:var(--accent);}
-.cand-pct{font-size:12px;color:var(--muted);margin-left:8px;}
-.bar-wrap{background:#1a1d23;border-radius:999px;height:4px;margin-top:6px;}
-.bar{height:100%;background:var(--accent);border-radius:999px;transition:.4s;}
-footer{font-size:11px;color:var(--muted);margin-top:32px;text-align:center;}
-footer a{color:var(--accent);}
-.hash{font-family:monospace;font-size:10px;color:var(--muted);word-break:break-all;}
-</style>
-</head>
-<body>
-<div style="max-width:800px;margin:0 auto;">
-  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">
-    VIGIL — AUDITORÍA ELECTORAL AUTÓNOMA
-  </div>
-  <h1>Panel de Transparencia · ${STATE.country} ${STATE.year}</h1>
-  <p class="sub">Datos descargados del CNE y verificados con hash chain SHA-256.</p>
-  <div class="grid" id="stats">
-    <div class="card"><div class="lbl">Estado</div><div class="val" style="font-size:14px;color:var(--muted);">Cargando…</div></div>
-  </div>
-  <div id="candidates"></div>
-  <div style="margin-top:24px;">
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Hash del último snapshot</div>
-    <div class="hash" id="snap-hash">—</div>
-  </div>
-  <footer style="margin-top:32px;">
-    Datos: <a href="${raw}" target="_blank">snapshot.json</a> ·
-    Motor: <a href="https://github.com/VectisDev/vigil" target="_blank">VectisDev/vigil</a> ·
-    Datos: <a href="https://github.com/${STATE.owner||STATE.user}/${STATE.repo}" target="_blank">${STATE.owner||STATE.user}/${STATE.repo}</a>
-  </footer>
-</div>
-<script>
-const RAW = '${raw}';
-async function load(){
-  try{
-    const r = await fetch(RAW+'?t='+Date.now());
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const d = await r.json();
-    renderStats(d);
-    renderCandidates(d);
-    document.getElementById('snap-hash').textContent = d.hash || d.checkpoint_hash || '—';
-  }catch(e){
-    document.getElementById('stats').innerHTML =
-      '<div class="card"><div class="lbl">Error</div><div class="val" style="font-size:13px;color:var(--muted);">'+e.message+'</div></div>';
-  }
-}
-function fmt(n){return(+n||0).toLocaleString('es-HN');}
-function pct(a,b){return b?((a/b)*100).toFixed(1)+'%':'—';}
-function renderStats(d){
-  const ac = d.actas||{};
-  const vt = d.votos_totales||{};
-  const ts = d.timestamp_utc||d.timestamp||'';
-  document.getElementById('stats').innerHTML = \`
-    <div class="card"><div class="lbl">Actualización</div><div class="val" style="font-size:14px;">\${ts.replace('T',' ').replace('Z','') || '—'} UTC</div></div>
-    <div class="card"><div class="lbl">Actas procesadas</div><div class="val">\${fmt(ac.divulgadas||0)}</div></div>
-    <div class="card"><div class="lbl">Total actas</div><div class="val">\${fmt(ac.totales||0)}</div></div>
-    <div class="card"><div class="lbl">Votos válidos</div><div class="val">\${fmt(vt.validos||0)}</div></div>
-  \`;
-}
-function renderCandidates(d){
-  const cands = d.candidatos||[];
-  const maxV = Math.max(...cands.map(c=>c.votes||0), 1);
-  document.getElementById('candidates').innerHTML = \`
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;">Resultados</div>
-    \${cands.sort((a,b)=>(b.votes||0)-(a.votes||0)).map(c=>\`
-      <div class="cand-row">
-        <div>
-          <div class="cand-name">\${c.name||'—'}</div>
-          <div class="cand-party">\${c.party||''}</div>
-          <div class="bar-wrap"><div class="bar" style="width:\${Math.round(((c.votes||0)/maxV)*100)}%"></div></div>
-        </div>
-        <div style="text-align:right;">
-          <div class="cand-votes">\${fmt(c.votes||0)}</div>
-          <div class="cand-pct">\${c.percentage?c.percentage.toFixed(1)+'%':pct(c.votes,d.votos_totales?.validos)}</div>
-        </div>
-      </div>
-    \`).join('')}
-  \`;
-}
-load();
-setInterval(load, 5*60*1000);
-<\/script>
-</body>
-</html>`;
-  await pushFile('web/index.html', html, 'web: add public transparency dashboard');
-  await pushFile('web/data/.gitkeep', '', 'web: init data dir');
-}
-
-async function generateAndPushSeeds() {
-  STATE.seeds = await generateSeeds();
-  const accessJson = await buildAccessJson(STATE.seeds);
-  await pushFile('web/access.json',
-    JSON.stringify(accessJson, null, 2),
-    'security: add PBKDF2 hashed seeds for OPS auth');
-}
-
-async function enablePages() {
-  try {
-    await gh('POST', `/repos/${STATE.owner||STATE.user}/${STATE.repo}/pages`, {
-      build_type: 'workflow',
-    });
-  } catch(e) {
-    if (e.message.includes('409') || e.message.includes('already')) {
-      logLine('  (Pages ya activo)');
-      return;
-    }
-    // Not fatal — user can enable manually
-    logLine('  (Pages: '+e.message+' — activa manualmente en Settings)');
-  }
-  STATE.pagesUrl = `https://${STATE.owner||STATE.user}.github.io/${STATE.repo}/`;
-}
-
-// ── Seed & crypto ───────────────────────────────────────────────────────────
-function b64e(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))); }
-function b64d(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
-function hexToBytes(hex){ return new Uint8Array(hex.match(/.{2}/g).map(b=>parseInt(b,16))); }
-
-async function aesgcmEncrypt(plaintext, key){
-  const iv  = crypto.getRandomValues(new Uint8Array(12));
-  const enc = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key,
-    new TextEncoder().encode(plaintext));
-  return {enc: b64e(enc), iv: b64e(iv)};
-}
-
-async function deriveWrapKey(seedHash){
-  const km = await crypto.subtle.importKey('raw', hexToBytes(seedHash), 'HKDF', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    {name:'HKDF', hash:'SHA-256',
-     salt: new TextEncoder().encode('centinel-wrap-v1'),
-     info: new TextEncoder().encode('writer-pat')},
-    km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
-  );
-}
-
-async function encryptPatForSeeds(pat, seedHashes){
-  const masterKey      = await crypto.subtle.generateKey({name:'AES-GCM',length:256}, true, ['encrypt','decrypt']);
-  const masterKeyBytes = await crypto.subtle.exportKey('raw', masterKey);
-  const encPat = await aesgcmEncrypt(pat, masterKey);
-  const wraps  = [];
-  for(let i = 0; i < seedHashes.length; i++){
-    const wk    = await deriveWrapKey(seedHashes[i]);
-    const encK  = await aesgcmEncrypt(b64e(masterKeyBytes), wk);
-    wraps.push({slot: i+1, enc: encK.enc, iv: encK.iv});
-  }
-  return {enc: encPat.enc, iv: encPat.iv, wraps};
-}
-
-const PBKDF2_SALT   = 'centinel-admin-salt-v1';
-const PBKDF2_ITERS  = 600000;
-const ADJECTIVES = ['alpha','bravo','charlie','delta','echo','foxtrot','golf','hotel',
-  'india','juliet','kilo','lima','mike','november','oscar','papa',
-  'quebec','romeo','sierra','tango','uniform','victor','whiskey','xray',
-  'yankee','zulu','amber','azure','black','blue','cedar','coral',
-  'crimson','cyan','dusk','ember','frost','gold','green','ivory'];
-const NOUNS = ['anchor','arrow','badge','bolt','bridge','canyon','cloud','comet',
-  'crown','crystal','dawn','eagle','falcon','flame','forest','glacier',
-  'harbor','hawk','island','jaguar','keystone','lance','lantern','marble',
-  'meteor','mirror','moon','mountain','nova','oak','orbit','pearl',
-  'phoenix','pine','prism','quartz','raven','reef','ridge','river',
-  'rocket','sage','shadow','shield','signal','silver','solar','spark',
-  'spire','star','storm','summit','sword','thorn','tide','tiger',
-  'torch','tower','trail','vault','viper','vista','wave','wolf'];
-
-function rndWord(list) {
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return list[arr[0] % list.length];
-}
-function rndDigits() {
-  const arr = new Uint16Array(1);
-  crypto.getRandomValues(arr);
-  return String(arr[0] % 10000).padStart(4,'0');
-}
-
-async function generateSeeds() {
-  return Array.from({length:12}, () =>
-    `${rndWord(ADJECTIVES)}-${rndWord(NOUNS)}-${rndDigits()}`
-  );
-}
-
-async function hashSeed(seed) {
-  const enc = new TextEncoder();
-  const keyMat = await crypto.subtle.importKey(
-    'raw', enc.encode(seed), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({
-    name:'PBKDF2', salt:enc.encode(PBKDF2_SALT),
-    iterations:PBKDF2_ITERS, hash:'SHA-256'
-  }, keyMat, 256);
-  return Array.from(new Uint8Array(bits))
-    .map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function buildAccessJson(seeds) {
-  const hashes    = await Promise.all(seeds.map(hashSeed));
-  const writerPat = STATE.token ? await encryptPatForSeeds(STATE.token, hashes) : undefined;
-  const obj = {
-    version: 1,
-    algorithm: 'PBKDF2-SHA256',
-    iterations: PBKDF2_ITERS,
-    salt: PBKDF2_SALT,
-    seeds: hashes.map((h, i) => ({slot: i+1, hash: h})),
-    generated_at: new Date().toISOString(),
-    country: STATE.country,
-    year: STATE.year,
-  };
-  if(writerPat) obj.writer_pat = writerPat;
-  return obj;
-}
-
-// ── Seeds screen ────────────────────────────────────────────────────────────
-function renderSeeds() {
-  const grid = document.getElementById('seed-grid');
-  grid.innerHTML = STATE.seeds.map((s,i) => `
-    <div class="seed-item">
-      <div class="seed-num">Seed #${i+1}</div>
-      <div class="seed-val">${escHtml(s)}</div>
-    </div>
-  `).join('');
-}
-
-// ── PDF download ────────────────────────────────────────────────────────────
-async function downloadPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ format:'a4', unit:'mm' });
-
-  const W = 210, M = 20;
-  let y = M;
-
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(18);
-  doc.setTextColor(15,17,21);
-  doc.setFillColor(15,17,21);
-  doc.rect(0,0,W,50,'F');
-  doc.setTextColor(255,255,255);
-  doc.text('VIGIL — SEEDS DE ACCESO', M, y+10);
-  doc.setFontSize(10);
-  doc.setFont('helvetica','normal');
-  doc.setTextColor(139,146,156);
-  doc.text(`${STATE.country} ${STATE.year}  ·  ${STATE.owner||STATE.user}/${STATE.repo}`, M, y+20);
-  doc.text('Generado: ' + new Date().toISOString(), M, y+27);
-  y = 60;
-
-  doc.setTextColor(220,53,69);
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(9);
-  doc.text('⚠ CONFIDENCIAL — No compartas este documento. Guárdalo fuera de línea.', M, y);
-  doc.text('Los seeds son las únicas llaves del panel de administración.', M, y+5);
-  doc.text('El sistema solo almacena sus hashes — si pierdes este PDF, deberás regenerarlos.', M, y+10);
-  y += 20;
-
-  doc.setDrawColor(36,39,46);
-  doc.setLineWidth(0.3);
-  doc.line(M, y, W-M, y);
-  y += 8;
-
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(11);
-  doc.setTextColor(15,17,21);
-  doc.text('12 Seeds de Alta Entropía', M, y);
-  y += 8;
-
-  doc.setFont('courier','normal');
-  doc.setFontSize(10);
-  const colW = (W - 2*M - 10) / 2;
-  STATE.seeds.forEach((seed, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const x = M + col * (colW + 10);
-    const yy = y + row * 14;
-
-    doc.setFillColor(245,247,250);
-    doc.roundedRect(x, yy-5, colW, 12, 2, 2, 'F');
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    doc.setTextColor(139,146,156);
-    doc.text('#'+(i+1), x+3, yy);
-    doc.setFont('courier','normal');
-    doc.setFontSize(10);
-    doc.setTextColor(15,17,21);
-    doc.text(seed, x+3, yy+5);
-  });
-  y += 6 * 14 + 10;
-
-  doc.setDrawColor(36,39,46);
-  doc.line(M, y, W-M, y);
-  y += 8;
-
-  doc.setFont('helvetica','normal');
-  doc.setFontSize(8);
-  doc.setTextColor(139,146,156);
-  const notes = [
-    '• Usa cualquiera de estos seeds para autenticarte en el panel OPS.',
-    '• Cada seed puede usarse solo una vez si habilitas rotación.',
-    `• Repo de datos: ${STATE.repoUrl}`,
-    `• Panel público: ${STATE.pagesUrl || 'https://'+(STATE.owner||STATE.user)+'.github.io/'+STATE.repo+'/'}`,
-    `• Panel OPS: ${STATE.pagesUrl ? STATE.pagesUrl+'ops/' : 'https://'+(STATE.owner||STATE.user)+'.github.io/'+STATE.repo+'/ops/'}`,
-  ];
-  notes.forEach(n => { doc.text(n, M, y); y += 5; });
-
-  doc.save(`centinel-seeds-${STATE.country.toLowerCase()}-${STATE.year}.pdf`);
-
-  document.getElementById('pdf-ok').style.display = 'block';
-  document.getElementById('btnFinish').disabled = false;
-}
-
-// ── Navigation ────────────────────────────────────────────────────────────
+// ── Navegación ───────────────────────────────────────────────────────────────
 function go(n) {
-  if (n === 6) renderDone();
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('s'+n).classList.add('active');
-  window.scrollTo(0,0);
+  for (let i = 1; i <= 4; i += 1) {
+    const screen = $('s' + i);
+    if (screen) screen.hidden = i !== n;
+  }
+  window.scrollTo(0, 0);
+  try { location.hash = 's' + n; } catch (e) { /* sin hash, sin problema */ }
 }
 
-// ── Done screen ─────────────────────────────────────────────────────────────
+// ── El catálogo de países ────────────────────────────────────────────────────
+// Un país cuyo preset no declara ninguna URL no se puede configurar, y
+// ofrecerlo sería invitar a desplegar un nodo que el arranque va a rechazar.
+// Se muestra deshabilitado y diciendo por qué, en vez de esconderse: que
+// falte sin explicación parece un olvido.
+// English: a country whose preset declares no URL cannot be configured, and
+// offering it would invite a deployment the bootstrap will refuse.
+function renderCountries() {
+  const box = $('countries');
+  box.innerHTML = '';
 
-function renderDone() {
-  const pages = STATE.pagesUrl || `https://${STATE.owner||STATE.user}.github.io/${STATE.repo}/`;
-  document.getElementById('done-links').innerHTML = `
-    <div class="link-card">
-      <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-      <div>
-        <div class="lbl">Panel público de transparencia</div>
-        <a href="${escHtml(pages)}" target="_blank">${escHtml(pages)}</a>
-      </div>
-    </div>
-    <div class="link-card">
-      <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-      <div>
-        <div class="lbl">Panel OPS (administración)</div>
-        <a href="${escHtml(pages+'ops/')}" target="_blank">${escHtml(pages+'ops/')}</a>
-      </div>
-    </div>
-    <div class="link-card">
-      <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></div>
-      <div>
-        <div class="lbl">Repositorio de datos</div>
-        <a href="${escHtml(STATE.repoUrl)}" target="_blank">${escHtml(STATE.repoUrl)}</a>
-      </div>
-    </div>
-    <div class="link-card">
-      <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-      <div>
-        <div class="lbl">GitHub Actions (workflows)</div>
-        <a href="${escHtml(STATE.repoUrl+'/actions')}" target="_blank">${escHtml(STATE.repoUrl+'/actions')}</a>
-      </div>
-    </div>
-  `;
+  state.catalog.forEach(function (country) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'country';
+    button.id = 'c-' + country.code;
+    button.setAttribute('aria-pressed', 'false');
+    button.disabled = !country.configurable;
+
+    let meta = escHtml(country.authority || '');
+    if (!country.configurable) {
+      meta = 'Sin URL declarada todavía';
+    } else if (!country.complete) {
+      meta = 'Cubre ' + country.divisions_covered + ' de ' + country.divisions_total;
+    }
+
+    button.innerHTML =
+      '<span class="flag" aria-hidden="true">' + escHtml(country.flag || '') + '</span>' +
+      '<span class="nm">' + escHtml(country.name) + '</span>' +
+      '<span class="meta">' + meta + '</span>';
+
+    button.addEventListener('click', function () { selectCountry(country.code); });
+    box.appendChild(button);
+  });
 }
 
-// ── utils ────────────────────────────────────────────────────────────────────
-function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function selectCountry(code) {
+  state.country = code;
+  state.catalog.forEach(function (country) {
+    const button = $('c-' + country.code);
+    if (button) button.setAttribute('aria-pressed', String(country.code === code));
+  });
 
+  const chosen = state.catalog.filter(function (c) { return c.code === code; })[0];
+  let note = '';
+  if (chosen) {
+    note = chosen.authority + '. ';
+    if (chosen.complete) {
+      note += 'Un nodo cubre ' + chosen.divisions_total + ' de ' +
+        chosen.divisions_total + ' ' + (chosen.divisions_label || 'divisiones').toLowerCase() + '.';
+    } else {
+      note += 'Un nodo cubre ' + chosen.divisions_covered + ' de ' +
+        chosen.divisions_total + ': el techo de 19 peticiones por ciclo es ' +
+        'deliberado, y cubrir el resto pide un segundo nodo.';
+    }
+  }
+  $('country-note').textContent = note;
+  refreshStep1();
+}
+
+function refreshStep1() {
+  $('to2').disabled = !(state.country && $('consent').checked);
+}
+
+async function loadCatalog() {
+  try {
+    const response = await fetch('../data/countries.json', { cache: 'no-cache' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    if (!Array.isArray(data) || !data.length) throw new Error('catálogo vacío');
+    state.catalog = data;
+    renderCountries();
+    selectCountry((data.filter(function (c) { return c.configurable; })[0] || data[0]).code);
+  } catch (e) {
+    $('countries').innerHTML =
+      '<p class="hint">No se pudo cargar <code>../data/countries.json</code>, ' +
+      'así que no puedo decirte qué países están disponibles sin inventármelo. ' +
+      'Abre esta página desde el despliegue publicado del proyecto.</p>';
+    $('to2').disabled = true;
+  }
+}
+
+// ── El enlace a la plantilla ─────────────────────────────────────────────────
+function suggestedName() {
+  const code = (state.country || 'hn').toLowerCase();
+  return 'vigil-' + code;
+}
+
+function refreshGenerateLink() {
+  const url = new URL('https://github.com/' + TEMPLATE.owner + '/' + TEMPLATE.repo + '/generate');
+  url.searchParams.set('name', suggestedName());
+  url.searchParams.set('visibility', 'public');
+  $('generate').href = url.toString();
+  $('repo').placeholder = 'tu-usuario/' + suggestedName();
+}
+
+// ── El repositorio del operador ──────────────────────────────────────────────
+function parseRepo(raw) {
+  const cleaned = String(raw || '')
+    .trim()
+    .replace(/^https?:\/\/github\.com\//i, '')
+    .replace(/\.git$/i, '')
+    .replace(/^\/+|\/+$/g, '');
+  const match = /^([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)\/([A-Za-z0-9._-]{1,100})$/.exec(cleaned);
+  if (!match) return null;
+  return { owner: match[1], repo: match[2] };
+}
+
+function currentRepo() { return parseRepo($('repo').value); }
+
+function refreshStep2() {
+  $('to3').disabled = !currentRepo();
+}
+
+// ── Las doce claves ──────────────────────────────────────────────────────────
+// Mismo formato que `.github/scripts/wizard_seeds.py`: 18 bytes aleatorios,
+// base64url, 24 caracteres. Si los dos lados discreparan, las claves que
+// generas aquí no serían las que el panel espera.
+// English: the same shape as wizard_seeds.py -- 18 random bytes, base64url,
+// 24 characters. If the two sides disagreed, the keys generated here would not
+// be the ones the panel expects.
+function generateKey() {
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  let binary = '';
+  bytes.forEach(function (byte) { binary += String.fromCharCode(byte); });
+  const b64url = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_');
+  return b64url.slice(0, 24);
+}
+
+async function sha256Hex(text) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest))
+    .map(function (byte) { return byte.toString(16).padStart(2, '0'); })
+    .join('');
+}
+
+async function generateKeys() {
+  const keys = [];
+  while (keys.length < NUM_KEYS) {
+    const candidate = generateKey();
+    // Una repetida serían menos de doce claves, y el panel contaría doce.
+    if (keys.indexOf(candidate) === -1) keys.push(candidate);
+  }
+  state.keys = keys;
+  state.hashes = [];
+  for (let i = 0; i < keys.length; i += 1) {
+    state.hashes.push(await sha256Hex(keys[i]));
+  }
+  renderKeys();
+}
+
+function renderKeys() {
+  const box = $('keys');
+  box.innerHTML = '';
+  state.keys.forEach(function (key, index) {
+    const cell = document.createElement('div');
+    cell.className = 'key';
+    cell.innerHTML =
+      '<div class="n">CLAVE ' + (index + 1) + '</div>' +
+      '<div class="v">' + escHtml(key) + '</div>';
+    box.appendChild(cell);
+  });
+  $('hashes').value = state.hashes.join(',');
+  $('to4').disabled = false;
+}
+
+function keysAsText() {
+  const repo = currentRepo();
+  const where = repo ? repo.owner + '/' + repo.repo : '(tu repositorio)';
+  const lines = [
+    '='.repeat(62),
+    '  VIGIL — CLAVES DE ACCESO AL PANEL DE ADMINISTRACION',
+    '='.repeat(62),
+    '  Repositorio: ' + where,
+    '  Pais:        ' + (state.country || '—'),
+    '  Ano:         ' + $('year').value,
+    '  Generadas:   ' + new Date().toISOString(),
+    '',
+    '  CONFIDENCIAL — guarda este archivo FUERA DE LINEA.',
+    '    Se generaron en tu navegador y no se enviaron a ninguna parte.',
+    '    El repositorio guarda solo sus hashes SHA-256.',
+    '    Si las pierdes, regenera desde el panel de administracion.',
+    '',
+    '-'.repeat(62),
+  ];
+  state.keys.forEach(function (key, index) {
+    lines.push('  Clave ' + String(index + 1).padStart(2, ' ') + ':  ' + key);
+  });
+  lines.push('-'.repeat(62), '', '  Los doce hashes, para `seed_hashes`:', '');
+  lines.push('  ' + state.hashes.join(','));
+  lines.push('', '='.repeat(62));
+  return lines.join('\n') + '\n';
+}
+
+function downloadKeys() {
+  const blob = new Blob([keysAsText()], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'vigil-claves-' + (state.country || 'nodo').toLowerCase() + '.txt';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  say('said-keys', 'Descargado. Guárdalo fuera de línea antes de cerrar esta pestaña.');
+}
+
+async function copyHashes() {
+  const text = state.hashes.join(',');
+  try {
+    await navigator.clipboard.writeText(text);
+    say('said-copy', 'Copiados los doce hashes al portapapeles.');
+  } catch (e) {
+    // Sin permiso de portapapeles, seleccionar es tan bueno y no miente.
+    const field = $('hashes');
+    field.focus();
+    field.select();
+    say('said-copy', 'No pude usar el portapapeles; los dejo seleccionados para que los copies.');
+  }
+}
+
+// ── Los enlaces al repositorio del operador ──────────────────────────────────
+function refreshRepoLinks() {
+  const repo = currentRepo();
+  if (!repo) return;
+  const base = 'https://github.com/' + repo.owner + '/' + repo.repo;
+  $('dispatch').href = base + '/actions/workflows/bootstrap.yml';
+  $('pages-link').href = base + '/settings/pages';
+  $('actions-link').href = base + '/actions';
+  const pages = 'https://' + repo.owner.toLowerCase() + '.github.io/' + repo.repo + '/';
+  $('panel-link').href = pages;
+  $('ops-link').href = pages + 'ops/';
+}
+
+// ── Cableado ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  $('consent').addEventListener('change', refreshStep1);
+  $('repo').addEventListener('input', function () { refreshStep2(); refreshRepoLinks(); });
+
+  $('to2').addEventListener('click', function () { refreshGenerateLink(); go(2); });
+  $('back1').addEventListener('click', function () { go(1); });
+  $('to3').addEventListener('click', async function () {
+    refreshRepoLinks();
+    go(3);
+    if (!state.keys.length) await generateKeys();
+  });
+  $('back2').addEventListener('click', function () { go(2); });
+  $('to4').addEventListener('click', function () { refreshRepoLinks(); go(4); });
+  $('back3').addEventListener('click', function () { go(3); });
+
+  $('download').addEventListener('click', downloadKeys);
+  $('print').addEventListener('click', function () { window.print(); });
+  $('regen').addEventListener('click', async function () {
+    await generateKeys();
+    say('said-keys', 'Doce claves nuevas. Las anteriores ya no sirven: descarga estas.');
+  });
+  $('copy').addEventListener('click', copyHashes);
+
+  loadCatalog();
+  go(1);
+});
 </script>
 </body>
 </html>
