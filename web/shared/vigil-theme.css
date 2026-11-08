@@ -61,6 +61,8 @@ html[data-theme] .evidence,
 html[data-theme] .audiences,
 html[data-theme] .audience-card,
 html[data-theme] .hero,
+html[data-theme] .band,
+html[data-theme] .why,
 html[data-theme] .card,
 html[data-theme] .metric,
 html[data-theme] .sim,
@@ -91,6 +93,14 @@ html[data-theme] button.solid {
   border-color: var(--red);
 }
 
+html[data-theme] .lab,
+html[data-theme] .lead,
+html[data-theme] h1 .next,
+html[data-theme] .seal p,
+html[data-theme] .card p,
+html[data-theme] .stat small {
+  color: var(--fg);
+}
 html[data-theme] em,
 html[data-theme] .stat-number,
 html[data-theme] .red {

@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VIGIL — Lab</title>
 <link rel="icon" type="image/svg+xml" href="../assets/mark-light.svg" data-icon-light="../assets/mark-light.svg" data-icon-dark="../assets/mark-dark.svg">
+<link rel="icon" href="../assets/favicon/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/favicon/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../assets/favicon/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="../assets/favicon/favicon-180.png">
 <script src="../shared/vigil-theme.js"></script>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/brand-header.css">
 <script src="../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -633,7 +639,7 @@ button:focus-visible,[role="button"]:focus-visible,a:focus-visible,input:focus-v
 
 <!-- ── VIGIL NAV (estandarizado, una fila) ── -->
 <div id="vigil-titlebar">
-  <span id="vigil-title"><a href="../">VIGIL</a><span class="vigil-sep">/</span><span>Lab</span></span>
+  <span id="vigil-title"><a class="vigil-lockup" href="../" aria-label="VIGIL inicio"><picture class="mark-light"><img alt="VIGIL — Integridad electoral verificable" src="../assets/brand/vigil-horizontal-corto.svg" height="28"></picture><picture class="mark-dark"><source media="(prefers-color-scheme: dark)" srcset="../assets/brand/vigil-horizontal-corto-oscuro.svg"><img alt="" src="../assets/brand/vigil-horizontal-corto-oscuro.svg" height="28"></picture></a><span class="vigil-sep">/</span><span>Lab</span></span>
   <button id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema / Toggle theme">
     <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
     <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
