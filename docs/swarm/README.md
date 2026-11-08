@@ -104,6 +104,43 @@ Los nodos ven huellas de claves, no nombres legales. Ese es el anonimato que las
 
 Not production. No node is talking to another node.
 
+## GitHub, used in public
+
+Every record is a public GitHub object. Nothing in this map is a private message. None of the write-side pieces below are turned on. This is not production.
+
+| Swarm step | GitHub object | What is public |
+|---|---|---|
+| Signed attestation | A file in a commit, under `attestations/<room>/<source>/<window>/<key>.json` | The hash, the key fingerprint, the signature |
+| Dispute, including equivocation | An Issue from [`.github/ISSUE_TEMPLATE/swarm-equivocation.md`](../../.github/ISSUE_TEMPLATE/swarm-equivocation.md) | Both file paths and both hashes. Comments are not votes |
+| Quorum check | An Action that runs `confirm` on those files | The log of the run |
+| Daily signed log | A Release, one per day, with the log and its signature as assets | The log. Not enabled here, because a Release is a published tag |
+| Room | A Discussion whose title is the room code and whose first post is the list of key fingerprints | The code and the keys. Discussions have to be switched on for the repository. This note does not claim they are on |
+| Dashboard | GitHub Pages, the files in `web/` | Static HTML. No tracker, no login |
+
+An Action would only call the pure function. It would not be a second way to declare a hash confirmed. Nine files still have to be in the tree.
+
+Una Action solo llamaría a la función pura. No sería otra forma de declarar un hash confirmado. Los nueve archivos tendrían que seguir estando en el árbol.
+
+### Limits of this host
+
+Numbers below are GitHub's published limits as of the [REST rate-limit page](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api). Secondary limits can change without notice.
+
+- Unauthenticated REST calls: 60 per hour per IP.
+- A personal token: 5,000 per hour.
+- `GITHUB_TOKEN` inside Actions: 1,000 per hour per repository.
+- Content-creating calls (issues, commits through the API, and similar): in general no more than 80 per minute and 500 per hour.
+- No more than 100 concurrent API calls.
+
+The [API terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service) say abusive or too-frequent API use can suspend the account. Tokens must not be pooled to dodge a limit. Polling the API is a bad fit. Reading the git history with `git fetch` is the fit.
+
+Twelve files a day is small. One commit per signature, from twelve keys, every few minutes, is not. That pattern can trip the content limits. The design therefore keeps the files few: one attestation per key per window, not a chat.
+
+### Fallback
+
+If GitHub is down, rate-limited, or refuses the account, the same files are the record. They can sit in a second public git repository or in a directory served over HTTPS. Quorum is computed from the files. It is not computed from GitHub being reachable. Until that second copy exists, GitHub is a single point of failure. Issues, Discussions, Actions, and Releases do not exist on the fallback. The signed files do.
+
+Si GitHub cae, aplica un límite, o rechaza la cuenta, los archivos son el registro. Pueden estar en un segundo repositorio git público o en un directorio servido por HTTPS. El quórum se calcula con los archivos. No se calcula porque GitHub responda. Hasta que esa segunda copia exista, GitHub es un único punto de fallo. Issues, Discussions, Actions y Releases no existen en la alternativa. Los archivos firmados sí.
+
 ## Where the ideas come from and what we simplified
 
 Three outside pictures suggested the shape. They are not specifications, and they are not named in the pages a visitor opens.
@@ -120,7 +157,7 @@ The older HTTP routes in `src/vigil/api/routes/swarm.py` are not this design and
 
 ## Code
 
-`src/vigil/swarm/governance.py` seats the room. `src/vigil/swarm/reputation.py` scores facts. Neither one opens a connection.
+`src/vigil/swarm/governance.py` seats the room. `src/vigil/swarm/bft.py` counts signatures. `src/vigil/swarm/reputation.py` scores facts. None of them opens a connection. The Issue template is the dispute form. No Action in this repository opens a swarm room or cuts a daily Release.
 
 ```bash
 python3 scripts/swarm_status.py
