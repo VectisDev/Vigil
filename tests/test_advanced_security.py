@@ -56,7 +56,9 @@ from vigil.defense.advanced_security import (
 )
 
 
-def test_identity_rotator_uses_configured_user_agents(tmp_path: Path) -> None:
+def test_identity_rotator_uses_one_honest_name(tmp_path: Path) -> None:
+    from vigil.identity import USER_AGENT
+
     cfg = AdvancedSecurityConfig(
         user_agents_list=[
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0.0.0 Safari/537.36",
@@ -64,8 +66,9 @@ def test_identity_rotator_uses_configured_user_agents(tmp_path: Path) -> None:
         ]
     )
     manager = AdvancedSecurityManager(cfg)
-    headers, _ = manager.get_request_profile()
-    assert headers["User-Agent"] in cfg.user_agents_list
+    headers, proxies = manager.get_request_profile()
+    assert headers["User-Agent"] == USER_AGENT
+    assert proxies is None
 
 
 def test_honeypot_logs_request_metadata(tmp_path: Path) -> None:
@@ -78,16 +81,15 @@ def test_honeypot_logs_request_metadata(tmp_path: Path) -> None:
     assert response.status_code in {403, 404, 500}
     payload = json.loads(honeypot.events_path.read_text(encoding="utf-8").strip())
     assert payload["route"] == "/admin"
-    assert payload["user_agent"] == "scanner"
+    assert "user_agent" not in payload
+    assert "ip" not in payload
 
 
 def test_alert_level_1_does_not_call_external(monkeypatch: pytest.MonkeyPatch) -> None:
     manager = AlertManager()
     called = {"email": 0}
 
-    monkeypatch.setattr(
-        manager, "_send_email", lambda payload: called.__setitem__("email", called["email"] + 1)
-    )
+    monkeypatch.setattr(manager, "_send_email", lambda payload: called.__setitem__("email", called["email"] + 1))
 
     manager.send(1, "minor_event")
     assert called == {"email": 0}
@@ -106,14 +108,10 @@ def test_adaptive_cpu_ignores_brief_spike(monkeypatch: pytest.MonkeyPatch) -> No
 
     Picos breves de CPU no deben disparar inmediatamente el dead-man.
     """
-    cfg = AdvancedSecurityConfig(
-        cpu_threshold_percent=20, cpu_sustain_seconds=60, cpu_spike_grace_seconds=5
-    )
+    cfg = AdvancedSecurityConfig(cpu_threshold_percent=20, cpu_sustain_seconds=60, cpu_spike_grace_seconds=5)
     manager = AdvancedSecurityManager(cfg)
     monkeypatch.setattr("vigil.defense.advanced_security.psutil.cpu_percent", lambda interval=0.1: 95.0)
-    monkeypatch.setattr(
-        "vigil.defense.advanced_security.psutil.virtual_memory", type("vm", (), {"percent": 10.0})
-    )
+    monkeypatch.setattr("vigil.defense.advanced_security.psutil.virtual_memory", type("vm", (), {"percent": 10.0}))
     monkeypatch.setattr(manager.runtime_security, "detect_hostile_conditions", lambda: [])
 
     triggers = manager.detect_internal_anomalies()
@@ -194,9 +192,7 @@ def test_air_gap_is_rate_limited(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     calls: list[tuple[int, str]] = []
     monkeypatch.setattr(manager, "verify_integrity", lambda: False)
     monkeypatch.setattr("vigil.defense.advanced_security.time.sleep", lambda _s: None)
-    monkeypatch.setattr(
-        manager, "_safe_alert", lambda level, event, metrics: calls.append((level, event))
-    )
+    monkeypatch.setattr(manager, "_safe_alert", lambda level, event, metrics: calls.append((level, event)))
 
     manager.air_gap("flood")
     manager.air_gap("flood")
@@ -225,9 +221,7 @@ def test_backup_github_requires_allowlist(monkeypatch: pytest.MonkeyPatch, tmp_p
     assert called["run"] == 0
 
 
-def test_backup_github_resolves_remote_url_before_allowlist(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_backup_github_resolves_remote_url_before_allowlist(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     cfg = AdvancedSecurityConfig(backup_provider="github")
     manager = AdvancedSecurityManager(cfg)
     archive = tmp_path / "backup.json"
@@ -279,9 +273,7 @@ def test_backup_github_blocks_remote_alias_when_url_not_allowlisted(
     assert called["run"] == 0
 
 
-def test_air_gap_rate_limit_persists_across_restarts(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_air_gap_rate_limit_persists_across_restarts(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     cfg = AdvancedSecurityConfig(
         deadman_min_interval_seconds=600,
         deadman_state_path=str(tmp_path / "deadman_state.json"),
@@ -296,9 +288,7 @@ def test_air_gap_rate_limit_persists_across_restarts(
     manager2 = AdvancedSecurityManager(cfg)
     calls: list[tuple[int, str]] = []
     monkeypatch.setattr(manager2, "verify_integrity", lambda: False)
-    monkeypatch.setattr(
-        manager2, "_safe_alert", lambda level, event, metrics: calls.append((level, event))
-    )
+    monkeypatch.setattr(manager2, "_safe_alert", lambda level, event, metrics: calls.append((level, event)))
     manager2.air_gap("flood")
 
     assert (1, "air_gap_rate_limited") in calls

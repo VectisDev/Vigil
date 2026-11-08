@@ -97,9 +97,7 @@ class DownloadError(Exception):
 
 
 @retry(
-    retry=retry_if_exception_type(
-        (httpx.RequestError, httpx.TimeoutException, httpx.HTTPStatusError)
-    ),
+    retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException, httpx.HTTPStatusError)),
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=4, max=60),
     reraise=True,
@@ -115,8 +113,10 @@ async def fetch_content(
 
     English: Fetch content with conditional headers.
     """
+    from vigil.identity import USER_AGENT
+
     headers = {
-        "User-Agent": "VigilEngine/0.4.0",
+        "User-Agent": USER_AGENT,
     }
     if if_none_match:
         headers["If-None-Match"] = if_none_match

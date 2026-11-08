@@ -106,10 +106,12 @@ def test_build_request_headers_low_profile_selection() -> None:
 
     headers = build_request_headers(config, low_profile, rng)
 
+    from vigil.identity import USER_AGENT
+
     assert headers["Accept"] == "application/json"
-    assert headers["User-Agent"] in low_profile["user_agents"]
-    assert headers["Accept-Language"] == "es-HN"
-    assert headers["Referer"] == "https://cne.hn"
+    assert headers["User-Agent"] == USER_AGENT
+    assert "Accept-Language" not in headers
+    assert "Referer" not in headers
 
 
 def test_request_with_retry_retries_429_503_and_preserves_headers(

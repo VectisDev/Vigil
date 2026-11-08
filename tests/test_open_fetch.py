@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_default_user_agent_names_this_version() -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert VERSION == project["tool"]["poetry"]["version"]
-    assert USER_AGENT == f"VIGIL/{VERSION} (+https://github.com/VectisDev/Vigil)"
+    assert USER_AGENT == f"Vigil/{VERSION} (+https://github.com/VectisDev/Vigil; key:unset)"
     assert STEALTH_FOR_SOURCE is False
 
 

@@ -111,11 +111,76 @@ def commit_has_signature(commit_text: str) -> bool:
     return "\ngpgsig " in f"\n{commit_text}" or commit_text.startswith("gpgsig ")
 
 
+def override_files(root: Path) -> list[Path]:
+    """Files that can carry a pace override.
+
+    The root file is ``rate_override.yml``. A fork may also put one YAML
+    file per acceptance under ``audit/ceiling-unlock/``.
+    """
+    found: list[Path] = []
+    primary = root / "rate_override.yml"
+    if primary.is_file():
+        found.append(primary)
+    folder = root / "audit" / "ceiling-unlock"
+    if folder.is_dir():
+        found.extend(sorted(path for path in folder.glob("*.yml") if path.is_file()))
+    return found
+
+
 def read_override(root: Path) -> str | None:
-    path = root / "rate_override.yml"
-    if not path.is_file():
+    files = override_files(root)
+    if not files:
         return None
-    return path.read_text(encoding="utf-8")
+    return files[0].read_text(encoding="utf-8")
+
+
+def github_verified(rel: str) -> bool:
+    """True only when GitHub reports verification.verified for the commit that last touched ``rel``."""
+    import os
+
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not token or not repo or not rel:
+        return False
+    env = {**os.environ, "GH_TOKEN": token}
+    listed = subprocess.run(
+        ["gh", "api", f"repos/{repo}/commits?path={rel}&per_page=1", "--jq", ".[0].sha"],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    sha = listed.stdout.strip()
+    if listed.returncode != 0 or not sha or sha == "null":
+        return False
+    asked = subprocess.run(
+        ["gh", "api", f"repos/{repo}/commits/{sha}", "--jq", ".commit.verification.verified"],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    return asked.returncode == 0 and asked.stdout.strip() == "true"
+
+
+def verified_override_text(root: Path, key_active) -> tuple[bool, str | None]:
+    """Return ``(ok, text)``.
+
+    ``ok`` is false when a file tries to pass the lock without a GitHub-verified
+    commit, the responsibility line, and an active key id. ``text`` is the
+    accepted file that goes past the lock, or None when the ceiling stays.
+    """
+    chosen: str | None = None
+    for path in override_files(root):
+        text = path.read_text(encoding="utf-8")
+        if not override_is_refused(text, False, False):
+            continue
+        rel = path.relative_to(root).as_posix()
+        active = bool(key_active(override_key_id(text)))
+        if override_is_refused(text, github_verified(rel), key_active=active):
+            return False, None
+        chosen = text
+    return True, chosen
 
 
 def git_override_is_signed(root: Path) -> bool:

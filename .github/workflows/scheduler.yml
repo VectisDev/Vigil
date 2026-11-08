@@ -66,12 +66,19 @@ jobs:
       # English: the mode was already resolved by the `gate` job, now the one
       # decision point. Resolving it again here would be a second source of
       # truth that can disagree with the first.
+      - name: Refuse an unverified pace override
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/check_rate_override.py
+
       - name: Run collector
         run: python -m scripts.download_and_hash
       - name: Commit data
         run: |
           git config --global user.name "VectisDev"
-          git config --global user.email "VectisDev@users.noreply.github.com"
+          git config --global user.email "287128931+VectisDev@users.noreply.github.com"
           git add data/
           git commit -m "Auto-update: New snapshot collected" || exit 0
           git push
@@ -95,7 +102,7 @@ jobs:
           [ -d data ] && cp -r data/. /tmp/centinel-data/snapshots/ || true
           cd /tmp/centinel-data
           git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
+          git config user.email "287128931+VectisDev@users.noreply.github.com"
           git add .
           git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push origin main

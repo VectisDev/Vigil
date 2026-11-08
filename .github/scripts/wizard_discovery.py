@@ -86,7 +86,7 @@ def _probe(url: str, timeout: int = TIMEOUT) -> bool:
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)",
+                "User-Agent": "Vigil/0.1.0 (+https://github.com/VectisDev/Vigil; key:unset)",
                 "Accept": "application/json",
             },
         )

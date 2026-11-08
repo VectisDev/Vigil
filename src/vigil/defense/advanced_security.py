@@ -142,7 +142,6 @@ from vigil.defense.security import DefensiveSecurityManager, SecurityConfig
 from vigil.defense.security_utils import (
     build_strict_tls_context,
     pin_dns_resolution,
-    redact_headers,
     resolve_outbound_target,
     verify_peer_cert_sha256,
 )
@@ -293,55 +292,19 @@ LOG_SIZE_GAUGE = Gauge("centinel_attack_log_size_bytes", "Attack log current siz
 
 
 class IdentityRotator:
-    """Rotates UA/proxy profile for reduced fingerprinting.
-
-    Rota perfil de UA/proxy para reducir fingerprinting.
-    """
+    """One honest User-Agent. It does not rotate and it does not use a proxy."""
 
     def __init__(self, config: AdvancedSecurityConfig) -> None:
+        from vigil.identity import USER_AGENT
+
         self.config = config
-        self._poll_count = 0
-        self._min_rotation = max(1, int(config.rotate_every_min_polls))
-        self._max_rotation = max(self._min_rotation, int(config.rotate_every_max_polls))
-        self._next_rotation = random.randint(self._min_rotation, self._max_rotation)
-        self._current_ua = "VIGIL/0.1.0 (+https://github.com/VectisDev/Vigil)"
-        self._current_proxy = ""
-        # Proactive first-rotation so the first request is not static.
-        # Rotacion proactiva inicial para evitar perfil estatico en el primer request.
-        self._rotate_now()
-
-    def _rotate_now(self) -> None:
-        valid_uas = [ua.strip() for ua in self.config.user_agents_list if ua and ua.strip()]
-        if valid_uas:
-            candidate_ua = random.choice(valid_uas)
-            if len(valid_uas) > 1 and candidate_ua == self._current_ua:
-                fallback_pool = [ua for ua in valid_uas if ua != self._current_ua]
-                candidate_ua = random.choice(fallback_pool)
-            self._current_ua = candidate_ua
-
-        valid_proxies = [proxy.strip() for proxy in self.config.proxy_list if proxy and proxy.strip()]
-        if valid_proxies:
-            candidate_proxy = random.choice(valid_proxies)
-            if len(valid_proxies) > 1 and candidate_proxy == self._current_proxy:
-                fallback_pool = [proxy for proxy in valid_proxies if proxy != self._current_proxy]
-                candidate_proxy = random.choice(fallback_pool)
-            self._current_proxy = candidate_proxy
-        else:
-            self._current_proxy = ""
-
-        self._next_rotation = random.randint(self._min_rotation, self._max_rotation)
-        self._poll_count = 0
+        self._current_ua = USER_AGENT
 
     def next_headers(self) -> dict[str, str]:
-        self._poll_count += 1
-        if self._poll_count >= self._next_rotation:
-            self._rotate_now()
         return {"User-Agent": self._current_ua, "Accept": "application/json"}
 
     def current_proxies(self) -> dict[str, str] | None:
-        if not self._current_proxy:
-            return None
-        return {"http": self._current_proxy, "https": self._current_proxy}
+        return None
 
 
 class HoneypotService:
@@ -396,11 +359,8 @@ class HoneypotService:
     def _log_request(self, req: Any) -> None:
         event = {
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "ip": req.remote_addr,
             "method": req.method,
             "route": req.path,
-            "headers": redact_headers(dict(req.headers)),
-            "user_agent": req.headers.get("User-Agent", ""),
             "content_length": int(req.content_length or 0),
             "classification": "scan" if req.path.count("/") >= 1 else "suspicious",
         }

@@ -93,7 +93,7 @@ jobs:
       - name: Configure git identity
         run: |
           git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
+          git config user.email "287128931+VectisDev@users.noreply.github.com"
 
       # El marcador ELECTION_CLOSED hacia `exit 0` dentro de su propio paso, lo
       # que termina ESE paso y no el job: los pasos siguientes se ejecutaban
@@ -114,6 +114,13 @@ jobs:
              git commit --allow-empty -m "init: snapshots branch" && \
              git push origin HEAD:snapshots && \
              git checkout -) || true
+
+      - name: Refuse an unverified pace override
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/check_rate_override.py
 
       - name: Run continuous poller B
         env:

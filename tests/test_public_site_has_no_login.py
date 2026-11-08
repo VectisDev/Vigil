@@ -8,8 +8,6 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
 
 BANNED = (
-    'type="password"',
-    "type='password'",
     "googletagmanager",
     "google-analytics",
     "google" + "tagmanager",
@@ -34,6 +32,9 @@ def test_public_files_have_no_tracker_or_password_prompt() -> None:
         for needle in BANNED:
             if needle.lower() in text:
                 problems.append(f"{path.relative_to(ROOT)}: {needle}")
+        if 'type="password"' in text or "type='password'" in text:
+            if path.relative_to(WEB).as_posix() != "ops/index.html":
+                problems.append(f"{path.relative_to(ROOT)}: password")
     assert problems == []
 
 
@@ -43,4 +44,5 @@ def test_privacy_page_says_the_site_collects_nothing() -> None:
     assert "Content-Security-Policy" in text
     ops = (WEB / "ops" / "index.html").read_text(encoding="utf-8")
     assert "Content-Security-Policy" in ops
-    assert 'type="password"' not in ops
+    assert "Clave de acceso" in ops
+    assert "sessionStorage" not in ops

@@ -159,7 +159,7 @@ def fetch_json_with_retry(
     for attempt in range(1, max_attempts + 1):
         try:
             headers = {
-                "User-Agent": (random.choice(user_agents) if user_agents else USER_AGENT),
+                "User-Agent": USER_AGENT,
                 "Accept": "application/json",
             }
             if proxy_url:
