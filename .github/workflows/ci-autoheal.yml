@@ -1,45 +1,22 @@
 name: CI Auto-Heal
 
-# Autocuración determinista del CI (Capa 1). Gemelo de heal-web.yml.
-# Deterministic CI self-healing (Layer 1). Twin of heal-web.yml.
-#
-# Regla de oro: solo arregla lo MECÁNICO y demostrable (formato Black,
-# imports sin uso). NUNCA salta tests ni suprime alertas de seguridad para
-# forzar verde — eso destruiría la credibilidad del proyecto. Los fallos de
-# test/seguridad se reportan pero jamás se silencian aquí.
-#
-# Golden rule: only fixes MECHANICAL, provable issues (Black formatting,
-# unused imports). NEVER skips tests or suppresses security alerts to force
-# green — that would destroy the project's credibility. Test/security
-# failures are reported but never silenced here.
+# Reports Black and unused-import diffs. It does not check out a pull request
+# head, does not run on pull_request or workflow_run, and does not write a cache.
+# A person starts it by hand on a branch they already trust.
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       dry_run:
         description: "Solo reportar, no commitear (dry-run)"
         type: boolean
-        default: false
+        default: true
 
-# Necesita write para commitear los arreglos de formato de vuelta al PR.
-# Needs write to commit formatting fixes back to the PR branch.
-# Solo lectura. Antes era `contents: write` para empujar el arreglo a la rama
-# del PR, y ese push dejaba la ejecucion de CI del nuevo head en
-# `action_required`: el head quedaba sin verificar mientras el PR mostraba los
-# checks de un commit anterior. Un workflow que puede reescribir la rama de un
-# PR es ademas superficie de ataque en un proyecto cuya premisa es la
-# verificabilidad.
-# English: read-only. It used to be `contents: write` so it could push the fix
-# to the PR branch, and that push left CI on the new head in `action_required`:
-# the head went unverified while the PR displayed an earlier commit's checks. A
-# workflow able to rewrite a PR branch is also attack surface in a project
-# whose premise is verifiability.
 permissions:
   contents: read
 
 concurrency:
-  group: ci-autoheal-${{ github.event.pull_request.number || github.ref }}
+  group: ci-autoheal-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -47,17 +24,11 @@ jobs:
     name: Auto-Heal (format + imports)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Solo PRs del mismo repo: no se puede (ni se debe) empujar a forks.
-    # Same-repo PRs only: cannot (and must not) push to forks.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
-
     steps:
-      - name: Checkout PR branch
+      - name: Checkout selected branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ github.head_ref }}
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up Python 3.11
@@ -68,74 +39,33 @@ jobs:
       - name: Install healing tools
         run: |
           python -m pip install --upgrade pip
-          # Mismas versiones que el job de lint del CI (ci.yml) para que el
-          # formato aplicado sea exactamente el que el check exige.
           python -m pip install "black>=25.0.0,<26.0.0" "autoflake>=2.3.0,<3.0.0"
 
-      - name: Heal changed Python files (Black + unused imports)
-        id: heal
+      - name: Report format on this branch
         shell: bash
         run: |
           set -euo pipefail
-
-          BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" == "0000000000000000000000000000000000000000" ]]; then
-            echo "No base SHA (manual run) — healing all tracked .py files."
-            mapfile -t changed_py < <(git ls-files '*.py')
-          else
-            mapfile -t changed_py < <(git diff --name-only "${BASE_SHA}" "HEAD" -- '*.py' | { grep -v -E '^tests/fixtures/' || true; })
-          fi
-
+          mapfile -t changed_py < <(git ls-files '*.py' | { grep -v -E '^tests/fixtures/' || true; })
           if (( ${#changed_py[@]} == 0 )); then
-            echo "No Python files to heal."
-            echo "healed=false" >> "$GITHUB_OUTPUT"
+            echo "No Python files."
             exit 0
           fi
-
-          # 1) Quitar imports y variables sin uso — mecánico, seguro.
-          #    Remove unused imports/vars — mechanical, safe.
           python -m autoflake \
             --in-place --remove-all-unused-imports --remove-unused-variables \
             --ignore-init-module-imports \
             "${changed_py[@]}"
-
-          # 2) Formato Black — el mismo que exige el check de lint.
-          #    Black formatting — exactly what the lint check requires.
           python -m black "${changed_py[@]}"
-
           if git diff --quiet; then
             echo "Nothing to heal — files already clean."
-            echo "healed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "healed=true" >> "$GITHUB_OUTPUT"
-            git --no-pager diff --stat
+            exit 0
           fi
-
-      # Reporta el arreglo en vez de empujarlo. El diff va al resumen de la
-      # ejecucion, donde quien abrio el PR lo aplica en su propia rama y el head
-      # conserva su CI verificado.
-      # El lint de ci.yml ya falla ante estos mismos defectos (black y F401), asi
-      # que esto es un informe util, no el unico control.
-      # English: report the fix instead of pushing it. The diff goes to the run
-      # summary, where the PR author applies it on their own branch and the head
-      # keeps its verified CI. ci.yml's lint already fails on these same defects
-      # (black and F401), so this is a useful report, not the only control.
-      - name: Report what would be healed
-        if: steps.heal.outputs.healed == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
           {
             echo "## Formato por corregir"
             echo
-            echo "Este workflow ya NO empuja a la rama: hacerlo dejaba la"
-            echo "ejecucion de CI del nuevo head en \`action_required\`, sin"
-            echo "verificar. Aplica el diff en tu rama y vuelve a empujar."
+            echo "Este workflow no empuja a la rama y no lee la cabeza de un pull request."
             echo
             echo '```diff'
             git --no-pager diff
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-
-          echo "::warning::Hay formato por corregir. El diff esta en el resumen de la ejecucion."
           git --no-pager diff --stat
