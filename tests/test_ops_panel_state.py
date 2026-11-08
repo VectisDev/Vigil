@@ -375,7 +375,8 @@ def test_inicio_does_not_show_another_tabs_elements(page):
     """
     page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
     page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'inicio'")
-    seen = page.evaluate("""() => {
+    seen = page.evaluate(
+        """() => {
             const foreign = [];
             for (const el of document.querySelectorAll('[data-tab]')) {
                 if (el.getAttribute('data-tab') === 'inicio') continue;
@@ -386,7 +387,8 @@ def test_inicio_does_not_show_another_tabs_elements(page):
                 }
             }
             return {foreign, text: document.body.innerText};
-        }""")
+        }"""
+    )
     assert seen["foreign"] == [], f"en Inicio se ven otras pestañas: {seen['foreign']}"
     for phrase in (
         "SISTEMA NOMINAL",

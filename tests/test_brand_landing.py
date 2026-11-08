@@ -104,14 +104,16 @@ def test_every_named_page_has_a_favicon_and_a_logo(browser, site, path):
             " return el ? el.getAttribute('href') : ''; }"
         )
         assert "favicon.svg" in icon
-        page.wait_for_function("""() => {
+        page.wait_for_function(
+            """() => {
                 const imgs = [...document.querySelectorAll('.vigil-lockup img')];
                 return imgs.some(img => {
                     const r = img.getBoundingClientRect();
                     return img.complete && img.naturalWidth > 0 && r.width > 0
                         && getComputedStyle(img).display !== 'none';
                 });
-            }""")
+            }"""
+        )
         box = page.locator(".vigil-lockup img:visible").first.bounding_box()
         assert box is not None and box["width"] >= 24 and box["height"] >= 16
         assert errors == []
@@ -125,24 +127,30 @@ def test_the_landing_scrolls_and_switches_language(browser, site, width, height)
     try:
         page.evaluate("localStorage.removeItem('vigil-lang')")
         page.reload(wait_until="domcontentloaded")
-        page.wait_for_function("""() => {
+        page.wait_for_function(
+            """() => {
                 const es = document.querySelector('h1 [data-lang="es"]');
                 return es && getComputedStyle(es).display !== 'none'
                     && es.innerText.includes('alterados');
-            }""")
+            }"""
+        )
         page.locator("#btn-lang").click()
-        page.wait_for_function("""() => {
+        page.wait_for_function(
+            """() => {
                 const en = document.querySelector('h1 [data-lang="en"]');
                 const es = document.querySelector('h1 [data-lang="es"]');
                 return getComputedStyle(en).display !== 'none'
                     && en.innerText.includes('altered')
                     && getComputedStyle(es).display === 'none'
                     && localStorage.getItem('vigil-lang') === 'en';
-            }""")
+            }"""
+        )
         page.locator("#btn-lang").click()
         page.wait_for_function("() => localStorage.getItem('vigil-lang') === 'es'")
-        hrefs = page.evaluate("""() => [...document.querySelectorAll('a[href]')]
-                .map(a => a.getAttribute('href'))""")
+        hrefs = page.evaluate(
+            """() => [...document.querySelectorAll('a[href]')]
+                .map(a => a.getAttribute('href'))"""
+        )
         for needed in (
             "monitor/",
             "lab/",
@@ -153,7 +161,8 @@ def test_the_landing_scrolls_and_switches_language(browser, site, width, height)
         ):
             assert needed in hrefs
         assert all(href != "#" for href in hrefs)
-        metrics = page.evaluate("""() => {
+        metrics = page.evaluate(
+            """() => {
                 const sc = document.scrollingElement;
                 sc.scrollTop = sc.scrollHeight;
                 const last = document.querySelector('footer');
@@ -164,7 +173,8 @@ def test_the_landing_scrolls_and_switches_language(browser, site, width, height)
                     inner: window.innerHeight,
                     wide: document.documentElement.scrollWidth - window.innerWidth,
                 };
-            }""")
+            }"""
+        )
         assert metrics["wide"] <= 1
         assert metrics["bottom"] <= metrics["inner"] + 2
         assert metrics["max"] <= 1 or metrics["top"] > 0
