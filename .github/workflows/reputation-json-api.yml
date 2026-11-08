@@ -55,12 +55,11 @@ jobs:
 
       - name: Commit JSON API
         run: |
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git checkout -B data/api
-          git add -f data/reputation/nodes.json
-          git commit -m "Reputation API snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
-          git push origin data/api --force-with-lease
+          GH_TOKEN="${{ github.token }}" python3 .github/scripts/commit_via_api.py \
+            --branch data/api \
+            --from main \
+            --message "Reputation API snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -- data/reputation/nodes.json
 
       - name: Deploy to GitHub Pages (raw.githubusercontent)
         run: |

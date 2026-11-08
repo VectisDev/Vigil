@@ -150,13 +150,13 @@ jobs:
             --mode "${{ steps.mode.outputs.mode }}" \
             --mode-reason "${{ steps.mode.outputs.reason }}"
       - name: Commit and push snapshot.json
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add web/data/snapshot.json
-          git diff --cached --quiet || \
-            git commit -m "data: snapshot $(date -u +%Y%m%dT%H%MZ) [skip ci]"
-          git push
+          python3 .github/scripts/commit_via_api.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message "data: snapshot $(date -u +%Y%m%dT%H%MZ) [skip ci]" \
+            -- web/data/snapshot.json
 
       - name: Push data to centinel-data
         if: always()
@@ -172,11 +172,13 @@ jobs:
           mkdir -p /tmp/centinel-data/snapshots/latest
           [ -f web/data/snapshot.json ] && cp web/data/snapshot.json /tmp/centinel-data/snapshots/latest/ || true
           cd /tmp/centinel-data
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add .
-          git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push origin main
+          GH_TOKEN="$DATA_REPO_TOKEN" python3 "$GITHUB_WORKSPACE/.github/scripts/commit_via_api.py" \
+            --repository "${REPO_OWNER}/centinel-data" \
+            --branch main \
+            --root /tmp/centinel-data \
+            --sync \
+            --message "data: $(date -u +'%Y-%m-%d %H:%M UTC')" \
+            -- .
 
   security:
     runs-on: ubuntu-latest

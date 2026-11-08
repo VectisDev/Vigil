@@ -6,6 +6,14 @@ Each entry below records a mirror operation executed by the
 Cada entrada registra una operación de espejo ejecutada por el
 workflow `Resilience Mirror`. Las entradas son append-only.
 
+## Dónde siguen las entradas
+
+Las filas de este archivo en `main` son el historial anterior. Las entradas
+nuevas se publican en la rama `data/mirror-log`, con un commit creado por la
+API y firmado por GitHub. Un registro operativo no vuelve a mover la rama
+por defecto: cada append en `main` era un commit sin firma y volvía a
+disparar el propio espejo.
+
 ## Correction notice / Nota de corrección — 2026-11-05
 
 Entries dated before this notice report `[✓]` in the **Internet Archive** column

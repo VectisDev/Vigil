@@ -124,32 +124,16 @@ jobs:
       - name: Commitear los datos del replay
         if: ${{ inputs.commit != false }}
         run: |
-          git config user.name  'VectisDev'
-          git config user.email 'VectisDev@users.noreply.github.com'
-          # Indexar solo lo que existe, en vez de tragarse el error de `git add`.
-          # Las tres primeras las acaba de escribir el replay; snapshot.json lo
-          # escribe el exportador y su ausencia seria un fallo del paso anterior.
-          # English: stage only what exists instead of swallowing git add's error.
           for f in web/data/replay_snapshots.json \
                    web/data/alerts.json \
                    web/data/replay_manifest.json \
                    web/data/snapshot.json; do
-            if [ -f "$f" ]; then
-              git add "$f"
-            else
+            if [ ! -f "$f" ]; then
               echo "::error::Falta $f — el replay no produjo lo que dice producir."
               exit 1
             fi
           done
-          if git diff --cached --quiet; then
-            echo 'Sin cambios en los datos del replay.'
-            exit 0
-          fi
-          git commit -m 'replay: reproducir el conjunto verificado y su raiz de Merkle'
-          for intento in 1 2 3; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && \
-              git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
-            sleep $((intento * 4))
-          done
-          echo '::error::No se pudo empujar los datos del replay.'
-          exit 1
+          GH_TOKEN="${{ github.token }}" python3 .github/scripts/commit_via_api.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message "replay: reproducir el conjunto verificado y su raiz de Merkle" \
+            -- web/data/replay_snapshots.json web/data/alerts.json web/data/replay_manifest.json web/data/snapshot.json

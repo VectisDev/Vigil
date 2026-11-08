@@ -1,7 +1,7 @@
 name: Emergency Publish
 
 # Triggered by the pipeline server when HIGH/CRITICAL anomalies are detected.
-# Only runs export_static_snapshot.py + git push — no scraping, no audit.
+# Only runs export_static_snapshot.py and a signed API commit. No scraping, no audit.
 # Latency target: panel updated within ~60 seconds of anomaly detection.
 
 on:
@@ -32,12 +32,10 @@ jobs:
         run: python scripts/export_static_snapshot.py
       - name: Commit and push
         run: |
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add web/data/snapshot.json
-          git diff --cached --quiet || \
-            git commit -m "data: emergency snapshot [skip ci] reason=${{ inputs.reason }}"
-          git push
+          GH_TOKEN="${{ github.token }}" python3 .github/scripts/commit_via_api.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message "data: emergency snapshot [skip ci] reason=${{ inputs.reason }}" \
+            -- web/data/snapshot.json
 
       - name: Push data to centinel-data
         if: always()
@@ -53,8 +51,10 @@ jobs:
           mkdir -p /tmp/centinel-data/snapshots/emergency
           [ -f web/data/snapshot.json ] && cp web/data/snapshot.json /tmp/centinel-data/snapshots/emergency/ || true
           cd /tmp/centinel-data
-          git config user.name "VectisDev"
-          git config user.email "VectisDev@users.noreply.github.com"
-          git add .
-          git diff --cached --quiet || git commit -m "data: emergency $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push origin main
+          GH_TOKEN="$DATA_REPO_TOKEN" python3 "$GITHUB_WORKSPACE/.github/scripts/commit_via_api.py" \
+            --repository "${REPO_OWNER}/centinel-data" \
+            --branch main \
+            --root /tmp/centinel-data \
+            --sync \
+            --message "data: emergency $(date -u +'%Y-%m-%d %H:%M UTC')" \
+            -- .

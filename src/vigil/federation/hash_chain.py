@@ -7,7 +7,9 @@ and free storage (GitHub repo). Cost: $0. Storage: unlimited.
 """
 import json
 import logging
+import os
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -94,6 +96,34 @@ def commit_to_hash_chain(repo_root: Path, db_path: Path, branch: str = "data/rep
         commit_msg = (
             f"Hash chain snapshot: {snapshot['timestamp']} | {ring_summary} | " f"nodes={len(snapshot['nodes'])}"
         )
+
+        token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+        if token:
+            script = repo_root / ".github" / "scripts" / "commit_via_api.py"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--branch",
+                    branch,
+                    "--from",
+                    "main",
+                    "--message",
+                    commit_msg,
+                    "--",
+                    str(snapshot_file.relative_to(repo_root)),
+                ],
+                cwd=repo_root,
+                check=True,
+                env={**os.environ, "GH_TOKEN": token},
+            )
+            logger.info(
+                "hash_chain_commit branch=%s timestamp=%s nodes=%d",
+                branch,
+                snapshot["timestamp"],
+                len(snapshot["nodes"]),
+            )
+            return True
 
         subprocess.run(
             ["git", "commit", "-m", commit_msg],

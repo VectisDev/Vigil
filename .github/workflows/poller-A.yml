@@ -118,11 +118,8 @@ jobs:
           # Snapshots go to a dedicated 'snapshots' branch (separate history).
           # NOTE: this branch CANNOT be named 'data' — that name conflicts with
           # the existing data/reputation ref (git ref namespace: file vs dir).
-          git fetch origin snapshots:snapshots 2>/dev/null || \
-            (git checkout --orphan snapshots-init && \
-             git commit --allow-empty -m "init: snapshots branch" && \
-             git push origin HEAD:snapshots && \
-             git checkout -) || true
+          GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" python3 .github/scripts/commit_via_api.py \
+            --ensure-branch snapshots --from main
 
       - name: Run continuous poller A
         env:
