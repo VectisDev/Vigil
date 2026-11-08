@@ -27,6 +27,7 @@ reimplementing the logic in Python would test the reimplementation.
 
 from __future__ import annotations
 
+import os
 import socket
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -39,6 +40,22 @@ WEB_ROOT = REPO_ROOT / "web"
 
 pytest.importorskip("playwright.sync_api", reason="playwright no instalado")
 from playwright.sync_api import sync_playwright  # noqa: E402
+
+# El job `browser-tests` de ci.yml selecciona por este marcador. Sin el, este
+# modulo se omite en los jobs normales —que no instalan el binario— y el job
+# de navegador no lo recoge: 19 pruebas que no corren en ningun sitio, en
+# silencio y pareciendo verde.
+# English: the browser-tests job selects by this marker. Without it this module
+# skips in the normal jobs and the browser job does not pick it up: 19 tests
+# running nowhere, silently, looking green.
+pytestmark = pytest.mark.browser
+
+# Con esto a "1", no haber navegador es un FALLO y no una omision. Lo pone el
+# job que acaba de instalarlo, donde la ausencia solo puede significar que la
+# instalacion se rompio.
+# English: with this at "1", a missing browser is a FAILURE. Set by the job
+# that just installed it, where absence can only mean the install broke.
+REQUIRE_BROWSER = os.environ.get("VIGIL_REQUIRE_BROWSER") == "1"
 
 
 def _free_port() -> int:

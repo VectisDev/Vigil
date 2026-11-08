@@ -31,6 +31,7 @@ import functools
 import hashlib
 import http.server
 import json
+import os
 import re
 import socket
 import threading
@@ -91,6 +92,24 @@ _PALETTE_PROBE_JS = """
 
 sync_playwright = pytest.importorskip("playwright.sync_api").sync_playwright
 
+# El job `browser-tests` de ci.yml selecciona por este marcador. Marcarlo a
+# nivel de modulo incluye tambien las pruebas estaticas de aqui, que no
+# necesitan navegador: correrlas dos veces cuesta milisegundos y elegirlas una
+# por una se desincronizaria del archivo.
+# English: the browser-tests job selects by this marker. Marking at module
+# level also takes the static tests here, which need no browser: running those
+# twice costs milliseconds, and picking them one by one would drift.
+pytestmark = pytest.mark.browser
+
+# Con esto a "1", no haber navegador es un FALLO y no una omision. Lo pone el
+# job que acaba de instalarlo: alli la ausencia solo puede significar que la
+# instalacion se rompio, y una omision silenciosa en ese job seria un verde
+# que no prueba nada — exactamente el fallo que #788 encontro en el lint.
+# English: with this set to "1", a missing browser is a FAILURE, not a skip.
+# The job that just installed it sets it: there, absence can only mean the
+# install broke, and a silent skip would be a green that proves nothing.
+REQUIRE_BROWSER = os.environ.get("VIGIL_REQUIRE_BROWSER") == "1"
+
 
 # ── servidor y navegador ──────────────────────────────────────────────────────
 
@@ -145,6 +164,11 @@ def browser():
         try:
             instance = play.chromium.launch(**options)
         except Exception as exc:  # pragma: no cover - entorno sin navegador
+            if REQUIRE_BROWSER:
+                raise AssertionError(
+                    "VIGIL_REQUIRE_BROWSER=1 pero el navegador no arranca, asi que "
+                    f"la instalacion de Chromium fallo en este job: {exc}"
+                ) from exc
             pytest.skip(f"no hay navegador utilizable: {exc}")
         try:
             yield instance

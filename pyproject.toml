@@ -99,6 +99,14 @@ addopts = [
   "--import-mode=importlib",
   "--ignore=scripts/chaos_test.py"
 ]
+markers = [
+  # Pruebas que necesitan un navegador de verdad. El job `browser-tests` de
+  # ci.yml las selecciona con `-m browser` tras instalar Chromium; en los demas
+  # jobs se omiten solas, porque CI no instala el binario en todas partes.
+  # English: tests that need a real browser. The `browser-tests` job selects
+  # them with `-m browser` after installing Chromium; elsewhere they skip.
+  "browser: necesita un navegador instalado (job browser-tests)",
+]
 
 [tool.black]
 line-length = 120
