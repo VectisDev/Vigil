@@ -72,8 +72,22 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
   <!-- HEADER -->
   <div id="admin-header">
     <a href="../" class="hdr-brand-link">VIGIL</a><span class="hdr-sep">/</span><span class="hdr-brand">OPS</span>
+    <!-- Nombre del nodo o sala: dice de quien es este panel. Sin el, dos
+         pestañas de dos nodos distintos son indistinguibles.
+         English: node or room name -- without it, two tabs for two different
+         nodes look identical. -->
+    <span class="hdr-node" id="hdr-node"></span>
     <span class="hdr-user" id="hdr-user"></span>
     <span id="hdr-role"></span>
+    <!-- Reloj en hora de Honduras, con la etiqueta puesta. Un reloj sin zona
+         horaria en un panel que se consulta desde varios husos es una
+         invitacion a leer mal una hora de captura.
+         English: a clock labelled with its timezone. An unlabelled clock in a
+         panel read from several timezones invites misreading a capture time. -->
+    <span class="hdr-clock" id="hdr-clock-hn" title="Hora de Honduras">
+      <span class="hdr-clock-label">hora Honduras</span>
+      <span class="hdr-clock-val" id="hdr-clock-val">--:--</span>
+    </span>
     <div id="vigil-toggles">
       <button id="theme-toggle" onclick="toggleOpsTheme()" title="Cambiar tema / Toggle theme">
         <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -83,53 +97,34 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
     </div>
     <span id="config-sync-pill" class="sync-pill"></span>
     <span id="timing-pill" class="timing-pill"></span>
+    <!-- La guia rapida sale del cuerpo de la pagina y pasa a un panel lateral
+         detras de este boton: estaba ocupando sitio permanente para algo que
+         se lee una vez. English: the quick guide moves out of the page body
+         into a side panel behind this button. -->
+    <button class="hdr-btn" id="btn-help" onclick="toggleOpsGuide()"
+            aria-label="Guía rápida del panel" aria-expanded="false"
+            aria-controls="ops-guide">?</button>
     <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
   </div>
   <!-- COMMAND HEADER ── estado global de un vistazo -->
-  <div id="command-header">
-    <div id="status-ring-wrap">
-      <svg id="status-ring" viewBox="0 0 120 120" width="92" height="92">
-        <circle class="ring-track" cx="60" cy="60" r="52" fill="none" stroke-width="6"/>
-        <circle class="ring-fill"  cx="60" cy="60" r="52" fill="none" stroke-width="6"
-                stroke-dasharray="326.7" stroke-dashoffset="80" stroke-linecap="round"/>
-      </svg>
-      <div id="status-ring-center">
-        <div class="ring-sys-label"><span data-lang="es">SISTEMA</span><span data-lang="en">SYSTEM</span></div>
-        <div class="ring-sys-val" id="ms-system">—</div>
-      </div>
-    </div>
-    <div id="command-stats">
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-nodes">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Nodos</span><span data-lang="en">Nodes</span></div>
-      </div>
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-uptime">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Tiempo activo</span><span data-lang="en">Uptime</span></div>
-      </div>
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-defense">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Defensas</span><span data-lang="en">Defenses</span></div>
-      </div>
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-elec">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Modo elec.</span><span data-lang="en">Election mode</span></div>
-      </div>
-    </div>
-    <div id="command-secondary">
-      <span class="cmd-sec-item">
-        <span class="cmd-sec-label"><span data-lang="es">País</span><span data-lang="en">Country</span></span>
-        <span class="ms-val" id="ms-country">—</span>
-      </span>
-      <span class="cmd-sec-item">
-        <span class="cmd-sec-label">UTC</span>
-        <span class="ms-val" id="ms-clock">--:--:--</span>
-      </span>
-      <span class="cmd-sec-item">
-        <span class="cmd-sec-label"><span data-lang="es">Local</span><span data-lang="en">Local</span></span>
-        <span class="ms-val" id="ms-local" style="opacity:.7">--:--:--</span>
-      </span>
-    </div>
+  <!-- La cabecera de mando se retira.
+       Mostraba «NORMAL» y «INACTIVO» en grande junto a un anillo de estado,
+       mientras las tarjetas de abajo decian «CERRADO / NORMAL / PENDIENTE» y
+       podia aparecer un error al mismo tiempo: tres respuestas a la misma
+       pregunta en la misma pantalla. El estado vive ahora en el semaforo de
+       Inicio, que lo calcula en un solo sitio.
+       Los nueve nodos que el JS actualiza se conservan ocultos para no
+       romper el cableado; el reloj visible esta en la barra superior.
+       English: the command header is gone. It showed "NORMAL" and "INACTIVE"
+       large next to a status ring while the cards below said something else
+       and an error could appear at the same time -- three answers to one
+       question on one screen. State now lives in the Inicio traffic light.
+       The nine nodes the JS updates are kept hidden so the wiring survives. -->
+  <div id="command-header-legacy" hidden aria-hidden="true">
+    <span id="status-ring-wrap"></span>
+    <span id="ms-system"></span><span id="ms-nodes"></span><span id="ms-uptime"></span>
+    <span id="ms-defense"></span><span id="ms-elec"></span><span id="ms-country"></span>
+    <span id="ms-clock"></span><span id="ms-local"></span>
   </div>
   <!-- UNLOCK ALERT BAR -->
   <div id="unlock-alert-bar">
@@ -141,66 +136,111 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
   <!-- LAYOUT -->
   <div id="admin-content">
     <!-- SIDEBAR -->
-    <nav id="sidebar">
-      <div id="sidebar-nav">
-        <div class="sb-section" data-section="estado">
-          <button class="sec-header phase-tab" data-phase-tab="estado" onclick="setView('estado')"><span data-lang="es">Estado</span><span data-lang="en">Status</span></button>
-          <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
-          <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
-        </div>
-        <div class="sb-section" data-section="control">
-          <button class="sec-header phase-tab" data-phase-tab="control" onclick="setView('control')"><span data-lang="es">Control</span><span data-lang="en">Control</span></button>
-          <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
-          <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
-        </div>
-        <div class="sb-section" data-section="evidencia">
-          <button class="sec-header phase-tab" data-phase-tab="evidencia" onclick="setView('evidencia')"><span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span></button>
-          <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
-          <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
-          <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
-          <a href="#s8" onclick="scrollTo('s8')" class="election-only"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
-        </div>
-      </div>
-      <div id="sidebar-ops-zone">
-        <div class="soz-sep"></div>
-        <button id="btn-sidebar-iniciar" onclick="doIniciar()"
-          title="Iniciar monitoreo electoral">▶ <span data-lang="es">INICIAR</span><span data-lang="en">START</span></button>
-        <button id="btn-sidebar-finalizar" onclick="openFinalizeModal()"
-          title="Finalizar ciclo electoral">◼ <span data-lang="es">FINALIZAR</span><span data-lang="en">FINISH</span></button>
-        <div class="soz-autosave" onclick="toggleAutoApply()"
-          title="Auto-guardar: aplica cambios a GitHub automáticamente tras 1.5s de inactividad">
-          <span class="soz-autosave-label"><span data-lang="es">Auto-guardar</span><span data-lang="en">Auto-save</span></span>
-          <span class="soz-autosave-val off" id="autosave-val">OFF</span>
-        </div>
-        <button id="btn-apply-now" onclick="autoApply()" style="display:none"
-          title="Guardar los cambios de configuración en el repositorio">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>
-          Guardar cambios</button>
-      </div>
-      <div id="sidebar-emergency-zone">
-        <div class="sez-sep"></div>
-        <button id="btn-sidebar-emg" onclick="openEmergencyModal()"
-          title="Parada de emergencia — doble confirmación requerida">⚠ <span data-lang="es">EMERGENCIA</span><span data-lang="en">EMERGENCY</span></button>
-      </div>
+    <!-- ══ PESTAÑAS ══
+         Cuatro, en vez de una pagina de 2.400 lineas con diez secciones al
+         mismo nivel. El 90 % de las personas solo necesita Inicio; quien
+         busca evidencia la tiene en su sitio; y lo que puede romper algo vive
+         detras de una pestaña que lo avisa.
+         En movil pasan a barra inferior, donde el pulgar llega.
+         English: four tabs instead of one 2,400-line page with ten sections
+         at the same level. On mobile they become a bottom bar. -->
+    <nav id="ops-tabs" aria-label="Secciones del panel">
+      <button type="button" class="ops-tab" data-tab-btn="inicio" onclick="goTab('inicio')"
+              aria-controls="main-area">
+        <span data-lang="es">Inicio</span><span data-lang="en">Home</span>
+      </button>
+      <button type="button" class="ops-tab" data-tab-btn="evidencia" onclick="goTab('evidencia')"
+              aria-controls="main-area">
+        <span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span>
+      </button>
+      <button type="button" class="ops-tab" data-tab-btn="red" onclick="goTab('red')"
+              aria-controls="main-area">
+        <span data-lang="es">Red</span><span data-lang="en">Network</span>
+      </button>
+      <button type="button" class="ops-tab" data-tab-btn="avanzado" onclick="goTab('avanzado')"
+              aria-controls="main-area">
+        <span data-lang="es">Avanzado</span><span data-lang="en">Advanced</span>
+      </button>
     </nav>
+
+    <!-- Botones que el JS referencia por id. Vivian en la barra lateral, que
+         ya no existe; se conservan ocultos para no romper el cableado y se
+         accionan desde Inicio y Avanzado.
+         English: buttons the JS references by id. They lived in the sidebar,
+         which is gone; kept hidden so the wiring survives. -->
+    <div id="legacy-controls" hidden aria-hidden="true">
+
+      <button type="button" id="btn-sidebar-iniciar" onclick="doIniciar()"></button>
+      <button type="button" id="btn-sidebar-finalizar" onclick="openFinalizeModal()"></button>
+      <button type="button" id="btn-apply-now" onclick="autoApply()"></button>
+      <button type="button" id="btn-sidebar-emg" onclick="openEmergencyModal()"></button>
+    </div>
+
 
     <!-- MAIN -->
     <main id="main-area">
 
-      <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
-      <div class="section" id="s1" data-phase="estado">
-
-        <!-- Título + botones de operación -->
-        <div id="panel-topbar">
-          <div class="section-title"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span> <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(var(--red-tint),.1);border-color:rgba(var(--red-tint),.3);color:var(--red-text)"></span><span class="sec-tip" data-tip-es="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia." data-tip-en="Main command center. Start or stop electoral data scraping, check system status, and review the latest custody chain snapshots.">ⓘ</span></div>
-          <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
-          <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
-          <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
+      <!-- ══ INICIO ══ Lo único que ve el 90 % de las personas.
+           Un solo semáforo, calculado por computeOverallState(), que es la
+           única fuente de verdad. Antes el encabezado decía «NORMAL /
+           INACTIVO», las tarjetas decían «CERRADO / NORMAL / PENDIENTE» y a
+           la vez aparecía un error: tres respuestas distintas a la misma
+           pregunta, en la misma pantalla.
+           English: one traffic light from computeOverallState(), the single
+           source of truth. The header used to say one thing, the cards
+           another, and an error a third -- three answers to the same
+           question on one screen. -->
+      <div class="section" id="s0" data-tab="inicio">
+        <div id="hero-state" class="hero-state" role="status" aria-live="polite">
+          <div class="hero-dot" id="hero-dot" aria-hidden="true"></div>
+          <div class="hero-copy">
+            <p class="hero-headline" id="hero-headline">—</p>
+            <p class="hero-detail" id="hero-detail"></p>
+          </div>
+          <button type="button" class="btn-secondary hero-action" id="hero-action"
+                  style="display:none" onclick="openHeroHelp()">
+            <span data-lang="es">Qué hago</span><span data-lang="en">What do I do</span>
+          </button>
         </div>
-        <hr class="section-sep">
 
-        <!-- Estado global del sistema -->
-        <div id="global-status-banner" class="global-status-banner nominal">● SISTEMA NOMINAL</div>
+        <div class="hero-buttons">
+          <button type="button" class="btn-primary hero-btn" id="hero-toggle" onclick="heroToggleCapture()">
+            <span data-lang="es">Iniciar</span><span data-lang="en">Start</span>
+          </button>
+          <button type="button" class="btn-secondary hero-btn" onclick="goTab('evidencia')">
+            <span data-lang="es">Ver evidencia</span><span data-lang="en">See evidence</span>
+          </button>
+          <button type="button" class="btn-secondary hero-btn" id="hero-share" onclick="sharePublicLink()">
+            <span data-lang="es">Compartir enlace público</span><span data-lang="en">Share public link</span>
+          </button>
+        </div>
+
+        <div class="hero-cards">
+          <button type="button" class="hero-card" onclick="goTab('evidencia')">
+            <span class="hero-card-label" data-lang="es">Última captura</span>
+            <span class="hero-card-label" data-lang="en">Last capture</span>
+            <span class="hero-card-value" id="hero-last">—</span>
+          </button>
+          <button type="button" class="hero-card" onclick="goTab('evidencia')">
+            <span class="hero-card-label" data-lang="es">Anomalías hoy</span>
+            <span class="hero-card-label" data-lang="en">Anomalies today</span>
+            <span class="hero-card-value" id="hero-anomalies">—</span>
+          </button>
+          <button type="button" class="hero-card" onclick="goTab('red')">
+            <span class="hero-card-label" data-lang="es">Nodos en mi sala</span>
+            <span class="hero-card-label" data-lang="en">Nodes in my room</span>
+            <span class="hero-card-value" id="hero-nodes">—</span>
+          </button>
+        </div>
+
+        <!-- La fuente vigilada se cambia muy de vez en cuando, así que va
+             cerrada: lo frecuente arriba, lo raro plegado.
+             English: the watched source changes rarely, so it starts closed. -->
+        <details class="ops-details" id="source-details">
+          <summary>
+            <span data-lang="es">Cambiar fuente</span><span data-lang="en">Change source</span>
+          </summary>
+          <div class="ops-details-body">
 
         <!-- Selector de país + URL del ente electoral -->
         <div id="country-picker">
@@ -224,6 +264,31 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
         <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(var(--warn-tint),.08);border:1px solid rgba(var(--warn-tint),.25)">
           ⚠ <span data-lang="es">El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.</span><span data-lang="en">The swarm is connected with the previous country. Go to Node Network → Disconnect and reconnect.</span>
         </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
+      <div class="section" id="s1" data-tab="evidencia" data-phase="estado">
+
+        <!-- Título + botones de operación -->
+        <!-- El encabezado «NORMAL / INACTIVO» se elimina: contradecía a las
+             tarjetas y al banner. El estado vive ahora en el semáforo de
+             Inicio, calculado en un solo sitio. Estos dos nodos quedan
+             porque doIniciar() y _setPipelineUI() los referencian.
+             English: the "NORMAL / INACTIVE" header is gone -- it
+             contradicted the cards and the banner. These two nodes stay
+             because doIniciar() and _setPipelineUI() reference them. -->
+          <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
+          <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
+          <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
+        <hr class="section-sep">
+
+        <!-- Estado global del sistema -->
+        <div id="global-status-banner" class="global-status-banner nominal">● SISTEMA NOMINAL</div>
+
+
+
 
         <!-- Estado operativo — métricas hero -->
         <div class="status-cards-grid" id="status-cards"><!-- filled by JS --></div>
@@ -286,7 +351,21 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 3 PRESETS ── -->
-      <div class="section" id="s3" data-phase="control">
+      <!-- Aviso de la pestaña Avanzado. Va una vez, arriba del todo, y no en
+     cada sección: repetirlo diez veces lo vuelve invisible.
+     English: the warning appears once at the top, not on every section --
+     repeating it ten times makes it invisible. -->
+<div class="section ops-danger-note" id="s-adv-warn" data-tab="avanzado" role="note">
+  <span aria-hidden="true">⚠</span>
+  <span>
+    <span data-lang="es"><strong>Estas acciones cambian cómo funciona VIGIL.</strong>
+      Lee antes de pulsar. Algunas no se pueden deshacer.</span>
+    <span data-lang="en"><strong>These actions change how VIGIL works.</strong>
+      Read before pressing. Some cannot be undone.</span>
+  </span>
+</div>
+
+<div class="section" id="s3" data-tab="avanzado" data-phase="control">
         <div class="section-title"><span data-lang="es">Presets</span><span data-lang="en">Presets</span> <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip-es="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada." data-tip-en="Quick configuration templates. Pick a preset based on the scenario (normal operation, election night, emergency…) or save your own custom configuration.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -643,7 +722,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
-      <div class="section" id="s9" data-phase="evidencia">
+      <div class="section" id="s9" data-tab="evidencia" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de VIGIL." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on VIGIL.">ⓘ</span></div>
         <hr class="section-sep">
         <div class="ctrl-section" id="ots-section">
@@ -824,7 +903,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 
       <!-- ── 5 LOGS ── -->
-      <div class="section" id="s4" data-phase="evidencia">
+      <div class="section" id="s4" data-tab="evidencia" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs &amp; terminals</span> <span class="sec-tip" data-tip-es="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoria. Todo queda grabado y no se puede borrar." data-tip-en="Real-time logs of all activity: monitoring events, security alerts and audit traces. Everything is recorded and cannot be deleted.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -928,67 +1007,79 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 6 MANUAL ── -->
-      <div class="section" id="s5" data-phase="evidencia">
+      <div class="section" id="s5" data-tab="avanzado" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Manual</span><span data-lang="en">Manual</span> <span class="sec-tip" data-tip-es="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automatico." data-tip-en="One-off manual operations: force an immediate scrape, pause or resume the scheduler, without waiting for the automatic cycle.">ⓘ</span></div>
         <hr class="section-sep">
-        <details id="mini-manual">
-          <summary><span data-lang="es">Guía rápida del panel de administración</span><span data-lang="en">Quick guide to the admin panel</span></summary>
-          <div class="details-body">
-            <div class="ctrl-section">
-              <h3><span data-lang="es">Configuración avanzada</span><span data-lang="en">Advanced configuration</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">Los parámetros de operación se configuran desde la sección <strong>Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
-                Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.</span>
-                <span data-lang="en">Operating parameters are configured from the <strong>Presets</strong> section. Load a preset to adjust the capture interval, requests/hour, election and safe modes.<br><br>
-                For detailed configuration, expand <strong>Advanced configuration</strong> in the Presets section: 5 tabs with access to individual endpoints, watchdog, rate limiter, network and detection rules.</span>
-              </p>
-              <h3><span data-lang="es">El mapa de endpoints</span><span data-lang="en">The endpoint map</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.</span>
-                <span data-lang="en">Shows the 18 departments + NATIONAL of Honduras as geopositioned points. Color indicates the configured endpoint\u2019s status. Click any point to edit the URL or test the endpoint.</span>
-              </p>
-              <h3><span data-lang="es">Cómo se guardan los cambios</span><span data-lang="en">How changes are saved</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">Cada cambio se guarda automáticamente 1.5 segundos después de modificarlo.<br>
-                1. Modifica cualquier control — el cambio se envía a GitHub automáticamente.<br>
-                2. La primera vez se te pide el GitHub PAT (solo en sessionStorage, desaparece al cerrar el browser).<br>
-                3. El sistema hace commit a <code>config/prod/</code> vía GitHub API.<br>
-                4. Los cambios toman efecto en el próximo ciclo (~15 min).</span>
-                <span data-lang="en">Every change is saved automatically 1.5 seconds after you modify it.<br>
-                1. Modify any control — the change is sent to GitHub automatically.<br>
-                2. The first time, you\u2019re asked for your GitHub PAT (sessionStorage only, disappears when you close the browser).<br>
-                3. The system commits to <code>config/prod/</code> via the GitHub API.<br>
-                4. Changes take effect on the next cycle (~15 min).</span>
-              </p>
-              <h3>Protocolo ARGOS</h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <strong>NORMAL</strong>: <span data-lang="es">operación estándar.</span><span data-lang="en">standard operation.</span><br>
-                <strong>CAUTION</strong>: <span data-lang="es">el sistema detectó condiciones adversas, reduce agresividad.</span><span data-lang="en">the system detected adverse conditions, reduces aggressiveness.</span><br>
-                <strong>SURVIVAL</strong>: <span data-lang="es">modo mínimo, solo captura esencial, máxima resiliencia.</span><span data-lang="en">minimal mode, essential capture only, maximum resilience.</span>
-              </p>
-              <h3><span data-lang="es">Qué hacer si un endpoint queda rojo</span><span data-lang="en">What to do if an endpoint turns red</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">1. Click en el punto en el mapa → "Probar ahora" para verificar si responde.<br>
-                2. Si no responde: verifica la URL con el proveedor CNE.<br>
-                3. Actualiza la URL en el popup → "Guardar cambio" → se guarda automáticamente.<br>
-                4. Si es un fallo temporal, el circuit breaker se recupera automáticamente.</span>
-                <span data-lang="en">1. Click the point on the map → "Test now" to check if it responds.<br>
-                2. If it doesn\u2019t respond: verify the URL with the electoral authority.<br>
-                3. Update the URL in the popup → "Save change" → it saves automatically.<br>
-                4. If it\u2019s a temporary failure, the circuit breaker recovers automatically.</span>
-              </p>
-              <h3><span data-lang="es">Recuperar configuración anterior</span><span data-lang="en">Restoring a previous configuration</span></h3>
-              <p style="font-size:13px;color:var(--muted)">
-                <span data-lang="es">Todo cambio es un commit en <code>config/prod/</code>. Para revertir: ve a GitHub → <code>config/prod/endpoints.yaml</code> → History → elige el commit anterior → "Revert" o copia el contenido manualmente.</span>
-                <span data-lang="en">Every change is a commit to <code>config/prod/</code>. To revert: go to GitHub → <code>config/prod/endpoints.yaml</code> → History → pick the previous commit → "Revert" or copy the content manually.</span>
-              </p>
-            </div>
-          </div>
-        </details>
+<!-- ══ GUÍA RÁPIDA ══ Panel lateral, detrás del «?» de la barra superior.
+     Estaba en el cuerpo de la página, ocupando sitio permanente para algo que
+     se lee una vez. Reescrita sin jerga: quien abre este panel por primera
+     vez no sabe qué es un «endpoint», y no tiene por qué.
+     English: a side panel behind the "?" in the topbar. It used to sit in the
+     page body, permanently occupying space for something read once. Rewritten
+     without jargon -- someone opening this panel for the first time does not
+     know what an "endpoint" is, and does not need to. -->
+<aside id="ops-guide" hidden aria-label="Guía rápida del panel">
+  <div class="guide-head">
+    <h2><span data-lang="es">Guía rápida</span><span data-lang="en">Quick guide</span></h2>
+    <button type="button" class="hdr-btn" onclick="toggleOpsGuide()"
+            aria-label="Cerrar la guía">✕</button>
+  </div>
+  <div class="guide-body">
+    <section>
+      <h3><span data-lang="es">Qué hace esto</span><span data-lang="en">What this does</span></h3>
+      <p>
+        <span data-lang="es">VIGIL toma una foto de los resultados electorales
+          publicados, cada cierto tiempo, y guarda cada foto con una huella que
+          no se puede falsificar. Si alguien cambia un número después, las
+          fotos lo muestran.</span>
+        <span data-lang="en">VIGIL takes a picture of the published election
+          results every so often, and stores each picture with a fingerprint
+          that cannot be forged. If someone changes a number afterwards, the
+          pictures show it.</span>
+      </p>
+    </section>
+    <section>
+      <h3><span data-lang="es">Las cuatro pestañas</span><span data-lang="en">The four tabs</span></h3>
+      <ul class="guide-list">
+        <li><strong>Inicio.</strong>
+          <span data-lang="es">Si todo va bien o no, y los botones de empezar y parar.</span>
+          <span data-lang="en">Whether things are fine, and the start and stop buttons.</span></li>
+        <li><strong>Evidencia.</strong>
+          <span data-lang="es">Lo que se ha capturado: el mapa, las cosas raras que
+            se han detectado, y el sello que prueba cuándo se guardó cada foto.</span>
+          <span data-lang="en">What has been captured: the map, the odd things
+            detected, and the seal proving when each picture was stored.</span></li>
+        <li><strong>Red.</strong>
+          <span data-lang="es">Otras personas vigilando lo mismo que tú. Varias
+            a la vez hacen más difícil desmentir un hallazgo.</span>
+          <span data-lang="en">Other people watching the same thing. Several at
+            once make a finding harder to dismiss.</span></li>
+        <li><strong>Avanzado.</strong>
+          <span data-lang="es">Ajustes y acciones que cambian cómo funciona.
+            No hace falta entrar aquí para usar VIGIL.</span>
+          <span data-lang="en">Settings and actions that change how it works.
+            You do not need to come here to use VIGIL.</span></li>
+      </ul>
+    </section>
+    <section>
+      <h3><span data-lang="es">Si algo sale mal</span><span data-lang="en">If something goes wrong</span></h3>
+      <p>
+        <span data-lang="es">El recuadro grande de Inicio lo dice en una frase,
+          y trae un botón que lleva a lo que hay que tocar. Si dice que tu nodo
+          no está encendido, es eso: VIGIL no está corriendo en tu equipo, y
+          esta página solo muestra lo que ya hay guardado.</span>
+        <span data-lang="en">The large box on Inicio says it in one sentence and
+          offers a button to whatever needs touching. If it says your node is not
+          running, that is it: VIGIL is not running on your machine, and this
+          page only shows what is already stored.</span>
+      </p>
+    </section>
+  </div>
+</aside>
       </div>
 
       <!-- ── 7 Acceso y Seeds ── -->
-      <div class="section" id="s6" data-phase="control">
+      <div class="section" id="s6" data-tab="avanzado" data-phase="control">
         <div class="section-title"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access &amp; Seeds</span> <span class="sec-tip" data-tip-es="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano, solo su huella criptografica. Usalas para rotarlas o revocarlas." data-tip-en="Manage the 12 administrative access keys. Keys are never stored in plaintext, only their cryptographic fingerprint. Use this to rotate or revoke them.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -1036,7 +1127,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
-      <div class="section" id="s7" data-phase="estado">
+      <div class="section" id="s7" data-tab="red" data-phase="estado">
         <div class="section-title"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span> <span class="sec-tip" data-tip-es="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demas para detectar cualquier manipulacion en tiempo real." data-tip-en="View of the P2P observer network. Each node independently validates the data and compares its result with others to detect any manipulation in real time.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -1789,6 +1880,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 <script src="js/vigil-log.js"></script>
 <script src="js/ops-core.js"></script>
+<script src="js/ops-tabs.js"></script>
 <script src="js/ops-panel.js"></script>
 <script src="js/ops-monitor.js"></script>
 <script src="js/ops-command.js"></script>
@@ -2215,6 +2307,9 @@ async function initAll(){
   // English: the 8s guard is armed BEFORE the loaders go out. The other way
   // round, its snapshot is whatever a loader has just rendered, and on expiry
   // it replaces it with the generic message.
+  try { initOpsTopbar(); } catch(e){ console.warn('initOpsTopbar',e); }
+  try { initOpsTabs(); } catch(e){ console.warn('initOpsTabs',e); }
+  try { renderOverallState(); } catch(e){ console.warn('renderOverallState',e); }
   try { opsArmLoadingGuards(); } catch(e){ console.warn('opsArmLoadingGuards',e); }
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
   await loadDepartments(ACTIVE_COUNTRY_CODE);

@@ -1103,3 +1103,159 @@ body.election-mode .election-only { display: block; }
     transition-duration:.001ms !important;scroll-behavior:auto !important;
   }
 }
+
+/* ── Pestañas y pantalla de Inicio (fase 2) ────────────────────────────────
+ *
+ * Cuatro pestañas en vez de una página infinita. El subrayado rojo marca la
+ * activa; en móvil pasan a barra inferior, donde llega el pulgar.
+ * English: four tabs instead of an endless page. On mobile they move to a
+ * bottom bar, within thumb reach.
+ */
+#ops-tabs{
+  display:flex;gap:4px;padding:0 24px;background:var(--panel);
+  border-bottom:1px solid var(--border);position:sticky;top:var(--hdr-height);z-index:90;
+}
+.ops-tab{
+  appearance:none;background:transparent;border:0;border-bottom:2px solid transparent;
+  color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;
+  padding:12px 16px;cursor:pointer;transition:color .15s,border-color .15s;
+}
+.ops-tab:hover{color:var(--fg)}
+.ops-tab.active{color:var(--fg);border-bottom-color:var(--red)}
+
+/* El semáforo. Es lo primero y lo más grande de la pantalla, porque es la
+ * única pregunta que casi todo el mundo trae: ¿está bien o no?
+ * English: the traffic light. First and largest, because it answers the one
+ * question almost everyone arrives with. */
+.hero-state{
+  display:flex;align-items:center;gap:18px;
+  padding:26px 24px;margin:0 0 18px;border-radius:10px;
+  background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--muted);
+}
+.hero-state.is-ok{border-left-color:var(--fg)}
+.hero-state.is-idle{border-left-color:var(--muted)}
+.hero-state.is-bad{border-left-color:var(--red);background:var(--red-soft)}
+.hero-dot{width:18px;height:18px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+.hero-state.is-ok .hero-dot{background:var(--fg)}
+.hero-state.is-bad .hero-dot{background:var(--red)}
+.hero-copy{flex:1;min-width:0}
+/* 32px, como pide el diseño: la cifra del semáforo se lee de pie y a un metro
+ * de la pantalla, que es como se mira un panel en una noche electoral.
+ * English: 32px -- readable standing, a metre from the screen. */
+.hero-headline{font-size:32px;font-weight:700;line-height:1.2;margin:0;color:var(--fg)}
+.hero-state.is-bad .hero-headline{color:var(--red-text)}
+.hero-detail{font-size:14px;color:var(--muted);margin:6px 0 0;line-height:1.5}
+.hero-action{flex:0 0 auto}
+
+.hero-buttons{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.hero-btn{padding:12px 22px;font-size:15px}
+
+.hero-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.hero-card{
+  display:flex;flex-direction:column;gap:6px;text-align:left;
+  padding:16px;border-radius:8px;background:var(--panel);
+  border:1px solid var(--border);cursor:pointer;font-family:inherit;
+  transition:border-color .15s;
+}
+.hero-card:hover{border-color:var(--muted)}
+.hero-card-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.hero-card-value{font-size:24px;font-weight:700;color:var(--fg)}
+
+/* Lo que se consulta de vez en cuando va plegado: lo frecuente arriba, lo
+ * raro a un clic. English: rare things start folded. */
+.ops-details{border:1px solid var(--border);border-radius:8px;background:var(--panel);margin-bottom:18px}
+.ops-details>summary{
+  padding:12px 16px;cursor:pointer;font-size:14px;font-weight:600;color:var(--fg);
+  list-style:none;display:flex;align-items:center;gap:8px;
+}
+.ops-details>summary::-webkit-details-marker{display:none}
+.ops-details>summary::before{content:'▸';color:var(--muted);font-size:12px}
+.ops-details[open]>summary::before{content:'▾'}
+.ops-details>summary:hover{background:var(--panel2)}
+.ops-details-body{padding:4px 16px 16px;border-top:1px solid var(--border)}
+
+/* Aviso de la pestaña Avanzado. Rojo suave, no rojo de alarma: avisa, no
+ * asusta. English: soft red -- it warns, it does not alarm. */
+.ops-danger-note{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:14px 16px;margin:0 0 18px;border-radius:8px;
+  background:var(--red-soft);border:1px solid var(--red);color:var(--fg);
+  font-size:13.5px;line-height:1.6;
+}
+.ops-danger-note strong{color:var(--red-text)}
+
+/* ── Móvil, desde 360 px ───────────────────────────────────────────────────
+ * Sin scroll horizontal: las rejillas se apilan y las pestañas bajan al
+ * pulgar. English: no horizontal scroll; grids stack, tabs move to the thumb. */
+@media (max-width: 720px){
+  #ops-tabs{
+    position:fixed;bottom:0;top:auto;left:0;right:0;
+    padding:0;border-top:1px solid var(--border);border-bottom:0;
+    justify-content:space-around;
+  }
+  .ops-tab{flex:1;padding:14px 4px;font-size:13px;border-bottom:0;border-top:2px solid transparent}
+  .ops-tab.active{border-top-color:var(--red);border-bottom-color:transparent}
+  #main-area{padding-bottom:72px}
+  .hero-headline{font-size:24px}
+  .hero-cards{grid-template-columns:1fr}
+  .hero-buttons{flex-direction:column}
+  .hero-btn{width:100%}
+  .hero-state{flex-direction:column;align-items:flex-start;gap:12px;padding:20px 16px}
+}
+@media (max-width: 420px){
+  body{overflow-x:hidden}
+  #main-area{padding-left:16px;padding-right:16px}
+}
+
+/* ── Barra superior y guía lateral (fase 2) ────────────────────────────────*/
+#admin-header{min-height:var(--hdr-height)}
+.hdr-node{
+  font-size:13px;color:var(--muted);font-family:var(--mono);
+  padding:3px 8px;border:1px solid var(--border);border-radius:5px;
+  max-width:28ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.hdr-clock{display:inline-flex;align-items:baseline;gap:6px;margin-left:auto}
+.hdr-clock-label{font-size:12px;color:var(--muted);text-transform:lowercase}
+.hdr-clock-val{font-family:var(--mono);font-size:14px;color:var(--fg);font-variant-numeric:tabular-nums}
+
+#ops-guide{
+  position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:2200;
+  background:var(--panel);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:-8px 0 24px rgba(0,0,0,.25);
+}
+#ops-guide[hidden]{display:none}
+.guide-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.guide-head h2{font-size:17px;margin:0;color:var(--fg)}
+.guide-body{padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:22px}
+.guide-body h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 8px}
+.guide-body p{font-size:14px;line-height:1.7;color:var(--fg);margin:0}
+.guide-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:10px}
+.guide-list li{font-size:14px;line-height:1.6;color:var(--fg)}
+.guide-list strong{color:var(--red-text)}
+@media (max-width: 720px){ #ops-guide{width:100vw} }
+
+/* ── Correcciones de maquetación de la fase 2 ─────────────────────────────
+ *
+ * `[hidden]` lo pisaban reglas de `.section` y de `#main-area{display:flex}`,
+ * asi que las pestañas se dibujaban todas a la vez: el enrutador hacia bien
+ * su trabajo y el CSS lo deshacia. Un `!important` aqui es el sitio correcto
+ * para ponerlo: oculto es oculto, y ninguna regla de presentacion debe poder
+ * discutirlo.
+ * English: `[hidden]` was being overridden by `.section` and
+ * `#main-area{display:flex}` rules, so every tab painted at once -- the
+ * router did its job and the CSS undid it. Hidden is hidden.
+ */
+[hidden]{display:none !important}
+
+/* La barra lateral ya no existe, asi que su columna tampoco. El contenido
+ * pasa a una sola columna con las pestañas arriba.
+ * English: the sidebar is gone, so its column goes too. */
+#admin-content{display:block;flex:1;overflow:visible}
+#main-area{display:block;max-width:1200px;margin:0 auto;width:100%}
+
+/* La pantalla de Inicio respira: es la unica que casi todo el mundo mira. */
+#s0{max-width:1100px}
