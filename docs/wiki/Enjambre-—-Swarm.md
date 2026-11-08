@@ -6,11 +6,11 @@
 
 ## Empieza aquí
 
-No necesitas una cuenta.
-Pide un código de sala.
-Ejecuta `python3 scripts/swarm_join.py CODIGO`.
-Verde: las copias coinciden. Amarillo: todavía no. Rojo: no coinciden.
-Ese es todo el paso.
+1. Haz un fork del repositorio y enciende Actions.
+2. Actions → Join a room → escribe el código → Run.
+3. Lee el color. Verde: las copias coinciden. Amarillo: todavía no. Rojo: no coinciden.
+
+En un ordenador: `python3 scripts/swarm_join.py CODIGO`
 
 El detalle está en [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).
 
@@ -18,10 +18,10 @@ El detalle está en [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/
 
 ## Start here
 
-You do not need an account.
-Ask for a room code.
-Run `python3 scripts/swarm_join.py CODE`.
-Green means the copies match. Yellow means not yet. Red means they disagree.
-That is the whole step.
+1. Fork the repository and turn Actions on.
+2. Actions → Join a room → type the room code → Run.
+3. Read the color. Green: the copies match. Yellow: not yet. Red: they disagree.
+
+On a computer: `python3 scripts/swarm_join.py CODE`
 
 The detail is in [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).

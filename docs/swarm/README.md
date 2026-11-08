@@ -2,11 +2,11 @@
 
 ## Start here
 
-You do not need an account.
-Ask for a room code.
-Run `python3 scripts/swarm_join.py CODE`.
-Green means the copies match. Yellow means not yet. Red means they disagree.
-That is the whole step.
+1. Fork the repository and turn Actions on.
+2. Actions → Join a room → type the room code → Run.
+3. Read the color. Green: the copies match. Yellow: not yet. Red: they disagree.
+
+On a computer: `python3 scripts/swarm_join.py CODE`
 
 **Not yet production. / Todavía no es producción.**
 
@@ -120,7 +120,8 @@ Every record is a public GitHub object. Nothing in this map is a private message
 |---|---|---|
 | Signed attestation | A file in a commit, under `attestations/<room>/<source>/<window>/<key>.json` | The hash, the key fingerprint, the signature |
 | Dispute, including equivocation | An Issue from [`.github/ISSUE_TEMPLATE/swarm-equivocation.md`](../../.github/ISSUE_TEMPLATE/swarm-equivocation.md) | Both file paths and both hashes. Comments are not votes |
-| Quorum check | An Action that runs `confirm` on those files | The log of the run |
+| Join | The Join a room Action, [`.github/workflows/join.yml`](../../.github/workflows/join.yml). Its only input is the room code | The color and a public id. The private key is not printed and is not committed. GitHub's workflow token cannot save a new secret, so this Action does not ask for a second token |
+| Quorum check | An Action that runs `confirm` on those files. Not this Join Action | The log of the run |
 | Daily signed log | A Release, one per day, with the log and its signature as assets | The log. Not enabled here, because a Release is a published tag |
 | Room | A Discussion whose title is the room code and whose first post is the list of key fingerprints | The code and the keys. Discussions have to be switched on for the repository. This note does not claim they are on |
 | Dashboard | GitHub Pages, the files in `web/` | Static HTML. No tracker, no login |

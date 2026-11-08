@@ -1,10 +1,10 @@
 # Start here
 
-You do not need an account.
-Ask for a room code.
-Run `python3 scripts/swarm_join.py CODE`.
-Green means the copies match. Yellow means not yet. Red means they disagree.
-That is the whole step.
+1. Fork the repository and turn Actions on.
+2. Actions → Join a room → type the room code → Run.
+3. Read the color. Green: the copies match. Yellow: not yet. Red: they disagree.
+
+On a computer: `python3 scripts/swarm_join.py CODE`
 
 One person publishes this repository, under the pseudonym VectisDev.
 
