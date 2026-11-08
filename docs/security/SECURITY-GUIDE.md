@@ -1,5 +1,7 @@
 # Security Integration Guide / Guía de Integración de Seguridad
 
+This file is a draft wishlist. It is not the security policy and it is not a description of a running control room. The policy is [`.github/SECURITY.md`](../../.github/SECURITY.md). New readers should use [`docs/START.md`](../START.md).
+
 ## Resolución de Críticas y Flujo Integrado
 
 Plan paso a paso (operativo y reproducible):

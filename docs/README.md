@@ -1,9 +1,8 @@
 # VIGIL — Documentation Index
 
-**Version:** 2.0 | **Status:** Active | **License:** AGPL-3.0
+Start at [`START.md`](START.md). That page lists the files that win if this index disagrees with them.
 
-> Trustless electoral integrity verification infrastructure for Latin America.  
-> Infraestructura de verificación de integridad electoral sin confianza para América Latina.
+One person maintains the repository, under the pseudonym VectisDev. License: AGPL-3.0.
 
 ---
 
@@ -28,7 +27,7 @@
 
 | Document | Description |
 |----------|-------------|
-| [architecture/THEORY_OF_CHANGE.md](architecture/THEORY_OF_CHANGE.md) | Why this system reduces fraud risk |
+| [evidence/HN2025.md](evidence/HN2025.md) | The only card for the 2025 sample |
 | [research/METHODOLOGY.md](research/METHODOLOGY.md) | 25+ statistical detectors, technical description |
 | [legal/GOVERNANCE.md](legal/GOVERNANCE.md) | Decision structure, AGPL license, sustainability |
 | [architecture/AUTONOMOUS-OPERATIONS.md](architecture/AUTONOMOUS-OPERATIONS.md) | What runs without humans, and why |

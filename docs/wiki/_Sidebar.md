@@ -11,6 +11,7 @@
 - [Metodología · Methodology](Metodología-—-Methodology)
 - [Seguridad · Security](Seguridad-—-Security)
 - [Verificar · Verify](Verificar-—-Verify)
+- [Enjambre · Swarm](Enjambre-—-Swarm)
 
 **Resultados · Results**
 - [Piloto Honduras 2025 · Honduras 2025 pilot](Piloto-Honduras-2025-—-Honduras-2025-pilot)
