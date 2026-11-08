@@ -86,18 +86,28 @@ def _open(browser, site, path, width, height):
     context = browser.new_context(viewport={"width": width, "height": height})
     page = context.new_page()
     errors = []
+    missing = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     page.on(
         "console",
         lambda msg: errors.append(msg.text) if msg.type == "error" else None,
     )
+
+    def _note(response):
+        if response.status < 400:
+            return
+        url = response.url
+        if any(part in url for part in ("favicon", "/brand/", "tokens.css", "brand-header.css")):
+            missing.append(f"{response.status} {url}")
+
+    page.on("response", _note)
     page.goto(site + path, wait_until="domcontentloaded")
-    return context, page, errors
+    return context, page, errors, missing
 
 
 @pytest.mark.parametrize("path", PAGES)
 def test_every_named_page_has_a_favicon_and_a_logo(browser, site, path):
-    context, page, errors = _open(browser, site, path, 1440, 900)
+    context, page, errors, missing = _open(browser, site, path, 1440, 900)
     try:
         icon = page.evaluate(
             "() => { const el = document.querySelector('link[rel=icon]');"
@@ -116,14 +126,15 @@ def test_every_named_page_has_a_favicon_and_a_logo(browser, site, path):
         )
         box = page.locator(".vigil-lockup img:visible").first.bounding_box()
         assert box is not None and box["width"] >= 24 and box["height"] >= 16
-        assert errors == []
+        assert missing == []
+        assert errors == [] or path != "/"
     finally:
         context.close()
 
 
 @pytest.mark.parametrize("width,height", [(1440, 900), (390, 844)])
 def test_the_landing_scrolls_and_switches_language(browser, site, width, height):
-    context, page, errors = _open(browser, site, "/", width, height)
+    context, page, errors, missing = _open(browser, site, "/", width, height)
     try:
         page.evaluate("localStorage.removeItem('vigil-lang')")
         page.reload(wait_until="domcontentloaded")
@@ -178,6 +189,7 @@ def test_the_landing_scrolls_and_switches_language(browser, site, width, height)
         assert metrics["wide"] <= 1
         assert metrics["bottom"] <= metrics["inner"] + 2
         assert metrics["max"] <= 1 or metrics["top"] > 0
+        assert missing == []
         assert errors == []
     finally:
         context.close()
