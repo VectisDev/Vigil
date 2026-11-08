@@ -88,9 +88,7 @@ def browser():
             launched = _launch_browser(pw)
         except Exception as exc:
             if os.environ.get("VIGIL_REQUIRE_BROWSER") == "1":
-                raise AssertionError(
-                    "VIGIL_REQUIRE_BROWSER=1 pero el navegador no arranca: " + str(exc)
-                ) from exc
+                raise AssertionError("VIGIL_REQUIRE_BROWSER=1 pero el navegador no arranca: " + str(exc)) from exc
             pytest.skip(f"no hay navegador utilizable: {exc}")
         try:
             yield launched
@@ -108,16 +106,22 @@ def _open(browser, site, path, scheme):
 
 
 @pytest.mark.parametrize("path", PAGES)
-@pytest.mark.parametrize("scheme,theme,red,bg", [
-    ("light", "light", "#D7262E", "rgb(255, 255, 255)"),
-    ("dark", "dark", "#FF4D55", "rgb(0, 0, 0)"),
-])
+@pytest.mark.parametrize(
+    "scheme,theme,red,bg",
+    [
+        ("light", "light", "#D7262E", "rgb(255, 255, 255)"),
+        ("dark", "dark", "#FF4D55", "rgb(0, 0, 0)"),
+    ],
+)
 def test_each_page_follows_the_system_and_uses_one_background(browser, site, path, scheme, theme, red, bg):
     context, page = _open(browser, site, path, scheme)
     try:
         assert page.evaluate("document.documentElement.getAttribute('data-theme')") == theme
         assert page.evaluate("getComputedStyle(document.body).backgroundColor") == bg
-        assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--red').trim().toUpperCase()") == red
+        assert (
+            page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--red').trim().toUpperCase()")
+            == red
+        )
         icon = page.evaluate("document.querySelector('link[rel=icon]').getAttribute('href')")
         assert ("mark-dark.svg" if theme == "dark" else "mark-light.svg") in icon
         bands = page.evaluate(_ONE_BACKGROUND_JS)

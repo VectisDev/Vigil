@@ -27,11 +27,7 @@ def contrast(foreground: str, background: str) -> float:
             int(hex_color[2:4], 16),
             int(hex_color[4:6], 16),
         )
-        return (
-            0.2126 * _channel(red)
-            + 0.7152 * _channel(green)
-            + 0.0722 * _channel(blue)
-        )
+        return 0.2126 * _channel(red) + 0.7152 * _channel(green) + 0.0722 * _channel(blue)
 
     lighter = max(luminance(foreground), luminance(background))
     darker = min(luminance(foreground), luminance(background))
