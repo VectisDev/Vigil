@@ -851,9 +851,9 @@ function deptDotColor(code, configured){
   if(!configured.includes(code)) return '#3a3f49'; // Sin configurar
   const status = getEndpointStatus(code);
   if(!snapshotData) return '#3a3f49';
-  if(status.cls === 'ok')   return '#57c08d'; // OK
-  if(status.cls === 'bad')  return '#df6b86'; // Caído / Error
-  if(status.cls === 'warn') return '#d4b066'; // Tardío
+  if(status.cls === 'ok')   return 'var(--ok)'; // OK
+  if(status.cls === 'bad')  return 'var(--bad)'; // Caído / Error
+  if(status.cls === 'warn') return 'var(--warn)'; // Tardío
   return '#3a3f49'; // sin datos todavía
 }
 function updateStatusBadges(){

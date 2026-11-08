@@ -33,9 +33,18 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
      English: js-yaml is repo-hosted, not CDN-hosted. -->
 <script src="../vendor/js-yaml-4.1.0.min.js"></script>
 <script src="../config.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Sin fuentes de terceros. Inter y JetBrains Mono venian de Google Fonts:
+     tres conexiones a dos dominios ajenos en cada carga, cada una con la IP
+     del visitante y el referer de la pagina que esta abriendo. Para un panel
+     cuyos operadores pueden estar en un contexto donde eso importa, no es un
+     detalle de rendimiento. Ahora se usan las fuentes del sistema, que ya
+     estan instaladas, no se descargan y no cuentan nada a nadie.
+     English: no third-party fonts. Inter and JetBrains Mono came from Google
+     Fonts -- three connections to two outside domains on every load, each
+     carrying the visitor's IP and the referer of the page they are opening.
+     For a panel whose operators may be in a context where that matters, this
+     is not a performance detail. System fonts are already installed, are not
+     downloaded, and tell nobody anything. -->
 <link rel="stylesheet" href="ops.css">
 </head>
 <body class="lang-es">
@@ -183,7 +192,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
         <!-- Título + botones de operación -->
         <div id="panel-topbar">
-          <div class="section-title"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span> <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(110,168,254,.1);border-color:rgba(110,168,254,.3);color:var(--accent)"></span><span class="sec-tip" data-tip-es="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia." data-tip-en="Main command center. Start or stop electoral data scraping, check system status, and review the latest custody chain snapshots.">ⓘ</span></div>
+          <div class="section-title"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span> <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(var(--red-tint),.1);border-color:rgba(var(--red-tint),.3);color:var(--red-text)"></span><span class="sec-tip" data-tip-es="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia." data-tip-en="Main command center. Start or stop electoral data scraping, check system status, and review the latest custody chain snapshots.">ⓘ</span></div>
           <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
           <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
           <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
@@ -212,7 +221,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
         </div>
-        <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
+        <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(var(--warn-tint),.08);border:1px solid rgba(var(--warn-tint),.25)">
           ⚠ <span data-lang="es">El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.</span><span data-lang="en">The swarm is connected with the previous country. Go to Node Network → Disconnect and reconnect.</span>
         </div>
 
@@ -227,7 +236,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
         <div id="map-flex">
         <div id="adm-map-wrap" style="position:relative">
           <div id="dep-card-national" class="dep-national-badge" onclick="openMapPopup('00')" title="NACIONAL (00)">
-            <span class="dep-dot" id="dep-dot-00" style="background:var(--accent)"></span>
+            <span class="dep-dot" id="dep-dot-00" style="background:var(--red)"></span>
             <span data-lang="es">00 · NACIONAL</span><span data-lang="en">00 · NATIONAL</span>
           </div>
           <div id="hn-ops-map-container" style="max-width:420px;margin:8px auto;position:relative"></div>
@@ -249,9 +258,9 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
         <div id="map-narrative"><!-- filled by updateMapNarrative() --></div>
         </div>
         <div class="map-legend">
-          <span><span class="dot" style="background:#57c08d"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
-          <span><span class="dot" style="background:#d4b066"></span> <span data-lang="es">Tardío (20–60 min)</span><span data-lang="en">Delayed (20–60 min)</span></span>
-          <span><span class="dot" style="background:#df6b86"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
+          <span><span class="dot" style="background:var(--ok)"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
+          <span><span class="dot" style="background:var(--warn)"></span> <span data-lang="es">Tardío (20–60 min)</span><span data-lang="en">Delayed (20–60 min)</span></span>
+          <span><span class="dot" style="background:var(--bad)"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
           <span><span class="dot" style="background:#3a3f49"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
         </div>
         <!-- Status badges removed — state now lives authoritatively in the
@@ -308,14 +317,14 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
             To unlock, a responsibility signature with a commit to GitHub is required.</span>
           </div>
           <button id="btn-unlock-toggle" onclick="requestUnlock(!ceilingUnlocked)"
-            style="flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bad);background:rgba(223,107,134,.12);color:var(--bad);transition:.15s"
+            style="flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bad);background:rgba(223,107,134,.12);color:var(--red-text);transition:.15s"
             title="Requiere doble verificacion">
             &#x26a0; <span data-lang="es">Desbloquear límites</span><span data-lang="en">Unlock limits</span>
           </button>
         </div>
         <!-- Panel de controles avanzados — visible solo con límites desbloqueados -->
         <div id="unlocked-scraping-panel" style="display:none;margin-bottom:20px">
-          <div class="ctrl-section" style="border-color:rgba(212,176,102,.35);background:rgba(212,176,102,.04)">
+          <div class="ctrl-section" style="border-color:rgba(var(--warn-tint),.35);background:rgba(var(--warn-tint),.04)">
             <h3 style="color:var(--warn)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
               <span data-lang="es">Controles de raspado ampliados</span><span data-lang="en">Extended scraping controls</span>
@@ -647,8 +656,8 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
                 </span>
                 <button id="btn-ots-toggle" onclick="onOtsToggle()"
                   style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
-                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
-                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ <span data-lang="es">Activo</span><span data-lang="en">Active</span></button>
+                  cursor:pointer;transition:background .15s;border:1px solid rgba(var(--ok-tint),.4);
+                  background:rgba(var(--ok-tint),.08);color:var(--ok);white-space:nowrap">⛓ <span data-lang="es">Activo</span><span data-lang="en">Active</span></button>
               </h3>
               <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -705,7 +714,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
                   <ol style="margin:4px 0 0 16px">
                     <li><span data-lang="es">Descarga el archivo <code>.ots</code> del checkpoint</span><span data-lang="en">Download the checkpoint\u2019s <code>.ots</code> file</span></li>
                     <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
-                    <li><span data-lang="es">O usa</span><span data-lang="en">Or use</span> <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> <span data-lang="es">en línea</span><span data-lang="en">online</span></li>
+                    <li><span data-lang="es">O usa</span><span data-lang="en">Or use</span> <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--red-text)">opentimestamps.org</a> <span data-lang="es">en línea</span><span data-lang="en">online</span></li>
                   </ol>
                   <p style="margin-top:8px"><span data-lang="es">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</span><span data-lang="en">If OTS is unavailable, snapshots continue normally and pending roots are retried on the next cycle.</span></p>
                   <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px"><span data-lang="es">Probar conectividad ahora</span><span data-lang="en">Test connectivity now</span></button>
@@ -726,7 +735,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
              Status read from data/s3_mirror_status.json written by
              .github/workflows/s3-mirror.yml after each sync run.
         ══════════════════════════════════════════════════════════ -->
-        <div class="ctrl-section" id="aws-mirror-section" style="margin-top:16px;border-color:rgba(212,176,102,.25)">
+        <div class="ctrl-section" id="aws-mirror-section" style="margin-top:16px;border-color:rgba(var(--warn-tint),.25)">
           <h3 style="justify-content:space-between">
             <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2z"/></svg>
@@ -758,17 +767,17 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
               <span style="color:var(--muted)">S3 URI: </span>
               <span id="aws-s3-uri" style="font-family:var(--mono);color:var(--fg)"></span>
             </div>
-            <div id="aws-error-row" style="display:none;font-size:12px;color:var(--bad);margin-bottom:4px">
+            <div id="aws-error-row" style="display:none;font-size:12px;color:var(--red-text);margin-bottom:4px">
               <span id="aws-error-msg"></span>
               <a id="aws-run-link" href="#" target="_blank" rel="noopener"
-                style="display:none;margin-left:8px;color:var(--accent);font-size:11px">
+                style="display:none;margin-left:8px;color:var(--red-text);font-size:11px">
                 <span data-lang="es">Ver logs ↗</span><span data-lang="en">View logs ↗</span>
               </a>
             </div>
             <span id="aws-enabled-hint" style="display:none;font-size:11px;color:var(--ok)"></span>
           </div>
 
-          <div class="info-box" style="border-color:rgba(212,176,102,.3);background:rgba(212,176,102,.04)">
+          <div class="info-box" style="border-color:rgba(var(--warn-tint),.3);background:rgba(var(--warn-tint),.04)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;color:var(--warn)"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
             <span data-lang="es"><strong>VIGIL es y seguirá siendo Costo Cero.</strong> Esta opción es completamente
             independiente de la operación del proyecto y está <strong>desactivada por defecto</strong>.
@@ -999,13 +1008,13 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
         </div>
 
         <div class="ctrl-section">
-          <h3 style="color:var(--bad)"><span data-lang="es">Regenerar seeds</span><span data-lang="en">Regenerate seeds</span></h3>
+          <h3 style="color:var(--red-text)"><span data-lang="es">Regenerar seeds</span><span data-lang="en">Regenerate seeds</span></h3>
           <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">
             <span data-lang="es">Genera 12 claves completamente nuevas y descarga el archivo actualizado.</span>
             <span data-lang="en">Generates 12 completely new keys and downloads the updated file.</span>
             <strong style="color:var(--warn)"><span data-lang="es">Todas las claves anteriores quedan invalidadas permanentemente.</span><span data-lang="en">All previous keys become permanently invalid.</span></strong>
           </p>
-          <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
+          <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--red-text)">
             <strong><span data-lang="es">¿Confirmas la regeneración?</span><span data-lang="en">Confirm regeneration?</span></strong><br>
             <span data-lang="es">Esta acción no se puede deshacer. Las 12 claves actuales dejarán de funcionar.</span>
             <span data-lang="en">This action cannot be undone. The 12 current keys will stop working.</span>
@@ -1059,7 +1068,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           </div>
           <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:10px;display:none">
             <span><span data-lang="es">Mi nodo</span><span data-lang="en">My node</span>: </span>
-            <code id="swarm-node-id" style="cursor:pointer;color:var(--accent)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar / Click to copy"></code>
+            <code id="swarm-node-id" style="cursor:pointer;color:var(--red-text)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar / Click to copy"></code>
             <span id="swarm-consensus-row" style="display:none">
               &nbsp;&middot;&nbsp;<span data-lang="es">Consenso</span><span data-lang="en">Consensus</span>: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
             </span>
@@ -1083,7 +1092,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT <span data-lang="es">TOLERANCIA</span><span data-lang="en">TOLERANCE</span></div>
             </div>
             <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:#b08cf0" id="swarm-m-ring0">—</div>
+              <div style="font-size:22px;font-weight:700;color:var(--muted)" id="swarm-m-ring0">—</div>
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 <span data-lang="es">SEMILLA</span><span data-lang="en">SEED</span></div>
             </div>
             <div style="text-align:center;padding:4px">
@@ -1091,7 +1100,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 <span data-lang="es">CONFIABLE</span><span data-lang="en">TRUSTED</span></div>
             </div>
             <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="swarm-m-compromised">—</div>
+              <div style="font-size:22px;font-weight:700;color:var(--red-text)" id="swarm-m-compromised">—</div>
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">COMPROMETIDOS</span><span data-lang="en">COMPROMISED</span></div>
             </div>
           </div>
@@ -1139,7 +1148,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
             <div style="display:flex;gap:8px;align-items:stretch">
               <input id="sala-invite-text" type="text" readonly
                 style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
-                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
+                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--red-text);cursor:pointer"
                 onclick="this.select()" title="Clic para seleccionar">
               <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()"><span data-lang="es">Copiar</span><span data-lang="en">Copy</span></button>
             </div>
@@ -1208,7 +1217,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           </h3>
           <div id="rep-ring-summary" style="display:none">
             <div style="display:flex;gap:16px;font-size:12px;margin-bottom:6px;flex-wrap:wrap">
-              <span>Ring-0 <strong id="rep-r0-count" style="color:#b08cf0">—</strong></span>
+              <span>Ring-0 <strong id="rep-r0-count" style="color:var(--muted)">—</strong></span>
               <span>Ring-1 <strong id="rep-r1-count" style="color:var(--ok)">—</strong></span>
               <span>Ring-2 <strong id="rep-r2-count" style="color:var(--muted)">—</strong></span>
               <span style="color:var(--muted)"><span data-lang="es">Total</span><span data-lang="en">Total</span> <strong id="rep-total" style="color:var(--fg)">—</strong></span>
@@ -1253,8 +1262,8 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           publication of the certified snapshot, and scheduler shutdown.</span>
         </p>
 
-        <div class="ctrl-section" id="election-closed-banner" style="display:none;border-color:#3fb950;background:rgba(63,185,80,0.07)">
-          <h3 style="color:#3fb950"><span data-lang="es">Ciclo Electoral Cerrado</span><span data-lang="en">Electoral Cycle Closed</span></h3>
+        <div class="ctrl-section" id="election-closed-banner" style="display:none;border-color:var(--ok);background:rgba(var(--ok-tint),0.07)">
+          <h3 style="color:var(--ok)"><span data-lang="es">Ciclo Electoral Cerrado</span><span data-lang="en">Electoral Cycle Closed</span></h3>
           <div style="font-size:13px;color:var(--fg);margin-top:8px">
             <span id="ec-closed-at" style="color:var(--muted)"></span><br>
             <span data-lang="es">Merkle root final</span><span data-lang="en">Final Merkle root</span>: <code id="ec-merkle" style="font-size:11px"></code><br>
@@ -1285,14 +1294,14 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           </div>
 
           <button class="hdr-btn" id="btn-finalize" onclick="openFinalizeModal()"
-            style="border-color:#f85149;color:#f85149;font-weight:700">
+            style="border-color:var(--bad);color:var(--red-text);font-weight:700">
             <span data-lang="es">Cerrar Ciclo Electoral</span><span data-lang="en">Close Electoral Cycle</span>
           </button>
 
           <div id="ec-progress" style="display:none;margin-top:16px">
             <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="ec-progress-msg"><span data-lang="es">Ejecutando raspe final…</span><span data-lang="en">Running final scrape…</span></div>
             <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
-              <div id="ec-progress-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.5s"></div>
+              <div id="ec-progress-bar" style="height:100%;background:var(--red);width:0%;transition:width 0.5s"></div>
             </div>
           </div>
 
@@ -1305,11 +1314,11 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
             </div>
           </div>
 
-          <div id="ec-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.3);font-size:12px;color:#f85149"></div>
+          <div id="ec-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.3);font-size:12px;color:var(--red-text)"></div>
         </div>
 
         <!-- ── GESTIÓN DE DATOS DE SCRAPING ── -->
-        <div class="ctrl-section" id="data-mgmt-section" style="margin-top:20px;border-color:rgba(110,168,254,.25)">
+        <div class="ctrl-section" id="data-mgmt-section" style="margin-top:20px;border-color:rgba(var(--red-tint),.25)">
           <h3 style="display:flex;align-items:center;gap:10px">
             Datos recolectados
             <span id="repo-size-badge" class="val-badge" style="font-size:11px;color:var(--muted)">calculando…</span>
@@ -1424,7 +1433,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 <!-- ════ ELECTION FINALIZE MODAL ════ -->
 <div id="finalize-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:none;align-items:center;justify-content:center">
   <div class="modal-box" style="max-width:440px;border:1px solid rgba(248,81,73,0.5)">
-    <h2 style="color:#f85149"><span data-lang="es">Confirmar cierre electoral</span><span data-lang="en">Confirm electoral closure</span></h2>
+    <h2 style="color:var(--red-text)"><span data-lang="es">Confirmar cierre electoral</span><span data-lang="en">Confirm electoral closure</span></h2>
     <p style="font-size:13px;color:var(--muted);margin:12px 0 16px;line-height:1.7">
       <span data-lang="es">Esta acción lanzará un raspe completo final de todas las fuentes CNE,
       escribirá el marker <code>ELECTION_CLOSED</code>, cambiará el modo a
@@ -1445,7 +1454,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       <button class="hdr-btn" onclick="closeFinalizeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
       <button class="hdr-btn primary" id="btn-finalize-confirm" disabled
         onclick="doFinalizeElection()"
-        style="background:#f85149;border-color:#f85149;color:#fff">
+        style="background:var(--bad);border-color:var(--bad);color:#fff">
         <span data-lang="es">Cerrar ciclo electoral</span><span data-lang="en">Close electoral cycle</span>
       </button>
     </div>
@@ -1550,7 +1559,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       <button class="hdr-btn" onclick="closePurgeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
       <button class="hdr-btn" id="btn-purge-confirm"
         onclick="executePurge()"
-        style="background:rgba(212,176,102,.15);border-color:var(--warn);color:var(--warn);font-weight:700">
+        style="background:rgba(var(--warn-tint),.15);border-color:var(--warn);color:var(--warn);font-weight:700">
         <span data-lang="es">Limpiar snapshots</span><span data-lang="en">Clear snapshots</span>
       </button>
     </div>
@@ -1738,7 +1747,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
   align-items:center;justify-content:center;background:rgba(0,0,0,.75);backdrop-filter:blur(4px)"
   onclick="if(event.target===this)closeEmergencyModal()">
   <div class="modal-box" style="max-width:380px;border-top:3px solid var(--bad)">
-    <div style="color:var(--bad);font-size:13px;font-weight:700;letter-spacing:.1em;margin-bottom:12px">
+    <div style="color:var(--red-text);font-size:13px;font-weight:700;letter-spacing:.1em;margin-bottom:12px">
       ⚠ PARADA DE EMERGENCIA
     </div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">
@@ -1757,13 +1766,13 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
     <div id="emg-confirm-step1">
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="hdr-btn" onclick="closeEmergencyModal()">Cancelar</button>
-        <button class="hdr-btn" style="background:rgba(223,107,134,.15);border-color:var(--bad);color:var(--bad)"
+        <button class="hdr-btn" style="background:rgba(223,107,134,.15);border-color:var(--bad);color:var(--red-text)"
           onclick="emergencyStep2()">Continuar →</button>
       </div>
     </div>
     <div id="emg-confirm-step2" style="display:none">
       <div style="font-size:11px;color:var(--warn);margin-bottom:12px;padding:8px;
-        background:rgba(212,176,102,.08);border-radius:2px;line-height:1.5">
+        background:rgba(var(--warn-tint),.08);border-radius:2px;line-height:1.5">
         Segunda confirmación requerida. Asegúrese de que esta es su intención.
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
