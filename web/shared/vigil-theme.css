@@ -1,0 +1,111 @@
+/* Un fondo por modo. Claro es blanco, oscuro es negro.
+   Las secciones no cambian de color: se separan con filetes. */
+html[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #000000;
+  --panel: #ffffff;
+  --panel2: #ffffff;
+  --border: #000000;
+  --muted: #1a1a1a;
+  --red: #D7262E;
+  --accent: #D7262E;
+  --bad: #D7262E;
+  --bad-c: #D7262E;
+  --on-red: #ffffff;
+  --white: #ffffff;
+  --black: #000000;
+  --stone: #ffffff;
+  --ash: #000000;
+  --mid: #1a1a1a;
+  --dim: #1a1a1a;
+  --tooltip-bg: #ffffff;
+  --drawer-bg: #ffffff;
+  --txt: #000000;
+  --txt-dim: #1a1a1a;
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  --bg: #000000;
+  --fg: #ffffff;
+  --panel: #000000;
+  --panel2: #000000;
+  --border: #ffffff;
+  --muted: #f2f2f2;
+  --red: #FF4D55;
+  --accent: #FF4D55;
+  --bad: #FF4D55;
+  --bad-c: #FF4D55;
+  --on-red: #000000;
+  --white: #000000;
+  --black: #ffffff;
+  --stone: #000000;
+  --ash: #ffffff;
+  --mid: #f2f2f2;
+  --dim: #f2f2f2;
+  --tooltip-bg: #000000;
+  --drawer-bg: #000000;
+  --txt: #ffffff;
+  --txt-dim: #f2f2f2;
+  color-scheme: dark;
+}
+
+html[data-theme],
+html[data-theme] body,
+html[data-theme] header,
+html[data-theme] footer,
+html[data-theme] nav,
+html[data-theme] main,
+html[data-theme] section,
+html[data-theme] article,
+html[data-theme] .evidence,
+html[data-theme] .audiences,
+html[data-theme] .audience-card,
+html[data-theme] .hero,
+html[data-theme] .card,
+html[data-theme] .metric,
+html[data-theme] .sim,
+html[data-theme] .mast,
+html[data-theme] .wrap,
+html[data-theme] #auth-screen,
+html[data-theme] #admin-shell,
+html[data-theme] #auth-card,
+html[data-theme] .dialog,
+html[data-theme] .cover {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+html[data-theme] a { color: var(--fg); }
+html[data-theme] h1,
+html[data-theme] h2,
+html[data-theme] h3,
+html[data-theme] p,
+html[data-theme] label { color: var(--fg); }
+
+html[data-theme] .btn-primary,
+html[data-theme] .olc-submit,
+html[data-theme] .solid,
+html[data-theme] button.solid {
+  background-color: var(--red);
+  color: var(--on-red);
+  border-color: var(--red);
+}
+
+html[data-theme] em,
+html[data-theme] .stat-number,
+html[data-theme] .red {
+  color: var(--red);
+  background-color: transparent;
+}
+
+#theme-toggle,
+html[data-theme] .theme-toggle,
+html[data-theme] #auth-card .theme-toggle {
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
+  font: 600 14px/1 system-ui, sans-serif;
+  padding: 8px 12px;
+}

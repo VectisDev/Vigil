@@ -167,10 +167,15 @@ def browser():
         try:
             launched = _launch_browser(pw)
         except Exception as exc:
-            pytest.fail(
-                "el navegador no arrancó; en CI hay que instalarlo "
-                f"(python -m playwright install --with-deps chromium): {exc}"
-            )
+            # Sin el binario, los jobs normales omiten. El job que acaba de
+            # instalar Chromium pone VIGIL_REQUIRE_BROWSER=1: alli la ausencia
+            # es un fallo de la instalacion, no una omision.
+            if os.environ.get("VIGIL_REQUIRE_BROWSER") == "1":
+                raise AssertionError(
+                    "VIGIL_REQUIRE_BROWSER=1 pero el navegador no arranca, asi que "
+                    f"la instalacion de Chromium fallo en este job: {exc}"
+                ) from exc
+            pytest.skip(f"no hay navegador utilizable: {exc}")
         try:
             yield launched
         finally:
@@ -179,11 +184,14 @@ def browser():
 
 @pytest.fixture
 def page(browser, site):
-    p = browser.new_page()
+    # Contexto nuevo por prueba: sessionStorage de un rol no se filtra a la
+    # siguiente, asi que el orden de la suite no cambia el resultado.
+    context = browser.new_context()
+    p = context.new_page()
     p.goto(f"{site}/ops/", wait_until="domcontentloaded")
     p.wait_for_function("typeof window.detectMode === 'function'", timeout=10000)
     yield p
-    p.close()
+    context.close()
 
 
 # ── detectMode() ─────────────────────────────────────────────────────────────
@@ -318,7 +326,7 @@ def test_the_rendered_headline_comes_from_the_state_function(page):
     places used to decide this, and they contradicted each other on screen.
     """
     page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
-    page.wait_for_timeout(500)
+    page.wait_for_function("() => document.getElementById('hero-headline')")
     s = _state(page, pipeline={"running": True, "lastMinutes": 2, "source": "cne.hn"})
     page.evaluate("() => renderOverallState()")
     shown = page.eval_on_selector("#hero-headline", "e => e.textContent")
@@ -338,7 +346,7 @@ def test_every_section_belongs_to_exactly_one_tab(page):
 
 def test_switching_tabs_shows_one_tab_and_hides_the_rest(page):
     page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
-    page.wait_for_timeout(400)
+    page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'inicio'")
     for tab in ("inicio", "evidencia", "red", "avanzado"):
         page.evaluate("t => goTab(t)", tab)
         shown = page.evaluate(
@@ -413,6 +421,214 @@ def test_no_visible_element_uses_a_forbidden_colour(page):
     page.wait_for_function("() => typeof goTab === 'function'")
     for tab in ("inicio", "evidencia", "red", "avanzado"):
         page.evaluate("t => goTab(t)", tab)
-        page.wait_for_timeout(400)
+        page.wait_for_function(
+            "t => document.documentElement.getAttribute('data-ops-tab') === t",
+            arg=tab,
+        )
         offenders = page.evaluate(_PALETTE_PROBE_JS)
         assert offenders == [], f"{tab}: colores fuera de paleta: {offenders}"
+
+
+def _open_shell(page):
+    page.evaluate("() => { try { showAdminShell(); } catch (e) {} }")
+    page.wait_for_function("() => typeof goTab === 'function'")
+    page.evaluate("() => goTab('inicio')")
+    page.wait_for_selector("#capture-button", state="visible", timeout=10000)
+
+
+# El ultimo elemento de la pestaña visible tiene que poder quedar dentro de
+# la ventana. Si un contenedor de 100vh con overflow hidden lo recorta, el
+# documento no llega y el borde inferior sigue por debajo.
+_BOTTOM_JS = """() => {
+    const visible = document.querySelector('#main-area > [data-tab]:not([hidden])');
+    const last = visible && (visible.lastElementChild || visible);
+    if (!last) return {ok: false, reason: 'sin pestaña'};
+    const scroller = document.scrollingElement;
+    const max = scroller.scrollHeight - scroller.clientHeight;
+    scroller.scrollTop = scroller.scrollHeight;
+    const bottom = last.getBoundingClientRect().bottom;
+    const ok = bottom <= window.innerHeight + 2 && (max <= 1 || scroller.scrollTop > 0);
+    return {ok, bottom, inner: window.innerHeight, max, moved: scroller.scrollTop};
+}"""
+
+
+def _bottom_is_reachable(page) -> None:
+    reached = page.evaluate(_BOTTOM_JS)
+    assert reached["ok"], f"no se llega al final de la pestaña: {reached}"
+
+
+@pytest.mark.parametrize("width,height", [(1280, 800), (390, 844)])
+@pytest.mark.parametrize("tab", ["inicio", "evidencia", "red", "avanzado"])
+def test_every_tab_scrolls_to_its_bottom(page, width, height, tab):
+    page.set_viewport_size({"width": width, "height": height})
+    _open_shell(page)
+    page.evaluate("t => goTab(t)", tab)
+    page.wait_for_function(
+        "t => document.documentElement.getAttribute('data-ops-tab') === t",
+        arg=tab,
+    )
+    _bottom_is_reachable(page)
+
+
+def test_the_page_still_scrolls_after_each_dialog_closes(page):
+    """Abrir y cerrar una hoja no puede dejar el documento bloqueado."""
+    for width, height in ((1280, 800), (390, 844)):
+        page.set_viewport_size({"width": width, "height": height})
+        _open_shell(page)
+        page.click("#capture-button")
+        page.wait_for_selector("#sheet-cancel")
+        page.click("#sheet-cancel")
+        page.wait_for_function("() => !document.getElementById('sheet').open")
+        page.evaluate("() => goTab('evidencia')")
+        page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'evidencia'")
+        _bottom_is_reachable(page)
+        page.click("#emergency-button")
+        page.wait_for_selector("#sheet-cancel")
+        page.keyboard.press("Escape")
+        page.wait_for_function("() => !document.getElementById('sheet').open")
+        _bottom_is_reachable(page)
+        page.evaluate("() => sessionStorage.setItem('centinel_role', 'admin')")
+        page.evaluate("() => goTab('avanzado')")
+        page.wait_for_selector("#destroy-open")
+        page.click("#destroy-open")
+        page.wait_for_selector("#sheet-cancel")
+        page.click("#sheet-cancel")
+        page.wait_for_function("() => !document.getElementById('sheet').open")
+        page.evaluate("() => goTab('evidencia')")
+        page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'evidencia'")
+        _bottom_is_reachable(page)
+
+
+def test_pause_cancel_returns_focus_and_confirm_does_not_fake_a_stop(page):
+    """Sin nodo, confirmar la pausa no dice que la captura se detuvo.
+
+    Cancelar devuelve el foco al mismo botón. Confirmar dice que no está
+    disponible y el botón sigue siendo Pausar.
+    """
+    _open_shell(page)
+    page.click("#capture-button")
+    page.wait_for_selector("#sheet-cancel")
+    page.click("#sheet-cancel")
+    page.wait_for_function("() => document.activeElement && document.activeElement.id === 'capture-button'")
+    assert "Pausar" in page.inner_text("#capture-button")
+    page.click("#capture-button")
+    page.click("#sheet-confirm")
+    page.wait_for_function("() => document.getElementById('announcement').textContent.includes('No disponible')")
+    assert "Pausar" in page.inner_text("#capture-button")
+    assert "Reanudar" not in page.inner_text("#capture-button")
+
+
+def test_pause_and_resume_follow_the_node_and_return_focus(page):
+    """Si el nodo acepta la orden, el botón alterna y el foco vuelve a él.
+
+    La frase no dice que los procesos se hayan comprobado: un HTTP de
+    aceptación no es una verificación.
+    """
+
+    def _answer(route):
+        route.fulfill(status=200, content_type="application/json", body='{"ok":true}')
+
+    page.route("**/api/pipeline/*", _answer)
+    _open_shell(page)
+    page.evaluate("() => { window.OPS_MODE = 'servidor'; window.VIGIL_API_BASE = location.origin; }")
+    page.click("#capture-button")
+    page.click("#sheet-confirm")
+    page.wait_for_function("() => document.getElementById('capture-button').textContent.includes('Reanudar')")
+    assert page.evaluate("() => document.activeElement.id") == "capture-button"
+    note = page.inner_text("#announcement")
+    assert "aceptó" in note
+    assert "No comprobamos" in note
+    page.click("#capture-button")
+    page.click("#sheet-confirm")
+    page.wait_for_function("() => document.getElementById('capture-button').textContent.includes('Pausar')")
+    assert page.evaluate("() => document.activeElement.id") == "capture-button"
+
+
+def test_stop_sheet_does_not_claim_vigil_stopped(page):
+    _open_shell(page)
+    page.click("#emergency-button")
+    page.wait_for_selector("#sheet-cancel")
+    assert page.inner_text("#sheet-title")
+    page.keyboard.press("Escape")
+    page.wait_for_function("() => document.activeElement && document.activeElement.id === 'emergency-button'")
+    page.click("#emergency-button")
+    page.click("#sheet-confirm")
+    note = page.inner_text("#announcement")
+    assert "No disponible" in note
+    assert (
+        "se detuvo" in note or "did not stop" in note or "no se detuvo" in note.lower() or "VIGIL no se detuvo" in note
+    )
+
+
+def test_destroy_confirmation_requires_the_word_and_deletes_nothing(page):
+    page.evaluate("() => sessionStorage.setItem('centinel_role', 'admin')")
+    _open_shell(page)
+    page.evaluate("() => goTab('avanzado')")
+    page.click("#destroy-open")
+    page.wait_for_selector("#destroy-word")
+    assert page.locator("#sheet-confirm").is_disabled()
+    page.focus("#destroy-word")
+    page.keyboard.press("Enter")
+    assert page.locator("#sheet").evaluate("el => el.open") is True
+    page.fill("#destroy-word", "DESTRUIR")
+    assert page.locator("#sheet-confirm").is_enabled()
+    page.click("#sheet-confirm")
+    note = page.inner_text("#announcement")
+    assert "No disponible" in note
+    assert "No se borró" in note
+
+
+def test_filters_narrow_and_clear_without_moving_focus(page):
+    _open_shell(page)
+    page.evaluate("() => goTab('evidencia')")
+    page.click("#filters summary")
+    page.wait_for_selector("#place-filter")
+    before = page.inner_text("#result-count")
+    page.select_option("#place-filter", "06")
+    page.wait_for_function("() => document.activeElement && document.activeElement.id === 'place-filter'")
+    after = page.inner_text("#result-count")
+    assert (
+        after != before
+        or "0" in after
+        or "Sin" in after
+        or "no disponible" in after.lower()
+        or "Cantidad" in after
+        or "hallazgos" in after
+    )
+    page.click("#clear-filters")
+    page.wait_for_function("() => document.getElementById('place-filter').value === 'all'")
+    assert page.evaluate("() => document.activeElement.id") == "clear-filters"
+
+
+def test_downloads_report_a_visible_status(page):
+    _open_shell(page)
+    page.evaluate("() => goTab('evidencia')")
+    page.click("[data-action=csv]")
+    page.wait_for_selector("#download-status:not([hidden])")
+    text = page.inner_text("#download-status")
+    assert "descarga" in text.lower() or "Descarga" in text or "prepar" in text.lower() or "Archivo" in text
+
+
+def test_layout_at_390_has_no_horizontal_overflow_and_cancel_comes_first(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    _open_shell(page)
+    width = page.evaluate("() => document.documentElement.scrollWidth")
+    assert width <= 390
+    page.click("#emergency-button")
+    page.wait_for_selector("#sheet-cancel")
+    order = page.evaluate(
+        """() => {
+            const cancel = document.getElementById('sheet-cancel').getBoundingClientRect();
+            const confirm = document.getElementById('sheet-confirm').getBoundingClientRect();
+            return {cancel: cancel.top, confirm: confirm.top};
+        }"""
+    )
+    assert order["cancel"] <= order["confirm"]
+    header = page.evaluate(
+        """() => {
+            const bar = document.querySelector('.mast').getBoundingClientRect();
+            const main = document.getElementById('main-area').getBoundingClientRect();
+            return {bar: bar.bottom, main: main.top};
+        }"""
+    )
+    assert header["bar"] <= header["main"] + 1
