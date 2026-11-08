@@ -22,7 +22,25 @@ def test_regenerate_seeds_matches_the_documented_steps() -> None:
     assert "github.actor == github.repository_owner" not in text
     assert "repos/${GITHUB_REPOSITORY}/collaborators/${GITHUB_ACTOR}/permission" in text
     assert "orgs/${GITHUB_REPOSITORY_OWNER}/memberships/${GITHUB_ACTOR}" in text
-    assert job["permissions"] == {"contents": "write"}
+    # El perímetro de permisos se fija exacto, no por contención: este
+    # workflow escribe en el repositorio y lo puede lanzar cualquier admin, y
+    # la forma en que un workflow así se vuelve peligroso es ganando un
+    # permiso que nadie revisó.
+    #
+    # `actions: write` entró a propósito y hace falta: el paso que publica la
+    # página dispara `pages.yml`. Sin él, el push de los hashes nuevos se hace
+    # con GITHUB_TOKEN, que por diseño no dispara workflows, y la página
+    # seguía sirviendo los hashes viejos: la clave recién generada daba
+    # «Clave incorrecta» y había que disparar Pages a mano.
+    #
+    # English: the permission surface is pinned exactly, not by containment.
+    # `actions: write` is deliberate and necessary -- the publish step
+    # dispatches `pages.yml`, because a GITHUB_TOKEN push does not trigger
+    # workflows and the site kept serving the old hashes.
+    assert job["permissions"] == {"contents": "write", "actions": "write"}
+    assert (
+        "gh workflow run pages.yml" in text
+    ), "si se quita el disparo de Pages, `actions: write` sobra y debe irse con el"
     assert "repository admins" in (ROOT / "web" / "ACCESO_ADMIN.md").read_text(encoding="utf-8")
     assert 'FORCE_REGENERATE: "true"' in text or "FORCE_REGENERATE: 'true'" in text
     assert "python3 .github/scripts/wizard_seeds.py" in text

@@ -125,7 +125,12 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
   transition:.15s;margin-bottom:12px}
 .auth-card input:focus{border-color:var(--red)}
 .auth-card input::placeholder{color:var(--muted)}
-.auth-card button.btn-primary{width:100%;background:var(--red);color:var(--bg);border:none;
+/* Blanco sobre rojo, no --bg sobre rojo. Con --bg (#0a0a0a) el contraste
+   era 3.98 y AA pide 4.5; con blanco es 4.97. Lo midio Lighthouse sobre
+   la pantalla de login, que es la primera que ve cualquiera.
+   English: white on red, not --bg on red. With --bg the ratio was 3.98
+   against AA's 4.5; with white it is 4.97. */
+.auth-card button.btn-primary{width:100%;background:var(--red);color:#ffffff;border:none;
   border-radius:2px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;
   transition:.15s;margin-top:2px}
 .auth-card button.btn-primary:hover{opacity:.88}

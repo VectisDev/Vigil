@@ -152,6 +152,22 @@ function renderOverallState() {
   head.textContent = s.headline;
   if (det) det.textContent = s.detail || '';
   if (act) act.style.display = s.action ? '' : 'none';
+
+  // El boton dice lo que va a hacer, no en que estado estamos. Un boton
+  // "Iniciar" mientras ya se esta capturando invita a pulsarlo dos veces.
+  // English: the button says what it will do, not what state we are in. An
+  // "Start" button while already capturing invites pressing it twice.
+  const toggle = document.getElementById('hero-toggle');
+  if (toggle) {
+    const running = !!(window._opsPipelineState || {}).running;
+    toggle.textContent = running
+      ? (window.OPS_LANG === 'en' ? 'Pause' : 'Pausar')
+      : (window.OPS_LANG === 'en' ? 'Start' : 'Iniciar');
+    // Sin nodo no hay nada que iniciar: el boton se deshabilita en vez de
+    // fallar al pulsarlo. English: with no node there is nothing to start.
+    toggle.disabled = opsIsPages();
+  }
+
   box.dataset.opsResolved = '1';
   return s;
 }

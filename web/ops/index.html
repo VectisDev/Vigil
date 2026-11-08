@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>VIGIL — Ops</title>
-<link rel="icon" type="image/svg+xml" href="../assets/mark.svg">
+<!-- Marca propia de OPS, en la paleta del panel. La compartida lleva azul y
+     amarillo; se crea una aparte en vez de cambiar la del sitio entero,
+     porque esto es el rediseño de OPS y no de la identidad publica. De paso,
+     dos pestañas abiertas se distinguen de un vistazo.
+     English: an OPS-specific mark in the panel palette. The shared one has
+     blue and yellow; a separate file keeps this change scoped to OPS. -->
+<link rel="icon" type="image/svg+xml" href="../assets/mark-ops.svg">
 <script>
 // ── Token de escritura: SOLO en memoria ─────────────────────────────────────
 // Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
@@ -50,7 +56,13 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 <body class="lang-es">
 
 <!-- ════════════════════ AUTH SCREEN ════════════════════ -->
-<div id="auth-screen">
+<!-- Landmark principal mientras nadie ha entrado: es la unica region de la
+     pagina. Sin el, quien navega con un lector de pantalla no tiene a donde
+     saltar. Se pone con role y no cambiando la etiqueta a <main> porque el
+     cierre de este div esta a 20 lineas y entre medias hay otros seis.
+     English: the main landmark while nobody has signed in -- it is the page's
+     only region. Expressed with role rather than by swapping the tag. -->
+<div id="auth-screen" role="main">
   <nav class="auth-nav">
     <span class="auth-wordmark">VIGIL</span>
     <button class="auth-ops-pill" id="auth-ops-pill" type="button">OPS ▾</button>
@@ -1343,7 +1355,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
-      <div class="section election-only" id="s8" data-phase="evidencia">
+      <div class="section election-only" id="s8" data-tab="avanzado" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Electoral Closure</span> <span class="sec-tip" data-tip-es="Secuencia de fin de eleccion: raspado final completo de todas las fuentes, publicacion del snapshot certificado y apagado controlado del sistema. Irreversible." data-tip-en="End-of-election sequence: full final scrape of all sources, publication of the certified snapshot, and controlled shutdown of the system. Irreversible.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
