@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>VIGIL — Ops</title>
-<link rel="icon" type="image/svg+xml" href="../assets/mark.svg">
+<!-- Marca propia de OPS, en la paleta del panel. La compartida lleva azul y
+     amarillo; se crea una aparte en vez de cambiar la del sitio entero,
+     porque esto es el rediseño de OPS y no de la identidad publica. De paso,
+     dos pestañas abiertas se distinguen de un vistazo.
+     English: an OPS-specific mark in the panel palette. The shared one has
+     blue and yellow; a separate file keeps this change scoped to OPS. -->
+<link rel="icon" type="image/svg+xml" href="../assets/mark-ops.svg">
 <script>
 // ── Token de escritura: SOLO en memoria ─────────────────────────────────────
 // Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
@@ -27,17 +33,36 @@ window.VigilToken = window.VigilToken || (function () {
 try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 </script>
-<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<!-- js-yaml alojado en el repositorio, no en un CDN. Un tercero que sirve
+     este script ve la IP de cada visitante y puede cambiar el archivo bajo
+     nuestros pies; ver web/vendor/README.md.
+     English: js-yaml is repo-hosted, not CDN-hosted. -->
+<script src="../vendor/js-yaml-4.1.0.min.js"></script>
 <script src="../config.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Sin fuentes de terceros. Inter y JetBrains Mono venian de Google Fonts:
+     tres conexiones a dos dominios ajenos en cada carga, cada una con la IP
+     del visitante y el referer de la pagina que esta abriendo. Para un panel
+     cuyos operadores pueden estar en un contexto donde eso importa, no es un
+     detalle de rendimiento. Ahora se usan las fuentes del sistema, que ya
+     estan instaladas, no se descargan y no cuentan nada a nadie.
+     English: no third-party fonts. Inter and JetBrains Mono came from Google
+     Fonts -- three connections to two outside domains on every load, each
+     carrying the visitor's IP and the referer of the page they are opening.
+     For a panel whose operators may be in a context where that matters, this
+     is not a performance detail. System fonts are already installed, are not
+     downloaded, and tell nobody anything. -->
 <link rel="stylesheet" href="ops.css">
 </head>
 <body class="lang-es">
 
 <!-- ════════════════════ AUTH SCREEN ════════════════════ -->
-<div id="auth-screen">
+<!-- Landmark principal mientras nadie ha entrado: es la unica region de la
+     pagina. Sin el, quien navega con un lector de pantalla no tiene a donde
+     saltar. Se pone con role y no cambiando la etiqueta a <main> porque el
+     cierre de este div esta a 20 lineas y entre medias hay otros seis.
+     English: the main landmark while nobody has signed in -- it is the page's
+     only region. Expressed with role rather than by swapping the tag. -->
+<div id="auth-screen" role="main">
   <nav class="auth-nav">
     <span class="auth-wordmark">VIGIL</span>
     <button class="auth-ops-pill" id="auth-ops-pill" type="button">OPS ▾</button>
@@ -59,8 +84,22 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
   <!-- HEADER -->
   <div id="admin-header">
     <a href="../" class="hdr-brand-link">VIGIL</a><span class="hdr-sep">/</span><span class="hdr-brand">OPS</span>
+    <!-- Nombre del nodo o sala: dice de quien es este panel. Sin el, dos
+         pestañas de dos nodos distintos son indistinguibles.
+         English: node or room name -- without it, two tabs for two different
+         nodes look identical. -->
+    <span class="hdr-node" id="hdr-node"></span>
     <span class="hdr-user" id="hdr-user"></span>
     <span id="hdr-role"></span>
+    <!-- Reloj en hora de Honduras, con la etiqueta puesta. Un reloj sin zona
+         horaria en un panel que se consulta desde varios husos es una
+         invitacion a leer mal una hora de captura.
+         English: a clock labelled with its timezone. An unlabelled clock in a
+         panel read from several timezones invites misreading a capture time. -->
+    <span class="hdr-clock" id="hdr-clock-hn" title="Hora de Honduras">
+      <span class="hdr-clock-label">hora Honduras</span>
+      <span class="hdr-clock-val" id="hdr-clock-val">--:--</span>
+    </span>
     <div id="vigil-toggles">
       <button id="theme-toggle" onclick="toggleOpsTheme()" title="Cambiar tema / Toggle theme">
         <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -70,53 +109,34 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
     </div>
     <span id="config-sync-pill" class="sync-pill"></span>
     <span id="timing-pill" class="timing-pill"></span>
+    <!-- La guia rapida sale del cuerpo de la pagina y pasa a un panel lateral
+         detras de este boton: estaba ocupando sitio permanente para algo que
+         se lee una vez. English: the quick guide moves out of the page body
+         into a side panel behind this button. -->
+    <button class="hdr-btn" id="btn-help" onclick="toggleOpsGuide()"
+            aria-label="Guía rápida del panel" aria-expanded="false"
+            aria-controls="ops-guide">?</button>
     <button class="hdr-btn" id="btn-logout" onclick="confirmLogout()"><span data-lang="es">Salir</span><span data-lang="en">Sign out</span></button>
   </div>
   <!-- COMMAND HEADER ── estado global de un vistazo -->
-  <div id="command-header">
-    <div id="status-ring-wrap">
-      <svg id="status-ring" viewBox="0 0 120 120" width="92" height="92">
-        <circle class="ring-track" cx="60" cy="60" r="52" fill="none" stroke-width="6"/>
-        <circle class="ring-fill"  cx="60" cy="60" r="52" fill="none" stroke-width="6"
-                stroke-dasharray="326.7" stroke-dashoffset="80" stroke-linecap="round"/>
-      </svg>
-      <div id="status-ring-center">
-        <div class="ring-sys-label"><span data-lang="es">SISTEMA</span><span data-lang="en">SYSTEM</span></div>
-        <div class="ring-sys-val" id="ms-system">—</div>
-      </div>
-    </div>
-    <div id="command-stats">
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-nodes">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Nodos</span><span data-lang="en">Nodes</span></div>
-      </div>
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-uptime">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Tiempo activo</span><span data-lang="en">Uptime</span></div>
-      </div>
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-defense">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Defensas</span><span data-lang="en">Defenses</span></div>
-      </div>
-      <div class="cmd-stat">
-        <div class="cmd-stat-val" id="ms-elec">—</div>
-        <div class="cmd-stat-label"><span data-lang="es">Modo elec.</span><span data-lang="en">Election mode</span></div>
-      </div>
-    </div>
-    <div id="command-secondary">
-      <span class="cmd-sec-item">
-        <span class="cmd-sec-label"><span data-lang="es">País</span><span data-lang="en">Country</span></span>
-        <span class="ms-val" id="ms-country">—</span>
-      </span>
-      <span class="cmd-sec-item">
-        <span class="cmd-sec-label">UTC</span>
-        <span class="ms-val" id="ms-clock">--:--:--</span>
-      </span>
-      <span class="cmd-sec-item">
-        <span class="cmd-sec-label"><span data-lang="es">Local</span><span data-lang="en">Local</span></span>
-        <span class="ms-val" id="ms-local" style="opacity:.7">--:--:--</span>
-      </span>
-    </div>
+  <!-- La cabecera de mando se retira.
+       Mostraba «NORMAL» y «INACTIVO» en grande junto a un anillo de estado,
+       mientras las tarjetas de abajo decian «CERRADO / NORMAL / PENDIENTE» y
+       podia aparecer un error al mismo tiempo: tres respuestas a la misma
+       pregunta en la misma pantalla. El estado vive ahora en el semaforo de
+       Inicio, que lo calcula en un solo sitio.
+       Los nueve nodos que el JS actualiza se conservan ocultos para no
+       romper el cableado; el reloj visible esta en la barra superior.
+       English: the command header is gone. It showed "NORMAL" and "INACTIVE"
+       large next to a status ring while the cards below said something else
+       and an error could appear at the same time -- three answers to one
+       question on one screen. State now lives in the Inicio traffic light.
+       The nine nodes the JS updates are kept hidden so the wiring survives. -->
+  <div id="command-header-legacy" hidden aria-hidden="true">
+    <span id="status-ring-wrap"></span>
+    <span id="ms-system"></span><span id="ms-nodes"></span><span id="ms-uptime"></span>
+    <span id="ms-defense"></span><span id="ms-elec"></span><span id="ms-country"></span>
+    <span id="ms-clock"></span><span id="ms-local"></span>
   </div>
   <!-- UNLOCK ALERT BAR -->
   <div id="unlock-alert-bar">
@@ -128,66 +148,111 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
   <!-- LAYOUT -->
   <div id="admin-content">
     <!-- SIDEBAR -->
-    <nav id="sidebar">
-      <div id="sidebar-nav">
-        <div class="sb-section" data-section="estado">
-          <button class="sec-header phase-tab" data-phase-tab="estado" onclick="setView('estado')"><span data-lang="es">Estado</span><span data-lang="en">Status</span></button>
-          <a href="#s1" onclick="scrollTo('s1')"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span></a>
-          <a href="#s7" onclick="scrollTo('s7')"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span></a>
-        </div>
-        <div class="sb-section" data-section="control">
-          <button class="sec-header phase-tab" data-phase-tab="control" onclick="setView('control')"><span data-lang="es">Control</span><span data-lang="en">Control</span></button>
-          <a href="#s3" onclick="scrollTo('s3')"><span data-lang="es">Presets</span><span data-lang="en">Presets</span></a>
-          <a href="#s6" onclick="scrollTo('s6')"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access & Seeds</span></a>
-        </div>
-        <div class="sb-section" data-section="evidencia">
-          <button class="sec-header phase-tab" data-phase-tab="evidencia" onclick="setView('evidencia')"><span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span></button>
-          <a href="#s9" onclick="scrollTo('s9')"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span></a>
-          <a href="#s4" onclick="scrollTo('s4')"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs & Terminals</span></a>
-          <a href="#s5" onclick="scrollTo('s5')"><span data-lang="es">Manual</span><span data-lang="en">Manual</span></a>
-          <a href="#s8" onclick="scrollTo('s8')" class="election-only"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Election Closeout</span></a>
-        </div>
-      </div>
-      <div id="sidebar-ops-zone">
-        <div class="soz-sep"></div>
-        <button id="btn-sidebar-iniciar" onclick="doIniciar()"
-          title="Iniciar monitoreo electoral">▶ <span data-lang="es">INICIAR</span><span data-lang="en">START</span></button>
-        <button id="btn-sidebar-finalizar" onclick="openFinalizeModal()"
-          title="Finalizar ciclo electoral">◼ <span data-lang="es">FINALIZAR</span><span data-lang="en">FINISH</span></button>
-        <div class="soz-autosave" onclick="toggleAutoApply()"
-          title="Auto-guardar: aplica cambios a GitHub automáticamente tras 1.5s de inactividad">
-          <span class="soz-autosave-label"><span data-lang="es">Auto-guardar</span><span data-lang="en">Auto-save</span></span>
-          <span class="soz-autosave-val off" id="autosave-val">OFF</span>
-        </div>
-        <button id="btn-apply-now" onclick="autoApply()" style="display:none"
-          title="Guardar los cambios de configuración en el repositorio">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/></svg>
-          Guardar cambios</button>
-      </div>
-      <div id="sidebar-emergency-zone">
-        <div class="sez-sep"></div>
-        <button id="btn-sidebar-emg" onclick="openEmergencyModal()"
-          title="Parada de emergencia — doble confirmación requerida">⚠ <span data-lang="es">EMERGENCIA</span><span data-lang="en">EMERGENCY</span></button>
-      </div>
+    <!-- ══ PESTAÑAS ══
+         Cuatro, en vez de una pagina de 2.400 lineas con diez secciones al
+         mismo nivel. El 90 % de las personas solo necesita Inicio; quien
+         busca evidencia la tiene en su sitio; y lo que puede romper algo vive
+         detras de una pestaña que lo avisa.
+         En movil pasan a barra inferior, donde el pulgar llega.
+         English: four tabs instead of one 2,400-line page with ten sections
+         at the same level. On mobile they become a bottom bar. -->
+    <nav id="ops-tabs" aria-label="Secciones del panel">
+      <button type="button" class="ops-tab" data-tab-btn="inicio" onclick="goTab('inicio')"
+              aria-controls="main-area">
+        <span data-lang="es">Inicio</span><span data-lang="en">Home</span>
+      </button>
+      <button type="button" class="ops-tab" data-tab-btn="evidencia" onclick="goTab('evidencia')"
+              aria-controls="main-area">
+        <span data-lang="es">Evidencia</span><span data-lang="en">Evidence</span>
+      </button>
+      <button type="button" class="ops-tab" data-tab-btn="red" onclick="goTab('red')"
+              aria-controls="main-area">
+        <span data-lang="es">Red</span><span data-lang="en">Network</span>
+      </button>
+      <button type="button" class="ops-tab" data-tab-btn="avanzado" onclick="goTab('avanzado')"
+              aria-controls="main-area">
+        <span data-lang="es">Avanzado</span><span data-lang="en">Advanced</span>
+      </button>
     </nav>
+
+    <!-- Botones que el JS referencia por id. Vivian en la barra lateral, que
+         ya no existe; se conservan ocultos para no romper el cableado y se
+         accionan desde Inicio y Avanzado.
+         English: buttons the JS references by id. They lived in the sidebar,
+         which is gone; kept hidden so the wiring survives. -->
+    <div id="legacy-controls" hidden aria-hidden="true">
+
+      <button type="button" id="btn-sidebar-iniciar" onclick="doIniciar()"></button>
+      <button type="button" id="btn-sidebar-finalizar" onclick="openFinalizeModal()"></button>
+      <button type="button" id="btn-apply-now" onclick="autoApply()"></button>
+      <button type="button" id="btn-sidebar-emg" onclick="openEmergencyModal()"></button>
+    </div>
+
 
     <!-- MAIN -->
     <main id="main-area">
 
-      <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
-      <div class="section" id="s1" data-phase="estado">
-
-        <!-- Título + botones de operación -->
-        <div id="panel-topbar">
-          <div class="section-title"><span data-lang="es">Panel de control</span><span data-lang="en">Control Panel</span> <span class="section-badge" id="snap-age">—</span><span class="section-badge" id="active-preset-label" style="display:none;background:rgba(110,168,254,.1);border-color:rgba(110,168,254,.3);color:var(--accent)"></span><span class="sec-tip" data-tip-es="Centro de mando principal. Inicia o detiene el raspado de datos electorales, revisa el estado del sistema y consulta los últimos snapshots de la cadena de custodia." data-tip-en="Main command center. Start or stop electoral data scraping, check system status, and review the latest custody chain snapshots.">ⓘ</span></div>
-          <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
-          <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
-          <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
+      <!-- ══ INICIO ══ Lo único que ve el 90 % de las personas.
+           Un solo semáforo, calculado por computeOverallState(), que es la
+           única fuente de verdad. Antes el encabezado decía «NORMAL /
+           INACTIVO», las tarjetas decían «CERRADO / NORMAL / PENDIENTE» y a
+           la vez aparecía un error: tres respuestas distintas a la misma
+           pregunta, en la misma pantalla.
+           English: one traffic light from computeOverallState(), the single
+           source of truth. The header used to say one thing, the cards
+           another, and an error a third -- three answers to the same
+           question on one screen. -->
+      <div class="section" id="s0" data-tab="inicio">
+        <div id="hero-state" class="hero-state" role="status" aria-live="polite">
+          <div class="hero-dot" id="hero-dot" aria-hidden="true"></div>
+          <div class="hero-copy">
+            <p class="hero-headline" id="hero-headline">—</p>
+            <p class="hero-detail" id="hero-detail"></p>
+          </div>
+          <button type="button" class="btn-secondary hero-action" id="hero-action"
+                  style="display:none" onclick="openHeroHelp()">
+            <span data-lang="es">Qué hago</span><span data-lang="en">What do I do</span>
+          </button>
         </div>
-        <hr class="section-sep">
 
-        <!-- Estado global del sistema -->
-        <div id="global-status-banner" class="global-status-banner nominal">● SISTEMA NOMINAL</div>
+        <div class="hero-buttons">
+          <button type="button" class="btn-primary hero-btn" id="hero-toggle" onclick="heroToggleCapture()">
+            <span data-lang="es">Iniciar</span><span data-lang="en">Start</span>
+          </button>
+          <button type="button" class="btn-secondary hero-btn" onclick="goTab('evidencia')">
+            <span data-lang="es">Ver evidencia</span><span data-lang="en">See evidence</span>
+          </button>
+          <button type="button" class="btn-secondary hero-btn" id="hero-share" onclick="sharePublicLink()">
+            <span data-lang="es">Compartir enlace público</span><span data-lang="en">Share public link</span>
+          </button>
+        </div>
+
+        <div class="hero-cards">
+          <button type="button" class="hero-card" onclick="goTab('evidencia')">
+            <span class="hero-card-label" data-lang="es">Última captura</span>
+            <span class="hero-card-label" data-lang="en">Last capture</span>
+            <span class="hero-card-value" id="hero-last">—</span>
+          </button>
+          <button type="button" class="hero-card" onclick="goTab('evidencia')">
+            <span class="hero-card-label" data-lang="es">Anomalías hoy</span>
+            <span class="hero-card-label" data-lang="en">Anomalies today</span>
+            <span class="hero-card-value" id="hero-anomalies">—</span>
+          </button>
+          <button type="button" class="hero-card" onclick="goTab('red')">
+            <span class="hero-card-label" data-lang="es">Nodos en mi sala</span>
+            <span class="hero-card-label" data-lang="en">Nodes in my room</span>
+            <span class="hero-card-value" id="hero-nodes">—</span>
+          </button>
+        </div>
+
+        <!-- La fuente vigilada se cambia muy de vez en cuando, así que va
+             cerrada: lo frecuente arriba, lo raro plegado.
+             English: the watched source changes rarely, so it starts closed. -->
+        <details class="ops-details" id="source-details">
+          <summary>
+            <span data-lang="es">Cambiar fuente</span><span data-lang="en">Change source</span>
+          </summary>
+          <div class="ops-details-body">
 
         <!-- Selector de país + URL del ente electoral -->
         <div id="country-picker">
@@ -208,9 +273,34 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           <div id="discover-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
           <div id="country-change-result" style="font-size:12px;display:none;padding:5px 8px;border-radius:6px;width:100%"></div>
         </div>
-        <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(212,176,102,.08);border:1px solid rgba(212,176,102,.25)">
+        <div id="country-swarm-warn" style="display:none;margin:-10px 0 16px;padding:8px 12px;border-radius:6px;font-size:12px;color:var(--warn);background:rgba(var(--warn-tint),.08);border:1px solid rgba(var(--warn-tint),.25)">
           ⚠ <span data-lang="es">El swarm está conectado con el país anterior. Ve a Red de Nodos → Desconectar y vuelve a conectar.</span><span data-lang="en">The swarm is connected with the previous country. Go to Node Network → Disconnect and reconnect.</span>
         </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- ── PANEL PRINCIPAL (estado + departamentos + operaciones) ── -->
+      <div class="section" id="s1" data-tab="evidencia" data-phase="estado">
+
+        <!-- Título + botones de operación -->
+        <!-- El encabezado «NORMAL / INACTIVO» se elimina: contradecía a las
+             tarjetas y al banner. El estado vive ahora en el semáforo de
+             Inicio, calculado en un solo sitio. Estos dos nodos quedan
+             porque doIniciar() y _setPipelineUI() los referencian.
+             English: the "NORMAL / INACTIVE" header is gone -- it
+             contradicted the cards and the banner. These two nodes stay
+             because doIniciar() and _setPipelineUI() reference them. -->
+          <!-- btn-iniciar oculto — referenciado por doIniciar() y _setPipelineUI() -->
+          <button id="btn-iniciar" onclick="doIniciar()" style="display:none" aria-hidden="true"></button>
+          <div id="pipeline-status-bar" style="display:none;font-size:12px;padding:4px 10px;border-radius:6px;margin-top:6px"></div>
+        <hr class="section-sep">
+
+        <!-- Estado global del sistema -->
+        <div id="global-status-banner" class="global-status-banner nominal">● SISTEMA NOMINAL</div>
+
+
+
 
         <!-- Estado operativo — métricas hero -->
         <div class="status-cards-grid" id="status-cards"><!-- filled by JS --></div>
@@ -223,7 +313,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
         <div id="map-flex">
         <div id="adm-map-wrap" style="position:relative">
           <div id="dep-card-national" class="dep-national-badge" onclick="openMapPopup('00')" title="NACIONAL (00)">
-            <span class="dep-dot" id="dep-dot-00" style="background:var(--accent)"></span>
+            <span class="dep-dot" id="dep-dot-00" style="background:var(--red)"></span>
             <span data-lang="es">00 · NACIONAL</span><span data-lang="en">00 · NATIONAL</span>
           </div>
           <div id="hn-ops-map-container" style="max-width:420px;margin:8px auto;position:relative"></div>
@@ -245,9 +335,9 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
         <div id="map-narrative"><!-- filled by updateMapNarrative() --></div>
         </div>
         <div class="map-legend">
-          <span><span class="dot" style="background:#57c08d"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
-          <span><span class="dot" style="background:#d4b066"></span> <span data-lang="es">Tardío (20–60 min)</span><span data-lang="en">Delayed (20–60 min)</span></span>
-          <span><span class="dot" style="background:#df6b86"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
+          <span><span class="dot" style="background:var(--ok)"></span> <span data-lang="es">OK (&lt; 20 min)</span><span data-lang="en">OK (&lt; 20 min)</span></span>
+          <span><span class="dot" style="background:var(--warn)"></span> <span data-lang="es">Tardío (20–60 min)</span><span data-lang="en">Delayed (20–60 min)</span></span>
+          <span><span class="dot" style="background:var(--bad)"></span> <span data-lang="es">Caído / Error</span><span data-lang="en">Down / Error</span></span>
           <span><span class="dot" style="background:#3a3f49"></span> <span data-lang="es">Sin configurar</span><span data-lang="en">Not configured</span></span>
         </div>
         <!-- Status badges removed — state now lives authoritatively in the
@@ -273,7 +363,21 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 3 PRESETS ── -->
-      <div class="section" id="s3" data-phase="control">
+      <!-- Aviso de la pestaña Avanzado. Va una vez, arriba del todo, y no en
+     cada sección: repetirlo diez veces lo vuelve invisible.
+     English: the warning appears once at the top, not on every section --
+     repeating it ten times makes it invisible. -->
+<div class="section ops-danger-note" id="s-adv-warn" data-tab="avanzado" role="note">
+  <span aria-hidden="true">⚠</span>
+  <span>
+    <span data-lang="es"><strong>Estas acciones cambian cómo funciona VIGIL.</strong>
+      Lee antes de pulsar. Algunas no se pueden deshacer.</span>
+    <span data-lang="en"><strong>These actions change how VIGIL works.</strong>
+      Read before pressing. Some cannot be undone.</span>
+  </span>
+</div>
+
+<div class="section" id="s3" data-tab="avanzado" data-phase="control">
         <div class="section-title"><span data-lang="es">Presets</span><span data-lang="en">Presets</span> <span class="dirty-dot" id="dirty-dot" style="display:none"></span><span class="sec-tip" data-tip-es="Plantillas de configuración rápida. Elige un preset según el escenario (operación normal, noche electoral, emergencia…) o guarda tu propia configuración personalizada." data-tip-en="Quick configuration templates. Pick a preset based on the scenario (normal operation, election night, emergency…) or save your own custom configuration.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -304,14 +408,14 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
             To unlock, a responsibility signature with a commit to GitHub is required.</span>
           </div>
           <button id="btn-unlock-toggle" onclick="requestUnlock(!ceilingUnlocked)"
-            style="flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bad);background:rgba(223,107,134,.12);color:var(--bad);transition:.15s"
+            style="flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bad);background:rgba(223,107,134,.12);color:var(--red-text);transition:.15s"
             title="Requiere doble verificacion">
             &#x26a0; <span data-lang="es">Desbloquear límites</span><span data-lang="en">Unlock limits</span>
           </button>
         </div>
         <!-- Panel de controles avanzados — visible solo con límites desbloqueados -->
         <div id="unlocked-scraping-panel" style="display:none;margin-bottom:20px">
-          <div class="ctrl-section" style="border-color:rgba(212,176,102,.35);background:rgba(212,176,102,.04)">
+          <div class="ctrl-section" style="border-color:rgba(var(--warn-tint),.35);background:rgba(var(--warn-tint),.04)">
             <h3 style="color:var(--warn)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
               <span data-lang="es">Controles de raspado ampliados</span><span data-lang="en">Extended scraping controls</span>
@@ -630,7 +734,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── ANCLAJE BITCOIN (OTS) ── -->
-      <div class="section" id="s9" data-phase="evidencia">
+      <div class="section" id="s9" data-tab="evidencia" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Anclaje Bitcoin</span><span data-lang="en">Bitcoin Anchor</span> <span class="sec-tip" data-tip-es="Sello de integridad en Bitcoin. Cada snapshot se ancla en la blockchain via OpenTimestamps para que cualquier auditor pueda verificar que los datos existian antes de cierto bloque, sin depender de VIGIL." data-tip-en="Bitcoin integrity seal. Each snapshot is anchored to the blockchain via OpenTimestamps so any auditor can verify the data existed before a certain block, without relying on VIGIL.">ⓘ</span></div>
         <hr class="section-sep">
         <div class="ctrl-section" id="ots-section">
@@ -643,8 +747,8 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
                 </span>
                 <button id="btn-ots-toggle" onclick="onOtsToggle()"
                   style="padding:3px 12px;border-radius:2px;font-family:var(--mono);font-size:9px;font-weight:700;
-                  cursor:pointer;transition:background .15s;border:1px solid rgba(87,192,141,.4);
-                  background:rgba(87,192,141,.08);color:var(--ok);white-space:nowrap">⛓ <span data-lang="es">Activo</span><span data-lang="en">Active</span></button>
+                  cursor:pointer;transition:background .15s;border:1px solid rgba(var(--ok-tint),.4);
+                  background:rgba(var(--ok-tint),.08);color:var(--ok);white-space:nowrap">⛓ <span data-lang="es">Activo</span><span data-lang="en">Active</span></button>
               </h3>
               <div id="ots-status-card" style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -701,7 +805,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
                   <ol style="margin:4px 0 0 16px">
                     <li><span data-lang="es">Descarga el archivo <code>.ots</code> del checkpoint</span><span data-lang="en">Download the checkpoint\u2019s <code>.ots</code> file</span></li>
                     <li><code>pip install opentimestamps-client &amp;&amp; ots verify archivo.ots</code></li>
-                    <li><span data-lang="es">O usa</span><span data-lang="en">Or use</span> <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--accent)">opentimestamps.org</a> <span data-lang="es">en línea</span><span data-lang="en">online</span></li>
+                    <li><span data-lang="es">O usa</span><span data-lang="en">Or use</span> <a href="https://opentimestamps.org" target="_blank" rel="noopener" style="color:var(--red-text)">opentimestamps.org</a> <span data-lang="es">en línea</span><span data-lang="en">online</span></li>
                   </ol>
                   <p style="margin-top:8px"><span data-lang="es">Si OTS no está disponible, los snapshots continúan normalmente y las raíces pendientes se reintentan en el próximo ciclo.</span><span data-lang="en">If OTS is unavailable, snapshots continue normally and pending roots are retried on the next cycle.</span></p>
                   <button class="hdr-btn" onclick="testOtsConnectivity()" style="margin-top:10px"><span data-lang="es">Probar conectividad ahora</span><span data-lang="en">Test connectivity now</span></button>
@@ -722,12 +826,12 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
              Status read from data/s3_mirror_status.json written by
              .github/workflows/s3-mirror.yml after each sync run.
         ══════════════════════════════════════════════════════════ -->
-        <div class="ctrl-section" id="aws-mirror-section" style="margin-top:16px;border-color:rgba(212,176,102,.25)">
+        <div class="ctrl-section" id="aws-mirror-section" style="margin-top:16px;border-color:rgba(var(--warn-tint),.25)">
           <h3 style="justify-content:space-between">
             <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2z"/></svg>
               <span data-lang="es">Mirror externo — Amazon S3</span><span data-lang="en">External mirror — Amazon S3</span>
-              <span class="badge badge-neutral" id="aws-status-badge"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
+              <span class="badge badge-neutral" id="aws-status-badge" data-ops-loading="_loadAwsState"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
               <span class="sec-tip" data-tip-es="Replica web/data/ y web/reports/ a un bucket S3 propio vía GitHub Actions. Las credenciales van como GitHub Secrets en tu fork — nunca en este panel. El estado se actualiza automáticamente tras cada ejecución del workflow." data-tip-en="Replicates web/data/ and web/reports/ to your own S3 bucket via GitHub Actions. Credentials go as GitHub Secrets in your fork — never in this panel. Status updates automatically after each workflow run.">ⓘ</span>
             </span>
             <div style="display:flex;gap:6px;align-items:center">
@@ -754,17 +858,17 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
               <span style="color:var(--muted)">S3 URI: </span>
               <span id="aws-s3-uri" style="font-family:var(--mono);color:var(--fg)"></span>
             </div>
-            <div id="aws-error-row" style="display:none;font-size:12px;color:var(--bad);margin-bottom:4px">
+            <div id="aws-error-row" style="display:none;font-size:12px;color:var(--red-text);margin-bottom:4px">
               <span id="aws-error-msg"></span>
               <a id="aws-run-link" href="#" target="_blank" rel="noopener"
-                style="display:none;margin-left:8px;color:var(--accent);font-size:11px">
+                style="display:none;margin-left:8px;color:var(--red-text);font-size:11px">
                 <span data-lang="es">Ver logs ↗</span><span data-lang="en">View logs ↗</span>
               </a>
             </div>
             <span id="aws-enabled-hint" style="display:none;font-size:11px;color:var(--ok)"></span>
           </div>
 
-          <div class="info-box" style="border-color:rgba(212,176,102,.3);background:rgba(212,176,102,.04)">
+          <div class="info-box" style="border-color:rgba(var(--warn-tint),.3);background:rgba(var(--warn-tint),.04)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;color:var(--warn)"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
             <span data-lang="es"><strong>VIGIL es y seguirá siendo Costo Cero.</strong> Esta opción es completamente
             independiente de la operación del proyecto y está <strong>desactivada por defecto</strong>.
@@ -811,7 +915,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 
       <!-- ── 5 LOGS ── -->
-      <div class="section" id="s4" data-phase="evidencia">
+      <div class="section" id="s4" data-tab="evidencia" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Logs y terminales</span><span data-lang="en">Logs &amp; terminals</span> <span class="sec-tip" data-tip-es="Registros en tiempo real de toda la actividad: eventos de monitoreo, alertas de seguridad y trazas de auditoria. Todo queda grabado y no se puede borrar." data-tip-en="Real-time logs of all activity: monitoring events, security alerts and audit traces. Everything is recorded and cannot be deleted.">ⓘ</span></div>
         <hr class="section-sep">
 
@@ -915,67 +1019,79 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 6 MANUAL ── -->
-      <div class="section" id="s5" data-phase="evidencia">
+      <div class="section" id="s5" data-tab="avanzado" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Manual</span><span data-lang="en">Manual</span> <span class="sec-tip" data-tip-es="Operaciones manuales puntuales: fuerza un raspado inmediato, pausa o reanuda el scheduler, sin esperar al ciclo automatico." data-tip-en="One-off manual operations: force an immediate scrape, pause or resume the scheduler, without waiting for the automatic cycle.">ⓘ</span></div>
         <hr class="section-sep">
-        <details id="mini-manual">
-          <summary><span data-lang="es">Guía rápida del panel de administración</span><span data-lang="en">Quick guide to the admin panel</span></summary>
-          <div class="details-body">
-            <div class="ctrl-section">
-              <h3><span data-lang="es">Configuración avanzada</span><span data-lang="en">Advanced configuration</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">Los parámetros de operación se configuran desde la sección <strong>Presets</strong>. Carga un preset para ajustar el intervalo de captura, requests/hora, modos electoral y seguro.<br><br>
-                Para configuración detallada, expande <strong>Configuración avanzada</strong> en la sección Presets: 5 tabs con acceso a endpoints individuales, watchdog, rate limiter, red y reglas de detección.</span>
-                <span data-lang="en">Operating parameters are configured from the <strong>Presets</strong> section. Load a preset to adjust the capture interval, requests/hour, election and safe modes.<br><br>
-                For detailed configuration, expand <strong>Advanced configuration</strong> in the Presets section: 5 tabs with access to individual endpoints, watchdog, rate limiter, network and detection rules.</span>
-              </p>
-              <h3><span data-lang="es">El mapa de endpoints</span><span data-lang="en">The endpoint map</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">Muestra los 18 departamentos + NACIONAL de Honduras como puntos geoposicionados. El color indica el estado del endpoint configurado. Click en cualquier punto para editar la URL o probar el endpoint.</span>
-                <span data-lang="en">Shows the 18 departments + NATIONAL of Honduras as geopositioned points. Color indicates the configured endpoint\u2019s status. Click any point to edit the URL or test the endpoint.</span>
-              </p>
-              <h3><span data-lang="es">Cómo se guardan los cambios</span><span data-lang="en">How changes are saved</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">Cada cambio se guarda automáticamente 1.5 segundos después de modificarlo.<br>
-                1. Modifica cualquier control — el cambio se envía a GitHub automáticamente.<br>
-                2. La primera vez se te pide el GitHub PAT (solo en sessionStorage, desaparece al cerrar el browser).<br>
-                3. El sistema hace commit a <code>config/prod/</code> vía GitHub API.<br>
-                4. Los cambios toman efecto en el próximo ciclo (~15 min).</span>
-                <span data-lang="en">Every change is saved automatically 1.5 seconds after you modify it.<br>
-                1. Modify any control — the change is sent to GitHub automatically.<br>
-                2. The first time, you\u2019re asked for your GitHub PAT (sessionStorage only, disappears when you close the browser).<br>
-                3. The system commits to <code>config/prod/</code> via the GitHub API.<br>
-                4. Changes take effect on the next cycle (~15 min).</span>
-              </p>
-              <h3>Protocolo ARGOS</h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <strong>NORMAL</strong>: <span data-lang="es">operación estándar.</span><span data-lang="en">standard operation.</span><br>
-                <strong>CAUTION</strong>: <span data-lang="es">el sistema detectó condiciones adversas, reduce agresividad.</span><span data-lang="en">the system detected adverse conditions, reduces aggressiveness.</span><br>
-                <strong>SURVIVAL</strong>: <span data-lang="es">modo mínimo, solo captura esencial, máxima resiliencia.</span><span data-lang="en">minimal mode, essential capture only, maximum resilience.</span>
-              </p>
-              <h3><span data-lang="es">Qué hacer si un endpoint queda rojo</span><span data-lang="en">What to do if an endpoint turns red</span></h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-                <span data-lang="es">1. Click en el punto en el mapa → "Probar ahora" para verificar si responde.<br>
-                2. Si no responde: verifica la URL con el proveedor CNE.<br>
-                3. Actualiza la URL en el popup → "Guardar cambio" → se guarda automáticamente.<br>
-                4. Si es un fallo temporal, el circuit breaker se recupera automáticamente.</span>
-                <span data-lang="en">1. Click the point on the map → "Test now" to check if it responds.<br>
-                2. If it doesn\u2019t respond: verify the URL with the electoral authority.<br>
-                3. Update the URL in the popup → "Save change" → it saves automatically.<br>
-                4. If it\u2019s a temporary failure, the circuit breaker recovers automatically.</span>
-              </p>
-              <h3><span data-lang="es">Recuperar configuración anterior</span><span data-lang="en">Restoring a previous configuration</span></h3>
-              <p style="font-size:13px;color:var(--muted)">
-                <span data-lang="es">Todo cambio es un commit en <code>config/prod/</code>. Para revertir: ve a GitHub → <code>config/prod/endpoints.yaml</code> → History → elige el commit anterior → "Revert" o copia el contenido manualmente.</span>
-                <span data-lang="en">Every change is a commit to <code>config/prod/</code>. To revert: go to GitHub → <code>config/prod/endpoints.yaml</code> → History → pick the previous commit → "Revert" or copy the content manually.</span>
-              </p>
-            </div>
-          </div>
-        </details>
+<!-- ══ GUÍA RÁPIDA ══ Panel lateral, detrás del «?» de la barra superior.
+     Estaba en el cuerpo de la página, ocupando sitio permanente para algo que
+     se lee una vez. Reescrita sin jerga: quien abre este panel por primera
+     vez no sabe qué es un «endpoint», y no tiene por qué.
+     English: a side panel behind the "?" in the topbar. It used to sit in the
+     page body, permanently occupying space for something read once. Rewritten
+     without jargon -- someone opening this panel for the first time does not
+     know what an "endpoint" is, and does not need to. -->
+<aside id="ops-guide" hidden aria-label="Guía rápida del panel">
+  <div class="guide-head">
+    <h2><span data-lang="es">Guía rápida</span><span data-lang="en">Quick guide</span></h2>
+    <button type="button" class="hdr-btn" onclick="toggleOpsGuide()"
+            aria-label="Cerrar la guía">✕</button>
+  </div>
+  <div class="guide-body">
+    <section>
+      <h3><span data-lang="es">Qué hace esto</span><span data-lang="en">What this does</span></h3>
+      <p>
+        <span data-lang="es">VIGIL toma una foto de los resultados electorales
+          publicados, cada cierto tiempo, y guarda cada foto con una huella que
+          no se puede falsificar. Si alguien cambia un número después, las
+          fotos lo muestran.</span>
+        <span data-lang="en">VIGIL takes a picture of the published election
+          results every so often, and stores each picture with a fingerprint
+          that cannot be forged. If someone changes a number afterwards, the
+          pictures show it.</span>
+      </p>
+    </section>
+    <section>
+      <h3><span data-lang="es">Las cuatro pestañas</span><span data-lang="en">The four tabs</span></h3>
+      <ul class="guide-list">
+        <li><strong>Inicio.</strong>
+          <span data-lang="es">Si todo va bien o no, y los botones de empezar y parar.</span>
+          <span data-lang="en">Whether things are fine, and the start and stop buttons.</span></li>
+        <li><strong>Evidencia.</strong>
+          <span data-lang="es">Lo que se ha capturado: el mapa, las cosas raras que
+            se han detectado, y el sello que prueba cuándo se guardó cada foto.</span>
+          <span data-lang="en">What has been captured: the map, the odd things
+            detected, and the seal proving when each picture was stored.</span></li>
+        <li><strong>Red.</strong>
+          <span data-lang="es">Otras personas vigilando lo mismo que tú. Varias
+            a la vez hacen más difícil desmentir un hallazgo.</span>
+          <span data-lang="en">Other people watching the same thing. Several at
+            once make a finding harder to dismiss.</span></li>
+        <li><strong>Avanzado.</strong>
+          <span data-lang="es">Ajustes y acciones que cambian cómo funciona.
+            No hace falta entrar aquí para usar VIGIL.</span>
+          <span data-lang="en">Settings and actions that change how it works.
+            You do not need to come here to use VIGIL.</span></li>
+      </ul>
+    </section>
+    <section>
+      <h3><span data-lang="es">Si algo sale mal</span><span data-lang="en">If something goes wrong</span></h3>
+      <p>
+        <span data-lang="es">El recuadro grande de Inicio lo dice en una frase,
+          y trae un botón que lleva a lo que hay que tocar. Si dice que tu nodo
+          no está encendido, es eso: VIGIL no está corriendo en tu equipo, y
+          esta página solo muestra lo que ya hay guardado.</span>
+        <span data-lang="en">The large box on Inicio says it in one sentence and
+          offers a button to whatever needs touching. If it says your node is not
+          running, that is it: VIGIL is not running on your machine, and this
+          page only shows what is already stored.</span>
+      </p>
+    </section>
+  </div>
+</aside>
       </div>
 
       <!-- ── 7 Acceso y Seeds ── -->
-      <div class="section" id="s6" data-phase="control">
+      <div class="section" id="s6" data-tab="avanzado" data-phase="control">
         <div class="section-title"><span data-lang="es">Acceso y Seeds</span><span data-lang="en">Access &amp; Seeds</span> <span class="sec-tip" data-tip-es="Gestiona las 12 claves de acceso administrativo. Las claves nunca se guardan en texto plano, solo su huella criptografica. Usalas para rotarlas o revocarlas." data-tip-en="Manage the 12 administrative access keys. Keys are never stored in plaintext, only their cryptographic fingerprint. Use this to rotate or revoke them.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -989,19 +1105,19 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
         <div class="ctrl-section">
           <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
-          <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;">
+          <div id="seed-status" style="font-size:13px;color:var(--muted);margin-top:8px;" data-ops-loading="loadSeedStatus">
             <span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span>
           </div>
         </div>
 
         <div class="ctrl-section">
-          <h3 style="color:var(--bad)"><span data-lang="es">Regenerar seeds</span><span data-lang="en">Regenerate seeds</span></h3>
+          <h3 style="color:var(--red-text)"><span data-lang="es">Regenerar seeds</span><span data-lang="en">Regenerate seeds</span></h3>
           <p style="font-size:13px;color:var(--muted);margin:8px 0 14px">
             <span data-lang="es">Genera 12 claves completamente nuevas y descarga el archivo actualizado.</span>
             <span data-lang="en">Generates 12 completely new keys and downloads the updated file.</span>
             <strong style="color:var(--warn)"><span data-lang="es">Todas las claves anteriores quedan invalidadas permanentemente.</span><span data-lang="en">All previous keys become permanently invalid.</span></strong>
           </p>
-          <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--bad)">
+          <div id="regen-confirm" style="display:none;background:rgba(223,107,134,.08);border:1px solid rgba(223,107,134,.3);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--red-text)">
             <strong><span data-lang="es">¿Confirmas la regeneración?</span><span data-lang="en">Confirm regeneration?</span></strong><br>
             <span data-lang="es">Esta acción no se puede deshacer. Las 12 claves actuales dejarán de funcionar.</span>
             <span data-lang="en">This action cannot be undone. The 12 current keys will stop working.</span>
@@ -1023,7 +1139,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 8 Red de Nodos — Panel de Control ── -->
-      <div class="section" id="s7" data-phase="estado">
+      <div class="section" id="s7" data-tab="red" data-phase="estado">
         <div class="section-title"><span data-lang="es">Red de Nodos</span><span data-lang="en">Node Network</span> <span class="sec-tip" data-tip-es="Vista de la red de observadores P2P. Cada nodo valida los datos de forma independiente y compara su resultado con los demas para detectar cualquier manipulacion en tiempo real." data-tip-en="View of the P2P observer network. Each node independently validates the data and compares its result with others to detect any manipulation in real time.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -1055,7 +1171,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           </div>
           <div id="swarm-meta" style="font-size:12px;color:var(--muted);margin-top:10px;display:none">
             <span><span data-lang="es">Mi nodo</span><span data-lang="en">My node</span>: </span>
-            <code id="swarm-node-id" style="cursor:pointer;color:var(--accent)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar / Click to copy"></code>
+            <code id="swarm-node-id" style="cursor:pointer;color:var(--red-text)" onclick="navigator.clipboard.writeText(this.textContent)" title="Clic para copiar / Click to copy"></code>
             <span id="swarm-consensus-row" style="display:none">
               &nbsp;&middot;&nbsp;<span data-lang="es">Consenso</span><span data-lang="en">Consensus</span>: <span id="swarm-consensus-val" style="color:var(--ok)"></span>
             </span>
@@ -1079,7 +1195,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">BFT <span data-lang="es">TOLERANCIA</span><span data-lang="en">TOLERANCE</span></div>
             </div>
             <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:#b08cf0" id="swarm-m-ring0">—</div>
+              <div style="font-size:22px;font-weight:700;color:var(--muted)" id="swarm-m-ring0">—</div>
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-0 <span data-lang="es">SEMILLA</span><span data-lang="en">SEED</span></div>
             </div>
             <div style="text-align:center;padding:4px">
@@ -1087,7 +1203,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em">RING-1 <span data-lang="es">CONFIABLE</span><span data-lang="en">TRUSTED</span></div>
             </div>
             <div style="text-align:center;padding:4px">
-              <div style="font-size:22px;font-weight:700;color:var(--bad)" id="swarm-m-compromised">—</div>
+              <div style="font-size:22px;font-weight:700;color:var(--red-text)" id="swarm-m-compromised">—</div>
               <div style="font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.04em"><span data-lang="es">COMPROMETIDOS</span><span data-lang="en">COMPROMISED</span></div>
             </div>
           </div>
@@ -1135,7 +1251,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
             <div style="display:flex;gap:8px;align-items:stretch">
               <input id="sala-invite-text" type="text" readonly
                 style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;
-                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
+                  padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--red-text);cursor:pointer"
                 onclick="this.select()" title="Clic para seleccionar">
               <button class="hdr-btn primary" id="btn-copy-invite" onclick="copyInviteText()"><span data-lang="es">Copiar</span><span data-lang="en">Copy</span></button>
             </div>
@@ -1204,7 +1320,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           </h3>
           <div id="rep-ring-summary" style="display:none">
             <div style="display:flex;gap:16px;font-size:12px;margin-bottom:6px;flex-wrap:wrap">
-              <span>Ring-0 <strong id="rep-r0-count" style="color:#b08cf0">—</strong></span>
+              <span>Ring-0 <strong id="rep-r0-count" style="color:var(--muted)">—</strong></span>
               <span>Ring-1 <strong id="rep-r1-count" style="color:var(--ok)">—</strong></span>
               <span>Ring-2 <strong id="rep-r2-count" style="color:var(--muted)">—</strong></span>
               <span style="color:var(--muted)"><span data-lang="es">Total</span><span data-lang="en">Total</span> <strong id="rep-total" style="color:var(--fg)">—</strong></span>
@@ -1239,7 +1355,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       </div>
 
       <!-- ── 9 CIERRE ELECTORAL ── -->
-      <div class="section election-only" id="s8" data-phase="evidencia">
+      <div class="section election-only" id="s8" data-tab="avanzado" data-phase="evidencia">
         <div class="section-title"><span data-lang="es">Cierre Electoral</span><span data-lang="en">Electoral Closure</span> <span class="sec-tip" data-tip-es="Secuencia de fin de eleccion: raspado final completo de todas las fuentes, publicacion del snapshot certificado y apagado controlado del sistema. Irreversible." data-tip-en="End-of-election sequence: full final scrape of all sources, publication of the certified snapshot, and controlled shutdown of the system. Irreversible.">ⓘ</span></div>
         <hr class="section-sep">
         <p class="section-sub">
@@ -1249,8 +1365,8 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           publication of the certified snapshot, and scheduler shutdown.</span>
         </p>
 
-        <div class="ctrl-section" id="election-closed-banner" style="display:none;border-color:#3fb950;background:rgba(63,185,80,0.07)">
-          <h3 style="color:#3fb950"><span data-lang="es">Ciclo Electoral Cerrado</span><span data-lang="en">Electoral Cycle Closed</span></h3>
+        <div class="ctrl-section" id="election-closed-banner" style="display:none;border-color:var(--ok);background:rgba(var(--ok-tint),0.07)">
+          <h3 style="color:var(--ok)"><span data-lang="es">Ciclo Electoral Cerrado</span><span data-lang="en">Electoral Cycle Closed</span></h3>
           <div style="font-size:13px;color:var(--fg);margin-top:8px">
             <span id="ec-closed-at" style="color:var(--muted)"></span><br>
             <span data-lang="es">Merkle root final</span><span data-lang="en">Final Merkle root</span>: <code id="ec-merkle" style="font-size:11px"></code><br>
@@ -1262,7 +1378,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           <h3><span data-lang="es">Estado actual</span><span data-lang="en">Current status</span></h3>
           <div style="display:flex;align-items:center;gap:12px;margin:12px 0">
             <span id="ec-status-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok)"></span>
-            <span id="ec-status-label" style="font-size:14px;font-weight:600"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
+            <span id="ec-status-label" style="font-size:14px;font-weight:600" data-ops-loading="loadElectionStatus"><span data-lang="es">Cargando…</span><span data-lang="en">Loading…</span></span>
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="ec-mode-line"></div>
 
@@ -1281,14 +1397,14 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
           </div>
 
           <button class="hdr-btn" id="btn-finalize" onclick="openFinalizeModal()"
-            style="border-color:#f85149;color:#f85149;font-weight:700">
+            style="border-color:var(--bad);color:var(--red-text);font-weight:700">
             <span data-lang="es">Cerrar Ciclo Electoral</span><span data-lang="en">Close Electoral Cycle</span>
           </button>
 
           <div id="ec-progress" style="display:none;margin-top:16px">
             <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="ec-progress-msg"><span data-lang="es">Ejecutando raspe final…</span><span data-lang="en">Running final scrape…</span></div>
             <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
-              <div id="ec-progress-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.5s"></div>
+              <div id="ec-progress-bar" style="height:100%;background:var(--red);width:0%;transition:width 0.5s"></div>
             </div>
           </div>
 
@@ -1301,11 +1417,11 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
             </div>
           </div>
 
-          <div id="ec-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.3);font-size:12px;color:#f85149"></div>
+          <div id="ec-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.3);font-size:12px;color:var(--red-text)"></div>
         </div>
 
         <!-- ── GESTIÓN DE DATOS DE SCRAPING ── -->
-        <div class="ctrl-section" id="data-mgmt-section" style="margin-top:20px;border-color:rgba(110,168,254,.25)">
+        <div class="ctrl-section" id="data-mgmt-section" style="margin-top:20px;border-color:rgba(var(--red-tint),.25)">
           <h3 style="display:flex;align-items:center;gap:10px">
             Datos recolectados
             <span id="repo-size-badge" class="val-badge" style="font-size:11px;color:var(--muted)">calculando…</span>
@@ -1420,7 +1536,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 <!-- ════ ELECTION FINALIZE MODAL ════ -->
 <div id="finalize-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:none;align-items:center;justify-content:center">
   <div class="modal-box" style="max-width:440px;border:1px solid rgba(248,81,73,0.5)">
-    <h2 style="color:#f85149"><span data-lang="es">Confirmar cierre electoral</span><span data-lang="en">Confirm electoral closure</span></h2>
+    <h2 style="color:var(--red-text)"><span data-lang="es">Confirmar cierre electoral</span><span data-lang="en">Confirm electoral closure</span></h2>
     <p style="font-size:13px;color:var(--muted);margin:12px 0 16px;line-height:1.7">
       <span data-lang="es">Esta acción lanzará un raspe completo final de todas las fuentes CNE,
       escribirá el marker <code>ELECTION_CLOSED</code>, cambiará el modo a
@@ -1441,7 +1557,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       <button class="hdr-btn" onclick="closeFinalizeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
       <button class="hdr-btn primary" id="btn-finalize-confirm" disabled
         onclick="doFinalizeElection()"
-        style="background:#f85149;border-color:#f85149;color:#fff">
+        style="background:var(--bad);border-color:var(--bad);color:#fff">
         <span data-lang="es">Cerrar ciclo electoral</span><span data-lang="en">Close electoral cycle</span>
       </button>
     </div>
@@ -1450,6 +1566,64 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 
 <!-- ════ PURGE DATA MODAL ════ -->
+<!-- Guia de regeneracion de claves en modo `pages`.
+     En GitHub Pages no hay endpoint que regenerar: lo hace un workflow. El
+     tercer paso es el que importa y el que faltaba: ese archivo es el unico
+     momento en que las claves nuevas existen en claro, y se borra al dia.
+     English: on Pages there is no endpoint to regenerate -- a workflow does
+     it. The third step is the one that matters and the one that was missing:
+     that file is the only moment the new keys exist in the clear. -->
+<div id="regen-guide-modal" role="dialog" aria-modal="true" aria-labelledby="regen-guide-title"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center"
+     onclick="if(event.target===this)closeRegenerateGuide()">
+  <div class="modal-box" style="max-width:520px">
+    <h2 id="regen-guide-title">
+      <span data-lang="es">Regenerar las claves de acceso</span>
+      <span data-lang="en">Regenerate the access keys</span>
+    </h2>
+    <p class="modal-lead">
+      <span data-lang="es">Este panel se publica sin servidor, así que la regeneración
+        la hace un workflow en GitHub. Son tres pasos.</span>
+      <span data-lang="en">This panel is published without a server, so a GitHub
+        workflow does the regeneration. Three steps.</span>
+    </p>
+    <ol class="ops-steps">
+      <li>
+        <span data-lang="es">Abre el workflow y pulsa <strong>Run workflow</strong>.</span>
+        <span data-lang="en">Open the workflow and press <strong>Run workflow</strong>.</span>
+      </li>
+      <li>
+        <span data-lang="es">Cuando termine, entra en <strong>Summary</strong> y luego en
+          <strong>Artifacts</strong>, y descarga el archivo de claves.</span>
+        <span data-lang="en">When it finishes, go to <strong>Summary</strong>, then
+          <strong>Artifacts</strong>, and download the key file.</span>
+      </li>
+      <li>
+        <span data-lang="es"><strong>Guárdalo fuera de línea.</strong> Es el único momento
+          en que las claves nuevas existen en claro, y el archivo se borra al día.</span>
+        <span data-lang="en"><strong>Save it offline.</strong> This is the only moment the
+          new keys exist in the clear, and the file is deleted after a day.</span>
+      </li>
+    </ol>
+    <p class="modal-note">
+      <span data-lang="es">La página tarda un par de minutos en publicar las claves nuevas.
+        Hasta entonces sigue funcionando la clave anterior.</span>
+      <span data-lang="en">The page takes a couple of minutes to publish the new keys.
+        The previous key keeps working until then.</span>
+    </p>
+    <div class="modal-actions">
+      <a class="btn-primary" data-regen-link href="#" target="_blank" rel="noopener">
+        <span data-lang="es">Abrir el workflow</span>
+        <span data-lang="en">Open the workflow</span>
+      </a>
+      <button type="button" class="btn-secondary" onclick="closeRegenerateGuide()">
+        <span data-lang="es">Cerrar</span>
+        <span data-lang="en">Close</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="purge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2100;align-items:center;justify-content:center">
   <div class="modal-box" style="max-width:460px;border-top:3px solid var(--warn)">
     <h2 style="color:var(--warn)"><span data-lang="es">Limpiar datos de scraping</span><span data-lang="en">Clear scraping data</span></h2>
@@ -1488,7 +1662,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
       <button class="hdr-btn" onclick="closePurgeModal()"><span data-lang="es">Cancelar</span><span data-lang="en">Cancel</span></button>
       <button class="hdr-btn" id="btn-purge-confirm"
         onclick="executePurge()"
-        style="background:rgba(212,176,102,.15);border-color:var(--warn);color:var(--warn);font-weight:700">
+        style="background:rgba(var(--warn-tint),.15);border-color:var(--warn);color:var(--warn);font-weight:700">
         <span data-lang="es">Limpiar snapshots</span><span data-lang="en">Clear snapshots</span>
       </button>
     </div>
@@ -1676,7 +1850,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
   align-items:center;justify-content:center;background:rgba(0,0,0,.75);backdrop-filter:blur(4px)"
   onclick="if(event.target===this)closeEmergencyModal()">
   <div class="modal-box" style="max-width:380px;border-top:3px solid var(--bad)">
-    <div style="color:var(--bad);font-size:13px;font-weight:700;letter-spacing:.1em;margin-bottom:12px">
+    <div style="color:var(--red-text);font-size:13px;font-weight:700;letter-spacing:.1em;margin-bottom:12px">
       ⚠ PARADA DE EMERGENCIA
     </div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">
@@ -1695,13 +1869,13 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
     <div id="emg-confirm-step1">
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="hdr-btn" onclick="closeEmergencyModal()">Cancelar</button>
-        <button class="hdr-btn" style="background:rgba(223,107,134,.15);border-color:var(--bad);color:var(--bad)"
+        <button class="hdr-btn" style="background:rgba(223,107,134,.15);border-color:var(--bad);color:var(--red-text)"
           onclick="emergencyStep2()">Continuar →</button>
       </div>
     </div>
     <div id="emg-confirm-step2" style="display:none">
       <div style="font-size:11px;color:var(--warn);margin-bottom:12px;padding:8px;
-        background:rgba(212,176,102,.08);border-radius:2px;line-height:1.5">
+        background:rgba(var(--warn-tint),.08);border-radius:2px;line-height:1.5">
         Segunda confirmación requerida. Asegúrese de que esta es su intención.
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -1718,6 +1892,7 @@ try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 <script src="js/vigil-log.js"></script>
 <script src="js/ops-core.js"></script>
+<script src="js/ops-tabs.js"></script>
 <script src="js/ops-panel.js"></script>
 <script src="js/ops-monitor.js"></script>
 <script src="js/ops-command.js"></script>
@@ -1743,12 +1918,40 @@ async function pbkdf2Hex(password, salt, iterations) {
 const REPO_OWNER = (()=>{
   try{ const u=new URL(location.href); return u.hostname.split('.')[0]; }catch{return '';}
 })();
-const REPO_NAME = 'centinel';
+
+// El nombre del repositorio se deriva de la URL. Estaba a fuego como
+// 'centinel', un nombre que el repositorio dejo de tener al renombrarse a
+// Vigil, mientras REPO_OWNER si se derivaba del hostname. El resultado:
+// RAW_BASE y API_BASE apuntaban a un repositorio con el nombre viejo y TODA
+// peticion de datos del panel daba 404 -- departamentos, snapshot, las seis
+// configuraciones, alertas, log de ataques. Y para cualquiera que despliegue
+// desde la plantilla con otro nombre, fallaria igual desde el primer dia.
+//
+// Tres lineas mas abajo el mismo archivo ya lo derivaba bien para un enlace
+// (`parts[0] || 'Vigil'`); lo que faltaba era usar ese valor en todas partes.
+//
+// English: the repository name is derived from the URL. It was hardcoded as
+// 'centinel', a name the repository stopped having when it was renamed to
+// Vigil, while REPO_OWNER was derived from the hostname. Every data request
+// the panel makes 404'd. The same file already derived it correctly for one
+// link three lines below; what was missing was using that value everywhere.
+const REPO_NAME = (()=>{
+  try{
+    const parts = location.pathname.split('/').filter(Boolean);
+    // En un sitio de proyecto (owner.github.io/REPO/...) el primer segmento es
+    // el repositorio. En un sitio de usuario (owner.github.io/...) no lo es, y
+    // tampoco en file:// ni en un servidor local.
+    // English: on a project site the first path segment is the repository; on
+    // a user site, file:// or a local server it is not.
+    const isProjectSite = /\.github\.io$/i.test(location.hostname) && parts.length >= 2;
+    if (isProjectSite) return parts[0];
+  }catch(e){}
+  return 'Vigil';
+})();
+
 const regenLink = document.getElementById('btn-regen');
 if (regenLink && REPO_OWNER) {
-  const parts = location.pathname.split('/').filter(Boolean);
-  const repo = parts[0] || 'Vigil';
-  regenLink.href = 'https://github.com/' + REPO_OWNER + '/' + repo + '/actions/workflows/regenerate-seeds.yml';
+  regenLink.href = 'https://github.com/' + REPO_OWNER + '/' + REPO_NAME + '/actions/workflows/regenerate-seeds.yml';
 }
 const RAW_BASE  = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
 const API_BASE  = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
@@ -1899,7 +2102,13 @@ let ceilingUnlocked = false;
 })();
 
 async function doAdminLogin(prefillKey) {
-  const pass = prefillKey || document.getElementById('adm-pass').value.trim();
+  // Se recortan AMBAS: la del campo y la que llega por enlace. Un espacio
+  // invisible al final de una URL compartida daba «Clave incorrecta» sin
+  // explicacion posible para quien la habia escrito bien.
+  // English: both are trimmed -- the typed one and the one arriving in a
+  // link. A trailing space in a shared URL produced an unexplainable
+  // "wrong key" for someone who had typed it correctly.
+  const pass = (prefillKey || document.getElementById('adm-pass').value || '').trim();
   const btn  = document.getElementById('btn-login');
   const err  = document.getElementById('auth-err');
   if (!pass) { err.textContent = 'Ingresa la clave de acceso.'; return; }
@@ -1909,9 +2118,9 @@ async function doAdminLogin(prefillKey) {
   try {
     const fallbackUrl = new URL('../access.json', location.href).href;
     let ac;
-    if (window.VIGIL_API_BASE) {
+    if (!opsIsPages()) {
       try {
-        const r = await fetch(window.VIGIL_API_BASE + '/api/setup/access.json?t=' + Date.now());
+        const r = await opsApi('/api/setup/access.json?t=' + Date.now());
         if (r.ok) ac = await r.json();
       } catch(_) {}
     }
@@ -1956,7 +2165,15 @@ async function doAdminLogin(prefillKey) {
           return false;
         });
     if (!matched) {
-      err.textContent = prefillKey ? 'La clave del enlace no es válida o ha expirado.' : 'Clave incorrecta.';
+      // Si las claves se acaban de regenerar, la pagina publicada todavia
+      // lleva los hashes viejos durante un par de minutos. Sin esta frase,
+      // la persona concluye que perdio el acceso.
+      // English: if the keys were just regenerated, the published page still
+      // carries the old hashes for a couple of minutes. Without this line the
+      // person concludes they have lost access.
+      err.textContent = prefillKey
+        ? 'La clave del enlace no es válida o ha expirado.'
+        : 'Clave incorrecta. Si regeneraste las claves hace poco, espera 2 minutos a que la página se actualice.';
       btn.disabled = false; btn.textContent = 'Entrar'; return;
     }
     sessionStorage.setItem('centinel_admin_tok', 'operador');
@@ -2083,9 +2300,29 @@ function showAdminShell(){
 // INIT
 // ══════════════════════════════════════════════════════════
 async function initAll(){
+  // Primero el modo: todo lo que sigue depende de si hay nodo detras.
+  // Se resuelve una vez y se publica en el <body> para que el CSS y las
+  // secciones lo consulten sin volver a sondear la API.
+  // English: the mode first -- everything below depends on whether there is
+  // a node behind. Resolved once and published on <body> so CSS and the
+  // sections can read it without probing the API again.
+  await detectMode();
+  document.body.classList.remove('ops-mode-pages','ops-mode-servidor');
+  document.body.classList.add('ops-mode-' + window.OPS_MODE);
   if(typeof VELE!=='undefined') VELE.init('ops');
   // Wrap each synchronous call so a transient error can't abort the whole
   // init chain and leave later sections (like 2 dept grid) unrendered.
+  // La guarda de 8 s se arma ANTES de lanzar los cargadores. Al reves, la
+  // foto que toma ya es lo que el cargador acaba de pintar, y al vencer lo
+  // sustituye por el mensaje generico: «necesita tu nodo encendido» se
+  // convertia en «No hay datos todavía».
+  // English: the 8s guard is armed BEFORE the loaders go out. The other way
+  // round, its snapshot is whatever a loader has just rendered, and on expiry
+  // it replaces it with the generic message.
+  try { initOpsTopbar(); } catch(e){ console.warn('initOpsTopbar',e); }
+  try { initOpsTabs(); } catch(e){ console.warn('initOpsTabs',e); }
+  try { renderOverallState(); } catch(e){ console.warn('renderOverallState',e); }
+  try { opsArmLoadingGuards(); } catch(e){ console.warn('opsArmLoadingGuards',e); }
   try { buildSensorCards(); } catch(e){ console.warn('buildSensorCards',e); }
   await loadDepartments(ACTIVE_COUNTRY_CODE);
   try { buildDeptGrid(); }    catch(e){ console.warn('buildDeptGrid',e); }
@@ -2110,7 +2347,7 @@ async function initAll(){
   loadReputationPanel();
   loadElectionStatus();
   // Restore pipeline button state if already running
-  fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/status')
+  opsApi('/api/pipeline/status')
     .then(r => r.ok ? r.json() : null)
     .then(d => { if (d?.running) { _setPipelineUI(true, d.pid); _startPipelinePoll(); } })
     .catch(() => {});

@@ -9,7 +9,7 @@ function downloadPdf(id){
   let tableHead = '', tableRows = '';
   if(id==='log-general'){
     tableHead='<tr><th>Timestamp</th><th>Nivel</th><th>Mensaje</th><th>Regla / Kind</th></tr>';
-    const COLORS={INFO:'#1a6fd4',WARNING:'#b8860b',CRITICAL:'#b83250',PANIC:'#cc3333'};
+    const COLORS={INFO:'var(--red)',WARNING:'var(--warn)',CRITICAL:'#b83250',PANIC:'#cc3333'};
     tableRows = logData.map(e=>{
       const lvl=(e.level||'INFO').toUpperCase();
       const c=COLORS[lvl]||'#555';
@@ -17,7 +17,7 @@ function downloadPdf(id){
     }).join('');
   } else if(id==='log-attacks'){
     tableHead='<tr><th>Timestamp</th><th>Tipo</th><th>IP</th><th>Geo</th><th>Ruta</th><th>Freq</th><th>User-Agent</th></tr>';
-    const COLORS={FLOOD:'#b83250',BRUTE:'#cc3333',SCAN:'#b8860b',PROXY_SUSPECT:'#6a4fc0',SUSPICIOUS:'#555'};
+    const COLORS={FLOOD:'#b83250',BRUTE:'#cc3333',SCAN:'var(--warn)',PROXY_SUSPECT:'var(--muted)',SUSPICIOUS:'#555'};
     tableRows = attackData.map(e=>{
       const type=(e.type||e.classification||e.event||'EVENT').toUpperCase();
       const c=COLORS[type]||'#555';
@@ -92,7 +92,7 @@ function exportCustodyReport(){
   // ── OTS data ──
   const chain   = snapshotData?.chain || {};
   const otsStatus = {confirmed:'CONFIRMADO',pending:'PENDIENTE',error:'ERROR',unknown:'—'}[chain.ots_status]||'—';
-  const otsColor  = {confirmed:'#1d6b3e',pending:'#8a6200',error:'#9b2335',unknown:'#555'}[chain.ots_status]||'#555';
+  const otsColor  = {confirmed:'var(--ok)',pending:'var(--warn)',error:'#9b2335',unknown:'#555'}[chain.ots_status]||'#555';
   const otsHash   = chain.latest_hash || '—';
   const otsLen    = chain.chain_length ?? '—';
   const otsLast   = chain.last_anchor ? new Date(chain.last_anchor).toISOString() : '—';
@@ -101,7 +101,7 @@ function exportCustodyReport(){
   const byLevel = {};
   logData.forEach(e=>{ const l=(e.level||'INFO').toUpperCase(); byLevel[l]=(byLevel[l]||0)+1; });
   const alertRows = Object.entries(byLevel).map(([l,n])=>{
-    const c={INFO:'#1a6fd4',WARNING:'#8a6200',CRITICAL:'#9b2335',PANIC:'#cc3333'}[l]||'#555';
+    const c={INFO:'var(--red)',WARNING:'var(--warn)',CRITICAL:'#9b2335',PANIC:'#cc3333'}[l]||'#555';
     return `<tr><td><span class="pill" style="background:${c}20;color:${c};border:1px solid ${c}40">${l}</span></td><td class="mono">${n}</td></tr>`;
   }).join('') || '<tr><td colspan="2" style="color:#888">Sin alertas</td></tr>';
 
@@ -131,7 +131,7 @@ h2{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
 .header{margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1a1a1a}
 .header h1{font-size:18px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
 .header .meta{font-size:10px;color:#555;font-family:ui-monospace,monospace}
-.meta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;background:#f8f8fa;border:1px solid #e0e0e8;padding:12px 16px;margin-bottom:8px}
+.meta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;background:var(--panel2);border:1px solid var(--border);padding:12px 16px;margin-bottom:8px}
 .meta-row{display:flex;gap:8px;align-items:baseline}
 .meta-label{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#888;min-width:90px}
 .meta-val{font-family:ui-monospace,monospace;font-size:11px;color:#222}
@@ -142,10 +142,10 @@ td{padding:5px 10px;border-bottom:1px solid #ebebeb;vertical-align:top;line-heig
 tr:nth-child(even) td{background:#fafafa}
 .mono{font-family:ui-monospace,monospace;font-size:10px;color:#333}
 .pill{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.04em}
-.ots-card{background:#f0f7f4;border:1px solid #b6d9c8;padding:12px 16px;margin-top:6px}
+.ots-card{background:var(--panel2);border:1px solid var(--border);padding:12px 16px;margin-top:6px}
 .ots-status{display:inline-block;padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.06em;background:${otsColor}20;color:${otsColor};border:1px solid ${otsColor}40}
 .footer{margin-top:24px;padding-top:10px;border-top:1px solid #ddd;font-size:9px;color:#888;display:flex;justify-content:space-between}
-.integrity{background:#fffbea;border:1px solid #d4b066;padding:8px 12px;font-size:10px;margin-top:20px;line-height:1.6}
+.integrity{background:var(--panel2);border:1px solid var(--warn);padding:8px 12px;font-size:10px;margin-top:20px;line-height:1.6}
 @media print{body{padding:16px}@page{margin:18mm}h2{page-break-after:avoid}}
 </style></head><body>
 <div class="header">
@@ -223,7 +223,7 @@ async function loadCountrySelector() {
   // Current country from API status (best-effort), fall back to localStorage
   let currentCode = ACTIVE_COUNTRY_CODE || 'HN';
   try {
-    const s = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/status');
+    const s = await opsApi('/api/setup/status');
     if (s.ok) { const d = await s.json(); currentCode = d.country_code || currentCode; }
   } catch(_) {}
 
@@ -317,7 +317,7 @@ async function doIniciar() {
   if (btn?.classList.contains('running')) {
     if (!confirm('¿Detener el monitoreo en curso?')) return;
     try {
-      await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/stop', { method: 'POST' });
+      await opsApi('/api/pipeline/stop', { method: 'POST' });
     } catch (_) {}
     auditLog('monitoreo detenido', '', {msgid:'MONITORING_STOP', severity:'WARNING'});
     _setPipelineUI(false);
@@ -352,7 +352,7 @@ async function doIniciar() {
 
   // 1. Apply config silently to server
   try {
-    await fetch((window.VIGIL_API_BASE || '') + '/api/config/apply', {
+    await opsApi('/api/config/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -365,7 +365,7 @@ async function doIniciar() {
 
   // 2. Start the pipeline
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/start', {
+    const r = await opsApi('/api/pipeline/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ main_url: mainUrl, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
@@ -380,9 +380,15 @@ async function doIniciar() {
       const detail = err.detail || 'Error al iniciar el pipeline.';
       _setPipelineUI(false, null, '❌ ' + detail + ' (Verifica que VIGIL esté corriendo en el servidor)');
     }
-  } catch (_) {
-    // Offline / GitHub Pages — show clear message
-    _setPipelineUI(false, null, '❌ Panel en modo offline. Para iniciar el monitoreo, ejecuta VIGIL en el servidor local y recarga.');
+  } catch (e) {
+    // Sin nodo no es un fallo: es que no hay donde iniciar nada. La cruz roja
+    // decia lo contrario y convertia un estado esperado en una averia.
+    // English: with no node this is not a failure -- there is nowhere to
+    // start anything. The red cross said otherwise and turned an expected
+    // state into a fault.
+    _setPipelineUI(false, null, opsIsOffline(e)
+      ? t('empty.needs_node')
+      : '❌ ' + (e && e.message ? e.message : t('empty.no_data_yet')));
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -402,8 +408,8 @@ function _setPipelineUI(running, pid, errorMsg) {
     _startUptimeClock();
     if (bar) {
       bar.style.display = '';
-      bar.style.background = 'rgba(87,192,141,.08)';
-      bar.style.border = '1px solid rgba(87,192,141,.25)';
+      bar.style.background = 'rgba(var(--ok-tint),.08)';
+      bar.style.border = '1px solid rgba(var(--ok-tint),.25)';
       bar.style.color = 'var(--ok)';
       bar.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/></svg> Monitoreo activo${pid ? ' · PID ' + pid : ''} · ${ACTIVE_COUNTRY_CODE || '—'}`;
     }
@@ -431,7 +437,7 @@ function _startPipelinePoll() {
   if (_pipelinePollTimer) return;
   _pipelinePollTimer = setInterval(async () => {
     try {
-      const r = await fetch((window.VIGIL_API_BASE || '') + '/api/pipeline/status');
+      const r = await opsApi('/api/pipeline/status');
       if (r.ok) {
         const d = await r.json();
         if (!d.running) {
@@ -530,10 +536,10 @@ async function saveElectoralUrl() {
   markDirty();
 
   if (btn) { btn.disabled = true; btn.textContent = 'Buscando…'; }
-  if (res) { res.style.display = ''; res.style.background = 'rgba(212,176,102,.08)'; res.style.border = '1px solid rgba(212,176,102,.25)'; res.style.color = 'var(--warn)'; res.textContent = 'Analizando el sitio del ente electoral…'; }
+  if (res) { res.style.display = ''; res.style.background = 'rgba(var(--warn-tint),.08)'; res.style.border = '1px solid rgba(var(--warn-tint),.25)'; res.style.color = 'var(--warn)'; res.textContent = 'Analizando el sitio del ente electoral…'; }
 
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/setup/discover_endpoints', {
+    const r = await opsApi('/api/setup/discover_endpoints', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Vigil-Key': sessionStorage.getItem('centinel_admin_key') || '' },
       body: JSON.stringify({ main_url: url, country_code: ACTIVE_COUNTRY_CODE || 'HN' }),
@@ -562,8 +568,8 @@ async function saveElectoralUrl() {
       }
 
       if (res) {
-        res.style.background = 'rgba(87,192,141,.08)';
-        res.style.border = '1px solid rgba(87,192,141,.25)';
+        res.style.background = 'rgba(var(--ok-tint),.08)';
+        res.style.border = '1px solid rgba(var(--ok-tint),.25)';
         res.style.color = 'var(--ok)';
         // Badge de formato del país (del preset). JSON/CSV = adaptador listo;
         // AUTO = se detecta por contenido en la primera captura.
@@ -590,8 +596,8 @@ async function saveElectoralUrl() {
   } catch (_) {
     // Offline / GitHub Pages — URL is already saved locally above
     if (res) {
-      res.style.background = 'rgba(212,176,102,.08)';
-      res.style.border = '1px solid rgba(212,176,102,.25)';
+      res.style.background = 'rgba(var(--warn-tint),.08)';
+      res.style.border = '1px solid rgba(var(--warn-tint),.25)';
       res.style.color = 'var(--warn)';
       res.textContent = 'Servidor no disponible. URL guardada localmente — el descubrimiento se ejecutará al iniciar Vigil.';
     }
@@ -667,7 +673,7 @@ async function doChangeCountry() {
   // Best-effort API sync (silent on failure — works offline / GitHub Pages)
   let apiSynced = false;
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/change_country', {
+    const r = await opsApi('/api/setup/change_country', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-Vigil-Key': sessionStorage.getItem('centinel_admin_key') || ''},
       body: JSON.stringify({country_code: code}),
@@ -679,7 +685,7 @@ async function doChangeCountry() {
         loadSeedStatus();
         if (swWarn) {
           try {
-            const sw = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
+            const sw = await opsApi('/api/swarm/status');
             const sd = sw.ok ? await sw.json() : {running: false};
             swWarn.style.display = (sd.running || sd.connected_peers > 0) ? '' : 'none';
           } catch(_) { swWarn.style.display = 'none'; }
@@ -690,8 +696,8 @@ async function doChangeCountry() {
 
   if (res) {
     res.style.display = '';
-    res.style.background = 'rgba(87,192,141,.08)';
-    res.style.border = '1px solid rgba(87,192,141,.25)';
+    res.style.background = 'rgba(var(--ok-tint),.08)';
+    res.style.border = '1px solid rgba(var(--ok-tint),.25)';
     res.style.color = 'var(--ok)';
     const syncNote = apiSynced ? '' : ' <span style="opacity:.6;font-size:.85em">(modo offline)</span>';
     res.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> País establecido: ${optFlag} <strong>${optName}</strong>${optAuth ? ' — ' + optAuth : ''}${syncNote}`;
@@ -703,12 +709,12 @@ async function doChangeCountry() {
 
   // If swarm was running, reconnect with new country so isolation takes effect immediately
   try {
-    const sw = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
+    const sw = await opsApi('/api/swarm/status');
     if (sw.ok) {
       const sd = await sw.json();
       if (sd.running) {
-        await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
-        await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/connect', {
+        await opsApi('/api/swarm/disconnect', { method: 'POST' });
+        await opsApi('/api/swarm/connect', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({}),
@@ -723,7 +729,7 @@ async function loadSeedStatus() {
   const el = document.getElementById('seed-status');
   if (!el) return;
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/setup/status');
+    const r = await opsApi('/api/setup/status');
     const s = await r.json();
     if (s.configured) {
       const since = s.configured_at ? new Date(s.configured_at).toLocaleString() : '—';
@@ -740,6 +746,11 @@ async function loadSeedStatus() {
       document.getElementById('btn-regen').disabled = true;
     }
   } catch(e) {
+    // Sin nodo detras no hubo fallo de carga: no habia nada que cargar. El
+    // mensaje generico hacia pensar que el panel estaba roto.
+    // English: with no node behind, nothing failed to load -- there was
+    // nothing to load. The generic message suggested the panel was broken.
+    if (opsIsOffline(e)) { opsNeedsNode(el); return; }
     el.innerHTML = `<span style="color:var(--muted)">${t('seed.error_carga')}</span>`;
   }
 }
@@ -749,7 +760,7 @@ async function doRegenerate() {
   const errEl = document.getElementById('regen-err');
   errEl.textContent = '';
 
-  if (window.VIGIL_API_BASE) {
+  if (!opsIsPages()) {
     const seedValue = ((document.getElementById('regen-seed-value')||{}).value||'').trim();
     if (!seedValue) {
       errEl.textContent = t('seed.ingresa_clave');
@@ -760,10 +771,10 @@ async function doRegenerate() {
     document.getElementById('regen-confirm').style.display = 'none';
 
     try {
-      const statusR = await fetch(window.VIGIL_API_BASE + '/api/setup/status');
+      const statusR = await opsApi('/api/setup/status');
       const status = await statusR.json();
 
-      const r = await fetch(window.VIGIL_API_BASE + '/api/setup/regenerate', {
+      const r = await opsApi('/api/setup/regenerate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -797,13 +808,45 @@ async function doRegenerate() {
       if (btn) { btn.disabled = false; btn.textContent = t('seed.si_regenerar'); }
     }
   } else {
-    const workflowUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/regenerate-seeds.yml`;
+    // En Pages no hay endpoint que regenerar: lo hace un workflow. Antes esto
+    // era una frase y un enlace sueltos dentro del hueco del error, en ambar,
+    // y no decia que hacer despues de pulsar. Ahora es un modal con los tres
+    // pasos completos, porque el tercero -- guardar el archivo fuera de linea
+    // -- es el unico momento en que esas claves existen en claro.
+    // English: on Pages there is no endpoint to regenerate: a workflow does
+    // it. This used to be a sentence and a bare link inside the error slot,
+    // in amber, saying nothing about what to do after clicking. It is now a
+    // modal with all three steps, because the third -- saving the file
+    // offline -- is the only moment those keys exist in the clear.
     document.getElementById('regen-confirm').style.display = 'none';
-    errEl.innerHTML = `<span style="color:var(--warn)">${t('seed.modo_pages')}<br>` +
-      `<a href="${workflowUrl}" target="_blank" rel="noopener" style="color:var(--accent)">` +
-      `${t('seed.abre_workflow')}</a> ${t('seed.run_workflow_hint')}</span>`;
+    errEl.textContent = '';
+    openRegenerateGuide();
   }
 }
+
+// Guia de regeneracion para el modo `pages`.
+function openRegenerateGuide() {
+  const workflowUrl =
+    `https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/regenerate-seeds.yml`;
+  const modal = document.getElementById('regen-guide-modal');
+  if (!modal) { window.open(workflowUrl, '_blank', 'noopener'); return; }
+  const link = modal.querySelector('[data-regen-link]');
+  if (link) link.href = workflowUrl;
+  modal.style.display = 'flex';
+  const first = modal.querySelector('a, button');
+  if (first) first.focus();
+  document.addEventListener('keydown', _regenGuideEsc);
+}
+window.openRegenerateGuide = openRegenerateGuide;
+
+function closeRegenerateGuide() {
+  const modal = document.getElementById('regen-guide-modal');
+  if (modal) modal.style.display = 'none';
+  document.removeEventListener('keydown', _regenGuideEsc);
+}
+window.closeRegenerateGuide = closeRegenerateGuide;
+
+function _regenGuideEsc(e) { if (e.key === 'Escape') closeRegenerateGuide(); }
 
 
 async function reloadConfig(){
@@ -863,11 +906,23 @@ let _swarmPollTimer = null;
 
 async function loadSwarmStatus() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status');
+    const r = await opsApi('/api/swarm/status');
     if (!r.ok) return;
     const s = await r.json();
     _renderSwarmStatus(s);
-  } catch(_) {}
+  } catch(e) {
+    // Sin nodo, el enjambre no es «desconectado»: es que no hay nada que
+    // conectar todavia. La diferencia importa, porque «desconectado» invita a
+    // buscar una averia que no existe.
+    // English: with no node, the swarm is not "disconnected" -- there is
+    // nothing to connect yet. The difference matters: "disconnected" invites
+    // hunting for a fault that does not exist.
+    if (!opsIsOffline(e)) return;
+    const label = document.getElementById('swarm-label');
+    const dot = document.getElementById('swarm-dot');
+    if (dot) dot.style.background = 'var(--muted)';
+    if (label) label.textContent = t('empty.needs_node');
+  }
 }
 
 function _renderSwarmStatus(s) {
@@ -912,15 +967,15 @@ function _renderSwarmStatus(s) {
     consensusRow.style.display = '';
     consensusVal.textContent = `${s.consensus_count}/${s.connected_peers}  ·  ${s.consensus_root.slice(0,12)}…`;
     banner.style.display = '';
-    banner.style.background = 'rgba(87,192,141,.08)';
-    banner.style.border = '1px solid rgba(87,192,141,.3)';
+    banner.style.background = 'rgba(var(--ok-tint),.08)';
+    banner.style.border = '1px solid rgba(var(--ok-tint),.3)';
     banner.style.color = 'var(--ok)';
     banner.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> ${t('swarm.consenso_alcanzado')} <strong>${s.consensus_count} ${window.OPS_LANG==='en'?'of':'de'} ${s.connected_peers} ${t('swarm.nodos')}</strong> ${t('swarm.comparten_merkle')} (<code>${s.consensus_root.slice(0,16)}…</code>). ${t('swarm.datos_consistentes')}`;
   } else if (s.connected_peers > 0) {
     consensusRow.style.display = 'none';
     banner.style.display = '';
-    banner.style.background = 'rgba(212,176,102,.08)';
-    banner.style.border = '1px solid rgba(212,176,102,.3)';
+    banner.style.background = 'rgba(var(--warn-tint),.08)';
+    banner.style.border = '1px solid rgba(var(--warn-tint),.3)';
     banner.style.color = 'var(--warn)';
     banner.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> ${t('swarm.sin_consenso')} (${s.consensus_count || 0}/${s.connected_peers} ${t('swarm.coinciden')}).`;
   } else {
@@ -965,7 +1020,7 @@ function _renderSwarmStatus(s) {
 
 async function loadSwarmConsensus() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/consensus_findings?min_nodes=1&limit=20');
+    const r = await opsApi('/api/swarm/consensus_findings?min_nodes=1&limit=20');
     if (!r.ok) return;
     const d = await r.json();
     const items = d.consensus || [];
@@ -983,7 +1038,7 @@ async function loadSwarmConsensus() {
     const sevColor = s => s === 'CRITICAL' ? 'var(--alert)' : 'var(--warn)';
     tbody.innerHTML = items.map(c => {
       const nc = parseInt(c.node_count, 10) || 1;
-      const rowBg = nc >= 5 ? 'rgba(220,50,47,.08)' : nc >= 2 ? 'rgba(212,176,102,.08)' : '';
+      const rowBg = nc >= 5 ? 'rgba(220,50,47,.08)' : nc >= 2 ? 'rgba(var(--warn-tint),.08)' : '';
       const snap = (c.snapshot_id || '—').slice(0, 8);
       const ts = c.last_seen ? relTime(c.last_seen) : '—';
       return `<tr style="border-bottom:1px solid var(--border);background:${rowBg}">
@@ -1003,7 +1058,7 @@ async function doSwarmConnect() {
 
   const myUrl = (document.getElementById('swarm-my-url')||{}).value || undefined;
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/connect', {
+    const r = await opsApi('/api/swarm/connect', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ my_url: myUrl || null }),
@@ -1028,7 +1083,7 @@ async function doSwarmDisconnect() {
   if (btn) { btn.disabled = true; btn.textContent = t('swarm.desconectando'); }
   _stopSwarmPoll();
   try {
-    await fetch((window.VIGIL_API_BASE||'') + '/api/swarm/disconnect', { method: 'POST' });
+    await opsApi('/api/swarm/disconnect', { method: 'POST' });
     await loadSwarmStatus();
   } catch(_) {}
   if (btn) { btn.disabled = false; btn.textContent = t('swarm.desconectar'); }
@@ -1065,7 +1120,7 @@ async function createSala() {
   // Make sure the engine is running first
   let nodeId = '—', myUrl = '';
   try {
-    const sr = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/status');
+    const sr = await opsApi('/api/swarm/status');
     if (sr.ok) { const s = await sr.json(); nodeId = s.node_id || '—'; myUrl = s.my_url || ''; }
   } catch(_) {}
 
@@ -1073,7 +1128,7 @@ async function createSala() {
   let roomRegistered = false;
   if (myUrl) {
     try {
-      const rr = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/room', {
+      const rr = await opsApi('/api/swarm/room', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ room_code: _salaId })
       });
@@ -1153,7 +1208,7 @@ async function joinSala() {
     if (myUrl)    body.my_url    = myUrl;
     if (roomCode) body.room_code = roomCode;
 
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/connect', {
+    const r = await opsApi('/api/swarm/connect', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
@@ -1174,7 +1229,7 @@ async function joinSala() {
 async function kickPeer(nodeId) {
   if (!confirm(`¿Expulsar nodo ${nodeId} del enjambre?\n\nEsto lo bloquea hasta que el engine reinicie.`)) return;
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + `/api/swarm/peer/${nodeId}`, { method: 'DELETE' });
+    const r = await opsApi(`/api/swarm/peer/${nodeId}`, { method: 'DELETE' });
     if (!r.ok) { const e = await r.json().catch(() => ({})); alert('Error: ' + (e.detail || r.status)); return; }
     _addActivity('bad', `Nodo expulsado: ${nodeId}`, 'ahora');
     await loadSwarmStatus();
@@ -1187,7 +1242,7 @@ let _repPollTimer = null;
 
 async function loadReputationPanel() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + '/api/swarm/reputation');
+    const r = await opsApi('/api/swarm/reputation');
     if (!r.ok) return;
     const d = await r.json();
     _renderReputationPanel(d);
@@ -1208,7 +1263,7 @@ function _renderReputationPanel(d) {
   const bar = document.getElementById('rep-ring-bar');
   if (bar && total > 0) {
     bar.innerHTML = [
-      `<div style="flex:${r0};background:#b08cf0" title="Ring-0: ${r0}"></div>`,
+      `<div style="flex:${r0};background:var(--muted)" title="Ring-0: ${r0}"></div>`,
       `<div style="flex:${r1};background:var(--ok)" title="Ring-1: ${r1}"></div>`,
       `<div style="flex:${r2};background:var(--border)" title="Ring-2: ${r2}"></div>`,
     ].join('');
@@ -1240,7 +1295,7 @@ function _renderReputationPanel(d) {
         <div style="font-size:10px;color:var(--muted);margin-top:2px">α ${n.alpha} · β ${n.beta}</div>
       </div>
       <div style="font-size:11px;color:var(--muted)">
-        ${n.betrayal_count > 0 ? `<span style="color:var(--bad)">⚠ ${n.betrayal_count} traición${n.betrayal_count!==1?'es':''}</span>` : ''}
+        ${n.betrayal_count > 0 ? `<span style="color:var(--red-text)">⚠ ${n.betrayal_count} traición${n.betrayal_count!==1?'es':''}</span>` : ''}
         ${n.outage_count > 0 ? ` · ${n.outage_count} corte${n.outage_count!==1?'s':''}` : ''}
       </div>
       <div class="rep-node-actions">
@@ -1256,10 +1311,17 @@ async function openSwarmHist(nodeId) {
   document.getElementById('swarm-hist-modal').classList.add('open');
   document.getElementById('hist-modal-node').textContent = nodeId;
   document.getElementById('hist-modal-title').textContent = 'Historial de reputación';
-  document.getElementById('hist-modal-body').innerHTML =
+  const _histBody = document.getElementById('hist-modal-body');
+  _histBody.innerHTML =
     '<div style="color:var(--muted);font-style:italic;font-size:12px">Cargando…</div>';
+  // El «Cargando…» de este modal nace al abrirlo, asi que la guarda se arma
+  // aqui y no en el arranque: al arrancar, el modal esta oculto y vacio.
+  // English: this modal's "Loading…" is born when it opens, so the guard is
+  // armed here rather than at boot, when the modal is hidden and empty.
+  delete _histBody.dataset.opsResolved;
+  opsLoadTimeout(_histBody, function(){ openSwarmHist(nodeId); });
   try {
-    const r = await fetch((window.VIGIL_API_BASE || '') + `/api/swarm/reputation/${nodeId}/history?limit=50`);
+    const r = await opsApi(`/api/swarm/reputation/${nodeId}/history?limit=50`);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     const evts = d.events || [];
@@ -1277,7 +1339,7 @@ async function openSwarmHist(nodeId) {
       </div>`).join('');
   } catch(e) {
     document.getElementById('hist-modal-body').innerHTML =
-      `<div style="color:var(--bad);font-size:12px">Error: ${e.message}</div>`;
+      `<div style="color:var(--red-text);font-size:12px">Error: ${e.message}</div>`;
   }
 }
 
@@ -1320,7 +1382,7 @@ function _renderSwarmStatus(s) {
 
 async function loadElectionStatus() {
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/election/status');
+    const r = await opsApi('/api/election/status');
     if (!r.ok) return;
     const d = await r.json();
     const banner = document.getElementById('election-closed-banner');
@@ -1346,7 +1408,24 @@ async function loadElectionStatus() {
       if (modeLine) modeLine.textContent = t('ec.modo') + ': ' + (d.centinel_mode || '—') +
         '  ·  Snapshots: ' + d.chain_length;
     }
-  } catch(_) {}
+  } catch(e) {
+    // Este `catch` estaba vacio, y por eso la etiqueta se quedaba en
+    // «Cargando…» para siempre: el error se tragaba y nadie tocaba el texto.
+    // Un estado que no se puede conocer tiene que decirse.
+    // English: this catch was empty, which is why the label stayed on
+    // "Loading…" forever -- the error was swallowed and nobody touched the
+    // text. A state that cannot be known has to say so.
+    const label = document.getElementById('ec-status-label');
+    const dot = document.getElementById('ec-status-dot');
+    if (dot) dot.style.background = 'var(--muted)';
+    if (label) {
+      label.textContent = opsIsOffline(e) ? t('empty.needs_node') : t('empty.no_data_yet');
+      // Esta seccion ya dijo lo suyo; la guarda de 8 s no debe pisarlo.
+      // English: this section has said its piece; the 8s guard must not
+      // overwrite it.
+      label.dataset.opsResolved = '1';
+    }
+  }
 }
 
 function openFinalizeModal() {
@@ -1391,7 +1470,7 @@ async function doFinalizeElection() {
   }, 2000);
 
   try {
-    const r = await fetch((window.VIGIL_API_BASE||'') + '/api/election/finalize', {
+    const r = await opsApi('/api/election/finalize', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({}),
@@ -1433,8 +1512,8 @@ async function doFinalizeElection() {
 async function refreshSwarmPanel() {
   try {
     const [statusRes, repRes] = await Promise.allSettled([
-      fetch((window.VIGIL_API_BASE||'') + '/api/swarm/status'),
-      fetch((window.VIGIL_API_BASE||'') + '/api/swarm/reputation'),
+      opsApi('/api/swarm/status'),
+      opsApi('/api/swarm/reputation'),
     ]);
     const status = statusRes.status === 'fulfilled' && statusRes.value.ok ? await statusRes.value.json() : null;
     const rep = repRes.status === 'fulfilled' && repRes.value.ok ? await repRes.value.json() : null;
@@ -1477,12 +1556,12 @@ function renderNodeCards(rep) {
     const trust = Math.round((node.trust_score ?? 0) * 100);
     const ring = node.ring ?? 2;
     const ringLabel = ring === 0 ? 'Ring-0' : ring === 1 ? 'Ring-1' : 'Ring-2';
-    const ringColor = ring === 0 ? '#b08cf0' : ring === 1 ? 'var(--ok)' : 'var(--muted)';
+    const ringColor = ring === 0 ? 'var(--muted)' : ring === 1 ? 'var(--ok)' : 'var(--muted)';
     const trustColor = trust >= 85 ? 'var(--ok)' : trust >= 50 ? 'var(--warn)' : 'var(--bad)';
     const shortId = (node.node_id || '').slice(0, 8);
     const isSelf = node.is_self;
     const card = document.createElement('div');
-    card.style.cssText = `padding:12px;background:var(--panel);border:1px solid ${isSelf ? 'var(--accent)' : 'var(--border)'};border-radius:10px;text-align:center;cursor:pointer;transition:.15s`;
+    card.style.cssText = `padding:12px;background:var(--panel);border:1px solid ${isSelf ? 'var(--red)' : 'var(--border)'};border-radius:10px;text-align:center;cursor:pointer;transition:.15s`;
     card.title = node.node_id || '';
     card.innerHTML = `
       <div style="font-size:11px;font-weight:700;color:var(--fg);font-family:var(--mono);margin-bottom:6px">${isSelf ? '(tú) ' : ''}${shortId}</div>

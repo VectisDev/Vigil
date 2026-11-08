@@ -11,7 +11,7 @@ function computeCRS(alerts){
 function crsColor(score){
   if(score>=40)return'#c0392b';
   if(score>=20)return'var(--bad)';
-  if(score>=5) return'#d4916e';
+  if(score>=5) return'var(--warn)';
   if(score>=1) return'var(--warn)';
   return'var(--ok)';
 }
@@ -66,9 +66,9 @@ function _renderSessionLog(){
     tbody.innerHTML=`<tr class="log-empty"><td colspan="3">${t('log.sin_acciones')}<span class="log-empty-hint">${t('log.acciones_tiempo_real')}</span></td></tr>`;
     return;
   }
-  const COLORS={'sesión iniciada':'var(--ok)','sesión cerrada':'var(--muted)','config aplicada':'var(--accent)',
+  const COLORS={'sesión iniciada':'var(--ok)','sesión cerrada':'var(--muted)','config aplicada':'var(--red)',
     'límites desbloqueados':'var(--bad)','límites restaurados':'var(--ok)','monitoreo iniciado':'var(--ok)',
-    'monitoreo detenido':'var(--warn)','EMERGENCIA activada':'var(--bad)','país cambiado':'var(--accent)','preset cargado':'var(--accent)'};
+    'monitoreo detenido':'var(--warn)','EMERGENCIA activada':'var(--bad)','país cambiado':'var(--red)','preset cargado':'var(--red)'};
   tbody.innerHTML = log.map(e=>{
     const d = new Date(e.ts);
     const time = d.toLocaleString('es',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -184,7 +184,7 @@ function _showPatOnboarding(changes, newYamls){
       <span data-lang="en">Only needed once — stored securely in your browser.</span>
     </div>
     <input type="password" id="pat-onboarding-input" placeholder="ghp_..." style="">
-    <button onclick="_confirmPatOnboarding()" style="background:var(--accent);color:#fff;border:none;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">
+    <button onclick="_confirmPatOnboarding()" style="background:var(--red);color:#fff;border:none;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">
       <span data-lang="es">Conectar</span><span data-lang="en">Connect</span>
     </button>
     <button onclick="document.getElementById('pat-onboarding').classList.remove('show')" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:6px 14px;font-size:12px;cursor:pointer;margin-left:6px">
@@ -451,7 +451,7 @@ function updateUnlockUI(){
     bar.querySelector('.ub-text').innerHTML =
       '<strong>Límites desbloqueados para esta sesión</strong> — los controles pueden exceder '+
       'los límites de seguridad. La firma de responsabilidad ha sido registrada en Git.';
-    if(btn){ btn.textContent='🔒 Volver a bloquear'; btn.style.borderColor='var(--ok)'; btn.style.background='rgba(87,192,141,.12)'; btn.style.color='var(--ok)'; }
+    if(btn){ btn.textContent='🔒 Volver a bloquear'; btn.style.borderColor='var(--ok)'; btn.style.background='rgba(var(--ok-tint),.12)'; btn.style.color='var(--ok)'; }
     if(alertBar) alertBar.classList.add('visible');
     if(unlockedPanel) unlockedPanel.style.display = '';
     [...rphSliders,'sl-rph3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.max=1200; });
@@ -788,8 +788,8 @@ function _syncOtsBtn(){
   if(btn){
     if(enabled){
       btn.textContent = '⛓ ' + t('ots.activo');
-      btn.style.borderColor = 'rgba(87,192,141,.4)';
-      btn.style.background  = 'rgba(87,192,141,.08)';
+      btn.style.borderColor = 'rgba(var(--ok-tint),.4)';
+      btn.style.background  = 'rgba(var(--ok-tint),.08)';
       btn.style.color       = 'var(--ok)';
     } else {
       btn.textContent = '⛓ ' + t('ots.inactivo');
@@ -1132,7 +1132,7 @@ function renderAttackLog(){
     const freq = e.frequency_count ? `${e.frequency_count} req` : '—';
     const ua   = e.user_agent ? `<span style="color:var(--muted)">${escHtml(String(e.user_agent).slice(0,80))}</span>` : '—';
     return [
-      `<tr class="attack-row"><td class="col-ts">${ts}</td><td class="col-lvl"><span class="lpill ${pc}">${type}</span></td><td class="col-meta">${ip}<br><span style="color:var(--muted);font-size:10px">${geo}</span></td><td class="col-route" style="color:var(--accent);font-size:10px">${route}</td><td class="col-meta">${freq}</td><td class="col-meta" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${ua}</td></tr>`,
+      `<tr class="attack-row"><td class="col-ts">${ts}</td><td class="col-lvl"><span class="lpill ${pc}">${type}</span></td><td class="col-meta">${ip}<br><span style="color:var(--muted);font-size:10px">${geo}</span></td><td class="col-route" style="color:var(--red-text);font-size:10px">${route}</td><td class="col-meta">${freq}</td><td class="col-meta" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${ua}</td></tr>`,
       `<tr class="attack-detail-row"><td colspan="6">${buildAttackDetailRow(e)}</td></tr>`
     ];
   }).join('');
@@ -1158,7 +1158,7 @@ function renderAuditTrail(){
     const ts   = relTimestamps ? relTime(c.commit.author.date) : escHtml(c.commit.author.date);
     const author = escHtml(c.commit.author.name||c.commit.author.email||'—');
     const msg  = escHtml(c.commit.message.split('\n')[0]);
-    return `<tr><td class="col-meta"><a href="${escHtml(c.html_url)}" target="_blank" style="color:var(--accent);text-decoration:none">${sha}</a></td><td class="col-ts">${ts}</td><td class="col-meta">${author}</td><td class="col-msg">${msg}</td></tr>`;
+    return `<tr><td class="col-meta"><a href="${escHtml(c.html_url)}" target="_blank" style="color:var(--red-text);text-decoration:none">${sha}</a></td><td class="col-ts">${ts}</td><td class="col-meta">${author}</td><td class="col-msg">${msg}</td></tr>`;
   }).join('');
   wrap.scrollTop = wrap.scrollHeight;
 }

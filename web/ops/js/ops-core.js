@@ -52,6 +52,174 @@ async function fetchSha(path){
   }catch(e){console.warn('fetchSha',path,e);}
 }
 
+// ── Modo del panel: `pages` o `servidor` ────────────────────────────────────
+//
+// ESPAÑOL
+// Este panel se publica en GitHub Pages, donde no hay servidor. Aun así el
+// código llamaba a `/api/...` desde una decena de sitios, y cada uno fallaba
+// por su cuenta con un mensaje distinto: «Error al iniciar el pipeline»,
+// «Panel en modo offline», «No se pudo cargar el estado», o un «Cargando…»
+// que no terminaba nunca. Un visitante veía una pantalla con errores rojos y
+// concluía, razonablemente, que el sistema estaba roto. No lo estaba: le
+// faltaba el nodo encendido, que es un estado esperado y no un fallo.
+//
+// El modo se resuelve UNA vez y se guarda en `window.OPS_MODE`. Las secciones
+// lo consultan en vez de sondear la API cada una por su lado.
+//
+// ENGLISH
+// This panel is published on GitHub Pages, where there is no server. The code
+// still called `/api/...` from a dozen places, each failing on its own with a
+// different message -- or with a "Loading…" that never ended. A visitor saw a
+// screen full of red errors and reasonably concluded the system was broken. It
+// was not: it had no node running, which is an expected state, not a failure.
+//
+// The mode is resolved ONCE into `window.OPS_MODE`.
+
+window.OPS_MODE = window.OPS_MODE || null;
+const OPS_MODE_PROBE_MS = 3000;
+
+async function detectMode() {
+  if (window.OPS_MODE) return window.OPS_MODE;
+
+  const base = window.VIGIL_API_BASE;
+  if (!base) {
+    window.OPS_MODE = 'pages';
+    return window.OPS_MODE;
+  }
+
+  // Una sonda, con límite de 3 s. Sin AbortController una red lenta deja la
+  // promesa colgando y el panel entero esperando.
+  // English: one probe, capped at 3s. Without AbortController a slow network
+  // leaves the promise hanging and the whole panel waiting on it.
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), OPS_MODE_PROBE_MS);
+    let r;
+    try {
+      r = await fetch(base + '/api/setup/status', { signal: ctrl.signal, cache: 'no-store' });
+    } finally {
+      clearTimeout(timer);
+    }
+    window.OPS_MODE = r && r.ok ? 'servidor' : 'pages';
+  } catch (e) {
+    window.OPS_MODE = 'pages';
+  }
+  return window.OPS_MODE;
+}
+window.detectMode = detectMode;
+
+function opsIsPages() { return window.OPS_MODE !== 'servidor'; }
+window.opsIsPages = opsIsPages;
+
+// El único sitio por donde sale una petición a la API.
+//
+// En modo `pages` NO se emite la petición: se rechaza con un error etiquetado
+// que las secciones reconocen. Antes, cada llamada salía, fallaba contra Pages
+// y ensuciaba la consola con 404s; un evaluador que abre las herramientas de
+// desarrollo veía una pantalla roja de peticiones fallidas.
+//
+// English: the single place an API request leaves from. In `pages` mode the
+// request is never issued -- it rejects with a tagged error the sections
+// recognise, instead of hitting Pages and filling the console with 404s.
+function opsApi(path, init) {
+  if (opsIsPages()) {
+    const err = new Error('ops-offline');
+    err.opsOffline = true;
+    return Promise.reject(err);
+  }
+  return opsApi(path, init);
+}
+window.opsApi = opsApi;
+
+function opsIsOffline(err) { return !!(err && err.opsOffline); }
+window.opsIsOffline = opsIsOffline;
+
+// Estado vacío para una sección que necesita el nodo encendido.
+// Gris, con una frase en lenguaje llano y una salida. Nunca en rojo: el rojo
+// es para lo que está mal, y esto no lo está.
+// English: empty state for a section that needs the node running. Grey, plain
+// language, and a way out. Never red: red is for what is broken, and this is
+// not.
+function opsNeedsNode(el, opts) {
+  if (!el) return;
+  // Se marca como resuelto: esta seccion ya dijo lo que le pasa, y la guarda
+  // de carga no debe sustituirlo luego por el mensaje generico. Sin esto, a
+  // los 8 s «necesita tu nodo encendido» -- que es cierto y accionable -- se
+  // convertia en «No hay datos todavía», que es vago y no dice que hacer.
+  // English: marked resolved -- this section has already said what is going
+  // on, and the load guard must not replace it with the generic message.
+  el.dataset.opsResolved = '1';
+  const o = opts || {};
+  // La wiki ya explica el despliegue en un minuto (clonar y `make
+  // quickstart`), esta publicada y es bilingue. Enlazar ahi en vez de
+  // crear otra pagina que mantener y traducir.
+  // English: the wiki already explains deployment in a minute, is
+  // published and bilingual. Link there rather than add another page.
+  const docs = o.href ||
+    'https://github.com/VectisDev/Vigil/wiki/Instalaci%C3%B3n-%E2%80%94-Setup';
+  el.innerHTML =
+    '<div class="ops-empty" role="status">' +
+    '<span class="ops-empty-icon" aria-hidden="true">○</span>' +
+    '<p class="ops-empty-text">' + escHtml(o.text || t('empty.needs_node')) + '</p>' +
+    '<a class="btn-secondary ops-empty-action" href="' + escHtml(docs) + '" ' +
+    'target="_blank" rel="noopener">' +
+    escHtml(t('empty.how_to_start')) + '</a>' +
+    '</div>';
+}
+window.opsNeedsNode = opsNeedsNode;
+
+// Ningún «Cargando…» puede quedarse para siempre.
+// Devuelve una función `done()`; si no se llama en `ms`, el contenedor pasa a
+// «No hay datos todavía» con un botón de reintento.
+// English: no "Loading…" may hang forever. Returns a `done()`; if it is not
+// called within `ms`, the container switches to "No data yet" plus a retry.
+const OPS_LOAD_TIMEOUT_MS = 8000;
+
+function opsLoadTimeout(el, onRetry, ms) {
+  if (!el) return function () {};
+  const limit = typeof ms === 'number' ? ms : OPS_LOAD_TIMEOUT_MS;
+  // Se recuerda lo que habia al armar el temporizador. Si al vencer el
+  // contenido ya es otro, el cargador termino y no hay nada que anunciar:
+  // pisar su resultado seria sustituir datos buenos por «No hay datos».
+  // English: remember what was there when the timer was armed. If the content
+  // has changed by the time it fires, the loader finished and there is
+  // nothing to announce -- overwriting it would replace good data.
+  const snapshot = el.innerHTML;
+  const timer = setTimeout(function () {
+    if (el.dataset.opsResolved === '1') return;
+    if (el.innerHTML !== snapshot) return;
+    el.innerHTML =
+      '<div class="ops-empty" role="status">' +
+      '<span class="ops-empty-icon" aria-hidden="true">○</span>' +
+      '<p class="ops-empty-text">' + escHtml(t('empty.no_data_yet')) + '</p>' +
+      '<button type="button" class="btn-secondary ops-empty-action" ' +
+      'data-ops-retry="1">' + escHtml(t('empty.retry')) + '</button>' +
+      '</div>';
+    const btn = el.querySelector('[data-ops-retry]');
+    if (btn && typeof onRetry === 'function') btn.addEventListener('click', onRetry);
+  }, limit);
+  return function done() { clearTimeout(timer); };
+}
+window.opsLoadTimeout = opsLoadTimeout;
+
+// Arma la guarda sobre cada marcador de carga declarado en el HTML.
+// Un `data-ops-loading="nombreDeFuncion"` basta: si a los 8 s el contenido
+// sigue siendo el mismo, el hueco pasa a «No hay datos todavía» con un boton
+// que vuelve a llamar a esa funcion.
+// English: arms the guard on every declared loading placeholder. A
+// `data-ops-loading="fnName"` is enough.
+function opsArmLoadingGuards(root) {
+  const scope = root || document;
+  scope.querySelectorAll('[data-ops-loading]').forEach(function (el) {
+    const fn = el.getAttribute('data-ops-loading');
+    opsLoadTimeout(el, function () {
+      const f = window[fn];
+      if (typeof f === 'function') { try { f(); } catch (e) { console.warn(fn, e); } }
+    });
+  });
+}
+window.opsArmLoadingGuards = opsArmLoadingGuards;
+
 function populateControls(){
   const ep = localConfig['config/prod/endpoints.yaml'] || {};
   const wd = localConfig['config/prod/watchdog.yaml'] || {};
@@ -198,6 +366,10 @@ const I18N = {
     'val.eventos':'eventos', 'val.limite':'límite',
     'det.pipeline_no_run':'Pipeline aún no ha ejecutado',
     'det.fallos_consecutivos':'fallos consecutivos',
+    'empty.needs_node':'Esta función necesita tu nodo encendido.',
+    'empty.how_to_start':'Cómo encender mi nodo',
+    'empty.no_data_yet':'No hay datos todavía.',
+    'empty.retry':'Reintentar',
     'det.ultimo':'Último',
     'det.warning_critical':'{w} WARNING · {c} CRITICAL',
     'det.fallando':'fallando',
@@ -281,6 +453,10 @@ const I18N = {
     'val.confirmado':'CONFIRMED', 'val.pendiente':'PENDING', 'val.error':'ERROR', 'val.desconocido':'UNKNOWN',
     'val.eventos':'events', 'val.limite':'limit',
     'det.pipeline_no_run':'Pipeline has not run yet',
+    'empty.needs_node':'This needs your node running.',
+    'empty.how_to_start':'How to start my node',
+    'empty.no_data_yet':'No data yet.',
+    'empty.retry':'Retry',
     'det.fallos_consecutivos':'consecutive failures',
     'det.ultimo':'Last',
     'det.warning_critical':'{w} WARNING · {c} CRITICAL',
@@ -675,9 +851,9 @@ function deptDotColor(code, configured){
   if(!configured.includes(code)) return '#3a3f49'; // Sin configurar
   const status = getEndpointStatus(code);
   if(!snapshotData) return '#3a3f49';
-  if(status.cls === 'ok')   return '#57c08d'; // OK
-  if(status.cls === 'bad')  return '#df6b86'; // Caído / Error
-  if(status.cls === 'warn') return '#d4b066'; // Tardío
+  if(status.cls === 'ok')   return 'var(--ok)'; // OK
+  if(status.cls === 'bad')  return 'var(--bad)'; // Caído / Error
+  if(status.cls === 'warn') return 'var(--warn)'; // Tardío
   return '#3a3f49'; // sin datos todavía
 }
 function updateStatusBadges(){
