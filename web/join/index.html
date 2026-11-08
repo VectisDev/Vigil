@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIGIL — three steps</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<style>
+body { margin: 0; background: #fff; color: #141414; font-family: "Liberation Sans", "Segoe UI", sans-serif; line-height: 1.5; }
+main { width: min(40rem, calc(100% - 2rem)); margin: 2rem auto; }
+a { color: #8E1228; }
+ol { padding-left: 1.2rem; }
+li { margin: 0.6rem 0; }
+code { font-size: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <p><img src="../assets/logo-mark.svg" width="32" height="32" alt=""> <strong>VIGIL</strong></p>
+  <h1>Three steps</h1>
+  <ol>
+    <li>Fork the repository and turn Actions on. <a href="https://github.com/VectisDev/Vigil/fork">Fork</a></li>
+    <li>Open Actions, choose Join a room, type the room code, and press Run.</li>
+    <li>Read the color. Green: the copies match. Yellow: not yet. Red: they disagree.</li>
+  </ol>
+  <p>You type only the room code. The node makes its own key and does not show it. The key is not saved in the repository: GitHub's workflow token cannot store a new secret, and asking for another token would be a second question.</p>
+  <p lang="es">Solo escribes el código. El nodo crea su clave y no la muestra. La clave no se guarda en el repositorio.</p>
+  <p>On a computer: <code>python3 scripts/swarm_join.py CODE</code></p>
+  <p>That command finishes in under 2 seconds. It does not ask another question.</p>
+  <p><a href="../">Home</a></p>
+</main>
+</body>
+</html>

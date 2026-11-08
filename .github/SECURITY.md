@@ -45,15 +45,15 @@ The software records what a portal published. It does not decide why a number ch
 - A capture is linked with SHA-256 only when the pipeline writes `previous_hash`. The bundled Honduras 2025 files do not have that field. `verify/verify_chain.py` exits 1 on them. See `docs/evidence/HN2025.md`.
 - A Merkle root can be anchored with OpenTimestamps when a proof file was actually created. The proof next to the 2025 sample commits to that root. It is not continuous custody during the count.
 - Ed25519 signing exists in the code. Private keys are not in this repository. No witness set is operating from this tree.
-- The operator panel (`web/ops/`, `web/replay/`) is static HTML on GitHub Pages. The access check is a convenience, not a boundary: the page and its data are public. `web/access.json` stores key hashes only (SHA-256 in the published format; an older local wizard wrote PBKDF2-SHA256). Plaintext keys are not committed. The browser session lasts 8 hours in `sessionStorage`.
-- The local API checks `X-Vigil-Key` (the older `X-Centinel-Key` is still accepted) in constant time. Changing the repository on GitHub requires a token with that permission.
+- The public site under `web/` has no login. Operator actions are not published there. `web/privacy/index.html` says the site collects no user data.
+- A local API, if an operator runs one, may still check `X-Vigil-Key`. That check is not part of the public site. Changing the repository on GitHub requires a token with that permission.
 
 ## Secrets
 
 - Do not commit tokens, private keys, passwords, or plaintext panel keys.
 - GitHub Actions secrets stay in the repository settings. Workflows pass them as environment variables. They are not printed.
 - `scripts/encrypt_secrets.py` can encrypt a local env file. Ciphertext in git is still a secret in git. This repository does not store an encrypted signing key or an Arbitrum key. Arbitrum stays off unless an operator sets `ARBITRUM_PRIVATE_KEY` outside the tree.
-- `web/access.json` holds hashes only.
+- `web/access.json` is not published. It used to hold hashes of operator seeds, not the seeds. Those seeds, if they still exist outside the repository, should be retired.
 
 ## Workflow permissions
 

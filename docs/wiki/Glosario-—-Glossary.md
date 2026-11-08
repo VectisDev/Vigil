@@ -9,7 +9,7 @@ Términos que aparecen en VIGIL y su documentación · Terms used across VIGIL a
 | Cadena de hashes | Hash chain | Secuencia en la que cada captura incluye el hash de la anterior · Sequence where each capture includes the previous one's hash |
 | Captura (snapshot) | Snapshot | Copia de los datos oficiales en un momento dado · Copy of the official data at a given moment |
 | Escrutinio especial | Special scrutiny | Revisión de actas inconsistentes por la autoridad · The authority's review of inconsistent sheets |
-| Federación / enjambre | Federation / swarm | Conjunto de nodos que comparten capturas firmadas sin coordinador · Nodes sharing signed captures with no coordinator |
+| Federación / enjambre | Federation / swarm | Idea de varios observadores. No hay un segundo nodo en marcha. Ver `docs/operations/SWARM.md` · An idea of several observers. No second node is running. See `docs/operations/SWARM.md` |
 | Gossip | Gossip protocol | Forma en que los nodos se pasan capturas entre sí · How nodes pass captures to each other |
 | Hash (SHA-256) | Hash (SHA-256) | Huella digital única de un archivo; cualquier cambio la altera · A file's unique fingerprint; any change alters it |
 | Ley de Benford | Benford's law | Distribución esperada de los primeros dígitos en muchos conjuntos de datos · Expected distribution of leading digits in many datasets |

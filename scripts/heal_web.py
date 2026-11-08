@@ -19,34 +19,25 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WEB_DIR   = REPO_ROOT / "web"
+WEB_DIR = REPO_ROOT / "web"
 
-BOLD  = "\033[1m"
+BOLD = "\033[1m"
 GREEN = "\033[32m"
-RED   = "\033[31m"
-CYAN  = "\033[36m"
+RED = "\033[31m"
+CYAN = "\033[36m"
 RESET = "\033[0m"
 
 CRITICAL_FILES = [
     "web/index.html",
-    "web/access.json",
     "web/config.js",
     "web/replay/index.html",
     "web/verifier/index.html",
     "web/ops/index.html",
-    "web/ops/ops.css",
-    "web/ops/js/ops-core.js",
-    "web/ops/js/ops-panel.js",
-    "web/ops/js/ops-monitor.js",
-    "web/ops/js/ops-command.js",
-    "web/ops/data/s3_mirror_status.json",
-    "web/ops/js/vigil-log.js",
+    "web/privacy/index.html",
     ".github/workflows/pages.yml",
 ]
 
-JSON_FILES = [
-    "web/access.json",
-]
+JSON_FILES = []
 
 
 def _git_restore(path: str) -> bool:
@@ -54,7 +45,9 @@ def _git_restore(path: str) -> bool:
     try:
         subprocess.run(
             ["git", "checkout", "HEAD", "--", path],
-            cwd=REPO_ROOT, check=True, capture_output=True,
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
         )
         return True
     except subprocess.CalledProcessError:

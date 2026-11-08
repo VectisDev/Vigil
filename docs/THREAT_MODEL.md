@@ -22,7 +22,7 @@ Lo observado es el flujo publicado, no una urna. Los fallos útiles son: una cap
 | Dispute about which bytes were stored | Merkle root, plus an OpenTimestamps proof when one was actually created |
 | A report that invents a healthy source | `reachable` stays unknown until a fetch is recorded. Unprobed endpoints stay unknown |
 | Load on the authority | Hard ceiling of 480 requests/hour per host |
-| A public panel treated as a vault | The Pages site is static. `web/access.json` stores hashes. The gate is not a boundary |
+| A public panel treated as a vault | The Pages site is static and has no login. It collects no visitor data |
 | Pressure to soften a result | AGPL-3.0. Thresholds live in `command_center/rules.yaml`. They are not a pre-registered study of the 2025 sample |
 | The maintainer disappears | Anyone can fork the repository. There is no second maintainer in the tree |
 

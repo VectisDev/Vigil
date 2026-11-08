@@ -41,6 +41,11 @@ SCANNED = [
     "docs/compliance/SECURITY_POLICY.md",
     "docs/THREAT_MODEL.md",
     "docs/legal/GOVERNANCE.md",
+    "docs/START.md",
+    "docs/operations/SWARM.md",
+    "docs/swarm/README.md",
+    "docs/swarm/RESILIENCE.md",
+    "docs/README.md",
 ]
 SCANNED.extend(_wiki_pages())
 
