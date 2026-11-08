@@ -12,7 +12,8 @@ def main() -> int:
     print("Routes exist in src/vigil/api/routes/swarm.py.")
     print("No second operator is configured.")
     print("This command does not open a port and does not join a peer.")
-    print("Read docs/operations/SWARM.md.")
+    print("Read docs/swarm/README.md.")
+    print("Seating is a pure function for at most 12 members. It is not running.")
     return 0
 
 

@@ -4,26 +4,24 @@
 
 ## Español
 
-**Todavía no es producción.** No hay un segundo observador.
+**Todavía no es producción.** No hay una red en marcha.
 
-La idea es que más de una persona guarde el mismo canal público y compare esas copias. El árbol tiene rutas HTTP en `src/vigil/api/routes/swarm.py` y un módulo en `src/vigil/federation/gossip.py`. Ninguna red de esas está en marcha. Hay un solo mantenedor.
+La idea es una sala de hasta 12 nodos. Un código corto identifica la sala. Cada nodo, con la misma lista y el mismo código, calcula los mismos puestos. No hay servidor central. Solo se compartirían capturas públicas y sus hashes, nunca datos de una persona.
+
+El texto está en [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).
 
 ```bash
 python3 scripts/swarm_status.py
 ```
-
-Ese comando imprime el estado. No abre un puerto y no se une a un par. El texto largo está en [`docs/operations/SWARM.md`](https://github.com/VectisDev/Vigil/blob/main/docs/operations/SWARM.md).
-
----
 
 ## English
 
-**Not yet production.** There is no second observer.
+**Not yet production.** No network is running.
 
-The idea is that more than one person saves the same public feed and compares those copies. The tree has HTTP routes in `src/vigil/api/routes/swarm.py` and a module in `src/vigil/federation/gossip.py`. No such network is running. There is one maintainer.
+The idea is a room of up to 12 nodes. A short code names the room. Each node, with the same list and the same code, computes the same seats. There is no central server. Only public snapshots and their hashes would be shared, never data about a person.
+
+The text is [`docs/swarm/README.md`](https://github.com/VectisDev/Vigil/blob/main/docs/swarm/README.md).
 
 ```bash
 python3 scripts/swarm_status.py
 ```
-
-That command prints the status. It does not open a port and it does not join a peer. The long text is [`docs/operations/SWARM.md`](https://github.com/VectisDev/Vigil/blob/main/docs/operations/SWARM.md).

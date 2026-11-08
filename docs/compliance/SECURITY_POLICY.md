@@ -12,7 +12,7 @@ One person maintains the repository, under the pseudonym VectisDev. There is no 
 | Disclosure | Private GitHub advisory, or vectisdev26@proton.me. No public issue. No other address. |
 | Timing | Inbox checked with the intention of 14 days. No on-call. No 48-hour reply. No fixed fix window. |
 | Supported code | `main` only, until a release tag exists. Then `main` and the latest tag. |
-| Panel gate | Static HTML. `web/access.json` stores hashes, not keys. Not a security boundary. |
+| Public site | Static pages. No login. No visitor data. `web/privacy/index.html`. |
 | Hash chain | Written when the pipeline stores `previous_hash`. The 2025 sample has none. |
 | TLS to a portal | The collector can compare a certificate hash when the operator configured one (`src/vigil/core/connectivity.py`). This page does not say every fetch pins a certificate. |
 | Private keys | Not in the repository. |
