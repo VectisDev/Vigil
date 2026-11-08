@@ -68,7 +68,7 @@ def test_the_action_checks_the_override_file() -> None:
     assert "scripts/check_rate_override.py" in text
     page = (ROOT / "web" / "ops" / "index.html").read_text(encoding="utf-8")
     assert "This lock exists to be respectful." in page
-    assert 'type="password"' not in page
-    assert "<script" not in page.lower()
+    assert "Clave de acceso" in page
+    assert "Regenerar claves" in page
+    assert "sessionStorage" not in page
     assert "480" in page
-    assert "config/ops_keys.yml" in page

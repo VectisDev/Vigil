@@ -1,6 +1,14 @@
 # Ops keys
 
-This page does not contain a key, and the public site does not ask for one. The page is not a security boundary. It does not read a key from the URL and it does not store one in the browser. The boundary is a commit GitHub reports as verified. Pushing that commit uses a GitHub credential.
+The ops panel keeps the access-key field. That field is not sent, not stored, and not written to a log. New keys are not shown on the page.
+
+Three clicks, on your own copy:
+
+1. Open the panel and press Regenerar claves. That opens Actions → Regenerate Admin Seeds.
+2. Press Run workflow.
+3. When the run finishes, download the artifact `vigil-keys-download-once`. It expires in one day.
+
+The boundary for a commit GitHub reports as verified is still the signature. Pushing that commit uses a GitHub credential.
 
 The store is a per-key salted PBKDF2 hash in `config/ops_keys.yml`. Older generators used 24-character secrets. One of those sets was published in the commit message of `d32970cf1` (pull request 627). Those keys are invalid.
 

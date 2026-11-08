@@ -86,7 +86,8 @@ def test_the_published_registry_has_no_keys_and_the_site_does_not_check_one() ->
         assert "pbkdf2" not in text
         assert "access.json" not in text
     ops = (web / "ops" / "index.html").read_text(encoding="utf-8").lower()
-    assert "<script" not in ops
+    assert "sessionstorage" not in ops
+    assert "console.log" not in ops
     wizard = (ROOT / ".github" / "scripts" / "wizard_seeds.py").read_text(encoding="utf-8")
     assert "web/access.json" not in wizard
     assert "upload-artifact" not in wizard

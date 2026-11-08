@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Generate ops keys and write salted hashes to config/ops_keys.yml.
 
-The plaintext keys go to a 0600 file under RUNNER_TEMP. That file must
-never be uploaded as an Actions artifact. On a public repository an
-artifact can be downloaded for as long as it is retained.
-
-This script does not write a file under web/ and does not commit the keys.
+The plaintext keys go to a 0600 file under RUNNER_TEMP. The regenerate
+workflow may upload that file as a one-day artifact. This script must
+not print the keys. It does not write a file under web/.
 """
 
 from __future__ import annotations
@@ -64,7 +62,7 @@ def main() -> int:
         lines.append(f"{fingerprint(key)} {key}")
     write_seeds_file("\n".join(lines) + "\n")
     print(f"config/ops_keys.yml written with {len(issued)} hashes")
-    print(f"Keys file written to {SEEDS_PATH} (mode 0600, do NOT upload as artifact)")
+    print("Key file written. This script does not print the keys.")
     return 0
 
 
