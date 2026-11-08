@@ -220,14 +220,15 @@ function v4Banner() {
     : v4t('Nodo de control conectado · parada de emergencia y destrucción no están disponibles', 'Control node connected · emergency stop and destruction are not available');
 }
 
-function v4CaptureBlock() {
+function v4CaptureBlock(buttonId) {
   if (!v4CanOperate()) {
     return v4P('Vista de observador: sin acciones de operación.', 'Observer view: no operating actions.', 'note');
   }
   const paused = V4.capture === 'paused' && V4.captureKnown;
+  const id = buttonId || 'capture-button';
   const label = paused
-    ? v4Btn('Reanudar captura', 'Resume capture', 'resume', '', false, 'capture-button')
-    : v4Btn('Pausar captura', 'Pause capture', 'pause', '', false, 'capture-button');
+    ? v4Btn('Reanudar captura', 'Resume capture', 'resume', '', false, id)
+    : v4Btn('Pausar captura', 'Pause capture', 'pause', '', false, id);
   const note = v4Pages()
     ? v4P('Sin nodo, pausar y reanudar no están disponibles todavía. Confirmar no cambia la captura.', 'Without a node, pause and resume are not available yet. Confirming does not change capture.', 'small')
     : v4P(paused
@@ -369,7 +370,7 @@ function v4Controls() {
     <div id="operation-status" class="status"></div>
     <section class="card"><h2>${v4t('Fuente y captura', 'Source and capture')}</h2>
       ${v4P('Fuente: sitio del Consejo Nacional Electoral (CNE) · Honduras. Sin URL privada ni credenciales.', 'Source: National Electoral Council (CNE) website · Honduras. No private URL or credentials.')}
-      ${v4CaptureBlock()}
+      ${v4CaptureBlock('capture-controls')}
       <details><summary>${v4t('Ritmo, reglas y recursos', 'Query rate, rules and resources')}</summary>
         ${v4P('Sin un nodo no hay una medición del ritmo. Las reglas experimentales no son una conclusión.', 'Without a node there is no rate measurement. Experimental rules are not a conclusion.')}
         ${v4Help('rate')}
@@ -378,8 +379,9 @@ function v4Controls() {
     </section>
     ${admin ? `<section class="card"><h2>${v4t('Administración', 'Administration')}</h2>
       <div class="option"><h3>${v4t('Cambiar claves', 'Replace keys')}</h3>
-        ${v4P('No recogemos ni mostramos claves. La regeneración real sigue el flujo del repositorio, no este botón.', 'We do not collect or display keys. Real regeneration follows the repository workflow, not this button.')}
-        ${v4Btn('Revisar cambio de claves', 'Review key replacement', 'keys')}</div>
+        ${v4P('No recogemos ni mostramos claves. Regenerar claves abre el workflow del repositorio. La clave nueva sale una sola vez en el artefacto, no en esta página.', 'We do not collect or display keys. Regenerar claves opens the repository workflow. The new key appears once in the artifact, not on this page.')}
+        <p><a id="btn-regen" href="https://github.com/VectisDev/Vigil/actions/workflows/regenerate-seeds.yml">Regenerar claves</a></p>
+      </div>
     </section>
     <section class="card critical"><h2 class="red">${v4t('Destrucción local', 'Local destruction')}</h2>
       ${v4P('Solo este equipo. No modifica evidencia publicada ni sellos existentes. No elimina copias externas ni garantiza un borrado forense.', 'This computer only. Published evidence and existing stamps are not changed. External copies are not deleted and forensic erasure is not guaranteed.')}

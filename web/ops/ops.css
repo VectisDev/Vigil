@@ -169,7 +169,12 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
 .mode-toggle button.active{background:var(--panel2);color:var(--fg);font-weight:600}
 
 /* ── LAYOUT ── */
-#admin-shell{display:none;flex-direction:column;height:100vh;overflow:hidden}
+/* El alto fijo con overflow hidden recortaba Evidencia: el documento
+   solo avanzaba un poco y el resto quedaba debajo del pliegue, sin barra.
+   La página crece con el contenido y es ella la que se desplaza.
+   English: a fixed height plus overflow hidden clipped Evidence. The page
+   grows with its content and that is what scrolls. */
+#admin-shell{display:none;flex-direction:column;min-height:100vh;height:auto;overflow:visible}
 #admin-content{display:flex;flex:1;overflow:hidden}
 #sidebar{width:var(--sidebar);flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);
   overflow:hidden;padding:0 0 58px;display:flex;flex-direction:column;position:relative}
@@ -1278,7 +1283,7 @@ html[data-ops-tab="avanzado"] body.election-mode #main-area > [data-tab="avanzad
  * pasa a una sola columna con las pestañas arriba.
  * English: the sidebar is gone, so its column goes too. */
 #admin-content{display:block;flex:1;overflow:visible}
-#main-area{display:block;max-width:1200px;margin:0 auto;width:100%}
+#main-area{display:block;max-width:1200px;margin:0 auto;width:100%;overflow:visible;height:auto}
 
 /* La pantalla de Inicio respira: es la unica que casi todo el mundo mira. */
 #s0{max-width:1100px}

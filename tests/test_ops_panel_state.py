@@ -167,10 +167,15 @@ def browser():
         try:
             launched = _launch_browser(pw)
         except Exception as exc:
-            pytest.fail(
-                "el navegador no arrancó; en CI hay que instalarlo "
-                f"(python -m playwright install --with-deps chromium): {exc}"
-            )
+            # Sin el binario, los jobs normales omiten. El job que acaba de
+            # instalar Chromium pone VIGIL_REQUIRE_BROWSER=1: alli la ausencia
+            # es un fallo de la instalacion, no una omision.
+            if os.environ.get("VIGIL_REQUIRE_BROWSER") == "1":
+                raise AssertionError(
+                    "VIGIL_REQUIRE_BROWSER=1 pero el navegador no arranca, asi que "
+                    f"la instalacion de Chromium fallo en este job: {exc}"
+                ) from exc
+            pytest.skip(f"no hay navegador utilizable: {exc}")
         try:
             yield launched
         finally:
@@ -179,11 +184,14 @@ def browser():
 
 @pytest.fixture
 def page(browser, site):
-    p = browser.new_page()
+    # Contexto nuevo por prueba: sessionStorage de un rol no se filtra a la
+    # siguiente, asi que el orden de la suite no cambia el resultado.
+    context = browser.new_context()
+    p = context.new_page()
     p.goto(f"{site}/ops/", wait_until="domcontentloaded")
     p.wait_for_function("typeof window.detectMode === 'function'", timeout=10000)
     yield p
-    p.close()
+    context.close()
 
 
 # ── detectMode() ─────────────────────────────────────────────────────────────
@@ -318,7 +326,7 @@ def test_the_rendered_headline_comes_from_the_state_function(page):
     places used to decide this, and they contradicted each other on screen.
     """
     page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
-    page.wait_for_timeout(500)
+    page.wait_for_function("() => document.getElementById('hero-headline')")
     s = _state(page, pipeline={"running": True, "lastMinutes": 2, "source": "cne.hn"})
     page.evaluate("() => renderOverallState()")
     shown = page.eval_on_selector("#hero-headline", "e => e.textContent")
@@ -338,7 +346,7 @@ def test_every_section_belongs_to_exactly_one_tab(page):
 
 def test_switching_tabs_shows_one_tab_and_hides_the_rest(page):
     page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
-    page.wait_for_timeout(400)
+    page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'inicio'")
     for tab in ("inicio", "evidencia", "red", "avanzado"):
         page.evaluate("t => goTab(t)", tab)
         shown = page.evaluate(
@@ -413,14 +421,82 @@ def test_no_visible_element_uses_a_forbidden_colour(page):
     page.wait_for_function("() => typeof goTab === 'function'")
     for tab in ("inicio", "evidencia", "red", "avanzado"):
         page.evaluate("t => goTab(t)", tab)
-        page.wait_for_timeout(400)
+        page.wait_for_function(
+            "t => document.documentElement.getAttribute('data-ops-tab') === t",
+            arg=tab,
+        )
         offenders = page.evaluate(_PALETTE_PROBE_JS)
         assert offenders == [], f"{tab}: colores fuera de paleta: {offenders}"
 
 
 def _open_shell(page):
     page.evaluate("() => { try { showAdminShell(); } catch (e) {} }")
-    page.wait_for_selector("#capture-button", timeout=10000)
+    page.wait_for_function("() => typeof goTab === 'function'")
+    page.evaluate("() => goTab('inicio')")
+    page.wait_for_selector("#capture-button", state="visible", timeout=10000)
+
+
+# El ultimo elemento de la pestaña visible tiene que poder quedar dentro de
+# la ventana. Si un contenedor de 100vh con overflow hidden lo recorta, el
+# documento no llega y el borde inferior sigue por debajo.
+_BOTTOM_JS = """() => {
+    const visible = document.querySelector('#main-area > [data-tab]:not([hidden])');
+    const last = visible && (visible.lastElementChild || visible);
+    if (!last) return {ok: false, reason: 'sin pestaña'};
+    const scroller = document.scrollingElement;
+    const max = scroller.scrollHeight - scroller.clientHeight;
+    scroller.scrollTop = scroller.scrollHeight;
+    const bottom = last.getBoundingClientRect().bottom;
+    const ok = bottom <= window.innerHeight + 2 && (max <= 1 || scroller.scrollTop > 0);
+    return {ok, bottom, inner: window.innerHeight, max, moved: scroller.scrollTop};
+}"""
+
+
+def _bottom_is_reachable(page) -> None:
+    reached = page.evaluate(_BOTTOM_JS)
+    assert reached["ok"], f"no se llega al final de la pestaña: {reached}"
+
+
+@pytest.mark.parametrize("width,height", [(1280, 800), (390, 844)])
+@pytest.mark.parametrize("tab", ["inicio", "evidencia", "red", "avanzado"])
+def test_every_tab_scrolls_to_its_bottom(page, width, height, tab):
+    page.set_viewport_size({"width": width, "height": height})
+    _open_shell(page)
+    page.evaluate("t => goTab(t)", tab)
+    page.wait_for_function(
+        "t => document.documentElement.getAttribute('data-ops-tab') === t",
+        arg=tab,
+    )
+    _bottom_is_reachable(page)
+
+
+def test_the_page_still_scrolls_after_each_dialog_closes(page):
+    """Abrir y cerrar una hoja no puede dejar el documento bloqueado."""
+    for width, height in ((1280, 800), (390, 844)):
+        page.set_viewport_size({"width": width, "height": height})
+        _open_shell(page)
+        page.click("#capture-button")
+        page.wait_for_selector("#sheet-cancel")
+        page.click("#sheet-cancel")
+        page.wait_for_function("() => !document.getElementById('sheet').open")
+        page.evaluate("() => goTab('evidencia')")
+        page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'evidencia'")
+        _bottom_is_reachable(page)
+        page.click("#emergency-button")
+        page.wait_for_selector("#sheet-cancel")
+        page.keyboard.press("Escape")
+        page.wait_for_function("() => !document.getElementById('sheet').open")
+        _bottom_is_reachable(page)
+        page.evaluate("() => sessionStorage.setItem('centinel_role', 'admin')")
+        page.evaluate("() => goTab('avanzado')")
+        page.wait_for_selector("#destroy-open")
+        page.click("#destroy-open")
+        page.wait_for_selector("#sheet-cancel")
+        page.click("#sheet-cancel")
+        page.wait_for_function("() => !document.getElementById('sheet').open")
+        page.evaluate("() => goTab('evidencia')")
+        page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'evidencia'")
+        _bottom_is_reachable(page)
 
 
 def test_pause_cancel_returns_focus_and_confirm_does_not_fake_a_stop(page):
