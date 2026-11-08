@@ -15,7 +15,7 @@ maquinaria que descifra el PAT publicado —`decryptWriterPat`,
 `_deriveWrapKey`, `_aesgcmDecrypt` y `window.VigilToken`— y retirarla toca los
 mismos archivos que el rediseño del panel, así que no cabe en este cambio.
 Mientras siga ahí, lo que sí se puede imponer es que **no se extienda**:
-`PAT_READERS` enumera los cinco archivos exactos que la tienen hoy, y la
+`PAT_READERS` enumera los archivos exactos que la tienen hoy, y la
 prueba falla en los dos sentidos. Si un archivo nuevo aprende a descifrar el
 token, falla. Si uno de los cinco deja de tenerla y nadie quita su línea de la
 lista, falla también.
@@ -65,12 +65,12 @@ HARDCODED_AUTH = re.compile(
     re.IGNORECASE,
 )
 
-# Los cinco archivos que hoy saben descifrar el PAT publicado. La lista solo
-# puede encoger: retirar la maquinaria de uno exige quitarlo de aquí.
-# English: the five files that today know how to decrypt the published PAT.
+# Archivos que todavía saben descifrar el PAT publicado. La lista solo puede
+# encoger: el panel v4 ya no lo hace en index.html, así que esa entrada salió.
+# English: files that still know how to decrypt the published PAT. The list
+# can only shrink: the v4 panel no longer does it in index.html.
 PAT_READERS = {
     "web/index.html",
-    "web/ops/index.html",
     "web/ops/js/ops-core.js",
     "web/ops/js/ops-monitor.js",
     "web/ops/js/ops-panel.js",
