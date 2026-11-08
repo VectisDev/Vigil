@@ -116,11 +116,36 @@ def site() -> str:
 
 @pytest.fixture(scope="module")
 def browser():
+    """El navegador, u omitir si no hay uno utilizable.
+
+    `playwright` esta en requirements.txt, asi que el import existe en CI; el
+    BINARIO del navegador no, porque CI no corre `playwright install`. Sin esta
+    guarda el arranque lanzaria una excepcion y el job de pruebas saldria en
+    ROJO por una dependencia ausente, no por un fallo del codigo.
+
+    Se caza solo el fallo de arranque y no lo que ocurra dentro de la prueba:
+    una guarda mas ancha convertiria un fallo real en una omision, que es la
+    peor de las dos salidas porque se ve igual que un verde.
+
+    Consecuencia honesta: estas pruebas corren en local y se OMITEN en CI.
+    Hacerlas valer alli pide un job propio que instale el navegador una vez.
+
+    English: playwright is in requirements.txt so the import exists in CI, but
+    the browser binary does not, because CI does not run `playwright install`.
+    Without this guard the launch would raise and the test job would go RED for
+    a missing dependency rather than a code failure. Only the launch is caught,
+    never what happens inside a test: a wider guard would turn a real failure
+    into a skip, which is the worse of the two because it looks like a pass.
+    These therefore run locally and SKIP in CI.
+    """
+    options = {"args": ["--no-sandbox"]}
+    if CHROMIUM.exists():
+        options["executable_path"] = str(CHROMIUM)
     with sync_playwright() as play:
-        options = {"args": ["--no-sandbox"]}
-        if CHROMIUM.exists():
-            options["executable_path"] = str(CHROMIUM)
-        instance = play.chromium.launch(**options)
+        try:
+            instance = play.chromium.launch(**options)
+        except Exception as exc:  # pragma: no cover - entorno sin navegador
+            pytest.skip(f"no hay navegador utilizable: {exc}")
         try:
             yield instance
         finally:
