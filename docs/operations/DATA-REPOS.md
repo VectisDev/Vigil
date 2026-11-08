@@ -151,5 +151,5 @@ centinel-data/
 ## Referencias / References
 
 - [SETUP-GUIDE.md](SETUP-GUIDE.md) — Cómo activar centinel-data
-- [IPFS-RESILIENCE.md](IPFS-RESILIENCE.md) — Capa IPFS para resiliencia adicional
-- [ARCHITECTURE.md](ARCHITECTURE.md) — Arquitectura técnica completa
+- [IPFS-RESILIENCE.md](../architecture/IPFS-RESILIENCE.md) — Capa IPFS para resiliencia adicional
+- [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) — Arquitectura técnica completa

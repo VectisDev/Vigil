@@ -131,6 +131,6 @@ A partir del próximo push a centinel-data, el workflow `ipfs-pin.yml` comenzar�
 
 ## Referencias / References
 
-- [DATA-REPOS.md](DATA-REPOS.md) — Arquitectura de separación código/datos
+- [DATA-REPOS.md](../operations/DATA-REPOS.md) — Arquitectura de separación código/datos
 - [RESILIENCE.md](RESILIENCE.md) — Mecanismos de resiliencia operativa del motor
-- [SETUP-GUIDE.md](SETUP-GUIDE.md) — Guía de configuración del sistema
+- [SETUP-GUIDE.md](../operations/SETUP-GUIDE.md) — Guía de configuración del sistema

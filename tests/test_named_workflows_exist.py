@@ -18,7 +18,13 @@ ABSENT = re.compile(
 def test_every_workflow_named_in_docs_exists() -> None:
     present = {path.name for path in WORKFLOWS.glob("*.yml")}
     problems: list[str] = []
-    files = [ROOT / "README.md", ROOT / ".github" / "SECURITY.md"]
+    files = [
+        ROOT / "README.md",
+        ROOT / "README.en.md",
+        ROOT / "SECURITY.md",
+        ROOT / "CONTRIBUTING.md",
+        ROOT / "CODE_OF_CONDUCT.md",
+    ]
     for folder in (ROOT / "docs", ROOT / "web"):
         files.extend(path for path in folder.rglob("*.md"))
     for path in files:

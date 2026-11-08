@@ -1,0 +1,50 @@
+name: Discrepancia de datos / Data mismatch
+description: >-
+  Una cifra publicada no coincide con la copia guardada.
+  A published figure does not match the stored copy.
+title: "Datos: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe la diferencia. No hace falta explicar la causa ni señalar a nadie.
+        Describe the difference. You do not need to explain the cause or name anyone.
+  - type: input
+    id: url
+    attributes:
+      label: Dirección del portal / Portal address
+      description: La página pública donde viste la cifra. / The public page where you saw the figure.
+      placeholder: https://
+    validations:
+      required: true
+  - type: input
+    id: cuando
+    attributes:
+      label: Cuándo / When
+      description: Día y hora, con la zona si la sabes. / Day and time, with the timezone if you know it.
+      placeholder: "2025-12-04 10:00 America/Tegucigalpa"
+    validations:
+      required: true
+  - type: textarea
+    id: portal
+    attributes:
+      label: Qué mostraba el portal / What the portal showed
+    validations:
+      required: true
+  - type: textarea
+    id: copia
+    attributes:
+      label: Qué muestra la copia de VIGIL / What the VIGIL copy shows
+      description: >-
+        Archivo, huella o enlace de este repositorio.
+        A file, a fingerprint, or a link in this repository.
+    validations:
+      required: true
+  - type: textarea
+    id: notas
+    attributes:
+      label: Notas / Notes
+      description: Nada de datos personales. / No personal data.
+    validations:
+      required: false

@@ -30,7 +30,7 @@ El panel incluye datos de simulación por defecto. Los datos reales se publican 
 
 El wizard abre un Issue en tu repositorio con un link directo. El único paso:
 
-1. Ve a **[Settings → Pages](../../settings/pages)** de tu repositorio
+1. Ve a **Settings → Pages** de tu repositorio
 2. En **"Source"**, selecciona: **GitHub Actions**
 3. Clic en **Save**
 
@@ -89,4 +89,4 @@ Los datos se regeneran en cada push: calibración, series temporales, snapshots.
 
 - [DATA-REPOS.md](DATA-REPOS.md) — Separación código/datos
 - [SETUP-GUIDE.md](SETUP-GUIDE.md) — Setup wizard completo
-- [RESILIENCE.md](RESILIENCE.md) — Resiliencia y federación
+- [RESILIENCE.md](../architecture/RESILIENCE.md) — Resiliencia y federación

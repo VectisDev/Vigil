@@ -1,9 +1,9 @@
 # Política de seguridad | Security policy
 
-La política que aplica es [`.github/SECURITY.md`](../../.github/SECURITY.md).
+La política que aplica es [`SECURITY.md`](../../SECURITY.md).
 Si este archivo dice otra cosa, gana ese.
 
-The policy that applies is [`.github/SECURITY.md`](../../.github/SECURITY.md).
+The policy that applies is [`SECURITY.md`](../../SECURITY.md).
 If this file disagrees, that file wins.
 
 ## Cómo reportar | How to report

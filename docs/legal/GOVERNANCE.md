@@ -24,7 +24,7 @@ El mantenedor principal es responsable de:
 
 - Decisiones de arquitectura técnica del núcleo criptográfico y estadístico
 - Aprobación de contribuciones que afecten la cadena de hashes o las reglas estadísticas
-- La divulgación de vulnerabilidades, por los dos canales de `.github/SECURITY.md`
+- La divulgación de vulnerabilidades, por los dos canales de `SECURITY.md`
 
 **Criterio de selección:** Competencia técnica demostrable en criptografía aplicada,
 estadística electoral y sistemas distribuidos. Sin afiliación a partido político o
@@ -86,7 +86,7 @@ Si el mantenedor identifica un conflicto de intereses:
 
 #### Para reporte de seguridad
 
-Ver `.github/SECURITY.md`. No publicar un fallo de seguridad en un issue. El contacto es vectisdev26@proton.me o el aviso privado de GitHub.
+Ver `SECURITY.md`. No publicar un fallo de seguridad en un issue. El contacto es vectisdev26@proton.me o el aviso privado de GitHub.
 
 ---
 
@@ -189,4 +189,4 @@ capabilities without transparency.
 ---
 
 *Last revision: 2025-05-17*
-*See also: [THEORY_OF_CHANGE.md](THEORY_OF_CHANGE.md) | CODE_OF_CONDUCT.md | SECURITY.md*
+*See also: [THEORY_OF_CHANGE.md](../architecture/THEORY_OF_CHANGE.md) | [CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md) | [SECURITY.md](../../SECURITY.md)*

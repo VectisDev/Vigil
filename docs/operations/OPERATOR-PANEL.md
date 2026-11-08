@@ -336,8 +336,8 @@ watch 'poetry run vigil panel json | jq .threat_score'
 
 ## Referencias Cruzadas
 
-- **Threat Score Logic:** [KILL-SWITCH-CONFIG.md](KILL-SWITCH-CONFIG.md#detección-de-amenaza)
-- **Protocolo ARGOS — Detalle:** [ARGOS-PROTOCOL-ES.md](ARGOS-PROTOCOL-ES.md)
+- **Threat Score Logic:** [KILL-SWITCH-CONFIG.md](../security/KILL-SWITCH-CONFIG.md#detección-de-amenaza)
+- **Protocolo ARGOS — Detalle:** [ARGOS-PROTOCOL-ES.md](../architecture/ARGOS-PROTOCOL-ES.md)
 - **Qué Hacer en Cada Case:** [OPERATOR-RUNBOOKS.md](OPERATOR-RUNBOOKS.md)
 
 ---

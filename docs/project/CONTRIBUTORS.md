@@ -20,7 +20,7 @@ Found a bug? Open an issue on GitHub with:
 - Expected vs. actual behavior
 - Platform/environment info
 
-**Security issues:** do not open a public issue. Use GitHub private vulnerability reporting or vectisdev26@proton.me. See [`.github/SECURITY.md`](../../.github/SECURITY.md).
+**Security issues:** do not open a public issue. Use GitHub private vulnerability reporting or vectisdev26@proton.me. See [`SECURITY.md`](../../SECURITY.md).
 
 ### 2. Submit Code
 

@@ -5,112 +5,148 @@
   </picture>
 </p>
 
+<p align="center"><strong>Español</strong> · <a href="README.en.md">English</a></p>
+
 <h1 align="center">VIGIL</h1>
 
-<p align="center">
-  <strong>Integridad electoral verificable</strong><br>
-  <em>Verifiable electoral integrity</em>
-</p>
+<p align="center"><strong>Integridad electoral verificable</strong></p>
 
 <p align="center">
-  <strong>Verifiable monitoring of official public-information portals</strong><br>
-  <em>Monitoreo verificable de portales oficiales de información pública</em>
+  <a href="https://github.com/VectisDev/Vigil/actions/workflows/ci.yml"><img alt="CI en la rama main" src="https://img.shields.io/badge/CI-main-D7262E?style=flat&labelColor=0A0A0A"></a>
+  <a href="LICENSE"><img alt="Licencia AGPL-3.0" src="https://img.shields.io/badge/licencia-AGPL--3.0-0A0A0A?style=flat&labelColor=D7262E"></a>
+  <a href="https://zenodo.org/records/20598892"><img alt="Datos 10.5281/zenodo.20598892" src="https://img.shields.io/badge/datos-10.5281%2Fzenodo.20598892-D7262E?style=flat&labelColor=0A0A0A"></a>
+  <a href="https://vectisdev.github.io/Vigil/"><img alt="Página del proyecto" src="https://img.shields.io/badge/p%C3%A1gina-en_l%C3%ADnea-0A0A0A?style=flat&labelColor=D7262E"></a>
 </p>
+
+## ¿Qué es VIGIL?
+
+VIGIL mira los portales públicos del Consejo Nacional Electoral de Honduras. Guarda una copia de cada publicación y calcula una huella, un hash, de esa copia. Cualquiera puede comprobar después si la copia sigue igual, sin cuenta en el portal y sin pedirnos permiso.
+
+El caso de referencia es el JSON público de la elección general de 2025. La misma forma de captura sirve para otra autoridad que publique un archivo parecido.
 
 <p align="center">
-  <a href="https://github.com/VectisDev/Vigil/actions/workflows/ci.yml"><img src="https://github.com/VectisDev/Vigil/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
-  <a href="https://github.com/VectisDev/Vigil/actions/workflows/codeql.yml"><img src="https://github.com/VectisDev/Vigil/actions/workflows/codeql.yml/badge.svg?branch=main" alt="CodeQL"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-2b6cb0.svg" alt="License: AGPL-3.0"></a>
-  <a href="pyproject.toml"><img src="https://img.shields.io/badge/python-3.11%2B-2b6cb0.svg" alt="Python 3.11+"></a>
-  <a href="https://zenodo.org/records/20598892"><img src="https://img.shields.io/badge/dataset-10.5281%2Fzenodo.20598892-2f855a.svg" alt="Dataset DOI"></a>
-  <a href="CITATION.cff"><img src="https://img.shields.io/badge/cite-CITATION.cff-2b6cb0.svg" alt="Citation"></a>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/panel-oscuro.png">
+    <img alt="Panel de VIGIL de día. Sin un nodo encendido, la página lo dice." src="docs/images/panel-claro.png" width="100%">
+  </picture>
 </p>
 
-<p align="center">
-  <a href="docs/THREAT_MODEL.md">Threat model</a> ·
-  <a href="docs/ORIGIN.md">Origin</a> ·
-  <a href="https://github.com/VectisDev/Vigil/wiki">Wiki</a> ·
-  <a href="CITATION.cff">Cite</a>
-</p>
+<p align="center"><em>El panel, de día. En modo noche se ve la misma pantalla en oscuro. Si no hay un nodo encendido, la página lo dice y no inventa una captura.</em></p>
 
----
+## Qué hace
 
-VIGIL watches an official portal that publishes machine-readable results. It stores what the portal published, links those captures when a capture pipeline is actually running, and records when the portal stops answering. A third party can check the stored bytes without asking the project, and without an account on the portal.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/icono-vigila-oscuro.svg">
+        <img alt="" src="docs/images/icono-vigila.svg" width="28" height="28">
+      </picture>
+      <br><strong>Vigila</strong>
+      <br>Mira el portal público y guarda una copia de lo que publicó.
+    </td>
+    <td width="50%" valign="top">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/icono-sella-oscuro.svg">
+        <img alt="" src="docs/images/icono-sella.svg" width="28" height="28">
+      </picture>
+      <br><strong>Sella</strong>
+      <br>Calcula una huella de esa copia. Si cambia después, la huella ya no coincide.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/icono-verifica-oscuro.svg">
+        <img alt="" src="docs/images/icono-verifica.svg" width="28" height="28">
+      </picture>
+      <br><strong>Verifica</strong>
+      <br>Cualquiera repite la comprobación en su máquina, sin cuenta y sin red.
+    </td>
+    <td width="50%" valign="top">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/icono-publica-oscuro.svg">
+        <img alt="" src="docs/images/icono-publica.svg" width="28" height="28">
+      </picture>
+      <br><strong>Publica</strong>
+      <br>La página y este repositorio muestran la copia y el estado.
+    </td>
+  </tr>
+</table>
 
-The reference case is the public JSON of Honduras' National Electoral Council (CNE) for the 2025 general election. The same capture shape applies to any authority that publishes a comparable feed.
+## Tres maneras de empezar
 
-Authorship is the pseudonym **VectisDev**. No university or party is claimed. The applicant, if a grant is filed, is that individual. The legal name is given only to the funder at contracting. No fiscal sponsor is needed. One may be considered later. None is in place.
+### 1. Ver la página
 
-## What a reviewer can check offline
+Abre [vectisdev.github.io/Vigil](https://vectisdev.github.io/Vigil/). No hace falta instalar nada.
 
-The bundled sample is 64 official JSON files in `tests/fixtures/hnd_2025/`. Two different checks, both without network:
+### 2. Verificar sin conexión
+
+Hace falta Git, Python 3.11 o superior, y `make`. No hace falta instalar el proyecto ni tener red después de clonar.
 
 ```bash
 git clone https://github.com/VectisDev/Vigil.git
 cd Vigil
-
-# 1. Hash chain. These files have no previous_hash. The command must exit 1
-#    and report 63 orphans. "Chain intact" here would be a false result.
-python3 verify/verify_chain.py tests/fixtures/hnd_2025/
-
-# 2. Merkle root of the same bytes. Must exit 0 and match the committed root.
-#    That root is what the OpenTimestamps proof covers. It shows the files
-#    existed in this form at attestation time. It is not a live chain.
-python3 scripts/replay_pipeline.py \
-  --dataset tests/fixtures/hnd_2025 \
-  --skip-detectors \
-  --out /tmp/vigil-replay
+# La muestra de 2025 no está enlazada: el primer paso avisa y sale con 1.
+# El segundo comprueba la huella guardada. Los dos van juntos.
+make replay-offline
 ```
 
-`make replay-offline` runs both and checks the expected outcomes. Python 3.11+ and the standard library are enough for these two commands. `PYTHONPATH` does not need to be set. The same steps, with the output to expect, are in [`docs/VERIFY.md`](docs/VERIFY.md). The 2025 numbers are in [`docs/evidence/HN2025.md`](docs/evidence/HN2025.md).
+Lo que debes ver, y lo que eso no demuestra, está en [docs/VERIFY.md](docs/VERIFY.md).
 
-A fuller statistical pass needs the project dependencies (`pip install -r requirements.txt`) and `make reproduce-2025-audit`. That pass is not required to check custody of the bytes.
+### 3. Correrlo con Docker
 
-## Threat model, in short
+La misma comprobación, dentro de una imagen. No llama al portal.
 
-The thing being watched is the published feed, not a ballot box. The useful failures are: the stored capture no longer matches what was stored, or the portal stops answering during a window when it had been answering. VIGIL records those events. It does not decide why they happened and it does not name a responsible party.
+```bash
+docker build -f Dockerfile.demo -t vigil-demo .
+docker run --rm vigil-demo
+```
 
-| Threat | What the software does |
+`docker-compose.yml` es para quien ya opera un nodo y tiene claves. No es el primer paso.
+
+## Verificable por cualquiera. Sin pedirnos permiso.
+
+La comprobación usa los archivos de este repositorio y Python. No hay una cuenta que pedir, ni un permiso que concedamos. El detalle, con el resultado que corresponde a la muestra de 2025, está en [docs/VERIFY.md](docs/VERIFY.md).
+
+## Documentación
+
+| Quiero… | Lee… |
 |---|---|
-| Silent change after a capture | SHA-256 link to the previous capture, when the pipeline is running and writing those links |
-| Dispute about which bytes were stored | Merkle root, plus an OpenTimestamps proof when one was actually created |
-| Outage of the official portal | A failed fetch is recorded as unreachable, with the attempt timestamp |
-| A report that invents a healthy source | `reachable` stays unknown until a fetch is recorded. Unprobed endpoints stay `unknown`, not offline and not online |
-| Load on the authority | Hard ceiling of 480 requests/hour per host |
+| Ver la página | [vectisdev.github.io/Vigil](https://vectisdev.github.io/Vigil/) |
+| Comprobar la muestra | [docs/VERIFY.md](docs/VERIFY.md) |
+| Saber qué vigila y qué no | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) |
+| Instalarlo y operarlo | [docs/guides/QUICKSTART.md](docs/guides/QUICKSTART.md) |
+| Leer la evidencia de 2025 | [docs/evidence/HN2025.md](docs/evidence/HN2025.md) |
+| Encontrar el resto | [docs/README.md](docs/README.md) |
 
-Detail: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
-
-## Honest limitations
-
-- **The 2025 sample is retroactive.** The JSON files are public captures from 3–10 December 2025. The git history of this repository starts later. Nothing in the sample is a chain that was linked while the count was open.
-- **`verify_chain.py` fails on that sample, on purpose.** 63 of the 64 files have no `previous_hash`. They are raw portal JSON. The banner for that directory is "custody not proven", and the process exits 1.
-- **The Merkle root is a commitment to bytes, not continuous custody.** `tests/fixtures/hnd_2025/MERKLE_ROOT_HN2025.ots` covers the root `f17dbfe188d2f1a1b31248a343ae3397984ef2ec6550bd1bcded03d31d2a7780`. It does not say when the authority published each file.
-- **The 10-per-minute figure is a heuristic in code.** The 2025 sample was not a pre-registered study, and that heuristic is not a measured human capacity. The June 2026 hash in `docs/research/THRESHOLD_PREREGISTRATION.md` no longer matches `command_center/rules.yaml`. Historical series other than 2025 are not in the tree.
-- **The unit of data is an aggregate.** Departmental and national JSON cannot see a single polling station. Power is low.
-- **No academic institution has signed a review.** Independent review is sought. It is not in progress with a named university.
-- **A panel that has not fetched the portal must say so.** `web/data/snapshot.json` in this tree is a replay of the sample. `cne_status.reachable` is null. Endpoint rows are `unknown`.
-
-## Development
-
-Public authorship and responsibility are VectisDev's. Parts of the code and the documentation were drafted with generative language models and then reviewed, tested, and edited in this repository. Model vendors are not authors and are not named here. The behavior a reviewer can check is the behavior of the commands above and of the test suite, not the history of a draft.
-
-## Layout
+## Compatibilidad
 
 | | |
 |---|---|
-| Offline chain check | [`verify/verify_chain.py`](verify/verify_chain.py) |
-| Offline Merkle replay | [`scripts/replay_pipeline.py`](scripts/replay_pipeline.py) |
-| Sample data | [`tests/fixtures/hnd_2025/`](tests/fixtures/hnd_2025/) |
-| Threat model | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) |
-| Origin | [`docs/ORIGIN.md`](docs/ORIGIN.md) |
-| Citation | [`CITATION.cff`](CITATION.cff) |
+| Sistema | Linux, macOS y Windows |
+| Python | 3.11 y 3.12, que es lo que prueba la integración continua |
+| Docker | La imagen de demostración usa Python 3.11 |
+| Página | Un navegador actual |
 
-## Security
+## Límites honestos
 
-Report vulnerabilities privately: [Security → Report a vulnerability](https://github.com/VectisDev/Vigil/security/advisories/new). See [SECURITY.md](.github/SECURITY.md).
+- La muestra de 2025 es posterior al conteo. No es una cadena tomada mientras la elección estaba abierta. El detalle está en [docs/evidence/HN2025.md](docs/evidence/HN2025.md).
+- Comprobar esos archivos demuestra qué bytes se guardaron. No dice por qué cambió un número, ni qué pasó en una mesa. El alcance está en [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
+- Si el panel no ha consultado el portal, lo dice. No presenta una fuente como si estuviera bien. Véase [docs/VERIFY.md](docs/VERIFY.md).
 
-## License
+## Contribuir · Seguridad · Conducta
 
-[GNU AGPL-3.0](LICENSE).
+- [Contribuir](CONTRIBUTING.md)
+- [Seguridad](SECURITY.md). Un fallo de seguridad no va en un issue público.
+- [Código de conducta](CODE_OF_CONDUCT.md)
 
-The project was formerly called CENTINEL. Some modules and documents still use that name.
+## Licencia y cita
+
+[GNU AGPL-3.0](LICENSE). Si usas este trabajo, cita con [CITATION.cff](CITATION.cff).
+
+El identificador [10.5281/zenodo.20598892](https://zenodo.org/records/20598892) es del conjunto de datos de Honduras 2025, no de este programa.
+
+La autoría pública es el seudónimo VectisDev. No hay una universidad ni un partido detrás de este repositorio.
+
+El proyecto se llamó antes CENTINEL. Algunos módulos y documentos conservan ese nombre.

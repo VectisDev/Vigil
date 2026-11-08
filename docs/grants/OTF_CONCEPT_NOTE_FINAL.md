@@ -120,7 +120,7 @@ The form allows a pseudonym. That is the public identity (`CITATION.cff`). The l
 
 vectisdev26@proton.me
 
-That is the address in `.github/SECURITY.md`, `CITATION.cff`, and `pyproject.toml`.
+That is the address in `SECURITY.md`, `CITATION.cff`, and `pyproject.toml`.
 
 ## Why are you, and your team members, the right people to work on this project?
 

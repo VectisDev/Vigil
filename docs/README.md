@@ -1,63 +1,58 @@
-# VIGIL — Documentation Index
+# Documentación
 
-**Version:** 2.0 | **Status:** Active | **License:** AGPL-3.0
+VIGIL guarda lo que un portal oficial publicó y deja que cualquiera compruebe si esa copia cambió.
 
-> Trustless electoral integrity verification infrastructure for Latin America.  
-> Infraestructura de verificación de integridad electoral sin confianza para América Latina.
+El lector empieza por la tarea. El mapa de abajo es el resto del árbol.
 
----
+## Quiero…
 
-## Quick navigation
+| Quiero… | Lee… |
+|---|---|
+| Ver la página | [vectisdev.github.io/Vigil](https://vectisdev.github.io/Vigil/) |
+| Comprobar la muestra sin red | [Cómo verificar](VERIFY.md) |
+| Saber qué vigila y qué no | [Modelo de amenazas](THREAT_MODEL.md) |
+| Instalarlo y operarlo | [Guía rápida](guides/QUICKSTART.md) |
+| Leer la evidencia de 2025 | [Honduras 2025](evidence/HN2025.md) |
+| Entender el diseño | [Arquitectura](architecture/ARCHITECTURE.md) |
+| Reportar un fallo de seguridad | [Seguridad](../SECURITY.md) |
+| Contribuir | [Contribuir](../CONTRIBUTING.md) |
+| Citar el trabajo | [CITATION.cff](../CITATION.cff) |
 
-| Section | Contents |
-|---------|----------|
-| [architecture/](architecture/) | System design, theorems, federation, defense layers |
-| [security/](security/) | Cryptography, threat model, incident response, anchoring |
-| [operations/](operations/) | Deployment, configuration, runbooks, CI/CD |
-| [research/](research/) | Methodology, detection rules, forensic analysis |
-| [legal/](legal/) | Governance, compliance, operational boundaries |
-| [api/](api/) | REST API reference, operator manual |
-| [guides/](guides/) | Quick start, contributing, academic access |
-| [grants/](grants/) | Grant applications, roadmap, institutional readiness |
-| [whitepaper/](whitepaper/) | Academic whitepaper (LaTeX + PDF) |
+## Mapa
 
----
+| Carpeta | Qué hay |
+|---|---|
+| [architecture](architecture/README.md) | Diseño del sistema |
+| [security](security/README.md) | Criptografía, anclaje e incidentes |
+| [operations](operations/README.md) | Despliegue, configuración y runbooks |
+| [research](research/README.md) | Metodología y reglas |
+| [legal](legal/README.md) | Gobernanza y límites |
+| [api](api/README.md) | La API |
+| [guides](guides/README.md) | Primeros pasos y acceso académico |
+| [grants](grants/README.md) | Notas para financiación |
+| [evidence](evidence/HN2025.md) | La muestra de Honduras 2025 |
+| [brand](brand/brand.md) | Marca: blanco, rojo y negro |
+| [mathematics](mathematics/README.md) | Las pruebas estadísticas, una por una |
+| [whitepaper](whitepaper/README.md) | El documento largo |
+| [wiki](wiki/Home.md) | Las páginas que alimentan la wiki |
+| [review-for-academic](review-for-academic/README.md) | Índice para una lectura académica |
 
-## For external reviewers
-*OTF · Carter Center · EU EOM · NDI · OAS · Gitcoin · Open Society*
+El origen del proyecto está en [ORIGIN.md](ORIGIN.md).
 
-| Document | Description |
-|----------|-------------|
-| [architecture/THEORY_OF_CHANGE.md](architecture/THEORY_OF_CHANGE.md) | Why this system reduces fraud risk |
-| [research/METHODOLOGY.md](research/METHODOLOGY.md) | 25+ statistical detectors, technical description |
-| [legal/GOVERNANCE.md](legal/GOVERNANCE.md) | Decision structure, AGPL license, sustainability |
-| [architecture/AUTONOMOUS-OPERATIONS.md](architecture/AUTONOMOUS-OPERATIONS.md) | What runs without humans, and why |
-| [grants/BUDGET_NARRATIVE.md](grants/BUDGET_NARRATIVE.md) | Grant budget narrative |
-| [grants/INSTITUTIONAL_READINESS.md](grants/INSTITUTIONAL_READINESS.md) | Readiness for multilateral observer engagement |
-| [research/FALSE_POSITIVE_ANALYSIS.md](research/FALSE_POSITIVE_ANALYSIS.md) | False positive rate analysis |
-| [guides/ACADEMIC_ACCESS.md](guides/ACADEMIC_ACCESS.md) | Academic partner access framework |
+## English
 
----
+VIGIL keeps what an official portal published and lets anyone check whether that copy changed.
 
-## For operators / deployers
+| I want to… | Read… |
+|---|---|
+| Open the site | [vectisdev.github.io/Vigil](https://vectisdev.github.io/Vigil/) |
+| Check the sample offline | [How to verify](VERIFY.md) |
+| See what is watched, and what is not | [Threat model](THREAT_MODEL.md) |
+| Install it and run it | [Quick start](guides/QUICKSTART.md) |
+| Read the 2025 evidence | [Honduras 2025](evidence/HN2025.md) |
+| Understand the design | [Architecture](architecture/ARCHITECTURE.md) |
+| Report a security bug | [Security](../SECURITY.md) |
+| Contribute | [Contributing](../CONTRIBUTING.md) |
+| Cite the work | [CITATION.cff](../CITATION.cff) |
 
-| Document | Description |
-|----------|-------------|
-| [guides/QUICKSTART.md](guides/QUICKSTART.md) | 3-minute quick start |
-| [operations/SETUP-GUIDE.md](operations/SETUP-GUIDE.md) | Full setup guide |
-| [operations/OPERATOR-RUNBOOKS.md](operations/OPERATOR-RUNBOOKS.md) | Step-by-step runbooks |
-| [operations/DEPLOYMENT.md](operations/DEPLOYMENT.md) | Deployment (Docker, GitHub Actions) |
-| [security/SECURITY-GUIDE.md](security/SECURITY-GUIDE.md) | Security hardening |
-| [security/KILL-SWITCH-CONFIG.md](security/KILL-SWITCH-CONFIG.md) | Emergency kill switch |
-
----
-
-## For security researchers
-
-| Document | Description |
-|----------|-------------|
-| [security/SECURITY-REVIEW.md](security/SECURITY-REVIEW.md) | Full threat model and cryptographic design |
-| [security/ENDPOINT-INTEGRITY.md](security/ENDPOINT-INTEGRITY.md) | Endpoint integrity monitoring |
-| [security/ANCHOR_SETUP_GUIDE.md](security/ANCHOR_SETUP_GUIDE.md) | Cryptographic anchoring (OpenTimestamps + Bitcoin) |
-| [architecture/MULTI-WITNESS-FEDERATION.md](architecture/MULTI-WITNESS-FEDERATION.md) | P2P multi-witness attestation |
-| [security/INCIDENT_RESPONSE.md](security/INCIDENT_RESPONSE.md) | Incident response procedures |
+The folder table above is the map of the rest. [ORIGIN.md](ORIGIN.md) is where the project comes from.

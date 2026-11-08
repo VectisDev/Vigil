@@ -30,7 +30,7 @@ Vigil separa el código (vigil) de los datos (centinel-data) en repositorios dis
 - **Verificación sin ejecutar el motor.** Cualquier organización puede clonar centinel-data y verificar la cadena de hashes sin instalar ni ejecutar Vigil.
 - **Fork simple.** Al hacer fork, el usuario obtiene el motor sin los datos de otra elección. Los datos se generan desde cero al activar el sistema.
 
-El mecanismo de publicación es silencioso: si `DATA_REPO_TOKEN` no está configurado, los datos permanecen en vigil sin error. Ver [DATA-REPOS.md](DATA-REPOS.md) para detalles.
+El mecanismo de publicación es silencioso: si `DATA_REPO_TOKEN` no está configurado, los datos permanecen en vigil sin error. Ver [DATA-REPOS.md](../operations/DATA-REPOS.md) para detalles.
 
 ---
 

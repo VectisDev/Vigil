@@ -64,7 +64,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## Roadmap
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for planned features.
+See [`docs/grants/ROADMAP.md`](docs/grants/ROADMAP.md) for planned features.
 
 - v0.3.0: Calibration with real HN-2025 data + independent academic review
 - v0.4.0: Field pilot (1+ municipalities in live electoral event)

@@ -3,7 +3,7 @@
 ## Español
 
 ### Propósito de este documento
-Este documento resume el marco legal hondureño aplicable a VIGIL y define límites operativos claros para garantizar una operación cívica, técnica y no intrusiva. Complementa el [README](../README.md) y el flujo operativo descrito en [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md).
+Este documento resume el marco legal hondureño aplicable a VIGIL y define límites operativos claros para garantizar una operación cívica, técnica y no intrusiva. Complementa el [README](../README.md) y el flujo operativo descrito en [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md).
 
 ### Marco legal hondureño aplicable
 **Base principal:**
@@ -29,10 +29,10 @@ Este documento resume el marco legal hondureño aplicable a VIGIL y define lími
 VIGIL es un sistema técnico independiente para observar y auditar datos electorales públicos. Su operación se limita a:
 
 1. **Uso exclusivo de fuentes públicas** publicadas por canales oficiales.
-2. **Scraping defensivo y respetuoso**, evitando cargas excesivas y respetando intervalos de consulta (ver [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)).
+2. **Scraping defensivo y respetuoso**, evitando cargas excesivas y respetando intervalos de consulta (ver [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md)).
 3. **No interferencia con sistemas oficiales** ni sustitución de autoridades electorales.
 4. **No procesamiento de datos personales**, únicamente datos públicos agregados.
-5. **Producción de evidencia técnica reproducible**, con trazabilidad y hashes encadenados (ver [METHODOLOGY.md](METHODOLOGY.md)).
+5. **Producción de evidencia técnica reproducible**, con trazabilidad y hashes encadenados (ver [METHODOLOGY.md](../research/METHODOLOGY.md)).
 
 ### Disclaimer no intrusivo
 - **VIGIL no es un sistema de monitoreo invasivo.**
@@ -42,16 +42,16 @@ VIGIL es un sistema técnico independiente para observar y auditar datos elector
 
 ### Enlaces relacionados
 - [README](../README.md)
-- [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)
-- [METHODOLOGY.md](METHODOLOGY.md)
-- [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md)
+- [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md)
+- [METHODOLOGY.md](../research/METHODOLOGY.md)
+- [SECURITY-AND-SECRETS.md](../security/SECURITY-AND-SECRETS.md)
 
 ---
 
 ## English
 
 ### Purpose of this document
-This document summarizes the Honduran legal framework applicable to VIGIL and defines clear operational boundaries to ensure a civic, technical, and non-intrusive operation. It complements the [README](../README.md) and the operating flow described in [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md).
+This document summarizes the Honduran legal framework applicable to VIGIL and defines clear operational boundaries to ensure a civic, technical, and non-intrusive operation. It complements the [README](../README.md) and the operating flow described in [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md).
 
 ### Applicable Honduran legal framework
 **Primary basis:**
@@ -77,10 +77,10 @@ This document summarizes the Honduran legal framework applicable to VIGIL and de
 VIGIL is an independent technical system to observe and audit public electoral data. Its operation is limited to:
 
 1. **Exclusive use of public sources** published through official channels.
-2. **Defensive, respectful scraping**, avoiding excessive load and honoring query intervals (see [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)).
+2. **Defensive, respectful scraping**, avoiding excessive load and honoring query intervals (see [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md)).
 3. **No interference with official systems** and no replacement of electoral authorities.
 4. **No processing of personal data**, only public aggregated data.
-5. **Production of reproducible technical evidence**, with traceability and chained hashes (see [METHODOLOGY.md](METHODOLOGY.md)).
+5. **Production of reproducible technical evidence**, with traceability and chained hashes (see [METHODOLOGY.md](../research/METHODOLOGY.md)).
 
 ### Non-intrusive disclaimer
 - **VIGIL is not an invasive monitoring system.**
@@ -90,6 +90,6 @@ VIGIL is an independent technical system to observe and audit public electoral d
 
 ### Related links
 - [README](../README.md)
-- [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)
-- [METHODOLOGY.md](METHODOLOGY.md)
-- [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md)
+- [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md)
+- [METHODOLOGY.md](../research/METHODOLOGY.md)
+- [SECURITY-AND-SECRETS.md](../security/SECURITY-AND-SECRETS.md)

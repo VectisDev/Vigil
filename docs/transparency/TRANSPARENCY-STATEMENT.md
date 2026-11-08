@@ -103,12 +103,12 @@ del financiamiento.
 
 ## 5. Methodology / Metodología
 
-- Full methodology: [`docs/research/METHODOLOGY.md`](docs/research/METHODOLOGY.md)
-- 23 statistical rules: [`command_center/rules.yaml`](command_center/rules.yaml)
+- Full methodology: [`docs/research/METHODOLOGY.md`](../research/METHODOLOGY.md)
+- 23 statistical rules: [`command_center/rules.yaml`](../../command_center/rules.yaml)
 - Pre-registered thresholds (anti-p-hacking):
-  [`docs/research/THRESHOLD_PREREGISTRATION.md`](docs/research/THRESHOLD_PREREGISTRATION.md)
-- False positive analysis: [`docs/research/FALSE_POSITIVE_ANALYSIS.md`](docs/research/FALSE_POSITIVE_ANALYSIS.md)
-- Statistical conventions: [`docs/stats/STATISTICAL_CONVENTIONS.md`](docs/stats/STATISTICAL_CONVENTIONS.md)
+  [`docs/research/THRESHOLD_PREREGISTRATION.md`](../research/THRESHOLD_PREREGISTRATION.md)
+- False positive analysis: [`docs/research/FALSE_POSITIVE_ANALYSIS.md`](../research/FALSE_POSITIVE_ANALYSIS.md)
+- Statistical conventions: [`docs/stats/STATISTICAL_CONVENTIONS.md`](../stats/STATISTICAL_CONVENTIONS.md)
 
 All thresholds were locked on **June 10, 2026** and anchored to Bitcoin
 via OpenTimestamps. Any future modification requires a new pre-registration
@@ -163,11 +163,11 @@ serio y las publicamos de forma destacada.
 
 ## 9. What we would like you to scrutinize / Qué queremos que escrutines
 
-- The statistical methodology — [`docs/research/METHODOLOGY.md`](docs/research/METHODOLOGY.md)
-- The cryptographic implementation — [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- The false positive rate claims — [`docs/research/FALSE_POSITIVE_ANALYSIS.md`](docs/research/FALSE_POSITIVE_ANALYSIS.md)
+- The statistical methodology — [`docs/research/METHODOLOGY.md`](../research/METHODOLOGY.md)
+- The cryptographic implementation — [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
+- The false positive rate claims — [`docs/research/FALSE_POSITIVE_ANALYSIS.md`](../research/FALSE_POSITIVE_ANALYSIS.md)
 - The conflict of interest structure — this document, §3
-- The operating cost claims — [`docs/finances/zero-cost-ledger.md`](docs/finances/zero-cost-ledger.md)
+- The operating cost claims — [`docs/COST_ELIMINATION_ROADMAP.md`](../COST_ELIMINATION_ROADMAP.md)
 
 The stronger the scrutiny, the more credible the findings when they matter.
 

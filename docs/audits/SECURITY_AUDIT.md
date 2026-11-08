@@ -2,7 +2,7 @@
 
 This file is not a third-party audit and it is not a score.
 No external security audit has been completed.
-Disclosure and contact: [`.github/SECURITY.md`](../../.github/SECURITY.md).
+Disclosure and contact: [`SECURITY.md`](../../SECURITY.md).
 
 ## Estado de recomendaciones
 
@@ -33,7 +33,7 @@ Disclosure and contact: [`.github/SECURITY.md`](../../.github/SECURITY.md).
 
 ## Cumplimiento Legal – Feb 2026
 
-- Matriz oficial: [docs/legal_compliance_matrix.md](docs/legal_compliance_matrix.md).
+- Matriz oficial: [docs/legal/LEGAL-COMPLIANCE-MATRIX.md](../legal/LEGAL-COMPLIANCE-MATRIX.md).
 - Declaración obligatoria de reportes: **"Datos solo de fuentes públicas CNE, conforme Ley Transparencia 170-2006. Agnóstico político."**
 
 ## Matriz Red Team (core actual, sin Arbitrum/Telegram/Cloudflare)

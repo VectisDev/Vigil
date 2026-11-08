@@ -1,0 +1,47 @@
+name: Error / Bug
+description: >-
+  Algo no funciona como dice la documentación.
+  Something does not work as the documentation says.
+title: "Error: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Un fallo de seguridad no va aquí. Usa el aviso privado:
+        https://github.com/VectisDev/Vigil/security/advisories/new
+
+        A security bug does not belong here. Use private reporting:
+        https://github.com/VectisDev/Vigil/security/advisories/new
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: Qué pasó / What happened
+      description: >-
+        Qué hiciste, qué esperabas y qué ocurrió.
+        What you did, what you expected, and what happened.
+    validations:
+      required: true
+  - type: textarea
+    id: como
+    attributes:
+      label: Cómo repetirlo / How to repeat it
+      description: Los comandos, en orden. / The commands, in order.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: entorno
+    attributes:
+      label: Entorno / Environment
+      description: Sistema y versión de Python. / System and Python version.
+      placeholder: "Linux, Python 3.12"
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Mensaje / Message
+      description: Pega el error. Quita secretos y claves. / Paste the error. Remove secrets and keys.
+    validations:
+      required: false

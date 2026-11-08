@@ -120,7 +120,7 @@ El formulario permite un seudónimo. Esa es la identidad pública (`CITATION.cff
 
 vectisdev26@proton.me
 
-Es la dirección en `.github/SECURITY.md`, `CITATION.cff` y `pyproject.toml`.
+Es la dirección en `SECURITY.md`, `CITATION.cff` y `pyproject.toml`.
 
 ## ¿Por qué usted y su equipo son las personas adecuadas?
 
