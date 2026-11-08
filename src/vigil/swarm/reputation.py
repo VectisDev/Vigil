@@ -70,6 +70,17 @@ def reputation(events: Sequence[tuple[str, int]]) -> int:
     return total
 
 
+def eligible_for_next_room(score: int) -> bool:
+    """A low score can keep a key out of the next room. It is not a vote."""
+    return score >= 0
+
+
+def vote_weight(score: int) -> int:
+    """Every seated key is one signature. The score does not change that."""
+    del score
+    return 1
+
+
 def aggregate(source: str, window: str, agreed: str, k: int, n: int, matched: int) -> dict[str, str | int]:
     """The only record one room hands another room.
 

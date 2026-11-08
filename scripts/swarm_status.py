@@ -12,7 +12,7 @@ def main() -> int:
     print("No second operator is configured.")
     print("This command does not open a port and does not join a peer.")
     print("Read docs/swarm/README.md.")
-    print("At most 12 keys. Score comes only from signed hashes. It is not running.")
+    print("At most 12 keys. Twelve keys need 9 signatures. A score does not replace one. It is not running.")
     return 0
 
 

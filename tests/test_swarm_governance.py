@@ -21,7 +21,7 @@ def test_same_members_and_code_always_seat_the_same_way() -> None:
     assert left == right
     assert [role for _, role in left.roles] == ["member", "member", "member"]
     assert left.roles[0][0] == "n-a"
-    assert left.quorum == quorum_size(3) == 2
+    assert left.quorum == quorum_size(3) == 3
 
 
 def test_a_bad_code_seats_nobody() -> None:
@@ -36,13 +36,13 @@ def test_a_thirteenth_member_is_refused() -> None:
         assign_roles(members, code)
 
 
-def test_twelve_need_eight_matching_hashes() -> None:
+def test_twelve_need_nine_matching_hashes() -> None:
     code = room_code_from_seed(b"123456")
     seating = assign_roles([f"n-{index:02d}" for index in range(12)], code)
-    assert seating.quorum == 8
-    hashes = ["aa"] * 8 + ["bb"] * 4
+    assert seating.quorum == 9
+    hashes = ["aa"] * 9 + ["bb"] * 3
     assert agreed_hash(hashes, seating.quorum) == "aa"
-    assert agreed_hash(["aa"] * 7 + ["bb"] * 5, seating.quorum) is None
+    assert agreed_hash(["aa"] * 8 + ["bb"] * 4, seating.quorum) is None
 
 
 def test_one_member_is_not_a_group() -> None:

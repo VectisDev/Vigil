@@ -40,15 +40,26 @@ def room_code_from_seed(seed: bytes) -> str:
     return "".join(ALPHABET[byte % len(ALPHABET)] for byte in seed[:CODE_LENGTH])
 
 
-def quorum_size(seated: int) -> int:
-    """How many matching hashes are required. Two thirds, rounded up.
+def faulty_bound(seated: int) -> int:
+    """How many Byzantine nodes the room claims to tolerate.
 
-    Zero members means no agreement is possible. One member means that
-    member's own hash, which is not a group result.
+    f = floor((n-1)/3). Twelve nodes tolerate 3. One node tolerates 0.
     """
     if seated < 1:
         return 0
-    return (2 * seated + 2) // 3
+    return (seated - 1) // 3
+
+
+def quorum_size(seated: int) -> int:
+    """How many distinct signatures confirm a hash.
+
+    The count is n-f. That is always at least 2f+1. For 12 nodes it is 9.
+    A bare 2f+1 (7 of 12) is not enough: two sets of 7 can intersect only
+    in faulty nodes, so two conflicting hashes could both look confirmed.
+    """
+    if seated < 1:
+        return 0
+    return seated - faulty_bound(seated)
 
 
 def assign_roles(members: list[str] | tuple[str, ...], code: str) -> Seating:
