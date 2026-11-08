@@ -87,17 +87,33 @@ def test_ci_has_a_job_that_installs_the_browser():
     assert "-m browser" in text, "el job debe seleccionar por marcador, no por lista de archivos"
 
 
-def test_the_job_turns_a_missing_browser_into_a_failure():
-    """Una omisión silenciosa en el job que acaba de instalarlo es un verde falso.
-
-    English: a silent skip in the job that just installed it is a false green.
-    """
+def test_the_job_sets_the_variable_that_turns_a_skip_into_a_failure():
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "VIGIL_REQUIRE_BROWSER" in text
 
-    guard = (TESTS / "test_setup_wizard.py").read_text(encoding="utf-8")
-    assert 'os.environ.get("VIGIL_REQUIRE_BROWSER") == "1"' in guard
-    assert "raise AssertionError" in guard, "con la variable puesta, la ausencia de navegador debe FALLAR"
+
+@pytest.mark.parametrize("path", _browser_modules(), ids=lambda p: p.name)
+def test_every_browser_module_honours_that_variable(path: Path):
+    """Un módulo que la ignora se omite en silencio en el job que la pone.
+
+    Y eso es un verde falso: el job habría instalado el navegador, habría
+    fallado al hacerlo, y las pruebas de ese módulo se habrían saltado sin que
+    nada lo dijera. Comprobarlo en UN módulo no bastaba — el agujero reaparece
+    con el siguiente que se añada.
+
+    English: a module that ignores it skips silently in the job that sets it,
+    and that is a false green. Checking one module was not enough: the hole
+    reappears with the next one added.
+    """
+    source = path.read_text(encoding="utf-8")
+    assert 'os.environ.get("VIGIL_REQUIRE_BROWSER") == "1"' in source, (
+        f"{path.name} no lee VIGIL_REQUIRE_BROWSER, asi que en el job de navegador "
+        f"una instalacion rota lo omitiria en silencio"
+    )
+    assert "raise AssertionError" in source, (
+        f"{path.name} lee la variable pero no falla con ella puesta: la omision "
+        f"tiene que convertirse en FALLO, no quedarse en omision"
+    )
 
 
 def test_the_marker_is_registered():
