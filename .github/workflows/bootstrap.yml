@@ -1,0 +1,327 @@
+# =============================================================================
+# VIGIL — Arranque de un nodo / Node bootstrap
+# =============================================================================
+#
+# ESPAÑOL
+# Un despliegue de VIGIL es un repositorio creado desde esta plantilla. En ese
+# instante GitHub dispara un `push`, y ése es el gancho: a diferencia de un
+# fork, una plantilla arranca con Actions vivos.
+#
+# Este workflow convierte esa copia en un nodo:
+#
+#   1. retira los datos del operador anterior (`bootstrap_scrub.py`)
+#   2. genera la configuración del país respetando el techo de 19 endpoints
+#   3. acuña doce claves de acceso propias
+#   4. publica un panel que dice la verdad: sin capturas propias, con el
+#      replay verificado
+#   5. abre un Issue con el único paso que queda por hacer a mano
+#
+# Dos disparadores, y no tres. El plan proponía también `issues`, para que el
+# asistente pudiera mandar país y hashes por el cuerpo de un Issue. Se queda
+# fuera a propósito: `workflow_dispatch` ya lleva esos datos, exige permiso de
+# escritura —cualquiera puede abrir un Issue— y no obliga a escribir un
+# analizador de texto ajeno. Una entrada menos que validar es una superficie
+# menos que defender.
+#
+# El arranque no puede re-dispararse solo: su commit final lo empuja
+# `GITHUB_TOKEN`, y los push con ese token no disparan workflows. La asimetría
+# que suele estorbar, aquí sirve.
+#
+# ENGLISH
+# A VIGIL deployment is a repository created from this template, and creating
+# one fires a `push` -- the hook, since unlike a fork a template starts with
+# Actions live. This turns that copy into a node: it removes the previous
+# operator's data, generates the country's configuration within the
+# 19-endpoint ceiling, mints twelve access keys of its own, publishes a panel
+# that tells the truth, and opens an Issue with the one manual step left.
+#
+# Two triggers, not three. The plan also proposed `issues`; it is left out on
+# purpose because `workflow_dispatch` already carries the same data, requires
+# write access -- anyone can open an Issue -- and needs no parser for someone
+# else's text.
+#
+# The bootstrap cannot re-trigger itself: its final commit is pushed with
+# `GITHUB_TOKEN`, and pushes made with that token do not trigger workflows.
+# =============================================================================
+
+name: Bootstrap a node
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      country:
+        description: "Codigo de pais (HN, GT, SV...)"
+        required: false
+        default: HN
+      year:
+        description: "Ano electoral"
+        required: false
+        default: "2029"
+      divisions:
+        description: "Divisiones a cubrir, separadas por comas. Vacio = las primeras que caben en el techo."
+        required: false
+        default: ""
+      seed_hashes:
+        description: "Doce hashes SHA-256 separados por comas. Vacio = las claves se acunan aqui."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  # Dos arranques a la vez se pisarian escribiendo los mismos archivos. El
+  # encolado espera; cancelar dejaria el nodo a medio configurar.
+  # English: two bootstraps at once would overwrite the same files. Queueing
+  # waits; cancelling would leave the node half configured.
+  group: vigil-bootstrap-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  # ── decidir ─────────────────────────────────────────────────────────────────
+  # Una `if:` a nivel de job no puede mirar un archivo, porque se evalua antes
+  # de que haya runner. Por eso la decision es un job con checkout.
+  # English: a job-level `if:` cannot look at a file, because it is evaluated
+  # before there is a runner. Hence a job with a checkout.
+  decide:
+    name: Es este un nodo nuevo
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.fork }}
+    permissions:
+      contents: read
+    outputs:
+      go: ${{ steps.verdict.outputs.go }}
+      reason: ${{ steps.verdict.outputs.reason }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verdict
+        id: verdict
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          go=false
+          reason=""
+
+          if [ -f .vigil/UPSTREAM ]; then
+            reason="este repositorio es la plantilla original, no un nodo: .vigil/UPSTREAM esta presente"
+          elif [ -f .vigil/node.json ]; then
+            reason="este nodo ya arranco: .vigil/node.json esta presente"
+          else
+            go=true
+            reason="repositorio nuevo sin .vigil/node.json: hay que arrancarlo"
+          fi
+
+          {
+            echo "go=${go}"
+            echo "reason=${reason}"
+          } >> "${GITHUB_OUTPUT}"
+
+          {
+            echo "### Arranque de nodo"
+            echo ""
+            echo "- Arrancar: \`${go}\`"
+            echo "- Motivo: ${reason}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  # ── arrancar ────────────────────────────────────────────────────────────────
+  bootstrap:
+    name: Arrancar el nodo
+    needs: decide
+    if: needs.decide.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.11"
+
+      - name: Install what the bootstrap needs
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyyaml
+
+      # El identificador sale del ID numerico del repositorio, que es
+      # permanente: sobrevive a renombrados y a transferencias, que es
+      # exactamente donde un identificador basado en el nombre se rompe.
+      # English: derived from the repository's numeric ID, which is permanent --
+      # it survives renames and transfers, which is where a name-based
+      # identifier breaks.
+      - name: Mint the node identity
+        env:
+          REPOSITORY_ID: ${{ github.repository_id }}
+          VIGIL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          VIGIL_YEAR: ${{ github.event.inputs.year || '2029' }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          repository_id = os.environ["REPOSITORY_ID"]
+          node_id = hashlib.sha256(f"vigil-node-v1:{repository_id}".encode()).hexdigest()[:16]
+          document = {
+              "schema": 1,
+              "node_id": node_id,
+              "country": os.environ["VIGIL_COUNTRY"].upper(),
+              "year": os.environ["VIGIL_YEAR"],
+              "mode": "REPLAY",
+              "bootstrapped_at": datetime.now(timezone.utc).isoformat(),
+          }
+          target = Path(".vigil/node.json")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          target.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+          print(f"node_id={node_id}")
+          PY
+
+      # Antes de generar nada, y no despues: `wizard_seeds.py` se salta la
+      # generacion cuando ya hay doce seeds validos, asi que invertir el orden
+      # conserva las claves del operador anterior.
+      # English: before generating anything, not after -- wizard_seeds.py skips
+      # generation when twelve valid seeds already exist, so the reverse order
+      # keeps the previous operator's keys.
+      - name: Remove the previous operator's data
+        run: python .github/scripts/bootstrap_scrub.py --root .
+
+      - name: Generate the country's configuration
+        env:
+          VIGIL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          VIGIL_YEAR: ${{ github.event.inputs.year || '2029' }}
+          VIGIL_DIVISIONS: ${{ github.event.inputs.divisions || '' }}
+        run: |
+          PYTHONPATH=src python .github/scripts/wizard_config.py
+
+      - name: Assert the 19-endpoint ceiling
+        env:
+          VIGIL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+        run: |
+          PYTHONPATH=src python .github/scripts/assert_source_budget.py --country "${VIGIL_COUNTRY}"
+
+      - name: Mint this node's own access keys
+        env:
+          FORCE_REGENERATE: "true"
+          VIGIL_COUNTRY: ${{ github.event.inputs.country || 'HN' }}
+          VIGIL_SEED_HASHES: ${{ github.event.inputs.seed_hashes || '' }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: python .github/scripts/wizard_seeds.py
+
+      - name: Upload the one-day key file
+        if: ${{ !github.event.inputs.seed_hashes }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: vigil-claves-DESCARGAR-Y-GUARDAR-FUERA-DE-LINEA
+          path: /tmp/centinel-seeds.txt
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Publish a panel that tells the truth
+        run: |
+          PYTHONPATH=src python scripts/export_static_snapshot.py \
+            --root . \
+            --mode REPLAY \
+            --mode-reason "Nodo recien arrancado: reproduce el conjunto verificado de 2025 y no consulta ninguna fuente."
+
+      # El momento exacto en que una copia deja de ser plantilla y pasa a ser
+      # un nodo. `.vigil/UPSTREAM` lo documenta desde antes de que este
+      # workflow existiera.
+      # English: the exact moment a copy stops being a template and becomes a
+      # node. `.vigil/UPSTREAM` has documented this since before this workflow
+      # existed.
+      - name: Stop being a template
+        run: rm -f .vigil/UPSTREAM
+
+      - name: Commit the node
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- .vigil web config command_center
+          if git diff --cached --quiet; then
+            echo "nada que commitear"
+            exit 0
+          fi
+          git commit -m "Arranque del nodo: configuracion propia y datos heredados retirados"
+          git push
+
+      - name: Open the setup Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cat > /tmp/vigil-setup-issue.md <<'MD'
+          Tu nodo VIGIL ya está configurado. Queda **un** paso, y hay que darlo a mano.
+
+          ## El paso
+
+          **Settings → Pages → Source: GitHub Actions.**
+
+          ## Por qué no lo hago yo
+
+          Busqué la forma de automatizarlo y no existe. Las tres vías están cerradas:
+
+          1. `POST /repos/{owner}/{repo}/pages` exige permiso `Administration: write`,
+             que `GITHUB_TOKEN` no tiene y no puede recibir.
+          2. `actions/configure-pages` tiene una entrada `enablement`, pero su propio
+             `action.yml` dice: *"This option requires a token other than
+             `GITHUB_TOKEN` to be provided."*
+          3. La vía heredada de `gh-pages` tampoco: *"Commits pushed by a workflow
+             using the GITHUB_TOKEN don't trigger a Pages build."*
+
+          La alternativa sería pedirte un token personal, y un sistema cuya premisa es
+          que no tengas que confiar en nadie no debería empezar pidiéndote una
+          credencial con permiso de escritura sobre tu cuenta. Es límite de plataforma,
+          no pereza, y preferimos decírtelo que esconderlo.
+
+          ## Lo que ya está hecho
+
+          - Los datos del operador anterior, retirados. **Sus doce claves de acceso ya
+            no abren tu panel**, que es lo más importante de esta lista.
+          - La configuración de tu país, generada dentro del techo de 19 endpoints por
+            ciclo (1 nacional + 18 divisiones). Si tu país tiene más divisiones, el
+            panel te dice cuántas cubre este nodo y cuáles quedan fuera.
+          - Doce claves de acceso propias. Si las acuñó este arranque, están en el
+            artifact de esta ejecución y **solo durante un día**: descárgalas y
+            guárdalas fuera de línea.
+          - El panel publica el modo `REPLAY`: reproduce el conjunto verificado de
+            Honduras 2025 y **no consulta ninguna fuente**. Comprueba la raíz de Merkle
+            y falla si no coincide, así que lo que ves está verificado de punta a punta.
+
+          ## Lo que este nodo NO está haciendo
+
+          No captura nada. Ni ahora ni por horario. Pasar a captura en vivo exige
+          editar `.vigil/mode.yaml` a mano y poner `source.active: true` y una ventana
+          electoral abierta: tres condiciones deliberadas, porque un interruptor cuyo
+          defecto es raspar una fuente está del revés.
+
+          ## Consentimiento, dicho una vez más
+
+          Al desplegar esto, tu cuenta de GitHub queda públicamente asociada al
+          proyecto: tu nombre de usuario, tu repositorio y tus ejecuciones de Actions
+          son visibles para cualquiera, y los registros de Actions son públicos. Si
+          estás en un contexto donde eso implica riesgo personal, considera una cuenta
+          dedicada sin datos personales, o no despliegues.
+
+          ---
+
+          Cierra este Issue cuando el panel responda.
+          MD
+          gh issue create \
+            --repo "${REPOSITORY}" \
+            --title "Arranque de VIGIL: queda un paso manual (activar Pages)" \
+            --body-file /tmp/vigil-setup-issue.md

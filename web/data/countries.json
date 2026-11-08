@@ -3,128 +3,255 @@
     "code": "AR",
     "name": "Argentina",
     "flag": "🇦🇷",
-    "authority": "Cámara Nacional Electoral (CNE)"
+    "authority": "Cámara Nacional Electoral (CNE)",
+    "divisions_label": "Provincias",
+    "divisions_total": 24,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
     "code": "BO",
     "name": "Bolivia",
     "flag": "🇧🇴",
-    "authority": "Tribunal Supremo Electoral (TSE)"
+    "authority": "Tribunal Supremo Electoral (TSE)",
+    "divisions_label": "Departamentos",
+    "divisions_total": 9,
+    "configurable": true,
+    "divisions_covered": 9,
+    "requests_per_cycle": 9,
+    "complete": true
   },
   {
     "code": "BR",
     "name": "Brasil",
     "flag": "🇧🇷",
-    "authority": "Tribunal Superior Electoral (TSE)"
+    "authority": "Tribunal Superior Electoral (TSE)",
+    "divisions_label": "Estados",
+    "divisions_total": 27,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
     "code": "CL",
     "name": "Chile",
     "flag": "🇨🇱",
-    "authority": "Servicio Electoral (SERVEL)"
+    "authority": "Servicio Electoral (SERVEL)",
+    "divisions_label": "Regiones",
+    "divisions_total": 16,
+    "configurable": true,
+    "divisions_covered": 16,
+    "requests_per_cycle": 16,
+    "complete": true
   },
   {
     "code": "CO",
     "name": "Colombia",
     "flag": "🇨🇴",
-    "authority": "Registraduría Nacional del Estado Civil"
+    "authority": "Registraduría Nacional del Estado Civil",
+    "divisions_label": "Departamentos",
+    "divisions_total": 33,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
     "code": "CR",
     "name": "Costa Rica",
     "flag": "🇨🇷",
-    "authority": "Tribunal Supremo de Elecciones (TSE)"
+    "authority": "Tribunal Supremo de Elecciones (TSE)",
+    "divisions_label": "Provincias",
+    "divisions_total": 7,
+    "configurable": true,
+    "divisions_covered": 7,
+    "requests_per_cycle": 7,
+    "complete": true
   },
   {
     "code": "CU",
     "name": "Cuba",
     "flag": "🇨🇺",
-    "authority": "Consejo Electoral Nacional"
+    "authority": "Consejo Electoral Nacional",
+    "divisions_label": "Provincias",
+    "divisions_total": 16,
+    "configurable": false,
+    "reason": "el preset de 'CU' (Cuba) no declara ninguna URL. Sin URL no hay nada que configurar, y escribir la configuracion de todas formas dejaria al nodo apuntando al pais anterior. Declara `url_pattern` o `national_url` en src/vigil/countries.py, o descubre el patron real con wizard_discovery.py",
+    "divisions_covered": 0,
+    "requests_per_cycle": 0,
+    "complete": false
+  },
+  {
+    "code": "DO",
+    "name": "República Dominicana",
+    "flag": "🇩🇴",
+    "authority": "Junta Central Electoral (JCE)",
+    "divisions_label": "Provincias",
+    "divisions_total": 32,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
     "code": "EC",
     "name": "Ecuador",
     "flag": "🇪🇨",
-    "authority": "Consejo Nacional Electoral (CNE)"
-  },
-  {
-    "code": "SV",
-    "name": "El Salvador",
-    "flag": "🇸🇻",
-    "authority": "Tribunal Supremo Electoral (TSE)"
-  },
-  {
-    "code": "US",
-    "name": "Estados Unidos",
-    "flag": "🇺🇸",
-    "authority": "Descentralizado — Secretarios de Estado por entidad",
-    "format": "auto"
+    "authority": "Consejo Nacional Electoral (CNE)",
+    "divisions_label": "Provincias",
+    "divisions_total": 24,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
     "code": "GT",
     "name": "Guatemala",
     "flag": "🇬🇹",
-    "authority": "Tribunal Supremo Electoral (TSE)"
-  },
-  {
-    "code": "HT",
-    "name": "Haití",
-    "flag": "🇭🇹",
-    "authority": "Conseil Electoral Provisoire (CEP)"
+    "authority": "Tribunal Supremo Electoral (TSE)",
+    "divisions_label": "Departamentos",
+    "divisions_total": 22,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
     "code": "HN",
     "name": "Honduras",
     "flag": "🇭🇳",
     "authority": "Consejo Nacional Electoral (CNE)",
-    "format": "json"
+    "divisions_label": "Departamentos",
+    "divisions_total": 18,
+    "configurable": true,
+    "divisions_covered": 18,
+    "requests_per_cycle": 19,
+    "complete": true
+  },
+  {
+    "code": "HT",
+    "name": "Haití",
+    "flag": "🇭🇹",
+    "authority": "Conseil Electoral Provisoire (CEP)",
+    "divisions_label": "Departamentos",
+    "divisions_total": 10,
+    "configurable": false,
+    "reason": "el preset de 'HT' (Haití) no declara ninguna URL. Sin URL no hay nada que configurar, y escribir la configuracion de todas formas dejaria al nodo apuntando al pais anterior. Declara `url_pattern` o `national_url` en src/vigil/countries.py, o descubre el patron real con wizard_discovery.py",
+    "divisions_covered": 0,
+    "requests_per_cycle": 0,
+    "complete": false
   },
   {
     "code": "MX",
     "name": "México",
     "flag": "🇲🇽",
-    "authority": "Instituto Nacional Electoral (INE)"
+    "authority": "Instituto Nacional Electoral (INE)",
+    "divisions_label": "Estados",
+    "divisions_total": 32,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
     "code": "NI",
     "name": "Nicaragua",
     "flag": "🇳🇮",
-    "authority": "Consejo Supremo Electoral (CSE)"
+    "authority": "Consejo Supremo Electoral (CSE)",
+    "divisions_label": "Departamentos",
+    "divisions_total": 17,
+    "configurable": true,
+    "divisions_covered": 17,
+    "requests_per_cycle": 17,
+    "complete": true
   },
   {
     "code": "PA",
     "name": "Panamá",
     "flag": "🇵🇦",
-    "authority": "Tribunal Electoral (TE)"
-  },
-  {
-    "code": "PY",
-    "name": "Paraguay",
-    "flag": "🇵🇾",
-    "authority": "Tribunal Superior de Justicia Electoral (TSJE)"
+    "authority": "Tribunal Electoral (TE)",
+    "divisions_label": "Provincias",
+    "divisions_total": 13,
+    "configurable": true,
+    "divisions_covered": 13,
+    "requests_per_cycle": 13,
+    "complete": true
   },
   {
     "code": "PE",
     "name": "Perú",
     "flag": "🇵🇪",
-    "authority": "Jurado Nacional de Elecciones (JNE) / ONPE"
+    "authority": "Jurado Nacional de Elecciones (JNE) / ONPE",
+    "divisions_label": "Regiones",
+    "divisions_total": 25,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   },
   {
-    "code": "DO",
-    "name": "República Dominicana",
-    "flag": "🇩🇴",
-    "authority": "Junta Central Electoral (JCE)"
+    "code": "PY",
+    "name": "Paraguay",
+    "flag": "🇵🇾",
+    "authority": "Tribunal Superior de Justicia Electoral (TSJE)",
+    "divisions_label": "Departamentos",
+    "divisions_total": 18,
+    "configurable": true,
+    "divisions_covered": 18,
+    "requests_per_cycle": 18,
+    "complete": true
+  },
+  {
+    "code": "SV",
+    "name": "El Salvador",
+    "flag": "🇸🇻",
+    "authority": "Tribunal Supremo Electoral (TSE)",
+    "divisions_label": "Departamentos",
+    "divisions_total": 14,
+    "configurable": true,
+    "divisions_covered": 14,
+    "requests_per_cycle": 14,
+    "complete": true
+  },
+  {
+    "code": "US",
+    "name": "Estados Unidos",
+    "flag": "🇺🇸",
+    "authority": "Descentralizado — Secretarios de Estado por entidad (sin autoridad federal unica)",
+    "divisions_label": "Estados",
+    "divisions_total": 50,
+    "configurable": false,
+    "reason": "el preset de 'US' (Estados Unidos) no declara ninguna URL. Sin URL no hay nada que configurar, y escribir la configuracion de todas formas dejaria al nodo apuntando al pais anterior. Declara `url_pattern` o `national_url` en src/vigil/countries.py, o descubre el patron real con wizard_discovery.py",
+    "divisions_covered": 0,
+    "requests_per_cycle": 0,
+    "complete": false
   },
   {
     "code": "UY",
     "name": "Uruguay",
     "flag": "🇺🇾",
-    "authority": "Corte Electoral"
+    "authority": "Corte Electoral",
+    "divisions_label": "Departamentos",
+    "divisions_total": 19,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": true
   },
   {
     "code": "VE",
     "name": "Venezuela",
     "flag": "🇻🇪",
-    "authority": "Consejo Nacional Electoral (CNE)"
+    "authority": "Consejo Nacional Electoral (CNE)",
+    "divisions_label": "Estados",
+    "divisions_total": 24,
+    "configurable": true,
+    "divisions_covered": 19,
+    "requests_per_cycle": 19,
+    "complete": false
   }
 ]

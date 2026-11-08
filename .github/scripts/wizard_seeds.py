@@ -12,7 +12,13 @@ Helper for fork self-configuration. Environment variables:
   REPO_NAME         — repository name
   GITHUB_RUN_ID     — Actions run ID (for artifact URL in the seeds file)
 """
-import hashlib, secrets, json, os, sys, base64
+
+import base64
+import hashlib
+import json
+import os
+import secrets
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,6 +45,67 @@ REPO = os.environ.get("REPO_NAME", "")
 RUN_ID = os.environ.get("GITHUB_RUN_ID", "")
 
 access_path = Path("web/access.json")
+
+# ── Hashes traídos de fuera ──────────────────────────────────────────────────
+# El asistente del navegador genera las doce claves con `crypto.getRandomValues`
+# y manda solo sus hashes. Las claves en claro no llegan nunca al runner, así
+# que no hay nada que pueda quedarse en un registro, en un artifact ni en el
+# disco de la máquina.
+#
+# Es la opción preferible y no una alternativa: en el otro camino las claves
+# existen en claro dentro del runner durante el job, y su única copia es un
+# artifact que caduca en un día.
+#
+# English: the browser assistant generates the twelve keys with
+# crypto.getRandomValues and sends only their hashes. The plaintext keys never
+# reach the runner, so there is nothing that can be left behind in a log, an
+# artifact or on the machine's disk. This is the preferable path, not an
+# alternative: on the other one the keys exist in plaintext inside the runner
+# for the duration of the job.
+EXTERNAL_HASHES = os.environ.get("VIGIL_SEED_HASHES", "").strip()
+if EXTERNAL_HASHES:
+    supplied = [h.strip().lower() for h in EXTERNAL_HASHES.replace(";", ",").split(",") if h.strip()]
+    bad = [h for h in supplied if len(h) != 64 or any(c not in "0123456789abcdef" for c in h)]
+    if bad:
+        print(
+            f"VIGIL_SEED_HASHES: {len(bad)} valor(es) no son hashes SHA-256 en hexadecimal",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if len(supplied) != 12:
+        print(
+            f"VIGIL_SEED_HASHES trae {len(supplied)} hashes y hacen falta 12",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if len(set(supplied)) != 12:
+        # Doce entradas con repetidos son menos de doce claves, y el panel
+        # contaria doce. Un duplicado es casi siempre un copiar y pegar a medias.
+        # English: twelve entries with duplicates are fewer than twelve keys,
+        # and the panel would count twelve.
+        print("VIGIL_SEED_HASHES trae hashes repetidos: serian menos de doce claves", file=sys.stderr)
+        sys.exit(1)
+
+    access_path.parent.mkdir(parents=True, exist_ok=True)
+    access_path.write_text(
+        json.dumps(
+            {
+                "version": 3,
+                "method": "SHA-256",
+                "seeds": supplied,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "country": COUNTRY,
+                "origin": "external-hashes",
+            },
+            indent=2,
+        )
+    )
+    print(f"web/access.json written from {len(supplied)} externally supplied hashes")
+    write_seeds_file(
+        "Las claves se generaron en tu navegador y nunca llegaron a este runner.\n"
+        "No hay nada que descargar aqui: guarda el PDF que te dio el asistente.\n"
+    )
+    sys.exit(0)
 
 # Don't regenerate if valid seeds already exist
 if access_path.exists() and os.environ.get("FORCE_REGENERATE") != "true":
