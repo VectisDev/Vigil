@@ -144,7 +144,12 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);
 /* ── HEADER ── */
 #admin-header{position:sticky;top:0;z-index:200;background:var(--panel);
   border-bottom:1px solid var(--border);padding:10px 20px;
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  /* Sin esto el shell de 100vh encoge la barra a 56px y la segunda fila
+     (reloj, Salir) se pinta encima del semáforo.
+     English: without this the 100vh shell shrinks the bar to 56px and the
+     second row (clock, Sign out) paints over the traffic light. */
+  flex-shrink:0}
 #admin-header .hdr-brand{font-family:var(--mono);font-size:12px;font-weight:400;letter-spacing:.06em;
   color:var(--muted);text-transform:uppercase;white-space:nowrap}
 #admin-header .hdr-brand-link{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;
@@ -595,7 +600,7 @@ details .details-body{padding:12px 0 4px}
 #main-area .section{width:100%}
 #s1{order:1}#s7{order:2}#s3{order:3}#s9{order:4}#s4{order:5}#s8{order:6}#s6{order:7}#s5{order:8}
 /* ── SPACEX REDESIGN ── */
-#admin-header{height:var(--hdr-height);flex-shrink:0;box-shadow:0 1px 0 0 rgba(var(--red-tint),.1)}
+#admin-header{min-height:var(--hdr-height);height:auto;flex-shrink:0;box-shadow:0 1px 0 0 rgba(var(--red-tint),.1)}
 #admin-header .hdr-brand-link{color:var(--red-text)}
 #main-area{background:var(--bg)}
 .section-title{text-transform:uppercase;letter-spacing:.08em;font-size:12px}
@@ -849,13 +854,13 @@ body[data-role="observer"] .presets-grid { pointer-events:none;opacity:.55 }
   #adm-map-wrap{flex:1 1 100%;max-width:none}
   #map-narrative{flex:1 1 100%}
 }
-/* ═══════════════════════════════════════════════════════════
-   PHASE VIEWS — show one workflow phase at a time
-   ═══════════════════════════════════════════════════════════ */
-body[data-ops-view] #main-area .section[data-phase]{display:none}
-body[data-ops-view="estado"]    #main-area .section[data-phase="estado"],
-body[data-ops-view="control"]   #main-area .section[data-phase="control"],
-body[data-ops-view="evidencia"] #main-area .section[data-phase="evidencia"]{display:block}
+/* Las vistas por fase ya no muestran ni ocultan secciones. Lo hacía
+   `data-ops-view`, y un `display:block` sin `!important` le ganaba al
+   atributo `hidden`: las cuatro pestañas se dibujaban juntas. La visibilidad
+   la decide `html[data-ops-tab]` al final de esta hoja.
+   English: phase views no longer show or hide sections. data-ops-view used
+   to, and a display:block without !important beat the hidden attribute, so
+   all four tabs painted at once. html[data-ops-tab] decides visibility. */
 
 /* Phase tab buttons (were static .sec-header) */
 #sidebar button.phase-tab{display:block;width:100%;text-align:left;cursor:pointer;
@@ -1255,6 +1260,19 @@ body.election-mode .election-only { display: block; }
  * router did its job and the CSS undid it. Hidden is hidden.
  */
 [hidden]{display:none !important}
+
+/* Una pestaña a la vez. El selector lleva el id de #main-area para ganar
+   a cualquier `display` que una sección herede, incluido el de una hoja
+   que el navegador todavía tenga en caché.
+   English: one tab at a time. The selector carries #main-area's id so it
+   beats any display a section inherits, including one from a cached sheet. */
+html[data-ops-tab] #main-area > [data-tab]{display:none !important}
+html[data-ops-tab="inicio"] #main-area > [data-tab="inicio"],
+html[data-ops-tab="evidencia"] #main-area > [data-tab="evidencia"],
+html[data-ops-tab="red"] #main-area > [data-tab="red"],
+html[data-ops-tab="avanzado"] #main-area > [data-tab="avanzado"]{display:block !important}
+html[data-ops-tab] #main-area > [data-tab].election-only{display:none !important}
+html[data-ops-tab="avanzado"] body.election-mode #main-area > [data-tab="avanzado"].election-only{display:block !important}
 
 /* La barra lateral ya no existe, asi que su columna tampoco. El contenido
  * pasa a una sola columna con las pestañas arriba.

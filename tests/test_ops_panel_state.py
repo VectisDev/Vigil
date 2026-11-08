@@ -65,17 +65,25 @@ _PALETTE_PROBE_JS = """() => {
                 const s = mx ? d/mx : 0;
                 return s < 0.25 ? null : h;
             };
-            for (const el of document.querySelectorAll('body *')) {
-                if (!el.offsetParent && el.tagName !== 'BODY') continue;
+            const shown = (el) => {
                 const cs = getComputedStyle(el);
-                for (const prop of ['color','backgroundColor','borderTopColor']) {
+                if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+                if (parseFloat(cs.opacity) === 0) return false;
+                const r = el.getBoundingClientRect();
+                return r.width > 0 && r.height > 0;
+            };
+            for (const el of document.querySelectorAll('body *')) {
+                if (!shown(el)) continue;
+                const cs = getComputedStyle(el);
+                for (const prop of ['color','backgroundColor','borderTopColor','fill','stroke']) {
                     const m = cs[prop].match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?/);
                     if (!m) continue;
                     if (m[4] !== undefined && parseFloat(m[4]) < 0.15) continue;
                     const h = hue(+m[1], +m[2], +m[3]);
                     if (h === null) continue;
                     if (h > 20 && h < 340) {
-                        bad.push((el.id || el.className || el.tagName) + ' ' + prop + ' ' + cs[prop]);
+                        const name = el.id || (typeof el.className === 'string' ? el.className : '') || el.tagName;
+                        bad.push(name + ' ' + prop + ' ' + cs[prop]);
                     }
                 }
             }
@@ -113,20 +121,43 @@ def site() -> str:
 _SYSTEM_CHROMIUM = Path("/opt/pw-browsers/chromium")
 
 
+def _launch_browser(pw):
+    """Usa el Chromium de Playwright y, si no está, el Chrome del sistema.
+
+    En CI se instala el navegador a propósito: saltarse la prueba cuando
+    falta es exactamente como estos fallos llegaron a la página publicada.
+    English: Playwright's Chromium, or the system Chrome if that is what the
+    machine has. CI installs the browser on purpose -- skipping when it is
+    missing is how these faults reached the published page.
+    """
+    args = ["--no-sandbox", "--disable-dev-shm-usage"]
+    if _SYSTEM_CHROMIUM.exists():
+        return pw.chromium.launch(executable_path=str(_SYSTEM_CHROMIUM), args=args)
+    for candidate in (
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+    ):
+        if Path(candidate).exists():
+            return pw.chromium.launch(executable_path=candidate, args=args)
+    return pw.chromium.launch(args=args)
+
+
 @pytest.fixture(scope="module")
 def browser():
-    try:
-        with sync_playwright() as pw:
-            kwargs = {"args": ["--no-sandbox"]}
-            if _SYSTEM_CHROMIUM.exists():
-                kwargs["executable_path"] = str(_SYSTEM_CHROMIUM)
-            b = pw.chromium.launch(**kwargs)
-            try:
-                yield b
-            finally:
-                b.close()
-    except Exception as exc:  # pragma: no cover - entorno sin navegador
-        pytest.skip(f"no hay navegador utilizable: {exc}")
+    with sync_playwright() as pw:
+        try:
+            launched = _launch_browser(pw)
+        except Exception as exc:
+            pytest.fail(
+                "el navegador no arrancó; en CI hay que instalarlo "
+                f"(python -m playwright install --with-deps chromium): {exc}"
+            )
+        try:
+            yield launched
+        finally:
+            launched.close()
 
 
 @pytest.fixture
@@ -314,14 +345,57 @@ def test_the_inicio_section_is_not_nested_inside_another(page):
 # ── el candado de la paleta, desde el navegador ──────────────────────────────
 
 
-def test_no_section_renders_with_a_colour_outside_the_palette(page):
-    """Nada pintado en azul, amarillo ni morado, medido sobre lo renderizado.
+def test_inicio_does_not_show_another_tabs_elements(page):
+    """En Inicio no se ve nada que pertenezca a otra pestaña.
 
-    English: nothing painted blue, yellow or purple, measured on what the
-    browser actually computed -- not on the source. A token can resolve to
-    something the stylesheet never spells out.
+    No basta mirar el atributo `hidden`: la hoja lo pisaba con `display` y
+    las secciones seguían en pantalla. Se mide lo que el navegador pinta.
+    English: Home shows nothing that belongs to another tab. Checking the
+    hidden attribute is not enough -- the sheet overrode it with display and
+    the sections stayed on screen. This measures what the browser paints.
     """
     page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
-    page.wait_for_timeout(800)
-    offenders = page.evaluate(_PALETTE_PROBE_JS)
-    assert offenders == [], f"colores fuera de paleta en pantalla: {offenders}"
+    page.wait_for_function("() => document.documentElement.getAttribute('data-ops-tab') === 'inicio'")
+    seen = page.evaluate(
+        """() => {
+            const foreign = [];
+            for (const el of document.querySelectorAll('[data-tab]')) {
+                if (el.getAttribute('data-tab') === 'inicio') continue;
+                const cs = getComputedStyle(el);
+                const r = el.getBoundingClientRect();
+                if (cs.display !== 'none' && r.width > 0 && r.height > 0) {
+                    foreign.push(el.id || el.getAttribute('data-tab'));
+                }
+            }
+            return {foreign, text: document.body.innerText};
+        }"""
+    )
+    assert seen["foreign"] == [], f"en Inicio se ven otras pestañas: {seen['foreign']}"
+    for phrase in (
+        "SISTEMA NOMINAL",
+        "CIRCUIT BREAKER",
+        "Conectar a la red",
+        "Estas acciones cambian cómo funciona VIGIL",
+        "Reputación",
+        "Coordinar enjambre",
+    ):
+        assert phrase not in seen["text"], f"en Inicio se lee «{phrase}»"
+
+
+def test_no_visible_element_uses_a_forbidden_colour(page):
+    """Ningún elemento visible usa azul, amarillo ni morado.
+
+    `getComputedStyle` en cada pestaña, no una búsqueda en el fuente: el
+    mapa de departamentos llevaba un relleno pizarra que el fuente no
+    delataba como azul hasta que el navegador lo calculaba.
+    English: no visible element uses blue, yellow or purple. getComputedStyle
+    on every tab, not a source search -- the department map carried a slate
+    fill the source did not give away as blue until the browser computed it.
+    """
+    page.evaluate("() => { try { showAdminShell(); } catch(e) {} }")
+    page.wait_for_function("() => typeof goTab === 'function'")
+    for tab in ("inicio", "evidencia", "red", "avanzado"):
+        page.evaluate("t => goTab(t)", tab)
+        page.wait_for_timeout(400)
+        offenders = page.evaluate(_PALETTE_PROBE_JS)
+        assert offenders == [], f"{tab}: colores fuera de paleta: {offenders}"

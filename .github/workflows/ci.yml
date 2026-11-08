@@ -160,6 +160,14 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt -r requirements/dev.txt
 
+      # Las pruebas del panel abren un navegador de verdad. Sin este paso se
+      # saltaban, y un fallo de pestañas o de color llegaba a Pages sin que
+      # el CI lo viera.
+      # English: the panel tests open a real browser. Without this step they
+      # were skipped, and a tab or colour fault reached Pages unseen.
+      - name: Install the browser the panel tests drive
+        run: python -m playwright install --with-deps chromium
+
       # Este job corre la suite COMPLETA: 89 archivos, sin exclusiones.
       # Antes de la serie de arreglos que lo precede, la suite no podia
       # completarse (la coleccion abortaba y una prueba dormia el backoff real)
