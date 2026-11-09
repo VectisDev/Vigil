@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 import yaml
@@ -39,15 +40,44 @@ READMES = ("README.md", "README.en.md")
 # El rojo de marca. Una insignia que lo lleve se lee como una alarma.
 ROJO_DE_MARCA = re.compile(r"D7262E", re.IGNORECASE)
 
+# Los anfitriones se comparan ENTEROS, nunca por subcadena. `"shields.io" in
+# url` tambien da verdadero para `https://ejemplo.com/img.shields.io/x.svg`,
+# donde shields.io es parte de la ruta y el servidor es otro. Una prueba cuyo
+# trabajo es distinguir de donde sale una imagen no puede usar una
+# comprobacion que no distingue el origen.
+SHIELDS = "img.shields.io"
+GITHUB = "github.com"
+
 # `img.shields.io/badge/...` es el generador ESTÁTICO: lo que va en la URL es
 # lo que se dibuja. Cualquier otra ruta de shields consulta algo.
-SHIELDS_ESTATICA = re.compile(r"img\.shields\.io/badge/")
+RUTA_ESTATICA = "/badge/"
 
-# El punto final de estado de GitHub Actions.
-INSIGNIA_VIVA = re.compile(r"github\.com/[^/\s\"]+/[^/\s\"]+/actions/workflows/([^/\s\"]+)/badge\.svg")
+# El punto final de estado de GitHub Actions, anclado de principio a fin.
+RUTA_VIVA = re.compile(r"^/[^/]+/[^/]+/actions/workflows/([^/]+)/badge\.svg$")
 
 IMAGEN = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
 SRC = re.compile(r"src=\"([^\"]+)\"")
+
+
+def _partes(url: str) -> tuple[str, str, dict[str, list[str]]]:
+    """Anfitrión, ruta y parámetros de una URL, con el anfitrión en minúsculas."""
+    analizada = urlparse(url)
+    return (analizada.hostname or "").lower(), analizada.path, parse_qs(analizada.query)
+
+
+def _es_estatica(url: str) -> bool:
+    """¿Es una imagen que dibuja lo que lleva escrito en la URL?"""
+    anfitrion, ruta, _ = _partes(url)
+    return anfitrion == SHIELDS and ruta.startswith(RUTA_ESTATICA)
+
+
+def _flujo_que_mide(url: str) -> str | None:
+    """El archivo de flujo que consulta una insignia viva, o None si no lo es."""
+    anfitrion, ruta, _ = _partes(url)
+    if anfitrion != GITHUB:
+        return None
+    encontrado = RUTA_VIVA.match(ruta)
+    return encontrado.group(1) if encontrado else None
 
 
 def _cabecera(nombre: str) -> str:
@@ -64,7 +94,8 @@ def _insignias(nombre: str) -> list[str]:
         if not encontrado:
             continue
         fuente = encontrado.group(1)
-        if "shields.io" in fuente or "badge.svg" in fuente:
+        anfitrion, ruta, _ = _partes(fuente)
+        if anfitrion == SHIELDS or (anfitrion == GITHUB and ruta.endswith("/badge.svg")):
             fuentes.append(fuente)
     return fuentes
 
@@ -73,24 +104,24 @@ def _insignias(nombre: str) -> list[str]:
 def test_la_insignia_de_ci_consulta_el_estado_real(nombre: str) -> None:
     """Una insignia de CI que no consulta nada es una afirmación sin respaldo."""
     fuentes = _insignias(nombre)
-    vivas = [f for f in fuentes if INSIGNIA_VIVA.search(f)]
+    vivas = [f for f in fuentes if _flujo_que_mide(f)]
     assert vivas, (
         f"{nombre} no lleva ninguna insignia de estado real. Una imagen estática "
         "de shields.io con el color escrito a mano no mide la rama: dice siempre "
         "lo mismo, y en rojo anuncia un fallo que puede no existir."
     )
     for fuente in vivas:
-        assert not SHIELDS_ESTATICA.search(fuente), f"{nombre}: {fuente} sigue siendo estática"
+        assert not _es_estatica(fuente), f"{nombre}: {fuente} sigue siendo estática"
 
 
 @pytest.mark.parametrize("nombre", READMES)
 def test_la_insignia_de_ci_nombra_un_flujo_que_corre_en_main(nombre: str) -> None:
     """Si el flujo no se dispara en `main`, la insignia sale «no status»."""
     for fuente in _insignias(nombre):
-        encontrado = INSIGNIA_VIVA.search(fuente)
-        if not encontrado:
+        flujo_medido = _flujo_que_mide(fuente)
+        if not flujo_medido:
             continue
-        archivo = REPO_ROOT / ".github" / "workflows" / encontrado.group(1)
+        archivo = REPO_ROOT / ".github" / "workflows" / flujo_medido
         assert archivo.exists(), f"{nombre}: la insignia nombra {archivo.name}, que no existe"
 
         flujo = yaml.safe_load(archivo.read_text(encoding="utf-8"))
@@ -99,13 +130,14 @@ def test_la_insignia_de_ci_nombra_un_flujo_que_corre_en_main(nombre: str) -> Non
         ramas = (disparadores.get("push") or {}).get("branches") or []
         assert "main" in ramas, f"{archivo.name} no se dispara al empujar a main: la insignia no mediría nada"
 
-        assert "?branch=main" in fuente, f"{nombre}: la insignia no fija la rama, así que mostraría cualquiera"
+        _, _, parametros = _partes(fuente)
+        assert parametros.get("branch") == ["main"], f"{nombre}: la insignia no fija la rama main"
 
 
 @pytest.mark.parametrize("nombre", READMES)
 def test_ninguna_insignia_estatica_usa_el_rojo_de_aviso(nombre: str) -> None:
     """El rojo avisa. Si además decora, deja de avisar."""
-    pintadas = [f for f in _insignias(nombre) if SHIELDS_ESTATICA.search(f) and ROJO_DE_MARCA.search(f)]
+    pintadas = [f for f in _insignias(nombre) if _es_estatica(f) and ROJO_DE_MARCA.search(f)]
     assert not pintadas, (
         f"{nombre}: estas insignias estáticas llevan el rojo de marca y no pueden "
         f"cambiar de estado, así que avisan de nada: {pintadas}. El rojo queda para "
@@ -121,7 +153,7 @@ def test_los_dos_readmes_llevan_la_misma_fila() -> None:
     flujos = set()
     for nombre in READMES:
         for fuente in _insignias(nombre):
-            encontrado = INSIGNIA_VIVA.search(fuente)
-            if encontrado:
-                flujos.add(encontrado.group(1))
+            flujo_medido = _flujo_que_mide(fuente)
+            if flujo_medido:
+                flujos.add(flujo_medido)
     assert len(flujos) == 1, f"cada README mide un flujo distinto: {flujos}"
