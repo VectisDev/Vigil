@@ -129,9 +129,9 @@ html[data-theme="dark"] .btn:hover{background:#FF4D55;color:#000;border-color:#F
     <nav>
       <a href="monitor/"><span data-lang="es" class="inline">Monitor</span><span data-lang="en" class="inline">Monitor</span></a>
       <a href="lab/"><span data-lang="es" class="inline">Laboratorio</span><span data-lang="en" class="inline">Lab</span></a>
-      <a href="ops/"><span data-lang="es" class="inline">Operaciones</span><span data-lang="en" class="inline">Operations</span></a>
       <span class="ops-nav-item">
-        <button class="ops-nav-btn" type="button" onclick="toggleOpsLogin()" id="ops-nav-btn"><span data-lang="es" class="inline">Acceso</span><span data-lang="en" class="inline">Access</span></button>
+        <button class="ops-nav-btn" type="button" onclick="toggleOpsLogin()" id="ops-nav-btn"
+          aria-expanded="false" aria-controls="ops-login-card">OPS</button>
         <div class="ops-login-card" id="ops-login-card">
           <div class="olc-title">
             <span data-lang="en" class="inline">Admin access</span><span data-lang="es" class="inline">Acceso administrador</span>
@@ -302,22 +302,46 @@ const saved = localStorage.getItem('vigil-lang');
 if (saved === 'en') setLang('en');
 else setLang('es');
 
-/* ─── Ops login dropdown ──────────────────────────────────
-   Small popup under the "Ops" nav link. On successful auth,
-   stores the same session tokens ops/index.html checks for
-   (centinel_admin_tok/exp/role/seed_id/fp/gh-pat) and redirects
-   straight into the admin shell — skipping its own auth screen. */
+/* ─── Entrada a OPS ───────────────────────────────────────────────────────
+   Antes habia dos caminos al panel y llevaban al mismo sitio: un enlace
+   «Operaciones» que entraba directo, y un boton «Acceso» que pedia la clave
+   primero. El enlace directo no ahorraba nada —el panel pide la clave de
+   todas formas— y repetir la misma puerta dos veces con nombres distintos
+   invita a probar las dos para ver en que se diferencian.
+
+   Queda una sola, llamada OPS: abre esta tarjeta, y al validar guarda los
+   tokens de sesion que `ops/index.html` comprueba y entra directo al panel.
+
+   English: there used to be two routes to the panel and both led to the same
+   place -- a direct link and a button that asked for the key first. The
+   direct link saved nothing, since the panel asks for the key anyway, and the
+   same door twice under two names invites trying both to see how they
+   differ. One remains, called OPS. */
+function _setOpsLoginOpen(open) {
+  document.getElementById('ops-login-card').classList.toggle('open', open);
+  // Sin esto el boton dice siempre «cerrado» a quien no ve la tarjeta
+  // abrirse, que es justo a quien se lo tiene que decir.
+  // English: without this the button always reads "collapsed" to whoever
+  // cannot see the card open, which is exactly who needs telling.
+  document.getElementById('ops-nav-btn').setAttribute('aria-expanded', String(open));
+}
 function toggleOpsLogin() {
-  const card = document.getElementById('ops-login-card');
-  const opening = !card.classList.contains('open');
-  card.classList.toggle('open', opening);
+  const opening = !document.getElementById('ops-login-card').classList.contains('open');
+  _setOpsLoginOpen(opening);
   if (opening) document.getElementById('ops-login-pass').focus();
 }
 document.addEventListener('click', (e) => {
   const item = document.querySelector('.ops-nav-item');
-  if (item && !item.contains(e.target)) {
-    document.getElementById('ops-login-card').classList.remove('open');
-  }
+  if (item && !item.contains(e.target)) _setOpsLoginOpen(false);
+});
+// Escape cierra y devuelve el foco al boton, que es de donde salio.
+// English: Escape closes and returns focus to the button it came from.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const card = document.getElementById('ops-login-card');
+  if (!card || !card.classList.contains('open')) return;
+  _setOpsLoginOpen(false);
+  document.getElementById('ops-nav-btn').focus();
 });
 
 async function _sha256Hex(text) {

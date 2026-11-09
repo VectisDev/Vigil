@@ -7,6 +7,7 @@ A later visit follows the choice stored in localStorage.
 from __future__ import annotations
 
 import os
+import re
 import socket
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -110,7 +111,7 @@ def _open(browser, site, path, scheme):
     "scheme,theme,red,bg",
     [
         ("light", "light", "#D7262E", "rgb(255, 255, 255)"),
-        ("dark", "dark", "#FF4D55", "rgb(0, 0, 0)"),
+        ("dark", "dark", "#FF4D55", "rgb(14, 14, 16)"),
     ],
 )
 def test_each_page_follows_the_system_and_uses_one_background(browser, site, path, scheme, theme, red, bg):
@@ -143,11 +144,101 @@ def test_the_toggle_is_remembered_against_the_system(browser, site):
         toggle.click()
         page.wait_for_function("document.documentElement.getAttribute('data-theme') === 'dark'")
         assert page.evaluate("localStorage.getItem('vigil-theme')") == "dark"
-        assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(0, 0, 0)"
+        assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(14, 14, 16)"
         assert "mark-dark.svg" in page.evaluate("document.querySelector('link[rel=icon]').getAttribute('href')")
         page.reload(wait_until="domcontentloaded")
         page.locator("#theme-toggle").wait_for(state="visible")
         assert page.evaluate("document.documentElement.getAttribute('data-theme')") == "dark"
         assert page.evaluate("localStorage.getItem('vigil-theme')") == "dark"
+    finally:
+        context.close()
+
+
+# ── el modo noche no es el modo de alto contraste ────────────────────────────
+
+
+def _rgb(value: str) -> tuple[int, int, int]:
+    nums = [int(n) for n in re.findall(r"\d+", value)[:3]]
+    return tuple(nums)  # type: ignore[return-value]
+
+
+def _relative_luminance(rgb: tuple[int, int, int]) -> float:
+    def channel(raw: int) -> float:
+        c = raw / 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (channel(v) for v in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _ratio(a: str, b: str) -> float:
+    la, lb = _relative_luminance(_rgb(a)), _relative_luminance(_rgb(b))
+    high, low = max(la, lb), min(la, lb)
+    return (high + 0.05) / (low + 0.05)
+
+
+def test_the_dark_theme_is_not_the_high_contrast_theme(browser, site):
+    """Blanco puro sobre negro puro es 21:1, el máximo que existe.
+
+    Eso no es «buen contraste»: es el modo de alto contraste que el sistema
+    operativo ofrece aparte, para quien lo necesita y lo pide. Como estilo por
+    defecto produce halación —el texto blanco sobre negro absoluto parece
+    vibrar— y en OLED el negro puro arrastra al desplazarse.
+
+    Esta prueba fija el techo, no el color: si alguien vuelve a poner #fff
+    sobre #000 falla, y si cambia la paleta por otra igual de legible pero
+    menos agresiva, pasa.
+
+    English: pure white on pure black is 21:1, the maximum that exists. That is
+    not "good contrast", it is the high-contrast mode the OS offers separately
+    to whoever needs and asks for it. This pins the ceiling, not the colour.
+    """
+    context, page = _open(browser, site, "/", "dark")
+    try:
+        read = page.evaluate(
+            """() => {
+                const cs = getComputedStyle(document.documentElement);
+                const body = getComputedStyle(document.body);
+                return {
+                    bg: body.backgroundColor,
+                    fg: body.color,
+                    muted: cs.getPropertyValue('--muted').trim(),
+                    border: cs.getPropertyValue('--border').trim(),
+                };
+            }"""
+        )
+        probe = page.evaluate(
+            """(vals) => vals.map(v => {
+                const el = document.createElement('span');
+                el.style.color = v;
+                document.body.appendChild(el);
+                const out = getComputedStyle(el).color;
+                el.remove();
+                return out;
+            })""",
+            [read["muted"], read["border"]],
+        )
+        muted, border = probe
+
+        text = _ratio(read["fg"], read["bg"])
+        assert text >= 7.0, f"el texto principal baja de AAA: {text:.2f}:1"
+        assert text <= 19.0, (
+            f"el texto principal esta en {text:.2f}:1, practicamente el maximo de 21. "
+            f"Eso es el modo de alto contraste, no un tema oscuro legible."
+        )
+
+        # Jerarquia: si lo secundario contrasta casi igual que lo principal,
+        # no es secundario y la pagina entera grita al mismo volumen.
+        secondary = _ratio(muted, read["bg"])
+        assert secondary >= 4.5, f"el texto secundario no llega a AA: {secondary:.2f}:1"
+        assert text / secondary >= 1.5, (
+            f"principal {text:.2f}:1 y secundario {secondary:.2f}:1 son casi lo mismo "
+            f"({text / secondary:.2f}x): no hay jerarquia."
+        )
+
+        # WCAG 1.4.11: el borde de un control necesita 3:1 para verse.
+        edge = _ratio(border, read["bg"])
+        assert edge >= 3.0, f"el borde de los controles no llega a 3:1: {edge:.2f}:1"
+        assert edge <= 8.0, f"el borde contrasta {edge:.2f}:1, mas que texto secundario: grita"
     finally:
         context.close()
