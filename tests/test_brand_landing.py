@@ -291,3 +291,93 @@ def test_the_choice_survives_reload_at_both_widths(browser, site, width, height)
         assert "oscuro" in logo
     finally:
         context.close()
+
+
+# ── una sola puerta al panel ──────────────────────────────────────────────────
+
+
+def test_the_nav_offers_one_route_to_the_panel_and_calls_it_ops(browser, site):
+    """Había dos y llevaban al mismo sitio.
+
+    «Operaciones» era un enlace directo a `ops/` y «Acceso» un botón que pedía
+    la clave antes. El enlace no ahorraba nada —el panel pide la clave de todas
+    formas— y la misma puerta dos veces con nombres distintos invita a probar
+    las dos para ver en qué se diferencian. Queda una, llamada OPS.
+
+    English: there were two and both led to the same place. The direct link
+    saved nothing, since the panel asks for the key anyway, and the same door
+    twice under two names invites trying both to see how they differ.
+    """
+    page = browser.new_page()
+    try:
+        page.goto(f"{site}/", wait_until="domcontentloaded")
+        labels = page.eval_on_selector_all(
+            "header nav > a, header nav > span > button, header nav > button",
+            "els => els.map(e => e.innerText.trim()).filter(Boolean)",
+        )
+        assert "OPS" in labels, f"el boton del panel debe llamarse OPS; hay {labels}"
+        for gone in ("ACCESO", "ACCESS", "OPERACIONES", "OPERATIONS"):
+            assert gone not in [label.upper() for label in labels], f"«{gone}» sigue en la navegacion"
+
+        # Una sola: ni un enlace suelto a ops/ en la barra.
+        nav_hrefs = page.eval_on_selector_all("header nav a[href]", "els => els.map(e => e.getAttribute('href'))")
+        assert "ops/" not in nav_hrefs, "quedo un enlace directo al panel en la barra"
+    finally:
+        page.close()
+
+
+def test_ops_opens_the_key_card_and_says_so(browser, site):
+    """El botón declara si la tarjeta está abierta, para quien no la ve."""
+    page = browser.new_page()
+    try:
+        page.goto(f"{site}/", wait_until="domcontentloaded")
+        button = page.locator("#ops-nav-btn")
+        card = page.locator("#ops-login-card")
+
+        assert button.get_attribute("aria-expanded") == "false"
+        assert button.get_attribute("aria-controls") == "ops-login-card"
+        assert not card.is_visible()
+
+        button.click()
+        page.wait_for_selector("#ops-login-card.open")
+        assert card.is_visible()
+        assert button.get_attribute("aria-expanded") == "true"
+        # El foco cae en el campo de la clave: es lo único que hay que hacer.
+        assert page.evaluate("() => document.activeElement.id") == "ops-login-pass"
+    finally:
+        page.close()
+
+
+def test_escape_closes_the_card_and_gives_the_focus_back(browser, site):
+    """Abrir algo con el teclado y no poder cerrarlo deja a la gente atrapada."""
+    page = browser.new_page()
+    try:
+        page.goto(f"{site}/", wait_until="domcontentloaded")
+        page.locator("#ops-nav-btn").click()
+        page.wait_for_selector("#ops-login-card.open")
+
+        page.keyboard.press("Escape")
+        # `state="hidden"`: una tarjeta cerrada es `display:none`, y la espera
+        # por defecto es «visible», que para esto no llega nunca.
+        page.wait_for_selector("#ops-login-card", state="hidden")
+        assert page.locator("#ops-nav-btn").get_attribute("aria-expanded") == "false"
+        assert page.evaluate("() => document.activeElement.id") == "ops-nav-btn"
+    finally:
+        page.close()
+
+
+def test_ops_is_called_ops_in_both_languages(browser, site):
+    """No se traduce: es el nombre del panel, no una palabra.
+
+    English: not translated -- it is the panel's name, not a word.
+    """
+    page = browser.new_page()
+    try:
+        page.goto(f"{site}/", wait_until="domcontentloaded")
+        first = page.locator("#ops-nav-btn").inner_text().strip()
+        page.locator("#btn-lang").click()
+        page.wait_for_function("() => document.getElementById('btn-lang').textContent.trim().length > 0")
+        second = page.locator("#ops-nav-btn").inner_text().strip()
+        assert first == second == "OPS"
+    finally:
+        page.close()
