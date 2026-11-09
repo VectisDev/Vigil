@@ -10,19 +10,25 @@ La primera mitad de este archivo es el candado obvio: ningún valor con forma
 de token de GitHub, ninguna cabecera de autorización con un valor real, en
 ningún archivo publicado.
 
-La segunda mitad es la que hace trabajo de verdad. El panel conserva la
-maquinaria que descifra el PAT publicado —`decryptWriterPat`,
-`_deriveWrapKey`, `_aesgcmDecrypt` y `window.VigilToken`— y retirarla toca los
-mismos archivos que el rediseño del panel, así que no cabe en este cambio.
-Mientras siga ahí, lo que sí se puede imponer es que **no se extienda**:
-`PAT_READERS` enumera los archivos exactos que la tienen hoy, y la
-prueba falla en los dos sentidos. Si un archivo nuevo aprende a descifrar el
-token, falla. Si uno de los cinco deja de tenerla y nadie quita su línea de la
-lista, falla también.
+La segunda mitad es la que hizo el trabajo. Cuando se escribió, el panel
+todavía descifraba el token publicado, y retirarlo tocaba los mismos archivos
+que el rediseño en vuelo. Lo que sí se podía imponer entretanto era que **no
+se extendiera**: `PAT_READERS` enumeraba los archivos exactos que lo tenían, y
+la prueba fallaba en los dos sentidos —si uno nuevo lo aprendía, y si uno de
+la lista dejaba de tenerlo y nadie quitaba su línea—.
 
-Una lista que solo puede encogerse es la única forma honesta de poner un
-candado sobre algo que todavía existe. Un candado con un agujero sin declarar
-no es un candado.
+La lista solo podía encoger, y encogió hasta vaciarse. El panel v4 dejó de
+descifrarlo en `web/ops/index.html` y quitó esa entrada; después salió de la
+página pública y del núcleo del panel, y los tres archivos huérfanos que
+seguían leyéndolo se borraron enteros.
+
+Con el conjunto vacío, esta mitad deja de ser una allowlist y pasa a exigir
+que **nadie** lo tenga. Volver a añadir una entrada no es un trámite: es el
+aviso de que algo reintrodujo la maquinaria.
+
+Que una lista así se vacíe es el único final bueno que tiene. Mientras no se
+vaciaba, al menos decía la verdad sobre su propio agujero, que es más de lo
+que hace un candado que finge no tenerlo.
 
 English: everything under `web/` is published to GitHub Pages, so anything
 token-shaped in there is visible to anyone and reachable by SHA in every clone
@@ -69,12 +75,20 @@ HARDCODED_AUTH = re.compile(
 # encoger: el panel v4 ya no lo hace en index.html, así que esa entrada salió.
 # English: files that still know how to decrypt the published PAT. The list
 # can only shrink: the v4 panel no longer does it in index.html.
-PAT_READERS = {
-    "web/index.html",
-    "web/ops/js/ops-core.js",
-    "web/ops/js/ops-monitor.js",
-    "web/ops/js/ops-panel.js",
-}
+# Vacia. La lista solo podia encoger, y encogio hasta el final: el panel v4
+# dejo de descifrar el token en `web/ops/index.html`, y este cambio lo retiro
+# de la pagina publica y de `ops-core.js` y borro los tres archivos huerfanos
+# que aun lo leian. Con el conjunto vacio, la prueba de abajo deja de ser una
+# allowlist y pasa a exigir que NADIE lo tenga.
+#
+# Si alguna vez hay que volver a anadir una entrada, eso es el aviso de que
+# algo reintrodujo la maquinaria, no un tramite.
+#
+# English: empty. The list could only shrink, and it shrank all the way. With
+# the set empty, the test below stops being an allowlist and starts requiring
+# that nobody has it. Having to add an entry again is the warning that
+# something reintroduced the machinery, not a formality.
+PAT_READERS: set[str] = set()
 
 PAT_MACHINERY = ("decryptWriterPat", "_deriveWrapKey", "_aesgcmDecrypt", "writer_pat", "VigilToken")
 
@@ -157,6 +171,41 @@ def test_every_listed_reader_still_has_it_so_the_list_cannot_rot(relative: str):
         f"{relative} ya no lleva la maquinaria del PAT. Quitalo de PAT_READERS "
         f"en este mismo cambio, o la exencion sobrevive a lo que exentaba."
     )
+
+
+def test_the_list_is_empty_and_nobody_reads_the_token():
+    """El final de la lista, fijado para que no se deshaga en silencio.
+
+    Si esta prueba falla es porque alguien volvió a añadir una entrada. Eso
+    puede estar justificado, pero tiene que ser una decisión visible en el
+    diff y no un apaño que pasa desapercibido.
+
+    English: the end of the list, pinned so it cannot be undone quietly. If
+    this fails someone added an entry back. That may be justified, but it has
+    to be a visible decision in the diff.
+    """
+    assert PAT_READERS == set(), (
+        f"PAT_READERS volvio a tener entradas: {sorted(PAT_READERS)}. "
+        f"La maquinaria del token se habia retirado del todo."
+    )
+
+
+def test_the_orphaned_readers_are_gone_for_good():
+    """Los tres archivos que lo leían ya no se cargaban desde ninguna página.
+
+    Borrarlos fue mejor que editarlos: no se arregla código muerto, se retira.
+
+    English: the three files that read it were loaded by no page at all.
+    Deleting beat editing: dead code is not fixed, it is removed.
+    """
+    for gone in (
+        "web/ops/js/ops-panel.js",
+        "web/ops/js/ops-monitor.js",
+        "web/ops/js/vigil-log.js",
+        "web/ops/js/ops-command.js",
+        "web/ops/ops.css",
+    ):
+        assert not (REPO_ROOT / gone).exists(), f"{gone} volvio a aparecer"
 
 
 def test_the_assistant_is_not_on_the_list():

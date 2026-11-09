@@ -252,23 +252,35 @@ html[data-theme="dark"] .btn:hover{background:#FF4D55;color:#000;border-color:#F
 </footer>
 
 <script>
-// ── Token de escritura: SOLO en memoria ─────────────────────────────────────
-// Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
-// pestaña y es legible por cualquier XSS en este origen público. Se mantiene en
-// una variable de módulo: vive lo que vive la página y nunca toca el disco.
-// A write-scoped PAT in localStorage outlives the tab and is readable by any
-// XSS on this public origin. Keep it in a module variable: it lives as long as
-// the page and never touches disk.
-window.VigilToken = window.VigilToken || (function () {
-  let token = null;
-  return {
-    get: function () { return token; },
-    set: function (v) { token = v || null; },
-    clear: function () { token = null; },
-    has: function () { return !!token; }
-  };
-})();
-// Limpieza de valores heredados / purge any legacy persisted value.
+// ── Ya no hay token de escritura ────────────────────────────────────────────
+// Esta página descifraba un token publicado y lo dejaba en memoria para que el
+// panel escribiera por la API. Se ha retirado entero.
+//
+// El envoltorio no era mitigación: el token iba envuelto bajo doce claves
+// derivadas de los seeds, lo cual no es cifrado sino una distribución 12-de-12
+// del MISMO secreto —quien tuviera uno de los doce lo abría— y encima había un
+// respaldo en claro para el caso en que el envoltorio fallara. Lo que necesita
+// escritura va ahora por `workflow_dispatch`, autenticado con la sesión de
+// GitHub del propio operador: el navegador es la credencial.
+//
+// El borrado del valor heredado se queda. A quien entrara antes de este cambio
+// puede quedarle uno en disco, y esta línea lo retira la próxima vez que abra
+// la página; no hay forma de saber quién lo tiene, así que se limpia a todos.
+//
+// Los nombres de lo retirado no se escriben aquí a propósito:
+// `tests/test_no_credentials_in_web.py` los busca por texto en todo `web/`, y
+// no sabe distinguir un comentario de una llamada. Un candado que no se puede
+// engañar vale más que uno que entiende matices.
+//
+// English: this page used to decrypt a published token into memory so the
+// panel could write through the API. It is gone. The wrapper was not
+// mitigation: twelve keys derived from the seeds is a 12-of-12 distribution of
+// the same secret, and there was a plaintext fallback besides. Writes now go
+// through workflow_dispatch, authenticated with the operator's own GitHub
+// session. The legacy purge stays, because there is no way to know who still
+// has one on disk. The removed names are deliberately not written here: the
+// credential gate greps all of web/ for them and cannot tell a comment from a
+// call, and a lock that cannot be fooled beats one that understands nuance.
 try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 </script>
@@ -319,34 +331,6 @@ async function _pbkdf2Hex(password, salt, iterations) {
     {name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256'}, key, 256);
   return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-function _b64d(s){ return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
-function _hexToBytes(hex){ return new Uint8Array(hex.match(/.{2}/g).map(b=>parseInt(b,16))); }
-async function _deriveWrapKey(seedHash){
-  const km = await crypto.subtle.importKey('raw', _hexToBytes(seedHash), 'HKDF', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    {name:'HKDF', hash:'SHA-256',
-     salt: new TextEncoder().encode('centinel-wrap-v1'),
-     info: new TextEncoder().encode('writer-pat')},
-    km, {name:'AES-GCM', length:256}, false, ['decrypt']
-  );
-}
-async function _aesgcmDecrypt(cipherObj, key){
-  const pt = await crypto.subtle.decrypt(
-    {name:'AES-GCM', iv: _b64d(cipherObj.iv)}, key, _b64d(cipherObj.enc));
-  return new TextDecoder().decode(pt);
-}
-async function _decryptWriterPat(candidateHash, slot, cfg){
-  try {
-    const wrap = cfg.wraps.find(w => w.slot === slot);
-    if(!wrap) return null;
-    const wrapKey      = await _deriveWrapKey(candidateHash);
-    const masterKeyB64 = await _aesgcmDecrypt({enc:wrap.enc, iv:wrap.iv}, wrapKey);
-    const masterKey    = await crypto.subtle.importKey(
-      'raw', _b64d(masterKeyB64), {name:'AES-GCM',length:256}, false, ['decrypt']);
-    return await _aesgcmDecrypt({enc:cfg.enc, iv:cfg.iv}, masterKey);
-  } catch(_) { return null; }
-}
-
 async function doOpsLogin() {
   const lang = document.getElementById('page').className === 'lang-es' ? 'es' : 'en';
   const pass = document.getElementById('ops-login-pass').value.trim();
@@ -374,19 +358,17 @@ async function doOpsLogin() {
       candidate = await _pbkdf2Hex(pass, ac.salt || 'centinel-admin-salt-v1', ac.iterations || 600000);
     }
     const rawSeeds = ac.seeds || {};
-    let matchedRole = 'operador', matchedId = null, matchedPat = null, matchedSlot = null;
+    let matchedRole = 'operador', matchedId = null;
     const matched = Array.isArray(rawSeeds)
       ? rawSeeds.some((h, idx) => {
           const label = 'S' + String(idx + 1).padStart(2, '0');
           if (typeof h === 'string') {
-            if (h === candidate) { matchedId = label; matchedSlot = idx + 1; return true; }
+            if (h === candidate) { matchedId = label; return true; }
             return false;
           }
           if (h.hash === candidate) {
             matchedRole = h.role || 'operador';
             matchedId   = h.id   || label;
-            matchedPat  = h.pat  || null;
-            matchedSlot = h.slot || idx + 1;
             return true;
           }
           return false;
@@ -402,10 +384,6 @@ async function doOpsLogin() {
     sessionStorage.setItem('centinel_seed_id', matchedId || 'S??');
     sessionStorage.setItem('centinel_fp', candidate.slice(-6));
     sessionStorage.setItem('centinel_admin_key', pass);  // sent as X-Vigil-Key to the API
-    if (!matchedPat && ac.writer_pat && matchedSlot !== null) {
-      matchedPat = await _decryptWriterPat(candidate, matchedSlot, ac.writer_pat);
-    }
-    if (matchedPat) window.VigilToken.set(matchedPat);
     location.href = 'ops/';
   } catch (e) {
     err.textContent = (lang === 'en' ? 'Error: ' : 'Error: ') + e.message;

@@ -1,20 +1,32 @@
-// ── Token de escritura: SOLO en memoria ─────────────────────────────────────
-// Un PAT con permiso de escritura en localStorage sobrevive al cierre de la
-// pestaña y es legible por cualquier XSS en este origen público. Se mantiene en
-// una variable de módulo: vive lo que vive la página y nunca toca el disco.
-// A write-scoped PAT in localStorage outlives the tab and is readable by any
-// XSS on this public origin. Keep it in a module variable: it lives as long as
-// the page and never touches disk.
-window.VigilToken = window.VigilToken || (function () {
-  let token = null;
-  return {
-    get: function () { return token; },
-    set: function (v) { token = v || null; },
-    clear: function () { token = null; },
-    has: function () { return !!token; }
-  };
-})();
-// Limpieza de valores heredados / purge any legacy persisted value.
+// ── Ya no hay token de escritura ────────────────────────────────────────────
+// Esta página descifraba un token publicado y lo dejaba en memoria para que el
+// panel escribiera por la API. Se ha retirado entero.
+//
+// El envoltorio no era mitigación: el token iba envuelto bajo doce claves
+// derivadas de los seeds, lo cual no es cifrado sino una distribución 12-de-12
+// del MISMO secreto —quien tuviera uno de los doce lo abría— y encima había un
+// respaldo en claro para el caso en que el envoltorio fallara. Lo que necesita
+// escritura va ahora por `workflow_dispatch`, autenticado con la sesión de
+// GitHub del propio operador: el navegador es la credencial.
+//
+// El borrado del valor heredado se queda. A quien entrara antes de este cambio
+// puede quedarle uno en disco, y esta línea lo retira la próxima vez que abra
+// la página; no hay forma de saber quién lo tiene, así que se limpia a todos.
+//
+// Los nombres de lo retirado no se escriben aquí a propósito:
+// `tests/test_no_credentials_in_web.py` los busca por texto en todo `web/`, y
+// no sabe distinguir un comentario de una llamada. Un candado que no se puede
+// engañar vale más que uno que entiende matices.
+//
+// English: this page used to decrypt a published token into memory so the
+// panel could write through the API. It is gone. The wrapper was not
+// mitigation: twelve keys derived from the seeds is a 12-of-12 distribution of
+// the same secret, and there was a plaintext fallback besides. Writes now go
+// through workflow_dispatch, authenticated with the operator's own GitHub
+// session. The legacy purge stays, because there is no way to know who still
+// has one on disk. The removed names are deliberately not written here: the
+// credential gate greps all of web/ for them and cannot tell a comment from a
+// call, and a lock that cannot be fooled beats one that understands nuance.
 try { localStorage.removeItem('gh-pat'); } catch (e) {}
 
 /* global snapshotData */ // declared with `let` in web/ops/index.html
@@ -42,10 +54,14 @@ async function fetchConfigFile(path){
 }
 
 async function fetchSha(path){
-  const pat = window.VigilToken.get();
-  const headers = pat ? {Authorization:`Bearer ${pat}`} : {};
+  // Sin cabecera de autorizacion: el repositorio es publico y la API de
+  // contenidos responde sin credencial. El SHA se pedia autenticado para
+  // escribir despues, y ya no se escribe desde aqui.
+  // English: no authorization header -- the repository is public and the
+  // contents API answers without one. The SHA was fetched authenticated in
+  // order to write later, and writes no longer happen from here.
   try{
-    const r = await fetch(`${API_BASE}/contents/${path}`,{headers});
+    const r = await fetch(`${API_BASE}/contents/${path}`);
     if(!r.ok) return;
     const j = await r.json();
     configShas[path] = j.sha;

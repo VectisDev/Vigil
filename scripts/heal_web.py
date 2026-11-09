@@ -19,28 +19,48 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WEB_DIR   = REPO_ROOT / "web"
+WEB_DIR = REPO_ROOT / "web"
 
-BOLD  = "\033[1m"
+BOLD = "\033[1m"
 GREEN = "\033[32m"
-RED   = "\033[31m"
-CYAN  = "\033[36m"
+RED = "\033[31m"
+CYAN = "\033[36m"
 RESET = "\033[0m"
 
+# Lo que el sitio publicado carga de verdad, y nada mas.
+#
+# Esta lista vigilaba cinco archivos que el panel v4 dejo de cargar
+# —`ops.css`, `ops-panel.js`, `ops-monitor.js`, `ops-command.js` y
+# `vigil-log.js`— y NO vigilaba ninguno de los que si carga. El healer
+# protegia lo muerto y dejaba lo vivo sin red: si `ops-v4.js` hubiera
+# desaparecido, nadie se habria enterado hasta abrir la pagina.
+#
+# Quien anada un archivo al panel tiene que anadirlo aqui tambien;
+# `tests/test_heal_web_watches_what_is_served.py` falla si no lo hace.
+#
+# English: what the published site actually loads, and nothing else. This
+# list guarded five files the v4 panel stopped loading and guarded none of
+# the ones it does load -- the healer protected the dead and left the live
+# without a net.
 CRITICAL_FILES = [
     "web/index.html",
     "web/access.json",
     "web/config.js",
     "web/replay/index.html",
     "web/verifier/index.html",
+    "web/lab/index.html",
+    "web/monitor/index.html",
+    "web/shared/vigil-theme.js",
+    "web/shared/vigil-theme.css",
+    "web/shared/brand-header.css",
+    "web/shared/tokens.css",
+    "web/shared/vigil-nav.css",
     "web/ops/index.html",
-    "web/ops/ops.css",
+    "web/ops/ops-v4.css",
     "web/ops/js/ops-core.js",
-    "web/ops/js/ops-panel.js",
-    "web/ops/js/ops-monitor.js",
-    "web/ops/js/ops-command.js",
+    "web/ops/js/ops-tabs.js",
+    "web/ops/js/ops-v4.js",
     "web/ops/data/s3_mirror_status.json",
-    "web/ops/js/vigil-log.js",
     ".github/workflows/pages.yml",
 ]
 
@@ -54,7 +74,9 @@ def _git_restore(path: str) -> bool:
     try:
         subprocess.run(
             ["git", "checkout", "HEAD", "--", path],
-            cwd=REPO_ROOT, check=True, capture_output=True,
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
         )
         return True
     except subprocess.CalledProcessError:
@@ -105,7 +127,7 @@ def run(dry_run: bool = False) -> int:
 
     print(f"\n{'─'*50}")
     if dry_run:
-        print(f"  Dry-run mode — no changes made.")
+        print("  Dry-run mode — no changes made.")
     else:
         print(f"  Healed: {healed}  |  Errors: {errors}")
 
