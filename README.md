@@ -12,10 +12,10 @@
 <p align="center"><strong>Integridad electoral verificable</strong></p>
 
 <p align="center">
-  <a href="https://github.com/VectisDev/Vigil/actions/workflows/ci.yml"><img alt="CI en la rama main" src="https://img.shields.io/badge/CI-main-D7262E?style=flat&labelColor=0A0A0A"></a>
-  <a href="LICENSE"><img alt="Licencia AGPL-3.0" src="https://img.shields.io/badge/licencia-AGPL--3.0-0A0A0A?style=flat&labelColor=D7262E"></a>
-  <a href="https://zenodo.org/records/20598892"><img alt="Datos 10.5281/zenodo.20598892" src="https://img.shields.io/badge/datos-10.5281%2Fzenodo.20598892-D7262E?style=flat&labelColor=0A0A0A"></a>
-  <a href="https://vectisdev.github.io/Vigil/"><img alt="Página del proyecto" src="https://img.shields.io/badge/p%C3%A1gina-en_l%C3%ADnea-0A0A0A?style=flat&labelColor=D7262E"></a>
+  <a href="https://github.com/VectisDev/Vigil/actions/workflows/ci.yml"><img alt="Estado de la integración continua en la rama main" src="https://github.com/VectisDev/Vigil/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="LICENSE"><img alt="Licencia AGPL-3.0" src="https://img.shields.io/badge/licencia-AGPL--3.0-5E5E66?style=flat&amp;labelColor=0A0A0A"></a>
+  <a href="https://zenodo.org/records/20598892"><img alt="Datos 10.5281/zenodo.20598892" src="https://img.shields.io/badge/datos-10.5281%2Fzenodo.20598892-5E5E66?style=flat&amp;labelColor=0A0A0A"></a>
+  <a href="https://vectisdev.github.io/Vigil/"><img alt="Página del proyecto" src="https://img.shields.io/badge/p%C3%A1gina-en_l%C3%ADnea-5E5E66?style=flat&amp;labelColor=0A0A0A"></a>
 </p>
 
 ## ¿Qué es VIGIL?
