@@ -1,51 +1,110 @@
-/* Un fondo por modo. Claro es blanco, oscuro es negro.
-   Las secciones no cambian de color: se separan con filetes. */
+/* Un fondo por modo. Las secciones no cambian de color: se separan con
+   filetes.
+
+   Los dos modos tenian el mismo defecto, y el claro tambien: negro puro sobre
+   blanco puro, con `--muted` a #1a1a1a. Eso da 21:1 para el texto principal y
+   17.40:1 para el secundario — una relacion de 1.21x, que no es una jerarquia
+   sino el mismo volumen dos veces. Y `--border: #000000` ponia un filete a
+   21:1 alrededor de cada control.
+
+   Medido sobre blanco:
+
+     texto principal   #17171A   17.89:1   (antes 21.00)
+     texto secundario  #5E5E66    6.42:1   (antes 17.40 — ahora si lo es)
+     borde de control  #8E8E98    3.24:1   (antes 21.00; minimo 3:1 por
+                                            WCAG 1.4.11)
+     filete            #E5E5E5    1.26:1   separa sin gritar
+     rojo              #D7262E    4.99:1   intacto
+
+   Jerarquia principal/secundario: de 1.21x a 2.78x.
+
+   English: both modes had the same fault. Pure black on pure white gives 21:1
+   primary against 17.40:1 secondary -- a ratio of 1.21x, which is not a
+   hierarchy but the same volume twice -- and a 21:1 hairline around every
+   control. Primary-to-secondary now goes from 1.21x to 2.78x. */
 html[data-theme="light"] {
   --bg: #ffffff;
-  --fg: #000000;
+  --fg: #17171A;
   --panel: #ffffff;
-  --panel2: #ffffff;
-  --border: #000000;
-  --muted: #1a1a1a;
+  --panel2: #FAFAFB;
+  --border: #8E8E98;
+  --muted: #5E5E66;
   --red: #D7262E;
   --accent: #D7262E;
   --bad: #D7262E;
   --bad-c: #D7262E;
   --on-red: #ffffff;
   --white: #ffffff;
-  --black: #000000;
-  --stone: #ffffff;
-  --ash: #000000;
-  --mid: #1a1a1a;
-  --dim: #1a1a1a;
+  --black: #17171A;
+  --stone: #FAFAFB;
+  --ash: #17171A;
+  --mid: #5E5E66;
+  --dim: #5E5E66;
   --tooltip-bg: #ffffff;
   --drawer-bg: #ffffff;
-  --txt: #000000;
-  --txt-dim: #1a1a1a;
+  --txt: #17171A;
+  --txt-dim: #5E5E66;
+  --hairline: #E5E5E5;
   color-scheme: light;
 }
+/* ── Modo noche ───────────────────────────────────────────────────────────────
+   Era blanco puro sobre negro puro: 21:1, el maximo que existe. Eso no es
+   «buen contraste», es el modo de alto contraste que los sistemas operativos
+   ofrecen aparte, y se nota — el texto blanco sobre negro absoluto produce
+   halacion (el borde brilla y las letras parecen vibrar), y en pantallas OLED
+   el negro puro ademas arrastra al desplazarse.
+
+   El otro problema era peor y no se ve a simple vista: `--muted` estaba en
+   #f2f2f2, o sea 18.76:1 frente a los 21:1 del texto principal. Una relacion
+   de 1.12x entre lo principal y lo secundario significa que no habia
+   jerarquia: todo gritaba por igual, y los bordes a #ffffff gritaban tambien.
+
+   Medido sobre el fondo nuevo (#0E0E10):
+
+     texto principal   #EAEAEC   16.05:1   (antes 21.00 — sigue 3.5x sobre AA)
+     texto secundario  #9FA0A6    7.40:1   (antes 18.76 — ahora si es secundario)
+     borde de control  #65656D    3.34:1   (antes 21.00 — sobre el minimo 3:1
+                                            que pide WCAG 1.4.11 para bordes
+                                            de controles)
+     filete            #2A2A2E    1.35:1   decorativo, separa sin gritar
+     superficies       #161619 / #1D1D21   antes no existian: todo era el
+                                            mismo negro y la pagina se veia
+                                            plana como una terminal
+     rojo              #FF4D55    5.92:1   intacto, y sigue sobre AA
+
+   La relacion principal/secundario pasa de 1.12x a 2.17x. Eso es lo que hace
+   que se lea como una jerarquia y no como una alarma.
+
+   English: it was pure white on pure black -- 21:1, the maximum that exists.
+   That is not "good contrast", it is the high-contrast mode operating systems
+   offer separately, and it shows: white on absolute black halates and smears
+   on OLED. The worse problem was invisible: muted text sat at 18.76:1 against
+   the primary's 21:1, a ratio of 1.12x, so there was no hierarchy at all.
+   Everything shouted equally, borders included. Primary-to-secondary now goes
+   from 1.12x to 2.17x. Every value above is measured, not chosen by eye. */
 html[data-theme="dark"] {
-  --bg: #000000;
-  --fg: #ffffff;
-  --panel: #000000;
-  --panel2: #000000;
-  --border: #ffffff;
-  --muted: #f2f2f2;
+  --bg: #0E0E10;
+  --fg: #EAEAEC;
+  --panel: #161619;
+  --panel2: #1D1D21;
+  --border: #65656D;
+  --hairline: #2A2A2E;
+  --muted: #9FA0A6;
   --red: #FF4D55;
   --accent: #FF4D55;
   --bad: #FF4D55;
   --bad-c: #FF4D55;
-  --on-red: #000000;
-  --white: #000000;
-  --black: #ffffff;
-  --stone: #000000;
-  --ash: #ffffff;
-  --mid: #f2f2f2;
-  --dim: #f2f2f2;
-  --tooltip-bg: #000000;
-  --drawer-bg: #000000;
-  --txt: #ffffff;
-  --txt-dim: #f2f2f2;
+  --on-red: #0E0E10;
+  --white: #0E0E10;
+  --black: #EAEAEC;
+  --stone: #161619;
+  --ash: #EAEAEC;
+  --mid: #9FA0A6;
+  --dim: #9FA0A6;
+  --tooltip-bg: #161619;
+  --drawer-bg: #161619;
+  --txt: #EAEAEC;
+  --txt-dim: #9FA0A6;
   color-scheme: dark;
 }
 

@@ -243,7 +243,7 @@ _LOOK_JS = """() => {
 @pytest.mark.parametrize("width,height", [(1440, 900), (390, 844)])
 @pytest.mark.parametrize(
     "scheme,theme,bg",
-    [("light", "light", "rgb(255, 255, 255)"), ("dark", "dark", "rgb(0, 0, 0)")],
+    [("light", "light", "rgb(255, 255, 255)"), ("dark", "dark", "rgb(14, 14, 16)")],
 )
 def test_the_toggle_keeps_contrast_and_one_background(browser, site, width, height, scheme, theme, bg):
     context = browser.new_context(viewport={"width": width, "height": height}, color_scheme=scheme)
@@ -276,7 +276,7 @@ def test_the_choice_survives_reload_at_both_widths(browser, site, width, height)
         page.locator("#theme-toggle").click()
         page.wait_for_function("document.documentElement.getAttribute('data-theme') === 'dark'")
         assert page.evaluate("localStorage.getItem('vigil-theme')") == "dark"
-        assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(0, 0, 0)"
+        assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(14, 14, 16)"
         page.reload(wait_until="domcontentloaded")
         page.locator("#theme-toggle").wait_for(state="visible")
         assert page.evaluate("document.documentElement.getAttribute('data-theme')") == "dark"
