@@ -430,10 +430,10 @@ Puedes mantener histórico ilimitado o comprimir logs viejos.
 
 ## Recursos
 
-- [QUICKSTART.md](QUICKSTART.md) — Primeros 5 minutos
-- [OPERATOR-PANEL.md](OPERATOR-PANEL.md) — Panel operador
+- [QUICKSTART.md](../guides/QUICKSTART.md) — Primeros 5 minutos
+- [OPERATOR-PANEL.md](../operations/OPERATOR-PANEL.md) — Panel operador
 - [ARGOS-PROTOCOL-ES.md](ARGOS-PROTOCOL-ES.md) — Protocolo ARGOS — detalle de capas
-- [KILL-SWITCH-CONFIG.md](KILL-SWITCH-CONFIG.md) — Tejón + recuperación
+- [KILL-SWITCH-CONFIG.md](../security/KILL-SWITCH-CONFIG.md) — Tejón + recuperación
 
 ---
 

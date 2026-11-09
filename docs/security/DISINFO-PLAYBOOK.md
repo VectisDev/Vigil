@@ -164,7 +164,7 @@ thresholds can publish their own findings — we invite that.
 Our published 500-trial Monte Carlo analysis estimates a false positive
 rate below 5% across our 23 rules. We acknowledge this sample size is
 below what we would want for publication in a peer-reviewed journal, and
-we have documented this limitation explicitly in [WP-CENTINEL-2026-01](docs/research/WP-CENTINEL-2026-01.md).
+we have documented this limitation explicitly in [WP-CENTINEL-2026-01](../research/FALSE_POSITIVE_ANALYSIS.md).
 We are expanding the validation to 10,000 trials. In the meantime, we
 encourage independent replication: the simulation code is at https://github.com/VectisDev/Vigil/blob/main/docs and
 anyone can run it with any seed or trial count. What we report as

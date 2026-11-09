@@ -3,7 +3,7 @@
 ## Español
 
 ### Propósito
-Describe el flujo operativo completo de VIGIL y las cadencias recomendadas para distintos modos. Se alinea con el [README](../README.md) y con el marco legal de [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
+Describe el flujo operativo completo de VIGIL y las cadencias recomendadas para distintos modos. Se alinea con el [README](../README.md) y con el marco legal de [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](../legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
 
 ### Flujo operativo detallado (6 pasos)
 1. **Captura de datos públicos**
@@ -30,7 +30,7 @@ Describe el flujo operativo completo de VIGIL y las cadencias recomendadas para 
    - Se generan reportes reproducibles basados en evidencia.
    - Listos para revisión por terceros y expansión a formatos PDF.
 
-> Ver más detalles metodológicos en [METHODOLOGY.md](METHODOLOGY.md).
+> Ver más detalles metodológicos en [METHODOLOGY.md](../research/METHODOLOGY.md).
 
 ### Cadencias recomendadas
 
@@ -54,16 +54,16 @@ Describe el flujo operativo completo de VIGIL y las cadencias recomendadas para 
 
 ### Enlaces relacionados
 - [README](../README.md)
-- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
-- [METHODOLOGY.md](METHODOLOGY.md)
-- [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md)
+- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](../legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
+- [METHODOLOGY.md](../research/METHODOLOGY.md)
+- [SECURITY-AND-SECRETS.md](../security/SECURITY-AND-SECRETS.md)
 
 ---
 
 ## English
 
 ### Purpose
-Describes the full operational flow of VIGIL and recommended cadences for different modes. It aligns with the [README](../README.md) and the legal framework in [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
+Describes the full operational flow of VIGIL and recommended cadences for different modes. It aligns with the [README](../README.md) and the legal framework in [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](../legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md).
 
 ### Detailed operational flow (6 steps)
 1. **Capture public data**
@@ -90,7 +90,7 @@ Describes the full operational flow of VIGIL and recommended cadences for differ
    - Generates reproducible reports based on evidence.
    - Ready for third-party review and future PDF expansion.
 
-> See methodological detail in [METHODOLOGY.md](METHODOLOGY.md).
+> See methodological detail in [METHODOLOGY.md](../research/METHODOLOGY.md).
 
 ### Recommended cadences
 
@@ -114,6 +114,6 @@ Describes the full operational flow of VIGIL and recommended cadences for differ
 
 ### Related links
 - [README](../README.md)
-- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
-- [METHODOLOGY.md](METHODOLOGY.md)
-- [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md)
+- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](../legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
+- [METHODOLOGY.md](../research/METHODOLOGY.md)
+- [SECURITY-AND-SECRETS.md](../security/SECURITY-AND-SECRETS.md)

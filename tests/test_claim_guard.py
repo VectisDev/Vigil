@@ -36,7 +36,8 @@ SCANNED = [
     "web/status/index.html",
     "docs/grants/OTF_CONCEPT_NOTE_FINAL.md",
     "docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md",
-    ".github/SECURITY.md",
+    "README.en.md",
+    "SECURITY.md",
     "docs/security/SECURITY-POLICY.md",
     "docs/compliance/SECURITY_POLICY.md",
     "docs/THREAT_MODEL.md",
@@ -128,7 +129,7 @@ def test_old_contact_address_does_not_reappear() -> None:
         if retired in text:
             problems.append(str(path.relative_to(ROOT)))
     assert problems == []
-    assert current in (ROOT / ".github" / "SECURITY.md").read_text(encoding="utf-8")
+    assert current in (ROOT / "SECURITY.md").read_text(encoding="utf-8")
     for note in (
         "docs/grants/OTF_CONCEPT_NOTE_FINAL.md",
         "docs/grants/OTF_CONCEPT_NOTE_FINAL.es.md",
@@ -180,7 +181,7 @@ def test_applicant_is_an_individual_and_notes_are_rolling() -> None:
 
 
 def test_security_policy_matches_one_maintainer() -> None:
-    policy = _read(".github/SECURITY.md")
+    policy = _read("SECURITY.md")
     current = "vectisdev26@proton.me"
     assert current in policy
     assert "48 hours" not in policy

@@ -1,6 +1,6 @@
 # Security policy — pointer
 
-The disclosure policy is [`.github/SECURITY.md`](../../.github/SECURITY.md).
+The disclosure policy is [`SECURITY.md`](../../SECURITY.md).
 This page used to restate controls that the tree does not provide. Those statements are withdrawn.
 
 One person maintains the repository, under the pseudonym VectisDev. There is no security team.

@@ -9,7 +9,7 @@ Define prácticas de seguridad para VIGIL, incluyendo manejo de secretos, cifrad
 - Los tokens, claves privadas y contraseñas no se commitean. Cifrarlos y subir el archivo sigue siendo un secreto en git.
 - Los secretos de GitHub Actions viven en la configuración del repositorio, no en el árbol.
 - `scripts/encrypt_secrets.py` sirve para un archivo local. Este repositorio no guarda una clave de Arbitrum ni una clave de firma, cifrada o no.
-- Contacto de seguridad: vectisdev26@proton.me y el aviso privado de GitHub. Ver `.github/SECURITY.md`.
+- Contacto de seguridad: vectisdev26@proton.me y el aviso privado de GitHub. Ver `SECURITY.md`.
 
 ### Cifrado y protección de datos
 - **Hashing criptográfico:** snapshots y diffs se protegen con hashes encadenados para integridad.
@@ -29,13 +29,13 @@ Define prácticas de seguridad para VIGIL, incluyendo manejo de secretos, cifrad
 ### Auditoría y cumplimiento
 - **Escaneos de vulnerabilidades:** ejecutar `make scan-security` (requiere GitHub CLI).
 - **Revisión de configuraciones:** verificar que los secretos estén fuera del control de versiones.
-- **Trazabilidad reproducible:** alinear con la metodología en [METHODOLOGY.md](METHODOLOGY.md).
+- **Trazabilidad reproducible:** alinear con la metodología en [METHODOLOGY.md](../research/METHODOLOGY.md).
 
 ### Enlaces relacionados
 - [README](../README.md)
-- [METHODOLOGY.md](METHODOLOGY.md)
-- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
-- [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)
+- [METHODOLOGY.md](../research/METHODOLOGY.md)
+- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](../legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
+- [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md)
 - [SECRETS_BACKUP.md](SECRETS_BACKUP.md)
 
 ---
@@ -49,7 +49,7 @@ Defines security practices for VIGIL, including secrets handling, encryption, sa
 - Tokens, private keys, and passwords are not committed. Encrypting them and uploading the file is still a secret in git.
 - GitHub Actions secrets live in repository settings, not in the tree.
 - `scripts/encrypt_secrets.py` is for a local file. This repository does not store an Arbitrum key or a signing key, encrypted or otherwise.
-- Security contact: vectisdev26@proton.me and GitHub private vulnerability reporting. See `.github/SECURITY.md`.
+- Security contact: vectisdev26@proton.me and GitHub private vulnerability reporting. See `SECURITY.md`.
 
 ### Encryption and data protection
 - **Cryptographic hashing:** snapshots and diffs are protected with chained hashes for integrity.
@@ -69,11 +69,11 @@ Defines security practices for VIGIL, including secrets handling, encryption, sa
 ### Auditing and compliance
 - **Vulnerability scans:** run `make scan-security` (requires GitHub CLI).
 - **Configuration review:** ensure secrets remain out of version control.
-- **Reproducible traceability:** align with [METHODOLOGY.md](METHODOLOGY.md).
+- **Reproducible traceability:** align with [METHODOLOGY.md](../research/METHODOLOGY.md).
 
 ### Related links
 - [README](../README.md)
-- [METHODOLOGY.md](METHODOLOGY.md)
-- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
-- [OPERATIONAL-FLOW-AND-CADENCE.md](OPERATIONAL-FLOW-AND-CADENCE.md)
+- [METHODOLOGY.md](../research/METHODOLOGY.md)
+- [LEGAL-AND-OPERATIONAL-BOUNDARIES.md](../legal/LEGAL-AND-OPERATIONAL-BOUNDARIES.md)
+- [OPERATIONAL-FLOW-AND-CADENCE.md](../operations/OPERATIONAL-FLOW-AND-CADENCE.md)
 - [SECRETS_BACKUP.md](SECRETS_BACKUP.md)

@@ -4,7 +4,7 @@
 **Version:** 1.1 | **Date:** 2026-11-07
 
 One maintainer, pseudonym VectisDev. There is no on-call rotation and no response measured in minutes.
-A security bug in the software goes to [`.github/SECURITY.md`](../../.github/SECURITY.md), not to this electoral-anomaly note.
+A security bug in the software goes to [`SECURITY.md`](../../SECURITY.md), not to this electoral-anomaly note.
 This note is what that same person does when they are at the keyboard and a stored series looks wrong.
 
 ---
@@ -180,7 +180,7 @@ Estas condiciones son esperadas y NO deben escalar:
 ### Purpose
 
 This document is what the one maintainer does when they are at the keyboard and a stored series looks wrong.
-There is no on-call clock. A software vulnerability is reported through `.github/SECURITY.md`.
+There is no on-call clock. A software vulnerability is reported through `SECURITY.md`.
 
 ---
 
@@ -249,4 +249,4 @@ SHA-256 of evidence_package.zip:
 ---
 
 *Bilingual document ES/EN — Last revision: 2025-05-17*
-*See also: [METHODOLOGY.md](METHODOLOGY.md) | [THEORY_OF_CHANGE.md](THEORY_OF_CHANGE.md)*
+*See also: [METHODOLOGY.md](../research/METHODOLOGY.md) | [THEORY_OF_CHANGE.md](../architecture/THEORY_OF_CHANGE.md)*

@@ -232,5 +232,5 @@ depender del gobierno
 ---
 
 *Documento bilingüe ES/EN — Última revisión: 2025-05-17*
-*Para la metodología técnica detallada ver: [METHODOLOGY.md](METHODOLOGY.md)*
-*Para el protocolo de incidentes ver: [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md)*
+*Para la metodología técnica detallada ver: [METHODOLOGY.md](../research/METHODOLOGY.md)*
+*Para el protocolo de incidentes ver: [INCIDENT_RESPONSE.md](../security/INCIDENT_RESPONSE.md)*

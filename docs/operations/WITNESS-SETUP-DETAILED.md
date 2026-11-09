@@ -479,8 +479,8 @@ tail -50 logs/api.log
 
 **For more**, see:
 - [OPERATOR-RUNBOOKS.md](OPERATOR-RUNBOOKS.md) — Election night procedures
-- [ANOMALY-DETECTION.md](ANOMALY-DETECTION.md) — How to interpret alerts
-- [CORS-SECURITY.md](CORS-SECURITY.md) — Verifier access control
+- [ANOMALY-DETECTION.md](../architecture/ANOMALY-DETECTION.md) — How to interpret alerts
+- [CORS-SECURITY.md](../security/CORS-SECURITY.md) — Verifier access control
 
 ---
 

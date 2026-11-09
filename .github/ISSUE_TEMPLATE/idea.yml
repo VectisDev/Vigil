@@ -1,0 +1,32 @@
+name: Idea / Idea
+description: >-
+  Una mejora o una función que falta.
+  An improvement or a missing function.
+title: "Idea: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: para-que
+    attributes:
+      label: Para qué / What it is for
+      description: >-
+        El problema que resuelve, en pocas frases.
+        The problem it solves, in a few sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Propuesta / Proposal
+      description: Cómo podría funcionar. / How it could work.
+    validations:
+      required: false
+  - type: textarea
+    id: limites
+    attributes:
+      label: Qué no debería hacer / What it should not do
+      description: >-
+        El programa registra lo publicado. No señala un responsable y no toma partido.
+        The program records what was published. It does not name a responsible party and it does not take a side.
+    validations:
+      required: false

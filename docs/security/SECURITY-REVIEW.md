@@ -1,10 +1,10 @@
 # Security Review | Notas de seguridad
 
 **Status:** maintainer notes. Not a third-party audit. The percentages below are not a measured assurance level.
-Disclosure, contact, and response time are in [`.github/SECURITY.md`](../../.github/SECURITY.md).
+Disclosure, contact, and response time are in [`SECURITY.md`](../../SECURITY.md).
 
 **Estado:** notas del mantenedor. No es una auditoría de un tercero. Los porcentajes de abajo no son un nivel de aseguramiento medido.
-La divulgación, el contacto y el plazo están en [`.github/SECURITY.md`](../../.github/SECURITY.md).
+La divulgación, el contacto y el plazo están en [`SECURITY.md`](../../SECURITY.md).
 
 **Version:** 1.0 | **Date:** 2026-05-18
 

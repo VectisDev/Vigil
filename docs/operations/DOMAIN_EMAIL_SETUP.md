@@ -7,7 +7,7 @@ No hay una organización que ese dominio pudiera representar.
 Un dominio propio es opcional y no está hecho. Si algún día se registra:
 
 - La privacidad de WHOIS se deja activada. El nombre legal no se publica.
-- El buzón no sustituye a `vectisdev26@proton.me` hasta que `.github/SECURITY.md`, `CITATION.cff` y `pyproject.toml` cambien en el mismo commit.
+- El buzón no sustituye a `vectisdev26@proton.me` hasta que `SECURITY.md`, `CITATION.cff` y `pyproject.toml` cambien en el mismo commit.
 - No se compra un dominio para parecer una organización.
 
 ## Nota histórica sobre un dominio propio

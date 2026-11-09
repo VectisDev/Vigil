@@ -25,12 +25,12 @@ with SHA-256, and applies statistical detectors to flag anomalies and integrity 
 
 | # | Documento / Document | Ruta / Path | Descripción |
 |---|---|---|---|
-| 1 | **Theory of Change** | [`docs/THEORY_OF_CHANGE.md`](../docs/THEORY_OF_CHANGE.md) | Por qué reduce la asimetría de información / Why it reduces information asymmetry risk |
-| 2 | **Methodology** | [`docs/METHODOLOGY.md`](../docs/METHODOLOGY.md) | Descripción técnica de los 24 detectores estadísticos / Technical description of the 24 detectors |
-| 3 | **Governance** | [`docs/GOVERNANCE.md`](../docs/GOVERNANCE.md) | Estructura de decisión, licencia AGPL y sostenibilidad / Decision structure, AGPL license, sustainability |
-| 4 | **Security Audit** | [`SECURITY_AUDIT.md`](../docs/audits/SECURITY_AUDIT.md) | Red-team interno RT-01..RT-15, score 9.9/10, todos cerrados / Internal red-team, all 15 issues closed |
-| 5 | **False Positive Analysis** | [`docs/FALSE_POSITIVE_ANALYSIS.md`](../docs/FALSE_POSITIVE_ANALYSIS.md) | Análisis de tasa de falsas alarmas por detector / False alarm rate per detector |
-| 6 | **Budget Narrative** | [`docs/BUDGET_NARRATIVE.md`](../docs/BUDGET_NARRATIVE.md) | Presupuesto detallado para grant OTF / Detailed OTF grant budget ($95K, 12 meses) |
+| 1 | **Theory of Change** | [`docs/grants/THEORY_OF_CHANGE.md`](../docs/grants/THEORY_OF_CHANGE.md) | Por qué reduce la asimetría de información / Why it reduces information asymmetry risk |
+| 2 | **Methodology** | [`docs/research/METHODOLOGY.md`](../docs/research/METHODOLOGY.md) | Descripción técnica de los 24 detectores estadísticos / Technical description of the 24 detectors |
+| 3 | **Governance** | [`docs/legal/GOVERNANCE.md`](../docs/legal/GOVERNANCE.md) | Estructura de decisión, licencia AGPL y sostenibilidad / Decision structure, AGPL license, sustainability |
+| 4 | **Security Audit** | [`docs/audits/SECURITY_AUDIT.md`](../docs/audits/SECURITY_AUDIT.md) | Red-team interno RT-01..RT-15, score 9.9/10, todos cerrados / Internal red-team, all 15 issues closed |
+| 5 | **False Positive Analysis** | [`docs/research/FALSE_POSITIVE_ANALYSIS.md`](../docs/research/FALSE_POSITIVE_ANALYSIS.md) | Análisis de tasa de falsas alarmas por detector / False alarm rate per detector |
+| 6 | **Budget Narrative** | [`docs/grants/BUDGET_NARRATIVE.md`](../docs/grants/BUDGET_NARRATIVE.md) | Presupuesto detallado para grant OTF / Detailed OTF grant budget ($95K, 12 meses) |
 
 ---
 

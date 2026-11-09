@@ -355,10 +355,10 @@ Esto no es una afirmación sobre el impacto político de la herramienta. Es una 
 ## References / Referencias
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — cryptographic theorems T1–T4 and system design / teoremas criptográficos T1–T4 y diseño del sistema
-- [SECURITY-REVIEW.md](SECURITY-REVIEW.md) — threat model and dependency audit / modelo de amenazas y auditoría de dependencias
-- [METHODOLOGY.md](METHODOLOGY.md) — statistical detection methods / métodos de detección estadística
-- [EMERGENCY-PROCEDURES.md](EMERGENCY-PROCEDURES.md) — local fallback procedures / procedimientos de fallback local
-- [OPERATOR-RUNBOOKS.md](OPERATOR-RUNBOOKS.md) — ntfy.sh setup and auto-Issue reference / configuración de ntfy.sh y referencia de Issues automáticos
-- [SETUP-GUIDE.md](SETUP-GUIDE.md) — full wizard documentation including authenticated endpoints / documentación completa del wizard incluyendo endpoints con autenticación
-- [DATA-REPOS.md](DATA-REPOS.md) — code/data separation architecture / arquitectura de separación código/datos
-- [BUDGET_NARRATIVE.md](BUDGET_NARRATIVE.md) — OTF grant narrative ($95K / 12 months) / narrativa para grant OTF ($95K / 12 meses)
+- [SECURITY-REVIEW.md](../security/SECURITY-REVIEW.md) — threat model and dependency audit / modelo de amenazas y auditoría de dependencias
+- [METHODOLOGY.md](../research/METHODOLOGY.md) — statistical detection methods / métodos de detección estadística
+- [EMERGENCY-PROCEDURES.md](../security/EMERGENCY-PROCEDURES.md) — local fallback procedures / procedimientos de fallback local
+- [OPERATOR-RUNBOOKS.md](../operations/OPERATOR-RUNBOOKS.md) — ntfy.sh setup and auto-Issue reference / configuración de ntfy.sh y referencia de Issues automáticos
+- [SETUP-GUIDE.md](../operations/SETUP-GUIDE.md) — full wizard documentation including authenticated endpoints / documentación completa del wizard incluyendo endpoints con autenticación
+- [DATA-REPOS.md](../operations/DATA-REPOS.md) — code/data separation architecture / arquitectura de separación código/datos
+- [BUDGET_NARRATIVE.md](../grants/BUDGET_NARRATIVE.md) — OTF grant narrative ($95K / 12 months) / narrativa para grant OTF ($95K / 12 meses)

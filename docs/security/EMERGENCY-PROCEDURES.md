@@ -238,7 +238,7 @@ Si GitHub Actions sí funciona pero necesitas capturas más frecuentes que cada 
 2. Cambia `cron: '0 */3 * * *'` por `cron: '*/30 * * * *'`
 3. Haz commit + push — entra en efecto inmediatamente
 
-O usa el modo manual: **[Actions → Vigilante Electoral → Run workflow](../../actions/workflows/audit.yml)** con `election_mode: true` para una ejecución puntual inmediata.
+O usa el modo manual: **[Actions → Vigilante Electoral → Run workflow](../../.github/workflows/audit.yml)** con `election_mode: true` para una ejecución puntual inmediata.
 
 ---
 

@@ -36,7 +36,7 @@ El token por defecto es `contents: read`. El job que empuja commits o publica un
 
 ### Texto que manda
 
-[`.github/SECURITY.md`](https://github.com/VectisDev/Vigil/blob/main/.github/SECURITY.md). Si otra página no coincide, manda esa.
+[`SECURITY.md`](https://github.com/VectisDev/Vigil/blob/main/SECURITY.md). Si otra página no coincide, manda esa.
 
 ---
 
@@ -74,4 +74,4 @@ The default token is `contents: read`. The job that pushes commits or publishes 
 
 ### The file that wins
 
-[`.github/SECURITY.md`](https://github.com/VectisDev/Vigil/blob/main/.github/SECURITY.md). If another page disagrees, that file wins.
+[`SECURITY.md`](https://github.com/VectisDev/Vigil/blob/main/SECURITY.md). If another page disagrees, that file wins.
