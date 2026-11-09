@@ -23,9 +23,24 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 # Prefijos que no se revisan. / Prefixes that are not checked.
+#
+# `.venv`, `venv` y `node_modules` son dependencias instaladas, no archivos de
+# este arbol: estan en .gitignore y sus README traen enlaces a sus propios
+# repositorios. Sin esta exclusion la prueba sale ROJA en cuanto alguien crea
+# un entorno virtual en la raiz, que es el flujo normal de trabajo, y un rojo
+# que no significa nada ensena a ignorar los rojos.
+#
+# English: these are installed dependencies, not files of this tree. They are
+# in .gitignore and their own READMEs link to their own repositories. Without
+# this the test goes red as soon as anyone creates a virtualenv at the root --
+# the normal workflow -- and a red that means nothing teaches people to ignore
+# reds.
 SKIP_PARTS = (
     ("docs", "wiki"),
     ("tests", "fixtures"),
+    (".venv",),
+    ("venv",),
+    ("node_modules",),
 )
 
 # Rutas escritas como si el archivo viviera en la raíz. / Paths written as if
