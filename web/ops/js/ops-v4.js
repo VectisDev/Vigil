@@ -220,16 +220,23 @@ function v4Banner() {
     : v4t('Nodo de control conectado · parada de emergencia y destrucción no están disponibles', 'Control node connected · emergency stop and destruction are not available');
 }
 
-function v4CaptureBlock(buttonId) {
+function v4CaptureButton(buttonId) {
+  if (!v4CanOperate()) return '';
+  const paused = V4.capture === 'paused' && V4.captureKnown;
+  const id = buttonId || 'capture-button';
+  return paused
+    ? v4Btn('Reanudar captura', 'Resume capture', 'resume', '', false, id)
+    : v4Btn('Pausar captura', 'Pause capture', 'pause', '', false, id);
+}
+
+// La nota vive aparte del boton para que el boton pueda ir en la fila de
+// acciones, junto a la accion principal, en vez de colgar solo bajo un filete.
+function v4CaptureNote() {
   if (!v4CanOperate()) {
     return v4P('Vista de observador: sin acciones de operación.', 'Observer view: no operating actions.', 'note');
   }
   const paused = V4.capture === 'paused' && V4.captureKnown;
-  const id = buttonId || 'capture-button';
-  const label = paused
-    ? v4Btn('Reanudar captura', 'Resume capture', 'resume', '', false, id)
-    : v4Btn('Pausar captura', 'Pause capture', 'pause', '', false, id);
-  const note = v4Pages()
+  return v4Pages()
     ? v4P('Sin nodo, pausar y reanudar no están disponibles todavía. Confirmar no cambia la captura.', 'Without a node, pause and resume are not available yet. Confirming does not change capture.', 'small')
     : v4P(paused
       ? 'Reanudar pide al nodo que inicie de nuevo con una captura inmediata. No recupera un proceso suspendido.'
@@ -237,7 +244,11 @@ function v4CaptureBlock(buttonId) {
       paused
       ? 'Resume asks the node to start again with an immediate capture. It does not recover a suspended process.'
       : 'Pause asks the node to stop capture alone. A task in progress may finish. Saved data is not deleted.');
-  return `<div class="action-unit">${label}${note}</div>`;
+}
+
+function v4CaptureBlock(buttonId) {
+  if (!v4CanOperate()) return v4CaptureNote();
+  return `<div class="action-unit">${v4CaptureButton(buttonId)}${v4CaptureNote()}</div>`;
 }
 
 function v4Home() {
@@ -252,15 +263,15 @@ function v4Home() {
   <div class="eyebrow" id="hero-eyebrow"></div>
   <h1 id="hero-headline" class="page-title" tabindex="-1"></h1>
   <p id="hero-detail"></p>
-  <div class="actions">${v4Btn('Ver evidencia', 'View evidence', 'nav-evidencia', 'primary')}</div>
-  ${v4CaptureBlock()}
+  <div class="actions">${v4Btn('Ver evidencia', 'View evidence', 'nav-evidencia', 'primary')}${v4CaptureButton()}</div>
+  ${v4CaptureNote()}
 </section>
 <div class="cards">
-  <section class="metric"><span>${v4t('Última captura', 'Last capture')}</span><b>${v4t('Sin dato', 'Unknown')}</b><small>${v4t('Captura no publicada en el archivo HN 2025', 'Capture not published in the HN 2025 archive')}</small></section>
-  <section class="metric"><span>${v4t('Hallazgos en el conjunto', 'Findings in dataset')}</span><b>${count}</b><small>${V4.rows == null
+  <section class="metric sin-dato"><span>${v4t('Última captura', 'Last capture')}</span><b>${v4t('Sin dato', 'Unknown')}</b><small>${v4t('Captura no publicada en el archivo HN 2025', 'Capture not published in the HN 2025 archive')}</small></section>
+  <section class="metric${V4.rows == null ? ' sin-dato' : ''}"><span>${v4t('Hallazgos en el conjunto', 'Findings in dataset')}</span><b>${count}</b><small>${V4.rows == null
     ? v4t('No hay lectura. No es cero.', 'No reading. This is not zero.')
     : v4t('Históricos, no de hoy', 'Historical, not today')}</small></section>
-  <section class="metric"><span>${v4t('Computadoras observadas', 'Observed computers')}</span><b>${v4t('No publicado', 'Not published')}</b><small>${v4t('Corroboración no disponible', 'Corroboration unavailable')}</small></section>
+  <section class="metric sin-dato"><span>${v4t('Computadoras observadas', 'Observed computers')}</span><b>${v4t('No publicado', 'Not published')}</b><small>${v4t('Corroboración no disponible', 'Corroboration unavailable')}</small></section>
 </div>
 <div class="grid">
   <section class="card"><h2>${v4t('Qué estamos observando', 'What we are watching')}</h2>
@@ -490,8 +501,8 @@ function v4NavLabels() {
   const foot = v4$('#ops-footer');
   if (foot) {
     foot.textContent = v4t(
-      'Panel v4 · blanco, rojo y negro. Parada de emergencia, destrucción local, departamento y procedencia de las alertas: no disponibles todavía. 8 nov 2026, hora Honduras.',
-      'Panel v4 · white, red and black. Emergency stop, local destruction, department and alert provenance: not available yet. 8 Nov 2026, Honduras time.');
+      'Panel v4. Parada de emergencia, destrucción local, departamento y procedencia de las alertas: no disponibles todavía. Las horas se muestran en hora de Honduras.',
+      'Panel v4. Emergency stop, local destruction, department and alert provenance: not available yet. Times are shown in Honduras time.');
   }
 }
 

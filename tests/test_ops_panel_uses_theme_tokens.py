@@ -159,19 +159,40 @@ def test_la_hoja_del_panel_consume_los_tokens_del_tema() -> None:
         assert token in usados, f"ops-v4.css no usa {token} en ninguna parte"
 
 
-def test_cada_token_que_usa_el_panel_existe_en_los_dos_modos() -> None:
-    """Uno definido solo en el respaldo daría color claro de noche, en silencio."""
+def _tokens_locales(css: str) -> dict[str, str]:
+    """Las propiedades personalizadas que la propia hoja declara, con su valor."""
+    locales = {}
+    for propiedad, valor, _ in _declaraciones(css):
+        if propiedad.startswith("--"):
+            locales[propiedad] = valor
+    return locales
+
+
+def test_cada_token_de_color_que_usa_el_panel_existe_en_los_dos_modos() -> None:
+    """Uno definido solo en el respaldo daría color claro de noche, en silencio.
+
+    La regla vale para los tokens de COLOR, no para todos. `--s3: 16px` es una
+    medida de la escala de espaciado: no cambia con el modo y vive solo aquí,
+    y exigirle una definición por modo seria pedirle a la hoja de tema que
+    declare el espaciado dos veces para que diga lo mismo. Lo que distingue a
+    uno de otro es su valor: si el respaldo de `:root` es un color, el token
+    es de color y tiene que existir en los dos modos.
+    """
     css = HOJA_OPS.read_text(encoding="utf-8")
     usados = set(USO_DE_TOKEN.findall(css))
+    locales = _tokens_locales(css)
     claro, oscuro = _tokens_del_tema("light"), _tokens_del_tema("dark")
 
-    faltan = {t: [] for t in sorted(usados)}
+    faltan = {}
     for token in sorted(usados):
-        if token not in claro:
-            faltan[token].append("light")
-        if token not in oscuro:
-            faltan[token].append("dark")
-    huerfanos = {t: m for t, m in faltan.items() if m}
+        respaldo = locales.get(token)
+        es_medida = respaldo is not None and not LITERAL.search(respaldo)
+        if es_medida:
+            continue  # escala de espaciado: la misma de día y de noche
+        modos = [m for m, d in (("light", claro), ("dark", oscuro)) if token not in d]
+        if modos:
+            faltan[token] = modos
+    huerfanos = faltan
 
     assert not huerfanos, (
         f"ops-v4.css consume tokens que vigil-theme.css no define: {huerfanos}. "
