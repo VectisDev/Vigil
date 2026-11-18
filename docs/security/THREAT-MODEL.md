@@ -239,7 +239,7 @@ solo queda registrado si hubo un intento de descarga.
 
 | Threat | Target | Likelihood | Impact | Mitigation | Residual risk |
 |--------|--------|-----------|--------|------------|---------------|
-| Block witness internet access | Snapshot capture | High (election night) | High | Non-fatal design; auto-resume with exponential backoff; Venado jitter | Extended outage = gap in custody chain |
+| Block witness internet access | Snapshot capture | High (election night) | High | Non-fatal design; auto-resume with exponential backoff | Extended outage = gap in custody chain |
 | DDoS public API | Alert visibility | Medium | Low | slowapi rate-limiting; static CDN; Service Worker offline mode | CDN saturation (unlikely for this scale) |
 | OTS calendar unavailability | External anchoring | Low | Medium | Retry with backoff; testnet fallback; non-fatal | Extended OTS outage = unanchored period |
 | Kill all witnesses simultaneously | Entire system | Low | Critical | Geographic distribution; different ISPs; T3 anchor preserves last state | Requires >=2 witnesses alive for consensus |
@@ -282,7 +282,6 @@ solo queda registrado si hubo un intento de descarga.
 | **Code/data separation** | vigil (code) and centinel-data (artifacts) in separate repos |
 | **Encrypted backups** | ChaCha20-Poly1305 for critical state and hash artifacts |
 | **Non-fatal design** | Every defense component degrades gracefully; no single failure blocks capture |
-| **Timing jitter (Venado)** | +/- 30% random variation in capture cadence to resist pattern-matching |
 | **NTP synchronization** | Required for witnesses; drift >5s triggers health alert |
 | **Recovery atomicity** | recovery_state.json uses temp file + fsync + os.replace (ACID) |
 

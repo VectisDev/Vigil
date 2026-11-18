@@ -27,6 +27,7 @@ from vigil.downloader import (
     should_skip_snapshot,
 )
 from vigil.download import write_atomic
+from vigil.identity import VIGIL_USER_AGENT, request_headers
 from vigil.paths import (
     ensure_source_dirs,
     hash_filename,
@@ -34,7 +35,6 @@ from vigil.paths import (
     snapshot_filename,
 )
 from scripts.circuit_breaker import CircuitBreaker
-from vigil.defense.fetcher import build_rotating_request_profile
 from vigil.defense.hasher import trigger_post_hash_backup
 
 from monitoring.health import get_health_state
@@ -69,7 +69,6 @@ _SCRAPE_TTL_MINUTES = int(os.getenv("VIGIL_SCRAPE_TTL_MINUTES", os.getenv("CENTI
 
 _ROBOTS_CACHE: dict[str, tuple[urllib.robotparser.RobotFileParser | None, float]] = {}
 _ROBOTS_TTL_SECONDS = 3600.0
-_CENTINEL_UA = "Vigil-Engine/1.0"
 
 
 def _check_robots_allowed(url: str) -> bool:
@@ -98,9 +97,9 @@ def _check_robots_allowed(url: str) -> bool:
 
         if rp is None:
             return True
-        allowed = rp.can_fetch(_CENTINEL_UA, url)
+        allowed = rp.can_fetch(VIGIL_USER_AGENT, url)
         if not allowed:
-            logger.warning("robots_txt_disallowed url=%s ua=%s — respecting directive", url, _CENTINEL_UA)
+            logger.warning("robots_txt_disallowed url=%s ua=%s — respecting directive", url, VIGIL_USER_AGENT)
         return allowed
     except Exception:
         return True
@@ -330,52 +329,16 @@ def resolve_retry_policy(config: dict[str, Any]) -> dict[str, Any]:
     return {"retry_config": retry_config, "retry_path": retry_path}
 
 
-def resolve_low_profile_settings(config: dict[str, Any]) -> dict[str, Any]:
-    """/** Normaliza configuración low-profile. / Normalize low-profile settings. **/"""
-    low_profile = config.get("low_profile", {}) if isinstance(config, dict) else {}
-    return low_profile if isinstance(low_profile, dict) else {}
-
-
-def build_request_headers(
-    config: dict[str, Any],
-    low_profile: dict[str, Any],
-    rng: random.Random,
-) -> dict[str, str]:
-    """/** Construye headers por request (low-profile opcional). / Build per-request headers (low-profile optional). **/"""
-    if not low_profile.get("enabled", False):
-        headers = config.get("headers", {}) if isinstance(config.get("headers"), dict) else {}
-        if "Accept" not in headers:
-            headers = {"Accept": "application/json", **headers}
-        try:
-            secure_headers, _ = build_rotating_request_profile()
-            headers = {**headers, **secure_headers}
-        except Exception as exc:
-            logger.warning("failed_to_build_rotating_profile error=%s", exc)
-        return headers
-
-    user_agents = low_profile.get("user_agents", []) or []
-    accept_languages = low_profile.get("accept_languages", []) or []
-    referers = low_profile.get("referers", []) or []
-
-    headers: dict[str, str] = {
-        "Accept": "application/json",
-    }
-    if user_agents:
-        headers["User-Agent"] = rng.choice(user_agents)
-    if accept_languages:
-        headers["Accept-Language"] = rng.choice(accept_languages)
-    if referers:
-        headers["Referer"] = rng.choice(referers)
-    return headers
-
-
-def resolve_timeout_seconds(config: dict[str, Any], low_profile: dict[str, Any]) -> float:
-    """/** Resuelve timeout efectivo. / Resolve effective timeout. **/"""
-    if low_profile.get("enabled", False):
-        timeout_value = low_profile.get("timeout_seconds")
-        if timeout_value is not None:
-            return float(timeout_value)
-    return float(config.get("timeout", 10))
+# Aqui vivian `resolve_low_profile_settings`, `build_request_headers` y
+# `resolve_timeout_seconds`. Las dos primeras construian una identidad
+# distinta por peticion —User-Agent, Accept-Language y hasta un Referer
+# falso— y ninguna la llamaba nada en produccion: la sesion salia sin
+# identificarse. Ahora la identidad vive en `vigil.identity` y se fija en
+# la sesion, una sola vez, en `process_sources`. Ver `docs/NO-EVASION.md`.
+# English: this held the per-request identity builders -- User-Agent,
+# Accept-Language, even a fake Referer -- and nothing in production called
+# them, so the session went out unidentified. The identity now lives in
+# `vigil.identity` and is set once on the session.
 
 
 def create_mock_snapshot() -> Path:
@@ -604,6 +567,11 @@ def process_sources(
         open_log_interval_seconds=int(breaker_settings.get("open_log_interval_seconds", 120)),
     )
     session = requests.Session()
+    # La identidad viaja en la sesion, asi que la lleva cada peticion y cada
+    # reintento. Es la misma cadena con la que se consulto robots.txt.
+    # English: the identity lives on the session, so every request and every
+    # retry carries it -- the same string robots.txt was asked about.
+    session.headers.update(request_headers())
     had_errors = False
 
     try:
@@ -794,7 +762,11 @@ def process_sources(
                     _raw_for_validation = payload[0] if isinstance(payload, list) and payload else payload
                     if isinstance(_raw_for_validation, dict):
                         _cne_errors = _validate_cne(_raw_for_validation, source_id)
-                        if _cne_errors and os.getenv("VIGIL_STRICT_VALIDATION", os.getenv("CENTINEL_STRICT_VALIDATION", "0")) == "1":
+                        if (
+                            _cne_errors
+                            and os.getenv("VIGIL_STRICT_VALIDATION", os.getenv("CENTINEL_STRICT_VALIDATION", "0"))
+                            == "1"
+                        ):
                             logger.error("suspect_response_rejected source=%s errors=%s", source_id, _cne_errors)
                             had_errors = True
                             continue
@@ -893,7 +865,9 @@ def _persist_snapshot_payload(
     # en lugar de persistir evidencia sin custodio criptográfico. Sin este
     # control, un atacante que comprometa el disco antes de configurar la
     # clave produce una cadena entera sin firma y nadie lo detecta.
-    require_signature = os.getenv("VIGIL_REQUIRE_SIGNATURE", os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false")).strip().lower() in (
+    require_signature = os.getenv(
+        "VIGIL_REQUIRE_SIGNATURE", os.getenv("CENTINEL_REQUIRE_SIGNATURE", "false")
+    ).strip().lower() in (
         "1",
         "true",
         "yes",

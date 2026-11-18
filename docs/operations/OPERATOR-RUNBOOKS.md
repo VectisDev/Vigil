@@ -208,16 +208,6 @@ poetry run centinel snapshot
 # 3. Si continúa: problema criptográfico (escala)
 ```
 
-#### Si 🦌 Venado DEGRADADO
-
-```bash
-# 1. Revisar config de jitter
-grep -A 5 "evasion:" advanced_security_config.yaml
-
-# 2. Si jitter deshabilitado: editar config e reiniciar
-sed -i 's/enabled: false/enabled: true/' advanced_security_config.yaml
-```
-
 #### Si 🦎 Lagartija DEGRADADO
 
 ```bash

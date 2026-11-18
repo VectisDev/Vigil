@@ -33,13 +33,12 @@ class ArgosLayer(Enum):
         "Cifrado ChaCha20Poly1305: oculta tráfico entre testigos",
     )
 
-    # 🦌 Venado: Timing impredecible
-    EVASION = (
-        "🦌",
-        "Venado",
-        "Evasión de Venado",
-        "Jitter + decoys: timing impredecible de snapshots",
-    )
+    # Aqui estaba la capa «Venado (Evasion)»: jitter y capturas senuelo.
+    # Nunca existio en el codigo y el panel la reportaba como ACTIVA. VIGIL
+    # audita identificandose y no publica capturas falsas: una sola, puesta a
+    # proposito, desacreditaria a todas las demas. Ver `docs/NO-EVASION.md`.
+    # English: the «Venado (Evasion)» layer -- jitter and decoy snapshots --
+    # lived here. It never existed in code and the panel reported it ACTIVE.
 
     # 🦎 Lagartija: Auto-regeneración
     REGENERATION = (
@@ -109,7 +108,6 @@ class DefenseStatus:
 ALL_DEFENSES = {
     "corvid": ArgosLayer.CORVID,
     "cephalopod": ArgosLayer.CEPHALOPOD,
-    "evasion": ArgosLayer.EVASION,
     "regeneration": ArgosLayer.REGENERATION,
     "kill_switch": ArgosLayer.KILL_SWITCH,
 }

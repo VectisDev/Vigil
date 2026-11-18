@@ -134,6 +134,7 @@ La comprobación usa los archivos de este repositorio y Python. No hay una cuent
 - La muestra de 2025 es posterior al conteo. No es una cadena tomada mientras la elección estaba abierta. El detalle está en [docs/evidence/HN2025.md](docs/evidence/HN2025.md).
 - Comprobar esos archivos demuestra qué bytes se guardaron. No dice por qué cambió un número, ni qué pasó en una mesa. El alcance está en [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 - Si el panel no ha consultado el portal, lo dice. No presenta una fuente como si estuviera bien. Véase [docs/VERIFY.md](docs/VERIFY.md).
+- VIGIL observa sin pedir permiso, pero no se esconde: se identifica en cada petición y respeta `robots.txt`. Si un portal decide bloquearlo, para y lo publica. El porqué está en [docs/NO-EVASION.md](docs/NO-EVASION.md).
 
 ## Contribuir · Seguridad · Conducta
 

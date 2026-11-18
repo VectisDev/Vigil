@@ -46,6 +46,7 @@ from __future__ import annotations
 import sys
 import types
 
+
 # Install stub modules at collection time so optional packages
 # (vigil_engine, structlog) do not cause ImportError.
 # ES: Instala stubs en tiempo de colección para evitar ImportError.
@@ -63,23 +64,9 @@ def _install_stub_modules() -> None:
         import scripts.download_and_hash  # noqa: F401
     except ImportError:
         import importlib.machinery as _imm
+
         _dah = types.ModuleType("scripts.download_and_hash")
         _dah.__spec__ = _imm.ModuleSpec("scripts.download_and_hash", None)  # type: ignore[attr-defined]
-        def _build_request_headers(config: dict, low_profile: dict, rng: object) -> dict:
-            """Stub: build_request_headers for resilience tests."""
-            if not low_profile.get("enabled", False):
-                return {"Accept": "application/json", **config.get("headers", {})}
-            import random as _r
-            hdrs: dict = {"Accept": "application/json"}
-            ua = low_profile.get("user_agents", [])
-            al = low_profile.get("accept_languages", [])
-            ref = low_profile.get("referers", [])
-            _rng = rng if hasattr(rng, "choice") else _r.Random()
-            if ua: hdrs["User-Agent"] = _rng.choice(ua)
-            if al: hdrs["Accept-Language"] = _rng.choice(al)
-            if ref: hdrs["Referer"] = _rng.choice(ref)
-            return hdrs
-        _dah.build_request_headers = _build_request_headers  # type: ignore[attr-defined]
         sys.modules["scripts.download_and_hash"] = _dah
 
     try:
@@ -87,8 +74,10 @@ def _install_stub_modules() -> None:
     except ImportError:
         ce = types.ModuleType("vigil_engine")
         ce_cfg = types.ModuleType("vigil_engine.config_loader")
+
         def _load_config(file_name: str = "", env: str = "prod") -> dict:
             return {}
+
         ce_cfg.load_config = _load_config  # type: ignore[attr-defined]
         sys.modules["vigil_engine"] = ce
         sys.modules["vigil_engine.config_loader"] = ce_cfg
@@ -98,6 +87,7 @@ def _install_stub_modules() -> None:
     except ImportError:
         import logging as _logging
         import importlib.machinery as _imm
+
         sl = types.ModuleType("structlog")
         sl.__spec__ = _imm.ModuleSpec("structlog", None)
         sl.get_logger = lambda *a, **kw: _logging.getLogger("centinel")  # type: ignore[attr-defined]
@@ -109,13 +99,17 @@ def _install_stub_modules() -> None:
     except ImportError:
         import importlib.machinery as _imm
         import vigil as _c
+
         cd = types.ModuleType("vigil.download")
         cd.__spec__ = _imm.ModuleSpec("vigil.download", None)  # type: ignore[attr-defined]
+
         def _write_atomic(path: object, data: object, **kw: object) -> None:
             import pathlib, json as _json
+
             p = pathlib.Path(str(path))
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(_json.dumps(data) if not isinstance(data, str) else data)
+
         cd.write_atomic = _write_atomic  # type: ignore[attr-defined]
         sys.modules["vigil.download"] = cd
         setattr(_c, "download", cd)
@@ -123,12 +117,12 @@ def _install_stub_modules() -> None:
     # vigil.defense / vigil.core stubs -- only for modules that
     # fail to import for real (e.g. partial forks missing these files).
     import importlib.machinery as _imm
+
     for _mod_name in (
         "vigil.defense",
         "vigil.defense.logger",
         "vigil.defense.security",
         "vigil.defense.attack_logger",
-        "vigil.defense.fetcher",
         "vigil.defense.hasher",
         "vigil.defense.security_utils",
         "vigil.core.custody",
@@ -144,12 +138,12 @@ def _install_stub_modules() -> None:
             # Not installed: fall through and register the stub module below.
             pass
         import logging as _ll
+
         _m = types.ModuleType(_mod_name)
         _m.__spec__ = _imm.ModuleSpec(_mod_name, None)  # type: ignore[attr-defined]
         _m.logger = _ll.getLogger("centinel")  # type: ignore[attr-defined]
         # Common stubs for various functions these modules expose
         for _attr in (
-            "build_rotating_request_profile",
             "trigger_post_hash_backup",
             "sign_hash_record",
             "is_safe_outbound_url",
@@ -160,6 +154,7 @@ def _install_stub_modules() -> None:
         sys.modules[_mod_name] = _m
 
     # vigil.paths: provided by real src/vigil/paths.py on PYTHONPATH
+
 
 _install_stub_modules()
 
@@ -300,9 +295,7 @@ class _KwargsLogger(logging.Logger):
     ``extra`` dict so the calls succeed without requiring structlog.
     """
 
-    def _log(
-        self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1, **kwargs
-    ):
+    def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1, **kwargs):
         if kwargs:
             extra = {**(extra or {}), **kwargs}
         super()._log(
@@ -322,7 +315,7 @@ def kwargs_logger() -> logging.Logger:
 
     Created via the logging manager so it propagates to root and
     is captured by pytest's ``caplog`` fixture.
-    
+
     CRITICAL FIX (dev-v12): Restore logging class after use to prevent
     test isolation pollution. Previously, setLoggerClass() was called but
     never reverted, causing all subsequent logging to use _KwargsLogger

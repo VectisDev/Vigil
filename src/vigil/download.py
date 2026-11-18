@@ -66,7 +66,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-import random
 import ssl
 import string
 import shutil
@@ -84,7 +83,8 @@ from tenacity import (
     wait_exponential,
 )
 
-from .proxy_handler import ProxyRotator, get_proxy_rotator
+
+from .identity import request_headers
 
 logger = structlog.get_logger(__name__)
 
@@ -97,9 +97,7 @@ class DownloadError(Exception):
 
 
 @retry(
-    retry=retry_if_exception_type(
-        (httpx.RequestError, httpx.TimeoutException, httpx.HTTPStatusError)
-    ),
+    retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException, httpx.HTTPStatusError)),
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=4, max=60),
     reraise=True,
@@ -109,46 +107,39 @@ async def fetch_content(
     url: str,
     if_none_match: Optional[str] = None,
     if_modified_since: Optional[str] = None,
-    proxy_rotator: Optional[ProxyRotator] = None,
 ) -> httpx.Response:
     """Descarga contenido con cabeceras condicionales.
 
     English: Fetch content with conditional headers.
     """
-    headers = {
-        "User-Agent": "VigilEngine/0.4.0",
-    }
+    headers = dict(request_headers())
     if if_none_match:
         headers["If-None-Match"] = if_none_match
     if if_modified_since:
         headers["If-Modified-Since"] = if_modified_since
 
-    proxy_url = proxy_rotator.get_proxy_for_request() if proxy_rotator else None
-    request_kwargs = {}
-    if proxy_url:
-        request_kwargs["timeout"] = httpx.Timeout(proxy_rotator.proxy_timeout_seconds)
-
+    # Conexion directa. La salida no se reparte entre varias direcciones:
+    # hacerlo sirve para no ser identificado, y VIGIL audita identificandose.
+    # La unica salida alternativa que se conserva es un circuito Tor UNICO y
+    # opcional, que protege a la persona sin disfrazar al observador — vive en
+    # `vigil_engine/proxy_manager.py`. Ver `docs/NO-EVASION.md`.
+    # English: direct connection. The exit is not spread across addresses --
+    # that exists to avoid being identified. The one alternative kept is a
+    # single optional Tor circuit, which protects the person without
+    # disguising the observer.
     start = time.monotonic()
     logger.debug(
         "fetch_start",
         url=url,
-        proxy=proxy_url or "direct",
         if_none_match=bool(if_none_match),
         if_modified_since=bool(if_modified_since),
     )
     try:
-        if proxy_url:
-            async with httpx.AsyncClient(proxy=proxy_url, **request_kwargs) as proxy_client:
-                response = await proxy_client.get(url, headers=headers)
-        else:
-            response = await client.get(url, headers=headers, **request_kwargs)
+        response = await client.get(url, headers=headers)
     except httpx.RequestError as exc:
         elapsed = time.monotonic() - start
-        if proxy_rotator and proxy_url:
-            proxy_rotator.mark_failure(proxy_url, str(exc))
         logger.warning(
-            "proxy_request_error",
-            proxy=proxy_url or "direct",
+            "request_error",
             elapsed_seconds=round(elapsed, 3),
             error=str(exc),
         )
@@ -156,32 +147,12 @@ async def fetch_content(
 
     elapsed = time.monotonic() - start
     content_length = response.headers.get("Content-Length")
-    if proxy_rotator and proxy_url:
-        if response.status_code >= 400:
-            proxy_rotator.mark_failure(proxy_url, f"status {response.status_code}")
-            logger.warning(
-                "proxy_response_error",
-                proxy=proxy_url,
-                status_code=response.status_code,
-                elapsed_seconds=round(elapsed, 3),
-                content_length=content_length,
-            )
-        else:
-            proxy_rotator.mark_success(proxy_url)
-            logger.info(
-                "proxy_response_ok",
-                proxy=proxy_url,
-                status_code=response.status_code,
-                elapsed_seconds=round(elapsed, 3),
-                content_length=content_length,
-            )
-    else:
-        logger.info(
-            "direct_response",
-            status_code=response.status_code,
-            elapsed_seconds=round(elapsed, 3),
-            content_length=content_length,
-        )
+    logger.info(
+        "direct_response",
+        status_code=response.status_code,
+        elapsed_seconds=round(elapsed, 3),
+        content_length=content_length,
+    )
 
     if response.status_code in {429, 503}:
         raise httpx.HTTPStatusError(
@@ -285,26 +256,20 @@ def _is_valid_hex_hash(value: str) -> bool:
 
 
 def _build_tls_context() -> ssl.SSLContext:
-    """Build a conservative TLS context with shuffled cipher ordering.
+    """El contexto TLS por defecto, sin barajar nada.
 
-    English: Reduce static TLS fingerprinting by rotating cipher order per client.
+    Antes mezclaba el orden de los cifradores en cada cliente «para reducir
+    una firma TLS determinista», es decir, para que la huella del cliente
+    cambiara entre conexiones. Eso es ocultar quien se conecta, y VIGIL audita
+    identificandose: el User-Agent dice quienes somos, asi que disimular la
+    huella del TLS no protegia nada y solo hacia el comportamiento menos
+    reproducible. Ver `docs/NO-EVASION.md`.
+
+    English: this used to shuffle cipher order per client to blur the TLS
+    fingerprint. VIGIL identifies itself in the User-Agent, so blurring the
+    handshake protected nothing and only made behaviour less reproducible.
     """
-    context = ssl.create_default_context()
-    cipher_groups = [
-        "ECDHE-ECDSA-AES128-GCM-SHA256",
-        "ECDHE-RSA-AES128-GCM-SHA256",
-        "ECDHE-ECDSA-AES256-GCM-SHA384",
-        "ECDHE-RSA-AES256-GCM-SHA384",
-        "ECDHE-ECDSA-CHACHA20-POLY1305",
-        "ECDHE-RSA-CHACHA20-POLY1305",
-    ]
-    # English: shuffle order to reduce deterministic JA3-like signatures. / Español: mezclar orden para reducir firma TLS determinística.
-    random.SystemRandom().shuffle(cipher_groups)
-    try:
-        context.set_ciphers(":".join(cipher_groups))
-    except ssl.SSLError as exc:
-        logger.debug("tls_cipher_shuffle_fallback error=%s", exc)
-    return context
+    return ssl.create_default_context()
 
 
 def build_client() -> httpx.AsyncClient:
@@ -326,7 +291,6 @@ async def download_and_hash(
 
     English: Download, persist, and return the chained hash.
     """
-    proxy_rotator = get_proxy_rotator(logger)
     async with build_client() as client:
         try:
             response = await fetch_content(
@@ -334,7 +298,6 @@ async def download_and_hash(
                 url,
                 if_none_match=if_none_match,
                 if_modified_since=if_modified_since,
-                proxy_rotator=proxy_rotator,
             )
         except httpx.RequestError as exc:
             raise DownloadError(f"Request failed for {url}: {exc}") from exc

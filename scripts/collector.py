@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from vigil.identity import request_headers as vigil_request_headers
 from vigil.defense.security_utils import is_safe_outbound_url, pin_dns_resolution, resolve_outbound_target
 
 import requests
@@ -20,7 +21,6 @@ import yaml
 # Lazy imports – these modules pull in heavy optional deps (httpx, etc.)
 # that may not be installed in lightweight CI test environments.
 # Imported on first use in the functions that need them.
-# from vigil.proxy_handler import get_proxy_rotator
 # from vigil.schemas import validate_snapshot
 
 LOGGER = logging.getLogger("vigil.collector")
@@ -33,9 +33,13 @@ DEFAULT_CONFIG_PATH = Path("command_center/config.yaml")
 #   - "1" / "true" / "on": always enabled (assumes swarm is running).
 #   - "0" / "false" / "off": always disabled regardless of swarm state.
 # This protects the CNE endpoint from collective overload across the swarm.
-_SWARM_COOP_SETTING = os.getenv("VIGIL_SWARM_COOPERATIVE", os.getenv("CENTINEL_SWARM_COOPERATIVE", "auto")).strip().lower()
+_SWARM_COOP_SETTING = (
+    os.getenv("VIGIL_SWARM_COOPERATIVE", os.getenv("CENTINEL_SWARM_COOPERATIVE", "auto")).strip().lower()
+)
 _SWARM_PORT = os.getenv("VIGIL_PORT", os.getenv("CENTINEL_PORT", "8000"))
-_SWARM_FRESHNESS_SECS = int(os.getenv("VIGIL_SWARM_FRESHNESS_SECS", os.getenv("CENTINEL_SWARM_FRESHNESS_SECS", "240")))  # 4 min default
+_SWARM_FRESHNESS_SECS = int(
+    os.getenv("VIGIL_SWARM_FRESHNESS_SECS", os.getenv("CENTINEL_SWARM_FRESHNESS_SECS", "240"))
+)  # 4 min default
 DEFAULT_RETRY_PATH = Path("config/prod/retry_config.yaml")
 DEFAULT_OUTPUT_PATH = Path("data/collector_latest.json")
 
@@ -124,8 +128,6 @@ def fetch_json_with_retry(
     timeout_seconds: float,
     max_attempts: int,
     backoff_base: float,
-    user_agents: list[str] | None = None,
-    proxy_url: str | None = None,
     allowed_domains: set[str] | None = None,
     enforce_public_ip_resolution: bool = False,
 ) -> dict[str, Any] | None:
@@ -153,16 +155,10 @@ def fetch_json_with_retry(
 
     for attempt in range(1, max_attempts + 1):
         try:
-            headers = {
-                "User-Agent": (
-                    random.choice(user_agents) if user_agents else "Mozilla/5.0 (compatible; Centinel-Collector/1.0)"
-                ),
-                "Accept": "application/json",
-            }
-            if proxy_url:
-                LOGGER.warning("collector_proxy_disabled_for_pinned_https proxy=%s", proxy_url)
-                return None
-            request_headers = dict(headers)
+            # Una sola identidad, la misma que consulta robots.txt y la misma
+            # que usa el capturador. El respaldo anterior fingia un navegador.
+            # English: one identity, the same one robots.txt is asked about.
+            request_headers = dict(vigil_request_headers())
             request_headers["Connection"] = "close"
             request_headers["Host"] = target.host
             with pin_dns_resolution(target):
@@ -251,13 +247,6 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
         jitter_bounds = [0.0, 0.0]
     min_jitter = max(float(jitter_bounds[0]), 0.0)
     max_jitter = max(float(jitter_bounds[1]), min_jitter)
-    user_agents = (
-        scraping_profile.get("user_agents", []) if isinstance(scraping_profile.get("user_agents"), list) else []
-    )
-    user_agents = [str(agent) for agent in user_agents if str(agent).strip()]
-    from vigil.proxy_handler import get_proxy_rotator  # lazy import
-
-    rotator = get_proxy_rotator(LOGGER)
 
     if not sources:
         LOGGER.warning("collector_no_sources_found config_path=%s", config_path)
@@ -326,21 +315,16 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
             except Exception:
                 pass  # swarm offline or unreachable — proceed normally
 
-        proxy_url = rotator.get_proxy_for_request()
         payload = fetch_json_with_retry(
             str(endpoint),
             timeout_seconds=timeout_seconds,
             max_attempts=max_attempts,
             backoff_base=backoff_base,
-            user_agents=user_agents,
-            proxy_url=proxy_url,
             allowed_domains=allowed_domains or None,
             enforce_public_ip_resolution=True,
         )
         if payload is not None:
             fetched_payloads.append(payload)
-            if proxy_url:
-                rotator.mark_success(proxy_url)
             # ── Report successful scrape to swarm ──────────────────────────
             if _swarm_coop:
                 try:
@@ -356,8 +340,6 @@ def run_collection(config_path: Path = DEFAULT_CONFIG_PATH, retry_path: Path = D
                     )
                 except Exception:
                     pass  # non-fatal
-        elif proxy_url:
-            rotator.mark_failure(proxy_url, "collector_fetch_failed")
 
         if max_jitter > 0:
             jitter = random.uniform(min_jitter, max_jitter)

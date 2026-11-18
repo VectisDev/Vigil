@@ -10,10 +10,8 @@ Este módulo forma parte de VIGIL y está documentado para facilitar
 la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
-  - _DummyProxyRotator
   - _scheduler_loop_backup_hook
   - test_rate_limiter_blocks_burst
-  - test_proxy_rotation_on_429
   - test_backup_called_after_scrape
   - test_vital_signs_triggers_conservative
 
@@ -27,10 +25,8 @@ This module is part of VIGIL and is documented to improve
 navigation, maintenance, and technical auditability.
 
 Detected components:
-  - _DummyProxyRotator
   - _scheduler_loop_backup_hook
   - test_rate_limiter_blocks_burst
-  - test_proxy_rotation_on_429
   - test_backup_called_after_scrape
   - test_vital_signs_triggers_conservative
 
@@ -44,38 +40,8 @@ from __future__ import annotations
 import time
 from typing import Any, Callable
 
-from vigil_engine import proxy_manager
-from vigil_engine.proxy_manager import ProxyAndUAManager
 from vigil_engine.rate_limiter import TokenBucketRateLimiter
 from vigil_engine.vital_signs import check_vital_signs
-
-
-class _DummyProxyRotator:
-    """Small deterministic proxy rotator for tests.
-
-    Bilingual: Rotador determinístico pequeño de proxies para pruebas.
-    """
-
-    def __init__(self) -> None:
-        self.mode = "round_robin"
-        self.rotation_every_n = 1
-        self._requests_since_rotation = 0
-        self._items = ["http://proxy-a:8080", "http://proxy-b:8080"]
-        self._index = -1
-
-    def get_proxy_for_request(self) -> str:
-        """Return next proxy URL in deterministic order.
-
-        Bilingual: Retorna la siguiente URL de proxy en orden determinístico.
-
-        Returns:
-            Proxy URL string.
-        """
-        self._requests_since_rotation += 1
-        if self._requests_since_rotation >= self.rotation_every_n:
-            self._requests_since_rotation = 0
-            self._index = (self._index + 1) % len(self._items)
-        return self._items[self._index]
 
 
 def _scheduler_loop_backup_hook(scrape_ok: bool, backup_hook: Callable[[], dict[str, Any]]) -> None:
@@ -112,43 +78,6 @@ def test_rate_limiter_blocks_burst() -> None:
     elapsed = time.monotonic() - start
 
     assert elapsed >= 0.35
-
-
-def test_proxy_rotation_on_429(monkeypatch) -> None:
-    """429 handling should force proxy rotation and reselect User-Agent.
-
-    Bilingual: El manejo de 429 debe forzar rotación de proxy y reselección de User-Agent.
-    """
-    ua_values = ["UA-A", "UA-B"]
-    index = {"value": 0}
-
-    def _det_choice(pool: list[str]) -> str:
-        """Return deterministic alternating UA values.
-
-        Bilingual: Retorna valores UA alternados de forma determinística.
-
-        Args:
-            pool: Candidate User-Agent pool.
-
-        Returns:
-            Selected User-Agent string.
-        """
-        current = ua_values[index["value"] % len(ua_values)]
-        index["value"] += 1
-        return current if current in pool else pool[0]
-
-    monkeypatch.setattr(proxy_manager.secrets, "choice", _det_choice)
-
-    manager = ProxyAndUAManager(
-        proxy_rotator=_DummyProxyRotator(), rotation_every_n=1, ua_pool=list(ua_values)
-    )
-    first_proxy, first_ua = manager.rotate_proxy_and_ua()
-
-    assert manager.notify_response(429) is True
-    second_proxy, second_ua = manager.rotate_proxy_and_ua(force_proxy_rotation=True)
-
-    assert first_proxy != second_proxy
-    assert first_ua != second_ua
 
 
 def test_backup_called_after_scrape() -> None:

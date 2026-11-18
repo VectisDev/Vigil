@@ -11,7 +11,6 @@ la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
   - AdvancedSecurityConfig
-  - IdentityRotator
   - HoneypotService
   - AlertManager
   - BackupManager
@@ -30,7 +29,6 @@ navigation, maintenance, and technical auditability.
 
 Detected components:
   - AdvancedSecurityConfig
-  - IdentityRotator
   - HoneypotService
   - AlertManager
   - BackupManager
@@ -60,7 +58,6 @@ Notes:
 #   - Configuración / Configuration
 #   - Lógica principal / Core logic
 #   - Integraciones / Integrations
-
 
 
 from __future__ import annotations
@@ -150,6 +147,7 @@ from vigil.defense.security_utils import (
 
 try:
     from cryptography.fernet import Fernet
+
     _HAS_CRYPTOGRAPHY = True
 except BaseException as exc:  # noqa: BLE001 – PanicException (pyo3) is not an Exception subclass
     if isinstance(exc, (KeyboardInterrupt, SystemExit)):
@@ -212,10 +210,6 @@ class AdvancedSecurityConfig:
     cpu_threshold_percent: float = 85.0
     cpu_sustain_seconds: int = 120
     memory_threshold_percent: float = 80.0
-    user_agents_list: list[str] = field(default_factory=list)
-    rotate_every_min_polls: int = 10
-    rotate_every_max_polls: int = 30
-    proxy_list: list[str] = field(default_factory=list)
     anomaly_consecutive_limit: int = 3
     honeypot_flood_trigger_count: int = 5
     honeypot_flood_window_seconds: int = 120
@@ -260,10 +254,6 @@ class AdvancedSecurityConfig:
             cpu_threshold_percent=float(raw.get("cpu_threshold_percent", 85)),
             cpu_sustain_seconds=int(raw.get("cpu_sustain_seconds", 120)),
             memory_threshold_percent=float(raw.get("memory_threshold_percent", 80)),
-            user_agents_list=[str(u) for u in raw.get("user_agents_list", [])],
-            rotate_every_min_polls=int(raw.get("rotate_every_min_polls", 10)),
-            rotate_every_max_polls=int(raw.get("rotate_every_max_polls", 30)),
-            proxy_list=[str(p) for p in raw.get("proxy_list", [])],
             anomaly_consecutive_limit=int(raw.get("anomaly_consecutive_limit", 3)),
             honeypot_flood_trigger_count=int(raw.get("honeypot_flood_trigger_count", 5)),
             honeypot_flood_window_seconds=int(raw.get("honeypot_flood_window_seconds", 120)),
@@ -292,56 +282,14 @@ CPU_GAUGE = Gauge("centinel_security_cpu_percent", "Current host CPU percent")
 LOG_SIZE_GAUGE = Gauge("centinel_attack_log_size_bytes", "Attack log current size")
 
 
-class IdentityRotator:
-    """Rotates UA/proxy profile for reduced fingerprinting.
-
-    Rota perfil de UA/proxy para reducir fingerprinting.
-    """
-
-    def __init__(self, config: AdvancedSecurityConfig) -> None:
-        self.config = config
-        self._poll_count = 0
-        self._min_rotation = max(1, int(config.rotate_every_min_polls))
-        self._max_rotation = max(self._min_rotation, int(config.rotate_every_max_polls))
-        self._next_rotation = random.randint(self._min_rotation, self._max_rotation)
-        self._current_ua = "Mozilla/5.0 (compatible; Vigil-Engine/1.0)"
-        self._current_proxy = ""
-        # Proactive first-rotation so the first request is not static.
-        # Rotacion proactiva inicial para evitar perfil estatico en el primer request.
-        self._rotate_now()
-
-    def _rotate_now(self) -> None:
-        valid_uas = [ua.strip() for ua in self.config.user_agents_list if ua and ua.strip()]
-        if valid_uas:
-            candidate_ua = random.choice(valid_uas)
-            if len(valid_uas) > 1 and candidate_ua == self._current_ua:
-                fallback_pool = [ua for ua in valid_uas if ua != self._current_ua]
-                candidate_ua = random.choice(fallback_pool)
-            self._current_ua = candidate_ua
-
-        valid_proxies = [proxy.strip() for proxy in self.config.proxy_list if proxy and proxy.strip()]
-        if valid_proxies:
-            candidate_proxy = random.choice(valid_proxies)
-            if len(valid_proxies) > 1 and candidate_proxy == self._current_proxy:
-                fallback_pool = [proxy for proxy in valid_proxies if proxy != self._current_proxy]
-                candidate_proxy = random.choice(fallback_pool)
-            self._current_proxy = candidate_proxy
-        else:
-            self._current_proxy = ""
-
-        self._next_rotation = random.randint(self._min_rotation, self._max_rotation)
-        self._poll_count = 0
-
-    def next_headers(self) -> dict[str, str]:
-        self._poll_count += 1
-        if self._poll_count >= self._next_rotation:
-            self._rotate_now()
-        return {"User-Agent": self._current_ua, "Accept": "application/json"}
-
-    def current_proxies(self) -> dict[str, str] | None:
-        if not self._current_proxy:
-            return None
-        return {"http": self._current_proxy, "https": self._current_proxy}
+# Aqui vivia `IdentityRotator`: quince identidades y ocho proxies que
+# rotaban cada 10-30 peticiones «para evitar un perfil estatico». No
+# defendia de nada —las quince decian `Centinel-*`, una sola regla las
+# tumbaba, y los proxies eran direcciones de documentacion RFC 5737— y
+# contradecia la premisa del proyecto. Ver `docs/NO-EVASION.md`.
+# English: this held `IdentityRotator`: fifteen identities and eight
+# proxies rotating every 10-30 requests to avoid a static profile. It
+# defended against nothing and contradicted the project's premise.
 
 
 class HoneypotService:
@@ -548,7 +496,6 @@ class BackupManager:
         self._persist_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         self.maybe_backup(force=True)
 
-
     @staticmethod
     def _normalize_git_remote(remote: str) -> str:
         value = remote.strip()
@@ -623,7 +570,6 @@ class AdvancedSecurityManager:
 
     def __init__(self, config: AdvancedSecurityConfig) -> None:
         self.config = config
-        self.identity = IdentityRotator(config)
         self.honeypot = HoneypotService(config)
         self.alerts = AlertManager()
         self.backups = BackupManager(config)
@@ -685,9 +631,6 @@ class AdvancedSecurityManager:
             self._metrics_started = True
         self.honeypot.start()
         self.runtime_security.start_honeypot()
-
-    def get_request_profile(self) -> tuple[dict[str, str], dict[str, str] | None]:
-        return self.identity.next_headers(), self.identity.current_proxies()
 
     def _scan_files(self) -> set[str]:
         files: set[str] = set()
@@ -854,10 +797,8 @@ def load_manager(config_path: Path = Path("command_center/advanced_security_conf
     return _MANAGER
 
 
-def update_runtime_security_hooks() -> tuple[dict[str, str], dict[str, str] | None]:
-    """Convenience API for fetchers.
-
-    API de conveniencia para fetchers.
-    """
-    manager = load_manager()
-    return manager.get_request_profile()
+# Aqui vivia `update_runtime_security_hooks()`, la puerta por la que el
+# capturador pedia un perfil de identidad rotatorio. No tenia mas llamador que
+# el fetcher que se elimino. Ver `docs/NO-EVASION.md`.
+# English: this held the door through which the collector asked for a rotating
+# identity profile. Its only caller was the fetcher that was removed.

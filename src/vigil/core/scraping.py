@@ -11,7 +11,6 @@ la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
   - _build_url
-  - _apply_stealth
   - fetch_payload_with_playwright
 
 Notas:
@@ -25,7 +24,6 @@ navigation, maintenance, and technical auditability.
 
 Detected components:
   - _build_url
-  - _apply_stealth
   - fetch_payload_with_playwright
 
 Notes:
@@ -54,6 +52,8 @@ Notes:
 
 import json
 from typing import Any, Dict, Mapping
+
+from vigil.identity import VIGIL_USER_AGENT
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from playwright.sync_api import sync_playwright
@@ -75,17 +75,16 @@ def _build_url(base_url: str, params: Mapping[str, str]) -> str:
     return urlunsplit((split.scheme, split.netloc, split.path, urlencode(query), split.fragment))
 
 
-def _apply_stealth(page) -> None:
-    """Inyecta scripts básicos para reducir detección de bots.
-
-    English:
-        Inject basic scripts to reduce bot detection.
-    """
-    page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        Object.defineProperty(navigator, 'languages', {get: () => ['es-ES', 'es']});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-        """)
+# Aqui vivia `_apply_stealth`: borraba la marca que todo navegador
+# automatizado expone, declaraba el idioma como si el equipo estuviera en
+# Espana y fabricaba cinco complementos inexistentes, para que la pagina no
+# notara que hablaba con un programa. Es ocultacion activa, y ademas mentia
+# sobre el pais. VIGIL audita identificandose: si el portal quiere saber que
+# esto es un programa, debe poder saberlo. Ver `docs/NO-EVASION.md`.
+# English: this erased the flag every automated browser exposes, claimed a
+# European locale and fabricated five non-existent plugins so the page would
+# not notice it was talking to a program. Active concealment, and it lied
+# about the country too.
 
 
 def fetch_payload_with_playwright(
@@ -94,11 +93,7 @@ def fetch_payload_with_playwright(
     timeout: float,
     headers: Mapping[str, str],
     *,
-    user_agent: str | None = None,
-    locale: str | None = None,
-    timezone_id: str | None = None,
     viewport: Dict[str, int] | None = None,
-    stealth: bool = False,
 ) -> Dict[str, Any]:
     """Obtiene un JSON desde un endpoint usando Playwright.
 
@@ -107,11 +102,7 @@ def fetch_payload_with_playwright(
         params (Mapping[str, str]): Parámetros de consulta.
         timeout (float): Tiempo máximo de espera en segundos.
         headers (Mapping[str, str]): Encabezados HTTP.
-        user_agent (str | None): User-Agent opcional.
-        locale (str | None): Locale opcional para el navegador.
-        timezone_id (str | None): Zona horaria opcional.
         viewport (Dict[str, int] | None): Tamaño de viewport.
-        stealth (bool): Activa scripts de evasión de bots.
 
     Returns:
         Dict[str, Any]: Payload JSON recibido.
@@ -128,11 +119,7 @@ def fetch_payload_with_playwright(
         params (Mapping[str, str]): Query parameters.
         timeout (float): Timeout in seconds.
         headers (Mapping[str, str]): HTTP headers.
-        user_agent (str | None): Optional User-Agent.
-        locale (str | None): Optional browser locale.
-        timezone_id (str | None): Optional timezone ID.
         viewport (Dict[str, int] | None): Viewport size.
-        stealth (bool): Enables bot-evasion scripts.
 
     Returns:
         Dict[str, Any]: JSON payload received.
@@ -147,15 +134,11 @@ def fetch_payload_with_playwright(
         browser = playwright.chromium.launch(headless=True)
         context = browser.new_context(
             extra_http_headers=dict(headers),
-            user_agent=user_agent,
-            locale=locale,
-            timezone_id=timezone_id,
+            user_agent=VIGIL_USER_AGENT,
             viewport=viewport,
         )
         try:
             page = context.new_page()
-            if stealth:
-                _apply_stealth(page)
             response = page.goto(url, wait_until="networkidle", timeout=int(timeout * 1000))
             if response is None:
                 raise RuntimeError("Playwright no recibió respuesta al cargar la URL.")

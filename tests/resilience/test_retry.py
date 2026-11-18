@@ -11,7 +11,6 @@ la navegación, mantenimiento y auditoría técnica.
 
 Componentes detectados:
   - test_retry_policy_computes_exponential_backoff_with_jitter
-  - test_build_request_headers_low_profile_selection
   - test_request_with_retry_retries_429_503_and_preserves_headers
   - test_request_with_retry_retries_timeout_then_succeeds
   - test_request_json_with_retry_recovers_from_malformed_json
@@ -29,7 +28,6 @@ navigation, maintenance, and technical auditability.
 
 Detected components:
   - test_retry_policy_computes_exponential_backoff_with_jitter
-  - test_build_request_headers_low_profile_selection
   - test_request_with_retry_retries_429_503_and_preserves_headers
   - test_request_with_retry_retries_timeout_then_succeeds
   - test_request_json_with_retry_recovers_from_malformed_json
@@ -44,7 +42,6 @@ Notes:
 from __future__ import annotations
 
 import json
-import random
 from typing import Any
 
 import pytest
@@ -58,7 +55,6 @@ from vigil.downloader import (
     request_json_with_retry,
     request_with_retry,
 )
-from scripts.download_and_hash import build_request_headers
 
 
 def test_retry_policy_computes_exponential_backoff_with_jitter(
@@ -88,28 +84,6 @@ def test_retry_policy_computes_exponential_backoff_with_jitter(
     delay = policy.compute_delay(2)
 
     assert delay == pytest.approx(2.0 * 1.05)
-
-
-def test_build_request_headers_low_profile_selection() -> None:
-    """Español: Verifica headers low-profile con selección aleatoria controlada.
-
-    English: Verify low-profile headers with controlled random selection.
-    """
-    config = {"headers": {"Accept": "application/json"}}
-    low_profile = {
-        "enabled": True,
-        "user_agents": ["UA-1", "UA-2"],
-        "accept_languages": ["es-HN"],
-        "referers": ["https://cne.hn"],
-    }
-    rng = random.Random(7)
-
-    headers = build_request_headers(config, low_profile, rng)
-
-    assert headers["Accept"] == "application/json"
-    assert headers["User-Agent"] in low_profile["user_agents"]
-    assert headers["Accept-Language"] == "es-HN"
-    assert headers["Referer"] == "https://cne.hn"
 
 
 def test_request_with_retry_retries_429_503_and_preserves_headers(

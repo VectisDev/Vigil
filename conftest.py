@@ -140,13 +140,6 @@ def _reset_global_singletons():
 
     def _reset() -> None:
         try:
-            import vigil.proxy_handler as _ph
-
-            _ph._ROTATOR = None
-        except Exception:
-            # Module not importable in this test session: nothing to reset.
-            pass
-        try:
             from monitoring.health import reset_health_state
 
             reset_health_state()

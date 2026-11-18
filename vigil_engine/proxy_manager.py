@@ -41,39 +41,23 @@ from __future__ import annotations
 
 import logging
 import os
-import secrets
 import threading
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+from vigil.identity import VIGIL_USER_AGENT, request_headers
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_ROTATION_EVERY_N = 5
-ROTATION_TRIGGER_CODES = {403, 429}
 
-# ponytail: Phase 4b — UA rotation uses secrets.choice (not random.choice) intentionally;
-# secrets.choice is cryptographically unpredictable, harder to fingerprint than random.
-# Downgrade to random.choice only if secrets overhead becomes measurable in load tests.
-USER_AGENT_POOL = (
-    "VIGIL-Engine/1.0 (electoral-audit; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Engine-Healer/9.0 (electoral-audit; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Electoral-Monitor/1.0 (public-data-audit; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Engine/1.0 (Decreto-170-2006-HN; +https://github.com/VectisDev/Vigil)",
-    "VIGIL-Watchdog/1.0 (electoral-transparency; +https://github.com/VectisDev/Vigil)",
-)
-
-_ACCEPT_POOL = (
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "application/json,text/plain,*/*",
-    "text/html,application/xml;q=0.9,*/*;q=0.8",
-)
-_LANGUAGE_POOL = (
-    "es-HN,es-419;q=0.9,es;q=0.8,en;q=0.6",
-    "es-419,es;q=0.9,en-US;q=0.6,en;q=0.5",
-    "en-US,en;q=0.8,es-HN;q=0.6,es;q=0.4",
-)
-_FETCH_MODE_POOL = ("navigate", "cors", "no-cors")
-_REFERER_POOL = ("", "https://github.com/VectisDev/Vigil")
+# Habia cinco identidades y tres juegos de cabeceras que se barajaban por
+# peticion, bajo el nombre de «anti-fingerprinting». VIGIL audita
+# identificandose: una sola identidad, siempre la misma, definida en
+# `vigil.identity`. El porque esta en `docs/NO-EVASION.md`.
+# English: there were five identities and three header pools shuffled per
+# request under the name "anti-fingerprinting". VIGIL identifies itself: one
+# identity, always the same, defined in `vigil.identity`.
 
 
 class ProxyAndUAManager:
@@ -86,15 +70,11 @@ class ProxyAndUAManager:
         self,
         proxy_rotator: Optional[Any] = None,
         rotation_every_n: int = DEFAULT_ROTATION_EVERY_N,
-        ua_pool: Optional[Sequence[str]] = None,
     ) -> None:
         if rotation_every_n < 1:
             raise ValueError("rotation_every_n must be >= 1")
         self.proxy_rotator = proxy_rotator
         self.rotation_every_n = rotation_every_n
-        self.ua_pool = list(ua_pool or USER_AGENT_POOL)
-        if not self.ua_pool:
-            raise ValueError("ua_pool cannot be empty")
 
         self._lock = threading.Lock()
         self._request_count = 0
@@ -139,12 +119,14 @@ class ProxyAndUAManager:
         proxies = self._extract_proxy_candidates()
         if proxies:
             good_proxies = [proxy for proxy in proxies if self._bad_until_by_proxy.get(proxy, 0.0) <= now]
-            bad_proxies = [proxy for proxy in proxies if self._bad_until_by_proxy.get(proxy, 0.0) > now]
             # Strict good-first priority / # Prioridad estricta: buenos primero
+            # La salida configurada es una (con Tor, un solo circuito). Se toma
+            # la primera sana, de forma determinista: barajar entre varias seria
+            # repartir la identidad, que es lo que se quito.
+            # English: there is one configured exit (with Tor, a single circuit).
+            # The first healthy one is taken deterministically.
             if good_proxies:
-                return secrets.choice(good_proxies)
-            if bad_proxies and secrets.randbelow(100) < 20:
-                return secrets.choice(bad_proxies)
+                return good_proxies[0]
             return None
 
         try:
@@ -175,31 +157,20 @@ class ProxyAndUAManager:
             self._rotation_count += 1
             self._force_rotation = False
 
-    def build_request_headers(self, user_agent: str) -> Dict[str, str]:
-        """Build randomized anti-fingerprinting request headers.
+    def build_request_headers(self, user_agent: Optional[str] = None) -> Dict[str, str]:
+        """Las cabeceras de la identidad unica de VIGIL.
 
-        Bilingual: Construye headers aleatorios anti-fingerprinting.
+        Bilingual: Las cabeceras de la identidad unica. `user_agent` se acepta
+        por compatibilidad con los llamadores y se ignora: la identidad no la
+        elige quien llama.
 
-        Args:
-            user_agent: Selected User-Agent for the current request.
-
-        Returns:
-            Dict[str, str]: HTTP header mapping with varied neutral values.
-
-        Raises:
-            None.
+        English: `user_agent` is accepted for caller compatibility and ignored
+        -- the identity is not the caller's to choose.
         """
-        headers: Dict[str, str] = {
-            "User-Agent": user_agent,
-            "Accept": secrets.choice(_ACCEPT_POOL),
-            "Accept-Language": secrets.choice(_LANGUAGE_POOL),
-            "Sec-Fetch-Mode": secrets.choice(_FETCH_MODE_POOL),
-            "Cache-Control": "no-cache",
-            "Pragma": "no-cache",
-        }
-        referer = secrets.choice(_REFERER_POOL)
-        if referer:
-            headers["Referer"] = referer
+        del user_agent
+        headers = dict(request_headers())
+        headers["Cache-Control"] = "no-cache"
+        headers["Pragma"] = "no-cache"
         return headers
 
     def rotate_proxy_and_ua(self, force_proxy_rotation: bool = False) -> Tuple[Optional[Dict[str, str]], str]:
@@ -210,22 +181,11 @@ class ProxyAndUAManager:
         with self._lock:
             self._request_count += 1
             self._maybe_rotate_proxy(force_proxy_rotation)
-            self._last_ua = secrets.choice(self.ua_pool)
+            self._last_ua = VIGIL_USER_AGENT
             proxy_payload = None
             if self._last_proxy_url:
                 proxy_payload = {"http": self._last_proxy_url, "https": self._last_proxy_url}
             return proxy_payload, self._last_ua
-
-    def notify_response(self, status_code: int) -> bool:
-        """Report response status and return whether rotation is recommended.
-
-        Bilingual: Reporta status de respuesta y retorna si conviene rotar.
-        """
-        should_rotate = int(status_code) in ROTATION_TRIGGER_CODES
-        if should_rotate:
-            with self._lock:
-                self._force_rotation = True
-        return should_rotate
 
     @property
     def stats(self) -> dict[str, Any]:
@@ -237,7 +197,6 @@ class ProxyAndUAManager:
             return {
                 "total_requests": self._request_count,
                 "total_rotations": self._rotation_count,
-                "ua_pool_size": len(self.ua_pool),
                 "proxy_mode": "proxy" if self._last_proxy_url else "direct",
                 "last_proxy": self._last_proxy_url,
                 "last_ua": self._last_ua,
@@ -298,7 +257,6 @@ _proxy_manager_lock = threading.Lock()
 def get_proxy_ua_manager(
     proxy_rotator: Optional[Any] = None,
     rotation_every_n: int = DEFAULT_ROTATION_EVERY_N,
-    ua_pool: Optional[Sequence[str]] = None,
 ) -> ProxyAndUAManager:
     """Return singleton proxy/UA manager, auto-wiring env proxy config on first call.
 
@@ -313,7 +271,6 @@ def get_proxy_ua_manager(
             _proxy_ua_manager_singleton = ProxyAndUAManager(
                 proxy_rotator=proxy_rotator,
                 rotation_every_n=rotation_every_n,
-                ua_pool=ua_pool,
             )
         return _proxy_ua_manager_singleton
 

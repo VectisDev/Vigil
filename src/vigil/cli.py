@@ -201,8 +201,8 @@ def panel_show(
     typer.echo(f"║  AMENAZA GENERAL / Threat Score:  {threat_score:3d}/100 {status_color:<17} ║")
     typer.echo("║                                                                ║")
 
-    # Protocolo ARGOS — Cinco Capas de Defensa
-    typer.echo("║  PROTOCOLO ARGOS / ARGOS Protocol — Cinco Capas:             ║")
+    # Protocolo ARGOS — Cuatro Capas de Defensa
+    typer.echo("║  PROTOCOLO ARGOS / ARGOS Protocol — Cuatro Capas:            ║")
     typer.echo("║  ┌─────────────────────────────────────────────────────────┐  ║")
 
     for key, defense in ALL_DEFENSES.items():
@@ -210,7 +210,6 @@ def panel_show(
         detail = {
             "corvid": "Último:  5m",
             "cephalopod": "Clave: hash...",
-            "evasion": "Jitter: ±30%",
             "regeneration": "Mirrors: 3/3",
             "kill_switch": "(no activado)",
         }
@@ -263,12 +262,6 @@ def panel_json() -> None:
                 "name_es": ArgosLayer.CEPHALOPOD.name_es,
                 "enabled": True,
                 "key_hash": "abc123...",
-            },
-            "evasion": {
-                "emoji": ArgosLayer.EVASION.emoji,
-                "name_es": ArgosLayer.EVASION.name_es,
-                "enabled": True,
-                "jitter_range": "±30%",
             },
             "regeneration": {
                 "emoji": ArgosLayer.REGENERATION.emoji,

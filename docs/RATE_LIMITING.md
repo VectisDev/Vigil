@@ -198,7 +198,7 @@ All requests use `Vigil-Engine/1.0 (+https://github.com/VectisDev/Vigil)`.
 No fake browser UAs (Chrome/Firefox/Safari). The User-Agent links to the open-source
 project so any server admin can verify our mission.
 
-Implementation: `vigil_engine/proxy_manager.py:USER_AGENT_POOL`
+Implementation: `src/vigil/identity.py:VIGIL_USER_AGENT`
 
 ### 2. robots.txt Respect
 

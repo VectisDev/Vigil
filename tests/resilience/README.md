@@ -13,7 +13,7 @@ English: This suite validates operational resilience for Vigil's public election
 - Reintentos con tenacity: backoff exponencial, jitter, headers persistentes, max_attempts.
 - Manejo de errores HTTP (429/503), timeouts y JSON malformado.
 - Watchdog: heartbeat stale, grace period y reinicio automático con logging crítico.
-- Proxy rotation: round-robin, validación, fallback a directo, agotamiento de pool.
+- Identidad única declarada: ver `tests/test_identifies_itself.py`.
 
 ## Cómo correr / How to run
 

@@ -28,7 +28,7 @@ pytest tests/resilience/ -v --cov=scripts
 - Circuit breaker: transición CLOSED → OPEN → HALF_OPEN, tiempo de recuperación y cadencia de alertas.
 - Retry con tenacity: backoff exponencial + jitter, headers persistentes, reintentos ante 429/503/timeout, y límites de max_attempts.
 - Watchdog: heartbeat stale, respeto de grace period, recuperación con logging y reinicio simulado.
-- Proxy rotation: round-robin, validación/fallo de proxies, fallback a directo y recuperación del pool.
+- Identidad: la misma cadena consulta `robots.txt` y viaja en la petición; un `Disallow` dirigido a VIGIL detiene la captura (`tests/test_identifies_itself.py`).
 - Escenarios CNE: rate-limit 429, 503/timeout, conexión lenta, proxy 403 y JSON malformado parcial.
 - Evidencia de resiliencia: `failed_requests.jsonl`, ausencia de excepciones no manejadas.
 
@@ -36,7 +36,7 @@ pytest tests/resilience/ -v --cov=scripts
 - Circuit breaker: CLOSED → OPEN → HALF_OPEN transitions, recovery timing, and alert cadence.
 - Tenacity retries: exponential backoff + jitter, persistent headers, retries on 429/503/timeout, and max_attempts limits.
 - Watchdog: stale heartbeat detection, grace period enforcement, recovery logging, and simulated restart.
-- Proxy rotation: round-robin, proxy validation/failure, fallback to direct, and pool refresh recovery.
+- Identity: the same string queries `robots.txt` and travels on the wire; a `Disallow` aimed at VIGIL stops the capture (`tests/test_identifies_itself.py`).
 - CNE scenarios: 429 rate-limit, 503/timeout, slow connection, proxy 403, and partially malformed JSON.
 - Resilience evidence: `failed_requests.jsonl` writes and no unhandled exceptions.
 

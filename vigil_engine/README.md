@@ -6,7 +6,7 @@ Motor ciudadano open source para monitorear portales de transparencia en Hondura
 
 ### Objetivo
 - Monitorear 19 endpoints públicos de portales de transparencia.
-- Scraping defensivo con delays y rotación de User-Agent.
+- Observación con delays e identidad única declarada (ver `docs/NO-EVASION.md`).
 - Subir hashes SHA-256 a L2 (Base por defecto) usando batches y Merkle roots.
 - Heartbeat periódico para demostrar operación continua.
 
@@ -88,7 +88,7 @@ Open-source civic engine to monitor transparency portals in Honduras, generate i
 
 ### Goals
 - Monitor 19 public endpoints from transparency portals.
-- Defensive scraping with delays and User-Agent rotation.
+- Observation with delays and a single declared identity (see `docs/NO-EVASION.md`).
 - Upload SHA-256 hashes to L2 (Base by default) using batches and Merkle roots.
 - Periodic heartbeat to prove continuous operation.
 

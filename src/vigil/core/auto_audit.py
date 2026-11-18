@@ -158,9 +158,7 @@ class AutoAudit:
                             entry = json.loads(line)
                             ts = entry.get("timestamp")
                             if ts and ts < prev_ts:
-                                issues.append(
-                                    f"Attack log out of order at line {line_count}: {ts} < {prev_ts}"
-                                )
+                                issues.append(f"Attack log out of order at line {line_count}: {ts} < {prev_ts}")
                             prev_ts = ts or 0
                         except json.JSONDecodeError:
                             issues.append(f"Malformed JSON at line {line_count}")
@@ -179,9 +177,7 @@ class AutoAudit:
                     if "merkle_root" not in checkpoint:
                         issues.append("Checkpoint missing merkle_root")
                     else:
-                        logger.info(
-                            f"✅ Checkpoint valid: merkle_root={checkpoint['merkle_root'][:16]}..."
-                        )
+                        logger.info(f"✅ Checkpoint valid: merkle_root={checkpoint['merkle_root'][:16]}...")
             except Exception as e:
                 logger.error(f"Error validating checkpoint: {e}")
                 issues.append(f"Checkpoint validation failed: {e}")
@@ -232,16 +228,13 @@ class AutoAudit:
             logger.warning(f"⚠️ Pulpo (Encryption): {e}")
             results["cephalopod"] = False
 
-        # 🦌 Venado: scheduler de evasión importable
-        try:
-            import importlib.util
-
-            spec = importlib.util.find_spec("vigil.core.kill_switch")
-            results["evasion"] = spec is not None
-            logger.info("✅ Venado (Evasion): ACTIVO")
-        except Exception as e:
-            logger.warning(f"⚠️ Venado (Evasion): {e}")
-            results["evasion"] = False
+        # Aqui se comprobaba la salud de «Venado (Evasion)». Lo que medía era si
+        # `vigil.core.kill_switch` era importable —otro modulo, sin relacion— y
+        # despues registraba «Venado (Evasion): ACTIVO» pasara lo que pasara.
+        # La capa no existia. Ver `docs/NO-EVASION.md`.
+        # English: this checked the health of the «Venado (Evasion)» layer by
+        # testing whether an unrelated module was importable, then logged it as
+        # ACTIVE regardless. The layer did not exist.
 
         # 🦎 Lagartija
         try:

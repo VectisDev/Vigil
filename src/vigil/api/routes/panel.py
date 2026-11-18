@@ -77,16 +77,6 @@ async def get_panel(
                 "key_hash": "abc123def456...",
                 "last_encrypted_messages": 2847,
             },
-            "evasion": {
-                "emoji": ArgosLayer.EVASION.emoji,
-                "name_es": ArgosLayer.EVASION.name_es,
-                "title_es": ArgosLayer.EVASION.title_es,
-                "enabled": True,
-                "last_check_ts": 1715851800.0,
-                "jitter_percent": 30,
-                "base_interval_seconds": 30,
-                "last_snapshot_seconds_ago": 30,
-            },
             "regeneration": {
                 "emoji": ArgosLayer.REGENERATION.emoji,
                 "name_es": ArgosLayer.REGENERATION.name_es,
@@ -150,7 +140,6 @@ async def get_defenses() -> Dict[str, Any]:
     for key, defense in {
         "corvid": ArgosLayer.CORVID,
         "cephalopod": ArgosLayer.CEPHALOPOD,
-        "evasion": ArgosLayer.EVASION,
         "regeneration": ArgosLayer.REGENERATION,
         "kill_switch": ArgosLayer.KILL_SWITCH,
     }.items():
@@ -226,6 +215,7 @@ async def ots_latest_meta() -> Dict[str, Any]:
     meta_error: str | None = None
     if meta_path.exists():
         import json as _json
+
         try:
             meta = _json.loads(meta_path.read_text(encoding="utf-8"))
         except Exception as exc:

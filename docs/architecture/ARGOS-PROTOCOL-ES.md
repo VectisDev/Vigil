@@ -64,32 +64,18 @@ Implementar **cifrado de tránsito ChaCha20Poly1305**:
 
 ---
 
-## 🦌 Venado — Evasión de Timing
+## 🦌 Venado — retirado
 
-### Problema Resuelto
-**Timing attacks:** Un atacante que sabe "Vigil captura cada 30 segundos" puede programar un ataque para los 29 segundos, justo antes.
+Aquí se describía un protocolo de evasión de timing: jitter de ±30 %, un módulo
+`evasion_scheduler.py` y **un 2 % de capturas señuelo con datos aleatorios**.
 
-### Solución
-Implementar **jitter + decoy snapshots**:
-- Cada snapshot tiene jitter de ±30% (variabilidad aleatoria)
-- El testigo captura cada 30-45 segundos (no exactamente cada 30)
-- 2% de snapshots son "decoys" (snapshots falsos con datos aleatorios)
-- Imposible predecir cuándo es el "real"
+Nada de eso llegó a existir —ni el archivo ni la clave de configuración— y el
+panel del operador lo mostraba como «ACTIVO», que era estado inventado.
 
-### Indicadores
-- `evasion_scheduler.py`: módulo de jitter
-- Log: "Venado: snapshot en 37.2s (esperado: 30±30%)"
-- Decoys marcados: `snapshot["is_decoy"] = True`
-
-### Costo
-- Cero: solo random.uniform() en Python
-- Sin almacenamiento adicional significativo
-
-### Evaluación
-✅ **Implementación SÓLIDA**
-- Resuelve problema real (timing prediction)
-- Decoys evitan que se identifique patrón por tamaño de datos
-- Non-fatal: si jitter falla, captura igualmente en tiempo fijo
+Se retira, y los señuelos no vuelven. VIGIL publica capturas verificables: una
+sola falsa, puesta a propósito, le daría a cualquier adversario la forma de
+desacreditar todas las demás. El porqué completo está en
+[`docs/NO-EVASION.md`](../NO-EVASION.md).
 
 ---
 
@@ -180,7 +166,6 @@ Implementar **freeze autónomo + exponential backoff**:
 |------|--------|---------|-----------|-----------|
 | D14 | 🐦 Cuervo | Testigo único | Gossip P2P | ✓ Autónoma |
 | D15 | 🦑 Pulpo | MITM tránsito | Cifrado ChaCha20 | ✓ Autónoma |
-| D16 | 🦌 Venado | Timing prediction | Jitter ±30% | ✓ Autónoma |
 | D17 | 🦎 Lagartija | Rootkit local | Sync mirrors | ✓ Autónoma |
 | D18 | ⚔️ Tejón | Ataque activo | Freeze + backoff | ✓ Autónoma |
 
@@ -197,7 +182,6 @@ Salida esperada:
 ```
 🐦 Cuervo (Memory):      ACTIVO ✓  Hermanos: 2/3
 🦑 Pulpo (Encrypt):       ACTIVO ✓  Últimas encriptaciones: 2847
-🦌 Venado (Evasion):     ACTIVO ✓  Jitter: ±30%
 🦎 Lagartija (Healing):  ACTIVO ✓  Mirrors: 3/3 sincronizadas
 ⚔️ Tejón (Kill Switch):  READY    (no activado)
 ```
@@ -212,7 +196,6 @@ Salida esperada:
 2. **Identificar qué capa se activó:**
    - "Cuervo": hermanos reportan merkle diferente
    - "Pulpo": error de cifrado en tránsito
-   - "Venado": timing fuera de rango normal
    - "Lagartija": divergencia en mirrors
    - "Tejón": congelamiento detectado
 
@@ -246,12 +229,6 @@ defenses:
     enabled: true
     cipher: "chacha20poly1305"
     key_derivation: "sha256(previous_merkle_root)"
-
-  evasion:
-    enabled: true
-    base_interval_seconds: 30
-    jitter_percent: 30
-    decoy_snapshot_percent: 2
 
   regeneration:
     enabled: true
