@@ -158,7 +158,6 @@ centinel regeneration restore --source-mirror primary
 |---------|-------|
 | 🐦 Cuervo (Corvid) | ¿Contacta testigos hermanos? |
 | 🦑 Pulpo (Cephalopod) | ¿Cifrado derivado es válido? |
-| 🦌 Venado (Evasion) | ¿Jitter está activo? |
 | 🦎 Lagartija (Regeneration) | ¿≥2 mirrors accesibles? |
 | ⚔️ Tejón (Kill Switch) | ¿Lock file puede crearse/borrarse? |
 
@@ -167,7 +166,6 @@ centinel regeneration restore --source-mirror primary
 **Causa probable:**
 - Red caída (Cuervo falla)
 - Problemas de almacenamiento (Lagartija falla)
-- Scheduler pausado (Venado falla)
 - Filesystem readonly (Tejón falla)
 
 **Acción:**

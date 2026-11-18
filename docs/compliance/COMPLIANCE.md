@@ -178,7 +178,7 @@ NIST 800-53 es el catálogo de referencia de controles de seguridad para sistema
 | AU — Auditoría | AU-2 Generación de eventos de auditoría | Logs de cada fetch + hash en cadena | `vigil_engine/vital_signs.py`, `scripts/download_and_hash.py` | ✅ |
 | AU — Auditoría | AU-9 Protección de información de auditoría | Hash chain inmutable; OTS Bitcoin | `src/vigil/core/anchoring.py` | ✅ |
 | AU — Auditoría | AU-10 No repudio | Ed25519 + Bitcoin anchoring | `src/vigil/core/anchoring.py` | ✅ |
-| SC — Comunicaciones | SC-8 Confidencialidad e integridad en transmisión | TLS + cert pinning | `vigil_engine/proxy_manager.py` | ✅ |
+| SC — Comunicaciones | SC-8 Confidencialidad e integridad en transmisión | TLS + cert pinning | `scripts/download_and_hash.py` (pinning DNS/HTTPS) | ✅ |
 | SC — Comunicaciones | SC-28 Protección de datos en reposo | AES-256-GCM en backups | `vigil_engine/secure_backup.py` | ✅ |
 | SI — Integridad del sistema | SI-7 Integridad de software y firmware | SHA-256 por snapshot; binary tamper detection | `src/vigil/core/hashchain.py` | ✅ |
 | SI — Integridad del sistema | SI-3 Protección de código malicioso | No aplica directamente (sistema de observación) | — | N/A |

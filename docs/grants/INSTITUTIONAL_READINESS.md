@@ -23,7 +23,7 @@ Esta nota resume qué puede presentar hoy VIGIL en conversaciones de alto nivel 
    - Postura de seguridad con mínimo privilegio, controles de integridad e higiene de secretos.
 
 5. **Resiliencia con evidencia continua en CI**
-   - Controles activos: rate limiting, rotación proxy/user-agent, fallbacks y backup seguro.
+   - Controles activos: rate limiting, identidad única declarada (sin rotación ni suplantación), fallbacks y backup seguro.
    - Reportería de resiliencia por release, con score y métricas de recuperación.
 
 ## Mejoras priorizadas (sin incluir reglas analíticas)
@@ -82,7 +82,7 @@ This note summarizes what VIGIL can already present in serious conversations wit
    - Security posture includes least privilege, integrity controls, and secrets hygiene baseline.
 
 5. **Resilience controls and evidence in CI**
-   - Active controls include rate limiting, proxy/user-agent rotation, fallback strategies, and secure backups.
+   - Active controls include rate limiting, a single declared identity (no rotation, no impersonation), fallback strategies, and secure backups.
    - Resilience reporting (including release-level scoring) is documented as part of CI evidence.
 
 ## Priority improvements (excluding analytic rules)

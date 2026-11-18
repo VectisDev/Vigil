@@ -28,7 +28,6 @@ vigil panel json
 │  ┌─────────────────────────────────────────────────────────┐  │
 │  │ 🐦 Cuervo (Memory):      ACTIVO ✓  Último:  5m          │  │
 │  │ 🦑 Pulpo (Encrypt):       ACTIVO ✓  Clave: hash...     │  │
-│  │ 🦌 Venado (Evasion):     ACTIVO ✓  Jitter: ±30%        │  │
 │  │ 🦎 Lagartija (Healing):  ACTIVO ✓  Mirrors: 3/3        │  │
 │  │ ⚔️  Tejón (Kill Switch):  READY   (no activado)         │  │
 │  └─────────────────────────────────────────────────────────┘  │
@@ -125,15 +124,6 @@ Acción: Kill switch se activó. Espera recuperación.
 
 ---
 
-### 🦌 Venado (Evasion Timing)
-
-| Status | Significado | Acción |
-|--------|---|---|
-| ACTIVO ✓ | Jitter funcionando | Normal |
-| ⚠️ DEGRADADO | Jitter deshabilitado | Revisar config |
-| ❌ CRÍTICO | Timing predecible | Problema scheduler |
-
-**Detalles:** `Jitter: ±30%` = rango de variabilidad actual
 
 ---
 

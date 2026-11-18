@@ -33,7 +33,7 @@ auditores ciudadanos independientes.
 ### 3. Pipeline técnico
 
 1. **Captura** — Ingesta de endpoints oficiales del CNE a cadencia configurable
-   (2–5 min), con rate-limiting ético y rotación de proxy/user-agent.
+   (2–5 min), con rate-limiting ético e identidad declarada en cada petición.
 2. **Hashing y encadenamiento** — SHA-256 por snapshot, encadenado al anterior.
    Merkle root computado sobre el conjunto. Alteración histórica propaga mismatch.
 3. **Normalización** — Conversión a esquema consistente; parseo de enteros con

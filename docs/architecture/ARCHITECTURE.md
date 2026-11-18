@@ -224,7 +224,6 @@ Reporte:
 │ PROTOCOLO ARGOS — CINCO CAPAS EN PARALELO:              │
 │ 🐦 Cuervo: contacta hermanos → consenso                 │
 │ 🦑 Pulpo: cifra respuesta en tránsito                   │
-│ 🦌 Venado: jitter ±30% en timing                        │
 │ 🦎 Lagartija: prepara copia para mirrors                │
 │ ⚔️ Tejón: evalúa threat score, freeze si ≥75           │
 └────────────────┬────────────────────────────────────────┘

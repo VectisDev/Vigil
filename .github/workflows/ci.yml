@@ -93,8 +93,18 @@ jobs:
         run: |
           set -euo pipefail
 
+          # --diff-filter=ACMRT deja fuera los BORRADOS. Sin el, `git diff
+          # --name-only` lista tambien lo que el PR elimino, y flake8 recibe
+          # rutas que ya no existen en el checkout: sale E902 FileNotFoundError
+          # y el gate muere sin haber revisado nada. Saltaba en cualquier PR que
+          # borrara un .py. En un renombrado --name-only imprime la ruta
+          # destino, que si existe, asi que se sigue revisando.
+          # English: --diff-filter=ACMRT excludes DELETED files. Without it the
+          # gate is handed paths the PR removed, flake8 raises E902
+          # FileNotFoundError and the job dies having checked nothing. For a
+          # rename, --name-only prints the destination path, which does exist.
           if [[ -n "${BASE_SHA}" ]]; then
-            mapfile -t changed_py < <(git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- '*.py')
+            mapfile -t changed_py < <(git diff --name-only --diff-filter=ACMRT "${BASE_SHA}" "${GITHUB_SHA}" -- '*.py')
           else
             mapfile -t changed_py < <(git ls-files -- '*.py')
           fi

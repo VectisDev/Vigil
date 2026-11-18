@@ -8,6 +8,9 @@ Un solo mantenedor publica este repositorio, con el seudónimo VectisDev.
 La nota larga en [`docs/security/THREAT-MODEL.md`](security/THREAT-MODEL.md) es un boceto de diseño.
 Si describe una federación de testigos, una lista de testigos ya registrada, o un control como si ya operara, manda esta página.
 
+La postura ante el bloqueo —por qué VIGIL se identifica y no evade— está en [`docs/NO-EVASION.md`](NO-EVASION.md).
+The stance on blocking -- why VIGIL identifies itself instead of evading -- is in [`docs/NO-EVASION.md`](NO-EVASION.md).
+
 ## What is being watched
 
 The published feed, not a ballot box. Useful failures are: a stored capture no longer matches what was stored, or a portal stops answering during a window when a fetch was actually attempted. The software records those events. It does not decide why they happened and it does not name a responsible party.

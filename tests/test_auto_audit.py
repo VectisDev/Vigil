@@ -142,7 +142,7 @@ class TestDefenseHealth:
 
             assert isinstance(result, dict)
             # Debería tener al menos placeholders para las 5 defensas
-            expected_keys = {"corvid", "cephalopod", "evasion", "regeneration", "kill_switch"}
+            expected_keys = {"corvid", "cephalopod", "regeneration", "kill_switch"}
             assert set(result.keys()) == expected_keys
 
     @pytest.mark.asyncio

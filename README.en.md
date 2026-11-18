@@ -134,6 +134,7 @@ The check uses the files in this repository and Python. There is no account to r
 - The 2025 sample is from after the count. It is not a chain taken while the election was open. Detail is in [docs/evidence/HN2025.md](docs/evidence/HN2025.md).
 - Checking those files shows which bytes were stored. It does not say why a number changed, or what happened at a polling station. The scope is in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 - If the panel has not fetched the portal, it says so. It does not present a source as healthy. See [docs/VERIFY.md](docs/VERIFY.md).
+- VIGIL observes without asking permission, but it does not hide: it identifies itself on every request and respects `robots.txt`. If a portal blocks it, it stops and publishes that. The reasoning is in [docs/NO-EVASION.md](docs/NO-EVASION.md).
 
 ## Contribute · Security · Conduct
 

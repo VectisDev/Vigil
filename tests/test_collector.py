@@ -177,20 +177,6 @@ def test_run_collection_writes_report(tmp_path: Path, monkeypatch):
     output_path = tmp_path / "collector_latest.json"
     monkeypatch.setattr(collector, "DEFAULT_OUTPUT_PATH", output_path)
 
-    class _Rotator:
-        def get_proxy_for_request(self):
-            return None
-
-        def mark_success(self, _proxy):
-            return None
-
-        def mark_failure(self, _proxy, _reason):
-            return None
-
-    # collector imports get_proxy_rotator lazily from vigil.proxy_handler;
-    # patch it at the source so the lazy import picks up the fake.
-    monkeypatch.setattr("vigil.proxy_handler.get_proxy_rotator", lambda _logger: _Rotator())
-
     code = collector.run_collection(config_path=config_path, retry_path=retry_path)
 
     assert code == 0
@@ -220,20 +206,6 @@ def test_is_safe_http_url_supports_public_resolution_flag(monkeypatch) -> None:
     monkeypatch.setattr(collector, "is_safe_outbound_url", _fake_is_safe)
     assert collector.is_safe_http_url("https://cne.hn/api", enforce_public_ip_resolution=True)
     assert captured["enforce"] is True
-
-
-def test_fetch_json_with_retry_blocks_proxy_for_pinned_https(monkeypatch) -> None:
-    monkeypatch.setattr(collector, "_fetch_json_over_pinned_https", lambda *_a, **_k: {"ok": True})
-
-    payload = collector.fetch_json_with_retry(
-        "https://cne.hn/api",
-        timeout_seconds=1,
-        max_attempts=1,
-        backoff_base=0,
-        proxy_url="http://proxy.local:8080",
-    )
-
-    assert payload is None
 
 
 def test_fetch_json_with_retry_uses_dns_pinning_and_connection_close(monkeypatch) -> None:

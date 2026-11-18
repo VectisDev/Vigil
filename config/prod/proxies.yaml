@@ -1,31 +1,25 @@
 # Perfil defensivo de proxies para VIGIL
 # Defensive proxy profile for VIGIL
 
-# ES: Política recomendada: conexión directa por defecto.
-# EN: Recommended policy: direct connection by default.
+# ES: Conexión directa por defecto. No hay rotación de salidas: repartir las
+#     peticiones entre varias direcciones sirve para que no te identifiquen, y
+#     VIGIL audita identificándose. La cabecera dice quiénes somos en cada
+#     petición (src/vigil/identity.py).
+#
+#     Lo único que se conserva es una salida ÚNICA y opcional por Tor, abajo.
+#     Esa no es evasión y la distinción importa: el portal sigue sabiendo
+#     perfectamente que quien consulta es VIGIL; lo que no aprende es desde qué
+#     casa de Honduras. Protege a la persona, no disfraza al observador.
+#
+#     El porqué completo está en docs/NO-EVASION.md.
+#
+# EN: Direct connection by default. No exit rotation: spreading requests across
+#     several addresses exists to avoid being identified, and VIGIL audits by
+#     identifying itself. The only thing kept is a SINGLE optional Tor exit
+#     below. That is not evasion: the portal still knows exactly that VIGIL is
+#     asking; what it does not learn is from which house in Honduras. It
+#     protects the person, it does not disguise the observer.
 mode: direct
-
-# ES: Mantener round_robin para distribuir carga cuando se habilite rotación.
-# EN: Keep round_robin to distribute load when rotation is enabled.
-rotation_strategy: round_robin
-
-# ES: Rotación lenta para evitar cambios de IP por cada request.
-# EN: Slow rotation to avoid changing IP on every request.
-rotation_every_n: 5
-
-# ES: Timeout de validación y request por proxy.
-# EN: Validation and per-request timeout for proxies.
-proxy_timeout_seconds: 15
-
-# ES: Endpoint liviano para validar salida de proxy.
-# EN: Lightweight endpoint for proxy egress validation.
-test_url: https://httpbin.org/ip
-
-proxies:
-  # ES: Formato esquema://[user:pass@]ip:port
-  # EN: Format scheme://[user:pass@]ip:port
-  - "http://user:pass@ip:port"
-  - "socks5://ip:port"
 
 # ── Tor / Modo privacidad ──────────────────────────────────────────────────
 # ES: Para enrutar TODO el tráfico de monitoreo por Tor (recomendado en

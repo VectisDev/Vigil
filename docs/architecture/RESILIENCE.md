@@ -9,9 +9,14 @@ This document describes only active mechanisms in the current flow.
 - Token-bucket local para evitar ráfagas y respetar cadencia ética.
 - Ajustable por configuración sin cambiar el flujo principal.
 
-### 2) Proxy + User-Agent rotation
-- Rotación de identidad de cliente para reducir bloqueos temporales.
-- Fallback automático a modo directo si no hay proxy válido.
+### 2) Identidad única, declarada
+- VIGIL se identifica en cada petición como `Vigil-Engine/1.0 (+repo URL)` y
+  respeta `robots.txt`. No hay rotación de identidad ni de salidas: eso sirve
+  para no ser identificado, y aquí la identidad es el punto.
+- Un bloqueo no es un fallo que sortear, es un hallazgo publicable. Ver
+  [`docs/NO-EVASION.md`](../NO-EVASION.md).
+- La resistencia al bloqueo viene del despliegue distribuido: muchos
+  observadores honestos, no un observador con muchas máscaras.
 
 ### 3) Vital signs modes
 - `normal`: cadencia base.

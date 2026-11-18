@@ -36,14 +36,6 @@ class TestArgosLayerEnum:
         assert defense.title_es == "Tinta de Pulpo"
         assert "ChaCha20Poly1305" in defense.description_es
 
-    def test_evasion_properties(self):
-        """Test de Venado (Evasion/Deer)."""
-        defense = ArgosLayer.EVASION
-        assert defense.emoji == "🦌"
-        assert defense.name_es == "Venado"
-        assert defense.title_es == "Evasión de Venado"
-        assert "Jitter" in defense.description_es
-
     def test_regeneration_properties(self):
         """Test de Lagartija (Regeneration)."""
         defense = ArgosLayer.REGENERATION
@@ -63,10 +55,9 @@ class TestArgosLayerEnum:
 
     def test_all_defenses_mapping(self):
         """ALL_DEFENSES contiene todos los enum values."""
-        assert len(ALL_DEFENSES) == 5
+        assert len(ALL_DEFENSES) == 4
         assert "corvid" in ALL_DEFENSES
         assert "cephalopod" in ALL_DEFENSES
-        assert "evasion" in ALL_DEFENSES
         assert "regeneration" in ALL_DEFENSES
         assert "kill_switch" in ALL_DEFENSES
 
